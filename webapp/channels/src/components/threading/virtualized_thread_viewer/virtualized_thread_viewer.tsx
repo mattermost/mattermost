@@ -34,7 +34,6 @@ type Props = {
     onCardClick: (post: Post) => void;
     replyListIds: string[];
     selected: Post | FakePost;
-    teamId: string;
     useRelativeTimestamp: boolean;
     isThreadView: boolean;
 }
@@ -401,7 +400,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     listId={itemId}
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}
-                    teamId={this.props.teamId}
                     timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
                 />
             </div>

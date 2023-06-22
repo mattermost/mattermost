@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"testing"
@@ -11,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestGraphQLChannels(t *testing.T) {
@@ -314,7 +315,7 @@ func TestGraphQLChannels(t *testing.T) {
 		require.Len(t, resp.Errors, 0) // no errors for no channels found
 
 		th.BasicChannel.Purpose = "newpurpose"
-		_, _, err = th.Client.UpdateChannel(th.BasicChannel)
+		_, _, err = th.Client.UpdateChannel(context.Background(), th.BasicChannel)
 		require.NoError(t, err)
 
 		input = graphQLInput{
@@ -332,10 +333,10 @@ func TestGraphQLChannels(t *testing.T) {
 		require.NoError(t, json.Unmarshal(resp.Data, &q))
 		assert.Len(t, q.Channels, 1)
 
-		_, err = th.Client.DeleteChannel(ch1.Id)
+		_, err = th.Client.DeleteChannel(context.Background(), ch1.Id)
 		require.NoError(t, err)
 
-		_, err = th.Client.DeleteChannel(ch2.Id)
+		_, err = th.Client.DeleteChannel(context.Background(), ch2.Id)
 		require.NoError(t, err)
 
 		input = graphQLInput{

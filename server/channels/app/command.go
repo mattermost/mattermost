@@ -14,11 +14,11 @@ import (
 	"sync"
 	"unicode"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -811,10 +811,10 @@ func possibleAtMentions(message string) []string {
 // is a special character for usernames (dot, dash or underscore). If not, it
 // returns the same string.
 func trimUsernameSpecialChar(word string) (string, bool) {
-	len := len(word)
+	l := len(word)
 
-	if len > 0 && strings.LastIndexAny(word, usernameSpecialChars) == (len-1) {
-		return word[:len-1], true
+	if l > 0 && strings.LastIndexAny(word, usernameSpecialChars) == (l-1) {
+		return word[:l-1], true
 	}
 
 	return word, false

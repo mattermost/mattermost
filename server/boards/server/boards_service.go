@@ -8,19 +8,19 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/auth"
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/config"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/notify"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/permissions/mmpermissions"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store/mattermostauthlayer"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/boards/ws"
+	"github.com/mattermost/mattermost/server/v8/boards/auth"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/services/config"
+	"github.com/mattermost/mattermost/server/v8/boards/services/notify"
+	"github.com/mattermost/mattermost/server/v8/boards/services/permissions/mmpermissions"
+	"github.com/mattermost/mattermost/server/v8/boards/services/store"
+	"github.com/mattermost/mattermost/server/v8/boards/services/store/mattermostauthlayer"
+	"github.com/mattermost/mattermost/server/v8/boards/services/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/boards/ws"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (

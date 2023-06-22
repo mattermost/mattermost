@@ -15,8 +15,9 @@ import Tooltip from 'components/tooltip';
 
 import Constants, {RHSStates} from 'utils/constants';
 import {wrapEmojis} from 'utils/emoji_utils';
+import {cmdOrCtrlPressed} from 'utils/keyboard';
 import {isDesktopApp} from 'utils/user_agent';
-import {cmdOrCtrlPressed, localizeMessage} from 'utils/utils';
+import {localizeMessage} from 'utils/utils';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';

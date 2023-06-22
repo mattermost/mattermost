@@ -13,6 +13,7 @@ import {Team} from '@mattermost/types/teams';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {Constants} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 import * as Utils from 'utils/utils';
 
@@ -71,9 +72,9 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
     }
 
     switchToPrevOrNextTeam = (e: KeyboardEvent, currentTeamId: string, teams: Team[]) => {
-        if (Utils.isKeyPressed(e, Constants.KeyCodes.UP) || Utils.isKeyPressed(e, Constants.KeyCodes.DOWN)) {
+        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.UP) || Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN)) {
             e.preventDefault();
-            const delta = Utils.isKeyPressed(e, Constants.KeyCodes.DOWN) ? 1 : -1;
+            const delta = Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN) ? 1 : -1;
             const pos = teams.findIndex((team: Team) => team.id === currentTeamId);
             const newPos = pos + delta;
 
@@ -107,7 +108,7 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
         ];
 
         for (const idx in digits) {
-            if (Utils.isKeyPressed(e, digits[idx]) && parseInt(idx, 10) < teams.length) {
+            if (Keyboard.isKeyPressed(e, digits[idx]) && parseInt(idx, 10) < teams.length) {
                 e.preventDefault();
 
                 // prevents reloading the current team, while still capturing the keyboard shortcut

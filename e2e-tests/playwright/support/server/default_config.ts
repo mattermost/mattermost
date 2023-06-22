@@ -6,7 +6,6 @@ import merge from 'deepmerge';
 import {
     AdminConfig,
     ExperimentalSettings,
-    FeatureFlags,
     PasswordSettings,
     ServiceSettings,
     TeamSettings,
@@ -23,7 +22,6 @@ export function getOnPremServerConfig(): AdminConfig {
 type TestAdminConfig = {
     ClusterSettings: Partial<ClusterSettings>;
     ExperimentalSettings: Partial<ExperimentalSettings>;
-    FeatureFlags: Partial<FeatureFlags>;
     PasswordSettings: Partial<PasswordSettings>;
     PluginSettings: Partial<PluginSettings>;
     ServiceSettings: Partial<ServiceSettings>;
@@ -38,10 +36,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             ClusterName: testConfig.haClusterName,
         },
         ExperimentalSettings: {
-            EnableAppBar: true,
-        },
-        FeatureFlags: {
-            BoardsProduct: testConfig.boardsProductEnabled,
+            DisableAppBar: false,
         },
         PasswordSettings: {
             MinimumLength: 5,
@@ -55,11 +50,6 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             Plugins: {
                 'com.mattermost.calls': {
                     defaultenabled: true,
-                },
-            },
-            PluginStates: {
-                focalboard: {
-                    Enable: !testConfig.boardsProductEnabled,
                 },
             },
         },
@@ -180,7 +170,11 @@ const defaultServerConfig: AdminConfig = {
         EnableCustomGroups: true,
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
-        SelfHostedExpansion: false,
+        AllowPersistentNotifications: true,
+        PersistentNotificationMaxCount: 6,
+        PersistentNotificationMaxRecipients: 5,
+        PersistentNotificationIntervalMinutes: 5,
+        AllowPersistentNotificationsForGuests: false,
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -329,7 +323,6 @@ const defaultServerConfig: AdminConfig = {
         LoginButtonColor: '#0000',
         LoginButtonBorderColor: '#2389D7',
         LoginButtonTextColor: '#2389D7',
-        EnableInactivityEmail: true,
     },
     RateLimitSettings: {
         Enable: false,
@@ -345,11 +338,11 @@ const defaultServerConfig: AdminConfig = {
         ShowFullName: true,
     },
     SupportSettings: {
-        TermsOfServiceLink: 'https://mattermost.com/terms-of-use/',
-        PrivacyPolicyLink: 'https://mattermost.com/privacy-policy/',
-        AboutLink: 'https://docs.mattermost.com/about/product.html/',
-        HelpLink: 'https://mattermost.com/default-help/',
-        ReportAProblemLink: 'https://mattermost.com/default-report-a-problem/',
+        TermsOfServiceLink: 'https://mattermost.com/pl/terms-of-use/',
+        PrivacyPolicyLink: 'https://mattermost.com/pl/privacy-policy/',
+        AboutLink: 'https://docs.mattermost.com/pl/about-mattermost',
+        HelpLink: 'https://mattermost.com/pl/help/',
+        ReportAProblemLink: 'https://mattermost.com/pl/report-a-bug',
         SupportEmail: '',
         CustomTermsOfServiceEnabled: false,
         CustomTermsOfServiceReAcceptancePeriod: 365,
@@ -507,9 +500,9 @@ const defaultServerConfig: AdminConfig = {
     },
     NativeAppSettings: {
         AppCustomURLSchemes: ['mmauth://', 'mmauthbeta://'],
-        AppDownloadLink: 'https://mattermost.com/download/#mattermostApps',
-        AndroidAppDownloadLink: 'https://mattermost.com/mattermost-android-app/',
-        IosAppDownloadLink: 'https://mattermost.com/mattermost-ios-app/',
+        AppDownloadLink: 'https://mattermost.com/pl/download-apps',
+        AndroidAppDownloadLink: 'https://mattermost.com/pl/android-app/',
+        IosAppDownloadLink: 'https://mattermost.com/pl/ios-app/',
     },
     ClusterSettings: {
         Enable: false,
@@ -541,8 +534,9 @@ const defaultServerConfig: AdminConfig = {
         UseNewSAMLLibrary: false,
         EnableSharedChannels: false,
         EnableRemoteClusterService: false,
-        EnableAppBar: false,
-        PatchPluginsReactDOM: false,
+        DisableAppBar: true,
+        DisableRefetchingOnBrowserFocus: false,
+        DelayChannelAutocomplete: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
@@ -572,6 +566,7 @@ const defaultServerConfig: AdminConfig = {
         ClientCert: '',
         ClientKey: '',
         Trace: '',
+        IgnoredPurgeIndexes: '',
     },
     BleveSettings: {
         IndexDir: '',
@@ -611,9 +606,7 @@ const defaultServerConfig: AdminConfig = {
         CleanupJobsThresholdDays: -1,
         CleanupConfigThresholdDays: -1,
     },
-    ProductSettings: {
-        EnablePublicSharedBoards: false,
-    },
+    ProductSettings: {},
     PluginSettings: {
         Enable: true,
         EnableUploads: false,
@@ -623,19 +616,10 @@ const defaultServerConfig: AdminConfig = {
         ClientDirectory: './client/plugins',
         Plugins: {},
         PluginStates: {
-            'com.mattermost.apps': {
-                Enable: true,
-            },
             'com.mattermost.calls': {
                 Enable: true,
             },
             'com.mattermost.nps': {
-                Enable: true,
-            },
-            focalboard: {
-                Enable: true,
-            },
-            playbooks: {
                 Enable: true,
             },
         },
@@ -681,14 +665,10 @@ const defaultServerConfig: AdminConfig = {
         BoardsFeatureFlags: '',
         BoardsDataRetention: false,
         NormalizeLdapDNs: false,
-        EnableInactivityCheckJob: true,
-        UseCaseOnboarding: true,
         GraphQL: false,
         InsightsEnabled: true,
         CommandPalette: false,
-        BoardsProduct: false,
         SendWelcomePost: true,
-        WorkTemplate: false,
         PostPriority: true,
         WysiwygEditor: false,
         PeopleProduct: false,
@@ -697,7 +677,8 @@ const defaultServerConfig: AdminConfig = {
         ThreadsEverywhere: false,
         GlobalDrafts: true,
         OnboardingTourTips: true,
-        AppsSidebarCategory: false,
+        DeprecateCloudFree: false,
+        CloudReverseTrial: false,
     },
     ImportSettings: {
         Directory: './import',

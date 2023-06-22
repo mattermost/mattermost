@@ -184,7 +184,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                 <BackstageHeader>
                     <Link to={`/${this.props.team.name}/integrations/incoming_webhooks`}>
                         <FormattedMessage
-                            id='installed_incoming_webhooks.header'
+                            id='incoming_webhooks.header'
                             defaultMessage='Incoming Webhooks'
                         />
                     </Link>

@@ -3140,10 +3140,6 @@
     "translation": "Не удалось декодировать результаты поиска"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch уже запущен."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Не удалось создать массовый обработчик Elasticsearch."
   },
@@ -7165,7 +7161,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "В вашей системе Mattermost теперь 200 пользователей. Когда вы подключаете Mattermost к поставщику системы единого входа в вашей организации, пользователи могут получить доступ к Mattermost без необходимости повторно вводить свои учетные данные. Мы рекомендуем вам интегрировать своего провайдера SAML 2.0 с сервером Mattermost. [Подробнее об интеграции с SAML 2.0] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и готов получать электронные письма о продуктах."
+    "translation": "В вашей системе Mattermost теперь 200 пользователей. Когда вы подключаете Mattermost к поставщику системы единого входа в вашей организации, пользователи могут получить доступ к Mattermost без необходимости повторно вводить свои учетные данные. Мы рекомендуем вам интегрировать своего провайдера SAML 2.0 с сервером Mattermost. [Подробнее об интеграции с SAML 2.0] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/pl/privacy-policy/) и готов получать электронные письма о продуктах."
   },
   {
     "id": "api.server.warn_metric.mfa.contact_us.email_body",
@@ -7177,7 +7173,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "В проектах часто участвуют люди как внутри, так и за пределами организации. С помощью гостевых учетных записей вы можете привлекать внешних партнеров к своей системе Mattermost и указывать, с кем они могут работать и что они могут видеть.\n\n[Подробнее о включении гостевых учетных записей](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и буду получать электронные письма о продуктах."
+    "translation": "В проектах часто участвуют люди как внутри, так и за пределами организации. С помощью гостевых учетных записей вы можете привлекать внешних партнеров к своей системе Mattermost и указывать, с кем они могут работать и что они могут видеть.\n\n[Подробнее о включении гостевых учетных записей](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/pl/privacy-policy/) и буду получать электронные письма о продуктах."
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -7229,7 +7225,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "В вашей системе Mattermost включена многофакторная аутентификация, что дает пользователям возможность защитить свои учетные записи с помощью дополнительных средств аутентификации помимо пароля. Для повышения безопасности всей системы вы можете потребовать, чтобы все учетные записи Mattermost использовали многофакторную аутентификацию.\n\n[Подробнее о применении Многофакторной аутентификации](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nНажимая Начать пробную версию, я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и готов получать электронные письма о продуктах."
+    "translation": "В вашей системе Mattermost включена многофакторная аутентификация, что дает пользователям возможность защитить свои учетные записи с помощью дополнительных средств аутентификации помимо пароля. Для повышения безопасности всей системы вы можете потребовать, чтобы все учетные записи Mattermost использовали многофакторную аутентификацию.\n\n[Подробнее о применении Многофакторной аутентификации](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nНажимая Начать пробную версию, я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/pl/privacy-policy/) и готов получать электронные письма о продуктах."
   },
   {
     "id": "api.server.warn_metric.mfa.notification_body",
@@ -8041,7 +8037,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "В вашей системе Mattermost теперь есть несколько команд. У многих команд есть свой предпочитаемый способ координации и сотрудничества, включая то, как создаются каналы, кто может приглашать новых участников команды и как осуществляется интеграция. Схемы группового управления позволяют вам настраивать права пользователей в каждой команде в соответствии с их конкретными потребностями.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
+    "translation": "В вашей системе Mattermost теперь есть несколько команд. У многих команд есть свой предпочитаемый способ координации и сотрудничества, включая то, как создаются каналы, кто может приглашать новых участников команды и как осуществляется интеграция. Схемы группового управления позволяют вам настраивать права пользователей в каждой команде в соответствии с их конкретными потребностями.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/pl/privacy-policy/) и получаю сообщения о продукте по email."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
@@ -8061,7 +8057,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "В вашей системе Mattermost имеется большое количество сообщений. Поиск в базе данных Mattermost по умолчанию начинает показывать снижение производительности примерно при 2,5 миллионах сообщений. Если сообщений больше 5 миллионов, Elasticsearch может помочь избежать значительных проблем с производительностью, таких как таймауты при поиске и обработке упоминаний. Свяжитесь с нами, чтобы узнать больше и дайте знать, чем мы можем помочь.\n\n[Подробнее об улучшении производительности] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
+    "translation": "В вашей системе Mattermost имеется большое количество сообщений. Поиск в базе данных Mattermost по умолчанию начинает показывать снижение производительности примерно при 2,5 миллионах сообщений. Если сообщений больше 5 миллионов, Elasticsearch может помочь избежать значительных проблем с производительностью, таких как таймауты при поиске и обработке упоминаний. Свяжитесь с нами, чтобы узнать больше и дайте знать, чем мы можем помочь.\n\n[Подробнее об улучшении производительности] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/pl/privacy-policy/) и получаю сообщения о продукте по email."
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
@@ -8081,7 +8077,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Каналы помогают улучшить коммуникацию, но по мере присоединения к Mattermost новых пользователей и создания ими каналов, задача поддержания организованности системы усложняется. Расширенные права позволяют установить, какие пользователи или роли могут выполнять определённые действия, в том числе управление настройками каналов и подписчиков, используя теги @channel или @here для широких групп пользователей, а также для создания новых событий webhook.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
+    "translation": "Каналы помогают улучшить коммуникацию, но по мере присоединения к Mattermost новых пользователей и создания ими каналов, задача поддержания организованности системы усложняется. Расширенные права позволяют установить, какие пользователи или роли могут выполнять определённые действия, в том числе управление настройками каналов и подписчиков, используя теги @channel или @here для широких групп пользователей, а также для создания новых событий webhook.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/pl/privacy-policy/) и получаю сообщения о продукте по email."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_title",
@@ -8101,7 +8097,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "При развёртывании Mattermost более, чем на 500 пользователей, мы настоятельно рекомендуем использовать такие функции, как управление пользователями, кластеризация серверов и мониторинг производительности. Свяжитесь с нами, чтобы узнать больше и дайте знать, чем мы можем помочь.\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
+    "translation": "При развёртывании Mattermost более, чем на 500 пользователей, мы настоятельно рекомендуем использовать такие функции, как управление пользователями, кластеризация серверов и мониторинг производительности. Свяжитесь с нами, чтобы узнать больше и дайте знать, чем мы можем помочь.\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/pl/privacy-policy/) и получаю сообщения о продукте по email."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
@@ -8109,7 +8105,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "В Mattermost много переговоров, поэтому может быть сложно понять, где искать важную информацию. Если вы хотите транслировать сообщение для большой аудитории, вы можете настроить каналы объявлений для чтения, к которым может присоединиться любой желающий, но только администраторы каналов могут размещать сообщения.\n\n[Подробнее о создании каналов объявлений только для чтения] (https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
+    "translation": "В Mattermost много переговоров, поэтому может быть сложно понять, где искать важную информацию. Если вы хотите транслировать сообщение для большой аудитории, вы можете настроить каналы объявлений для чтения, к которым может присоединиться любой желающий, но только администраторы каналов могут размещать сообщения.\n\n[Подробнее о создании каналов объявлений только для чтения] (https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/pl/privacy-policy/) и получаю сообщения о продукте по email."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -8133,7 +8129,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "У вашей системы Mattermost более 100 пользователей. По мере роста вашей базы пользователей, создание новых учётных записей может отнимать много времени. Мы рекомендуем интегрировать Active Directory/LDAP вашей организации, что позволит любому, у кого есть учётная запись, получить доступ к Mattermost.\n\n[Подробнее об интеграции с AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
+    "translation": "У вашей системы Mattermost более 100 пользователей. По мере роста вашей базы пользователей, создание новых учётных записей может отнимать много времени. Мы рекомендуем интегрировать Active Directory/LDAP вашей организации, что позволит любому, у кого есть учётная запись, получить доступ к Mattermost.\n\n[Подробнее об интеграции с AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/pl/privacy-policy/) и получаю сообщения о продукте по email."
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
@@ -9834,5 +9830,365 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Невозможно удалить данные oauth."
+  },
+  {
+    "id": "app.user.digest.tasks.due_after_today",
+    "translation": {
+      "few": "У вас есть **{{.Count}} назначенных задачи, которые необходимо выполнить после сегодняшнего дня**.",
+      "many": "У вас есть **{{.Count}} назначенных задач, которые необходимо выполнить после сегодняшнего дня**.",
+      "one": "У вас есть **{{.Count}} назначенная задача, которую необходимо выполнить после сегодняшнего дня**."
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.all_tasks_command",
+    "translation": "Пожалуйста, используйте `/playbook todo`, чтобы увидеть все свои задачи."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.zero_in_progress",
+    "translation": "В настоящее время у вас нет запусков."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.num_in_progress",
+    "translation": {
+      "few": "У вас запущено {{.Count}}:",
+      "many": "У вас запущены {{.Count}}:",
+      "one": "У вас запущен {{.Count}}:"
+    }
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.heading",
+    "translation": "Выполняется"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.zero_overdue",
+    "translation": "У вас просрочено 0 запусков."
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.num_overdue",
+    "translation": {
+      "few": "У вас есть {{.Count}} просроченных запуска для обновления статуса:",
+      "many": "У вас есть {{.Count}} просроченных запусков для обновления статуса:",
+      "one": "У вас есть {{.Count}} просроченный запуск для обновления статуса:"
+    }
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.heading",
+    "translation": "Просроченные обновления статуса"
+  },
+  {
+    "id": "app.command.execute.error",
+    "translation": "Невозможно выполнить команду."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "Серверу CWS не удалось подписаться на рассылку новостей."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Недействительный рабочий адрес электронной почты для пробной версии"
+  },
+  {
+    "id": "app.user.digest.tasks.due_in_x_days",
+    "translation": {
+      "few": "Срок исполнения - {{.Count}} дня",
+      "many": "Срок исполнения - {{.Count}} дней",
+      "one": "Срок исполнения - {{.Count}} день"
+    }
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Пропуск установки плагина {{.Id}}, поскольку существующая версия плагина идентична текущей или более новая."
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Плагин {{.Id}} находится в списке блокировки. Некоторые плагины заблокированы, потому что они встроены в данную версию Mattermost."
+  },
+  {
+    "id": "app.user.run.confirm_finish.title",
+    "translation": "Подтвердить завершение запуска"
+  },
+  {
+    "id": "app.user.run.confirm_finish.submit_label",
+    "translation": "Завершить запуск"
+  },
+  {
+    "id": "app.user.run.confirm_finish.num_outstanding",
+    "translation": {
+      "few": "Есть **{{.Count}} невыполненные задачи**. Вы уверены, что хотите завершить запуск *{{.RunName}}* для всех участников?",
+      "many": "Есть **{{.Count}} невыполненных задач**. Вы уверены, что хотите завершить запуск *{{.RunName}}* для всех участников?",
+      "one": "Есть **{{.Count}} невыполненная задача**. Вы уверены, что хотите завершить запуск *{{.RunName}}* для всех участников?"
+    }
+  },
+  {
+    "id": "app.user.run.add_to_timeline.title",
+    "translation": "Добавить на временную шкалу"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary",
+    "translation": "Сводка"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.placeholder",
+    "translation": "Краткая сводка, отображаемая на временной шкале"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.help",
+    "translation": "Максимум 64 символа"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.submit_label",
+    "translation": "Добавить на временную шкалу"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.playbook_run",
+    "translation": "Запуск сценария"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.title",
+    "translation": "Добавить новую задачу"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.submit_label",
+    "translation": "Добавить задачу"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.name",
+    "translation": "Имя"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.description",
+    "translation": "Описание"
+  },
+  {
+    "id": "app.user.new_run.title",
+    "translation": "Запустить сценарий"
+  },
+  {
+    "id": "app.user.new_run.submit_label",
+    "translation": "Запустить"
+  },
+  {
+    "id": "app.user.new_run.run_name",
+    "translation": "Название запуска"
+  },
+  {
+    "id": "app.user.new_run.playbook",
+    "translation": "Сценарий"
+  },
+  {
+    "id": "app.user.new_run.intro",
+    "translation": "**Владелец** {{.Username}}"
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned",
+    "translation": {
+      "few": "Вам поручено {{.Count}} задачи:",
+      "many": "Вам поручено {{.Count}} задач:",
+      "one": "Вам поручена {{.Count}} задача:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned_due_until_today",
+    "translation": {
+      "few": "Вы получили {{.Count}} задачи, срок выполнения которых:",
+      "many": "Вы получили {{.Count}} задач, срок выполнения которых:",
+      "one": "Вы получили {{.Count}} задачу, срок выполнения которой:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.zero_assigned",
+    "translation": "У вас нет назначенных задач."
+  },
+  {
+    "id": "app.user.digest.tasks.heading",
+    "translation": "Ваши назначенные задачи"
+  },
+  {
+    "id": "app.user.digest.tasks.due_yesterday",
+    "translation": "Вчера"
+  },
+  {
+    "id": "app.user.digest.tasks.due_x_days_ago",
+    "translation": "Срок исполнения {{.Count}} дн. назад"
+  },
+  {
+    "id": "app.user.digest.tasks.due_today",
+    "translation": "Сегодня"
+  },
+  {
+    "id": "app.user.run.status_enable",
+    "translation": "@{{.Username}} включил обновление статуса для [{{.RunName}}]({{.RunURL}})"
+  },
+  {
+    "id": "app.user.run.status_disable",
+    "translation": "@{{.Username}} отключил обновление статуса для [{{.RunName}}]({{.RunURL}})"
+  },
+  {
+    "id": "app.user.run.request_update",
+    "translation": "@here — @{{.Name}} запросил обновление статуса для [{{.RunName}}]({{.RunURL}}). \n"
+  },
+  {
+    "id": "app.user.run.request_join_channel",
+    "translation": "@{{.Name}} является участником запуска и хочет присоединиться к этому каналу. Любой участник канала может пригласить его.\n"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Обсудите со своей командой отзывы клиентов, расставьте приоритеты и вместе согласуйте прогресс и планы."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Используйте доску \"Дорожная карта продукта\" (Product Roadmap) для управления отзывами пользователей, назначения ресурсов, просмотра результатов в календарном режиме и определения приоритетности проблем."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Zoom, для облегчения совместной работы. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Общайтесь о своих целях и прогрессе работ с командой в режиме асинхронного или реального времени и будьте в курсе всех изменений в едином канале."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Отслеживайте прогресс вашей команды в достижении организационных целей с помощью доски \"Цели и ОКР\" (OKR board). Следите за ходом совещаний с помощью доски \"Повестка совещания\" (Meeting Agenda)."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Усильте межфункциональное сотрудничество команды с помощью контрольных списков задач и автоматизации, которые поддерживают процесс разработки функций. После завершения работы проведите ретроспективу и внесите улучшения в следующий релиз."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты для поддержки выпуска функций, например GitHub. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Общайтесь со своей командой о любых блокировках релиза и изменениях в канале, который легко подключается к вашим доскам, плейбукам и другим интеграциям."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Ведите совещания по плану с помощью доски \"Повестка совещания\" (Meeting Agenda). Управляйте своей рабочей нагрузкой с помощью доски \"Задачи проекта\" (Project Tasks)."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Используйте контрольные списки для распределения областей тестирования и автоматизации задач для проведения комплексного процесса устранения ошибок. Используйте ретроспективу, чтобы проанализировать свой процесс и улучшить его для следующего раза."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Повысьте продуктивность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Jira, для отслеживания хода работы над ошибками. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Планируйте и управляйте сообщениями об ошибках и решениями в едином канале, который легко доступен для вашей команды и организации."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Zoom, для облегчения совместной работы. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "Общайтесь о своих целях и прогрессе работ с командой в режиме асинхронного или реального времени и будьте в курсе всех изменений в едином канале."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Отслеживайте прогресс вашей команды в достижении организационных целей с помощью доски \"Цели и ОКР\" (OKR board). Следите за ходом совещаний с помощью доски \"Повестка совещания\" (Meeting Agenda)."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "Создайте повторяющиеся рабочие процессы, которые легко соблюдать и внедрять, чтобы выпуск продукции был надежным и своевременным."
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "Легко и быстро общайтесь со своей командой по поводу ежедневных этапов, любых блокирующих факторов и изменений в результатах работы."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "Используйте доску релиза продукта (Product Release) для поддержки сроков и процесса выпуска, чтобы каждый знал, какие задачи подлежат выполнению."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "Используйте контрольные списки и автоматизацию, чтобы привлечь ключевых членов команды, и расскажите, как продвигается процесс разрешения инцидента."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "Общайтесь со своей командой о приоритетах, добавляйте заинтересованные стороны, предоставляйте обновления и работайте над решением в едином канале."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Используйте доску по разрешению инцидентов для поддержки повторяющихся процессов и назначения определенных задач для всей команды."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Zoom, для облегчения совместной работы. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Общайтесь о своих целях и прогрессе работ с командой в режиме асинхронного или реального времени и будьте в курсе всех изменений в едином канале."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Отслеживайте прогресс вашей команды в достижении организационных целей с помощью доски \"Цели и ОКР\". Следите за ходом совещаний с помощью доски \"Повестка совещания\"."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Обсудите со своей командой новый проект и решите, как вы собираетесь его структурировать, в канале совместной работы."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Используйте доску Kanban для определения и отслеживания задач и хода выполнения проекта."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Недопустимое значение для байтов при загрузке лицензии."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Версия Elasticsearch {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
+  },
+  {
+    "id": "app.user.run.update_status.title",
+    "translation": "Статус обновлен"
+  },
+  {
+    "id": "app.user.run.update_status.submit_label",
+    "translation": "Обновить статус"
+  },
+  {
+    "id": "app.user.run.update_status.reminder_for_next_update",
+    "translation": "Напоминание для следующего обновления"
+  },
+  {
+    "id": "app.user.run.update_status.num_channel",
+    "translation": {
+      "few": "Предоставьте заинтересованным сторонам обновленную информацию. Этот пост будет транслироваться на {{.Count}} канала.",
+      "many": "Предоставьте заинтересованным сторонам обновленную информацию. Этот пост будет транслироваться на {{.Count}} каналов.",
+      "one": "Предоставьте заинтересованным сторонам обновленную информацию. Этот пост будет транслироваться на {{.Count}} канал."
+    }
+  },
+  {
+    "id": "app.user.run.update_status.finish_run.placeholder",
+    "translation": "Отметьте запуск как завершенный"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run",
+    "translation": "Завершить запуск"
+  },
+  {
+    "id": "app.user.run.update_status.change_since_last_update",
+    "translation": "Изменения с последнего обновления"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Повысьте производительность вашего канала за счет интеграции наиболее часто используемых инструментов, таких как Zoom. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Общайтесь со своей командой в канале, который легко подключается к вашим доскам и интеграциям."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Отслеживайте прогресс вашей команды в достижении еженедельных целей с помощью разбивки спринтов, определения приоритетов, назначения владельцев и комментариев."
   }
 ]

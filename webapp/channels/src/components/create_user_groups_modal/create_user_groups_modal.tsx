@@ -213,9 +213,7 @@ export default class CreateUserGroupsModal extends React.PureComponent<Props, St
                     }
 
                 </Modal.Header>
-                <Modal.Body
-                    className='overflow--visible'
-                >
+                <Modal.Body>
                     <div className='user-groups-modal__content'>
                         <div className='group-name-input-wrapper'>
                             <Input

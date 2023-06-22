@@ -34,7 +34,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
       >
         <MemoizedFormattedMessage
           defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile"
+          id="setting_picture.help.profile.example"
           values={
             Object {
               "max": 52428800,
@@ -139,7 +139,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
       >
         <MemoizedFormattedMessage
           defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile"
+          id="setting_picture.help.profile.example"
           values={
             Object {
               "max": 52428800,
@@ -254,7 +254,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
       >
         <MemoizedFormattedMessage
           defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile"
+          id="setting_picture.help.profile.example"
           values={
             Object {
               "max": 52428800,
@@ -381,7 +381,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
       >
         <MemoizedFormattedMessage
           defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile"
+          id="setting_picture.help.profile.example"
           values={
             Object {
               "max": 52428800,
@@ -496,7 +496,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
       >
         <MemoizedFormattedMessage
           defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile"
+          id="setting_picture.help.profile.example"
           values={
             Object {
               "max": 52428800,
@@ -623,7 +623,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
       >
         <MemoizedFormattedMessage
           defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile"
+          id="setting_picture.help.profile.example"
           values={
             Object {
               "max": 52428800,
@@ -792,7 +792,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
       >
         <MemoizedFormattedMessage
           defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile"
+          id="setting_picture.help.profile.example"
           values={
             Object {
               "max": 52428800,
@@ -961,7 +961,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
       >
         <MemoizedFormattedMessage
           defaultMessage="Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}"
-          id="setting_picture.help.profile"
+          id="setting_picture.help.profile.example"
           values={
             Object {
               "max": 52428800,

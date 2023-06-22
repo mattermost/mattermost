@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback} from 'react'
+import React, {useCallback, useState} from 'react'
 import {useIntl} from 'react-intl'
 
 import {IPropertyOption} from 'src/blocks/board'
-import {Utils, IDType} from 'src/utils'
+import {IDType, Utils} from 'src/utils'
 
 import mutator from 'src/mutator'
 
@@ -27,9 +27,9 @@ const MultiSelectProperty = (props: PropertyProps): JSX.Element => {
     const onDeleteOption = useCallback((option: IPropertyOption) => mutator.deletePropertyOption(board.id, board.cardProperties, propertyTemplate, option), [board, propertyTemplate])
 
     const onDeleteValue = useCallback((valueToDelete: IPropertyOption, currentValues: IPropertyOption[]) => {
-        const newValues = currentValues.
-            filter((currentValue) => currentValue.id !== valueToDelete.id).
-            map((currentValue) => currentValue.id)
+        const newValues = currentValues
+            .filter((currentValue) => currentValue.id !== valueToDelete.id)
+            .map((currentValue) => currentValue.id)
         mutator.changePropertyValue(board.id, card, propertyTemplate.id, newValues)
     }, [board.id, card, propertyTemplate.id])
 

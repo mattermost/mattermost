@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {recycleDatabaseConnection} from 'actions/admin_actions.jsx';
+import {recycleDatabaseConnection, ping} from 'actions/admin_actions';
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 
@@ -13,12 +13,22 @@ import ExternalLink from 'components/external_link';
 import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import RequestButton from './request_button/request_button';
-import SettingsGroup from './settings_group.jsx';
+import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
 import MigrationsTable from './database';
+import {DocLinks} from 'utils/constants';
 
 export default class DatabaseSettings extends AdminSettings {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            ...this.state,
+            searchBackend: '',
+        };
+    }
+
     getConfigFromState = (config) => {
         // driverName and dataSource are read-only from the UI
 
@@ -33,6 +43,17 @@ export default class DatabaseSettings extends AdminSettings {
 
         return config;
     };
+
+    componentDidMount() {
+        this.getSearchBackend().then((searchBackend) => {
+            this.setState({searchBackend});
+        });
+    }
+
+    async getSearchBackend() {
+        const res = await ping()();
+        return res.ActiveSearchBackend;
+    }
 
     getStateFromConfig(config) {
         return {
@@ -333,7 +354,7 @@ export default class DatabaseSettings extends AdminSettings {
                                 link: (msg) => (
                                     <ExternalLink
                                         location='database_settings'
-                                        href='https://mattermost.com/pl/default-search-engine'
+                                        href={DocLinks.ELASTICSEARCH}
                                     >
                                         {msg}
                                     </ExternalLink>
@@ -364,6 +385,30 @@ export default class DatabaseSettings extends AdminSettings {
                                         defaultMessage='All applied migrations.'
                                     />
                                 }
+                            />
+                        </div>
+                    </div>
+                </div>
+                <div className='form-group'>
+                    <label
+                        className='control-label col-sm-4'
+                    >
+                        <FormattedMessage
+                            id='admin.database.search_backend.title'
+                            defaultMessage='Active Search Backend:'
+                        />
+                    </label>
+                    <div className='col-sm-8'>
+                        <input
+                            type='text'
+                            className='form-control'
+                            value={this.state.searchBackend}
+                            disabled={true}
+                        />
+                        <div className='help-text'>
+                            <FormattedMessage
+                                id='admin.database.search_backend.help_text'
+                                defaultMessage='Shows the currently active backend used for search. Values can be none, database, elasticsearch, bleve etc.'
                             />
                         </div>
                     </div>

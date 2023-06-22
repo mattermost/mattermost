@@ -59,7 +59,7 @@ describe('components/app_bar/app_bar', () => {
                 },
                 general: {
                     config: {
-                        EnableAppBar: 'true',
+                        DisableAppBar: 'false',
                         FeatureFlagAppsEnabled: 'true',
                     } as any,
                 },
@@ -142,7 +142,7 @@ describe('components/app_bar/app_bar', () => {
     });
 
     test('should match snapshot on mount when App Bar is disabled', async () => {
-        mockState.entities.general.config.EnableAppBar = 'false';
+        mockState.entities.general.config.DisableAppBar = 'false';
 
         const wrapper = mount(
             <AppBar/>,
@@ -154,7 +154,7 @@ describe('components/app_bar/app_bar', () => {
     test('should not show marketplace if disabled or user does not have SYSCONSOLE_WRITE_PLUGINS permission', async () => {
         mockState.entities.general = {
             config: {
-                EnableAppBar: 'true',
+                DisableAppBar: 'true',
                 FeatureFlagAppsEnabled: 'true',
                 EnableMarketplace: 'true',
                 PluginsEnabled: 'true',
@@ -171,7 +171,7 @@ describe('components/app_bar/app_bar', () => {
     test('should show marketplace if enabled and user has SYSCONSOLE_WRITE_PLUGINS permission', async () => {
         mockState.entities.general = {
             config: {
-                EnableAppBar: 'true',
+                DisableAppBar: 'false',
                 FeatureFlagAppsEnabled: 'true',
                 EnableMarketplace: 'true',
                 PluginsEnabled: 'true',

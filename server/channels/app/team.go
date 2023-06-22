@@ -18,20 +18,20 @@ import (
 	"sort"
 	"strings"
 
-	fb_model "github.com/mattermost/mattermost-server/v6/server/boards/model"
+	fb_model "github.com/mattermost/mattermost/server/v8/boards/model"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/email"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/imaging"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/teams"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/users"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 // teamServiceWrapper provides an implementation of `product.TeamService` to be used by products.
@@ -207,7 +207,7 @@ func (a *App) shouldCreateOnboardingLinkedBoard(c request.CTX, teamId string) bo
 func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_model.Board, *model.AppError) {
 	const defaultTemplatesTeam = "0"
 
-	// see https://github.com/mattermost/mattermost-server/v6/server/boards/blob/main/server/services/store/sqlstore/board.go#L302
+	// see https://github.com/mattermost/mattermost/server/v8/boards/blob/main/server/services/store/sqlstore/board.go#L302
 	// and https://github.com/mattermost/mattermost-server/pull/22201#discussion_r1099536430
 	const defaultTemplateTitle = "Welcome to Boards!"
 	welcomeToBoardsTemplateId := fmt.Sprintf("%x", md5.Sum([]byte(defaultTemplateTitle)))
@@ -234,7 +234,7 @@ func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_mod
 		return nil, appErr
 	}
 
-	var template *fb_model.Board = nil
+	var template *fb_model.Board
 	for _, t := range templates {
 		v := t.Properties["trackingTemplateId"]
 		if v == welcomeToBoardsTemplateId {
@@ -1895,7 +1895,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	if includeCollapsedThreads {
-		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.isPostPriorityEnabled())
+		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled())
 		if err != nil {
 			return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1972,6 +1972,10 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
 		return err
+	}
+
+	if err := a.Srv().Store().PostPersistentNotification().DeleteByTeam([]string{team.Id}); err != nil {
+		return model.NewAppError("SoftDeleteTeam", "app.post_persistent_notification.delete_by_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	team.DeleteAt = model.GetMillis()

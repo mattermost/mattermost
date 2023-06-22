@@ -14,6 +14,7 @@ type ColorOptionProps = MenuOptionProps & {
 function ColorOption(props: ColorOptionProps): JSX.Element {
     const {id, name, icon} = props
     const intl = useIntl()
+
     return (
         <div
             role='button'

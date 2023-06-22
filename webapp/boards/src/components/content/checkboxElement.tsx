@@ -68,6 +68,7 @@ const CheckboxElement = (props: Props) => {
                     const {lastAddedBlock} = cardDetail
                     if (title === '' && block.id === lastAddedBlock.id && lastAddedBlock.autoAdded && props.onDeleteElement) {
                         props.onDeleteElement()
+
                         return
                     }
 
@@ -77,6 +78,7 @@ const CheckboxElement = (props: Props) => {
                             // Wait for the change to happen
                             setTimeout(props.onAddElement, 100)
                         }
+
                         return
                     }
 

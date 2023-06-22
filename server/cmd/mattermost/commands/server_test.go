@@ -11,8 +11,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs"
-	"github.com/mattermost/mattermost-server/v6/server/config"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/config"
 )
 
 const (
@@ -65,6 +65,7 @@ func TestRunServerSuccess(t *testing.T) {
 	// Use non-default listening port in case another server instance is already running.
 	cfg := configStore.Get()
 	*cfg.ServiceSettings.ListenAddress = unitTestListeningPort
+	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	configStore.Set(cfg)
 
 	err := runServer(configStore, th.interruptChan)
@@ -117,6 +118,7 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	// Use non-default listening port in case another server instance is already running.
 	cfg := configStore.Get()
 	*cfg.ServiceSettings.ListenAddress = unitTestListeningPort
+	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	configStore.Set(cfg)
 
 	// Start and stop the server
@@ -142,6 +144,7 @@ func TestRunServerNoSystemd(t *testing.T) {
 	// Use non-default listening port in case another server instance is already running.
 	cfg := configStore.Get()
 	*cfg.ServiceSettings.ListenAddress = unitTestListeningPort
+	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	configStore.Set(cfg)
 
 	err := runServer(configStore, th.interruptChan)

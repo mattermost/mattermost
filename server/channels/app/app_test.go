@@ -12,12 +12,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
-/* Temporarily comment out until MM-11108
+/* TODO: Temporarily comment out until MM-11108
 func TestAppRace(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		a, err := New()
@@ -60,6 +61,8 @@ func TestUnitUpdateConfig(t *testing.T) {
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	prev := *th.App.Config().ServiceSettings.SiteURL
+
+	require.False(t, th.App.IsConfigReadOnly())
 
 	var called int32
 	th.App.AddConfigListener(func(old, current *model.Config) {
@@ -116,7 +119,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionGetPublicLink.Id,
 			model.PermissionCreatePost.Id,
 			model.PermissionUseChannelMentions.Id,
-			model.PermissionUseSlashCommands.Id,
 			model.PermissionManagePublicChannelProperties.Id,
 			model.PermissionDeletePublicChannel.Id,
 			model.PermissionManagePrivateChannelProperties.Id,

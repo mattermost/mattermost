@@ -19,6 +19,7 @@ import {ModalData} from 'types/actions';
 import {RhsState} from 'types/store/rhs';
 
 import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 
 import CreateUserGroupsModal from 'components/create_user_groups_modal';
@@ -52,7 +53,6 @@ type Props = {
     canCreateCustomGroups: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
-    showWorkTemplateButton: boolean;
 };
 
 type State = {
@@ -98,15 +98,15 @@ export default class Sidebar extends React.PureComponent<Props, State> {
     };
 
     handleKeyDownEvent = (event: KeyboardEvent) => {
-        if (Utils.isKeyPressed(event, Constants.KeyCodes.ESCAPE)) {
+        if (Keyboard.isKeyPressed(event, Constants.KeyCodes.ESCAPE)) {
             this.props.actions.clearChannelSelection();
             return;
         }
 
-        const ctrlOrMetaKeyPressed = Utils.cmdOrCtrlPressed(event, true);
+        const ctrlOrMetaKeyPressed = Keyboard.cmdOrCtrlPressed(event, true);
 
         if (ctrlOrMetaKeyPressed) {
-            if (Utils.isKeyPressed(event, Constants.KeyCodes.FORWARD_SLASH)) {
+            if (Keyboard.isKeyPressed(event, Constants.KeyCodes.FORWARD_SLASH)) {
                 event.preventDefault();
                 if (this.props.isKeyBoardShortcutModalOpen) {
                     this.props.actions.closeModal(ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL);
@@ -116,7 +116,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                         dialogType: KeyboardShortcutsModal,
                     });
                 }
-            } else if (Utils.isKeyPressed(event, Constants.KeyCodes.A) && event.shiftKey) {
+            } else if (Keyboard.isKeyPressed(event, Constants.KeyCodes.A) && event.shiftKey) {
                 event.preventDefault();
 
                 this.props.actions.openModal({
@@ -255,7 +255,6 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                         unreadFilterEnabled={this.props.unreadFilterEnabled}
                         userGroupsEnabled={this.props.userGroupsEnabled}
                         canCreateCustomGroups={this.props.canCreateCustomGroups}
-                        showWorkTemplateButton={this.props.showWorkTemplateButton}
                     />
                 )}
                 <div

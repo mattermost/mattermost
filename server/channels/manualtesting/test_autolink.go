@@ -4,11 +4,12 @@
 package manualtesting
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const linkPostText = `
@@ -32,7 +33,7 @@ func testAutoLink(env TestEnvironment) *model.AppError {
 	post := &model.Post{
 		ChannelId: channelID,
 		Message:   linkPostText}
-	_, _, err := env.Client.CreatePost(post)
+	_, _, err := env.Client.CreatePost(context.Background(), post)
 
 	var appErr *model.AppError
 	if ok = errors.As(err, &appErr); !ok {

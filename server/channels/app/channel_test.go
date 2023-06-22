@@ -18,9 +18,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/users"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestPermanentDeleteChannel(t *testing.T) {
@@ -554,7 +554,7 @@ func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic().DeleteBots()
 	defer th.TearDown()
 
 	// create a user and add it to a channel
@@ -608,6 +608,85 @@ func TestLeaveDefaultChannel(t *testing.T) {
 		assert.Nil(t, err, "It should allow to remove a guest user from the default channel")
 		_, err = th.App.GetChannelMember(th.Context, townSquare.Id, guest.Id)
 		assert.NotNil(t, err)
+	})
+
+	t.Run("Trying to leave the default channel should not delete thread memberships", func(t *testing.T) {
+		post := &model.Post{
+			ChannelId: townSquare.Id,
+			Message:   "root post",
+			UserId:    th.BasicUser.Id,
+		}
+		rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		reply := &model.Post{
+			ChannelId: townSquare.Id,
+			Message:   "reply post",
+			UserId:    th.BasicUser.Id,
+			RootId:    rpost.Id,
+		}
+		_, err = th.App.CreatePost(th.Context, reply, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		threads, err := th.App.GetThreadsForUser(th.BasicUser.Id, townSquare.TeamId, model.GetUserThreadsOpts{})
+		require.Nil(t, err)
+		require.Len(t, threads.Threads, 1)
+
+		err = th.App.LeaveChannel(th.Context, townSquare.Id, th.BasicUser.Id)
+		assert.NotNil(t, err, "It should fail to remove a regular user from the default channel")
+		assert.Equal(t, err.Id, "api.channel.remove.default.app_error")
+
+		threads, err = th.App.GetThreadsForUser(th.BasicUser.Id, townSquare.TeamId, model.GetUserThreadsOpts{})
+		require.Nil(t, err)
+		require.Len(t, threads.Threads, 1)
+	})
+}
+
+func TestLeaveChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	createThread := func(channel *model.Channel) (rpost *model.Post) {
+		t.Helper()
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "root post",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		reply := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "reply post",
+			UserId:    th.BasicUser.Id,
+			RootId:    rpost.Id,
+		}
+		_, err = th.App.CreatePost(th.Context, reply, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		return rpost
+	}
+
+	t.Run("thread memberships are deleted", func(t *testing.T) {
+		createThread(th.BasicChannel)
+		channel2 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+		createThread(channel2)
+
+		threads, err := th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicChannel.TeamId, model.GetUserThreadsOpts{})
+		require.Nil(t, err)
+		require.Len(t, threads.Threads, 2)
+
+		err = th.App.LeaveChannel(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		_, err = th.App.GetChannelMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
+		require.NotNil(t, err, "It should remove channel membership")
+
+		threads, err = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicChannel.TeamId, model.GetUserThreadsOpts{})
+		require.Nil(t, err)
+		require.Len(t, threads.Threads, 1)
 	})
 }
 
@@ -2403,6 +2482,10 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 
 	// add a bot post to ensure it's not counted
@@ -2515,6 +2598,10 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 
 	// add a bot post to ensure it's not counted
@@ -2592,6 +2679,10 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 func TestPostCountsByDuration(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
@@ -2714,6 +2805,10 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
 	channel3 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
 	channel4 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
@@ -2809,6 +2904,10 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	// delete offtopic, town-square, th.basicchannel channels - which interferes with 'least' active channel results
 	offTopicChannel, appErr := th.App.GetChannelByName(th.Context, "off-topic", th.BasicTeam.Id, false)

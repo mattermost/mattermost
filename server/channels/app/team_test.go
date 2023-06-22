@@ -18,15 +18,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/email"
-	emailmocks "github.com/mattermost/mattermost-server/v6/server/channels/app/email/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/teams"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/users"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/testlib"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
+	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -727,7 +727,7 @@ func TestSanitizeTeam(t *testing.T) {
 	}
 
 	copyTeam := func() *model.Team {
-		copy := &model.Team{}
+		copy := &model.Team{} //nolint:revive
 		*copy = *team
 		return copy
 	}
@@ -1658,6 +1658,10 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 func TestGetNewTeamMembersSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	team := th.CreateTeam()
 

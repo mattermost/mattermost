@@ -68,7 +68,7 @@ import {
 } from 'mattermost-redux/actions/users';
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {setGlobalItem} from 'actions/storage';
-import {transformServerDraft} from 'actions/views/drafts';
+import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
@@ -82,14 +82,13 @@ import {
     getCurrentChannelId,
     getRedirectChannelNameForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getPost, getMostRecentPostIdInChannel} from 'mattermost-redux/selectors/entities/posts';
+import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
 
-import {getConnectionId} from 'selectors/general';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 
@@ -106,6 +105,7 @@ import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
+import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 import store from 'stores/redux_store.jsx';
 import WebSocketClient from 'client/web_websocket_client.jsx';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
@@ -234,7 +234,7 @@ export function reconnect() {
             // we can request for getPosts again when socket is connected
             dispatch(getPosts(currentChannelId));
         }
-        StatusActions.loadStatusesForChannelAndSidebar();
+        dispatch(StatusActions.loadStatusesForChannelAndSidebar());
 
         const crtEnabled = isCollapsedThreadsEnabled(state);
         dispatch(TeamActions.getMyTeamUnreads(crtEnabled, true));
@@ -581,6 +581,9 @@ export function handleEvent(msg) {
     case SocketEvents.DRAFT_DELETED:
         dispatch(handleDeleteDraftEvent(msg));
         break;
+    case SocketEvents.PERSISTENT_NOTIFICATION_TRIGGERED:
+        dispatch(handlePersistentNotification(msg));
+        break;
     case SocketEvents.HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED:
         dispatch(handleHostedCustomerSignupProgressUpdated(msg));
         break;
@@ -771,8 +774,10 @@ async function handlePostDeleteEvent(msg) {
         const thread = getThread(state, post.root_id);
         if (thread) {
             const userId = getCurrentUserId(state);
-            const teamId = getCurrentTeamId(state);
-            dispatch(fetchThread(userId, teamId, post.root_id, true));
+            const teamId = getTeamIdFromPost(state, post);
+            if (teamId) {
+                dispatch(fetchThread(userId, teamId, post.root_id, true));
+            }
         } else {
             const res = await dispatch(getPostThread(post.root_id));
             const {order, posts} = res.data;
@@ -1475,7 +1480,8 @@ function handleSidebarCategoryUpdated(msg) {
         }
 
         // Fetch all categories in case any other categories had channels moved out of them.
-        doDispatch(fetchMyCategories(msg.broadcast.team_id));
+        // True indicates it is called from WebSocket
+        doDispatch(fetchMyCategories(msg.broadcast.team_id, true));
     };
 }
 
@@ -1675,7 +1681,7 @@ function handleThreadFollowChanged(msg) {
         const state = doGetState();
         const thread = getThread(state, msg.data.thread_id);
         if (!thread && msg.data.state && msg.data.reply_count) {
-            await doDispatch(fetchThread(getCurrentUserId(state), getCurrentTeamId(state), msg.data.thread_id, true));
+            await doDispatch(fetchThread(getCurrentUserId(state), msg.broadcast.team_id, msg.data.thread_id, true));
         }
         handleFollowChanged(doDispatch, msg.data.thread_id, msg.broadcast.team_id, msg.data.state);
     };
@@ -1700,20 +1706,12 @@ function handlePostAcknowledgementRemoved(msg) {
 }
 
 function handleUpsertDraftEvent(msg) {
-    return async (doDispatch, doGetState) => {
-        const state = doGetState();
-        const connectionId = getConnectionId(state);
-
+    return async (doDispatch) => {
         const draft = JSON.parse(msg.data.draft);
         const {key, value} = transformServerDraft(draft);
         value.show = true;
-        value.remote = false;
 
-        if (msg.broadcast.omit_connection_id !== connectionId) {
-            value.remote = true;
-        }
-
-        doDispatch(setGlobalItem(key, value));
+        doDispatch(setGlobalDraft(key, value, true));
     };
 }
 
@@ -1722,7 +1720,19 @@ function handleDeleteDraftEvent(msg) {
         const draft = JSON.parse(msg.data.draft);
         const {key} = transformServerDraft(draft);
 
-        doDispatch(setGlobalItem(key, {message: '', fileInfos: [], uploadsInProgress: [], remote: true}));
+        doDispatch(setGlobalItem(key, {
+            message: '',
+            fileInfos: [],
+            uploadsInProgress: [],
+        }));
+    };
+}
+
+function handlePersistentNotification(msg) {
+    return async (doDispatch) => {
+        const post = JSON.parse(msg.data.post);
+
+        doDispatch(sendDesktopNotification(post, msg.data));
     };
 }
 
@@ -1732,4 +1742,3 @@ function handleHostedCustomerSignupProgressUpdated(msg) {
         data: msg.data.progress,
     };
 }
-

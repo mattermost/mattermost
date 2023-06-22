@@ -47,6 +47,7 @@ export class TestHelper {
                 comments: 'never',
                 desktop: 'default',
                 desktop_sound: 'false',
+                calls_desktop_sound: 'true',
                 email: 'false',
                 first_name: 'false',
                 mark_unread: 'mention',
@@ -155,6 +156,7 @@ export class TestHelper {
             mark_unread: 'all',
             push: 'default',
             ignore_channel_mentions: 'default',
+            channel_auto_follow_threads: 'off',
         };
         const notifyProps = Object.assign({}, defaultNotifyProps, overrideNotifyProps);
 

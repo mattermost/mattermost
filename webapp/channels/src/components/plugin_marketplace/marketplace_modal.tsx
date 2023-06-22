@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState, ReactNode} from 'react';
 import {Tabs, Tab, SelectCallback} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -10,7 +10,7 @@ import debounce from 'lodash/debounce';
 
 import {MagnifyIcon} from '@mattermost/compass-icons/components';
 
-import {FooterPagination} from '@mattermost/components';
+import {FooterPagination, GenericModal} from '@mattermost/components';
 import {getPluginStatuses} from 'mattermost-redux/actions/admin';
 import {setFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/actions/general';
 import {getFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/selectors/entities/general';
@@ -20,7 +20,6 @@ import {fetchListing, filterListing} from 'actions/marketplace';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {closeModal} from 'actions/views/modals';
 
-import GenericModal from 'components/generic_modal';
 import LoadingScreen from 'components/loading_screen';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
@@ -40,7 +39,7 @@ const MarketplaceTabs = {
 
 const SEARCH_TIMEOUT_MILLISECONDS = 200;
 
-const linkConsole = (msg: string) => (
+const linkConsole = (msg: string): ReactNode => (
     <Link to='/admin_console/plugins/plugin_management'>
         {msg}
     </Link>

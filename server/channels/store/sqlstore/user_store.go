@@ -16,10 +16,10 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 const (
@@ -285,7 +285,7 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) error {
 func (us SqlUserStore) ResetLastPictureUpdate(userId string) error {
 	curTime := model.GetMillis()
 
-	if _, err := us.GetMasterX().Exec("UPDATE Users SET LastPictureUpdate = ?, UpdateAt = ? WHERE Id = ?", 0, curTime, userId); err != nil {
+	if _, err := us.GetMasterX().Exec("UPDATE Users SET LastPictureUpdate = ?, UpdateAt = ? WHERE Id = ?", -curTime, curTime, userId); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
 	}
 
@@ -1744,16 +1744,6 @@ func (us SqlUserStore) InferSystemInstallDate() (int64, error) {
 	}
 
 	return createAt, nil
-}
-
-func (us SqlUserStore) GetFirstSystemAdminID() (string, error) {
-	var id string
-	err := us.GetReplicaX().Get(&id, "SELECT Id FROM Users WHERE Roles LIKE ? ORDER BY CreateAt ASC LIMIT 1", "%system_admin%")
-	if err != nil {
-		return "", errors.Wrap(err, "failed to get first system admin")
-	}
-
-	return id, nil
 }
 
 func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.UserForIndexing, error) {

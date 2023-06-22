@@ -12,9 +12,10 @@ import {Group} from '@mattermost/types/groups';
 import ProfilePopover from 'components/profile_popover';
 
 import {popOverOverlayPosition} from 'utils/position_utils';
+import {isKeyPressed} from 'utils/keyboard';
 import {getUserOrGroupFromMentionName} from 'utils/post_utils';
 import Constants from 'utils/constants';
-import {getViewportSize, isKeyPressed} from 'utils/utils';
+import {getViewportSize} from 'utils/utils';
 
 import AtMentionGroup from 'components/at_mention/at_mention_group';
 

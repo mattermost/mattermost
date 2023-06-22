@@ -98,6 +98,72 @@ describe('Create and delete board / card', () => {
         cy.findByText('for testing purposes only').should('be.visible');
     });
 
+    it('MM-T4276 Set up Board emoji', () => {
+        cy.visit('/boards');
+
+        // # Create an empty board and change tile to Testing
+        cy.findByText('Create an empty board').should('exist').click({force: true});
+        cy.get('.BoardComponent').should('exist');
+
+        // # Change Title
+        cy.findByPlaceholderText('Untitled board').should('be.visible').wait(timeouts.HALF_SEC);
+
+        // * Assert that the title is changed to "testing"
+        cy.findByPlaceholderText('Untitled board').
+            clear().
+            type('Testing').
+            type('{enter}').
+            should('have.value', 'Testing');
+
+        // # "Add icon" and "Show description" options appear
+        cy.findByText('Add icon').should('exist');
+        cy.findByText('show description').should('exist');
+
+        // # Click on "Add icon"
+        cy.findByText('Add icon').should('exist').click({force: true});
+
+        // * Assert that a random emoji is selected and added at the beginning of the board title
+        cy.get('.IconSelector').should('exist');
+
+        // # Click on the emoji next to the board title
+        cy.get('.IconSelector .MenuWrapper').should('exist').click({force: true});
+
+        // * Assert that Dropdown menu with 3 options appears
+        cy.findByText('Random').should('exist');
+        cy.findByText('Pick icon').should('exist');
+        cy.findByText('Remove icon').should('exist');
+
+        // # Hover your mouse over the "Pick Icon" option
+        cy.findByText('Pick icon').trigger('mouseover');
+
+        // * Assert that emoji picker menu appears
+        cy.get('.IconSelector .menu-contents').should('exist');
+
+        // # Click on the emoji from the picker
+        cy.get('.EmojiPicker').should('exist').and('be.visible').within(() => {
+            // # Click on the emoji
+            cy.get("[aria-label='😀, grinning']").should('exist');
+            cy.get("[aria-label='😀, grinning']").eq(0).click({force: true});
+        });
+
+        // * Assert that Selected emoji is now displayed next to the board title
+        cy.get('.IconSelector span').contains('😀');
+
+        // # Click on the emoji next to the board title
+        cy.get('.IconSelector .MenuWrapper').should('exist').click({force: true});
+
+        // * Assert that Dropdown menu with 3 options appears
+        cy.findByText('Random').should('exist');
+        cy.findByText('Pick icon').should('exist');
+        cy.findByText('Remove icon').should('exist');
+
+        // # Click "Remove icon"
+        cy.findByText('Remove icon').click({force: true});
+
+        // * Assert that Icon next to the board title is removed
+        cy.get('.IconSelector').should('not.exist');
+    });
+
     it('MM-T5397 Can create and delete a board and a card', () => {
         // Visit a page and create new empty board
         cy.visit('/boards');

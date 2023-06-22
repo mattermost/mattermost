@@ -18,10 +18,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/timezones"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/timezones"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 type SqlStore interface {
@@ -115,7 +115,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetGuestCount", func(t *testing.T) { testGetGuestCount(t, ss) })
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
 	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss) })
-	t.Run("Autocomplete", func(t *testing.T) { testAutocomplete(t, ss) })
+	t.Run("Autocomplete", func(t *testing.T) { testAutocomplete(t, ss, s) })
 	t.Run("SearchArchivedInTeam", func(t *testing.T) { testChannelStoreSearchArchivedInTeam(t, ss, s) })
 	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, ss) })
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, ss) })
@@ -5986,7 +5986,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	}
 }
 
-func testAutocomplete(t *testing.T, ss store.Store) {
+func testAutocomplete(t *testing.T, ss store.Store, s SqlStore) {
 	t1 := &model.Team{
 		DisplayName: "t1",
 		Name:        NewTestId(),
@@ -6165,9 +6165,9 @@ func testAutocomplete(t *testing.T, ss store.Store) {
 	}
 
 	for _, testCase := range testCases {
-		t.Run("Autocomplete/"+testCase.Description, func(t *testing.T) {
-			channels, err := ss.Channel().Autocomplete(testCase.UserID, testCase.Term, testCase.IncludeDeleted, testCase.IsGuest)
-			require.NoError(t, err)
+		t.Run(testCase.Description, func(t *testing.T) {
+			channels, err2 := ss.Channel().Autocomplete(testCase.UserID, testCase.Term, testCase.IncludeDeleted, testCase.IsGuest)
+			require.NoError(t, err2)
 			var gotChannelIds []string
 			var gotTeamNames []string
 			for _, ch := range channels {
@@ -6178,6 +6178,24 @@ func testAutocomplete(t *testing.T, ss store.Store) {
 			require.ElementsMatch(t, testCase.ExpectedTeamNames, gotTeamNames, "team names are not as expected")
 		})
 	}
+
+	t.Run("Limit", func(t *testing.T) {
+		for i := 0; i < model.ChannelSearchDefaultLimit+10; i++ {
+			_, err = ss.Channel().Save(&model.Channel{
+				TeamId:      teamID,
+				DisplayName: "Channel " + strconv.Itoa(i),
+				Name:        NewTestId(),
+				Type:        model.ChannelTypeOpen,
+			}, -1)
+			require.NoError(t, err)
+		}
+		channels, err := ss.Channel().Autocomplete(m1.UserId, "Chann", false, false)
+		require.NoError(t, err)
+		assert.Len(t, channels, model.ChannelSearchDefaultLimit)
+	})
+
+	// Manually truncate Channels table until testlib can handle cleanups
+	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {

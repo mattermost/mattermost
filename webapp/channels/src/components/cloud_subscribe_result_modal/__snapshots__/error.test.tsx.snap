@@ -29,9 +29,11 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
           forwardedRef={null}
           intl={
             Object {
+              "$t": [Function],
               "defaultFormats": Object {},
               "defaultLocale": "en",
               "defaultRichTextElements": undefined,
+              "fallbackOnEmptyString": true,
               "formatDate": [Function],
               "formatDateTimeRange": [Function],
               "formatDateToParts": [Function],
@@ -58,6 +60,7 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
               "locale": "en",
               "messages": Object {},
               "onError": [Function],
+              "onWarn": [Function],
               "textComponent": "span",
               "timeZone": "Etc/UTC",
               "wrapRichTextChunksInFragment": undefined,

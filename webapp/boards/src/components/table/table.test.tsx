@@ -15,7 +15,7 @@ import {BoardView} from 'src/blocks/boardView'
 
 import {IUser} from 'src/user'
 
-import {Utils, IDType} from 'src/utils'
+import {IDType, Utils} from 'src/utils'
 
 import {setup, wrapDNDIntl} from 'src/testUtils'
 
@@ -469,12 +469,12 @@ describe('components/table/Table extended', () => {
             </ReduxProvider>,
         )
         const {container} = render(component)
-        expect(card1.id )
+        expect(card1.id)
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot with CreatedBy', async () => {
-        jest.spyOn(console, 'error').mockImplementation()        
+        jest.spyOn(console, 'error').mockImplementation()
         const board = TestBlockFactory.createBoard()
 
         const createdById = Utils.createGuid(IDType.User)
@@ -536,7 +536,7 @@ describe('components/table/Table extended', () => {
 
         // TODO fix test — fix personSelector
         expect(console.error).toHaveBeenCalledWith(
-            expect.stringContaining('Each child in a list should have a unique "key" prop'), 
+            expect.stringContaining('Each child in a list should have a unique "key" prop'),
             expect.stringContaining('Check the render method of `PersonSelector`'),
             expect.anything(),
             expect.anything()

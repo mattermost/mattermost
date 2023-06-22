@@ -10,8 +10,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/services/store"
 )
 
 var ErrInvalidCardLimitValue = errors.New("card limit value is invalid")
@@ -88,7 +88,7 @@ func (s *SQLStore) updateCardLimitTimestamp(db sq.BaseRunner, cardLimit int) (in
 		Insert(s.tablePrefix+"system_settings").
 		Columns("id", "value")
 
-	var value interface{} = 0
+	var value any = 0 //nolint:revive
 	if cardLimit != 0 {
 		value = s.activeCardsQuery(sq.StatementBuilder, "b.update_at", cardLimit).
 			OrderBy("b.update_at DESC").

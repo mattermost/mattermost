@@ -6,9 +6,9 @@ package sqlstore
 import (
 	sq "github.com/mattermost/squirrel"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 
 	"github.com/pkg/errors"
 )
@@ -41,6 +41,11 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (re *model.Reaction, e
 		if err != nil {
 			return nil, errors.Wrap(err, "failed while getting channelId from Posts")
 		}
+
+		if len(channelIds) == 0 {
+			return nil, store.NewErrNotFound("Post", reaction.PostId)
+		}
+
 		reaction.ChannelId = channelIds[0]
 	}
 	err = s.saveReactionAndUpdatePost(transaction, reaction)

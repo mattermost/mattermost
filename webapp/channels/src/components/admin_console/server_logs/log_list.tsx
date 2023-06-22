@@ -95,7 +95,7 @@ export default class LogList extends React.PureComponent<Props, State> {
         );
         const level: JSX.Element = (
             <FormattedMessage
-                id='admin.log.logLevel'
+                id='admin.log.Level'
                 defaultMessage='Level'
             />
         );

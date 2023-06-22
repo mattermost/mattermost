@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
@@ -473,12 +473,6 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 const existingInstallationPostsThreshold = 10
 
 func (s *Server) doFirstAdminSetupCompleteMigration() {
-	// Don't run the migration until the flag is turned on.
-
-	if !s.platform.Config().FeatureFlags.UseCaseOnboarding {
-		return
-	}
-
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(FirstAdminSetupCompleteKey); err == nil {
 		return
@@ -559,6 +553,24 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 	}
 }
 
+func (s *Server) doElasticsearchFixChannelIndex() {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
+		return
+	}
+
+	license := s.License()
+	if model.BuildEnterpriseReady != "true" || license == nil || !*license.Features.Elasticsearch {
+		mlog.Info("Skipping triggering Elasticsearch channel index fix job as build is not Enterprise ready")
+		return
+	}
+
+	if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
+		mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
+		return
+	}
+}
+
 func (a *App) DoAppMigrations() {
 	a.Srv().doAppMigrations()
 }
@@ -580,4 +592,5 @@ func (s *Server) doAppMigrations() {
 	s.doFirstAdminSetupCompleteMigration()
 	s.doRemainingSchemaMigrations()
 	s.doPostPriorityConfigDefaultTrueMigration()
+	s.doElasticsearchFixChannelIndex()
 }

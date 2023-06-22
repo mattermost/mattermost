@@ -18,6 +18,7 @@ const TextContent: ContentType = {
     editable: true,
     Display: (props: BlockInputProps) => {
         const html: string = Utils.htmlFromMarkdown(props.value || '')
+
         return (
             <div
                 dangerouslySetInnerHTML={{__html: html}}

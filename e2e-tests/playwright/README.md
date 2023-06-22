@@ -2,7 +2,20 @@
 
 #### 1. Start local server in a separate terminal.
 
+```
+# Typically run the local server with:
+cd server && make run
+
+# Or build and distribute webapp including channels, boards and playbooks
+# so that their product URLs do not rely on Webpack dev server.
+# Especially important when running test inside the Playwright's docker container.
+cd webapp && make dist
+cd server && make run-server
+```
+
 #### 2. Install dependencies and run the test.
+
+Note: If you're using Node.js version 18 and above, you may need to set `NODE_OPTIONS='--no-experimental-fetch'`.
 
 ```
 # Install npm packages
@@ -32,14 +45,16 @@ npm run test
 Change to root directory, run docker container
 
 ```
-docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.30.0-focal /bin/bash
+docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.32.0-focal /bin/bash
 ```
 
 #### 2. Inside the docker container
 
 ```
+export NODE_OPTIONS='--no-experimental-fetch'
 export PW_BASE_URL=http://host.docker.internal:8065
-cd mattermost/e2e/playwright
+export PW_HEADLESS=true
+cd mattermost/e2e-tests/playwright
 
 # Install npm packages. Use "npm ci" to match the automated environment
 npm ci

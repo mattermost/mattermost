@@ -20,14 +20,14 @@ import (
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/marketplace"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 const prepackagedPluginsDir = "prepackaged_plugins"
@@ -231,7 +231,6 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		NewDriverImpl(ch.srv),
 		pluginDir,
 		webappPluginDir,
-		*ch.cfgSvc.Config().ExperimentalSettings.PatchPluginsReactDOM,
 		ch.srv.Log(),
 		ch.srv.GetMetrics(),
 	)
@@ -352,7 +351,7 @@ func (ch *Channels) syncPlugins() *model.AppError {
 			}
 
 			mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
-			if _, err := ch.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {
+			if _, err := ch.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil && err.Id != "app.plugin.blocked.app_error" && err.Id != "app.plugin.skip_installation.app_error" {
 				mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
 			}
 		}(plugin)
@@ -952,6 +951,11 @@ func (ch *Channels) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepa
 			defer wg.Done()
 			p, err := ch.processPrepackagedPlugin(psPath)
 			if err != nil {
+				var appErr *model.AppError
+				// A log line already appears if the plugin is on the blocklist
+				if errors.As(err, &appErr) && (appErr.Id == "app.plugin.blocked.app_error" || appErr.Id == "app.plugin.skip_installation.app_error") {
+					return
+				}
 				mlog.Error("Failed to install prepackaged plugin", mlog.String("path", psPath.path), mlog.Err(err))
 				return
 			}

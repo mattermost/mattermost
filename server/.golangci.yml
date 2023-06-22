@@ -1,5 +1,5 @@
 run:
-  timeout: 5m
+  timeout: 10m
   skip-dirs:
     - channels/store/storetest/mocks
 
@@ -15,17 +15,19 @@ linters-settings:
 linters:
   disable-all: true
   enable:
+    - typecheck # This is to improve error reporting
     - gofmt
-    - golint
     - gosimple
     - govet
     - ineffassign
+    - revive
     - exportloopref
     - staticcheck
     - unconvert
     - unused
     - misspell
     - goimports
+    - makezero
     # TODO: enable this later
     # - errcheck
 
@@ -38,8 +40,17 @@ issues:
       text: "SetupEnterprise"
 
     - linters:
-      - golint
-      text: "should have|should be|should replace|stutters|underscore|annoying|error strings should not be capitalized"
+      - revive
+      text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|context-as-argument|empty-block"
+      # We need to fix the unused parameter issues and remove the exception.
+
+    - linters:
+      - revive
+      path: "public/*" # TODO: fix this
+
+    - linters:
+      - revive
+      path: "enterprise" # TODO: fix this
 
     - linters:
       - misspell

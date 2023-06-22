@@ -6,7 +6,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 import classNames from 'classnames';
-
+import {t} from 'utils/i18n';
 import {isModalOpen} from 'selectors/views/modals';
 import {GlobalState} from 'types/store';
 import {closeModal, openModal} from 'actions/views/modals';
@@ -21,7 +21,7 @@ import {makeAsyncComponent} from 'components/async_load';
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
 import {COUNTRIES} from 'utils/countries';
 
-import {LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {AboutLinks, LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import Input, {SIZE, CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import DropdownInput from 'components/dropdown_input';
@@ -33,8 +33,6 @@ import './start_trial_form_modal.scss';
 import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
 import AirGappedModal from './air_gapped_modal';
 
-// TODO: Handle embargoed entities explicitly https://mattermost.atlassian.net/browse/MM-51470
-
 const TrialBenefitsModal = makeAsyncComponent('TrialBenefitsModal', React.lazy(() => import('components/trial_benefits_modal/trial_benefits_modal')));
 
 enum TrialLoadStatus {
@@ -44,10 +42,21 @@ enum TrialLoadStatus {
     Failed = 'FAILED'
 }
 
+// Marker functions so i18n-extract doesn't remove strings
+t('ONE_TO_50');
+t('FIFTY_TO_100');
+t('ONE_HUNDRED_TO_500');
+t('FIVE_HUNDRED_TO_1000');
+t('ONE_THOUSAND_TO_2500');
+t('TWO_THOUSAND_FIVE_HUNDRED_AND_UP');
+
 export enum OrgSize {
     ONE_TO_50 = '1-50',
     FIFTY_TO_100 = '51-100',
     ONE_HUNDRED_TO_500 = '101-500',
+    FIVE_HUNDRED_TO_1000 = '501-1000',
+    ONE_THOUSAND_TO_2500 = '1001-2500',
+    TWO_THOUSAND_FIVE_HUNDRED_AND_UP = '2501+',
 }
 
 type Props = {
@@ -209,7 +218,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         }
         return {
             value: orgSize,
-            label: OrgSize[orgSize as unknown as keyof typeof OrgSize],
+            label: formatMessage({id: orgSize, defaultMessage: OrgSize[orgSize as unknown as keyof typeof OrgSize]}),
         };
     };
 
@@ -335,7 +344,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                             ),
                             privacypolicy: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://mattermost.com/privacy-policy/'
+                                    href={AboutLinks.PRIVACY_POLICY}
                                     location='start_trial_form_modal'
                                 >
                                     {msg}

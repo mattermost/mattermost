@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -14,9 +15,9 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/testlib"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 func TestWebSocketTrailingSlash(t *testing.T) {
@@ -141,7 +142,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 
 	for _, user := range users {
 		time.Sleep(100 * time.Millisecond)
-		_, _, err := client.CreateDirectChannel(th.BasicUser.Id, user.Id)
+		_, _, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, user.Id)
 		require.NoError(t, err, "failed to create DM channel")
 	}
 
@@ -291,23 +292,23 @@ func TestWebSocketStatuses(t *testing.T) {
 	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "test@nowhere.com", Type: model.TeamOpen}
-	rteam, _, _ := client.CreateTeam(&team)
+	rteam, _, _ := client.CreateTeam(context.Background(), &team)
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
-	ruser, _, err := client.CreateUser(&user)
+	ruser, _, err := client.CreateUser(context.Background(), &user)
 	require.NoError(t, err)
 	th.LinkUserToTeam(ruser, rteam)
 	_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 	require.NoError(t, err)
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
-	ruser2, _, err := client.CreateUser(&user2)
+	ruser2, _, err := client.CreateUser(context.Background(), &user2)
 	require.NoError(t, err)
 	th.LinkUserToTeam(ruser2, rteam)
 	_, err = th.App.Srv().Store().User().VerifyEmail(ruser2.Id, ruser2.Email)
 	require.NoError(t, err)
 
-	client.Login(user.Email, user.Password)
+	client.Login(context.Background(), user.Email, user.Password)
 
 	th.LoginBasic2()
 
@@ -424,10 +425,14 @@ func TestWebSocketUpgrade(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
+	buffer := &mlog.Buffer{}
+	err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+	require.NoError(t, err)
+
 	url := fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffix + "/websocket"
 	resp, err := http.Get(url)
 	require.NoError(t, err)
 	require.Equal(t, resp.StatusCode, http.StatusBadRequest)
 	require.NoError(t, th.TestLogger.Flush())
-	testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "Failed to upgrade websocket connection.")
+	testlib.AssertLog(t, buffer, mlog.LvlDebug.Name, "Failed to upgrade websocket connection.")
 }

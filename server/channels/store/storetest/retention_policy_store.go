@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestRetentionPolicyStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -458,7 +458,7 @@ func testRetentionPolicyStoreAddChannels(t *testing.T, ss store.Store, s SqlStor
 		err := ss.RetentionPolicy().AddChannels(policy.ID, channelIDs)
 		require.NoError(t, err)
 		// verify that the channels were actually added
-		copy := copyRetentionPolicyWithTeamAndChannelIds(policy)
+		copy := copyRetentionPolicyWithTeamAndChannelIds(policy) //nolint:revive
 		copy.ChannelIDs = append(copy.ChannelIDs, channelIDs...)
 		checkRetentionPolicyLikeThisExists(t, ss, copy)
 		restoreRetentionPolicy(t, ss, policy)
@@ -492,7 +492,7 @@ func testRetentionPolicyStoreRemoveChannels(t *testing.T, ss store.Store, s SqlS
 		err := ss.RetentionPolicy().RemoveChannels(policy.ID, []string{channelID})
 		require.NoError(t, err)
 		// verify that the channel was actually removed
-		copy := copyRetentionPolicyWithTeamAndChannelIds(policy)
+		copy := copyRetentionPolicyWithTeamAndChannelIds(policy) //nolint:revive
 		copy.ChannelIDs = make([]string, 0)
 		for _, oldChannelID := range policy.ChannelIDs {
 			if oldChannelID != channelID {
@@ -554,7 +554,7 @@ func testRetentionPolicyStoreAddTeams(t *testing.T, ss store.Store, s SqlStore) 
 		err := ss.RetentionPolicy().AddTeams(policy.ID, teamIDs)
 		require.NoError(t, err)
 		// verify that the teams were actually added
-		copy := copyRetentionPolicyWithTeamAndChannelIds(policy)
+		copy := copyRetentionPolicyWithTeamAndChannelIds(policy) //nolint:revive
 		copy.TeamIDs = append(copy.TeamIDs, teamIDs...)
 		checkRetentionPolicyLikeThisExists(t, ss, copy)
 		restoreRetentionPolicy(t, ss, policy)
@@ -588,7 +588,7 @@ func testRetentionPolicyStoreRemoveTeams(t *testing.T, ss store.Store, s SqlStor
 		err := ss.RetentionPolicy().RemoveTeams(policy.ID, []string{teamID})
 		require.NoError(t, err)
 		// verify that the team was actually removed
-		copy := copyRetentionPolicyWithTeamAndChannelIds(policy)
+		copy := copyRetentionPolicyWithTeamAndChannelIds(policy) //nolint:revive
 		copy.TeamIDs = make([]string, 0)
 		for _, oldTeamID := range policy.TeamIDs {
 			if oldTeamID != teamID {

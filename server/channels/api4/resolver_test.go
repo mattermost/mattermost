@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"testing"
@@ -11,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestGraphQLConfig(t *testing.T) {
@@ -35,7 +36,7 @@ func TestGraphQLConfig(t *testing.T) {
 	`,
 	}
 
-	cfg, _, err := th.Client.GetOldClientConfig("")
+	cfg, _, err := th.Client.GetOldClientConfig(context.Background(), "")
 	require.NoError(t, err)
 
 	resp, err := th.MakeGraphQLRequest(&input)
@@ -66,7 +67,7 @@ func TestGraphQLLicense(t *testing.T) {
 	`,
 	}
 
-	cfg, _, err := th.Client.GetOldClientLicense("")
+	cfg, _, err := th.Client.GetOldClientLicense(context.Background(), "")
 	require.NoError(t, err)
 
 	resp, err := th.MakeGraphQLRequest(&input)
@@ -105,7 +106,7 @@ func TestGraphQLChannelsLeft(t *testing.T) {
 	})
 
 	t.Run("Left", func(t *testing.T) {
-		_, err := th.Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+		_, err := th.Client.RemoveUserFromChannel(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		input := graphQLInput{

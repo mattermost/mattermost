@@ -4,7 +4,7 @@
 import React from 'react'
 import {useIntl} from 'react-intl'
 
-import {BlockTypes, Block} from 'src/blocks/block'
+import {Block, BlockTypes} from 'src/blocks/block'
 import {Card} from 'src/blocks/card'
 import mutator from 'src/mutator'
 import octoClient from 'src/octoClient'
@@ -27,6 +27,7 @@ const AddContentMenuItem = (props: Props): JSX.Element => {
     const handler = contentRegistry.getHandler(type)
     if (!handler) {
         Utils.logError(`addContentMenu, unknown content type: ${type}`)
+
         return <></>
     }
 

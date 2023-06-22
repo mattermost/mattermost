@@ -1505,7 +1505,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nKanallar eklendi:\n"
+    "translation": "\nEklenen kanallar:\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -1521,7 +1521,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.created",
-    "translation": "\nKullanıcılar eklendi:\n"
+    "translation": "\nEklenen kullanıcılar:\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
@@ -3134,10 +3134,6 @@
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "Arama sonuçlarının kodu çözülemedi"
-  },
-  {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch zaten başlatılmış."
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
@@ -7221,7 +7217,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Mattermost sisteminizde çok sayıda ileti var. Varsayılan Mattermost veritabanı aramasının başarımı 2.5 milyon iletiye yaklaşıldığında düşmeye başlar. 5 milyondan fazla iletide Elasticsearch kullanmak, arama ve anma durumlarında zaman aşımları gibi önemli başarım sorunlarını önleyebilir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\n[Başarımı arttırmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost sisteminizde çok sayıda ileti var. Varsayılan Mattermost veritabanı aramasının başarımı 2.5 milyon iletiye yaklaşıldığında düşmeye başlar. 5 milyondan fazla iletide Elasticsearch kullanmak, arama ve anma durumlarında zaman aşımları gibi önemli başarım sorunlarını önleyebilir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\n[Başarımı arttırmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "app.channel.save_member.exists.app_error",
@@ -7497,7 +7493,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Mattermost sisteminizde artık birkaç takım var. Takımların çoğu, kanalların nasıl oluşturulacağı, kimlerin yeni takım arkadaşları çağırabileceği ve bütünleştirmelerin nasıl yönetilebileceği gibi yönetim ve işbirliği yollarını kendisine göre belirler. Takım değişikliği şemaları, her takımın kullanıcı izinlerini kendi özel gereksinimlerine göre özelleştirebilmenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost sisteminizde artık birkaç takım var. Takımların çoğu, kanalların nasıl oluşturulacağı, kimlerin yeni takım arkadaşları çağırabileceği ve bütünleştirmelerin nasıl yönetilebileceği gibi yönetim ve işbirliği yollarını kendisine göre belirler. Takım değişikliği şemaları, her takımın kullanıcı izinlerini kendi özel gereksinimlerine göre özelleştirebilmenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_body",
@@ -7513,7 +7509,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost, 500 üzerinde kullanıcı için, kullanıcı yönetimi, sunucu kümeleme ve başarım izleme gibi özelliklerin kullanılmasını önerir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost, 500 üzerinde kullanıcı için, kullanıcı yönetimi, sunucu kümeleme ve başarım izleme gibi özelliklerin kullanılmasını önerir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
@@ -7521,7 +7517,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Kanallar iletişimi geliştirmeye yardımcı olur. Ancak Mattermost üzerindeki kullanıcıların kanallara katılması ve kanal oluşturması ile sistemi düzenli tutmak zorlaşır. Gelişmiş izinler, kanal ayarlarını ve üyeleri yönetmek, geniş kullanıcı gruplarını etiketlemek için @channel ya da @here kullanmak ve yeni web kancaları oluşturmak gibi işlemleri hangi kullanıcıların ya da rollerin yapabileceğini belirlemenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
+    "translation": "Kanallar iletişimi geliştirmeye yardımcı olur. Ancak Mattermost üzerindeki kullanıcıların kanallara katılması ve kanal oluşturması ile sistemi düzenli tutmak zorlaşır. Gelişmiş izinler, kanal ayarlarını ve üyeleri yönetmek, geniş kullanıcı gruplarını etiketlemek için @channel ya da @here kullanmak ve yeni web kancaları oluşturmak gibi işlemleri hangi kullanıcıların ya da rollerin yapabileceğini belirlemenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
@@ -7529,23 +7525,23 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Mattermost üzerinde bu kadar çok görüşme gerçekleşirken, önemli bilgileri nerede arayacağınızı bilmek zor olabilir. Geniş bir topluluğa bir ileti yayınlamak istiyorsanız, herkesin katılabileceği ancak yalnızca kanal yöneticilerinin ileti gönderebileceği salt okunur Duyuru Kanalları oluşturabilirsiniz.\n\n[Salt okunur duyuru kanalları oluşturmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost üzerinde bu kadar çok görüşme gerçekleşirken, önemli bilgileri nerede arayacağınızı bilmek zor olabilir. Geniş bir topluluğa bir ileti yayınlamak istiyorsanız, herkesin katılabileceği ancak yalnızca kanal yöneticilerinin ileti gönderebileceği salt okunur Duyuru Kanalları oluşturabilirsiniz.\n\n[Salt okunur duyuru kanalları oluşturmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Mattermost ile kuruluşunuzun tek oturum açma hizmeti sağlayıcısı arasında bağlantı kurarak var olan kullanıcılarınızın kimlik doğrulama bilgilerini yeniden yazmasına gerek kalmadan Mattermost üzerine erişmesini sağlayabilirsiniz. Mattermost sunucunuz ile SAML 2.0 hizmeti sağlayıcınızı bütünleştirmenizi öneririz. [Buraya tıklayarak SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi alabilirsiniz](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Mattermost ile kuruluşunuzun tek oturum açma hizmeti sağlayıcısı arasında bağlantı kurarak var olan kullanıcılarınızın kimlik doğrulama bilgilerini yeniden yazmasına gerek kalmadan Mattermost üzerine erişmesini sağlayabilirsiniz. Mattermost sunucunuz ile SAML 2.0 hizmeti sağlayıcınızı bütünleştirmenizi öneririz. [Buraya tıklayarak SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi alabilirsiniz](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Mattermost sisteminiz 100 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak almanız ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesini sağlamanız önerilir.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost sisteminiz 100 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak almanız ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesini sağlamanız önerilir.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Mattermost sisteminizde çok aşamalı kimlik doğrulaması etkinleştirildi. Kullanıcılar parolanın yanında ek kimlik doğrulama araçları ile hesap güvenliğini arttırabilir. Sistem genelinde güvenliği artırmak için tüm Mattermost hesaplarının çok aşamalı kimlik doğrulaması kullanmasını zorunlu kılabilirsiniz.\n\n[Çok aşamalı kimlik doğrulamasını zorunlu kılmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost sisteminizde çok aşamalı kimlik doğrulaması etkinleştirildi. Kullanıcılar parolanın yanında ek kimlik doğrulama araçları ile hesap güvenliğini arttırabilir. Sistem genelinde güvenliği artırmak için tüm Mattermost hesaplarının çok aşamalı kimlik doğrulaması kullanmasını zorunlu kılabilirsiniz.\n\n[Çok aşamalı kimlik doğrulamasını zorunlu kılmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Projelerde genellikle bir kuruluşun hem içinden hem de dışından kişiler bulunur. Konuk Hesapları ile dış iş ortaklarınız Mattermost sisteminize erişmesini sağlayarak, kiminle çalışabileceklerini ve neleri görebileceklerini belirleyebilirsiniz.\n\n[Konuk hesaplarını etkinleştirmek hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
+    "translation": "Projelerde genellikle bir kuruluşun hem içinden hem de dışından kişiler bulunur. Konuk Hesapları ile dış iş ortaklarınız Mattermost sisteminize erişmesini sağlayarak, kiminle çalışabileceklerini ve neleri görebileceklerini belirleyebilirsiniz.\n\n[Konuk hesaplarını etkinleştirmek hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
@@ -9508,7 +9504,7 @@
   },
   {
     "id": "worktemplate.category.product_teams",
-    "translation": "Ürün takımları"
+    "translation": "Ürün"
   },
   {
     "id": "model.draft.is_valid.user_id.app_error",
@@ -9833,5 +9829,345 @@
   {
     "id": "api.command_templates.desc",
     "translation": "Kalıptan oluştur penceresini aç"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Acil sorunlar, önceliklendirme, sahip atama ve yorumlarla ekibinizin haftalık hedeflere doğru ilerlemesini izleyin."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Zoom gibi sık kullandığınız araçlar ile bütünleştirerek kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Panolarınız ve bütünleştirmelerinizle kolayca bağlantı kuran bir kanalda ekibinizle sohbet edin."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Müşterilerinizin geri bildirimleri ve önceliklendirme hakkında ekibinizle sohbet ederek birlikte ilerleme kaydedin."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Kullanıcı geri bildirimlerini yönetmek, kaynak atamak, çıktıları takvimde görüntülemek ve sorunları önceliklendirmek için ürün yol haritası panosunu kullanın."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "İşbirliğini kolaylaştırmak için Zoom gibi sık kullandığınız araçları bütünleştirin ve kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Hedefleriniz ve ilerlemeniz hakkında ekibinizle farklı zamanlarda ya da gerçek zamanlı olarak sohbet edin ve değişiklikleri tek bir kanaldan izleyerek güncel kalın."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Amaçlar ve anahtar sonuçlar (OKR) panosu ile ekibinizin kurumsal hedeflere doğru ilerlemesini izleyin. Toplantı gündemi panosu ile toplantıları izleyin."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Özellik geliştirme sürecinizi destekleyen görev kontrol listeleri ve otomasyon ile işlevsel ekipler arasında işbirliğini artırın. İşiniz bittiğinde bir geçmiş değerlendirmesi yaparak ve süreci bir sonraki sürümünüz için iyileştirin."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Özellikleri yayınlamak için GitHub gibi sık kullandığınız araçları bütünleştirin ve kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Panolarınıza, senaryolarınıza ve diğer bütünleştirmelere kolayca bağlanan bir kanalda sürüm engelleyicileri ve değişiklikler hakkında ekibinizle sohbet edin."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Toplantı gündemi panosu ile toplantıları izleyin. Proje görevleri panosu ile iş yükünüzü yönetin."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Kapsamlı bir hata ayıklama süreci yürütmek için deneme alanları ve otomatik görevler atamak üzere kontrol listeleri kullanın. Sürecinizi gözden geçirmek ve gelecek sefer daha iyi olmasını sağlamak için bir geçmiş değerlendirmesi yapın."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Hata ayıklama işlerinizi kolaylaştırmak için Jira gibi sık kullandığınız araçları bütünleştirin ve kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Hata raporlarını ve çözümlerini ekibinizin ve kuruluşunuzun kolayca erişebileceği tek bir kanalda planlayın ve yönetin."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "İşbirliğini kolaylaştırmak için Zoom gibi sık kullandığınız araçları bütünleştirin ve kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "Hedefleriniz ve ilerlemeniz hakkında ekibinizle farklı zamanlarda ya da gerçek zamanlı olarak sohbet edin ve değişiklikleri tek bir kanaldan izleyerek güncel kalın."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Amaçlar ve anahtar sonuçlar (OKR) panosu ile ekibinizin kurumsal hedeflere doğru ilerlemesini izleyin. Toplantı gündemi panosu ile toplantıları izleyin."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "Ürün çıkışlarının güvenilir ve zamanında olması için izlenmesi ve uygulanması kolay, yinelenebilir iş akışları oluşturun."
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "Ekibinizle günlük kilometre taşları, engeller ve çıktılardaki değişiklikler hakkında kolay ve hızlı bir şekilde sohbet edin."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "Sürüm zaman çerçevenizi ve sürecinizi desteklemek için ürün çıkarma panosunu kullanın ve herkesin hangi görevlerin bitiş zamanının geldiğini bilmesini sağlayın."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "Kilit ekip üyelerini bir araya getirmek için kontrol listeleri ve otomasyon kullanarak olayın çözüme doğru ilerlemesini paylaşın."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "Ekibinizle tek bir kanal kullanarak öncelikler hakkında sohbet edin, paydaşlar ekleyin, güncellemeler yayınlayın ve çözüm için çalışın."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Yinelenebilen süreçleri desteklemek ve ekip genelinde tanımlanmış görevler atamak için olay çözümleme panosunu kullanın."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "İşbirliğini kolaylaştırmak için Zoom gibi sık kullandığınız araçları bütünleştirin ve kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Hedefleriniz ve ilerlemeniz hakkında ekibinizle farklı zamanlarda ya da gerçek zamanlı olarak sohbet edin ve değişiklikleri tek bir kanaldan izleyerek güncel kalın."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Amaçlar ve anahtar sonuçlar (OKR) panosu ile ekibinizin kurumsal hedeflere doğru ilerlemesini izleyin. Toplantı gündemi panosu ile toplantıları izleyin."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Bir lisans yüklenirken bayt değeri geçersiz."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Sık kullandığınız araçlar ile bütünleştirerek kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Ekibinizle yeni projeniz üzerine sohbet edin ve işbirlikli bir kanalda projeyi nasıl yapılandıracağınıza karar verin."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Proje görevlerinizi ve ilerlemenizi tanımlamak ve izlemek için bir Kanban panosu kullanın."
+  },
+  {
+    "id": "app.user.run.update_status.title",
+    "translation": "Durum güncellemesi"
+  },
+  {
+    "id": "app.user.run.update_status.submit_label",
+    "translation": "Durumu güncelle"
+  },
+  {
+    "id": "app.user.run.update_status.reminder_for_next_update",
+    "translation": "Sonraki güncelleme anımsatıcısı"
+  },
+  {
+    "id": "app.user.run.update_status.num_channel",
+    "translation": {
+      "one": "Paydaşlara bir güncelleme duyurun. Bu gönderi {{.Count}} kanalında yayınlanacak.",
+      "other": "Paydaşlara bir güncelleme duyurun. Bu gönderi {{.Count}} kanalında yayınlanacak."
+    }
+  },
+  {
+    "id": "app.user.run.update_status.finish_run.placeholder",
+    "translation": "Ayrıca oyunu da tamamlanmış olarak işaretle"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run",
+    "translation": "Oyunu tamamla"
+  },
+  {
+    "id": "app.user.run.update_status.change_since_last_update",
+    "translation": "Son güncellemeden sonraki değişiklik"
+  },
+  {
+    "id": "app.user.run.status_enable",
+    "translation": "@{{.Username}}, [{{.RunName}}]({{.RunURL}}) için durum güncellemelerini etkinleştirdi"
+  },
+  {
+    "id": "app.user.run.status_disable",
+    "translation": "@{{.Username}}, [{{.RunName}}]({{.RunURL}}) için durum güncellemelerini devre dışı bıraktı"
+  },
+  {
+    "id": "app.user.run.request_update",
+    "translation": "@here — @{{.Name}}, [{{.RunName}}]({{.RunURL}}) için bir durum güncellemesi istedi. \n"
+  },
+  {
+    "id": "app.user.run.request_join_channel",
+    "translation": "@{{.Name}} bir oyun katılımcısı ve bu kanala katılmak istiyor. Kanalın herhangi bir üyesi onu çağırabilir.\n"
+  },
+  {
+    "id": "app.user.run.confirm_finish.title",
+    "translation": "Oyunu tamamlamayı onayla"
+  },
+  {
+    "id": "app.user.run.confirm_finish.submit_label",
+    "translation": "Oyunu tamamla"
+  },
+  {
+    "id": "app.user.run.confirm_finish.num_outstanding",
+    "translation": {
+      "one": "Bekleyen **{{.Count}} görev** var. *{{.RunName}}* oyununu tüm katılımcılar için tamamlamak istediğinize emin misiniz?",
+      "other": "Bekleyen **{{.Count}} görev** var. *{{.RunName}}* oyununu tüm katılımcılar için tamamlamak istediğinize emin misiniz?"
+    }
+  },
+  {
+    "id": "app.user.run.add_to_timeline.title",
+    "translation": "Oyun zaman akışına ekle"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.placeholder",
+    "translation": "Zaman akışında görüntülenecek kısa açıklama"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.help",
+    "translation": "En fazla 64 karakter"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary",
+    "translation": "Özet"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.submit_label",
+    "translation": "Oyun zaman akışına ekle"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.playbook_run",
+    "translation": "Senaryo oyunu"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.title",
+    "translation": "Yeni görev ekle"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.submit_label",
+    "translation": "Görev ekle"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.name",
+    "translation": "Ad"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.description",
+    "translation": "Açıklama"
+  },
+  {
+    "id": "app.user.new_run.title",
+    "translation": "Senaryoyu oyna"
+  },
+  {
+    "id": "app.user.new_run.submit_label",
+    "translation": "Oyunu başlat"
+  },
+  {
+    "id": "app.user.new_run.run_name",
+    "translation": "Oyun adı"
+  },
+  {
+    "id": "app.user.new_run.playbook",
+    "translation": "Senaryo"
+  },
+  {
+    "id": "app.user.new_run.intro",
+    "translation": "**Sahibi** {{.Username}}"
+  },
+  {
+    "id": "app.user.digest.tasks.zero_assigned",
+    "translation": "Size atanmış bir görev yok."
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned_due_until_today",
+    "translation": {
+      "one": "Süresi dolmuş {{.Count}} atanmış göreviniz var:",
+      "other": "Süresi dolmuş {{.Count}} atanmış göreviniz var:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned",
+    "translation": {
+      "one": "{{.Count}} atanmış göreviniz var:",
+      "other": "{{.Count}} atanmış göreviniz var:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.heading",
+    "translation": "Atanmış görevleriniz"
+  },
+  {
+    "id": "app.user.digest.tasks.due_yesterday",
+    "translation": "Süresi dün doldu"
+  },
+  {
+    "id": "app.user.digest.tasks.due_x_days_ago",
+    "translation": "Süresi {{.Count}} gün önce doldu"
+  },
+  {
+    "id": "app.user.digest.tasks.due_today",
+    "translation": "Süresi bugün dolacak"
+  },
+  {
+    "id": "app.user.digest.tasks.due_in_x_days",
+    "translation": {
+      "one": "{{.Count}} gün içinde süresi dolacak",
+      "other": "{{.Count}} gün içinde süresi dolacak"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.due_after_today",
+    "translation": {
+      "one": "Bugünden sonra süresi dolacak **{{.Count}} göreviniz var**.",
+      "other": "Bugünden sonra süresi dolacak **{{.Count}} göreviniz var**."
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.all_tasks_command",
+    "translation": "Tüm görevlerinizi görüntülemek için `/playbook todo` kullanın."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.zero_in_progress",
+    "translation": "Süren bir oyununuz yok."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.num_in_progress",
+    "translation": {
+      "one": "Süren {{.Count}} oyununuz var:",
+      "other": "Süren {{.Count}} oyununuz var:"
+    }
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.heading",
+    "translation": "Süren oyunlar"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.zero_overdue",
+    "translation": "Gecikmiş bir oyununuz yok."
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.num_overdue",
+    "translation": {
+      "one": "Bir durum güncellemesi için {{.Count}} oyun gecikmeniz var:",
+      "other": "Bir durum güncellemesi için {{.Count}} oyun gecikmeniz var:"
+    }
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.heading",
+    "translation": "Gecikmiş durum güncellemeleri"
+  },
+  {
+    "id": "app.command.execute.error",
+    "translation": "Komut yürütülemedi."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWS sunucusu duyurulara abone olamadı."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Deneme için iş e-postası geçersiz"
   }
 ]

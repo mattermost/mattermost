@@ -205,3 +205,9 @@ export type PostAnalytics = {
     requested_ack?: boolean;
     persistent_notifications?: boolean;
 }
+export type ActivityEntry = {
+    postType: Post['type'];
+    actorId: string[];
+    userIds: string[];
+    usernames: string[];
+}

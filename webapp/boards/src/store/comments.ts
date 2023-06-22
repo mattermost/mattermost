@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, PayloadAction, createSelector} from '@reduxjs/toolkit'
+import {PayloadAction, createSelector, createSlice} from '@reduxjs/toolkit'
 
 import {CommentBlock} from 'src/blocks/commentBlock'
 
-import {loadBoardData, initialReadOnlyLoad} from './initialLoad'
+import {initialReadOnlyLoad, loadBoardData} from './initialLoad'
 
 import {RootState} from './index'
 
@@ -24,11 +24,13 @@ const commentsSlice = createSlice({
                     state.comments[comment.id] = comment
                     if (!state.commentsByCard[comment.parentId]) {
                         state.commentsByCard[comment.parentId] = [comment]
+
                         return
                     }
                     for (let i = 0; i < state.commentsByCard[comment.parentId].length; i++) {
                         if (state.commentsByCard[comment.parentId][i].id === comment.id) {
                             state.commentsByCard[comment.parentId][i] = comment
+
                             return
                         }
                     }
@@ -37,6 +39,7 @@ const commentsSlice = createSlice({
                     const parentId = state.comments[comment.id]?.parentId
                     if (!state.commentsByCard[parentId]) {
                         delete state.comments[comment.id]
+
                         return
                     }
                     for (let i = 0; i < state.commentsByCard[parentId].length; i++) {
@@ -89,6 +92,7 @@ export function getCardComments(cardId: string): (state: RootState) => CommentBl
 export function getLastCardComment(cardId: string): (state: RootState) => CommentBlock|undefined {
     return (state: RootState): CommentBlock|undefined => {
         const comments = state.comments?.commentsByCard && state.comments.commentsByCard[cardId]
+
         return comments?.[comments?.length - 1]
     }
 }
@@ -103,6 +107,7 @@ export const getLastCommentByCard = createSelector(
                 lastCommentByCard[cardId] = comments?.[comments?.length - 1]
             }
         })
+
         return lastCommentByCard
     },
 )

@@ -10,6 +10,7 @@ import {PropertyProps} from 'src/properties/types'
 
 const Checkbox = (props: PropertyProps): JSX.Element => {
     const {card, board, propertyTemplate, propertyValue} = props
+
     return (
         <Switch
             isOn={Boolean(propertyValue)}

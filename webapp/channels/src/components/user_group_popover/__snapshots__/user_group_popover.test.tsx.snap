@@ -404,6 +404,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -444,6 +445,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -484,6 +486,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -524,6 +527,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -564,6 +568,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -604,6 +609,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -644,6 +650,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -684,6 +691,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -724,6 +732,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -764,6 +773,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -804,6 +814,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -844,6 +855,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -884,6 +896,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -924,6 +937,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -964,6 +978,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -1177,9 +1192,11 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                           id="name-id0"
                                                           intl={
                                                             Object {
+                                                              "$t": [Function],
                                                               "defaultFormats": Object {},
                                                               "defaultLocale": "en",
                                                               "defaultRichTextElements": undefined,
+                                                              "fallbackOnEmptyString": true,
                                                               "formatDate": [Function],
                                                               "formatDateTimeRange": [Function],
                                                               "formatDateToParts": [Function],
@@ -1206,6 +1223,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                               "locale": "en",
                                                               "messages": Object {},
                                                               "onError": [Function],
+                                                              "onWarn": [Function],
                                                               "textComponent": "span",
                                                               "timeZone": "Etc/UTC",
                                                               "wrapRichTextChunksInFragment": undefined,
@@ -1393,9 +1411,11 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                           id="name-id1"
                                                           intl={
                                                             Object {
+                                                              "$t": [Function],
                                                               "defaultFormats": Object {},
                                                               "defaultLocale": "en",
                                                               "defaultRichTextElements": undefined,
+                                                              "fallbackOnEmptyString": true,
                                                               "formatDate": [Function],
                                                               "formatDateTimeRange": [Function],
                                                               "formatDateToParts": [Function],
@@ -1422,6 +1442,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                               "locale": "en",
                                                               "messages": Object {},
                                                               "onError": [Function],
+                                                              "onWarn": [Function],
                                                               "textComponent": "span",
                                                               "timeZone": "Etc/UTC",
                                                               "wrapRichTextChunksInFragment": undefined,
@@ -1609,9 +1630,11 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                           id="name-id10"
                                                           intl={
                                                             Object {
+                                                              "$t": [Function],
                                                               "defaultFormats": Object {},
                                                               "defaultLocale": "en",
                                                               "defaultRichTextElements": undefined,
+                                                              "fallbackOnEmptyString": true,
                                                               "formatDate": [Function],
                                                               "formatDateTimeRange": [Function],
                                                               "formatDateToParts": [Function],
@@ -1638,6 +1661,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                               "locale": "en",
                                                               "messages": Object {},
                                                               "onError": [Function],
+                                                              "onWarn": [Function],
                                                               "textComponent": "span",
                                                               "timeZone": "Etc/UTC",
                                                               "wrapRichTextChunksInFragment": undefined,
@@ -1825,9 +1849,11 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                           id="name-id11"
                                                           intl={
                                                             Object {
+                                                              "$t": [Function],
                                                               "defaultFormats": Object {},
                                                               "defaultLocale": "en",
                                                               "defaultRichTextElements": undefined,
+                                                              "fallbackOnEmptyString": true,
                                                               "formatDate": [Function],
                                                               "formatDateTimeRange": [Function],
                                                               "formatDateToParts": [Function],
@@ -1854,6 +1880,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                               "locale": "en",
                                                               "messages": Object {},
                                                               "onError": [Function],
+                                                              "onWarn": [Function],
                                                               "textComponent": "span",
                                                               "timeZone": "Etc/UTC",
                                                               "wrapRichTextChunksInFragment": undefined,
@@ -2041,9 +2068,11 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                           id="name-id12"
                                                           intl={
                                                             Object {
+                                                              "$t": [Function],
                                                               "defaultFormats": Object {},
                                                               "defaultLocale": "en",
                                                               "defaultRichTextElements": undefined,
+                                                              "fallbackOnEmptyString": true,
                                                               "formatDate": [Function],
                                                               "formatDateTimeRange": [Function],
                                                               "formatDateToParts": [Function],
@@ -2070,6 +2099,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                               "locale": "en",
                                                               "messages": Object {},
                                                               "onError": [Function],
+                                                              "onWarn": [Function],
                                                               "textComponent": "span",
                                                               "timeZone": "Etc/UTC",
                                                               "wrapRichTextChunksInFragment": undefined,

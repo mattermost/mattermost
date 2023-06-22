@@ -262,8 +262,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
   <InviteMembersButton
     className="followingSibling"
     isAdmin={false}
-    onClick={[Function]}
-    touchedInviteMembersButton={false}
   />
 </div>
 `;
@@ -387,8 +385,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
   <InviteMembersButton
     className="followingSibling"
     isAdmin={false}
-    onClick={[Function]}
-    touchedInviteMembersButton={false}
   />
 </div>
 `;

@@ -19,8 +19,7 @@ import {GlobalState} from 'types/store';
 import {BillingDetails} from 'types/cloud/sku';
 
 import {isModalOpen} from 'selectors/views/modals';
-import {getCloudDelinquentInvoices, isCloudDelinquencyGreaterThan90Days} from 'selectors/cloud';
-import {isDevModeEnabled} from 'selectors/general';
+import {getCloudDelinquentInvoices, isCloudDelinquencyGreaterThan90Days, isCwsMockMode} from 'selectors/cloud';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -30,6 +29,8 @@ import {ModalData} from 'types/actions';
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 import {findOnlyYearlyProducts} from 'utils/products';
 import {getCloudContactSalesLink, getCloudSupportLink} from 'utils/contact_support_sales';
+
+import {getStripePublicKey} from 'components/payment_form/stripe';
 
 const PurchaseModal = makeAsyncComponent('PurchaseModal', React.lazy(() => import('./purchase_modal')));
 
@@ -47,12 +48,13 @@ function mapStateToProps(state: GlobalState) {
     const companyName = customer?.name || '';
     const contactSalesLink = getCloudContactSalesLink(firstName, lastName, companyName, customerEmail, 'mattermost', 'in-product-cloud');
     const contactSupportLink = getCloudSupportLink(customerEmail, 'Cloud purchase', '', window.location.host);
+    const stripePublicKey = getStripePublicKey(state);
 
     return {
         show: isModalOpen(state, ModalIdentifiers.CLOUD_PURCHASE),
         products,
         yearlyProducts,
-        isDevMode: isDevModeEnabled(state),
+        cwsMockMode: isCwsMockMode(state),
         contactSupportLink,
         invoices: getCloudDelinquentInvoices(state),
         isCloudDelinquencyGreaterThan90Days: isCloudDelinquencyGreaterThan90Days(state),
@@ -65,13 +67,14 @@ function mapStateToProps(state: GlobalState) {
         theme: getTheme(state),
         isDelinquencyModal,
         usersCount: Number(getAdminAnalytics(state)!.TOTAL_USERS) || 1,
+        stripePublicKey,
     };
 }
 type Actions = {
     closeModal: () => void;
     openModal: <P>(modalData: ModalData<P>) => void;
     getCloudProducts: () => void;
-    completeStripeAddPaymentMethod: (stripe: Stripe, billingDetails: BillingDetails, isDevMode: boolean) => Promise<boolean | null>;
+    completeStripeAddPaymentMethod: (stripe: Stripe, billingDetails: BillingDetails, cwsMockMode: boolean) => Promise<boolean | null>;
     subscribeCloudSubscription: typeof subscribeCloudSubscription;
     getClientConfig: () => void;
     getCloudSubscription: () => void;

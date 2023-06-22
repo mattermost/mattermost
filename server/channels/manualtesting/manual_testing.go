@@ -4,6 +4,7 @@
 package manualtesting
 
 import (
+	"context"
 	"errors"
 	"hash/fnv"
 	"math/rand"
@@ -12,14 +13,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/api4"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/slashcommands"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/channels/web"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/api4"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/app/slashcommands"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 // TestEnvironment is a helper struct used for tests in manualtesting.
@@ -107,7 +108,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			Nickname: username[0],
 			Password: slashcommands.UserPassword}
 
-		user, _, err = client.CreateUser(user)
+		user, _, err = client.CreateUser(context.Background(), user)
 		if err != nil {
 			var appErr *model.AppError
 			ok = errors.As(err, &appErr)
@@ -126,7 +127,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		userID = user.Id
 
 		// Login as user to generate auth token
-		_, _, err = client.LoginById(user.Id, slashcommands.UserPassword)
+		_, _, err = client.LoginById(context.Background(), user.Id, slashcommands.UserPassword)
 		if err != nil {
 			var appErr *model.AppError
 			ok = errors.As(err, &appErr)

@@ -3140,10 +3140,6 @@
     "translation": "Błąd w dekodowaniu wyników wyszukiwania"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch jest obecnie uruchomiony."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Nie udało się utworzyć procesora zbiorczego Elasticsearch."
   },
@@ -7421,7 +7417,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Kanały pomagają usprawnić komunikację, ale wraz z dołączaniem i tworzeniem kanałów przez użytkowników Mattermost rośnie wyzwanie związane z utrzymaniem porządku w systemie. Zaawansowane uprawnienia umożliwiają określenie, którzy użytkownicy lub role mogą wykonywać określone czynności, w tym zarządzać ustawieniami kanału i jego członkami, używać @channel lub @here do oznaczania szerokich grup użytkowników oraz tworzyć nowe webhooki.\n\n[Dowiedz się więcej o korzystaniu z uprawnień zaawansowanych](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności] (https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+    "translation": "Kanały pomagają usprawnić komunikację, ale wraz z dołączaniem i tworzeniem kanałów przez użytkowników Mattermost rośnie wyzwanie związane z utrzymaniem porządku w systemie. Zaawansowane uprawnienia umożliwiają określenie, którzy użytkownicy lub role mogą wykonywać określone czynności, w tym zarządzać ustawieniami kanału i jego członkami, używać @channel lub @here do oznaczania szerokich grup użytkowników oraz tworzyć nowe webhooki.\n\n[Dowiedz się więcej o korzystaniu z uprawnień zaawansowanych](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności] (https://mattermost.com/pl/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
@@ -7437,7 +7433,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost zdecydowanie zaleca, aby wdrożenia obejmujące ponad 500 użytkowników korzystały z funkcji takich jak zarządzanie użytkownikami, klastrowanie serwerów i monitorowanie wydajności. Skontaktuj się z nami, aby dowiedzieć się więcej i daj nam znać, jak możemy pomóc.\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności] (https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+    "translation": "Mattermost zdecydowanie zaleca, aby wdrożenia obejmujące ponad 500 użytkowników korzystały z funkcji takich jak zarządzanie użytkownikami, klastrowanie serwerów i monitorowanie wydajności. Skontaktuj się z nami, aby dowiedzieć się więcej i daj nam znać, jak możemy pomóc.\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności] (https://mattermost.com/pl/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
@@ -7453,7 +7449,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Przy tak wielu rozmowach toczących się w Mattermost, poszukiwanie ważnych informacji może być trudne. Jeśli chcesz nadać wiadomość do dużej grupy odbiorców, możesz ustawić kanały ogłoszeń tylko do odczytu, gdzie każdy może dołączyć, ale tylko administratorzy kanału mogą publikować wiadomości.\n\n[Dowiedz się więcej o tworzeniu Kanałów ogłoszeń tylko do odczytu](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+    "translation": "Przy tak wielu rozmowach toczących się w Mattermost, poszukiwanie ważnych informacji może być trudne. Jeśli chcesz nadać wiadomość do dużej grupy odbiorców, możesz ustawić kanały ogłoszeń tylko do odczytu, gdzie każdy może dołączyć, ale tylko administratorzy kanału mogą publikować wiadomości.\n\n[Dowiedz się więcej o tworzeniu Kanałów ogłoszeń tylko do odczytu](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/pl/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
@@ -7469,7 +7465,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Twój system Mattermost ma teraz 200 użytkowników. Po połączeniu Mattermost z dostawcą pojedynczego logowania w organizacji, użytkownicy mogą uzyskać dostęp do Mattermost bez konieczności ponownego wprowadzania swoich danych uwierzytelniających. Zalecamy zintegrowanie dostawcy SAML 2.0 z serwerem Mattermost.[Dowiedz się więcej o integracji z SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+    "translation": "Twój system Mattermost ma teraz 200 użytkowników. Po połączeniu Mattermost z dostawcą pojedynczego logowania w organizacji, użytkownicy mogą uzyskać dostęp do Mattermost bez konieczności ponownego wprowadzania swoich danych uwierzytelniających. Zalecamy zintegrowanie dostawcy SAML 2.0 z serwerem Mattermost.[Dowiedz się więcej o integracji z SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/pl/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -7489,7 +7485,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Twój system Mattermost ma ponad 100 użytkowników. Wraz ze wzrostem bazy użytkowników, dodawanie nowych kont może stać się czasochłonne. Zalecamy zintegrowanie Active Directory/LDAP organizacji, co pozwoli każdemu, kto ma konto, uzyskać dostęp do Mattermost.\n\n[Dowiedz się więcej o integracji z AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+    "translation": "Twój system Mattermost ma ponad 100 użytkowników. Wraz ze wzrostem bazy użytkowników, dodawanie nowych kont może stać się czasochłonne. Zalecamy zintegrowanie Active Directory/LDAP organizacji, co pozwoli każdemu, kto ma konto, uzyskać dostęp do Mattermost.\n\n[Dowiedz się więcej o integracji z AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/pl/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
@@ -7509,7 +7505,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "System Mattermost ma włączone uwierzytelnianie wieloskładnikowe, co daje użytkownikom możliwość zabezpieczenia konta dodatkowymi sposobami uwierzytelniania poza hasłem. Aby poprawić bezpieczeństwo w całym systemie, możesz wymagać, aby wszystkie konta Mattermost korzystały z uwierzytelniania wieloskładnikowego.\n\n[Dowiedz się więcej o wymuszaniu uwierzytelniania wieloskładnikowego] (https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+    "translation": "System Mattermost ma włączone uwierzytelnianie wieloskładnikowe, co daje użytkownikom możliwość zabezpieczenia konta dodatkowymi sposobami uwierzytelniania poza hasłem. Aby poprawić bezpieczeństwo w całym systemie, możesz wymagać, aby wszystkie konta Mattermost korzystały z uwierzytelniania wieloskładnikowego.\n\n[Dowiedz się więcej o wymuszaniu uwierzytelniania wieloskładnikowego] (https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/pl/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
   },
   {
     "id": "api.server.warn_metric.mfa.notification_body",
@@ -7529,7 +7525,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Projekty często angażują ludzi zarówno wewnątrz, jak i na zewnątrz organizacji. Dzięki Kontom Gości możesz wprowadzić zewnętrznych partnerów do swojego systemu Mattermost i określić, z kim mogą pracować i co mogą zobaczyć.\n\n[Dowiedz się więcej o włączaniu kont gości](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+    "translation": "Projekty często angażują ludzi zarówno wewnątrz, jak i na zewnątrz organizacji. Dzięki Kontom Gości możesz wprowadzić zewnętrznych partnerów do swojego systemu Mattermost i określić, z kim mogą pracować i co mogą zobaczyć.\n\n[Dowiedz się więcej o włączaniu kont gości](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności](https://mattermost.com/pl/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -7829,7 +7825,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Twój system Mattermost ma teraz kilka zespołów. Wiele zespołów ma swój własny preferowany sposób koordynacji i współpracy, w tym sposób tworzenia kanałów, włączając to kto może zapraszać nowych członków zespołu i jak zarządzać integracjami. Schematy zespołów umożliwiają dostosowanie uprawnień użytkowników w każdym zespole, aby spełnić ich specyficzne potrzeby.\n\n[Dowiedz się więcej o korzystaniu z zaawansowanych uprawnień](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności] (https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+    "translation": "Twój system Mattermost ma teraz kilka zespołów. Wiele zespołów ma swój własny preferowany sposób koordynacji i współpracy, w tym sposób tworzenia kanałów, włączając to kto może zapraszać nowych członków zespołu i jak zarządzać integracjami. Schematy zespołów umożliwiają dostosowanie uprawnień użytkowników w każdym zespole, aby spełnić ich specyficzne potrzeby.\n\n[Dowiedz się więcej o korzystaniu z zaawansowanych uprawnień](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności] (https://mattermost.com/pl/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
@@ -7849,7 +7845,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Twój system Mattermost ma dużą liczbę wiadomości. Domyślne wyszukiwanie w bazie danych Mattermost zaczyna wykazywać spadek wydajności przy około 2,5 miliona postów. Przy ponad 5 milionach postów, Elasticsearch może pomóc uniknąć znaczących problemów z wydajnością, takich jak timeout, z wyszukiwaniem i wzmianek. Skontaktuj się z nami, aby dowiedzieć się więcej i daj nam znać, jak możemy pomóc.\n\n[Dowiedz się więcej o poprawie wydajności](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności] (https://mattermost.com/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
+    "translation": "Twój system Mattermost ma dużą liczbę wiadomości. Domyślne wyszukiwanie w bazie danych Mattermost zaczyna wykazywać spadek wydajności przy około 2,5 miliona postów. Przy ponad 5 milionach postów, Elasticsearch może pomóc uniknąć znaczących problemów z wydajnością, takich jak timeout, z wyszukiwaniem i wzmianek. Skontaktuj się z nami, aby dowiedzieć się więcej i daj nam znać, jak możemy pomóc.\n\n[Dowiedz się więcej o poprawie wydajności](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nKlikając przycisk Rozpocznij test, wyrażam zgodę na [Umowę oceny oprogramowania Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Politykę prywatności] (https://mattermost.com/pl/privacy-policy/) i otrzymywanie wiadomości e-mail dotyczących produktu."
   },
   {
     "id": "app.analytics.getanalytics.internal_error",
@@ -10050,5 +10046,149 @@
   {
     "id": "app.user.run.add_to_timeline.title",
     "translation": "Dodaj do osi czasu uruchomienia"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Śledź postępy swojego zespołu w realizacji celów organizacji dzięki tablicy Cele i OKR. Utrzymuj spotkania na właściwym torze dzięki tablicy Agenda spotkań."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Zwiększ produktywność na swoim kanale, integrując najczęściej używane narzędzia. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Porozmawiaj ze swoim zespołem o nowym projekcie i zdecyduj, jak zamierzasz go ustrukturyzować, na kanale współpracy."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Użyj tablicy Kanban, aby zdefiniować i śledzić zadania i postępy w projekcie."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Nieprawidłowa wartość dla bajtów podczas wgrywania licencji."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Wersja Elasticsearch {{.Version}} jest wyższa niż maksymalnie obsługiwana wersja {{.MaxVersion}}"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Pomijanie instalacji wtyczki {{.Id}}, ponieważ istniejąca wersja jest równa lub nowsza."
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Wtyczka {{.Id}} jest na liście blokowanych. Niektóre wtyczki są zablokowane, ponieważ są wbudowane w tę wersję Mattermost."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "Serwer CWS nie zdołał zapisać się do newslettera."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Nieprawidłowy e-mail służbowy dla wersji testowej"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Zwiększ produktywność swojego kanału poprzez integrację najczęściej używanych narzędzi, takich jak Zoom. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Czatuj ze swoim zespołem w kanale, który łatwo łączy się z Twoimi tablicami i integracjami."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Śledź postępy swojego zespołu w realizacji tygodniowych celów dzięki podziałom na sprinty, ustalaniu priorytetów, przypisywaniu właścicieli i komentarzom."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Porozmawiaj ze swoim zespołem o opiniach klientów, ustal priorytety i wspólnie ustalcie postępy."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Wykorzystaj tablicę Product Roadmap do zarządzania opiniami użytkowników, przydzielania zasobów, przeglądania zadań w widoku kalendarza i nadawania priorytetów."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Zwiększ produktywność swojego kanału, integrując najczęściej używane narzędzia, takie jak Zoom, aby ułatwić współpracę. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Czatuj o swoich celach i postępach ze swoim zespołem, asynchronicznie lub w czasie rzeczywistym, i bądź na bieżąco ze zmianami na jednym kanale."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Śledź postępy swojego zespołu w realizacji celów organizacyjnych dzięki tablicy Cele i OKR. Utrzymuj spotkania na właściwym torze dzięki tablicy Agenda spotkań."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Usprawnij współpracę międzyfunkcyjnego zespołu dzięki listom kontrolnym zadań i automatyzacji, które wspierają proces tworzenia funkcji. Kiedy skończysz, przeprowadź retrospektywę i wprowadź ulepszenia do następnego wydania."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Zwiększ wydajność na swoim kanale, integrując najczęściej używane narzędzia do obsługi wydania funkcji, takie jak GitHub. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Czatuj ze swoim zespołem na temat wszelkich blokad wydania i zmian w kanale, który łatwo łączy się z tablicami, playbookami i innymi integracjami."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Utrzymuj spotkania na właściwym torze dzięki tablicy Agenda spotkań. Zarządzaj swoim obciążeniem pracą dzięki tablicy Zadania projektowe."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Użyj list kontrolnych, aby przypisać obszary testowe i zautomatyzowane zadania, aby uruchomić kompleksowy proces bug bash. Użyj retrospektywy, aby przejrzeć swój proces i poprawić go na następny raz."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Zwiększ produktywność w swoim kanale, integrując swoje najczęściej używane narzędzia, takie jak Jira, aby śledzić postępy w bug bashu. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Planuj i zarządzaj raportami o błędach i rozwiązaniami w jednym kanale, który jest łatwo dostępny dla Twojego zespołu i organizacji."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "Zwiększ produktywność swojego kanału, integrując najczęściej używane narzędzia, takie jak Zoom, aby ułatwić współpracę. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "Czatuj o swoich celach i postępach ze swoim zespołem, asynchronicznie lub w czasie rzeczywistym, i bądź na bieżąco ze zmianami w jednym kanale."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Śledź postępy swojego zespołu w realizacji celów organizacyjnych dzięki tablicy Cele i OKR. Utrzymuj spotkania na właściwym torze dzięki tablicy Agenda spotkań."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "Stwórz powtarzalne przepływy pracy, które są łatwe do naśladowania i wdrożenia, aby wydania produktów były niezawodne i terminowe."
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "Rozmawiaj ze swoim zespołem o codziennych kamieniach milowych, wszelkich blokadach i zmianach w produktach - łatwo i szybko."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "Użyj tablicy Product Release, aby wesprzeć ramy czasowe i proces wydawania produktów, upewniając się, że wszyscy wiedzą, które zadania są wymagalne."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "Użyj list kontrolnych i automatyzacji, aby wprowadzić kluczowych członków zespołu, i podziel się tym, jak twój incydent jest śledzony w kierunku rozwiązania."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "Rozmawiaj ze swoim zespołem o priorytetach, dodawaj interesariuszy, dostarczaj aktualizacje i pracuj nad rozwiązaniem na jednym kanale."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Użyj tablicy rozwiązywania incydentów, aby wspierać powtarzalne procesy i przypisywać zdefiniowane zadania w całym zespole."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "Zwiększ produktywność swojego kanału, integrując najczęściej używane narzędzia, takie jak Zoom, aby ułatwić współpracę. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Czatuj o swoich celach i postępach ze swoim zespołem, asynchronicznie lub w czasie rzeczywistym, i bądź na bieżąco ze zmianami w jednym kanale."
   }
 ]

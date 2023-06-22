@@ -5,7 +5,6 @@ import {expect} from '@playwright/test';
 import {UserProfile} from '@mattermost/types/users';
 
 import {Client, createRandomTeam, getAdminClient, getDefaultAdminUser, makeClient} from './support/server';
-import {boardsPluginId, callsPluginId} from './support/constant';
 import {defaultTeam} from './support/util';
 import testConfig from './test.config';
 
@@ -97,26 +96,16 @@ async function printClientInfo(client: Client) {
   - BuildHashEnterprise         = ${config.BuildHashEnterprise}
   - BuildEnterpriseReady        = ${config.BuildEnterpriseReady}
   - FeatureFlagAppsEnabled      = ${config.FeatureFlagAppsEnabled}
-  - FeatureFlagBoardsProduct    = ${config.FeatureFlagBoardsProduct}
   - FeatureFlagCallsEnabled     = ${config.FeatureFlagCallsEnabled}
-  - TelemetryId                 = ${config.TelemetryId}`);
-}
-
-function getProductsAsPlugin() {
-    const productsAsPlugin = [callsPluginId];
-
-    if (!testConfig.boardsProductEnabled) {
-        productsAsPlugin.push(boardsPluginId);
-    }
-
-    return productsAsPlugin;
+  - TelemetryId                 = ${config.TelemetryId}
+  - ServiceEnvironment          = ${config.ServiceEnvironment}`);
 }
 
 async function ensurePluginsLoaded(client: Client) {
     const pluginStatus = await client.getPluginStatuses();
     const plugins = await client.getPlugins();
 
-    getProductsAsPlugin().forEach(async (pluginId) => {
+    testConfig.ensurePluginsInstalled.forEach(async (pluginId) => {
         const isInstalled = pluginStatus.some((plugin) => plugin.plugin_id === pluginId);
         if (!isInstalled) {
             // eslint-disable-next-line no-console

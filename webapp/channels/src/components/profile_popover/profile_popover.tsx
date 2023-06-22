@@ -20,8 +20,11 @@ import {ModalData} from 'types/actions';
 import {getHistory} from 'utils/browser_history';
 import Constants, {A11yClassNames, A11yCustomEventTypes, A11yFocusEventDetail, ModalIdentifiers, UserStatuses} from 'utils/constants';
 import {t} from 'utils/i18n';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 import {shouldFocusMainTextbox} from 'utils/post_utils';
+
+import {ProfileTimezone} from './profile_localtime';
 
 import StatusIcon from 'components/status_icon';
 import Timestamp from 'components/timestamp';
@@ -47,7 +50,7 @@ import BotTag from '../widgets/tag/bot_tag';
 import GuestTag from '../widgets/tag/guest_tag';
 import Tag from '../widgets/tag/tag';
 
-interface ProfilePopoverProps extends Omit<React.ComponentProps<typeof Popover>, 'id'> {
+export interface ProfilePopoverProps extends Omit<React.ComponentProps<typeof Popover>, 'id'> {
 
     /**
      * Source URL from the image to display in the popover
@@ -336,7 +339,7 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
     handleKeyDown = (e: React.KeyboardEvent) => {
         if (shouldFocusMainTextbox(e, document.activeElement)) {
             this.props.hide?.();
-        } else if (Utils.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
+        } else if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
             this.returnFocus();
         }
     };
@@ -460,7 +463,7 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                     key='user-popover-last-active'
                 >
                     <FormattedMessage
-                        id='channel_header.lastActive'
+                        id='channel_header.lastOnline'
                         defaultMessage='Last online {timestamp}'
                         values={{
                             timestamp: (
@@ -521,23 +524,6 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                 {userName}
             </div>,
         );
-        const email = this.props.user.email || '';
-        if (email && !this.props.user.is_bot && !haveOverrideProp) {
-            dataContent.push(
-                <div
-                    data-toggle='tooltip'
-                    title={email}
-                    key='user-popover-email'
-                >
-                    <a
-                        href={'mailto:' + email}
-                        className='text-nowrap text-lowercase user-popover__email pb-1'
-                    >
-                        {email}
-                    </a>
-                </div>,
-            );
-        }
         if (this.props.user.position && !haveOverrideProp) {
             const position = (this.props.user?.position || '').substring(
                 0,
@@ -558,6 +544,23 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                 className='divider divider--expanded'
             />,
         );
+        const email = this.props.user.email || '';
+        if (email && !this.props.user.is_bot && !haveOverrideProp) {
+            dataContent.push(
+                <div
+                    data-toggle='tooltip'
+                    title={email}
+                    key='user-popover-email'
+                >
+                    <a
+                        href={'mailto:' + email}
+                        className='text-nowrap text-lowercase user-popover__email pb-1'
+                    >
+                        {email}
+                    </a>
+                </div>,
+            );
+        }
         dataContent.push(
             <Pluggable
                 key='profilePopoverPluggable2'
@@ -574,27 +577,11 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
             !haveOverrideProp
         ) {
             dataContent.push(
-                <div
+                <ProfileTimezone
+                    currentUserTimezone={this.props.currentUserTimezone}
+                    profileUserTimezone={this.props.user.timezone}
                     key='user-popover-local-time'
-                    className='user-popover__time-status-container'
-                >
-                    <span className='user-popover__subtitle' >
-                        <FormattedMessage
-                            id='user_profile.account.localTime'
-                            defaultMessage='Local Time'
-                        />
-                    </span>
-                    <Timestamp
-                        useRelative={false}
-                        useDate={false}
-                        userTimezone={this.props.user?.timezone}
-                        useTime={{
-                            hour: 'numeric',
-                            minute: 'numeric',
-                            timeZoneName: 'short',
-                        }}
-                    />
-                </div>,
+                />,
             );
         }
 
@@ -905,7 +892,15 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                 {tabCatcher}
                 <div
                     role='dialog'
-                    aria-label={Utils.localizeAndFormatMessage('profile_popover.profileLabel', 'Profile for {name}', {name: displayName})}
+                    aria-label={formatMessage(
+                        {
+                            id: 'profile_popover.profileLabel',
+                            defaultMessage: 'Profile for {name}',
+                        },
+                        {
+                            name: displayName,
+                        },
+                    )}
                     onKeyDown={this.handleKeyDown}
                     className={A11yClassNames.POPUP}
                     aria-modal={true}

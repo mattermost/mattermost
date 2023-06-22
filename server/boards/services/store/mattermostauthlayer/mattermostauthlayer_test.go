@@ -9,9 +9,9 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	mockservicesapi "github.com/mattermost/mattermost-server/v6/server/boards/model/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	mockservicesapi "github.com/mattermost/mattermost/server/v8/boards/model/mocks"
 
 	"github.com/stretchr/testify/require"
 )
@@ -24,11 +24,11 @@ func TestGetBoardsBotID(t *testing.T) {
 
 	mmAuthLayer, _ := New("test", nil, nil, mlog.CreateConsoleTestLogger(true, mlog.LvlError), servicesAPI, "")
 
-	servicesAPI.EXPECT().EnsureBot(model.FocalboardBot).Return("", errTest)
+	servicesAPI.EXPECT().EnsureBot(model.GetDefaultFocalboardBot()).Return("", errTest)
 	_, err := mmAuthLayer.getBoardsBotID()
 	require.NotEmpty(t, err)
 
-	servicesAPI.EXPECT().EnsureBot(model.FocalboardBot).Return("TestBotID", nil).Times(1)
+	servicesAPI.EXPECT().EnsureBot(model.GetDefaultFocalboardBot()).Return("TestBotID", nil).Times(1)
 	botID, err := mmAuthLayer.getBoardsBotID()
 	require.Empty(t, err)
 	require.NotEmpty(t, botID)

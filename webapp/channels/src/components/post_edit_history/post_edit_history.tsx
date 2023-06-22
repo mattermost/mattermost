@@ -11,7 +11,7 @@ import LoadingScreen from 'components/loading_screen';
 
 import EditedPostItem from './edited_post_item';
 
-import {PropsFromRedux} from '.';
+import type {PropsFromRedux} from './index';
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
 
 import './post_edit_history.scss';

@@ -11,15 +11,15 @@ import (
 	"net/http"
 	"strings"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
 
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
-	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/services/store"
+	"github.com/mattermost/mattermost/server/v8/boards/utils"
 
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 var boardsBotID string
@@ -70,9 +70,10 @@ func New(dbType string, db *sql.DB, store store.Store, logger mlog.LoggerIFace, 
 	return layer, nil
 }
 
-// Shutdown close the connection with the store.
+// For MattermostAuthLayer we don't close the database connection
+// because it's directly managed by the platform
 func (s *MattermostAuthLayer) Shutdown() error {
-	return s.Store.Shutdown()
+	return nil
 }
 
 func (s *MattermostAuthLayer) GetRegisteredUserCount() (int, error) {
@@ -933,9 +934,8 @@ func (s *MattermostAuthLayer) boardsFromRows(rows *sql.Rows, removeDuplicates bo
 		if removeDuplicates {
 			if _, ok := idMap[board.ID]; ok {
 				continue
-			} else {
-				idMap[board.ID] = struct{}{}
 			}
+			idMap[board.ID] = struct{}{}
 		}
 
 		err = json.Unmarshal(propertiesBytes, &board.Properties)
@@ -1218,7 +1218,7 @@ func (s *MattermostAuthLayer) GetChannel(teamID, channelID string) (*mm_model.Ch
 func (s *MattermostAuthLayer) getBoardsBotID() (string, error) {
 	if boardsBotID == "" {
 		var err error
-		boardsBotID, err = s.servicesAPI.EnsureBot(model.FocalboardBot)
+		boardsBotID, err = s.servicesAPI.EnsureBot(model.GetDefaultFocalboardBot())
 		if err != nil {
 			s.logger.Error("failed to ensure boards bot", mlog.Err(err))
 			return "", err

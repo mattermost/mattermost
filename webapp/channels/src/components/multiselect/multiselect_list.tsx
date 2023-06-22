@@ -8,7 +8,7 @@ import {getOptionValue} from 'react-select/src/builtins';
 import {FormattedMessage} from 'react-intl';
 
 import Constants from 'utils/constants';
-import {cmdOrCtrlPressed} from 'utils/utils';
+import {cmdOrCtrlPressed} from 'utils/keyboard';
 
 import LoadingScreen from 'components/loading_screen';
 

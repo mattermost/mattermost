@@ -24,13 +24,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/v6/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
+
+func newServer(t *testing.T) (*Server, error) {
+	return newServerWithConfig(t, func(_ *model.Config) {})
+}
 
 func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, error) {
 	configStore, err := config.NewMemoryStore()
@@ -38,6 +42,7 @@ func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, erro
 	store, err := config.NewStoreFromBacking(configStore, nil, false)
 	require.NoError(t, err)
 	cfg := store.Get()
+	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	f(cfg)
 
 	store.Set(cfg)
@@ -61,11 +66,11 @@ func TestStartServerSuccess(t *testing.T) {
 }
 
 func TestStartServerPortUnavailable(t *testing.T) {
-	s, err := NewServer()
-	require.NoError(t, err)
-
 	// Listen on the next available port
 	listener, err := net.Listen("tcp", "localhost:0")
+	require.NoError(t, err)
+
+	s, err := newServer(t)
 	require.NoError(t, err)
 
 	// Attempt to listen on the port used above.
@@ -105,6 +110,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 		AmazonS3SSL:             model.NewBool(false),
 	}
 	*cfg.ServiceSettings.ListenAddress = "localhost:0"
+	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	_, _, err := store.Set(cfg)
 	require.NoError(t, err)
 
@@ -162,7 +168,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
 
-	th := Setup(t)
+	th := Setup(t, SkipProductsInitialization())
 	defer th.TearDown()
 
 	databaseType, mattermostVersion := th.Server.DatabaseTypeAndSchemaVersion()
@@ -171,7 +177,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
 
-	th2 := Setup(t)
+	th2 := Setup(t, SkipProductsInitialization())
 	defer th2.TearDown()
 
 	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndSchemaVersion()
@@ -190,6 +196,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 	*cfg.ServiceSettings.TLSMinVer = "1.2"
 	*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
 	*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 
 	store.Set(cfg)
 
@@ -316,7 +323,7 @@ func TestPanicLog(t *testing.T) {
 	logger.LockConfiguration()
 
 	// Creating a server with logger
-	s, err := NewServer()
+	s, err := newServer(t)
 	require.NoError(t, err)
 	s.Platform().SetLogger(logger)
 
@@ -388,6 +395,22 @@ func TestSentry(t *testing.T) {
 	}}
 	testDir, _ := fileutils.FindDir("tests")
 
+	setSentryDSN := func(t *testing.T, dsn *sentry.Dsn) {
+		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
+
+		// Allow Playbooks to startup
+		oldBuildHash := model.BuildHash
+		model.BuildHash = "dev"
+
+		oldSentryDSN := SentryDSN
+		SentryDSN = dsn.String()
+		t.Cleanup(func() {
+			os.Unsetenv("MM_SERVICEENVIRONMENT")
+			model.BuildHash = oldBuildHash
+			SentryDSN = oldSentryDSN
+		})
+	}
+
 	t.Run("sentry is disabled, should not receive a report", func(t *testing.T) {
 		data := make(chan bool, 1)
 
@@ -401,7 +424,7 @@ func TestSentry(t *testing.T) {
 		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
 		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
 		require.NoError(t, err)
-		SentryDSN = dsn.String()
+		setSentryDSN(t, dsn)
 
 		s, err := newServerWithConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = "localhost:0"
@@ -445,7 +468,7 @@ func TestSentry(t *testing.T) {
 		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
 		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
 		require.NoError(t, err)
-		SentryDSN = dsn.String()
+		setSentryDSN(t, dsn)
 
 		s, err := newServerWithConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = "localhost:0"
@@ -486,4 +509,63 @@ func TestCancelTaskSetsTaskToNil(t *testing.T) {
 	cancelTask(&taskMut, &task)
 	require.Nil(t, task)
 	require.NotPanics(t, func() { cancelTask(&taskMut, &task) })
+}
+
+func TestOriginChecker(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowCorsFrom = ""
+	})
+
+	tcs := []struct {
+		SiteURL      string
+		HeaderScheme string
+		HeaderHost   string
+		Pass         bool
+	}{
+		{
+			HeaderHost:   "test.com",
+			HeaderScheme: "https://",
+			SiteURL:      "https://test.com",
+			Pass:         true,
+		},
+		{
+			HeaderHost:   "test.com",
+			HeaderScheme: "http://",
+			SiteURL:      "https://test.com",
+			Pass:         false,
+		},
+		{
+			HeaderHost:   "test.com",
+			HeaderScheme: "https://",
+			SiteURL:      "https://www.test.com",
+			Pass:         false,
+		},
+		{
+			HeaderHost:   "example.com",
+			HeaderScheme: "http://",
+			SiteURL:      "http://test.com",
+			Pass:         false,
+		},
+		{
+			HeaderHost:   "null",
+			HeaderScheme: "",
+			SiteURL:      "http://test.com",
+			Pass:         false,
+		},
+	}
+
+	for i, tc := range tcs {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = tc.SiteURL
+		})
+
+		r := &http.Request{
+			Header: http.Header{"Origin": []string{fmt.Sprintf("%s%s", tc.HeaderScheme, tc.HeaderHost)}},
+		}
+		res := th.App.OriginChecker()(r)
+		require.Equalf(t, tc.Pass, res, "Test case (%d)", i)
+	}
 }

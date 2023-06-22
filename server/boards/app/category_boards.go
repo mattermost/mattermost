@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 )
 
 const defaultCategoryBoards = "Boards"

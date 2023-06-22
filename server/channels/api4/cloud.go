@@ -11,10 +11,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/web"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/web"
 )
 
 func (api *API) InitCloud() {
@@ -103,6 +103,7 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 			DNS:             "",
 			LastInvoice:     &model.Invoice{},
 			DelinquentSince: subscription.DelinquentSince,
+			BillingType:     "",
 		}
 	}
 
@@ -874,6 +875,11 @@ func selfServeDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request
 	}
 	defer r.Body.Close()
 
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
+		return
+	}
+
 	var deleteRequest *model.WorkspaceDeletionRequest
 	if err = json.Unmarshal(bodyBytes, &deleteRequest); err != nil {
 		c.Err = model.NewAppError("Api4.selfServeDeleteWorkspace", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -888,5 +894,4 @@ func selfServeDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request
 	c.App.Srv().GetTelemetryService().SendTelemetry("delete_workspace_feedback", deleteRequest.Feedback.ToMap())
 
 	ReturnStatusOK(w)
-
 }

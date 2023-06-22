@@ -10,7 +10,8 @@ import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
 import {t} from 'utils/i18n';
-import {a11yFocus, isMac, localizeMessage} from 'utils/utils';
+import {isMac} from 'utils/user_agent';
+import {a11yFocus, localizeMessage} from 'utils/utils';
 
 import SettingItemMax from 'components/setting_item_max';
 import ConfirmModal from 'components/confirm_modal';

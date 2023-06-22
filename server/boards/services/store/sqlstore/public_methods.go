@@ -16,10 +16,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (s *SQLStore) AddUpdateCategoryBoard(userID string, categoryID string, boardIDs []string) error {
@@ -323,26 +323,6 @@ func (s *SQLStore) GetBlocksByIDs(ids []string) ([]*model.Block, error) {
 
 func (s *SQLStore) GetBlocksComplianceHistory(opts model.QueryBlocksComplianceHistoryOptions) ([]*model.BlockHistory, bool, error) {
 	return s.getBlocksComplianceHistory(s.db, opts)
-
-}
-
-func (s *SQLStore) GetBlocksForBoard(boardID string) ([]*model.Block, error) {
-	return s.getBlocksForBoard(s.db, boardID)
-
-}
-
-func (s *SQLStore) GetBlocksWithParent(boardID string, parentID string) ([]*model.Block, error) {
-	return s.getBlocksWithParent(s.db, boardID, parentID)
-
-}
-
-func (s *SQLStore) GetBlocksWithParentAndType(boardID string, parentID string, blockType string) ([]*model.Block, error) {
-	return s.getBlocksWithParentAndType(s.db, boardID, parentID, blockType)
-
-}
-
-func (s *SQLStore) GetBlocksWithType(boardID string, blockType string) ([]*model.Block, error) {
-	return s.getBlocksWithType(s.db, boardID, blockType)
 
 }
 

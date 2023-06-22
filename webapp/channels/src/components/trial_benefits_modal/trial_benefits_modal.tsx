@@ -11,7 +11,7 @@ import moment from 'moment';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {ConsolePages, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
@@ -19,7 +19,7 @@ import {isModalOpen} from 'selectors/views/modals';
 import {GlobalState} from 'types/store';
 
 import Carousel from 'components/common/carousel/carousel';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import HandsSvg from 'components/common/svg_images_components/hands_svg';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
@@ -84,7 +84,7 @@ const TrialBenefitsModal = ({
                     height={180}
                 />
             ),
-            pageURL: 'https://docs.mattermost.com/onboard/sso-saml.html',
+            pageURL: DocLinks.SETUP_SAML,
             buttonLabel,
         },
         {
@@ -98,7 +98,7 @@ const TrialBenefitsModal = ({
                     height={180}
                 />
             ),
-            pageURL: 'https://docs.mattermost.com/onboard/ad-ldap.html',
+            pageURL: DocLinks.SETUP_LDAP,
             buttonLabel,
         },
         {

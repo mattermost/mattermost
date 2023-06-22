@@ -15,10 +15,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         id="admin.database.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <div
         className="banner"
       >
@@ -349,6 +346,36 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                   id="admin.database.migrations_table.help_text"
                 />
               }
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Active Search Backend:"
+            id="admin.database.search_backend.title"
+          />
+        </label>
+        <div
+          className="col-sm-8"
+        >
+          <input
+            className="form-control"
+            disabled={true}
+            type="text"
+            value=""
+          />
+          <div
+            className="help-text"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Shows the currently active backend used for search. Values can be none, database, elasticsearch, bleve etc."
+              id="admin.database.search_backend.help_text"
             />
           </div>
         </div>

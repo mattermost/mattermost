@@ -5,7 +5,7 @@ import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link, useHistory} from 'react-router-dom';
 
-import {Constants, ErrorPageTypes} from 'utils/constants';
+import {Constants, DeveloperLinks, ErrorPageTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
 import {Team} from '@mattermost/types/teams';
@@ -63,7 +63,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
 
         headerText = (
             <FormattedMessage
-                id={'installed_commands.header'}
+                id={'slash_commands.header'}
                 defaultMessage='Slash Commands'
             />
         );
@@ -75,7 +75,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     values={{
                         link: (msg: string) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-slash-commands/'
+                                href={DeveloperLinks.SETUP_CUSTOM_SLASH_COMMANDS}
                                 location='confirm_integration'
                             >
                                 {msg}
@@ -100,7 +100,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
 
         headerText = (
             <FormattedMessage
-                id={'installed_incoming_webhooks.header'}
+                id={'incoming_webhooks.header'}
                 defaultMessage='Incoming Webhooks'
             />
         );
@@ -112,7 +112,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     values={{
                         link: (msg: string) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-incoming/'
+                                href={DeveloperLinks.SETUP_INCOMING_WEBHOOKS}
                                 location='confirm_integration'
                             >
                                 {msg}
@@ -137,7 +137,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
 
         headerText = (
             <FormattedMessage
-                id={'installed_outgoing_webhooks.header'}
+                id={'add_outgoing_webhook.header'}
                 defaultMessage='Outgoing Webhooks'
             />
         );
@@ -149,7 +149,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     values={{
                         link: (msg: string) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-outgoing/'
+                                href={DeveloperLinks.SETUP_OUTGOING_WEBHOOKS}
                                 location='confirm_integration'
                             >
                                 {msg}
@@ -175,7 +175,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
 
         headerText = (
             <FormattedMessage
-                id={'installed_oauth_apps.header'}
+                id={'installed_oauth2_apps.header'}
                 defaultMessage='OAuth 2.0 Applications'
             />
         );
@@ -189,7 +189,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     values={{
                         link: (msg: string) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-oauth2/'
+                                href={DeveloperLinks.SETUP_OAUTH2}
                                 location='confirm_integration'
                             >
                                 {msg}

@@ -6,9 +6,9 @@
 package permissions
 
 import (
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
 )
 
 type PermissionsService interface {

@@ -21,13 +21,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v6/server/channels/db"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/searchtest"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/channels/db"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/searchtest"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 type storeType struct {
@@ -436,6 +436,12 @@ func TestEnsureMinimumDBVersion(t *testing.T) {
 		{
 			driver: model.DatabaseDriverPostgres,
 			ver:    "100001",
+			ok:     false,
+			err:    "",
+		},
+		{
+			driver: model.DatabaseDriverPostgres,
+			ver:    "110001",
 			ok:     true,
 			err:    "",
 		},
@@ -550,27 +556,6 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 		assert.Equal(t, tests[i].expected, ok)
 	}
 
-}
-
-func TestUpAndDownMigrations(t *testing.T) {
-	testDrivers := []string{
-		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
-	}
-
-	for _, driver := range testDrivers {
-		t.Run("Should be reversible for "+driver, func(t *testing.T) {
-			settings, err := makeSqlSettings(driver)
-			if err != nil {
-				t.Skip(err)
-			}
-			store := New(*settings, nil)
-			defer store.Close()
-
-			err = store.migrate(migrationsDirectionDown)
-			assert.NoError(t, err, "downing migrations should not error")
-		})
-	}
 }
 
 func TestGetAllConns(t *testing.T) {
@@ -761,15 +746,17 @@ func TestReplicaLagQuery(t *testing.T) {
 			mockMetrics.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
 
 			store := &SqlStore{
-				rrCounter: 0,
-				srCounter: 0,
-				settings:  settings,
-				metrics:   mockMetrics,
+				rrCounter:   0,
+				srCounter:   0,
+				settings:    settings,
+				metrics:     mockMetrics,
+				quitMonitor: make(chan struct{}),
+				wgMonitor:   &sync.WaitGroup{},
 			}
 
-			store.initConnection()
+			require.NoError(t, store.initConnection())
 			store.stores.post = newSqlPostStore(store, mockMetrics)
-			err = store.migrate(migrationsDirectionUp)
+			err = store.migrate(migrationsDirectionUp, false)
 			require.NoError(t, err)
 
 			defer store.Close()
@@ -839,9 +826,11 @@ func TestMySQLReadTimeout(t *testing.T) {
 	settings.DataSource = &dataSource
 
 	store := &SqlStore{
-		settings: settings,
+		settings:    settings,
+		quitMonitor: make(chan struct{}),
+		wgMonitor:   &sync.WaitGroup{},
 	}
-	store.initConnection()
+	require.NoError(t, store.initConnection())
 	defer store.Close()
 
 	_, err = store.GetMasterX().ExecNoTimeout(`SELECT SLEEP(3)`)

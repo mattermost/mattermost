@@ -33,6 +33,7 @@ type Props = {
     type: 'channel' | 'thread';
     user: UserProfile;
     value: PostDraft;
+    isRemote?: boolean;
 }
 
 function ThreadDraft({
@@ -45,6 +46,7 @@ function ThreadDraft({
     type,
     user,
     value,
+    isRemote,
 }: Props) {
     const dispatch = useDispatch();
 
@@ -107,7 +109,7 @@ function ThreadDraft({
                             />
                         )}
                         timestamp={value.updateAt}
-                        remote={value.remote || false}
+                        remote={isRemote || false}
                     />
                     <PanelBody
                         channelId={channel.id}

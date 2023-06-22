@@ -16,6 +16,8 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import NotificationBox from 'components/notification_box';
 
+import {getPermalinkURL} from 'selectors/urls';
+
 import {GlobalState} from 'types/store';
 
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -24,11 +26,10 @@ import {General, Permissions} from 'mattermost-redux/constants';
 import Constants from 'utils/constants';
 
 import PostMessagePreview from 'components/post_view/post_message_preview';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import {PostPreviewMetadata} from '@mattermost/types/posts';
 import {getSiteURL} from '../../utils/url';
-import * as Utils from '../../utils/utils';
 
 import ForwardPostChannelSelect, {ChannelOption, makeSelectedChannelOption} from './forward_post_channel_select';
 import ForwardPostCommentInput from './forward_post_comment_input';
@@ -49,7 +50,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
     const channel = useSelector((state: GlobalState) => getChannel(state, {id: post.channel_id}));
     const currentTeam = useSelector(getCurrentTeam);
 
-    const relativePermaLink = useSelector((state: GlobalState) => Utils.getPermalinkURL(state, currentTeam.id, post.id));
+    const relativePermaLink = useSelector((state: GlobalState) => getPermalinkURL(state, currentTeam.id, post.id));
     const permaLink = `${getSiteURL()}${relativePermaLink}`;
 
     const isPrivateConversation = channel.type !== Constants.OPEN_CHANNEL;
@@ -290,7 +291,6 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
                     >
                         <PostMessagePreview
                             metadata={previewMetaData}
-                            previewPost={previewMetaData.post}
                             handleFileDropdownOpened={noop}
                             preventClickAction={true}
                             previewFooterMessage={postPreviewFooterMessage}

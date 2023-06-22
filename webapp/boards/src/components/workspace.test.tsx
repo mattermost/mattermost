@@ -2,15 +2,14 @@
 // See LICENSE.txt for license information.
 import {
     act,
-    render,
     fireEvent,
-    screen
+    render,
+    screen,
 } from '@testing-library/react'
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {MemoryRouter} from 'react-router-dom'
 import {mocked} from 'jest-mock'
-
 
 import thunk from 'redux-thunk'
 
@@ -21,7 +20,7 @@ import {
     mockDOM,
     mockMatchMedia,
     mockStateStore,
-    wrapDNDIntl
+    wrapDNDIntl,
 } from 'src/testUtils'
 import {Constants} from 'src/constants'
 import {Utils} from 'src/utils'
@@ -36,6 +35,7 @@ jest.mock('draft-js/lib/generateRandomKey', () => () => '123')
 const mockedUtils = mocked(Utils)
 const mockedOctoClient = mocked(octoClient)
 const board = TestBlockFactory.createBoard()
+
 // TODO fix TestBlockFactory ID generation: mocked Utils.createGuid() returns undefined
 board.id = 'board1'
 board.teamId = 'team-id'
@@ -101,6 +101,7 @@ const me: IUser = {
 }
 
 const categoryAttribute1 = TestBlockFactory.createCategoryBoards()
+
 // TODO fix TestBlockFactory ID generation: mocked Utils.createGuid() returns undefined
 categoryAttribute1.id = 'categoryAttributeId1'
 categoryAttribute1.name = 'Category 1'

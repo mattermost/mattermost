@@ -8,7 +8,7 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
   open={false}
 >
   <button
-    aria-label="Add Channels Dropdown"
+    aria-label="Add Channel Dropdown"
     className="SidebarChannelNavigator__addChannelsCtaLhsButton SidebarChannelNavigator__addChannelsCtaLhsButton--untouched"
     id="addChannelsCta"
     onClick={[Function]}
@@ -30,12 +30,22 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
   >
     <MenuGroup>
       <MenuItemAction
+        icon={
+          <i
+            className="icon-plus"
+          />
+        }
         id="showNewChannel"
         onClick={[Function]}
         show={true}
         text="Create new channel"
       />
       <MenuItemAction
+        icon={
+          <i
+            className="icon-globe"
+          />
+        }
         id="showMoreChannels"
         onClick={[Function]}
         show={true}
@@ -48,7 +58,7 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
 
 exports[`components/new_channel_modal should match snapshot when user has only join channel permissions 1`] = `
 <button
-  aria-label="Add Channels Dropdown"
+  aria-label="Add Channel Dropdown"
   className="SidebarChannelNavigator__addChannelsCtaLhsButton SidebarChannelNavigator__addChannelsCtaLhsButton--untouched"
   id="addChannelsCta"
   onClick={[Function]}

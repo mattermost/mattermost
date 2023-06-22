@@ -4,39 +4,39 @@
 import {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import {Client4, DEFAULT_LIMIT_AFTER, DEFAULT_LIMIT_BEFORE} from 'mattermost-redux/client';
-
-import {PostTypes, ChannelTypes, FileTypes, IntegrationTypes} from 'mattermost-redux/action_types';
-
-import {getCurrentChannelId, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
-import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import * as Selectors from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
-
-import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
-
-import {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
-import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
-import {General, Preferences, Posts} from '../constants';
 import {UserProfile} from '@mattermost/types/users';
 import {Reaction} from '@mattermost/types/reactions';
 import {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
 import {GlobalState} from '@mattermost/types/store';
-import {ChannelUnread} from '@mattermost/types/channels';
+import {Channel, ChannelUnread} from '@mattermost/types/channels';
 import {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
 
-import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from './users';
+import {Client4, DEFAULT_LIMIT_AFTER, DEFAULT_LIMIT_BEFORE} from 'mattermost-redux/client';
+
+import {PostTypes, ChannelTypes, FileTypes, IntegrationTypes} from 'mattermost-redux/action_types';
+
+import {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+
+import {getCurrentChannelId, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
+import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
+import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
+import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+
+import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
+
+import {General, Preferences, Posts} from 'mattermost-redux/constants';
+
+import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {
     deletePreferences,
     savePreferences,
-} from './preferences';
-import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
+} from 'mattermost-redux/actions/preferences';
+import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {logError} from './errors';
-import {systemEmojis, getCustomEmojiByName, getCustomEmojisByName} from './emojis';
-import {selectChannel} from './channels';
-import {decrementThreadCounts} from './threads';
+import {systemEmojis, getCustomEmojiByName, getCustomEmojisByName} from 'mattermost-redux/actions/emojis';
+import {selectChannel} from 'mattermost-redux/actions/channels';
+import {decrementThreadCounts} from 'mattermost-redux/actions/threads';
 
 // receivedPost should be dispatched after a single post from the server. This typically happens when an existing post
 // is updated.
@@ -174,7 +174,7 @@ export function createPost(post: Post, files: any[] = []) {
         const pendingPostId = post.pending_post_id || `${currentUserId}:${timestamp}`;
         let actions: AnyAction[] = [];
 
-        if (Selectors.isPostIdSending(state, pendingPostId)) {
+        if (PostSelectors.isPostIdSending(state, pendingPostId)) {
             return {data: true};
         }
 
@@ -187,7 +187,7 @@ export function createPost(post: Post, files: any[] = []) {
         };
 
         if (post.root_id) {
-            newPost.reply_count = Selectors.getPostRepliesCount(state, post.root_id) + 1;
+            newPost.reply_count = PostSelectors.getPostRepliesCount(state, post.root_id) + 1;
         }
 
         // We are retrying a pending post that had files
@@ -307,7 +307,7 @@ export function createPostImmediately(post: Post, files: any[] = []) {
         };
 
         if (post.root_id) {
-            newPost.reply_count = Selectors.getPostRepliesCount(state, post.root_id) + 1;
+            newPost.reply_count = PostSelectors.getPostRepliesCount(state, post.root_id) + 1;
         }
 
         if (files.length) {
@@ -401,7 +401,7 @@ export function deletePost(post: ExtendedPost) {
         }
         if (delPost.type === Posts.POST_TYPES.COMBINED_USER_ACTIVITY && delPost.system_post_ids) {
             delPost.system_post_ids.forEach((systemPostId) => {
-                const systemPost = Selectors.getPost(state, systemPostId);
+                const systemPost = PostSelectors.getPost(state, systemPostId);
                 if (systemPost) {
                     dispatch(deletePost(systemPost));
                 }
@@ -466,7 +466,7 @@ function getUnreadPostData(unreadChan: ChannelUnread, state: GlobalState) {
 export function setUnreadPost(userId: string, postId: string) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let state = getState();
-        const post = Selectors.getPost(state, postId);
+        const post = PostSelectors.getPost(state, postId);
         let unreadChan;
 
         try {
@@ -523,7 +523,7 @@ export function pinPost(postId: string) {
         ];
 
         const state = getState();
-        const post = Selectors.getPost(state, postId);
+        const post = PostSelectors.getPost(state, postId);
         if (post) {
             actions.push(
                 receivedPost({
@@ -541,6 +541,16 @@ export function pinPost(postId: string) {
         dispatch(batchActions(actions));
 
         return {data: posts};
+    };
+}
+
+/**
+ * Decrements the pinned post count for a channel by 1
+ */
+export function decrementPinnedPostCount(channelId: Channel['id']) {
+    return {
+        type: ChannelTypes.DECREMENT_PINNED_POST_COUNT,
+        id: channelId,
     };
 }
 
@@ -565,7 +575,7 @@ export function unpinPost(postId: string) {
         ];
 
         const state = getState();
-        const post = Selectors.getPost(state, postId);
+        const post = PostSelectors.getPost(state, postId);
         if (post) {
             actions.push(
                 receivedPost({
@@ -573,10 +583,7 @@ export function unpinPost(postId: string) {
                     is_pinned: false,
                     update_at: Date.now(),
                 }, isCollapsedThreadsEnabled(state)),
-                {
-                    type: ChannelTypes.DECREMENT_PINNED_POST_COUNT,
-                    id: post.channel_id,
-                },
+                decrementPinnedPostCount(post.channel_id),
             );
         }
 
@@ -781,7 +788,7 @@ export function getPostThread(rootId: string, fetchThreads = true) {
 }
 
 export function getNewestPostThread(rootId: string) {
-    const getPostsForThread = Selectors.makeGetPostsForThread();
+    const getPostsForThread = PostSelectors.makeGetPostsForThread();
 
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         dispatch({type: PostTypes.GET_POST_THREAD_REQUEST});
@@ -1016,7 +1023,7 @@ export function getThreadsForPosts(posts: Post[], fetchThreads = true) {
             if (!post.root_id) {
                 return;
             }
-            const rootPost = Selectors.getPost(state, post.root_id);
+            const rootPost = PostSelectors.getPost(state, post.root_id);
 
             if (!rootPost) {
                 rootsSet.add(post.root_id);
@@ -1149,8 +1156,8 @@ export function getNeededAtMentionedUsernames(state: GlobalState, posts: Post[])
 
     const usernamesToLoad = new Set<string>();
 
-    posts.forEach((post) => {
-        if (!post.message.includes('@')) {
+    function findNeededUsernames(text?: string) {
+        if (!text || !text.includes('@')) {
             return;
         }
 
@@ -1161,7 +1168,7 @@ export function getNeededAtMentionedUsernames(state: GlobalState, posts: Post[])
         const pattern = /\B@(([a-z0-9_.-]*[a-z0-9_])[.-]*)/gi;
 
         let match;
-        while ((match = pattern.exec(post.message)) !== null) {
+        while ((match = pattern.exec(text)) !== null) {
             // match[1] is the matched mention including trailing punctuation
             // match[2] is the matched mention without trailing punctuation
             if (General.SPECIAL_MENTIONS.indexOf(match[2]) !== -1) {
@@ -1177,7 +1184,19 @@ export function getNeededAtMentionedUsernames(state: GlobalState, posts: Post[])
             usernamesToLoad.add(match[1]);
             usernamesToLoad.add(match[2]);
         }
-    });
+    }
+
+    for (const post of posts) {
+        // These correspond to the fields searched by getMentionsEnabledFields on the server
+        findNeededUsernames(post.message);
+
+        if (post.props?.attachments) {
+            for (const attachment of post.props.attachments) {
+                findNeededUsernames(attachment.pretext);
+                findNeededUsernames(attachment.text);
+            }
+        }
+    }
 
     return usernamesToLoad;
 }
@@ -1189,7 +1208,7 @@ export function removePost(post: ExtendedPost) {
         if (post.type === Posts.POST_TYPES.COMBINED_USER_ACTIVITY && post.system_post_ids) {
             const state = getState();
             for (const systemPostId of post.system_post_ids) {
-                const systemPost = Selectors.getPost(state, systemPostId);
+                const systemPost = PostSelectors.getPost(state, systemPostId);
 
                 if (systemPost) {
                     dispatch(removePost(systemPost as any) as any);
@@ -1198,12 +1217,7 @@ export function removePost(post: ExtendedPost) {
         } else {
             dispatch(postRemoved(post));
             if (post.is_pinned) {
-                dispatch(
-                    {
-                        type: ChannelTypes.DECREMENT_PINNED_POST_COUNT,
-                        id: post.channel_id,
-                    },
-                );
+                dispatch(decrementPinnedPostCount(post.channel_id));
             }
         }
         return {data: true};

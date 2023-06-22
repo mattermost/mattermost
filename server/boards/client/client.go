@@ -12,10 +12,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/api"
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/api"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
 )
 
 const (
@@ -849,9 +849,9 @@ func (c *Client) TeamUploadFileInfo(teamID, boardID string, fileName string) (*m
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	fileInfoResponse, error := api.FileInfoResponseFromJSON(r.Body)
-	if error != nil {
-		return nil, BuildErrorResponse(r, error)
+	fileInfoResponse, err := api.FileInfoResponseFromJSON(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
 	}
 	return fileInfoResponse, BuildResponse(r)
 }

@@ -20,12 +20,12 @@ import {getIsMobileView} from 'selectors/views/browser';
 import {openModal, closeModal} from 'actions/views/modals';
 
 import Constants, {A11yClassNames} from 'utils/constants';
-import {isKeyPressed} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
 
 import CompassDesignProvider from 'components/compass_design_provider';
 import Tooltip from 'components/tooltip';
 import OverlayTrigger from 'components/overlay_trigger';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import {MuiMenuStyled} from './menu_styled';
 

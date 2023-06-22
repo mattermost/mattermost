@@ -1,31 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CheckIcon} from '@mattermost/compass-icons/components';
-import classNames from 'classnames';
-
-import React, {useEffect, useState} from 'react';
-import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import React from 'react';
 import styled from 'styled-components';
+import classNames from 'classnames';
+import {FormattedMessage} from 'react-intl';
 
-import {GlobalState} from '@mattermost/types/store';
-import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
-import {Client4} from 'mattermost-redux/client';
+import {CheckIcon} from '@mattermost/compass-icons/components';
+
 import Accordion, {AccordionItemType} from 'components/common/accordion/accordion';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {elasticsearchTest, ldapTest, testSiteURL} from '../../../actions/admin_actions';
 import LoadingScreen from '../../loading_screen';
-import FormattedAdminHeader from '../../widgets/admin_console/formatted_admin_header';
-import {Props} from '../admin_console';
+import type {Props} from '../admin_console';
 
 import ChipsList, {ChipsInfoType} from './chips_list';
 import CtaButtons from './cta_buttons';
 
-import useMetricsData, {DataModel, ItemStatus, UpdatesParam} from './dashboard.data';
+import useMetricsData from './dashboard.data';
 
 import './dashboard.scss';
 import OverallScore from './overall-score';
+import {ItemStatus} from './dashboard.type';
 
 const AccordionItem = styled.div`
     padding: 12px;
@@ -49,180 +45,7 @@ const successIcon = (
 );
 
 const WorkspaceOptimizationDashboard = (props: Props) => {
-    const [loading, setLoading] = useState(true);
-    const [versionData, setVersionData] = useState<UpdatesParam['serverVersion']>({type: '', description: '', status: ItemStatus.NONE});
-
-    // const [guestAccountStatus, setGuestAccountStatus] = useState<ItemStatus>('none');
-    const [liveUrlStatus, setLiveUrlStatus] = useState<ItemStatus>(ItemStatus.ERROR);
-    const [elastisearchStatus, setElasticsearchStatus] = useState<ItemStatus>(ItemStatus.INFO);
-    const [ldapStatus, setLdapStatus] = useState<ItemStatus>(ItemStatus.INFO);
-    const [dataRetentionStatus, setDataRetentionStatus] = useState<ItemStatus>(ItemStatus.INFO);
-    const {formatMessage} = useIntl();
-    const {getAccessData, getConfigurationData, getUpdatesData, getPerformanceData, getDataPrivacyData, getEaseOfManagementData, isLicensed, isEnterpriseLicense} = useMetricsData();
-
-    // get the currently installed server version
-    const installedVersion = useSelector((state: GlobalState) => getServerVersion(state));
-    const analytics = useSelector((state: GlobalState) => state.entities.admin.analytics);
-    const {TOTAL_USERS: totalUsers, TOTAL_POSTS: totalPosts} = analytics!;
-
-    // gather locally available data
-    const {
-        ServiceSettings,
-        DataRetentionSettings,
-        ElasticsearchSettings,
-        LdapSettings,
-
-        // TeamSettings,
-        // GuestAccountsSettings,
-    } = props.config;
-    const {location} = document;
-
-    const sessionLengthWebInHours = ServiceSettings?.SessionLengthWebInHours || -1;
-
-    const testURL = () => {
-        if (!ServiceSettings?.SiteURL) {
-            return Promise.resolve();
-        }
-
-        const onSuccess = ({status}: any) => setLiveUrlStatus(status === 'OK' ? ItemStatus.OK : ItemStatus.ERROR);
-        const onError = () => setLiveUrlStatus(ItemStatus.ERROR);
-        return testSiteURL(onSuccess, onError, ServiceSettings?.SiteURL);
-    };
-
-    const testDataRetention = async () => {
-        if (!isLicensed || !isEnterpriseLicense) {
-            return Promise.resolve();
-        }
-
-        if (DataRetentionSettings?.EnableMessageDeletion || DataRetentionSettings?.EnableFileDeletion) {
-            setDataRetentionStatus(ItemStatus.OK);
-            return Promise.resolve();
-        }
-
-        const result = await fetch(`${Client4.getBaseRoute()}/data_retention/policies?page=0&per_page=0`).then((result) => result.json());
-
-        setDataRetentionStatus(result.total_count > 0 ? ItemStatus.OK : ItemStatus.INFO);
-        return Promise.resolve();
-    };
-
-    const fetchVersion = async () => {
-        const result = await fetch(`${Client4.getBaseRoute()}/latest_version`).then((result) => result.json());
-
-        if (result.tag_name) {
-            const sanitizedVersion = result.tag_name.startsWith('v') ? result.tag_name.slice(1) : result.tag_name;
-            const newVersionParts = sanitizedVersion.split('.');
-            const installedVersionParts = installedVersion.split('.').slice(0, 3);
-
-            // quick general check if a newer version is available
-            let type = '';
-            let status: ItemStatus = ItemStatus.OK;
-
-            if (newVersionParts.join('') > installedVersionParts.join('')) {
-                // get correct values to be inserted into the accordion item
-                switch (true) {
-                case newVersionParts[0] > installedVersionParts[0]:
-                    type = formatMessage({
-                        id: 'admin.reporting.workspace_optimization.updates.server_version.update_type.major',
-                        defaultMessage: 'Major',
-                    });
-                    status = ItemStatus.ERROR;
-                    break;
-                case newVersionParts[1] > installedVersionParts[1]:
-                    type = formatMessage({
-                        id: 'admin.reporting.workspace_optimization.updates.server_version.update_type.minor',
-                        defaultMessage: 'Minor',
-                    });
-                    status = ItemStatus.WARNING;
-                    break;
-                case newVersionParts[2] > installedVersionParts[2]:
-                    type = formatMessage({
-                        id: 'admin.reporting.workspace_optimization.updates.server_version.update_type.patch',
-                        defaultMessage: 'Patch',
-                    });
-                    status = ItemStatus.INFO;
-                    break;
-                }
-            }
-
-            setVersionData({type, description: result.body, status});
-        }
-    };
-
-    const testElasticsearch = () => {
-        if (!isLicensed || !isEnterpriseLicense || !(ElasticsearchSettings?.EnableIndexing && ElasticsearchSettings?.EnableSearching)) {
-            return Promise.resolve();
-        }
-
-        const onSuccess = ({status}: any) => setElasticsearchStatus(status === 'OK' ? ItemStatus.OK : ItemStatus.INFO);
-        const onError = () => setElasticsearchStatus(ItemStatus.INFO);
-
-        return elasticsearchTest(props.config, onSuccess, onError);
-    };
-
-    const testLdap = () => {
-        if (!isLicensed || !LdapSettings?.Enable) {
-            return Promise.resolve();
-        }
-
-        const onSuccess = ({status}: any) => setLdapStatus(status === 'OK' ? ItemStatus.OK : ItemStatus.INFO);
-        const onError = () => setLdapStatus(ItemStatus.INFO);
-
-        return ldapTest(onSuccess, onError);
-    };
-
-    // commented out for now.
-    // @see discussion here: https://github.com/mattermost/mattermost-webapp/pull/9822#discussion_r806879385
-    // const fetchGuestAccounts = async () => {
-    //     if (TeamSettings?.EnableOpenServer && GuestAccountsSettings?.Enable) {
-    //         let usersArray = await fetch(`${Client4.getBaseRoute()}/users/invalid_emails`).then((result) => result.json());
-    //
-    //         // this setting is just a string with a list of domains, or an empty string
-    //         if (GuestAccountsSettings?.RestrictCreationToDomains) {
-    //             const domainList = GuestAccountsSettings?.RestrictCreationToDomains;
-    //             usersArray = usersArray.filter(({email}: Record<string, unknown>) => domainList.includes((email as string).split('@')[1]));
-    //         }
-    //
-    //         // if guest accounts make up more than 5% of the user base show the info accordion
-    //         if (usersArray.length > (totalUsers as number * 0.05)) {
-    //             setGuestAccountStatus(ItemStatus.INFO);
-    //             return;
-    //         }
-    //     }
-    //
-    //     setGuestAccountStatus(ItemStatus.OK);
-    // };
-
-    useEffect(() => {
-        const promises = [];
-        promises.push(testURL());
-        promises.push(testLdap());
-        promises.push(fetchVersion());
-        promises.push(testElasticsearch());
-        promises.push(testDataRetention());
-
-        // promises.push(fetchGuestAccounts());
-        Promise.all(promises).then(() => setLoading(false));
-    }, [props.config, isLicensed, isEnterpriseLicense]);
-
-    const data: DataModel = {
-        updates: getUpdatesData({serverVersion: versionData}),
-        configuration: getConfigurationData({
-            ssl: {status: location.protocol === 'https:' ? ItemStatus.OK : ItemStatus.ERROR},
-            sessionLength: {status: sessionLengthWebInHours === 720 ? ItemStatus.INFO : ItemStatus.OK},
-        }),
-        access: getAccessData({siteUrl: {status: liveUrlStatus}}),
-        performance: getPerformanceData({
-            search: {
-                status: totalPosts < 2_000_000 && totalUsers < 500 ? ItemStatus.OK : elastisearchStatus,
-            },
-        }),
-        dataPrivacy: getDataPrivacyData({retention: {status: dataRetentionStatus}}),
-        easyManagement: getEaseOfManagementData({
-            ldap: {status: totalUsers < 100 ? ItemStatus.OK : ldapStatus},
-
-            // guestAccounts: {status: guestAccountStatus},
-        }),
-    };
+    const {data, loading} = useMetricsData(props.config);
 
     const overallScoreChips: ChipsInfoType = {
         [ItemStatus.INFO]: 0,
@@ -236,7 +59,7 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const accData: AccordionItemType[] = Object.entries(data).filter(([_, y]) => !y.hide).map(([accordionKey, accordionData]) => {
+    const accordionItemsData: AccordionItemType[] | undefined = data && Object.entries(data).filter(([_, y]) => !y.hide).map(([accordionKey, accordionData]) => {
         const accordionDataChips: ChipsInfoType = {
             [ItemStatus.INFO]: 0,
             [ItemStatus.WARNING]: 0,
@@ -297,12 +120,14 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
         };
     });
 
-    return loading ? <LoadingScreen/> : (
+    return loading || !accordionItemsData ? <LoadingScreen/> : (
         <div className='WorkspaceOptimizationDashboard wrapper--fixed'>
-            <FormattedAdminHeader
-                id={'admin.reporting.workspace_optimization.title'}
-                defaultMessage='Workspace Optimization'
-            />
+            <AdminHeader>
+                <FormattedMessage
+                    id={'admin.reporting.workspace_optimization.title'}
+                    defaultMessage='Workspace Optimization'
+                />
+            </AdminHeader>
             <div className='admin-console__wrapper'>
                 <OverallScore
                     chips={
@@ -314,7 +139,7 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
                     chartValue={Math.floor((overallScore.current / overallScore.max) * 100)}
                 />
                 <Accordion
-                    accordionItemsData={accData}
+                    accordionItemsData={accordionItemsData}
                     expandMultiple={true}
                 />
             </div>

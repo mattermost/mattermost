@@ -3136,10 +3136,6 @@
     "translation": "Konnte Suchergebnisse nicht dekodieren"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch ist bereits gestartet."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Fehler beim Erstellen der Elasticsearch-Massenverarbeitung."
   },
@@ -7464,7 +7460,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Dein Mattermost System hat Multi-Faktor Authentifizierung aktiviert, was Benutzern die Möglichkeit gibt ihre Konten mit über das Passwort hinausgehende Authentifizierung abzusichern. Um die Sicherheit im gesamten System zu erhöhen, kannst du bei alle Konten Multi-Faktor Authentifizierung erzwingen.\n\n[Lerne mehr über erzwungene Multi-Faktor Authentifizierung] (https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nDurch Anklicken von Starte Test, stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), der [Datenschutzrichtinie](https://mattermost.com/privacy-policy/) und dem Empfang von Produkt-Emails zu."
+    "translation": "Dein Mattermost System hat Multi-Faktor Authentifizierung aktiviert, was Benutzern die Möglichkeit gibt ihre Konten mit über das Passwort hinausgehende Authentifizierung abzusichern. Um die Sicherheit im gesamten System zu erhöhen, kannst du bei alle Konten Multi-Faktor Authentifizierung erzwingen.\n\n[Lerne mehr über erzwungene Multi-Faktor Authentifizierung] (https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nDurch Anklicken von Starte Test, stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), der [Datenschutzrichtinie](https://mattermost.com/pl/privacy-policy/) und dem Empfang von Produkt-Emails zu."
   },
   {
     "id": "api.server.warn_metric.mfa.notification_body",
@@ -7484,7 +7480,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Projekte involvieren häufig Personen innerhalb und außerhalb einer Organisation. Mit Gastkonten kannst du externe Partner in dein Mattermost System einbinden und festlegen, mit wem diese arbeiten und was diese sehen dürfen.\n\n[Lerne mehr über das Aktivieren von Gastkonten](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDurch Anklicken von Starte Test, stimmst du dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), der [Datenschutzrichtinie](https://mattermost.com/privacy-policy/) und dem Empfang von Produkt-Emails zu."
+    "translation": "Projekte involvieren häufig Personen innerhalb und außerhalb einer Organisation. Mit Gastkonten kannst du externe Partner in dein Mattermost System einbinden und festlegen, mit wem diese arbeiten und was diese sehen dürfen.\n\n[Lerne mehr über das Aktivieren von Gastkonten](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDurch Anklicken von Starte Test, stimmst du dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), der [Datenschutzrichtinie](https://mattermost.com/pl/privacy-policy/) und dem Empfang von Produkt-Emails zu."
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -7576,7 +7572,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Dein Mattermost System hat jetzt 200 Benutzer. Wenn du Mattermost an den Single-Sign-On Provider deiner Organisation anbindest, können Benutzer auf Mattermost zugreifen, ohne ihre Anmeldeinformationen erneut einzugeben. Wir empfehlen, dass du deinen SAML 2.0 Provider in deinem Mattermost Server integrierst. [Lerne mehr über die SAML 2.0 Integration] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nDurch Anklicken von Starte Test, stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), der [Datenschutzrichtinie](https://mattermost.com/privacy-policy/) und dem Empfang von Produkt-Emails zu."
+    "translation": "Dein Mattermost System hat jetzt 200 Benutzer. Wenn du Mattermost an den Single-Sign-On Provider deiner Organisation anbindest, können Benutzer auf Mattermost zugreifen, ohne ihre Anmeldeinformationen erneut einzugeben. Wir empfehlen, dass du deinen SAML 2.0 Provider in deinem Mattermost Server integrierst. [Lerne mehr über die SAML 2.0 Integration] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nDurch Anklicken von Starte Test, stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), der [Datenschutzrichtinie](https://mattermost.com/pl/privacy-policy/) und dem Empfang von Produkt-Emails zu."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -7596,7 +7592,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Dein Mattermost System hat über 100 Benutzer. Mit wachsender Benutzeranzahl, wird das Einrichten neuer Konten immer zeitaufwändiger. Wir empfehlen das Active Directory/LDAP Ihrer Organisation zu integrieren, was jedem mit einem Konto erlaubt auf Mattermost zuzugreifen.\n\n[Lerne mehr über die Integration von AD/LDAP] (https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap). \n\nDurch Anklicken von Starte Test, stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), der [Datenschutzrichtinie](https://mattermost.com/privacy-policy/) und dem Empfang von Produkt-Emails zu."
+    "translation": "Dein Mattermost System hat über 100 Benutzer. Mit wachsender Benutzeranzahl, wird das Einrichten neuer Konten immer zeitaufwändiger. Wir empfehlen das Active Directory/LDAP Ihrer Organisation zu integrieren, was jedem mit einem Konto erlaubt auf Mattermost zuzugreifen.\n\n[Lerne mehr über die Integration von AD/LDAP] (https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap). \n\nDurch Anklicken von Starte Test, stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), der [Datenschutzrichtinie](https://mattermost.com/pl/privacy-policy/) und dem Empfang von Produkt-Emails zu."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
@@ -7640,7 +7636,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost empfiehlt dringend, dass Installationen mit mehr als 500 Benutzern die Vorteile von Funktionen, wie Benutzermanagement, Server Clustering und Performanzüberwachung nutzen. Kontaktiere uns um mehr darüber zu erfahren und teile uns mit, wie wir dir helfen können.\n\nDurch Anklicken von Starte Test, stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der [Datenschutzerklärung] (https://mattermost.com/privacy-policy/) zu, und erhalte Emails zum Produkt."
+    "translation": "Mattermost empfiehlt dringend, dass Installationen mit mehr als 500 Benutzern die Vorteile von Funktionen, wie Benutzermanagement, Server Clustering und Performanzüberwachung nutzen. Kontaktiere uns um mehr darüber zu erfahren und teile uns mit, wie wir dir helfen können.\n\nDurch Anklicken von Starte Test, stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der [Datenschutzerklärung] (https://mattermost.com/pl/privacy-policy/) zu, und erhalte Emails zum Produkt."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
@@ -7656,7 +7652,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Mit der Masse an Kommunikation, die in Mattermost passiert, kann es schwierig sein zu wissen, wo wichtige Informationen gefunden werden können. Wenn du eine Nachricht an ein breites Publikum senden willst, kannst du Nur-Lesbare Ankündigungskanäle erstellen, denen jedermann beitreten kann, in die aber nur Administratoren Nachrichten schreiben können.\n\n[Lerne mehr über das Erstellen von Nur-Lesbaren Ankündigungskanälen](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDurch Anklicken von \"Starte Test\" stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der [Datenschutzreklärung](https://mattermost.com/privacy-policy/) zu, und erhalten Emails zum Produkt."
+    "translation": "Mit der Masse an Kommunikation, die in Mattermost passiert, kann es schwierig sein zu wissen, wo wichtige Informationen gefunden werden können. Wenn du eine Nachricht an ein breites Publikum senden willst, kannst du Nur-Lesbare Ankündigungskanäle erstellen, denen jedermann beitreten kann, in die aber nur Administratoren Nachrichten schreiben können.\n\n[Lerne mehr über das Erstellen von Nur-Lesbaren Ankündigungskanälen](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDurch Anklicken von \"Starte Test\" stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der [Datenschutzreklärung](https://mattermost.com/pl/privacy-policy/) zu, und erhalten Emails zum Produkt."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
@@ -7716,7 +7712,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Deine Mattermost Umgebung hat jetzt mehrere Teams. Viele Teams habe ihren eigenen, bevorzugten Weg der Koordination und Zusammenarbeit, unter anderem, wie Kanäle erstellt werden, wer neue Teammitglieder einladen kann und wie Integrationen verwaltet werden. Team Übersteuerungsschemata erlauben es Ihnen, Benutzerberechtigungen in jedem Team auf dessen speziellen Bedürfnisse anzupassen.\n\n[Mehr über erweiterte Rechte](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nDurch Anklicken von Starte Test, stimmst du dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der[Datenschutzerklärung] (https://mattermost.com/privacy-policy/) zu, und erhälst Emails zum Produkt."
+    "translation": "Deine Mattermost Umgebung hat jetzt mehrere Teams. Viele Teams habe ihren eigenen, bevorzugten Weg der Koordination und Zusammenarbeit, unter anderem, wie Kanäle erstellt werden, wer neue Teammitglieder einladen kann und wie Integrationen verwaltet werden. Team Übersteuerungsschemata erlauben es Ihnen, Benutzerberechtigungen in jedem Team auf dessen speziellen Bedürfnisse anzupassen.\n\n[Mehr über erweiterte Rechte](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nDurch Anklicken von Starte Test, stimmst du dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der[Datenschutzerklärung] (https://mattermost.com/pl/privacy-policy/) zu, und erhälst Emails zum Produkt."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
@@ -7736,7 +7732,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Deine Mattermost Umgebung hat eine große Anzahl an Nachrichten. Die standardmäßige Mattermost-Datenbanksuche beginnt bei ungefähr 2.5 Millionen Nachrichten ein Nachlassen der Leistung zu zeigen. Bei über 5 Millionen Nachrichten kann Elasticsearch signifikante Leistungseinbrüche, wie Timeouts bei der Suche und @-Erwähnungen, vermeiden. Kontaktiere uns um mehr zu erfahren und lasse uns wissen, wie wir dich unterstützen können.\n\n[Lerne mehr über die Verbesserung der Leistung](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDurch Anklicken von Starte Test, stimmst du dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der[Datenschutzerklärung] (https://mattermost.com/privacy-policy/) zu, und erhälst Emails zum Produkt."
+    "translation": "Deine Mattermost Umgebung hat eine große Anzahl an Nachrichten. Die standardmäßige Mattermost-Datenbanksuche beginnt bei ungefähr 2.5 Millionen Nachrichten ein Nachlassen der Leistung zu zeigen. Bei über 5 Millionen Nachrichten kann Elasticsearch signifikante Leistungseinbrüche, wie Timeouts bei der Suche und @-Erwähnungen, vermeiden. Kontaktiere uns um mehr zu erfahren und lasse uns wissen, wie wir dich unterstützen können.\n\n[Lerne mehr über die Verbesserung der Leistung](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDurch Anklicken von Starte Test, stimmst du dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der[Datenschutzerklärung] (https://mattermost.com/pl/privacy-policy/) zu, und erhälst Emails zum Produkt."
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
@@ -7756,7 +7752,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Kanäle helfen beim Verbessern der Kommunikation, aber je mehr Mattermost-Benutzern Kanäle erstellen oder beitreten, desto größer wird die Anforderung im System den Überblick zu bewahren. Erweiterte Berechtigungen ermöglichen es festzulegen, welche Benutzer oder Rollen welche spezifische Aktion ausführen dürfen.Dazu zählen unter anderem das Verwalten von Kanaleinstellungen und -mitgliedern, das Verwenden von @channel oder @here, und das Erstellen neuer Webhooks.\n\n[Lerne mehr über Erweiterte Berechtigungen](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDurch Anklicken von \"Starte Test\", stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der [Datenschutzrichtlinie](https://mattermost.com/privacy-policy/) zu und erhalten E-Mails zum Produkt."
+    "translation": "Kanäle helfen beim Verbessern der Kommunikation, aber je mehr Mattermost-Benutzern Kanäle erstellen oder beitreten, desto größer wird die Anforderung im System den Überblick zu bewahren. Erweiterte Berechtigungen ermöglichen es festzulegen, welche Benutzer oder Rollen welche spezifische Aktion ausführen dürfen.Dazu zählen unter anderem das Verwalten von Kanaleinstellungen und -mitgliedern, das Verwenden von @channel oder @here, und das Erstellen neuer Webhooks.\n\n[Lerne mehr über Erweiterte Berechtigungen](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDurch Anklicken von \"Starte Test\", stimme ich dem [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) und der [Datenschutzrichtlinie](https://mattermost.com/pl/privacy-policy/) zu und erhalten E-Mails zum Produkt."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_title",
@@ -10165,5 +10161,25 @@
   {
     "id": "worktemplate.companywide.create_project.board",
     "translation": "Verwend eine Kanban-Board, um deine Projektaufgaben und -fortschritte zu definieren und zu verfolgen."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Ungültiger Wert für Bytes beim Hochladen einer Lizenz."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch Version {{.Version}} ist höher als die maximal unterstützte Version von {{.MaxVersion}}"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Überspringe die Installation des Plugins {{.Id}}, da die vorhandene Version gleich oder neuer ist."
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Das Plugin {{.Id}} steht auf der Blockierliste. Einige Plugins sind blockiert, weil sie in diese Version von Mattermost eingebaut sind."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWS Server kann den Newsletter nicht abonnieren."
   }
 ]

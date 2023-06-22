@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func GetEnvironment() map[string]string {
@@ -72,7 +72,11 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 		if err == nil {
 			rFieldValue.Set(reflect.ValueOf(intVal))
 		}
-	case reflect.SliceOf(reflect.TypeOf("")).Kind():
+	case reflect.Slice:
+		if rFieldValue.Type() == reflect.TypeOf(json.RawMessage{}) {
+			rFieldValue.Set(reflect.ValueOf([]byte(value)))
+			break
+		}
 		rFieldValue.Set(reflect.ValueOf(strings.Split(value, " ")))
 	case reflect.Map:
 		target := reflect.New(rFieldValue.Type()).Interface()

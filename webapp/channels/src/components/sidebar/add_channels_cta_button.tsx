@@ -80,6 +80,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 <Menu.ItemAction
                     id='showMoreChannels'
                     onClick={showMoreChannelsModal}
+                    icon={<i className='icon-globe'/>}
                     text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels', defaultMessage: 'Browse channels'})}
                 />
             );
@@ -91,6 +92,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 <Menu.ItemAction
                     id='showNewChannel'
                     onClick={showNewChannelModal}
+                    icon={<i className='icon-plus'/>}
                     text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.createNewChannel', defaultMessage: 'Create new channel'})}
                 />
             );
@@ -112,7 +114,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
             <button
                 className={buttonClass}
                 id={'addChannelsCta'}
-                aria-label={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channels Dropdown'})}
+                aria-label={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
                 onClick={handleClick}
             >
                 <li

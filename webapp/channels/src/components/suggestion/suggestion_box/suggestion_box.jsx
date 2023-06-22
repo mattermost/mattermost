@@ -8,6 +8,7 @@ import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import QuickInput from 'components/quick_input';
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
@@ -497,7 +498,7 @@ export default class SuggestionBox extends React.PureComponent {
 
         if (finish && this.props.onKeyPress) {
             let ke = e;
-            if (!e || Utils.isKeyPressed(e, Constants.KeyCodes.TAB)) {
+            if (!e || Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
                 ke = new KeyboardEvent('keydown', {
                     bubbles: true, cancelable: true, keyCode: 13,
                 });
@@ -582,13 +583,13 @@ export default class SuggestionBox extends React.PureComponent {
     handleKeyDown = (e) => {
         if ((this.props.openWhenEmpty || this.props.value) && this.hasSuggestions()) {
             const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
-            if (Utils.isKeyPressed(e, KeyCodes.UP)) {
+            if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
                 this.selectPrevious();
                 e.preventDefault();
-            } else if (Utils.isKeyPressed(e, KeyCodes.DOWN)) {
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
                 this.selectNext();
                 e.preventDefault();
-            } else if ((Utils.isKeyPressed(e, KeyCodes.ENTER) && !ctrlOrMetaKeyPressed) || (this.props.completeOnTab && Utils.isKeyPressed(e, KeyCodes.TAB))) {
+            } else if ((Keyboard.isKeyPressed(e, KeyCodes.ENTER) && !ctrlOrMetaKeyPressed) || (this.props.completeOnTab && Keyboard.isKeyPressed(e, KeyCodes.TAB))) {
                 let matchedPretext = '';
                 for (let i = 0; i < this.state.terms.length; i++) {
                     if (this.state.terms[i] === this.state.selection) {
@@ -611,7 +612,7 @@ export default class SuggestionBox extends React.PureComponent {
                     this.props.onKeyDown(e);
                 }
                 e.preventDefault();
-            } else if (Utils.isKeyPressed(e, KeyCodes.ESCAPE)) {
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
                 this.clear();
                 this.setState({presentationType: 'text'});
                 e.preventDefault();

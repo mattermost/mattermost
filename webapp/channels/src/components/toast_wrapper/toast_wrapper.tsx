@@ -7,8 +7,9 @@ import {RouteComponentProps} from 'react-router-dom';
 
 import {Preferences} from 'mattermost-redux/constants';
 
+import {isKeyPressed} from 'utils/keyboard';
 import {isIdNotPost, getNewMessageIndex} from 'utils/post_utils';
-import {isKeyPressed, localizeMessage} from 'utils/utils';
+import {localizeMessage} from 'utils/utils';
 import {isToday} from 'utils/datetime';
 import Constants from 'utils/constants';
 import {getHistory} from 'utils/browser_history';

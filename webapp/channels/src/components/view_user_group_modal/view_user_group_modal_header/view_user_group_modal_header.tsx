@@ -90,7 +90,7 @@ const ViewUserGroupModalHeader = (props: Props) => {
                 >
                     <FormattedMessage
                         id='user_groups_modal.addPeople'
-                        defaultMessage='AddPeople'
+                        defaultMessage='Add People'
                     />
                 </button>
             );

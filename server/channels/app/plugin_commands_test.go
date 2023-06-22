@@ -10,11 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
 func TestPluginCommand(t *testing.T) {
@@ -43,8 +43,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
 			)
 
 			type configuration struct {
@@ -124,8 +124,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
 			)
 
 			type configuration struct {
@@ -231,8 +231,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
 			)
 
 			type configuration struct {
@@ -296,8 +296,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
 			)
 
 			type MyPlugin struct {
@@ -341,8 +341,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
 			)
 
 			type MyPlugin struct {
@@ -392,8 +392,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
 			)
 
 			type configuration struct {
@@ -465,7 +465,6 @@ func (p *TProduct) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*
 }
 
 func TestProductCommands(t *testing.T) {
-
 	products := map[string]product.Manifest{
 		"productT": {
 			Initializer:  newTProduct,
@@ -474,10 +473,11 @@ func TestProductCommands(t *testing.T) {
 	}
 
 	t.Run("Execute product command", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t, SkipProductsInitialization()).InitBasic()
 		defer th.TearDown()
 		// Server hijack.
 		// This must be done in a cleaner way.
+		th.Server.skipProductsInit = false
 		th.Server.initializeProducts(products, th.Server.services)
 		th.Server.products["productT"].Start()
 		require.Len(t, th.Server.products, 2) // 1 product + channels
@@ -504,11 +504,11 @@ func TestProductCommands(t *testing.T) {
 	})
 
 	t.Run("Product commands can override builtin commands", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t, SkipProductsInitialization()).InitBasic()
 		defer th.TearDown()
-
 		// Server hijack.
 		// This must be done in a cleaner way.
+		th.Server.skipProductsInit = false
 		th.Server.initializeProducts(products, th.Server.services)
 		th.Server.products["productT"].Start()
 		require.Len(t, th.Server.products, 2) // 1 product + channels
@@ -535,8 +535,7 @@ func TestProductCommands(t *testing.T) {
 	})
 
 	t.Run("Plugin commands can override product commands", func(t *testing.T) {
-
-		th := Setup(t).InitBasic()
+		th := Setup(t, SkipProductsInitialization()).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -549,8 +548,8 @@ func TestProductCommands(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
 			)
 
 			type configuration struct {
@@ -602,6 +601,7 @@ func TestProductCommands(t *testing.T) {
 
 		// Server hijack.
 		// This must be done in a cleaner way.
+		th.Server.skipProductsInit = false
 		th.Server.initializeProducts(products, th.Server.services)
 		th.Server.products["productT"].Start()
 		require.Len(t, th.Server.products, 2) // 1 product + channels

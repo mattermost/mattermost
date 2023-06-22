@@ -3,7 +3,9 @@
 
 import path from 'node:path';
 import {expect} from '@playwright/test';
+import chalk from 'chalk';
 
+import {ClientError} from '@mattermost/client/client4';
 import {PreferenceType} from '@mattermost/types/preferences';
 import testConfig from '@e2e-test.config';
 
@@ -12,20 +14,10 @@ import {getOnPremServerConfig} from './default_config';
 import {createRandomTeam} from './team';
 import {createRandomUser} from './user';
 
-const boardsUserConfigPatch = {
-    updatedFields: {
-        welcomePageViewed: '1',
-        onboardingTourStep: '999',
-        tourCategory: 'board',
-        version72MessageCanceled: 'true',
-    },
-};
-
 export async function initSetup({
     userPrefix = 'user',
     teamPrefix = {name: 'team', displayName: 'Team'},
     withDefaultProfileImage = true,
-    skipBoardsUserConfig = true,
 } = {}) {
     try {
         // Login the admin user via API
@@ -63,10 +55,6 @@ export async function initSetup({
         ];
         await userClient.savePreferences(user.id, preferences);
 
-        if (skipBoardsUserConfig) {
-            await userClient.patchUserConfig(user.id, boardsUserConfigPatch);
-        }
-
         return {
             adminClient,
             adminUser,
@@ -77,10 +65,21 @@ export async function initSetup({
             offTopicUrl: getUrl(team.name, 'off-topic'),
             townSquareUrl: getUrl(team.name, 'town-square'),
         };
-    } catch (err) {
+    } catch (error) {
         // log an error for debugging
         // eslint-disable-next-line no-console
-        console.log(err);
+        const err = error as ClientError;
+        if (err.message === 'Could not parse multipart form.') {
+            // eslint-disable-next-line no-console
+            console.log(chalk.yellow(`node version: ${process.version}\nNODE_OPTIONS: ${process.env.NODE_OPTIONS}`));
+
+            // eslint-disable-next-line no-console
+            console.log(
+                chalk.green(
+                    `This failed due to the experimental fetch support in Node.js starting v18.0.0.\nYou may set environment variable: "export NODE_OPTIONS='--no-experimental-fetch'", then try again.'`
+                )
+            );
+        }
         expect(err, 'Should not throw an error').toBeFalsy();
         throw err;
     }

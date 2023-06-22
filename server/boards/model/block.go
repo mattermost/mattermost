@@ -8,7 +8,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/audit"
+	"github.com/mattermost/mattermost/server/v8/boards/services/audit"
 )
 
 // Block is the basic data unit
@@ -176,7 +176,7 @@ type QueryBlocksOptions struct {
 	ParentID  string    // if not empty then filter for blocks belonging to specified parent
 	BlockType BlockType // if not empty and not `TypeUnknown` then filter for records of specified block type
 	Page      int       // page number to select when paginating
-	PerPage   int       // number of blocks per page (default=-1, meaning unlimited)
+	PerPage   int       // number of blocks per page (default=0, meaning unlimited)
 }
 
 // QuerySubtreeOptions are query options that can be passed to GetSubTree methods.

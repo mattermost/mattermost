@@ -4,13 +4,14 @@
 package api4
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestGetSamlMetadata(t *testing.T) {
@@ -18,7 +19,7 @@ func TestGetSamlMetadata(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	_, resp, err := client.GetSamlMetadata()
+	_, resp, err := client.GetSamlMetadata(context.Background())
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
@@ -65,11 +66,11 @@ func TestSamlResetId(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	_, resp, err := th.Client.ResetSamlAuthDataToEmail(false, false, nil)
+	_, resp, err := th.Client.ResetSamlAuthDataToEmail(context.Background(), false, false, nil)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	numAffected, resp, err := th.SystemAdminClient.ResetSamlAuthDataToEmail(false, false, nil)
+	numAffected, resp, err := th.SystemAdminClient.ResetSamlAuthDataToEmail(context.Background(), false, false, nil)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 	require.Equal(t, int64(1), numAffected)

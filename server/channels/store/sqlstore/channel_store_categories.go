@@ -10,8 +10,8 @@ import (
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // dbSelecter is an interface used to enable some internal store methods
@@ -335,7 +335,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 		Id:          newCategoryId,
 		UserId:      userId,
 		TeamId:      teamId,
-		Sorting:     model.SidebarCategorySortDefault,
+		Sorting:     newCategory.Sorting,
 		SortOrder:   int64(model.MinimalSidebarSortDistance * len(newOrder)), // first we place it at the end of the list
 		Type:        model.SidebarCategoryCustom,
 		Muted:       newCategory.Muted,

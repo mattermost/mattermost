@@ -36,6 +36,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const currentUser = getCurrentUser(state);
     const plugins = state.plugins.components.NeedsTeamComponent;
     const graphQLEnabled = isGraphQLEnabled(state);
+    const disableRefetchingOnBrowserFocus = config.DisableRefetchingOnBrowserFocus === 'true';
 
     return {
         currentUser,
@@ -46,6 +47,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         selectedThreadId: getSelectedThreadIdInCurrentTeam(state),
         mfaRequired: checkIfMFARequired(currentUser, license, config, ownProps.match.url),
         graphQLEnabled,
+        disableRefetchingOnBrowserFocus,
     };
 }
 

@@ -13,13 +13,13 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/searchlayer"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
 type MainHelper struct {
@@ -41,6 +41,11 @@ type HelperOptions struct {
 }
 
 func NewMainHelper() *MainHelper {
+	// Ignore any globally defined datasource if a test dsn defined
+	if os.Getenv("TEST_DATABASE_MYSQL_DSN") != "" || os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
+		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
+	}
+
 	return NewMainHelperWithOptions(&HelperOptions{
 		EnableStore:     true,
 		EnableResources: true,
@@ -48,6 +53,16 @@ func NewMainHelper() *MainHelper {
 }
 
 func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
+	// Ignore any globally defined datasource if a test dsn defined
+	if os.Getenv("TEST_DATABASE_MYSQL_DSN") != "" || os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
+		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
+	}
+
+	// Unset environment variables commonly set for development that interfere with tests.
+	os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+	os.Unsetenv("MM_SERVICESETTINGS_LISTENADDRESS")
+	os.Unsetenv("MM_SERVICESETTINGS_ENABLEDEVELOPER")
+
 	var mainHelper MainHelper
 	flag.Parse()
 
@@ -153,6 +168,7 @@ func (h *MainHelper) setupResources() {
 func (h *MainHelper) PreloadMigrations() {
 	var buf []byte
 	var err error
+
 	basePath := os.Getenv("MM_SERVER_PATH")
 	if basePath == "" {
 		basePath = "mattermost-server/server"
@@ -176,6 +192,62 @@ func (h *MainHelper) PreloadMigrations() {
 	_, err = handle.Exec(string(buf))
 	if err != nil {
 		panic(errors.Wrap(err, "Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly"))
+	}
+
+	h.PreloadBoardsMigrationsIfNeeded()
+}
+
+// PreloadBoardsMigrationsIfNeeded loads boards migrations if the
+// focalboard_schema_migrations table exists already.
+// Besides this, the same compatibility and breaking conditions that
+// PreloadMigrations has apply here.
+//
+// Re-generate the files with:
+// pg_dump -a -h localhost -U mmuser -d <> --no-comments --inserts -t focalboard_system_settings
+// mysqldump -u root -p <> --no-create-info --extended-insert=FALSE focalboard_system_settings
+func (h *MainHelper) PreloadBoardsMigrationsIfNeeded() {
+	tableSchemaFn := "current_schema()"
+	if *h.Settings.DriverName == model.DatabaseDriverMysql {
+		tableSchemaFn = "DATABASE()"
+	}
+
+	basePath := os.Getenv("MM_SERVER_PATH")
+	if basePath == "" {
+		basePath = "mattermost-server/server"
+	}
+	relPath := "channels/testlib/testdata"
+
+	handle := h.SQLStore.GetMasterX()
+	var boardsTableCount int
+	gErr := handle.Get(&boardsTableCount, `
+      SELECT COUNT(*)
+        FROM INFORMATION_SCHEMA.TABLES
+       WHERE TABLE_SCHEMA = `+tableSchemaFn+`
+         AND TABLE_NAME = 'focalboard_schema_migrations'`)
+	if gErr != nil {
+		panic(errors.Wrap(gErr, "Error preloading migrations. Cannot query INFORMATION_SCHEMA table to check for focalboard_schema_migrations table"))
+	}
+
+	var buf []byte
+	var err error
+	if boardsTableCount != 0 {
+		switch *h.Settings.DriverName {
+		case model.DatabaseDriverPostgres:
+			boardsFinalPath := filepath.Join(basePath, relPath, "boards_postgres_migration_warmup.sql")
+			buf, err = os.ReadFile(boardsFinalPath)
+			if err != nil {
+				panic(fmt.Errorf("cannot read file: %v", err))
+			}
+		case model.DatabaseDriverMysql:
+			boardsFinalPath := filepath.Join(basePath, relPath, "boards_mysql_migration_warmup.sql")
+			buf, err = os.ReadFile(boardsFinalPath)
+			if err != nil {
+				panic(fmt.Errorf("cannot read file: %v", err))
+			}
+		}
+		if _, err := handle.Exec(string(buf)); err != nil {
+			panic(errors.Wrap(err, "Error preloading boards migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly"))
+		}
 	}
 }
 
@@ -264,7 +336,7 @@ func (h *MainHelper) SetReplicationLagForTesting(seconds int) error {
 
 func (h *MainHelper) execOnEachReplica(query string, args ...any) error {
 	for _, replica := range h.SQLStore.ReplicaXs {
-		_, err := replica.Exec(query, args...)
+		_, err := replica.Load().Exec(query, args...)
 		if err != nil {
 			return err
 		}

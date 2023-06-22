@@ -284,7 +284,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.email.everyXMinutes'
-                                defaultMessage='Every {count} minutes'
+                                defaultMessage='Every {count, plural, one {minute} other {{count, number} minutes}}'
                                 values={{count: Preferences.INTERVAL_FIFTEEN_MINUTES / SECONDS_PER_MINUTE}}
                             />
                         </label>

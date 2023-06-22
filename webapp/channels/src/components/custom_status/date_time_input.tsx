@@ -16,10 +16,14 @@ import Input from 'components/widgets/inputs/input/input';
 import DatePicker from 'components/date_picker';
 import Menu from 'components/widgets/menu/menu';
 import Timestamp from 'components/timestamp';
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+
 import {getCurrentLocale} from 'selectors/i18n';
-import {isKeyPressed, localizeMessage} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
+import {localizeMessage} from 'utils/utils';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 import Constants, {A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
@@ -61,6 +65,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
     const [isPopperOpen, setIsPopperOpen] = useState(false);
     const {formatMessage} = useIntl();
     const timeButtonRef = useRef<HTMLButtonElement>(null);
+    const theme = useSelector(getTheme);
 
     const handlePopperOpenState = useCallback((isOpen: boolean) => {
         setIsPopperOpen(isOpen);
@@ -140,7 +145,8 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
     const datePickerProps: DayPickerProps = {
         initialFocus: isPopperOpen,
         mode: 'single',
-        selected: currentTime,
+        selected: time.toDate(),
+        defaultMonth: time.toDate(),
         onDayClick: handleDayChange,
         disabled: [{
             before: currentTime,
@@ -149,71 +155,73 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
     };
 
     return (
-        <div className='dateTime'>
-            <div className='dateTime__date'>
-                <DatePicker
-                    isPopperOpen={isPopperOpen}
-                    handlePopperOpenState={handlePopperOpenState}
-                    locale={locale}
-                    datePickerProps={datePickerProps}
-                >
-                    <Input
-                        value={formatDate(time.toDate())}
-                        id='customStatus__calendar-input'
-                        readOnly={true}
-                        className='dateTime__calendar-input'
-                        label={localizeMessage('dnd_custom_time_picker_modal.date', 'Date')}
-                        onClick={() => handlePopperOpenState(true)}
-                        tabIndex={-1}
-                        inputPrefix={inputIcon}
-                    />
-                </DatePicker>
-            </div>
-            <div className='dateTime__time'>
-                <MenuWrapper
-                    className='dateTime__time-menu'
-                >
-                    <button
-                        className='style--none'
-                        ref={timeButtonRef}
+        <CompassThemeProvider theme={theme}>
+            <div className='dateTime'>
+                <div className='dateTime__date'>
+                    <DatePicker
+                        isPopperOpen={isPopperOpen}
+                        handlePopperOpenState={handlePopperOpenState}
+                        locale={locale}
+                        datePickerProps={datePickerProps}
                     >
-                        <span className='dateTime__input-title'>{formatMessage({id: 'custom_status.expiry.time_picker.title', defaultMessage: 'Time'})}</span>
-                        <span className='dateTime__time-icon'>
-                            <i className='icon-clock-outline'/>
-                        </span>
-                        <div
-                            className='dateTime__input'
+                        <Input
+                            value={formatDate(time.toDate())}
+                            id='customStatus__calendar-input'
+                            readOnly={true}
+                            className='dateTime__calendar-input'
+                            label={localizeMessage('dnd_custom_time_picker_modal.date', 'Date')}
+                            onClick={() => handlePopperOpenState(true)}
+                            tabIndex={-1}
+                            inputPrefix={inputIcon}
+                        />
+                    </DatePicker>
+                </div>
+                <div className='dateTime__time'>
+                    <MenuWrapper
+                        className='dateTime__time-menu'
+                    >
+                        <button
+                            className='style--none'
+                            ref={timeButtonRef}
                         >
-                            <Timestamp
-                                useRelative={false}
-                                useDate={false}
-                                value={time.toString()}
-                            />
-                        </div>
-                    </button>
-                    <Menu
-                        ariaLabel={formatMessage({id: 'time_dropdown.choose_time', defaultMessage: 'Choose a time'})}
-                        id='expiryTimeMenu'
-                    >
-                        <Menu.Group>
-                            {Array.isArray(timeOptions) && timeOptions.map((option, index) => (
-                                <Menu.ItemAction
-                                    onClick={handleTimeChange.bind(this, option)}
-                                    key={index}
-                                    text={
-                                        <Timestamp
-                                            useRelative={false}
-                                            useDate={false}
-                                            value={option}
-                                        />
-                                    }
+                            <span className='dateTime__input-title'>{formatMessage({id: 'custom_status.expiry.time_picker.title', defaultMessage: 'Time'})}</span>
+                            <span className='dateTime__time-icon'>
+                                <i className='icon-clock-outline'/>
+                            </span>
+                            <div
+                                className='dateTime__input'
+                            >
+                                <Timestamp
+                                    useRelative={false}
+                                    useDate={false}
+                                    value={time.toString()}
                                 />
-                            ))}
-                        </Menu.Group>
-                    </Menu>
-                </MenuWrapper>
+                            </div>
+                        </button>
+                        <Menu
+                            ariaLabel={formatMessage({id: 'time_dropdown.choose_time', defaultMessage: 'Choose a time'})}
+                            id='expiryTimeMenu'
+                        >
+                            <Menu.Group>
+                                {Array.isArray(timeOptions) && timeOptions.map((option, index) => (
+                                    <Menu.ItemAction
+                                        onClick={handleTimeChange.bind(this, option)}
+                                        key={index}
+                                        text={
+                                            <Timestamp
+                                                useRelative={false}
+                                                useDate={false}
+                                                value={option}
+                                            />
+                                        }
+                                    />
+                                ))}
+                            </Menu.Group>
+                        </Menu>
+                    </MenuWrapper>
+                </div>
             </div>
-        </div>
+        </CompassThemeProvider>
     );
 };
 

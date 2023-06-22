@@ -13,12 +13,12 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/audit"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/auth"
-	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/services/audit"
+	"github.com/mattermost/mattermost/server/v8/boards/services/auth"
+	"github.com/mattermost/mattermost/server/v8/boards/utils"
 
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (a *API) registerAuthRoutes(r *mux.Router) {

@@ -18,7 +18,7 @@ import {
     makeOnSubmit,
     makeOnEditLatestPost,
 } from 'actions/views/create_comment';
-import {removeDraft} from 'actions/views/drafts';
+import {removeDraft, setGlobalDraftSource} from 'actions/views/drafts';
 import {setGlobalItem, actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import * as PostActions from 'actions/post_actions';
 import {executeCommand} from 'actions/command';
@@ -205,12 +205,13 @@ describe('rhs view actions', () => {
 
             const testStore = mockStore(initialState);
 
-            testStore.dispatch(setGlobalItem(`${StoragePrefixes.COMMENT_DRAFT}${rootId}`, {
+            const expectedKey = `${StoragePrefixes.COMMENT_DRAFT}${rootId}`;
+            testStore.dispatch(setGlobalItem(expectedKey, {
                 ...draft,
                 createAt: 42,
                 updateAt: 42,
-                remote: false,
             }));
+            testStore.dispatch(setGlobalDraftSource(expectedKey, false));
 
             expect(store.getActions()).toEqual(testStore.getActions());
             jest.useRealTimers();

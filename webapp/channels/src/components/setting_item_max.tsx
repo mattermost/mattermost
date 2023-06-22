@@ -6,7 +6,8 @@ import {FormattedMessage} from 'react-intl';
 
 import SaveButton from 'components/save_button';
 import Constants from 'utils/constants';
-import {a11yFocus, isKeyPressed} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
+import {a11yFocus} from 'utils/utils';
 type Props = {
 
     // Array of inputs selection

@@ -9,11 +9,15 @@
 
     .text {
         margin-left: 8px;
-        color: var(--center-channel-color-rgb);
-        font-family: 'Open Sans';
+        color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 12px;
         font-style: normal;
         font-weight: 400;
         line-height: 16px;
+
+        .header {
+            display: block;
+            color: var(--center-channel-color);
+        }
     }
 }

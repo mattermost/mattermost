@@ -16,7 +16,7 @@ export default class GlobalHeader {
 
     async switchProduct(name: string) {
         await this.productSwitchMenu.click();
-        await this.container.getByRole('link', {name: ` ${name}`}).click();
+        await this.container.getByRole('link', {name}).click();
     }
 
     async toBeVisible(name: string) {

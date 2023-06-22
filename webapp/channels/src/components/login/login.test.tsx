@@ -288,4 +288,18 @@ describe('components/login/Login', () => {
         expect(externalLoginButton.props().label).toEqual('OpenID 2');
         expect(externalLoginButton.props().style).toEqual({color: '#00ff00', borderColor: '#00ff00'});
     });
+
+    it('should redirect on login', () => {
+        mockState.entities.users.currentUserId = 'user1';
+        LocalStorageStore.setWasLoggedIn(true);
+        mockConfig.EnableSignInWithEmail = 'true';
+        const redirectPath = '/boards/team/teamID/boardID';
+        mockLocation.search = '?redirect_to=' + redirectPath;
+        mount(
+            <MemoryRouter>
+                <Login/>
+            </MemoryRouter>,
+        );
+        expect(mockHistoryPush).toHaveBeenCalledWith(redirectPath);
+    });
 });

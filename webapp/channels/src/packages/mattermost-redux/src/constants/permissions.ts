@@ -4,7 +4,6 @@
 const values = {
     INVITE_USER: 'invite_user',
     ADD_USER_TO_TEAM: 'add_user_to_team',
-    USE_SLASH_COMMANDS: 'use_slash_commands',
     MANAGE_SLASH_COMMANDS: 'manage_slash_commands',
     MANAGE_OTHERS_SLASH_COMMANDS: 'manage_others_slash_commands',
     CREATE_PUBLIC_CHANNEL: 'create_public_channel',

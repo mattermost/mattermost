@@ -12,9 +12,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 )
 
 type blockError struct {
@@ -207,10 +207,17 @@ func TestIsWithinViewsLimit(t *testing.T) {
 				Views: mm_model.NewInt(2),
 			},
 		}
+
+		opts := model.QueryBlocksOptions{
+			BoardID:   "board_id",
+			ParentID:  "parent_id",
+			BlockType: model.BlockType("view"),
+		}
+
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil)
 		th.Store.EXPECT().GetUsedCardsCount().Return(1, nil)
 		th.Store.EXPECT().GetCardLimitTimestamp().Return(int64(1), nil)
-		th.Store.EXPECT().GetBlocksWithParentAndType("board_id", "parent_id", "view").Return([]*model.Block{{}}, nil)
+		th.Store.EXPECT().GetBlocks(opts).Return([]*model.Block{{}}, nil)
 
 		withinLimits, err := th.App.isWithinViewsLimit("board_id", &model.Block{ParentID: "parent_id"})
 		assert.NoError(t, err)
@@ -225,10 +232,17 @@ func TestIsWithinViewsLimit(t *testing.T) {
 				Views: mm_model.NewInt(1),
 			},
 		}
+
+		opts := model.QueryBlocksOptions{
+			BoardID:   "board_id",
+			ParentID:  "parent_id",
+			BlockType: model.BlockType("view"),
+		}
+
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil)
 		th.Store.EXPECT().GetUsedCardsCount().Return(1, nil)
 		th.Store.EXPECT().GetCardLimitTimestamp().Return(int64(1), nil)
-		th.Store.EXPECT().GetBlocksWithParentAndType("board_id", "parent_id", "view").Return([]*model.Block{{}}, nil)
+		th.Store.EXPECT().GetBlocks(opts).Return([]*model.Block{{}}, nil)
 
 		withinLimits, err := th.App.isWithinViewsLimit("board_id", &model.Block{ParentID: "parent_id"})
 		assert.NoError(t, err)
@@ -243,10 +257,17 @@ func TestIsWithinViewsLimit(t *testing.T) {
 				Views: mm_model.NewInt(2),
 			},
 		}
+
+		opts := model.QueryBlocksOptions{
+			BoardID:   "board_id",
+			ParentID:  "parent_id",
+			BlockType: model.BlockType("view"),
+		}
+
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil)
 		th.Store.EXPECT().GetUsedCardsCount().Return(1, nil)
 		th.Store.EXPECT().GetCardLimitTimestamp().Return(int64(1), nil)
-		th.Store.EXPECT().GetBlocksWithParentAndType("board_id", "parent_id", "view").Return([]*model.Block{{}, {}, {}}, nil)
+		th.Store.EXPECT().GetBlocks(opts).Return([]*model.Block{{}, {}, {}}, nil)
 
 		withinLimits, err := th.App.isWithinViewsLimit("board_id", &model.Block{ParentID: "parent_id"})
 		assert.NoError(t, err)
@@ -261,10 +282,17 @@ func TestIsWithinViewsLimit(t *testing.T) {
 				Views: mm_model.NewInt(2),
 			},
 		}
+
+		opts := model.QueryBlocksOptions{
+			BoardID:   "board_id",
+			ParentID:  "parent_id",
+			BlockType: model.BlockType("view"),
+		}
+
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil)
 		th.Store.EXPECT().GetUsedCardsCount().Return(1, nil)
 		th.Store.EXPECT().GetCardLimitTimestamp().Return(int64(1), nil)
-		th.Store.EXPECT().GetBlocksWithParentAndType("board_id", "parent_id", "view").Return([]*model.Block{}, nil)
+		th.Store.EXPECT().GetBlocks(opts).Return([]*model.Block{}, nil)
 
 		withinLimits, err := th.App.isWithinViewsLimit("board_id", &model.Block{ParentID: "parent_id"})
 		assert.NoError(t, err)
@@ -333,10 +361,17 @@ func TestInsertBlocks(t *testing.T) {
 				Views: mm_model.NewInt(2),
 			},
 		}
+
+		opts := model.QueryBlocksOptions{
+			BoardID:   "test-board-id",
+			ParentID:  "parent_id",
+			BlockType: model.BlockType("view"),
+		}
+
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil)
 		th.Store.EXPECT().GetUsedCardsCount().Return(1, nil)
 		th.Store.EXPECT().GetCardLimitTimestamp().Return(int64(1), nil)
-		th.Store.EXPECT().GetBlocksWithParentAndType("test-board-id", "parent_id", "view").Return([]*model.Block{{}}, nil)
+		th.Store.EXPECT().GetBlocks(opts).Return([]*model.Block{{}}, nil)
 
 		_, err := th.App.InsertBlocks([]*model.Block{block}, "user-id-1")
 		require.NoError(t, err)
@@ -365,10 +400,17 @@ func TestInsertBlocks(t *testing.T) {
 				Views: mm_model.NewInt(2),
 			},
 		}
+
+		opts := model.QueryBlocksOptions{
+			BoardID:   "test-board-id",
+			ParentID:  "parent_id",
+			BlockType: model.BlockType("view"),
+		}
+
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil)
 		th.Store.EXPECT().GetUsedCardsCount().Return(1, nil)
 		th.Store.EXPECT().GetCardLimitTimestamp().Return(int64(1), nil)
-		th.Store.EXPECT().GetBlocksWithParentAndType("test-board-id", "parent_id", "view").Return([]*model.Block{{}, {}}, nil)
+		th.Store.EXPECT().GetBlocks(opts).Return([]*model.Block{{}, {}}, nil)
 
 		_, err := th.App.InsertBlocks([]*model.Block{block}, "user-id-1")
 		require.Error(t, err)
@@ -406,10 +448,17 @@ func TestInsertBlocks(t *testing.T) {
 				Views: mm_model.NewInt(2),
 			},
 		}
+
+		opts := model.QueryBlocksOptions{
+			BoardID:   "test-board-id",
+			ParentID:  "parent_id",
+			BlockType: model.BlockType("view"),
+		}
+
 		th.Store.EXPECT().GetCloudLimits().Return(cloudLimit, nil).Times(2)
 		th.Store.EXPECT().GetUsedCardsCount().Return(1, nil).Times(2)
 		th.Store.EXPECT().GetCardLimitTimestamp().Return(int64(1), nil).Times(2)
-		th.Store.EXPECT().GetBlocksWithParentAndType("test-board-id", "parent_id", "view").Return([]*model.Block{{}}, nil).Times(2)
+		th.Store.EXPECT().GetBlocks(opts).Return([]*model.Block{{}}, nil).Times(2)
 
 		_, err := th.App.InsertBlocks([]*model.Block{view1, view2}, "user-id-1")
 		require.Error(t, err)

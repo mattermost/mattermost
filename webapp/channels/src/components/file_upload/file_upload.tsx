@@ -4,14 +4,16 @@
 import React, {ChangeEvent, PureComponent, DragEvent, MouseEvent, TouchEvent, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import classNames from 'classnames';
+
 import {PaperclipIcon} from '@mattermost/compass-icons/components';
 
-import {FilePreviewInfo} from '../file_preview/file_preview';
+import {FileInfo, FileUploadResponse} from '@mattermost/types/files';
+import {ServerError} from '@mattermost/types/errors';
 
 import dragster from 'utils/dragster';
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
-import {t} from 'utils/i18n';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {
     isIosChrome,
     isMobileApp,
@@ -19,8 +21,6 @@ import {
 import {getTable} from 'utils/paste';
 import {
     clearFileInput,
-    cmdOrCtrlPressed,
-    isKeyPressed,
     generateId,
     isFileTransfer,
     isUriDrop,
@@ -28,8 +28,9 @@ import {
     isTextDroppableEvent,
 } from 'utils/utils';
 
-import {FileInfo, FileUploadResponse} from '@mattermost/types/files';
-import {ServerError} from '@mattermost/types/errors';
+import {UploadFile} from 'actions/file_actions';
+
+import {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
 
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Menu from 'components/widgets/menu/menu';
@@ -37,37 +38,35 @@ import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
-import {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
-
-import {UploadFile} from 'actions/file_actions';
+import {FilePreviewInfo} from '../file_preview/file_preview';
 
 const holders = defineMessages({
     limited: {
-        id: t('file_upload.limited'),
+        id: 'file_upload.limited',
         defaultMessage: 'Uploads limited to {count, number} files maximum. Please use additional posts for more files.',
     },
     filesAbove: {
-        id: t('file_upload.filesAbove'),
+        id: 'file_upload.filesAbove',
         defaultMessage: 'Files above {max}MB could not be uploaded: {filenames}',
     },
     fileAbove: {
-        id: t('file_upload.fileAbove'),
+        id: 'file_upload.fileAbove',
         defaultMessage: 'File above {max}MB could not be uploaded: {filename}',
     },
     zeroBytesFiles: {
-        id: t('file_upload.zeroBytesFiles'),
+        id: 'file_upload.zeroBytesFiles',
         defaultMessage: 'You are uploading empty files: {filenames}',
     },
     zeroBytesFile: {
-        id: t('file_upload.zeroBytesFile'),
+        id: 'file_upload.zeroBytesFile',
         defaultMessage: 'You are uploading an empty file: {filename}',
     },
     pasted: {
-        id: t('file_upload.pasted'),
+        id: 'file_upload.pasted',
         defaultMessage: 'Image Pasted at ',
     },
     uploadFile: {
-        id: t('file_upload.upload_files'),
+        id: 'file_upload.upload_files',
         defaultMessage: 'Upload files',
     },
 });
@@ -121,7 +120,7 @@ export type Props = {
     /**
      * Function to be called when upload fails
      */
-    onUploadError: (err: string | ServerError, clientId?: string, channelId?: string, currentRootId?: string) => void;
+    onUploadError: (err: string | ServerError | null, clientId?: string, channelId?: string, currentRootId?: string) => void;
 
     /**
      * Function to be called when file upload starts
@@ -223,13 +222,13 @@ export class FileUpload extends PureComponent<Props, State> {
 
     pluginUploadFiles = (files: File[]) => {
         // clear any existing errors
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
         this.uploadFiles(files);
     };
 
     checkPluginHooksAndUploadFiles = (files: FileList | File[]) => {
         // clear any existing errors
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
 
         let sortedFiles = Array.from(files).sort((a, b) => a.name.localeCompare(b.name, this.props.locale, {numeric: true}));
 
@@ -336,7 +335,7 @@ export class FileUpload extends PureComponent<Props, State> {
             return;
         }
 
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
 
         const items = e.dataTransfer.items || [];
         const droppedFiles = e.dataTransfer.files;
@@ -461,7 +460,7 @@ export class FileUpload extends PureComponent<Props, State> {
             return;
         }
 
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
 
         const items = [];
         for (let i = 0; i < e.clipboardData.items.length; i++) {

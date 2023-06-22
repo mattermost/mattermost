@@ -13,38 +13,41 @@ import {
 
 import {UserProfile} from '@mattermost/types/users';
 import {StatusOK} from '@mattermost/types/client4';
+
 import store from 'stores/redux_store.jsx';
 import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
+
 import ConfirmModal from 'components/confirm_modal';
+import * as NotificationSounds from 'utils/notification_sounds';
 
 const UserSettings = React.lazy(() => import(/* webpackPrefetch: true */ 'components/user_settings'));
 const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ '../../settings_sidebar'));
 
 const holders = defineMessages({
     profile: {
-        id: t('user.settings.modal.profile'),
+        id: 'user.settings.modal.profile',
         defaultMessage: 'Profile',
     },
     security: {
-        id: t('user.settings.modal.security'),
+        id: 'user.settings.modal.security',
         defaultMessage: 'Security',
     },
     notifications: {
-        id: t('user.settings.modal.notifications'),
+        id: 'user.settings.modal.notifications',
         defaultMessage: 'Notifications',
     },
     display: {
-        id: t('user.settings.modal.display'),
+        id: 'user.settings.modal.display',
         defaultMessage: 'Display',
     },
     sidebar: {
-        id: t('user.settings.modal.sidebar'),
+        id: 'user.settings.modal.sidebar',
         defaultMessage: 'Sidebar',
     },
     advanced: {
-        id: t('user.settings.modal.advanced'),
+        id: 'user.settings.modal.advanced',
         defaultMessage: 'Advanced',
     },
     checkEmail: {
@@ -52,15 +55,15 @@ const holders = defineMessages({
         defaultMessage: 'Check your email at {email} to verify the address. Cannot find the email?',
     },
     confirmTitle: {
-        id: t('user.settings.modal.confirmTitle'),
+        id: 'user.settings.modal.confirmTitle',
         defaultMessage: 'Discard Changes?',
     },
     confirmMsg: {
-        id: t('user.settings.modal.confirmMsg'),
+        id: 'user.settings.modal.confirmMsg',
         defaultMessage: 'You have unsaved changes, are you sure you want to discard them?',
     },
     confirmBtns: {
-        id: t('user.settings.modal.confirmBtns'),
+        id: 'user.settings.modal.confirmBtns',
         defaultMessage: 'Yes, Discard',
     },
 });
@@ -146,7 +149,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
     }
 
     handleKeyDown = (e: KeyboardEvent) => {
-        if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && Utils.isKeyPressed(e, Constants.KeyCodes.A)) {
+        if (Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && Keyboard.isKeyPressed(e, Constants.KeyCodes.A)) {
             e.preventDefault();
             this.handleHide();
         }
@@ -158,6 +161,9 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             this.showConfirmModal(() => this.handleHide());
             return;
         }
+
+        // Cancel any ongoing notification sound, if any (from DesktopNotificationSettings)
+        NotificationSounds.stopTryNotificationRing();
 
         this.setState({
             show: false,

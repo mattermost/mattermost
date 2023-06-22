@@ -1,22 +1,5 @@
 This folder contains a number of packages intended to be built and shipped separately on NPM as well as a few legacy packages for internal use only (`reselect` and `mattermost-redux`). The following documentation only applies to the newer packages and not to the legacy ones.
 
-### Working with subpackages
-
-To interact with one or more packages in a workspace, such as to add a dependency or run a script, use the `--workspace` (or `--workspaces`) flag. This can be done when using built-in NPM commands such as `npm add` or when running scripts. This doesn't need to be done from inside the package.
-
-```sh
-# Add a dependency to a single package
-npm add react --workspace=packages/apple
-
-# Build multiple packages
-npm run build --workspace=packages/banana --workspace=packages/carrot
-
-# Clean all workspaces
-npm run clean --workspaces
-```
-
-To install dependencies for a workspace, simply run `npm install` from the root of the source tree as you would do normally. Every packages' dependencies will be included in `node_modules` and in the `package-lock.json` which are shared across the repo.
-
 ### Importing a subpackage
 
 Subpackages should be imported using their full name, both inside the web app and when installing them using `npm`. They should not be imported using a relative path, and the `src` folder shouldn't be necessary to include.

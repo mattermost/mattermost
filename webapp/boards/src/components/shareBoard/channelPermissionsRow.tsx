@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react'
-import {useIntl, FormattedMessage} from 'react-intl'
+import React, {useEffect, useState} from 'react'
+import {FormattedMessage, useIntl} from 'react-intl'
 
 import MenuWrapper from 'src/widgets/menuWrapper'
 import Menu from 'src/widgets/menu'
@@ -46,6 +46,7 @@ const ChannelPermissionsRow = (props: Props): JSX.Element => {
     useEffect(() => {
         if (!board.channelId) {
             setLinkedChannel(null)
+
             return
         }
         const unknownChannel = {
@@ -93,6 +94,7 @@ const ChannelPermissionsRow = (props: Props): JSX.Element => {
         let result = Utils.getUserDisplayName(users[userIds[0]], props.teammateNameDisplay || '')
         result += ', '
         result += Utils.getUserDisplayName(users[userIds[1]], props.teammateNameDisplay || '')
+
         return result
     }
 

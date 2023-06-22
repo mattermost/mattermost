@@ -10,8 +10,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
 type StoreResult struct {
@@ -72,10 +72,7 @@ type Store interface {
 	// GetInternalMasterDB allows access to the raw master DB
 	// handle for the multi-product architecture.
 	GetInternalMasterDB() *sql.DB
-	// GetInternalReplicaDBs allows access to the raw replica DB
-	// handles for the multi-product architecture.
 	GetInternalReplicaDB() *sql.DB
-	GetInternalReplicaDBs() []*sql.DB
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
@@ -87,6 +84,7 @@ type Store interface {
 	NotifyAdmin() NotifyAdminStore
 	PostPriority() PostPriorityStore
 	PostAcknowledgement() PostAcknowledgementStore
+	PostPersistentNotification() PostPersistentNotificationStore
 	TrueUpReview() TrueUpReviewStore
 }
 
@@ -347,6 +345,7 @@ type ThreadStore interface {
 	PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error)
+	DeleteMembershipsForChannel(userID, channelID string) error
 
 	// Insights - threads
 	GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error)
@@ -488,7 +487,6 @@ type UserStore interface {
 	IsEmpty(excludeBots bool) (bool, error)
 	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
 	InsertUsers(users []*model.User) error
-	GetFirstSystemAdminID() (string, error)
 }
 
 type BotStore interface {
@@ -998,6 +996,16 @@ type PostAcknowledgementStore interface {
 	GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error)
 	Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error
+}
+
+type PostPersistentNotificationStore interface {
+	Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error)
+	GetSingle(postID string) (*model.PostPersistentNotifications, error)
+	UpdateLastActivity(postIds []string) error
+	Delete(postIds []string) error
+	DeleteExpired(maxSentCount int16) error
+	DeleteByChannel(channelIds []string) error
+	DeleteByTeam(teamIds []string) error
 }
 
 type TrueUpReviewStore interface {

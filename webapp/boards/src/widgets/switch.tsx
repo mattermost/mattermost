@@ -17,6 +17,7 @@ function Switch(props: Props): JSX.Element {
     const switchIsOn = props.isOn ? ' on' : ''
     const switchIsReadonly = props.readOnly ? ' readonly' : ''
     const className = `Switch override-main ${switchSize}${switchIsOn}${switchIsReadonly}`
+
     return (
         <div
             className={className}

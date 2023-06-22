@@ -13,7 +13,7 @@ import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {removeDraft, updateDraft} from './drafts';
+import {removeDraft, setGlobalDraftSource, updateDraft} from './drafts';
 
 jest.mock('mattermost-redux/client', () => {
     const original = jest.requireActual('mattermost-redux/client');
@@ -146,12 +146,13 @@ describe('draft actions', () => {
 
             const testStore = mockStore(initialState);
 
-            testStore.dispatch(setGlobalItem(StoragePrefixes.DRAFT + channelId, {
+            const expectedKey = StoragePrefixes.DRAFT + channelId;
+            testStore.dispatch(setGlobalItem(expectedKey, {
                 ...draft,
                 createAt: 42,
                 updateAt: 42,
-                remote: false,
             }));
+            testStore.dispatch(setGlobalDraftSource(expectedKey, false));
 
             expect(store.getActions()).toEqual(testStore.getActions());
             jest.useRealTimers();

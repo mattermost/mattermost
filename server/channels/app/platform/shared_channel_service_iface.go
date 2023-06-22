@@ -4,8 +4,8 @@
 package platform
 
 import (
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/sharedchannel"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
 // SharedChannelServiceIFace is the interface to the shared channel service

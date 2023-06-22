@@ -4,9 +4,9 @@
 package integrationtests
 
 import (
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
+	"github.com/mattermost/mattermost/server/v8/boards/services/store"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
 )
 
 type TestStore struct {

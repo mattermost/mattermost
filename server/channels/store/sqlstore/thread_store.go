@@ -13,9 +13,9 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // JoinedThread allows querying the Threads + Posts table in a single query, before looking up
@@ -688,6 +688,28 @@ func (s *SqlThreadStore) UpdateMembership(membership *model.ThreadMembership) (*
 	return s.updateMembership(s.GetMasterX(), membership)
 }
 
+func (s *SqlThreadStore) DeleteMembershipsForChannel(userID, channelID string) error {
+	subQuery := s.getSubQueryBuilder().
+		Select("1").
+		From("Threads").
+		Where(sq.And{
+			sq.Expr("Threads.PostId = ThreadMemberships.PostId"),
+			sq.Eq{"Threads.ChannelId": channelID},
+		})
+
+	query := s.getQueryBuilder().
+		Delete("ThreadMemberships").
+		Where(sq.Eq{"UserId": userID}).
+		Where(sq.Expr("EXISTS (?)", subQuery))
+
+	_, err := s.GetMasterX().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to remove thread memberships with userid=%s channelid=%s", userID, channelID)
+	}
+
+	return nil
+}
+
 func (s *SqlThreadStore) updateMembership(ex sqlxExecutor, membership *model.ThreadMembership) (*model.ThreadMembership, error) {
 	query := s.getQueryBuilder().
 		Update("ThreadMemberships").
@@ -712,7 +734,14 @@ func (s *SqlThreadStore) GetMembershipsForUser(userId, teamId string) ([]*model.
 	memberships := []*model.ThreadMembership{}
 
 	query := s.getQueryBuilder().
-		Select("ThreadMemberships.*").
+		Select(
+			"ThreadMemberships.PostId",
+			"ThreadMemberships.UserId",
+			"ThreadMemberships.Following",
+			"ThreadMemberships.LastUpdated",
+			"ThreadMemberships.LastViewed",
+			"ThreadMemberships.UnreadMentions",
+		).
 		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
 		From("ThreadMemberships").
 		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
@@ -732,7 +761,14 @@ func (s *SqlThreadStore) GetMembershipForUser(userId, postId string) (*model.Thr
 func (s *SqlThreadStore) getMembershipForUser(ex sqlxExecutor, userId, postId string) (*model.ThreadMembership, error) {
 	var membership model.ThreadMembership
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(
+			"PostId",
+			"UserId",
+			"Following",
+			"LastUpdated",
+			"LastViewed",
+			"UnreadMentions",
+		).
 		From("ThreadMemberships").
 		Where(sq.And{
 			sq.Eq{"PostId": postId},

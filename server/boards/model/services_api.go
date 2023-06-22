@@ -10,8 +10,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -20,11 +20,13 @@ const (
 	botDescription = "Created by Boards plugin."
 )
 
-var FocalboardBot = &mm_model.Bot{
-	Username:    botUsername,
-	DisplayName: botDisplayname,
-	Description: botDescription,
-	OwnerId:     SystemUserID,
+func GetDefaultFocalboardBot() *mm_model.Bot {
+	return &mm_model.Bot{
+		Username:    botUsername,
+		DisplayName: botDisplayname,
+		Description: botDescription,
+		OwnerId:     SystemUserID,
+	}
 }
 
 type ServicesAPI interface {

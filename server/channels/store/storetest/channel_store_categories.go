@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestChannelStoreCategories(t *testing.T, ss store.Store, s SqlStore) {
@@ -671,6 +671,38 @@ func testCreateSidebarCategory(t *testing.T, ss store.Store) {
 		res2, err = ss.Channel().GetSidebarCategory(channelsCategory.Id)
 		require.NoError(t, err)
 		assert.Equal(t, []string{}, res2.Channels)
+	})
+
+	t.Run("should store the correct sorting value", func(t *testing.T) {
+		userId := model.NewId()
+
+		team := setupTeam(t, ss, userId)
+
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      team.Id,
+			ExcludeTeam: false,
+		}
+		res, nErr := ss.Channel().CreateInitialSidebarCategories(userId, opts)
+		require.NoError(t, nErr)
+		require.NotEmpty(t, res)
+		// Create the category
+		created, err := ss.Channel().CreateSidebarCategory(userId, team.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: model.NewId(),
+				Sorting:     model.SidebarCategorySortManual,
+			},
+		})
+		require.NoError(t, err)
+
+		// Confirm that sorting value is correct
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userId, team.Id)
+		require.NoError(t, err)
+		require.Len(t, res.Categories, 4)
+		// first category will be favorites and second will be newly created
+		assert.Equal(t, model.SidebarCategoryCustom, res.Categories[1].Type)
+		assert.Equal(t, created.Id, res.Categories[1].Id)
+		assert.Equal(t, model.SidebarCategorySortManual, res.Categories[1].Sorting)
+		assert.Equal(t, model.SidebarCategorySortManual, created.Sorting)
 	})
 }
 

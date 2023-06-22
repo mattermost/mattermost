@@ -75,10 +75,8 @@ export {
     filterEmptyOptions,
 } from 'utils/apps';
 
-import {
-    isMac,
-    localizeAndFormatMessage,
-} from 'utils/utils';
+import {isMac} from 'utils/user_agent';
+import {localizeAndFormatMessage} from 'utils/utils';
 
 export type Store = {
     dispatch: DispatchFunc;

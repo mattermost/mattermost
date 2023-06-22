@@ -15,7 +15,7 @@ import {PostDraft} from 'types/store/draft';
 import {getGlobalItem} from 'selectors/storage';
 import {makeGetDrafts} from 'selectors/drafts';
 
-import {StoragePrefixes} from 'utils/constants';
+import {ActionTypes, StoragePrefixes} from 'utils/constants';
 
 import type {Draft as ServerDraft} from '@mattermost/types/drafts';
 import type {UserProfile} from '@mattermost/types/users';
@@ -37,6 +37,7 @@ type Draft = {
  */
 export function getDrafts(teamId: string) {
     const getLocalDrafts = makeGetDrafts(false);
+
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
 
@@ -101,11 +102,10 @@ export function updateDraft(key: string, value: PostDraft|null, rootId = '', sav
                 ...value,
                 createAt: data.createAt || timestamp,
                 updateAt: timestamp,
-                remote: false,
             };
         }
 
-        dispatch(setGlobalItem(key, updatedValue));
+        dispatch(setGlobalDraft(key, updatedValue, false));
 
         if (syncedDraftsAreAllowedAndEnabled(state) && save && updatedValue) {
             const connectionId = getConnectionId(state);
@@ -150,6 +150,24 @@ export function setDraftsTourTipPreference(initializationState: Record<string, b
         };
         await dispatch(savePreferences(currentUserId, [preference]));
         return {data: true};
+    };
+}
+
+export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean) {
+    return (dispatch: DispatchFunc) => {
+        dispatch(setGlobalItem(key, value));
+        dispatch(setGlobalDraftSource(key, isRemote));
+        return {data: true};
+    };
+}
+
+export function setGlobalDraftSource(key: string, isRemote: boolean) {
+    return {
+        type: ActionTypes.SET_DRAFT_SOURCE,
+        data: {
+            key,
+            isRemote,
+        },
     };
 }
 

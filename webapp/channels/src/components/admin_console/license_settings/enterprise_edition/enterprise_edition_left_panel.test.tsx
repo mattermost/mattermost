@@ -2,20 +2,33 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen} from '@testing-library/react';
 
 import {Provider} from 'react-redux';
 
+import moment from 'moment-timezone';
+
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithIntl} from 'tests/react_testing_utils';
-import {OverActiveUserLimits} from 'utils/constants';
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import {OverActiveUserLimits, SelfHostedProducts} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import {General} from 'mattermost-redux/constants';
 import {DeepPartial} from '@mattermost/types/utilities';
 import {GlobalState} from '@mattermost/types/store';
 import mockStore from 'tests/test_store';
 
+import * as useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
+
 import EnterpriseEditionLeftPanel, {EnterpriseEditionProps} from './enterprise_edition_left_panel';
+
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom') as typeof import('react-router-dom'),
+    useLocation: () => {
+        return {
+            pathname: '',
+        };
+    },
+}));
 
 describe('components/admin_console/license_settings/enterprise_edition/enterprise_edition_left_panel', () => {
     const license = {
@@ -26,7 +39,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         SkuShortName: 'Enterprise',
         Name: 'LicenseName',
         Company: 'Mattermost Inc.',
-        Users: '1000000',
+        Users: '1000',
     };
 
     const initialState: DeepPartial<GlobalState> = {
@@ -45,9 +58,35 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             },
             general: {
                 license,
+                config: {
+                    BuildEnterpriseReady: 'true',
+                },
             },
             preferences: {
                 myPreferences: {},
+            },
+            admin: {
+                config: {
+                    ServiceSettings: {
+                        SelfHostedPurchase: true,
+                    },
+                },
+            },
+            cloud: {
+                subscription: undefined,
+            },
+            hostedCustomer: {
+                products: {
+                    products: {
+                        prod_professional: TestHelper.getProductMock({
+                            id: 'prod_professional',
+                            name: 'Professional',
+                            sku: SelfHostedProducts.PROFESSIONAL,
+                            price_per_seat: 7.5,
+                        }),
+                    },
+                    productsLoaded: true,
+                },
             },
         },
     };
@@ -80,12 +119,12 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
 
         const item = wrapper.find('.item-element').filterWhere((n) => {
             return n.children().length === 2 &&
-                   n.childAt(0).type() === 'span' &&
-                   !n.childAt(0).text().includes('ACTIVE') &&
-                   n.childAt(0).text().includes('LICENSED SEATS');
+                n.childAt(0).type() === 'span' &&
+                !n.childAt(0).text().includes('ACTIVE') &&
+                n.childAt(0).text().includes('LICENSED SEATS');
         });
 
-        expect(item.text()).toContain('1,000,000');
+        expect(item.text()).toContain('1,000');
     });
 
     test('should not add any class if active users is lower than the minimal', async () => {
@@ -145,5 +184,48 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(screen.getByText('ACTIVE USERS:')).toHaveClass('legend');
         expect(screen.getByText('ACTIVE USERS:')).not.toHaveClass('legend--warning-over-seats-purchased');
         expect(screen.getByText('ACTIVE USERS:')).toHaveClass('legend--over-seats-purchased');
+    });
+
+    test('should add warning class to days expired indicator when there are more than 5 days until expiry', async () => {
+        license.ExpiresAt = moment().add(6, 'days').valueOf().toString();
+        const store = await mockStore(initialState);
+        renderWithIntl(
+            <Provider store={store}>
+                <EnterpriseEditionLeftPanel
+                    {...props}
+                />
+            </Provider>,
+        );
+
+        expect(screen.getByText('Expires in 6 days')).toHaveClass('expiration-days-warning');
+    });
+
+    test('should add danger class to days expired indicator when there are at least 5 days until expiry', async () => {
+        license.ExpiresAt = moment().add(5, 'days').valueOf().toString();
+        const store = await mockStore(initialState);
+        renderWithIntl(
+            <Provider store={store}>
+                <EnterpriseEditionLeftPanel
+                    {...props}
+                />
+            </Provider>,
+        );
+
+        expect(screen.getByText('Expires in 5 days')).toHaveClass('expiration-days-danger');
+    });
+
+    test('should display add seats button when there are more than 60 days until expiry and self hosted expansion is available', async () => {
+        license.ExpiresAt = moment().add(61, 'days').valueOf().toString();
+        const store = await mockStore(initialState);
+        jest.spyOn(useCanSelfHostedExpand, 'default').mockImplementation(() => true);
+        renderWithIntl(
+            <Provider store={store}>
+                <EnterpriseEditionLeftPanel
+                    {...props}
+                />
+            </Provider>,
+        );
+
+        expect(screen.getByText('+ Add seats')).toBeVisible();
     });
 });

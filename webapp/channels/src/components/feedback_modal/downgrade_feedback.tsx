@@ -6,7 +6,7 @@ import React from 'react';
 import {injectIntl, WrappedComponentProps} from 'react-intl';
 
 import {Feedback} from '@mattermost/types/cloud';
-import FeedbackModal from 'components/feedback_modal/feedback';
+import FeedbackModal, {FeedbackOption} from 'components/feedback_modal/feedback';
 
 type Props = {
     onSubmit: (downgradeFeedback: Feedback) => void;
@@ -28,23 +28,35 @@ const DowngradeFeedbackModal = (props: Props) => {
         defaultMessage: 'Downgrade',
     });
 
-    const downgradeFeedbackOptions = [
-        props.intl.formatMessage({
-            id: 'feedback.downgradeWorkspace.technicalIssues',
-            defaultMessage: 'Experienced technical issues',
-        }),
-        props.intl.formatMessage({
-            id: 'feedback.downgradeWorkspace.noLongerNeeded',
-            defaultMessage: 'No longer need Cloud Professional features',
-        }),
-        props.intl.formatMessage({
-            id: 'feedback.downgradeWorkspace.exploringOptions',
-            defaultMessage: 'Exploring other solutions',
-        }),
-        props.intl.formatMessage({
-            id: 'feedback.downgradeWorkspace.tooExpensive',
-            defaultMessage: 'Too expensive',
-        }),
+    const downgradeFeedbackOptions: FeedbackOption[] = [
+        {
+            translatedMessage: props.intl.formatMessage({
+                id: 'feedback.downgradeWorkspace.technicalIssues',
+                defaultMessage: 'Experienced technical issues',
+            }),
+            submissionValue: 'Experienced technical issues',
+        },
+        {
+            translatedMessage: props.intl.formatMessage({
+                id: 'feedback.downgradeWorkspace.noLongerNeeded',
+                defaultMessage: 'No longer need Cloud Professional features',
+            }),
+            submissionValue: 'No longer need Cloud Professional features',
+        },
+        {
+            translatedMessage: props.intl.formatMessage({
+                id: 'feedback.downgradeWorkspace.exploringOptions',
+                defaultMessage: 'Exploring other solutions',
+            }),
+            submissionValue: 'Exploring other solutions',
+        },
+        {
+            translatedMessage: props.intl.formatMessage({
+                id: 'feedback.downgradeWorkspace.tooExpensive',
+                defaultMessage: 'Too expensive',
+            }),
+            submissionValue: 'Too expensive',
+        },
     ];
 
     return (

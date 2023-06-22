@@ -19,26 +19,26 @@ import (
 
 	"github.com/oklog/run"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/api"
-	"github.com/mattermost/mattermost-server/v6/server/boards/app"
-	"github.com/mattermost/mattermost-server/v6/server/boards/auth"
-	appModel "github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/audit"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/config"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/metrics"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/notify"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/notify/notifylogger"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/scheduler"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/telemetry"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/webhook"
-	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
-	"github.com/mattermost/mattermost-server/v6/server/boards/web"
-	"github.com/mattermost/mattermost-server/v6/server/boards/ws"
+	"github.com/mattermost/mattermost/server/v8/boards/api"
+	"github.com/mattermost/mattermost/server/v8/boards/app"
+	"github.com/mattermost/mattermost/server/v8/boards/auth"
+	appModel "github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/services/audit"
+	"github.com/mattermost/mattermost/server/v8/boards/services/config"
+	"github.com/mattermost/mattermost/server/v8/boards/services/metrics"
+	"github.com/mattermost/mattermost/server/v8/boards/services/notify"
+	"github.com/mattermost/mattermost/server/v8/boards/services/notify/notifylogger"
+	"github.com/mattermost/mattermost/server/v8/boards/services/scheduler"
+	"github.com/mattermost/mattermost/server/v8/boards/services/store"
+	"github.com/mattermost/mattermost/server/v8/boards/services/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/boards/services/telemetry"
+	"github.com/mattermost/mattermost/server/v8/boards/services/webhook"
+	"github.com/mattermost/mattermost/server/v8/boards/utils"
+	"github.com/mattermost/mattermost/server/v8/boards/web"
+	"github.com/mattermost/mattermost/server/v8/boards/ws"
 
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 const (
@@ -355,7 +355,7 @@ func (s *Server) Shutdown() error {
 
 	defer s.logger.Info("Server.Shutdown")
 
-	return s.store.Shutdown()
+	return nil
 }
 
 func (s *Server) Config() *config.Configuration {

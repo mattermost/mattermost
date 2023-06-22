@@ -9,14 +9,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
+	"github.com/mattermost/mattermost/server/v8/boards/utils"
 
 	sq "github.com/Masterminds/squirrel"
 	_ "github.com/lib/pq" // postgres driver
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -105,23 +105,6 @@ func (s *SQLStore) getBlocks(db sq.BaseRunner, opts model.QueryBlocksOptions) ([
 	return s.blocksFromRows(rows)
 }
 
-func (s *SQLStore) getBlocksWithParentAndType(db sq.BaseRunner, boardID, parentID string, blockType string) ([]*model.Block, error) {
-	opts := model.QueryBlocksOptions{
-		BoardID:   boardID,
-		ParentID:  parentID,
-		BlockType: model.BlockType(blockType),
-	}
-	return s.getBlocks(db, opts)
-}
-
-func (s *SQLStore) getBlocksWithParent(db sq.BaseRunner, boardID, parentID string) ([]*model.Block, error) {
-	opts := model.QueryBlocksOptions{
-		BoardID:  boardID,
-		ParentID: parentID,
-	}
-	return s.getBlocks(db, opts)
-}
-
 func (s *SQLStore) getBlocksByIDs(db sq.BaseRunner, ids []string) ([]*model.Block, error) {
 	query := s.getQueryBuilder(db).
 		Select(s.blockFields("")...).
@@ -146,14 +129,6 @@ func (s *SQLStore) getBlocksByIDs(db sq.BaseRunner, ids []string) ([]*model.Bloc
 	}
 
 	return blocks, nil
-}
-
-func (s *SQLStore) getBlocksWithType(db sq.BaseRunner, boardID, blockType string) ([]*model.Block, error) {
-	opts := model.QueryBlocksOptions{
-		BoardID:   boardID,
-		BlockType: model.BlockType(blockType),
-	}
-	return s.getBlocks(db, opts)
 }
 
 // getSubTree2 returns blocks within 2 levels of the given blockID.
@@ -186,13 +161,6 @@ func (s *SQLStore) getSubTree2(db sq.BaseRunner, boardID string, blockID string,
 	defer s.CloseRows(rows)
 
 	return s.blocksFromRows(rows)
-}
-
-func (s *SQLStore) getBlocksForBoard(db sq.BaseRunner, boardID string) ([]*model.Block, error) {
-	opts := model.QueryBlocksOptions{
-		BoardID: boardID,
-	}
-	return s.getBlocks(db, opts)
 }
 
 func (s *SQLStore) blocksFromRows(rows *sql.Rows) ([]*model.Block, error) {

@@ -18,15 +18,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	oauthgitlab "github.com/mattermost/mattermost-server/v6/model/oauthproviders/gitlab"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/users"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	storemocks "github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/public/model"
+	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestCreateOAuthUser(t *testing.T) {
@@ -85,9 +85,11 @@ func TestCreateOAuthUser(t *testing.T) {
 	})
 }
 
-func TestSetDefaultProfileImage(t *testing.T) {
+func TestUpdateDefaultProfileImage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	startTime := model.GetMillis()
+	time.Sleep(time.Millisecond)
 
 	err := th.App.SetDefaultProfileImage(th.Context, &model.User{
 		Id:       model.NewId(),
@@ -98,35 +100,35 @@ func TestSetDefaultProfileImage(t *testing.T) {
 
 	user := th.BasicUser
 
-	err = th.App.SetDefaultProfileImage(th.Context, user)
+	err = th.App.UpdateDefaultProfileImage(th.Context, user)
 	require.Nil(t, err)
 
 	user = getUserFromDB(th.App, user.Id, t)
-	assert.Equal(t, int64(0), user.LastPictureUpdate)
+	assert.Less(t, user.LastPictureUpdate, -startTime, "LastPictureUpdate should be set to -(current time in milliseconds)")
 }
 
 func TestAdjustProfileImage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	_, err := th.App.AdjustImage(bytes.NewReader([]byte{}))
-	require.NotNil(t, err)
+	_, appErr := th.App.AdjustImage(bytes.NewReader([]byte{}))
+	require.NotNil(t, appErr)
 
 	// test image isn't the correct dimensions
 	// it should be adjusted
-	testjpg, error := testutils.ReadTestFile("testjpg.jpg")
-	require.NoError(t, error)
-	adjusted, err := th.App.AdjustImage(bytes.NewReader(testjpg))
-	require.Nil(t, err)
+	testjpg, err := testutils.ReadTestFile("testjpg.jpg")
+	require.NoError(t, err)
+	adjusted, appErr := th.App.AdjustImage(bytes.NewReader(testjpg))
+	require.Nil(t, appErr)
 	assert.True(t, adjusted.Len() > 0)
 	assert.NotEqual(t, testjpg, adjusted)
 
 	// default image should not require adjustment
 	user := th.BasicUser
-	image, err := th.App.GetDefaultProfileImage(user)
-	require.Nil(t, err)
-	image2, err := th.App.AdjustImage(bytes.NewReader(image))
-	require.Nil(t, err)
+	image, appErr := th.App.GetDefaultProfileImage(user)
+	require.Nil(t, appErr)
+	image2, appErr := th.App.AdjustImage(bytes.NewReader(image))
+	require.Nil(t, appErr)
 	assert.Equal(t, image, image2.Bytes())
 }
 
@@ -194,6 +196,33 @@ func TestUpdateUser(t *testing.T) {
 		require.NotNil(t, err)
 		require.Nil(t, u)
 	})
+
+	t.Run("fails if default profile picture is not updated when user has default profile picture and username is changed", func(t *testing.T) {
+		user.Username = "updatedUsername"
+		iLastPictureUpdate := user.LastPictureUpdate
+		require.Equal(t, iLastPictureUpdate, int64(0))
+		u, err := th.App.UpdateUser(th.Context, user, false)
+		require.Nil(t, err)
+		require.NotNil(t, u)
+		require.Less(t, u.LastPictureUpdate, iLastPictureUpdate)
+	})
+
+	t.Run("fails if profile picture is updated when user has custom profile picture and username is changed", func(t *testing.T) {
+		// Give the user a LastPictureUpdate to mimic having a custom profile picture
+		err := th.App.Srv().Store().User().UpdateLastPictureUpdate(user.Id)
+		require.NoError(t, err)
+		iUser, errGetUser := th.App.GetUser(user.Id)
+		require.Nil(t, errGetUser)
+		iUser.Username = "updatedUsername"
+		iLastPictureUpdate := iUser.LastPictureUpdate
+		require.Greater(t, iLastPictureUpdate, int64(0))
+
+		// Attempt the update, ensure the LastPictureUpdate has not changed
+		updatedUser, errUpdateUser := th.App.UpdateUser(th.Context, iUser, false)
+		require.Nil(t, errUpdateUser)
+		require.NotNil(t, updatedUser)
+		require.Equal(t, updatedUser.LastPictureUpdate, iLastPictureUpdate)
+	})
 }
 
 func TestUpdateUserMissingFields(t *testing.T) {
@@ -255,8 +284,8 @@ func TestCreateUser(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
 			)
 
 			type MyPlugin struct {
@@ -1026,7 +1055,7 @@ func TestCreateUserWithToken(t *testing.T) {
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic().DeleteBots()
 	defer th.TearDown()
 
 	b := []byte("testimage")
@@ -1142,6 +1171,44 @@ func TestPasswordRecovery(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
+}
+
+func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("remove manually added tokens", func(t *testing.T) {
+		for i := 0; i < 5; i++ {
+			token := model.NewToken(
+				TokenTypePasswordRecovery,
+				model.MapToJSON(map[string]string{"UserId": th.BasicUser.Id, "email": th.BasicUser.Email}),
+			)
+			require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		}
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		assert.NoError(t, err)
+		assert.Equal(t, 5, len(tokens))
+
+		appErr := th.App.InvalidatePasswordRecoveryTokensForUser(th.BasicUser.Id)
+		assert.Nil(t, appErr)
+
+		tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(tokens))
+	})
+
+	t.Run("add multiple tokens, should only be one valid", func(t *testing.T) {
+		_, appErr := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		assert.Nil(t, appErr)
+
+		token, appErr := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		assert.Nil(t, appErr)
+
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(tokens))
+		assert.Equal(t, token.Token, tokens[0].Token)
+	})
 }
 
 func TestGetViewUsersRestrictions(t *testing.T) {
@@ -1741,6 +1808,10 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("successfully create a user with initial tutorial and recommended steps preferences", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
 		testUser := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
@@ -1801,57 +1872,6 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
 		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
 		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
-	})
-}
-
-func TestIsFirstAdmin(t *testing.T) {
-	t.Run("should return false if user is not sysadmin", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		Id := model.NewId()
-		isFirstAdmin := th.App.IsFirstAdmin(&model.User{
-			Id:    Id,
-			Roles: model.SystemUserRoleId,
-		})
-		require.False(t, isFirstAdmin)
-	})
-
-	t.Run("should return false if user is sysadmin but not the first one", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		Id := model.NewId()
-
-		mockUserStore := storemocks.UserStore{}
-		mockUserStore.On("GetFirstSystemAdminID").Return(model.NewId(), nil)
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockStore.On("User").Return(&mockUserStore)
-
-		isFirstAdmin := th.App.IsFirstAdmin(&model.User{
-			Id:    Id,
-			Roles: model.SystemAdminRoleId,
-		})
-		require.False(t, isFirstAdmin)
-	})
-
-	t.Run("should return true if user is sysadmin and the first one", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		Id := model.NewId()
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockUserStore := storemocks.UserStore{}
-		mockUserStore.On("GetFirstSystemAdminID").Return(Id, nil)
-		mockStore.On("User").Return(&mockUserStore)
-
-		isFirstAdmin := th.App.IsFirstAdmin(&model.User{
-			Id:    Id,
-			Roles: model.SystemAdminRoleId,
-		})
-		require.True(t, isFirstAdmin)
 	})
 }
 

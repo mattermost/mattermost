@@ -15,10 +15,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/v6/server/config"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
@@ -28,16 +28,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
-	dsn := ""
-	if driverName == model.DatabaseDriverPostgres {
-		dsn = os.Getenv("TEST_DATABASE_POSTGRESQL_DSN")
-	} else {
-		dsn = os.Getenv("TEST_DATABASE_MYSQL_DSN")
-	}
 	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
-	if dsn != "" {
-		cfg.SqlSettings.DataSource = &dsn
-	}
 	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
 	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
 
@@ -175,5 +166,21 @@ func TestShutdown(t *testing.T) {
 
 		// assert that there are no more go routines running
 		require.Zero(t, atomic.LoadInt32(&th.Service.goroutineCount))
+	})
+}
+
+func TestSetTelemetryId(t *testing.T) {
+	t.Run("ensure client config is regenerated after setting the telemetry id", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		clientConfig := th.Service.LimitedClientConfig()
+		require.Empty(t, clientConfig["DiagnosticId"])
+
+		id := model.NewId()
+		th.Service.SetTelemetryId(id)
+
+		clientConfig = th.Service.LimitedClientConfig()
+		require.Equal(t, clientConfig["DiagnosticId"], id)
 	})
 }

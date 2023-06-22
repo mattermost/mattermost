@@ -5,8 +5,8 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/v6/model"
-	store "github.com/mattermost/mattermost-server/v6/server/channels/store"
+	model "github.com/mattermost/mattermost/server/public/model"
+	store "github.com/mattermost/mattermost/server/v8/channels/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -22,6 +22,20 @@ func (_m *ThreadStore) DeleteMembershipForUser(userId string, postID string) err
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(userId, postID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteMembershipsForChannel provides a mock function with given fields: userID, channelID
+func (_m *ThreadStore) DeleteMembershipsForChannel(userID string, channelID string) error {
+	ret := _m.Called(userID, channelID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(userID, channelID)
 	} else {
 		r0 = ret.Error(0)
 	}

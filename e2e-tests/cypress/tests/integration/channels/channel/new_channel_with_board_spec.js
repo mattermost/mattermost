@@ -22,8 +22,6 @@ describe('New Channel modal with Boards enabled', () => {
             cy.apiLogin(sysadmin);
             cy.visit(`/${testTeam.name}/channels/town-square`);
         });
-
-        cy.shouldHaveFeatureFlag('BoardsProduct', true);
     });
 
     it('MM-T5141 New Channel is created with an associated Board', () => {
@@ -34,7 +32,7 @@ describe('New Channel modal with Boards enabled', () => {
             isPrivate: false,
             purpose: '',
             name: channelName,
-            createBoard: true,
+            createBoard: 'Roadmap',
         }).then(() => {
             // * Verify that new channel is in the sidebar and is active
             cy.url().should('include', `/${testTeam.name}/channels/test-channel`);
@@ -44,7 +42,7 @@ describe('New Channel modal with Boards enabled', () => {
             // * Verify the board is created - check the message sent
             cy.waitUntil(() => cy.getLastPost().then((el) => {
                 const postedMessageEl = el.find('.post-message__text > p')[0];
-                return Boolean(postedMessageEl && postedMessageEl.textContent.includes('created the board'));
+                return Boolean(postedMessageEl && postedMessageEl.textContent.includes('linked the board'));
             }));
         });
     });

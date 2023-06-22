@@ -5,6 +5,7 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 
 import {getSubscriptionProduct, checkHadPriorTrial, getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
+import {cloudReverseTrial} from 'mattermost-redux/selectors/entities/preferences';
 
 import {CloudProducts} from 'utils/constants';
 
@@ -27,20 +28,23 @@ type BillingSummaryProps = {
 const BillingSummary = ({isFreeTrial, daysLeftOnTrial, onUpgradeMattermostCloud}: BillingSummaryProps) => {
     const subscription = useSelector(getCloudSubscription);
     const product = useSelector(getSubscriptionProduct);
+    const reverseTrial = useSelector(cloudReverseTrial);
 
     let body = noBillingHistory;
 
     const isPreTrial = subscription?.is_free_trial === 'false' && subscription?.trial_end_at === 0;
     const hasPriorTrial = useSelector(checkHadPriorTrial);
-    const showTryEnterprise = product?.sku === CloudProducts.STARTER && isPreTrial;
-    const showUpgradeProfessional = product?.sku === CloudProducts.STARTER && hasPriorTrial;
+    const isStarterPreTrial = product?.sku === CloudProducts.STARTER && isPreTrial;
+    const isStarterPostTrial = product?.sku === CloudProducts.STARTER && hasPriorTrial;
 
-    if (showTryEnterprise) {
+    if (isStarterPreTrial && reverseTrial) {
+        body = <UpgradeToProfessionalCard/>;
+    } else if (isStarterPreTrial) {
         body = tryEnterpriseCard;
-    } else if (showUpgradeProfessional) {
+    } else if (isStarterPostTrial) {
         body = <UpgradeToProfessionalCard/>;
     } else if (isFreeTrial) {
-        body = freeTrial(onUpgradeMattermostCloud, daysLeftOnTrial);
+        body = freeTrial(onUpgradeMattermostCloud, daysLeftOnTrial, reverseTrial);
     } else if (subscription?.last_invoice && !subscription?.upcoming_invoice) {
         const invoice = subscription.last_invoice;
         const fullCharges = invoice.line_items.filter((item) => item.type === 'full');

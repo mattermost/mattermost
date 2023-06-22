@@ -3,7 +3,7 @@
 
 package app
 
-import "github.com/mattermost/mattermost-server/v6/server/boards/model"
+import "github.com/mattermost/mattermost/server/v8/boards/model"
 
 func (a *App) GetBoardsForCompliance(opts model.QueryBoardsForComplianceOptions) ([]*model.Board, bool, error) {
 	return a.store.GetBoardsForCompliance(opts)

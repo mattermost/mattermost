@@ -48,9 +48,10 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
                     name: block.title,
                     extension: block.title.split('.').slice(0, -1).join('.'),
                 })
+
                 return
             }
-            const attachmentInfo = await octoClient.getFileInfo(block.boardId, block.fields.attachmentId)
+            const attachmentInfo = await octoClient.getFileInfo(block.boardId, block.fields.fileId)
             setFileInfo(attachmentInfo)
         }
         loadFile()
@@ -65,8 +66,10 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
                 if (fName.length > 18) {
                     let result = fName.slice(0, 15)
                     result += '...'
+
                     return result
                 }
+
                 return fName
             }
             setFileName(generateFileName(fileInfo.name))
@@ -113,7 +116,7 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
     }
 
     const attachmentDownloadHandler = async () => {
-        const attachment = await octoClient.getFileAsDataUrl(block.boardId, block.fields.attachmentId)
+        const attachment = await octoClient.getFileAsDataUrl(block.boardId, block.fields.fileId)
         const anchor = document.createElement('a')
         anchor.href = attachment.url || ''
         anchor.download = fileInfo.name || ''

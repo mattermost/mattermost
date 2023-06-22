@@ -90,7 +90,7 @@ export default class AppsFormSelectField extends React.PureComponent<Props, Stat
     loadDynamicUserOptions = async (userInput: string): Promise<AppSelectOption[]> => {
         const usersSearchResults: UserAutocomplete = await this.props.actions.autocompleteUsers(userInput.toLowerCase());
 
-        return usersSearchResults.users.map((user) => {
+        return usersSearchResults.users.filter((user) => !user.is_bot).map((user) => {
             const label = this.props.teammateNameDisplay ? displayUsername(user, this.props.teammateNameDisplay) : user.username;
 
             return {...user, label, value: user.id, icon_data: imageURLForUser(user.id)};

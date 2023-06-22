@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/client"
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/client"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 )
 
 func TestStatisticsLocalMode(t *testing.T) {
