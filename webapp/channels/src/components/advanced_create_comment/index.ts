@@ -46,7 +46,6 @@ import {setShowPreviewOnCreateComment} from 'actions/views/textbox';
 import {openModal} from 'actions/views/modals';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
 
-import {getEmojiMap} from 'selectors/emojis';
 import {canUploadFiles} from 'utils/file_utils';
 
 import AdvancedCreateComment from './advanced_create_comment';
@@ -116,7 +115,6 @@ function makeMapStateToProps() {
             useLDAPGroupMentions,
             channelMemberCountsByGroup,
             useCustomGroupMentions,
-            emojiMap: getEmojiMap(state),
             canUploadFiles: canUploadFiles(config),
         };
     };
