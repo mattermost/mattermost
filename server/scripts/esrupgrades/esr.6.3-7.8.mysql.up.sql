@@ -1,3 +1,19 @@
+/* MM-53301 - include missing column-add for Configurations.SHA */
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'Configurations'
+        AND table_schema = DATABASE()
+        AND column_name = 'SHA'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE Configurations ADD COLUMN SHA char(64) DEFAULT "";'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
 /* ==> mysql/000041_create_upload_sessions.up.sql <== */
 /* Release 5.37 was meant to contain the index idx_uploadsessions_type, but a bug prevented that.
    This part of the migration #41 adds such index */
