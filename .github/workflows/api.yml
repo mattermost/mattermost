@@ -25,9 +25,9 @@ jobs:
         node-version-file: .nvmrc
         cache: 'npm'
         cache-dependency-path: api/package-lock.json
+
     - name: Run build
-      run: |
-        make build
+      run: make build
 
     - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
       with:
