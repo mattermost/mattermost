@@ -2798,10 +2798,8 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 		},
 	}
 
-	previewedPost := model.NewPreviewPost(post, th.BasicTeam, directChannel)
-
-	actual := th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, th.BasicUser2.Id)
-	assert.NotNil(t, actual.Metadata.Embeds[0].Data)
+	hasChange := th.App.shouldSanitizePostMetadataForUserAndChannel(th.Context, post, directChannel, th.BasicUser2.Id)
+	assert.False(t, hasChange)
 
 	guestID := model.NewId()
 	guest := &model.User{
@@ -2814,8 +2812,8 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 	guest, appErr := th.App.CreateGuest(th.Context, guest)
 	require.Nil(t, appErr)
 
-	actual = th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, guest.Id)
-	assert.Nil(t, actual.Metadata.Embeds[0].Data)
+	hasChange = th.App.shouldSanitizePostMetadataForUserAndChannel(th.Context, post, directChannel, guest.Id)
+	assert.True(t, hasChange)
 }
 
 func TestSanitizePostMetaDataForAudit(t *testing.T) {
