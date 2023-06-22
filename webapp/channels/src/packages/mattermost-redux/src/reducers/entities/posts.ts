@@ -218,6 +218,13 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: Ge
                 const newEmbeds: PostEmbed[] = [];
 
                 for (const embed of otherPost.metadata.embeds) {
+                    if (embed.type === 'permalink' && embed.data && !('post_id' in embed.data)) {
+                        // eslint-disable-next-line no-console
+                        console.error('post_id missing in post embed data for permalink.');
+                        // eslint-disable-next-line no-console
+                        console.error(embed.data);
+                    }
+
                     if (embed.type === 'permalink' && (embed.data as PostPreviewMetadata).post_id === post.id) {
                         // skip if the embed is the deleted post
                         continue;

@@ -146,7 +146,7 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 	var err error
 
 	for i := 0; i < DBAccessAttempts; i++ {
-		ts.log.Info("Ensuring the telemetry ID", mlog.String("id", id))
+		ts.log.Info("Ensuring the telemetry ID..")
 		systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
 		systemID, err = ts.dbStore.System().InsertIfExists(systemID)
 		if err != nil {
@@ -156,6 +156,7 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 		}
 
 		ts.TelemetryID = systemID.Value
+		ts.log.Info("telemetry ID is set", mlog.String("id", ts.TelemetryID))
 		return nil
 	}
 
