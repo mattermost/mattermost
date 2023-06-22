@@ -82,7 +82,7 @@ export type Props = {
     channelType?: string;
     a11yIndex?: number;
     isBot: boolean;
-    hasReplies?: boolean;
+    hasReplies: boolean;
     isFirstReply?: boolean;
     previousPostIsComment?: boolean;
     matches?: string[];

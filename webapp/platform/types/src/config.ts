@@ -82,7 +82,6 @@ export type ClientConfig = {
     EnableOAuthServiceProvider: string;
     EnableOpenServer: string;
     EnableOutgoingWebhooks: string;
-    EnablePlaybooks: string;
     EnablePostIconOverride: string;
     EnablePostUsernameOverride: string;
     EnablePreviewFeatures: string;
@@ -119,7 +118,6 @@ export type ClientConfig = {
     ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
-    FeatureFlagAppsSidebarCategory: string;
     FeatureFlagBoardsProduct: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagGraphQL: string;
@@ -193,7 +191,7 @@ export type ClientConfig = {
     WebsocketSecurePort: string;
     WebsocketURL: string;
     ExperimentalSharedChannels: string;
-    EnableAppBar: string;
+    DisableAppBar: string;
     EnableComplianceExport: string;
     PostPriority: string;
     ReduceOnBoardingTaskList: string;
@@ -528,6 +526,8 @@ export type EmailSettings = {
     ConnectionSecurity: string;
     SendPushNotifications: boolean;
     PushNotificationServer: string;
+    PushNotificationServerType: 'off' | 'mhpns' | 'mtpns' | 'custom';
+    PushNotificationServerLocation: 'us' | 'de';
     PushNotificationContents: string;
     PushNotificationBuffer: number;
     EnableEmailBatching: boolean;
@@ -740,7 +740,7 @@ export type ExperimentalSettings = {
     UseNewSAMLLibrary: boolean;
     EnableSharedChannels: boolean;
     EnableRemoteClusterService: boolean;
-    EnableAppBar: boolean;
+    DisableAppBar: boolean;
     DisableRefetchingOnBrowserFocus: boolean;
     DelayChannelAutocomplete: boolean;
 };
@@ -820,7 +820,6 @@ export type JobSettings = {
 };
 
 export type ProductSettings = {
-    EnablePlaybooks: boolean;
 };
 
 export type PluginSettings = {
