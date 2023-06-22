@@ -79,7 +79,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         }
     };
 
-    protected handleChange = (id: string, value: boolean) => {
+    protected handleChange = (id: string, value: unknown) => {
         this.setState((prevState) => ({
             ...prevState,
             saveNeeded: true,
