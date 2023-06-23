@@ -5,13 +5,13 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import ImagePreview from 'components/file_preview_modal/image_preview';
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/view_image/ImagePreview', () => {
+    const fileInfo1 = TestHelper.getFileInfoMock({id: 'file_id', extension: 'm4a', has_preview_image: false});
     const baseProps = {
         canDownloadFiles: true,
-        fileInfo: {
-            id: 'file_id',
-        },
+        fileInfo: fileInfo1,
     };
 
     test('should match snapshot, without preview', () => {
@@ -26,6 +26,7 @@ describe('components/view_image/ImagePreview', () => {
         const props = {
             ...baseProps,
             fileInfo: {
+                ...fileInfo1,
                 id: 'file_id_1',
                 has_preview_image: true,
             },
@@ -56,6 +57,7 @@ describe('components/view_image/ImagePreview', () => {
             ...baseProps,
             canDownloadFiles: false,
             fileInfo: {
+                ...fileInfo1,
                 id: 'file_id_1',
                 has_preview_image: true,
             },
@@ -69,10 +71,13 @@ describe('components/view_image/ImagePreview', () => {
     });
 
     test('should not download link for external file', () => {
+        fileInfo1.link = 'https://example.com/image.png';
         const props = {
             ...baseProps,
             fileInfo: {
+                ...fileInfo1,
                 link: 'https://example.com/image.png',
+                id: '',
             },
         };
 

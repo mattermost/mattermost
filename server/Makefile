@@ -403,7 +403,7 @@ mmctl-mocks: ## Creates mocks for mmctl
 	$(GOBIN)/mockgen -destination=cmd/mmctl/mocks/client_mock.go -copyright_file=cmd/mmctl/mocks/copyright.txt -package=mocks github.com/mattermost/mattermost/server/v8/cmd/mmctl/client Client
 
 pluginapi: ## Generates api and hooks glue code for plugins
-	$(GO) generate $(GOFLAGS) ./public/plugin
+	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
 
 mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks
 

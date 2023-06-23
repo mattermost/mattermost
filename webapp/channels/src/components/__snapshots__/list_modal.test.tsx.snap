@@ -41,7 +41,7 @@ exports[`components/ListModal should match snapshot 1`] = `
         <span
           className="name"
         >
-          foo list modal
+          list modal
         </span>
       </ModalTitle>
     </ModalHeader>
@@ -62,13 +62,13 @@ exports[`components/ListModal should match snapshot 1`] = `
               className="hidden-label"
               htmlFor="searchUsersInput"
             >
-              search for foos
+              search for name
             </label>
             <input
               className="form-control filter-textbox"
               id="searchUsersInput"
               onChange={[Function]}
-              placeholder="search for foos"
+              placeholder="search for name"
             />
           </div>
           <div
@@ -153,7 +153,7 @@ exports[`components/ListModal should match snapshot with title bar button 1`] = 
         <span
           className="name"
         >
-          foo list modal
+          list modal
         </span>
       </ModalTitle>
     </ModalHeader>
@@ -174,13 +174,13 @@ exports[`components/ListModal should match snapshot with title bar button 1`] = 
               className="hidden-label"
               htmlFor="searchUsersInput"
             >
-              search for foos
+              search for name
             </label>
             <input
               className="form-control filter-textbox"
               id="searchUsersInput"
               onChange={[Function]}
-              placeholder="search for foos"
+              placeholder="search for name"
             />
           </div>
           <div

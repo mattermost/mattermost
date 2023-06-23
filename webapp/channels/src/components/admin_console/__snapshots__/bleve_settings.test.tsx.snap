@@ -76,6 +76,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
+        type="input"
         value=""
       />
       <div
@@ -335,6 +336,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
+        type="input"
         value="bleve.idx"
       />
       <div
@@ -367,6 +369,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
                   id="admin.bleve.createJob.help"
                 />
               }
+              disabled={false}
               getExtraInfoText={[Function]}
               jobType="bleve_post_indexing"
             />

@@ -37,9 +37,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const {formatMessage} = useIntl();
 
-    function handleSortDirectMessages(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>, sorting: CategorySorting) {
-        event.preventDefault();
-
+    function handleSortDirectMessages(sorting: CategorySorting) {
         props.setCategorySorting(props.category.id, sorting);
         trackEvent('ui', `ui_sidebar_sort_dm_${sorting}`);
     }
@@ -87,7 +85,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
                         defaultMessage='Alphabetically'
                     />
                 )}
-                onClick={(event) => handleSortDirectMessages(event, CategorySorting.Alphabetical)}
+                onClick={() => handleSortDirectMessages(CategorySorting.Alphabetical)}
             />
             <Menu.Item
                 id={`sortByMostRecent-${props.category.id}`}
@@ -97,14 +95,13 @@ const SidebarCategorySortingMenu = (props: Props) => {
                         defaultMessage='Recent Activity'
                     />
                 )}
-                onClick={(event) => handleSortDirectMessages(event, CategorySorting.Recency)}
+                onClick={() => handleSortDirectMessages(CategorySorting.Recency)}
             />
         </Menu.SubMenu>
 
     );
 
-    function handlelimitVisibleDMsGMs(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>, number: number) {
-        event.preventDefault();
+    function handlelimitVisibleDMsGMs(number: number) {
         props.savePreferences(props.currentUserId, [{
             user_id: props.currentUserId,
             category: Constants.Preferences.CATEGORY_SIDEBAR_SETTINGS,
@@ -149,7 +146,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
                         defaultMessage='All direct messages'
                     />
                 )}
-                onClick={(event) => handlelimitVisibleDMsGMs(event, Constants.HIGHEST_DM_SHOW_COUNT)}
+                onClick={() => handlelimitVisibleDMsGMs(Constants.HIGHEST_DM_SHOW_COUNT)}
             />
             <Menu.Separator/>
             {Constants.DM_AND_GM_SHOW_COUNTS.map((dmGmShowCount) => (
@@ -157,7 +154,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
                     id={`showDmCount-${props.category.id}-${dmGmShowCount}`}
                     key={`showDmCount-${props.category.id}-${dmGmShowCount}`}
                     labels={<span>{dmGmShowCount}</span>}
-                    onClick={(event) => handlelimitVisibleDMsGMs(event, dmGmShowCount)}
+                    onClick={() => handlelimitVisibleDMsGMs(dmGmShowCount)}
                 />
             ))}
         </Menu.SubMenu>
