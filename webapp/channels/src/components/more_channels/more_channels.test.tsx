@@ -5,6 +5,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {ActionResult} from 'mattermost-redux/types/actions';
+import {Channel} from '@mattermost/types/src/channels';
 
 import MoreChannels, {Props} from 'components/more_channels/more_channels';
 import SearchableChannelList from 'components/searchable_channel_list';
@@ -28,6 +29,15 @@ describe('components/MoreChannels', () => {
             delete_at: 123,
         }],
     };
+
+    const archivedChannel = TestHelper.getChannelMock({
+        id: 'channel_id_2',
+        team_id: 'channel_team_2',
+        display_name: 'channel-2',
+        name: 'channel-2',
+        header: 'channel-2-header',
+        purpose: 'channel-2-purpose',
+    });
 
     const channelActions = {
         joinChannelAction: (userId: string, teamId: string, channelId: string): Promise<ActionResult> => {
@@ -56,18 +66,25 @@ describe('components/MoreChannels', () => {
                 return resolve(searchResults);
             });
         },
+        getChannels: (): Promise<ActionResult<Channel[], Error>> => {
+            return new Promise((resolve) => {
+                return resolve({
+                    data: [TestHelper.getChannelMock({})],
+                });
+            });
+        },
+        getArchivedChannels: (): Promise<ActionResult<Channel[], Error>> => {
+            return new Promise((resolve) => {
+                return resolve({
+                    data: [archivedChannel],
+                });
+            });
+        },
     };
 
     const baseProps: Props = {
         channels: [TestHelper.getChannelMock({})],
-        archivedChannels: [TestHelper.getChannelMock({
-            id: 'channel_id_2',
-            team_id: 'channel_team_2',
-            display_name: 'channel-2',
-            name: 'channel-2',
-            header: 'channel-2-header',
-            purpose: 'channel-2-purpose',
-        })],
+        archivedChannels: [archivedChannel],
         currentUserId: 'user-1',
         teamId: 'team_id',
         teamName: 'team_name',
@@ -76,8 +93,8 @@ describe('components/MoreChannels', () => {
         shouldHideJoinedChannels: false,
         myChannelMemberships: {},
         actions: {
-            getChannels: jest.fn(),
-            getArchivedChannels: jest.fn(),
+            getChannels: jest.fn(channelActions.getChannels),
+            getArchivedChannels: jest.fn(channelActions.getArchivedChannels),
             joinChannel: jest.fn(channelActions.joinChannelAction),
             searchMoreChannels: jest.fn(channelActions.searchMoreChannels),
             openModal: jest.fn(),
