@@ -754,6 +754,9 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 // publishWebsocketEventForPost publishes the websocket event only for post create/edit.
 // The cases of post delete/unread does not need special handling as they don't bother
 // with the post content.
+//
+// This method assumes that if there's a permalink, it's already attached to the post.
+// If the user doesn't have access then this method will wipe that off.
 func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
