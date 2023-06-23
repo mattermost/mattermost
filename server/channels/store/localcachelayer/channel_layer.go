@@ -52,12 +52,14 @@ func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelPinnedPostCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestCountCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelByIdCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelsMemberCountCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guest Count - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channels Member Counts - Remove by ChannelId")
 	}
 }
 
@@ -72,6 +74,13 @@ func (s LocalCacheChannelStore) InvalidateMemberCount(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMemberCountsCache, channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Remove by ChannelId")
+	}
+}
+
+func (s LocalCacheChannelStore) InvalidateChannelsMemberCount(channelId string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelsMemberCountCache, channelId)
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channels Member Counts - Remove by ChannelId")
 	}
 }
 
@@ -211,6 +220,7 @@ func (s LocalCacheChannelStore) SaveMember(member *model.ChannelMember) (*model.
 		return nil, err
 	}
 	s.InvalidateMemberCount(member.ChannelId)
+	s.InvalidateChannelsMemberCount(member.ChannelId)
 	return member, nil
 }
 
@@ -221,6 +231,7 @@ func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMemb
 	}
 	for _, member := range members {
 		s.InvalidateMemberCount(member.ChannelId)
+		s.InvalidateChannelsMemberCount(member.ChannelId)
 	}
 	return members, nil
 }
@@ -284,6 +295,7 @@ func (s LocalCacheChannelStore) RemoveMember(channelId, userId string) error {
 		return err
 	}
 	s.InvalidateMemberCount(channelId)
+	s.InvalidateChannelsMemberCount(channelId)
 	return nil
 }
 
@@ -293,5 +305,6 @@ func (s LocalCacheChannelStore) RemoveMembers(channelId string, userIds []string
 		return err
 	}
 	s.InvalidateMemberCount(channelId)
+	s.InvalidateChannelsMemberCount(channelId)
 	return nil
 }
