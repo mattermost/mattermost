@@ -19,11 +19,12 @@ interface Item extends UserProfile {
 
 interface Props {
     ariaLiveRef?: React.Ref<HTMLDivElement>;
+    inputRef?: React.Ref<HTMLInputElement>;
     open: boolean;
     position?: 'top' | 'bottom';
     renderDividers?: string[];
     renderNoResults?: boolean;
-    onCompleteWord: (term: string, matchedPretext: string, e?: React.MouseEvent<HTMLDivElement>) => boolean;
+    onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>) => boolean;
     preventClose?: () => void;
     onItemHover: (term: string) => void;
     pretext: string;
@@ -53,7 +54,7 @@ export default class SearchSuggestionList extends SuggestionList {
     constructor(props: Props) {
         super(props);
 
-        this.itemRefs = new Map();
+        // this.itemRefs = new Map();
         this.popoverRef = React.createRef();
         this.itemsContainerRef = React.createRef();
         this.suggestionReadOut = React.createRef();
@@ -84,7 +85,7 @@ export default class SearchSuggestionList extends SuggestionList {
     }
 
     getContent = () => {
-        return this.itemsContainerRef.current?.parentNode;
+        return this.itemsContainerRef?.current?.parentNode as HTMLDivElement | null;
     };
 
     renderChannelDivider(type: string) {

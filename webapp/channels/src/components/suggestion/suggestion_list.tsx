@@ -21,7 +21,7 @@ interface Props {
     position?: 'top' | 'bottom';
     renderDividers?: string[];
     renderNoResults?: boolean;
-    onCompleteWord: (term: string, matchedPretext: string, e?: React.MouseEvent<HTMLDivElement>) => boolean;
+    onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>) => boolean;
     preventClose?: () => void;
     onItemHover: (term: string) => void;
     pretext: string;
@@ -47,21 +47,19 @@ export default class SuggestionList extends React.PureComponent<Props> {
         renderDividers: [],
         renderNoResults: false,
     };
-    private contentRef: React.RefObject<HTMLDivElement>;
-    private wrapperRef: React.RefObject<HTMLDivElement>;
-    private itemRefs: Map<any, any>;
-    //private suggestionReadOut: React.RefObject<HTMLDivElement>;
-    private currentLabel: string;
-    private currentItem: {};
-    private maxHeight: number;
-    
+    contentRef: React.RefObject<HTMLDivElement>;
+    wrapperRef: React.RefObject<HTMLDivElement>;
+    itemRefs: Map<any, any>;
+    currentLabel: string;
+    currentItem: any;
+    maxHeight: number;
+
     constructor(props: Props) {
         super(props);
 
         this.contentRef = React.createRef();
         this.wrapperRef = React.createRef();
         this.itemRefs = new Map();
-        //this.suggestionReadOut = React.createRef();
         this.currentLabel = '';
         this.currentItem = {};
         this.maxHeight = 0;
@@ -121,7 +119,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
         }
     }
 
-    generateLabel(item: any){
+    generateLabel(item: any) {
         if (item.username) {
             this.currentLabel = item.username;
             if ((item.first_name || item.last_name) && item.nickname) {
@@ -161,16 +159,15 @@ export default class SuggestionList extends React.PureComponent<Props> {
             const contentTopPadding = this.getComputedCssProperty(content, 'paddingTop');
             const contentBottomPadding = this.getComputedCssProperty(content, 'paddingTop');
 
-            const item = ReactDOM.findDOMNode(this.itemRefs.get(term))
+            const item = ReactDOM.findDOMNode(this.itemRefs.get(term));
             if (!item) {
                 return;
             }
-            
-            if (item instanceof HTMLElement){
+
+            if (item instanceof HTMLElement) {
                 const itemTop = item.offsetTop - this.getComputedCssProperty(item, 'marginTop');
                 const itemBottomMargin = this.getComputedCssProperty(item, 'marginBottom') + this.getComputedCssProperty(item, 'paddingBottom');
                 const itemBottom = item.offsetTop + this.getComputedCssProperty(item, 'height') + itemBottomMargin;
-    
                 if (itemTop - contentTopPadding < contentTop) {
                     // the item is off the top of the visible space
                     content.scrollTop = itemTop - contentTopPadding;
