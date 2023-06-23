@@ -17,11 +17,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	platform_mocks "github.com/mattermost/mattermost-server/server/v8/channels/app/platform/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
@@ -484,9 +484,9 @@ func TestHubIsRegistered(t *testing.T) {
 	defer wc2.Close()
 	defer wc3.Close()
 
-	assert.True(t, th.Service.SessionIsRegistered(*wc1.session.Load().(*model.Session)))
-	assert.True(t, th.Service.SessionIsRegistered(*wc2.session.Load().(*model.Session)))
-	assert.True(t, th.Service.SessionIsRegistered(*wc3.session.Load().(*model.Session)))
+	assert.True(t, th.Service.SessionIsRegistered(*wc1.session.Load()))
+	assert.True(t, th.Service.SessionIsRegistered(*wc2.session.Load()))
+	assert.True(t, th.Service.SessionIsRegistered(*wc3.session.Load()))
 
 	session4, err := th.Service.CreateSession(&model.Session{
 		UserId: th.BasicUser2.Id,

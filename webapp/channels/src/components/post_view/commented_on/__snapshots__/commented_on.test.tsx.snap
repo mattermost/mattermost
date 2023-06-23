@@ -21,7 +21,6 @@ exports[`components/post_view/CommentedOn should match snapshot 1`] = `
               hasMention={true}
               hideStatus={false}
               isRHS={false}
-              overwriteImage=""
               overwriteName=""
               userId=""
             />
@@ -60,7 +59,6 @@ exports[`components/post_view/CommentedOn should match snapshot 2`] = `
               hasMention={true}
               hideStatus={false}
               isRHS={false}
-              overwriteImage=""
               overwriteName=""
               userId=""
             />
@@ -99,7 +97,6 @@ exports[`components/post_view/CommentedOn should match snapshot 3`] = `
               hasMention={true}
               hideStatus={false}
               isRHS={false}
-              overwriteImage=""
               overwriteName=""
               userId=""
             />
@@ -140,7 +137,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
               hasMention={true}
               hideStatus={false}
               isRHS={false}
-              overwriteImage=""
               overwriteName=""
               userId=""
             />
@@ -179,7 +175,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
               hasMention={true}
               hideStatus={false}
               isRHS={false}
-              overwriteImage=""
               overwriteName=""
               userId=""
             />
@@ -218,7 +213,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
               hasMention={true}
               hideStatus={false}
               isRHS={false}
-              overwriteImage=""
               overwriteName=""
               userId=""
             />
@@ -257,7 +251,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
               hasMention={true}
               hideStatus={false}
               isRHS={false}
-              overwriteImage=""
               overwriteName=""
               userId=""
             />

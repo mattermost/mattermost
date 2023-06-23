@@ -21,8 +21,8 @@ import (
 
 	"github.com/mattermost/ldap"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/public/utils"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 const (
@@ -131,11 +131,11 @@ const (
 
 	EmailSettingsDefaultFeedbackOrganization = ""
 
-	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/terms-of-use/"
-	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/privacy-policy/"
-	SupportSettingsDefaultAboutLink          = "https://docs.mattermost.com/about/product.html/"
-	SupportSettingsDefaultHelpLink           = "https://mattermost.com/default-help/"
-	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/default-report-a-problem/"
+	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/pl/terms-of-use/"
+	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/pl/privacy-policy/"
+	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermomst"
+	SupportSettingsDefaultHelpLink           = "https://mattermost.com/pl/help/"
+	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/pl/report-a-bug"
 	SupportSettingsDefaultSupportEmail       = ""
 	SupportSettingsDefaultReAcceptancePeriod = 365
 
@@ -171,9 +171,9 @@ const (
 	SamlSettingsCanonicalAlgorithmC14n11  = "Canonical1.1"
 	SamlSettingsDefaultCanonicalAlgorithm = SamlSettingsCanonicalAlgorithmC14n
 
-	NativeappSettingsDefaultAppDownloadLink        = "https://mattermost.com/download/#mattermostApps"
-	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/mattermost-android-app/"
-	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/mattermost-ios-app/"
+	NativeappSettingsDefaultAppDownloadLink        = "https://mattermost.com/pl/download-apps"
+	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/pl/android-app/"
+	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/pl/ios-app/"
 
 	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds = 5000
 
@@ -996,7 +996,7 @@ type ExperimentalSettings struct {
 	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
-	EnableAppBar                    *bool   `access:"experimental_features"`
+	DisableAppBar                   *bool   `access:"experimental_features"`
 	DisableRefetchingOnBrowserFocus *bool   `access:"experimental_features"`
 	DelayChannelAutocomplete        *bool   `access:"experimental_features"`
 }
@@ -1030,8 +1030,8 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.EnableRemoteClusterService = NewBool(false)
 	}
 
-	if s.EnableAppBar == nil {
-		s.EnableAppBar = NewBool(false)
+	if s.DisableAppBar == nil {
+		s.DisableAppBar = NewBool(false)
 	}
 
 	if s.DisableRefetchingOnBrowserFocus == nil {
@@ -1336,19 +1336,16 @@ func (s *LogSettings) SetDefaults() {
 	}
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
-		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
-			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
-
-		} else {
-			s.AdvancedLoggingJSON = []byte("{}")
-		}
+		s.AdvancedLoggingJSON = []byte("{}")
 	}
-	s.AdvancedLoggingConfig = nil
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
-// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
+// AdvancedLoggingJSON takes precedence over the deprecated AdvancedLoggingConfig.
 func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
 	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
@@ -1401,18 +1398,16 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 	}
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
-		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
-			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
-		} else {
-			s.AdvancedLoggingJSON = []byte("{}")
-		}
+		s.AdvancedLoggingJSON = []byte("{}")
 	}
-	s.AdvancedLoggingConfig = nil
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
-// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
+// AdvancedLoggingJSON takes precedence over the deprecated AdvancedLoggingConfig.
 func (s *ExperimentalAuditSettings) GetAdvancedLoggingConfig() []byte {
 	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
@@ -1470,18 +1465,16 @@ func (s *NotificationLogSettings) SetDefaults() {
 	}
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
-		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
-			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
-		} else {
-			s.AdvancedLoggingJSON = []byte("{}")
-		}
+		s.AdvancedLoggingJSON = []byte("{}")
 	}
-	s.AdvancedLoggingConfig = nil
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
-// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
+// AdvancedLoggingJSON takes precedence over the deprecated AdvancedLoggingConfig.
 func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
 	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
@@ -2635,6 +2628,7 @@ type ElasticsearchSettings struct {
 	ClientCert                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	ClientKey                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Trace                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	IgnoredPurgeIndexes           *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -2732,6 +2726,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.Trace == nil {
 		s.Trace = NewString("")
+	}
+
+	if s.IgnoredPurgeIndexes == nil {
+		s.IgnoredPurgeIndexes = NewString("")
 	}
 }
 
@@ -2844,14 +2842,18 @@ type CloudSettings struct {
 
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
-		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
-		if !isProdLicensePublicKey {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
 		}
 	}
 	if s.CWSAPIURL == nil {
-		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
-		if !isProdLicensePublicKey {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 		}
 	}
@@ -2862,17 +2864,9 @@ func (s *CloudSettings) SetDefaults() {
 }
 
 type ProductSettings struct {
-	EnablePublicSharedBoards *bool
 }
 
-func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
-	if s.EnablePublicSharedBoards == nil {
-		if p, ok := plugins[PluginIdFocalboard]; ok {
-			s.EnablePublicSharedBoards = NewBool(p["enablepublicsharedboards"].(bool))
-		} else {
-			s.EnablePublicSharedBoards = NewBool(false)
-		}
-	}
+func (s *ProductSettings) SetDefaults() {
 }
 
 type PluginState struct {
@@ -2935,19 +2929,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdNPS] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates[PluginIdChannelExport] == nil && BuildEnterpriseReady == "true" {
-		// Enable the channel export plugin by default
-		s.PluginStates[PluginIdChannelExport] = &PluginState{Enable: true}
-	}
-
-	if s.PluginStates[PluginIdApps] == nil {
-		// Enable the Apps plugin by default
-		s.PluginStates[PluginIdApps] = &PluginState{Enable: true}
-	}
-
 	if s.PluginStates[PluginIdCalls] == nil {
 		// Enable the calls plugin by default
 		s.PluginStates[PluginIdCalls] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates[PluginIdPlaybooks] == nil {
+		// Enable the playbooks plugin by default
+		s.PluginStates[PluginIdPlaybooks] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -3354,7 +3343,7 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
-	o.ProductSettings.SetDefaults(o.PluginSettings.Plugins)
+	o.ProductSettings.SetDefaults()
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
@@ -3871,6 +3860,15 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 
 	if *s.RequestTimeoutSeconds < 1 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.request_timeout_seconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if ign := *s.IgnoredPurgeIndexes; ign != "" {
+		s := strings.Split(ign, ",")
+		for _, ix := range s {
+			if strings.HasPrefix(ix, "-") {
+				return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil

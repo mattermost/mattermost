@@ -87,12 +87,11 @@ import {UserProfile} from '@mattermost/types/users';
 
 import {ActionResult} from 'mattermost-redux/types/actions';
 
-import WelcomePostRenderer from 'components/welcome_post_renderer';
-
 import {applyLuxonDefaults} from './effects';
 
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
+import {ServiceEnvironment} from '@mattermost/types/config';
 
 const CreateTeam = makeAsyncComponent('CreateTeam', LazyCreateTeam);
 const ErrorPage = makeAsyncComponent('ErrorPage', LazyErrorPage);
@@ -229,17 +228,23 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     onConfigLoaded = () => {
+        const config = getConfig(store.getState());
         const telemetryId = this.props.telemetryId;
 
-        let rudderKey: string | null | undefined = Constants.TELEMETRY_RUDDER_KEY;
-        let rudderUrl: string | null | undefined = Constants.TELEMETRY_RUDDER_DATAPLANE_URL;
-
-        if (rudderKey.startsWith('placeholder') && rudderUrl.startsWith('placeholder')) {
-            rudderKey = process.env.RUDDER_KEY; //eslint-disable-line no-process-env
-            rudderUrl = process.env.RUDDER_DATAPLANE_URL; //eslint-disable-line no-process-env
+        const rudderUrl = 'https://pdat.matterlytics.com';
+        let rudderKey = '';
+        switch (config.ServiceEnvironment) {
+        case ServiceEnvironment.PRODUCTION:
+            rudderKey = '1aoejPqhgONMI720CsBSRWzzRQ9';
+            break;
+        case ServiceEnvironment.TEST:
+            rudderKey = '1aoeoCDeh7OCHcbW2kseWlwUFyq';
+            break;
+        case ServiceEnvironment.DEV:
+            break;
         }
 
-        if (rudderKey != null && rudderKey !== '' && this.props.telemetryEnabled) {
+        if (rudderKey !== '' && this.props.telemetryEnabled) {
             const rudderCfg: {setCookieDomain?: string} = {};
             const siteURL = getConfig(store.getState()).SiteURL;
             if (siteURL !== '') {
@@ -435,7 +440,6 @@ export default class Root extends React.PureComponent<Props, State> {
         // See figma design on issue https://mattermost.atlassian.net/browse/MM-43649
         this.props.actions.registerCustomPostRenderer('custom_up_notification', OpenPricingModalPost, 'upgrade_post_message_renderer');
         this.props.actions.registerCustomPostRenderer('custom_pl_notification', OpenPluginInstallPost, 'plugin_install_post_message_renderer');
-        this.props.actions.registerCustomPostRenderer('system_welcome_post', WelcomePostRenderer, 'welcome_post_renderer');
 
         if (this.desktopMediaQuery.addEventListener) {
             this.desktopMediaQuery.addEventListener('change', this.handleMediaQueryChangeEvent);

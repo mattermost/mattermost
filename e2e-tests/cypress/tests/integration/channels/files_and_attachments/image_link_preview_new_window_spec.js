@@ -30,7 +30,7 @@ describe('Image Link Preview', () => {
     });
 
     it('MM-T329 Image link preview', () => {
-        const link = 'https://raw.githubusercontent.com/furqanmlk/furqanmlk.github.io/main/images/image-small-height.png';
+        const link = 'https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/image-small-height.png';
         const baseUrl = Cypress.config('baseUrl');
         const encodedIconUrl = encodeURIComponent(link);
 

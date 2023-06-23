@@ -7,34 +7,70 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
   <div
     className="filter-row filter-row--full"
   >
-    <div
-      className="col-sm-12"
+    <span
+      aria-hidden="true"
+      id="searchIcon"
     >
-      <QuickInput
-        className="form-control filter-textbox"
-        id="searchChannelsTextbox"
-        inputComponent={
-          Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          }
-        }
-        onInput={[Function]}
-        placeholder={
-          Object {
-            "defaultMessage": "Search channels",
-            "id": "filtered_channels_list.search",
-          }
-        }
+      <MagnifyIcon
+        size={18}
       />
+    </span>
+    <QuickInput
+      aria-label="Search Channels"
+      className="form-control filter-textbox"
+      clearable={true}
+      id="searchChannelsTextbox"
+      inputComponent={
+        Object {
+          "$$typeof": Symbol(react.forward_ref),
+          "render": [Function],
+        }
+      }
+      onClear={[Function]}
+      onInput={[Function]}
+      placeholder={
+        Object {
+          "defaultMessage": "Search channels",
+          "id": "filtered_channels_list.search",
+        }
+      }
+      value=""
+    />
+  </div>
+  <div
+    className="more-modal__dropdown"
+  >
+    <span
+      id="channelCountLabel"
+    >
+      0 Results
+    </span>
+    <div
+      id="modalPreferenceContainer"
+    >
+      <div
+        id="hideJoinedPreferenceCheckbox"
+        onClick={[Function]}
+      >
+        <button
+          aria-label="Hide joined channels checkbox, not checked"
+          className="get-app__checkbox"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Hide Joined"
+          id="more_channels.hide_joined"
+        />
+      </div>
     </div>
   </div>
   <div
     className="more-modal__list"
     role="application"
+    tabIndex={-1}
   >
     <div
       id="moreChannelsList"
+      tabIndex={-1}
     >
       <LoadingScreen />
     </div>

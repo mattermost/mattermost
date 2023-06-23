@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   postgres:
-    image: ${CI_REGISTRY}/mattermost/ci/images/postgres:10-1
+    image: mattermostdevelopment/mirrored-postgres:12
     restart: always
     environment:
       POSTGRES_USER: mmuser
@@ -12,9 +12,9 @@ services:
      - "./docker/postgres.conf:/etc/postgresql/postgresql.conf"
     healthcheck:
       test: [ "CMD", "pg_isready", "-h", "localhost" ]
-      interval: 5s
-      timeout: 10s
-      retries: 3
+      interval: 10s
+      timeout: 15s
+      retries: 12
     networks:
       default:
         aliases:
@@ -81,19 +81,16 @@ services:
           - grafana
 
   start_dependencies:
-    image: ${CI_REGISTRY}/mattermost/ci/images/mattermost-wait-for-dep:latest-1
+    image: mattermost/mattermost-wait-for-dep:latest
     depends_on:
       - postgres
       - minio
       - inbucket
       - openldap
       - elasticsearch
-      - prometheus
-      - grafana
-    command: postgres:5432 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
+    command: postgres:5432 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200
     networks:
       default:
-
 
 networks:
   default:

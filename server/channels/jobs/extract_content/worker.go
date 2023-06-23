@@ -6,10 +6,10 @@ package extract_content
 import (
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 var ignoredFiles = map[string]bool{
@@ -33,7 +33,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) mode
 		jobServer.HandleJobPanic(job)
 
 		var err error
-		var fromTS int64 = 0
+		var fromTS int64
 		var toTS int64 = model.GetMillis()
 		if fromStr, ok := job.Data["from"]; ok {
 			if fromTS, err = strconv.ParseInt(fromStr, 10, 64); err != nil {
