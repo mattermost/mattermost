@@ -2228,8 +2228,8 @@ func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string, allowFromCa
 	for rows.Next() {
 		var channelID string
 		var count int64
-		err := rows.Scan(&channelID, &count)
-		if err != nil {
+		errScan := rows.Scan(&channelID, &count)
+		if errScan != nil {
 			return nil, errors.Wrap(err, "failed to scan row")
 		}
 		memberCounts[channelID] = count
