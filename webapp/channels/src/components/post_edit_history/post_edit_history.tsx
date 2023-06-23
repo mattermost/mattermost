@@ -71,7 +71,6 @@ const PostEditHistory = ({
                 setIsLoading(false);
             }
         };
-
         fetchPostEditHistory();
         scrollbars.current?.scrollToTop();
     }, [originalPost]);
