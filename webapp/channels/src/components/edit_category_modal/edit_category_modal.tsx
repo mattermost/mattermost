@@ -32,22 +32,21 @@ type Props = {
 
 type State = {
     categoryName: string;
-    isProcessing: boolean;
 }
 
 export default class EditCategoryModal extends React.PureComponent<Props, State> {
     timeoutId: NodeJS.Timeout | null = null;
+    isProcessing = false;
     constructor(props: Props) {
         super(props);
 
         this.state = {
             categoryName: props.initialCategoryName || '',
-            isProcessing: false,
         };
     }
 
     handleClear = () => {
-        this.setState({categoryName: '', isProcessing: false});
+        this.setState({categoryName: ''});
     };
 
     handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,13 +57,6 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
         this.handleClear();
     };
 
-    handleEnterKeyEvent = (e?: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e && e.nativeEvent.isComposing) {
-            return;
-        }
-        this.handleConfirm();
-    };
-
     componentWillUnmount() {
         if (this.timeoutId) {
             clearTimeout(this.timeoutId);
@@ -72,21 +64,19 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
     }
 
     handleConfirm = () => {
-        if (this.state.isProcessing) {
+        if (this.isProcessing) {
             return;
         }
-        this.setState({isProcessing: true});
-        this.timeoutId = setTimeout(() => this.setState({isProcessing: false}), ACTION_WAIT_MS);
+        this.isProcessing = true;
+        this.timeoutId = setTimeout(() => {
+            this.isProcessing = false;
+        }, ACTION_WAIT_MS);
 
         if (this.props.categoryId) {
             this.props.actions.renameCategory(this.props.categoryId, this.state.categoryName);
         } else {
             this.props.actions.createCategory(this.props.currentTeamId, this.state.categoryName, this.props.channelIdsToAdd);
-            trackEvent('ui', 'ui_sidebar_created_category', {
-                currentTeam: this.props.currentTeamId,
-                categoryName: this.state.categoryName,
-                channelds: this.props.channelIdsToAdd,
-            });
+            trackEvent('ui', 'ui_sidebar_created_category');
         }
     };
 
@@ -155,7 +145,7 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
                 modalHeaderText={modalHeaderText}
                 confirmButtonText={editButtonText}
                 onExited={this.props.onExited}
-                handleEnterKeyPress={this.handleEnterKeyEvent}
+                handleEnterKeyPress={this.handleConfirm}
                 handleConfirm={this.handleConfirm}
                 handleCancel={this.handleCancel}
                 isConfirmDisabled={this.isConfirmDisabled()}
