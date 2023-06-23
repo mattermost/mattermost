@@ -13010,27 +13010,6 @@ func (s *RetryLayerUserStore) GetEtagForProfilesNotInTeam(teamID string) string 
 
 }
 
-func (s *RetryLayerUserStore) GetFirstSystemAdminID() (string, error) {
-
-	tries := 0
-	for {
-		result, err := s.UserStore.GetFirstSystemAdminID()
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerUserStore) GetForLogin(loginID string, allowSignInWithUsername bool, allowSignInWithEmail bool) (*model.User, error) {
 
 	tries := 0

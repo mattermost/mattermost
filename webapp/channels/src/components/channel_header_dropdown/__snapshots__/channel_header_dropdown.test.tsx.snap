@@ -24,7 +24,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
     }
     show={true}
   />
-  <Memo(ChannelMoveToSubMenu)
+  <Memo(ChannelMoveToSubMenuOld)
     channel={
       Object {
         "create_at": 0,
@@ -816,7 +816,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
     }
     show={true}
   />
-  <Memo(ChannelMoveToSubMenu)
+  <Memo(ChannelMoveToSubMenuOld)
     channel={
       Object {
         "create_at": 0,
