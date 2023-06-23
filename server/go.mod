@@ -96,6 +96,8 @@ require (
 	github.com/advancedlogic/GoOse v0.0.0-20210820140952-9d5822d4a625 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
+	github.com/anknown/ahocorasick v0.0.0-20190904063843-d75dbd5169c0 // indirect
+	github.com/anknown/darts v0.0.0-20151216065714-83ff685239e6 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/armon/go-metrics v0.4.0 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect

@@ -749,7 +749,15 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 	return nil
 }
 
-func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, channel *model.Channel, profileMap map[string]*model.User, groups map[string]*model.Group, channelMemberNotifyPropsMap map[string]model.StringMap, parentPostList *model.PostList) (*ExplicitMentions, map[string][]string) {
+func (a *App) getExplicitMentionsAndKeywords(
+	c request.CTX,
+	post *model.Post,
+	channel *model.Channel,
+	profileMap map[string]*model.User,
+	groups map[string]*model.Group,
+	channelMemberNotifyPropsMap map[string]model.StringMap,
+	parentPostList *model.PostList,
+) (*ExplicitMentions, map[string][]string) {
 	mentions := &ExplicitMentions{}
 	var allowChannelMentions bool
 	var keywords map[string][]string
