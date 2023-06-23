@@ -801,10 +801,13 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		// Execute channel hook
-		if msg.GetBroadcast().ChannelHook != nil && msg.GetBroadcast().ChannelHook(wc.UserId, msg) {
-			// If hook returns true, that means message has been modified. We need
-			// to wipe off the pre-computed JSON
-			msg.RemovePrecomputedJSON()
+		if msg.GetBroadcast().ChannelHook != nil {
+			hasChange := msg.GetBroadcast().ChannelHook(wc.UserId, msg)
+			if hasChange {
+				// If hook returns true, that means message has been modified. We need
+				// to wipe off the pre-computed JSON
+				msg.RemovePrecomputedJSON()
+			}
 		}
 
 		if wc.allChannelMembers == nil {

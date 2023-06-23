@@ -69,6 +69,17 @@ func TestHasPermissionToTeam(t *testing.T) {
 	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 }
 
+func TestSessionHasPermissionToReadChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	assert.True(t, th.App.HasPermissionToReadChannel(th.Context, th.BasicUser.Id, th.BasicChannel))
+	pc1 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	assert.False(t, th.App.HasPermissionToReadChannel(th.Context, th.BasicUser2.Id, pc1))
+	th.AddUserToChannel(th.BasicUser2, pc1)
+	assert.True(t, th.App.HasPermissionToReadChannel(th.Context, th.BasicUser2.Id, pc1))
+}
+
 func TestSessionHasPermissionToChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

@@ -199,7 +199,7 @@ func (ev *WebSocketEvent) Add(key string, value any) {
 }
 
 // AddWithCopy copies the map and writes to a copy of that,
-// and sets the new map to the event
+// and sets the map to the new event.
 func (ev *WebSocketEvent) AddWithCopy(key string, value any) {
 	ev.data = copyMap(ev.data)
 	ev.data[key] = value

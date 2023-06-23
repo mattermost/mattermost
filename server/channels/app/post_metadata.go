@@ -190,21 +190,6 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 	return post
 }
 
-// shouldSanitizePostMetadataForUserAndChannel returns true/false whether the user
-// has permission to view the metadata, and thereby the metadata should be
-// wiped off or not.
-func (a *App) shouldSanitizePostMetadataForUserAndChannel(c request.CTX, post *model.Post, previewedChannel *model.Channel, userID string) bool {
-	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
-		return false
-	}
-
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
-		return true
-	}
-
-	return false
-}
-
 func (a *App) SanitizePostMetadataForUser(c request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError) {
 	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
 		return post, nil

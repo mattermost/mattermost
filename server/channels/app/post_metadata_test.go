@@ -2766,56 +2766,6 @@ func TestContainsPermalink(t *testing.T) {
 	}
 }
 
-func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableLinkPreviews = true
-		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
-	})
-
-	directChannel, err := th.App.createDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
-	assert.Nil(t, err)
-
-	userID := model.NewId()
-	post := &model.Post{
-		Id: userID,
-		Metadata: &model.PostMetadata{
-			Embeds: []*model.PostEmbed{
-				{
-					Type: model.PostEmbedOpengraph,
-					URL:  "ogURL",
-					Data: &opengraph.OpenGraph{
-						Images: []*ogimage.Image{
-							{
-								URL: "imageURL",
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	hasChange := th.App.shouldSanitizePostMetadataForUserAndChannel(th.Context, post, directChannel, th.BasicUser2.Id)
-	assert.False(t, hasChange)
-
-	guestID := model.NewId()
-	guest := &model.User{
-		Email:         "success+" + guestID + "@simulator.amazonses.com",
-		Username:      "un_" + guestID,
-		Nickname:      "nn_" + guestID,
-		Password:      "Password1",
-		EmailVerified: true,
-	}
-	guest, appErr := th.App.CreateGuest(th.Context, guest)
-	require.Nil(t, appErr)
-
-	hasChange = th.App.shouldSanitizePostMetadataForUserAndChannel(th.Context, post, directChannel, guest.Id)
-	assert.True(t, hasChange)
-}
-
 func TestSanitizePostMetaDataForAudit(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
