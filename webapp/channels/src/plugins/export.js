@@ -48,10 +48,10 @@ window.StyledComponents = require('styled-components');
 window.PostUtils = {formatText, messageHtmlToComponent};
 window.openInteractiveDialog = openInteractiveDialog;
 window.useNotifyAdmin = useNotifyAdmin;
-window.sendDesktopNotificationToMe = notifyMe;
 window.WebappUtils = {
     modals: {openModal, ModalIdentifiers},
     notificationSounds: {ring: NotificationSounds.ring, stopRing: NotificationSounds.stopRing},
+    sendDesktopNotificationToMe: notifyMe,
 };
 Object.defineProperty(window.WebappUtils, 'browserHistory', {
     get: () => getHistory(),
