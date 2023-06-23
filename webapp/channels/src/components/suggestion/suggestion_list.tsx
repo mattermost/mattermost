@@ -50,7 +50,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
     contentRef: React.RefObject<HTMLDivElement>;
     wrapperRef: React.RefObject<HTMLDivElement>;
     itemRefs: Map<any, any>;
-    currentLabel: string;
+    currentLabel: string | null;
     currentItem: any;
     maxHeight: number;
 
