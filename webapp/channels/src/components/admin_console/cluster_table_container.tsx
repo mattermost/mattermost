@@ -9,11 +9,11 @@ import LoadingScreen from '../loading_screen';
 
 import ClusterTable from './cluster_table';
 
-interface ClusterTableContainerState {
+interface State {
     clusterInfos: ClusterInfo[] | null;
 }
 
-export default class ClusterTableContainer extends React.PureComponent<object, ClusterTableContainerState> {
+export default class ClusterTableContainer extends React.PureComponent<object, State> {
     interval: NodeJS.Timer | null;
 
     constructor(props: object) {

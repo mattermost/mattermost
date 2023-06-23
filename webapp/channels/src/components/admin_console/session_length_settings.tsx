@@ -14,7 +14,7 @@ import BooleanSetting from './boolean_setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
-interface SessionLengthSettingsState extends BaseState {
+interface State extends BaseState {
     extendSessionLengthWithActivity: ServiceSettings['ExtendSessionLengthWithActivity'];
     sessionLengthWebInHours: ServiceSettings['SessionLengthWebInHours'];
     sessionLengthMobileInHours: ServiceSettings['SessionLengthMobileInHours'];
@@ -24,13 +24,11 @@ interface SessionLengthSettingsState extends BaseState {
     sessionIdleTimeoutMobileInMinutes: ClientLicense['SessionIdleTimeoutMobileInMinutes'];
 }
 
-interface SessionLengthSettingsProps extends BaseProps {
-    license: {
-        Compliance: string;
-    };
+interface Props extends BaseProps {
+    license: ClientLicense;
 }
 
-export default class SessionLengthSettings extends AdminSettings<SessionLengthSettingsProps, SessionLengthSettingsState> {
+export default class SessionLengthSettings extends AdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         const MINIMUM_IDLE_TIMEOUT = 5;
 
