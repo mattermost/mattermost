@@ -596,12 +596,11 @@ func (a *App) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil, "")
 	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
-	postJSON, jsonErr := post.ToJSON()
-	if jsonErr != nil {
-		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+
+	appErr := a.publishWebsocketEventForPost(c, post, message)
+	if appErr != nil {
+		mlog.Warn("Failed to send websocket event for ephemeral post", mlog.Err(appErr))
 	}
-	message.Add("post", postJSON)
-	a.Publish(message)
 
 	return post
 }
