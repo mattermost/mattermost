@@ -16,7 +16,7 @@ export type Props = {
     show?: boolean;
     handleCancel?: () => void;
     handleConfirm?: () => void;
-    handleEnterKeyPress?: () => void;
+    handleEnterKeyPress?: (event?: React.KeyboardEvent<HTMLDivElement>) => void;
     handleKeydown?: (event?: React.KeyboardEvent<HTMLDivElement>) => void;
     confirmButtonText?: React.ReactNode;
     confirmButtonClassName?: string;
@@ -105,7 +105,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 this.onHide();
             }
             if (this.props.handleEnterKeyPress) {
-                this.props.handleEnterKeyPress();
+                this.props.handleEnterKeyPress(event);
             }
         }
         this.props.handleKeydown?.(event);
