@@ -1910,6 +1910,26 @@ func TestUpdateUser(t *testing.T) {
 	})
 }
 
+func TestUpdateAdminUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	th.App.UpdateUserRoles(th.Context, user.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	user.Email = th.GenerateTestEmail()
+
+	th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+
+	_, resp, err := th.Client.UpdateUser(context.Background(), user)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	u2, _, err := th.SystemAdminClient.UpdateUser(context.Background(), user)
+	require.NoError(t, err)
+	require.Equal(t, user.Email, u2.Email)
+}
+
 func TestPatchUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2021,6 +2041,26 @@ func TestPatchUser(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestPatchAdminUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	th.App.UpdateUserRoles(th.Context, user.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+
+	patch := &model.UserPatch{}
+	patch.Email = model.NewString(th.GenerateTestEmail())
+
+	th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+
+	_, resp, err := th.Client.PatchUser(context.Background(), user.Id, patch)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	_, _, err = th.SystemAdminClient.PatchUser(context.Background(), user.Id, patch)
+	require.NoError(t, err)
+}
 func TestUserUnicodeNames(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
