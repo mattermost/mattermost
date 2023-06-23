@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
+import {Post} from '@mattermost/types/posts';
 
-import {Post, PostsState} from '@mattermost/types/posts';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -51,8 +50,4 @@ export function isInlineImageVisible(state: GlobalState, postId: string, imageKe
     const imageCollapsed = arePreviewsCollapsed(state);
 
     return getGlobalItem(state, StoragePrefixes.INLINE_IMAGE_VISIBLE + currentUserId + '_' + postId + '_' + imageKey, !imageCollapsed);
-}
-
-export function getPostErrors(state: GlobalState): PostsState['errors'] {
-    return state.entities.posts.errors;
 }

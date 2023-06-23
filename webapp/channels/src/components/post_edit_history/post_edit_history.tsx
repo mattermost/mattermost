@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect, useRef} from 'react';
+import React, {memo, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import Scrollbars from 'react-custom-scrollbars';
 
@@ -15,6 +15,8 @@ import type {PropsFromRedux} from './index';
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
 
 import './post_edit_history.scss';
+import {Client4} from 'mattermost-redux/client';
+import {Post} from '@mattermost/types/posts';
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (
     <div
@@ -40,9 +42,10 @@ const renderThumbVertical = (props: Record<string, unknown>): JSX.Element => (
 const PostEditHistory = ({
     channelDisplayName,
     originalPost,
-    postEditHistory,
-    errors,
 }: PropsFromRedux) => {
+    const [postEditHistory, setPostEditHistory] = useState<Post[]>([]);
+    const [hasError, setHasError] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const scrollbars = useRef<Scrollbars | null>(null);
     const {formatMessage} = useIntl();
     const retrieveErrorHeading = formatMessage({
@@ -55,8 +58,28 @@ const PostEditHistory = ({
     });
 
     useEffect(() => {
+        const fetchPostEditHistory = async () => {
+            try {
+                setIsLoading(true);
+                const history = await Client4.getPostEditHistory(originalPost.id);
+                setPostEditHistory(history);
+                setHasError(false);
+            } catch (error) {
+                setHasError(true);
+                setPostEditHistory([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchPostEditHistory();
         scrollbars.current?.scrollToTop();
-    }, [originalPost, postEditHistory]);
+    }, [originalPost]);
+
+    useEffect(() => {
+        setPostEditHistory([]);
+        setHasError(false);
+    }, [originalPost.id]);
 
     const title = formatMessage({
         id: 'search_header.title_edit.history',
@@ -80,7 +103,7 @@ const PostEditHistory = ({
         </div>
     );
 
-    if (postEditHistory.length === 0 && !errors) {
+    if (isLoading && postEditHistory.length === 0) {
         return (
             <div
                 id='rhsContainer'
@@ -130,7 +153,7 @@ const PostEditHistory = ({
                     {title}
                     <div className='sidebar--right__title__channel'>{channelDisplayName}</div>
                 </SearchResultsHeader>
-                {errors ? errorContainer : postEditItems}
+                {hasError ? errorContainer : postEditItems}
             </Scrollbars>
         </div>
     );

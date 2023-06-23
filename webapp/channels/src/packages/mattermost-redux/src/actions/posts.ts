@@ -1147,7 +1147,6 @@ export function getPostEditHistory(postId: string) {
         clientFunc: Client4.getPostEditHistory,
         onSuccess: PostTypes.RECEIVED_POST_HISTORY,
         params: [postId],
-        onFailure: PostTypes.RECEIVE_POST_HISTORY_FAILURE,
     });
 }
 
