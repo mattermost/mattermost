@@ -29,7 +29,7 @@ Object.defineProperty(window, 'location', {
     },
 });
 
-const supportedCommands = ['copy'];
+const supportedCommands = ['copy', 'insertText'];
 
 Object.defineProperty(document, 'queryCommandSupported', {
     value: (cmd) => supportedCommands.includes(cmd),

@@ -156,7 +156,6 @@ export const Preferences = {
 
 // For one off things that have a special, attention-grabbing UI until you interact with them
 export const Touched = {
-    INVITE_MEMBERS: 'invite_members',
     ADD_CHANNELS_CTA: 'add_channels_cta',
 };
 
@@ -449,7 +448,6 @@ export const ModalIdentifiers = {
     CLOUD_LIMITS_DOWNGRADE: 'cloud_limits_downgrade',
     PERSIST_NOTIFICATION_CONFIRM_MODAL: 'persist_notification_confirm_modal',
     AIR_GAPPED_SELF_HOSTED_PURCHASE: 'air_gapped_self_hosted_purchase',
-    WORK_TEMPLATE: 'work_template',
     DOWNGRADE_MODAL: 'downgrade_modal',
     PURCHASE_IN_PROGRESS: 'purchase_in_progress',
     DELETE_WORKSPACE: 'delete_workspace',
@@ -763,7 +761,6 @@ export const TELEMETRY_CATEGORIES = {
     WORKSPACE_OPTIMIZATION_DASHBOARD: 'workspace_optimization_dashboard',
     REQUEST_BUSINESS_EMAIL: 'request_business_email',
     TRUE_UP_REVIEW: 'true_up_review',
-    WORK_TEMPLATES: 'work_templates',
 };
 
 export const TELEMETRY_LABELS = {
@@ -907,6 +904,7 @@ export const StoragePrefixes = {
     CHANNEL_CATEGORY_COLLAPSED: 'channelCategoryCollapsed_',
     INLINE_IMAGE_VISIBLE: 'isInlineImageVisible_',
     DELINQUENCY: 'delinquency_',
+    HIDE_JOINED_CHANNELS: 'hideJoinedChannels',
 };
 
 export const LandingPreferenceTypes = {
@@ -933,7 +931,7 @@ export const JobTypes = {
     BLEVE_POST_INDEXING: 'bleve_post_indexing',
     LDAP_SYNC: 'ldap_sync',
     MESSAGE_EXPORT: 'message_export',
-};
+} as const;
 
 export const JobStatuses = {
     PENDING: 'pending',
@@ -996,6 +994,11 @@ export const NotificationLevels = {
     ALL: 'all',
     MENTION: 'mention',
     NONE: 'none',
+} as const;
+
+export const DesktopSound = {
+    ON: 'on',
+    OFF: 'off',
 } as const;
 
 export const IgnoreChannelMentions = {
@@ -1070,46 +1073,78 @@ export const DraggingStateTypes = {
 };
 
 export const AboutLinks = {
-    TERMS_OF_SERVICE: 'https://mattermost.com/terms-of-use/',
-    PRIVACY_POLICY: 'https://mattermost.com/privacy-policy/',
+    TERMS_OF_SERVICE: 'https://mattermost.com/pl/terms-of-use/',
+    PRIVACY_POLICY: 'https://mattermost.com/pl/privacy-policy/',
 };
 
 export const CloudLinks = {
-    BILLING_DOCS: 'https://docs.mattermost.com/cloud/cloud-billing/cloud-billing.html',
-    PRICING: 'https://mattermost.com/pricing/',
+    BILLING_DOCS: 'https://docs.mattermost.com/pl/cloud-billing',
+    PRICING: 'https://mattermost.com/pl/pricing/',
     PRORATED_PAYMENT: 'https://mattermost.com/pl/mattermost-cloud-prorate-documentation',
     DEPLOYMENT_OPTIONS: 'https://mattermost.com/deploy/',
     DOWNLOAD_UPDATE: 'https://mattermost.com/deploy/',
     CLOUD_SIGNUP_PAGE: 'https://mattermost.com/sign-up/',
     SELF_HOSTED_SIGNUP: 'https://customers.mattermost.com/signup',
     DELINQUENCY_DOCS: 'https://docs.mattermost.com/about/cloud-subscriptions.html#failed-or-late-payments',
-    SELF_HOSTED_PRICING: 'https://mattermost.com/pricing/#self-hosted',
+    SELF_HOSTED_PRICING: 'https://mattermost.com/pl/pricing/#self-hosted',
 };
 
 export const HostedCustomerLinks = {
     BILLING_DOCS: 'https://mattermost.com/pl/how-self-hosted-billing-works',
-    SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
+    SELF_HOSTED_BILLING: 'https://mattermost.com/pl/self-hosted-billing',
     TERMS_AND_CONDITIONS: 'https://mattermost.com/enterprise-edition-terms/',
     SECURITY_UPDATES: 'https://mattermost.com/security-updates/',
     DOWNLOAD: 'https://mattermost.com/download',
     NEWSLETTER_UNSUBSCRIBE_LINK: 'https://forms.mattermost.com/UnsubscribePage.html',
-    PRIVACY: 'https://mattermost.com/privacy-policy/',
+    PRIVACY: AboutLinks.PRIVACY_POLICY,
 };
 
 export const DocLinks = {
-    AD_LDAP: 'https://docs.mattermost.com/configure/configuration-settings.html#ad-ldap',
-    DATA_RETENTION_POLICY: 'https://docs.mattermost.com/comply/data-retention-policy.html',
-    ELASTICSEARCH: 'https://docs.mattermost.com/scale/elasticsearch.html',
-    GUEST_ACCOUNTS: 'https://docs.mattermost.com/onboard/guest-accounts.html',
-    SESSION_LENGTHS: 'https://docs.mattermost.com/configure/configuration-settings.html#session-lengths',
-    SITE_URL: 'https://docs.mattermost.com/configure/configuration-settings.html#site-url',
-    SSL_CERTIFICATE: 'https://docs.mattermost.com/onboard/ssl-client-certificate.html',
-    UPGRADE_SERVER: 'https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html',
-    ONBOARD_LDAP: 'https://docs.mattermost.com/onboard/ad-ldap.html',
-    ONBOARD_SSO: 'https://docs.mattermost.com/onboard/sso-saml.html',
-    TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
-    SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
     ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
+    CONFIGURE_DOCUMENT_CONTENT_SEARCH: 'https://mattermost.com/pl/configure-document-content-search',
+    CONFIGURE_AD_LDAP_QUERY_TIMEOUT: 'https://mattermost.com/pl/configure-ad-ldap-query-timeout',
+    CONFIGURE_OVERRIDE_SAML_BIND_DATA_WITH_LDAP: 'https://mattermost.com/pl/configure-override-saml-bind-data-with-ldap',
+    COMPILANCE_EXPORT: 'https://mattermost.com/pl/compliance-export',
+    COMPILANCE_MONITORING: 'https://mattermost.com/pl/compliance-monitoring',
+    DATA_RETENTION_POLICY: 'https://mattermost.com/pl/data-retention-policy',
+    DEFAULT_LDAP_GROUP_SYNC: 'https://mattermost.com/pl/default-ldap-group-sync',
+    DESKTOP_MANAGED_RESOURCES: 'https://mattermost.com/pl/desktop-managed-resources',
+    ELASTICSEARCH: 'https://mattermost.com/pl/setup-elasticsearch',
+    ENABLE_CLIENT_SIDE_CERTIFICATION: 'https://mattermost.com/pl/enable-client-side-certification',
+    ENABLE_HARDENED_MODE: 'https://mattermost.com/pl/enable-hardened-mode',
+    FORMAT_MESSAGES: 'https://mattermost.com/pl/format-messages',
+    GUEST_ACCOUNTS: 'https://docs.mattermost.com/onboard/guest-accounts.html',
+    HIGH_AVAILABILITY_CLUSTER: 'https://mattermomst.com/pl/high-availability-cluster',
+    IN_PRODUCT_NOTICES: 'https://mattermost.com/pl/in-product-notices',
+    MULTI_FACTOR_AUTH: 'https://mattermost.com/pl/multi-factor-authentication',
+    ONBOARD_ADVANCED_PERMISSIONS: 'https://mattermost.com/pl/advanced-permissions',
+    ONBOARD_LDAP: 'https://mattermost.com/pl/setup-ldap',
+    SELF_HOSTED_BILLING: HostedCustomerLinks.SELF_HOSTED_BILLING,
+    SESSION_LENGTHS: 'https://mattermost.com/pl/configure-session-lengths',
+    SETUP_IMAGE_PROXY: 'https://mattermost.com/pl/setup-image-proxy',
+    SETUP_LDAP: 'https://mattermost.com/pl/setup-ldap',
+    SETUP_PERFORMANCE_MONITORING: 'https://mattermost.com/pl/setup-performance-monitoring',
+    SETUP_PUSH_NOTIFICATIONS: 'https://mattermost.com/pl/setup-push-notifications',
+    SETUP_SAML: 'https://docs.mattermost.com/pl/setup-saml',
+    SHARE_LINKS_TO_MESSAGES: 'https://mattermost.com/pl/share-links-to-messages',
+    SITE_URL: 'https://mattermost.com/pl/configure-site-url',
+    SSL_CERTIFICATE: 'https://mattermost.com/pl/setup-ssl-client-certificate',
+    TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
+    UPGRADE_SERVER: 'https://mattermost.com/pl/upgrade-mattermost',
+};
+
+export const DeveloperLinks = {
+    CUSTOM_SLASH_COMMANDS: 'https://mattermost.com/pl/custom-slash-commands',
+    ENABLE_OAUTH2: 'https://mattermost.com/pl/enable-oauth',
+    INCOMING_WEBHOOKS: 'https://mattermost.com/pl/incoming-webhooks',
+    OUTGOING_WEBHOOKS: 'https://mattermost.com/pl/outgoing-webhooks',
+    PERSONAL_ACCESS_TOKENS: 'https://mattermost.com/pl/personal-access-tokens',
+    PLUGIN_SIGNING: 'https://mattermost.com/pl/sign-plugins',
+    PLUGINS: 'https://mattermost.com/pl/plugins',
+    SETUP_CUSTOM_SLASH_COMMANDS: 'https://mattermost.com/pl/setup-custom-slash-commands',
+    SETUP_INCOMING_WEBHOOKS: 'https://mattermost.com/pl/setup-incoming-webhooks',
+    SETUP_OAUTH2: 'https://mattermost.com/pl/setup-oauth-2.0',
+    SETUP_OUTGOING_WEBHOOKS: 'https://mattermost.com/pl/setup-outgoing-webhooks',
 };
 
 export const LicenseLinks = {
@@ -1920,7 +1955,7 @@ export const Constants = {
     MAX_EMAIL_LENGTH: 128,
     MIN_USERNAME_LENGTH: 3,
     MAX_USERNAME_LENGTH: 22,
-    MAX_NICKNAME_LENGTH: 22,
+    MAX_NICKNAME_LENGTH: 64,
     MIN_PASSWORD_LENGTH: 5,
     MAX_PASSWORD_LENGTH: 64,
     MAX_POSITION_LENGTH: 128,
@@ -1933,7 +1968,8 @@ export const Constants = {
     EMOJI_PATH: '/static/emoji',
     RECENT_EMOJI_KEY: 'recentEmojis',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
-    MHPNS: 'https://push.mattermost.com',
+    MHPNS_US: 'https://push.mattermost.com',
+    MHPNS_DE: 'https://hpns-de.mattermost.com',
     MTPNS: 'https://push-test.mattermost.com',
     MAX_PREV_MSGS: 100,
     POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5, // five minutes
@@ -1971,8 +2007,6 @@ export const Constants = {
     AUTOCOMPLETE_SPLIT_CHARACTERS: ['.', '-', '_'],
     ANIMATION_TIMEOUT: 1000,
     SEARCH_TIMEOUT_MILLISECONDS: 100,
-    TELEMETRY_RUDDER_KEY: 'placeholder_rudder_key',
-    TELEMETRY_RUDDER_DATAPLANE_URL: 'placeholder_rudder_dataplane_url',
     TEAMMATE_NAME_DISPLAY: {
         SHOW_USERNAME: 'username',
         SHOW_NICKNAME_FULLNAME: 'nickname_full_name',

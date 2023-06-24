@@ -38,7 +38,6 @@ const config = {
         '^.+\\.(scss|css)$': '<rootDir>/src/test/style_mock.json',
         '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': '<rootDir>/__mocks__/fileMock.js',
         '\\.(scss|css)$': '<rootDir>/__mocks__/styleMock.js',
-        '^bundle-loader\\?lazy\\!(.*)$': '$1',
         '^src(.*)$': '<rootDir>/src$1',
         '^i18n(.*)$': '<rootDir>/i18n$1',
         '^static(.*)$': '<rootDir>/static$1',

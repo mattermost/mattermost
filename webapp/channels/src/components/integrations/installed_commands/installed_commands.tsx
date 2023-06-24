@@ -15,6 +15,7 @@ import {RelationOneToOne} from '@mattermost/types/utilities';
 import {Command} from '@mattermost/types/integrations';
 import InstalledCommand, {matchesFilter} from '../installed_command';
 import ExternalLink from 'components/external_link';
+import {DeveloperLinks} from 'utils/constants';
 
 type Props = {
     team: Team;
@@ -115,7 +116,7 @@ export default class InstalledCommands extends React.PureComponent<Props> {
                         values={{
                             buildYourOwn: (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-slash-commands/'
+                                    href={DeveloperLinks.SETUP_CUSTOM_SLASH_COMMANDS}
                                     location='installed_commands'
                                 >
                                     <FormattedMessage

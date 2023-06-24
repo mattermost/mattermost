@@ -16,9 +16,9 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	mm_model "github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 
 	"github.com/mattermost/morph"
 	drivers "github.com/mattermost/morph/drivers"
@@ -28,7 +28,7 @@ import (
 
 	_ "github.com/lib/pq" // postgres driver
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 )
 
 //go:embed migrations/*.sql

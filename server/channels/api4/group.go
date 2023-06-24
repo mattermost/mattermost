@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitGroup() {
@@ -1061,8 +1061,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var (
-		groups      = []*model.Group{}
-		canSee bool = true
+		groups = []*model.Group{}
+		canSee = true
 	)
 
 	if opts.FilterHasMember != "" {
