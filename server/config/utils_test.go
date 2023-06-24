@@ -237,17 +237,17 @@ func TestEqual(t *testing.T) {
 
 	t.Run("no diff", func(t *testing.T) {
 		old := minimalConfig.Clone()
-		new := minimalConfig.Clone()
-		diff, err := equal(old, new)
+		n := minimalConfig.Clone()
+		diff, err := equal(old, n)
 		require.NoError(t, err)
 		require.False(t, diff)
 	})
 
 	t.Run("diff", func(t *testing.T) {
 		old := minimalConfig.Clone()
-		new := minimalConfig.Clone()
-		new.SqlSettings = model.SqlSettings{}
-		diff, err := equal(old, new)
+		n := minimalConfig.Clone()
+		n.SqlSettings = model.SqlSettings{}
+		diff, err := equal(old, n)
 		require.NoError(t, err)
 		require.True(t, diff)
 	})

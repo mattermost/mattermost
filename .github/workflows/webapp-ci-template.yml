@@ -42,16 +42,6 @@ jobs:
           npm run mmjstool -- i18n clean-empty --webapp-dir ./src --mobile-dir /tmp/fake-mobile-dir --check
           npm run mmjstool -- i18n check-empty-src --webapp-dir ./src --mobile-dir /tmp/fake-mobile-dir
           rm -rf tmp
-      - name: ci/lint-boards
-        working-directory: webapp/boards
-        run: |
-          npm run i18n-extract
-          git --no-pager diff --exit-code i18n/en.json || (echo "Please run \"cd webapp/boards && npm run i18n-extract\" and commit the changes in webapp/boards/i18n/en.json." && exit 1)
-      - name: ci/lint-playbooks
-        working-directory: webapp/playbooks
-        run: |
-          npm run i18n-extract
-          git --no-pager diff --exit-code i18n/en.json || (echo "Please run \"cd webapp/playbooks && npm run i18n-extract\" and commit the changes in webapp/playbooks/i18n/en.json." && exit 1)
 
   check-types:
     runs-on: ubuntu-22.04

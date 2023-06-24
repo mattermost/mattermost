@@ -40,34 +40,6 @@ async function buildAll() {
     }
 
     console.log('\n' + chalk.inverse.bold('Web app built! '));
-
-    console.log(chalk.inverse.bold('Building Boards...') + '\n');
-
-    try {
-        const {result} = concurrently([
-            {command: 'npm:build --workspace=boards', name: 'boards', prefixColor: 'blue'},
-        ]);
-        await result;
-    } catch (e) {
-        console.error(chalk.inverse.bold.red('Failed to build Boards'), e);
-        return;
-    }
-
-    console.log('\n' + chalk.inverse.bold('Boards built! '));
-
-    console.log(chalk.inverse.bold('Building Playbooks...') + '\n');
-
-    try {
-        const {result} = concurrently([
-            {command: 'npm:build --workspace=playbooks', name: 'playbooks', prefixColor: 'red'},
-        ]);
-        await result;
-    } catch (e) {
-        console.error(chalk.inverse.bold.red('Failed to build Playbooks'), e);
-        return;
-    }
-
-    console.log('\n' + chalk.inverse.bold('Playbooks built! '));
 }
 
 buildAll();

@@ -90,7 +90,7 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
 
         const ariaName: string = typeof name === 'string' ? name.toLowerCase() : '';
 
-        let userColor = '#000000';
+        let userColor = theme?.centerChannelColor;
         if (user && theme) {
             userColor = generateColor(user.username, theme.centerChannelBg);
         }
@@ -130,7 +130,7 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
         }
 
         return (
-            <React.Fragment>
+            <>
                 <OverlayTrigger
                     ref={this.setOverlaynRef}
                     trigger={['click']}
@@ -163,7 +163,7 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
                 {sharedIcon}
                 {(user && user.is_bot) && <BotTag/>}
                 {(user && isGuest(user.roles)) && <GuestTag/>}
-            </React.Fragment>
+            </>
         );
     }
 }

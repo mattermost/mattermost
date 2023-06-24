@@ -322,7 +322,6 @@ func (a *API) handleGetTeamUsersByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var users []*model.User
-	var error error
 
 	if len(userIDs) == 0 {
 		a.errorResponse(w, r, model.NewErrBadRequest("User IDs are empty"))
@@ -341,9 +340,9 @@ func (a *API) handleGetTeamUsersByID(w http.ResponseWriter, r *http.Request) {
 		}
 		users = append(users, user)
 	} else {
-		users, error = a.app.GetUsersList(userIDs)
-		if error != nil {
-			a.errorResponse(w, r, error)
+		users, err = a.app.GetUsersList(userIDs)
+		if err != nil {
+			a.errorResponse(w, r, err)
 			return
 		}
 

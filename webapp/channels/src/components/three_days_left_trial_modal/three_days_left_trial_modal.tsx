@@ -67,7 +67,7 @@ function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
                     height={90}
                 />
             ),
-            pageURL: DocLinks.ONBOARD_SSO,
+            pageURL: DocLinks.SETUP_SAML,
             buttonLabel,
         },
         {
