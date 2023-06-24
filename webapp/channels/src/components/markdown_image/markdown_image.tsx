@@ -4,7 +4,7 @@
 import React, {PureComponent} from 'react';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
-import {PostImage} from '@mattermost/types/posts';
+import {Post, PostImage} from '@mattermost/types/posts';
 
 import MarkdownImageExpand from 'components/markdown_image_expand';
 import ExternalImage from 'components/external_image';
@@ -19,11 +19,12 @@ export type Props = {
     alt: string;
     imageMetadata?: PostImage;
     src: string;
+    // height and width come from the Markdown renderer as either "auto" or a string containing a number.
     height: string;
     width: string;
     title: string;
     className: string;
-    postId: string;
+    postId: Post['id'];
     imageIsLink: boolean;
     onImageLoaded?: ({height, width}: {height: number; width: number}) => void;
     onImageHeightChanged?: (isExpanded: boolean) => void;
@@ -43,7 +44,7 @@ type DefaultProps = Partial<Props>;
 
 export default class MarkdownImage extends PureComponent<Props, State> {
     static defaultProps: DefaultProps = {
-        imageMetadata: {} as any,
+        imageMetadata: {} as PostImage,
     };
 
     constructor(props: Props) {
@@ -55,19 +56,19 @@ export default class MarkdownImage extends PureComponent<Props, State> {
         };
     }
 
-    getHeight = (): number => {
+    getHeight = () => {
         const {
             height,
             imageMetadata,
             width,
         } = this.props;
 
-        if (imageMetadata === undefined) {
+        if (!imageMetadata) {
             return 0;
         }
 
         if (!height) {
-            return imageMetadata?.height ?? 0;
+            return imageMetadata.height;
         }
 
         if (height === 'auto') {
@@ -79,7 +80,7 @@ export default class MarkdownImage extends PureComponent<Props, State> {
         return parseInt(height, 10);
     };
 
-    getFileExtensionFromUrl = (url: string): string | null => {
+    getFileExtensionFromUrl = (url: string) => {
         const index = url.lastIndexOf('.');
         return index > 0 ? url.substring(index + 1) : null;
     };
@@ -99,7 +100,7 @@ export default class MarkdownImage extends PureComponent<Props, State> {
                     fileInfos: [{
                         has_preview_image: false,
                         link,
-                        extension: this.props?.imageMetadata?.format || extension,
+                        extension: this.props?.imageMetadata?.format ?? extension,
                         name: this.props.alt,
                     }],
                 },
