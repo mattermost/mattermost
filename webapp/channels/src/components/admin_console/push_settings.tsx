@@ -6,19 +6,32 @@ import {FormattedMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 
-import Constants from 'utils/constants';
+import {Constants, DocLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import AdminSettings from './admin_settings';
+import AdminSettings, {BaseProps, BaseState} from './admin_settings';
 import DropdownSetting from './dropdown_setting.jsx';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
+import {AdminConfig, ClientLicense, EmailSettings} from '@mattermost/types/config';
+
+type Props = BaseProps & {
+    config: AdminConfig;
+    license: ClientLicense;
+};
+
+type State = BaseState & {
+    pushNotificationServer: string;
+    pushNotificationServerType: EmailSettings['PushNotificationServerType'];
+    pushNotificationServerLocation: EmailSettings['PushNotificationServerLocation'];
+    agree: boolean;
+    maxNotificationsPerChannel: number;
+};
 
 const PUSH_NOTIFICATIONS_OFF = 'off';
 const PUSH_NOTIFICATIONS_MHPNS = 'mhpns';
 const PUSH_NOTIFICATIONS_MTPNS = 'mtpns';
 const PUSH_NOTIFICATIONS_CUSTOM = 'custom';
-
 const PUSH_NOTIFICATIONS_LOCATION_US = 'us';
 const PUSH_NOTIFICATIONS_LOCATION_DE = 'de';
 
@@ -30,18 +43,18 @@ const PUSH_NOTIFICATIONS_SERVER_DIC = {
 const DROPDOWN_ID_SERVER_TYPE = 'pushNotificationServerType';
 const DROPDOWN_ID_SERVER_LOCATION = 'pushNotificationServerLocation';
 
-export default class PushSettings extends AdminSettings {
+export default class PushSettings extends AdminSettings<Props, State> {
     canSave = () => {
         return this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_MHPNS || this.state.agree;
     };
 
-    handleAgreeChange = (e) => {
+    handleAgreeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({
             agree: e.target.checked,
         });
     };
 
-    handleDropdownChange = (id, value) => {
+    handleDropdownChange = (id: string, value: EmailSettings['PushNotificationServerType'] | EmailSettings['PushNotificationServerLocation']) => {
         if (id === DROPDOWN_ID_SERVER_TYPE) {
             this.setState({
                 agree: false,
@@ -66,15 +79,15 @@ export default class PushSettings extends AdminSettings {
 
         if (id === DROPDOWN_ID_SERVER_LOCATION) {
             this.setState({
-                pushNotificationServer: PUSH_NOTIFICATIONS_SERVER_DIC[value],
-                pushNotificationServerLocation: value,
+                pushNotificationServer: PUSH_NOTIFICATIONS_SERVER_DIC[value as EmailSettings['PushNotificationServerLocation']],
+                pushNotificationServerLocation: value as EmailSettings['PushNotificationServerLocation'],
             });
         }
 
         this.handleChange(id, value);
     };
 
-    getConfigFromState = (config) => {
+    getConfigFromState = (config: Props['config']) => {
         config.EmailSettings.SendPushNotifications = this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_OFF;
         config.EmailSettings.PushNotificationServer = this.state.pushNotificationServer.trim();
         config.TeamSettings.MaxNotificationsPerChannel = this.state.maxNotificationsPerChannel;
@@ -82,10 +95,10 @@ export default class PushSettings extends AdminSettings {
         return config;
     };
 
-    getStateFromConfig(config) {
-        let pushNotificationServerType = PUSH_NOTIFICATIONS_CUSTOM;
+    getStateFromConfig(config: Props['config']) {
+        let pushNotificationServerType: EmailSettings['PushNotificationServerType'] = PUSH_NOTIFICATIONS_CUSTOM;
         let agree = false;
-        let pushNotificationServerLocation = PUSH_NOTIFICATIONS_LOCATION_US;
+        let pushNotificationServerLocation: EmailSettings['PushNotificationServerLocation'] = PUSH_NOTIFICATIONS_LOCATION_US;
         if (!config.EmailSettings.SendPushNotifications) {
             pushNotificationServerType = PUSH_NOTIFICATIONS_OFF;
         } else if (config.EmailSettings.PushNotificationServer === Constants.MHPNS_US &&
@@ -155,7 +168,7 @@ export default class PushSettings extends AdminSettings {
                     values={{
                         link: (msg) => (
                             <ExternalLink
-                                href='https://docs.mattermost.com/deploy/mobile-hpns.html'
+                                href={DocLinks.SETUP_PUSH_NOTIFICATIONS}
                                 location='push_settings'
                             >
                                 {msg}
@@ -172,7 +185,7 @@ export default class PushSettings extends AdminSettings {
                     values={{
                         linkIOS: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/mattermost-ios-app/'
+                                href='https://mattermost.com/pl/ios-app/'
                                 location='push_settings'
                             >
                                 {msg}
@@ -180,7 +193,7 @@ export default class PushSettings extends AdminSettings {
                         ),
                         linkAndroid: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/mattermost-android-app/'
+                                href='https://mattermost.com/pl/android-app/'
                                 location='push_settings'
                             >
                                 {msg}
@@ -188,7 +201,7 @@ export default class PushSettings extends AdminSettings {
                         ),
                         linkHPNS: (msg) => (
                             <ExternalLink
-                                href='https://docs.mattermost.com/deploy/mobile-hpns.html'
+                                href={DocLinks.SETUP_PUSH_NOTIFICATIONS}
                                 location='push_settings'
                             >
                                 {msg}
@@ -205,7 +218,7 @@ export default class PushSettings extends AdminSettings {
                     values={{
                         linkIOS: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/mattermost-ios-app/'
+                                href='https://mattermost.com/pl/ios-app/'
                                 location='push_settings'
                             >
                                 {msg}
@@ -213,7 +226,7 @@ export default class PushSettings extends AdminSettings {
                         ),
                         linkAndroid: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/mattermost-android-app/'
+                                href='https://mattermost.com/pl/android-app/'
                                 location='push_settings'
                             >
                                 {msg}
@@ -221,7 +234,7 @@ export default class PushSettings extends AdminSettings {
                         ),
                         linkHPNS: (msg) => (
                             <ExternalLink
-                                href='https://docs.mattermost.com/deploy/mobile-hpns.html'
+                                href={DocLinks.SETUP_PUSH_NOTIFICATIONS}
                                 location='push_settings'
                             >
                                 {msg}
@@ -346,6 +359,7 @@ export default class PushSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={this.props.isDisabled || this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_CUSTOM}
                     setByEnv={this.isSetByEnv('EmailSettings.PushNotificationServer')}
+                    type='input'
                 />
                 <TextSetting
                     id='maxNotificationsPerChannel'
