@@ -19,6 +19,7 @@ export type Props = {
     alt: string;
     imageMetadata?: PostImage;
     src: string;
+
     // height and width come from the Markdown renderer as either "auto" or a string containing a number.
     height: string;
     width: string;
