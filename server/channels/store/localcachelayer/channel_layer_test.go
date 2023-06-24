@@ -104,7 +104,7 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 	})
 }
 
-func TestChannelStoreChannelsMemberCountsCache(t *testing.T) {
+func TestChannelStoreChannelsMemberCountCache(t *testing.T) {
 	channelsCountResult := map[string]int64{
 		"channel1": 10,
 		"channel2": 20,
