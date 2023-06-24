@@ -104,6 +104,55 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 	})
 }
 
+func TestChannelStoreChannelsMemberCountsCache(t *testing.T) {
+	channelsCountResult := map[string]int64{
+		"channel1": 10,
+		"channel2": 20,
+	}
+
+	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		require.NoError(t, err)
+
+		channelsCount, err := cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"}, true)
+		require.NoError(t, err)
+		assert.Equal(t, channelsCount, channelsCountResult)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetChannelsMemberCount", 1)
+		channelsCount, err = cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"}, true)
+		require.NoError(t, err)
+		assert.Equal(t, channelsCount, channelsCountResult)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetChannelsMemberCount", 1)
+	})
+
+	t.Run("first call not cached, second force not cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		require.NoError(t, err)
+
+		cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"}, true)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetChannelsMemberCount", 1)
+		cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"}, false)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetChannelsMemberCount", 2)
+	})
+
+	t.Run("first call not cached, invalidate cache, second call not cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		require.NoError(t, err)
+
+		cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"}, true)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetChannelsMemberCount", 1)
+		cachedStore.Channel().InvalidateMemberCount("channel1")
+		cachedStore.Channel().InvalidateMemberCount("channel2")
+		cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"}, true)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetChannelsMemberCount", 2)
+	})
+}
+
 func TestChannelStoreChannelPinnedPostsCountsCache(t *testing.T) {
 	countResult := int64(10)
 
