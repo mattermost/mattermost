@@ -102,6 +102,7 @@ func getMockStore() *mocks.Store {
 		"channel2": 20,
 	}
 	mockChannelStore.On("GetChannelsMemberCount", []string{"channel1", "channel2"}, true).Return(mockChannelsMemberCount, nil)
+	mockChannelStore.On("GetChannelsMemberCount", []string{"channel1", "channel2"}, false).Return(mockChannelsMemberCount, nil)
 
 	mockPinnedPostsCount := int64(10)
 	mockChannelStore.On("GetPinnedPostCount", "id", true).Return(mockPinnedPostsCount, nil)
