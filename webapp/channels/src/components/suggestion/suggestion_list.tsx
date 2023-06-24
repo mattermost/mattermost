@@ -14,7 +14,6 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 // When this file is migrated to TypeScript, type definitions for its props already exist in ./suggestion_list.d.ts.
 
-
 interface Props {
     ariaLiveRef?: React.Ref<HTMLDivElement>;
     inputRef?: React.Ref<HTMLInputElement>;
@@ -43,7 +42,7 @@ interface Props {
     };
 }
 
-export default class SuggestionListWrapper extends React.PureComponent<Props> {
+export default class SuggestionList extends React.PureComponent<Props> {
     static defaultProps = {
         renderDividers: [],
         renderNoResults: false,

@@ -4,6 +4,7 @@
 import React from 'react';
 
 import {SuggestionProps} from './suggestion';
+
 // Since SuggestionLists contain items of different types without any common properties, I don't know of any good way
 // to define a shared type for them. Confirming that a SuggestionItem matches what its component expects will be left
 // up to the component.
