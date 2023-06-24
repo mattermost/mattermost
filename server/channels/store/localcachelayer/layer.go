@@ -92,7 +92,6 @@ type LocalCacheStore struct {
 	channelGuestCountCache       cache.Cache
 	channelPinnedPostCountsCache cache.Cache
 	channelByIdCache             cache.Cache
-	channelsMemberCountCache     cache.Cache
 
 	webhook      LocalCacheWebhookStore
 	webhookCache cache.Cache
