@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {General} from 'mattermost-redux/constants';
 
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
@@ -113,5 +112,3 @@ export const isMarketplaceEnabled: (state: GlobalState) => boolean = createSelec
         return config.PluginsEnabled === 'true' && config.EnableMarketplace === 'true';
     },
 );
-
-export const getWorkTemplatesLinkedProducts = (state: GlobalState) => state.entities.worktemplates.linkedProducts;

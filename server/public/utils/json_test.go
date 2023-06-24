@@ -11,7 +11,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/server/public/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 func TestHumanizeJsonError(t *testing.T) {
@@ -230,6 +231,127 @@ func TestNewHumanizedJSONError(t *testing.T) {
 				}
 			}
 			assert.Equal(t, testCase.Expected, actual)
+		})
+	}
+}
+
+func TestIsJSONEmpty(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		Description string
+		Data        []byte
+		Empty       bool
+	}{
+		{
+			"nil []byte is empty",
+			nil,
+			true,
+		},
+		{
+			"Zero length slice is empty",
+			[]byte(""),
+			true,
+		},
+		{
+			"braces are empty",
+			[]byte("{}"),
+			true,
+		},
+		{
+			"square brackets are empty",
+			[]byte("[]"),
+			true,
+		},
+		{
+			"empty string is empty",
+			[]byte("\"\""),
+			true,
+		},
+		{
+			"map is not empty",
+			[]byte("{\"foo\":7}"),
+			false,
+		},
+		{
+			"array is not empty",
+			[]byte("[1,2,3]"),
+			false,
+		},
+		{
+			"string is not empty",
+			[]byte("\"hello\""),
+			false,
+		},
+		{
+			"whitespace still empty",
+			[]byte("  \n {  \t }  "),
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			empty := utils.IsEmptyJSON(testCase.Data)
+			assert.Equal(t, testCase.Empty, empty)
+
+			if !testCase.Empty {
+				// don't really need to test the JSON unmarshaller but this is included
+				// to ensure the test cases stay valid.
+				var v interface{}
+				err := json.Unmarshal(testCase.Data, &v)
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestStringPtrToJSON(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		Description string
+		Ptr         *string
+		Expect      json.RawMessage
+	}{
+		{
+			"nil string ptr",
+			nil,
+			[]byte("{}"),
+		},
+		{
+			"Zero length string",
+			model.NewString(""),
+			[]byte("{}"),
+		},
+		{
+			"JSON map",
+			model.NewString("{\"foo\":7}"),
+			[]byte("{\"foo\":7}"),
+		},
+		{
+			"JSON array",
+			model.NewString("[1,2,3]"),
+			[]byte("[1,2,3]"),
+		},
+		{
+			"JSON string",
+			model.NewString("\"hello\""),
+			[]byte("\"hello\""),
+		},
+		{
+			"bare string",
+			model.NewString("hello"),
+			[]byte("\"hello\""),
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			j := utils.StringPtrToJSON(testCase.Ptr)
+			assert.Equal(t, testCase.Expect, j)
 		})
 	}
 }

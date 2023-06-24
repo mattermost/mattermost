@@ -82,7 +82,7 @@ export type Props = {
     channelType?: string;
     a11yIndex?: number;
     isBot: boolean;
-    hasReplies?: boolean;
+    hasReplies: boolean;
     isFirstReply?: boolean;
     previousPostIsComment?: boolean;
     matches?: string[];
@@ -117,6 +117,7 @@ export type Props = {
     isPostAcknowledgementsEnabled: boolean;
     isPostPriorityEnabled: boolean;
     isCardOpen?: boolean;
+    canDelete?: boolean;
 };
 
 const PostComponent = (props: Props): JSX.Element => {
@@ -389,12 +390,12 @@ const PostComponent = (props: Props): JSX.Element => {
     }, [post, props.actions, props.actions.selectPostFromRightHandSideSearch]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
-        if (props.currentTeam.id === props.team?.id) {
+        if (props.currentTeam.id === teamId) {
             handleCommentClick(e);
         } else {
             handleJumpClick(e);
         }
-    }, [handleCommentClick, handleJumpClick]);
+    }, [handleCommentClick, handleJumpClick, props.currentTeam.id, teamId]);
 
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
@@ -479,7 +480,7 @@ const PostComponent = (props: Props): JSX.Element => {
     ) : null;
     const currentPostDay = getDateForUnixTicks(post.create_at);
     const channelDisplayName = getChannelName();
-    const showReactions = props.location !== Locations.SEARCH && !props.isPinnedPosts && !props.isFlaggedPosts;
+    const showReactions = props.location !== Locations.SEARCH || props.isPinnedPosts || props.isFlaggedPosts;
 
     const getTestId = () => {
         let idPrefix: string;
@@ -508,11 +509,8 @@ const PostComponent = (props: Props): JSX.Element => {
     }
 
     return (
-        <div
-            className={props.location === 'SEARCH' ? 'search-item__container' : undefined}
-            data-testid={props.location === 'SEARCH' ? 'search-item-container' : undefined}
-        >
-            {(isSearchResultItem || props.isPinnedPosts || props.isFlagged) && <DateSeparator date={currentPostDay}/>}
+        <>
+            {(isSearchResultItem || (props.location !== Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
             <PostAriaLabelDiv
                 ref={postRef}
                 role='listitem'
@@ -530,9 +528,11 @@ const PostComponent = (props: Props): JSX.Element => {
                         className='search-channel__name__container'
                         aria-hidden='true'
                     >
+                        {Boolean(isSearchResultItem) &&
                         <span className='search-channel__name'>
                             {channelDisplayName}
                         </span>
+                        }
                         {props.channelIsArchived &&
                         <span className='search-channel__archived'>
                             <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>
@@ -542,7 +542,7 @@ const PostComponent = (props: Props): JSX.Element => {
                             />
                         </span>
                         }
-                        {Boolean(props.teamDisplayName) &&
+                        {Boolean(isSearchResultItem) && Boolean(props.teamDisplayName) &&
                         <span className='search-team__name'>
                             {props.teamDisplayName}
                         </span>
@@ -618,12 +618,10 @@ const PostComponent = (props: Props): JSX.Element => {
                             <PostOptions
                                 {...props}
                                 teamId={teamId}
-                                setActionsMenuInitialisationState={props.actions.setActionsMenuInitialisationState}
                                 handleDropdownOpened={handleDropdownOpened}
                                 handleCommentClick={handleCommentClick}
                                 hover={hover || a11yActive}
                                 removePost={props.actions.removePost}
-                                isSearchResultsItem={Boolean(isSearchResultItem)}
                                 handleJumpClick={handleJumpClick}
                                 isPostHeaderVisible={getPostHeaderVisible()}
                             />
@@ -664,7 +662,7 @@ const PostComponent = (props: Props): JSX.Element => {
                     </div>
                 </div>
             </PostAriaLabelDiv>
-        </div>
+        </>
     );
 };
 

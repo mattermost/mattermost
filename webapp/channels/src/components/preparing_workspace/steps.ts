@@ -5,7 +5,6 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 export const WizardSteps = {
     Organization: 'Organization',
-    Roles: 'Roles',
     Plugins: 'Plugins',
     InviteMembers: 'InviteMembers',
     LaunchingWorkspace: 'LaunchingWorkspace',
@@ -25,8 +24,6 @@ export function mapStepToNextName(step: WizardStep): string {
     switch (step) {
     case WizardSteps.Organization:
         return 'admin_onboarding_next_organization';
-    case WizardSteps.Roles:
-        return 'admin_onboarding_next_roles';
     case WizardSteps.Plugins:
         return 'admin_onboarding_next_plugins';
     case WizardSteps.InviteMembers:
@@ -42,8 +39,6 @@ export function mapStepToPrevious(step: WizardStep): string {
     switch (step) {
     case WizardSteps.Organization:
         return 'admin_onboarding_previous_organization';
-    case WizardSteps.Roles:
-        return 'admin_onboarding_previous_roles';
     case WizardSteps.Plugins:
         return 'admin_onboarding_previous_plugins';
     case WizardSteps.InviteMembers:
@@ -59,8 +54,6 @@ export function mapStepToPageView(step: WizardStep): string {
     switch (step) {
     case WizardSteps.Organization:
         return 'pageview_admin_onboarding_organization';
-    case WizardSteps.Roles:
-        return 'pageview_admin_onboarding_roles';
     case WizardSteps.Plugins:
         return 'pageview_admin_onboarding_plugins';
     case WizardSteps.InviteMembers:
@@ -76,8 +69,6 @@ export function mapStepToSubmitFail(step: WizardStep): string {
     switch (step) {
     case WizardSteps.Organization:
         return 'admin_onboarding_organization_submit_fail';
-    case WizardSteps.Roles:
-        return 'admin_onboarding_roles_submit_fail';
     case WizardSteps.Plugins:
         return 'admin_onboarding_plugins_submit_fail';
     case WizardSteps.InviteMembers:
@@ -93,8 +84,6 @@ export function mapStepToSkipName(step: WizardStep): string {
     switch (step) {
     case WizardSteps.Organization:
         return 'admin_onboarding_skip_organization';
-    case WizardSteps.Roles:
-        return 'admin_onboarding_skip_roles';
     case WizardSteps.Plugins:
         return 'admin_onboarding_skip_plugins';
     case WizardSteps.InviteMembers:
@@ -133,13 +122,11 @@ export const PLUGIN_NAME_TO_ID_MAP: PluginNameMap = {
     gitlab: 'com.github.manland.mattermost-plugin-gitlab',
     jira: 'jira',
     zoom: 'zoom',
-    todo: 'com.mattermost.plugin-todo',
+    servicenow: 'mattermost-plugin-servicenow',
 } as const;
 
 export type Form = {
     organization?: string;
-    role?: string;
-    roleOther?: string;
     url?: string;
     urlSkipped: boolean;
     inferredProtocol: 'http' | 'https' | null;
@@ -153,7 +140,7 @@ export type Form = {
         gitlab: boolean;
         jira: boolean;
         zoom: boolean;
-        todo: boolean;
+        servicenow: boolean;
 
         // set if user clicks skip for now
         skipped: boolean;
@@ -183,7 +170,7 @@ export const emptyForm = deepFreeze({
         gitlab: false,
         jira: false,
         zoom: false,
-        todo: false,
+        servicenow: false,
 
         // set if user clicks skip for now
         skipped: false,
@@ -197,8 +184,6 @@ export const emptyForm = deepFreeze({
         invites: [],
         skipped: false,
     },
-    role: '',
-    roleOther: '',
 });
 
 export type PreparingWorkspacePageProps = {

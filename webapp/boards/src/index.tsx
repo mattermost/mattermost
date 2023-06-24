@@ -12,6 +12,8 @@ import {SuiteWindow} from 'src/types/index'
 
 import {PluginRegistry} from 'src/types/mattermost-webapp'
 
+import {ServiceEnvironment} from '@mattermost/types/config'
+
 import {RudderTelemetryHandler, rudderAnalytics} from 'src/rudder'
 
 import appBarIcon from 'static/app-bar-icon.png'
@@ -83,8 +85,19 @@ function getSubpath(siteURL: string): string {
     return url.pathname.replace(/\/+$/, '')
 }
 
-const TELEMETRY_RUDDER_KEY = 'placeholder_boards_rudder_key'
-const TELEMETRY_RUDDER_DATAPLANE_URL = 'placeholder_rudder_dataplane_url'
+const TELEMETRY_RUDDER_URL = 'https://pdat.matterlytics.com'
+const TELEMETRY_RUDDER_KEY_PROD = '1myWcDbTkIThnpPYyms7DKlmQWl'
+const TELEMETRY_RUDDER_KEY_TEST = '1myWYwHRDFdLDTpznQ7qFlOPQaa'
+
+// TO_BE_DEPRECATED_* are placeholders to allow the existing release pipelines to run without
+// failing to insert the values that are now hard-coded above. Remove this once we converge
+// on the unified delivery pipeline in GitHub.
+//
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const TO_BE_DEPRECATED_TELEMETRY_RUDDER_URL = 'placeholder_rudder_dataplane_url'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const TO_BE_DEPRECATAED_TELEMETRY_RUDDER_KEY = 'placeholder_boards_rudder_key'
+
 const TELEMETRY_OPTIONS = {
     context: {
         ip: '0.0.0.0',
@@ -512,12 +525,17 @@ export default class Plugin {
 
         const config = await octoClient.getClientConfig()
         if (config?.telemetry) {
-            let rudderKey = TELEMETRY_RUDDER_KEY
-            let rudderUrl = TELEMETRY_RUDDER_DATAPLANE_URL
-
-            if (rudderKey.startsWith('placeholder') && rudderUrl.startsWith('placeholder')) {
-                rudderKey = process.env.RUDDER_KEY as string //eslint-disable-line no-process-env
-                rudderUrl = process.env.RUDDER_DATAPLANE_URL as string //eslint-disable-line no-process-env
+            const rudderUrl = TELEMETRY_RUDDER_URL
+            let rudderKey = ''
+            switch (mmStore.getState().entities.general.config.ServiceEnvironment) {
+            case ServiceEnvironment.PRODUCTION:
+                rudderKey = TELEMETRY_RUDDER_KEY_PROD
+                break
+            case ServiceEnvironment.TEST:
+                rudderKey = TELEMETRY_RUDDER_KEY_TEST
+                break
+            case ServiceEnvironment.DEV:
+                break
             }
 
             if (rudderKey !== '') {

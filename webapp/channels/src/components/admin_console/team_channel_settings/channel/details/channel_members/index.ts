@@ -4,19 +4,15 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {createSelector} from 'reselect';
-
 import {ServerError} from '@mattermost/types/errors';
 import {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
-
-import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
-
-import {ActionResult, ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {ChannelStats} from '@mattermost/types/channels';
 
+import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
+import {ActionResult, ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {getChannelStats} from 'mattermost-redux/actions/channels';
 import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannelMembersInChannels, getAllChannelStats, getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {makeGetProfilesInChannel, makeSearchProfilesInChannel, filterProfiles, getFilteredUsersStats as selectFilteredUsersStats} from 'mattermost-redux/selectors/entities/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';

@@ -18,7 +18,7 @@ import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {closeRightHandSide} from 'actions/views/rhs';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import GroupMemberList, {GroupMember} from './group_member_list';

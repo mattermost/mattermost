@@ -13,6 +13,7 @@ import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 import ExternalLink from 'components/external_link';
+import {DocLinks} from 'utils/constants';
 
 export default class AbstractOutgoingWebhook extends React.PureComponent {
     static propTypes = {
@@ -477,7 +478,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent {
                                         values={{
                                             link: (
                                                 <ExternalLink
-                                                    href='https://docs.mattermost.com/configure/configuration-settings.html#session-lengths'
+                                                    href={DocLinks.SESSION_LENGTHS}
                                                     location='abstract_outgoing_webhook'
                                                 >
                                                     <FormattedMessage

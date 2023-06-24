@@ -7,12 +7,12 @@ package mocks
 import (
 	context "context"
 
-	model "github.com/mattermost/mattermost-server/server/public/model"
+	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 
 	sql "database/sql"
 
-	store "github.com/mattermost/mattermost-server/server/v8/channels/store"
+	store "github.com/mattermost/mattermost/server/v8/channels/store"
 
 	time "time"
 )
@@ -494,6 +494,22 @@ func (_m *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.PostAcknowledgementStore)
+		}
+	}
+
+	return r0
+}
+
+// PostPersistentNotification provides a mock function with given fields:
+func (_m *Store) PostPersistentNotification() store.PostPersistentNotificationStore {
+	ret := _m.Called()
+
+	var r0 store.PostPersistentNotificationStore
+	if rf, ok := ret.Get(0).(func() store.PostPersistentNotificationStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PostPersistentNotificationStore)
 		}
 	}
 

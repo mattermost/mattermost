@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func init() {
@@ -1033,6 +1033,42 @@ func (s *hooksRPCServer) GetTopicMetadataByIds(args *Z_GetTopicMetadataByIdsArgs
 		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("Hook GetTopicMetadataByIds called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["ConfigurationWillBeSaved"] = ConfigurationWillBeSavedID
+}
+
+type Z_ConfigurationWillBeSavedArgs struct {
+	A *model.Config
+}
+
+type Z_ConfigurationWillBeSavedReturns struct {
+	A *model.Config
+	B error
+}
+
+func (g *hooksRPCClient) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
+	_args := &Z_ConfigurationWillBeSavedArgs{newCfg}
+	_returns := &Z_ConfigurationWillBeSavedReturns{}
+	if g.implemented[ConfigurationWillBeSavedID] {
+		if err := g.client.Call("Plugin.ConfigurationWillBeSaved", _args, _returns); err != nil {
+			g.log.Error("RPC call ConfigurationWillBeSaved to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) ConfigurationWillBeSaved(args *Z_ConfigurationWillBeSavedArgs, returns *Z_ConfigurationWillBeSavedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
+	}); ok {
+		returns.A, returns.B = hook.ConfigurationWillBeSaved(args.A)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook ConfigurationWillBeSaved called but not implemented."))
 	}
 	return nil
 }

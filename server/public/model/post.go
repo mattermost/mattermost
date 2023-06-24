@@ -15,7 +15,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/markdown"
+	"github.com/mattermost/mattermost/server/public/shared/markdown"
 )
 
 const (
@@ -45,7 +45,6 @@ const (
 	PostTypeChannelRestored        = "system_channel_restored"
 	PostTypeEphemeral              = "system_ephemeral"
 	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
-	PostTypeWelcomePost            = "system_welcome_post"
 	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
 	PostTypeSystemWarnMetricStatus = "warn_metric_status"
 	PostTypeMe                     = "me"
@@ -120,6 +119,11 @@ type Post struct {
 }
 
 func (o *Post) Auditable() map[string]interface{} {
+	var metaData map[string]any
+	if o.Metadata != nil {
+		metaData = o.Metadata.Auditable()
+	}
+
 	return map[string]interface{}{
 		"id":              o.Id,
 		"create_at":       o.CreateAt,
@@ -139,7 +143,7 @@ func (o *Post) Auditable() map[string]interface{} {
 		"reply_count":     o.ReplyCount,
 		"last_reply_at":   o.LastReplyAt,
 		"is_following":    o.IsFollowing,
-		"metadata":        o.Metadata,
+		"metadata":        metaData,
 	}
 }
 
@@ -172,6 +176,20 @@ type PostPriority struct {
 	ChannelId string `json:",omitempty"`
 }
 
+type PostPersistentNotifications struct {
+	PostId     string
+	CreateAt   int64
+	LastSentAt int64
+	DeleteAt   int64
+	SentCount  int16
+}
+
+type GetPersistentNotificationsPostsParams struct {
+	MaxTime      int64
+	MaxSentCount int16
+	PerPage      int
+}
+
 type SearchParameter struct {
 	Terms                  *string `json:"terms"`
 	IsOrSearch             *bool   `json:"is_or_search"`
@@ -189,7 +207,7 @@ type AnalyticsPostCountsOptions struct {
 }
 
 func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
-	copy := *o
+	copy := *o //nolint:revive
 	if copy.Message != nil {
 		*copy.Message = RewriteImageURLs(*o.Message, f)
 	}
@@ -278,13 +296,13 @@ func (o *Post) ShallowCopy(dst *Post) error {
 
 // Clone shallowly copies the post and returns the copy.
 func (o *Post) Clone() *Post {
-	copy := &Post{}
+	copy := &Post{} //nolint:revive
 	o.ShallowCopy(copy)
 	return copy
 }
 
 func (o *Post) ToJSON() (string, error) {
-	copy := o.Clone()
+	copy := o.Clone() //nolint:revive
 	copy.StripActionIntegrations()
 	b, err := json.Marshal(copy)
 	return string(b), err
@@ -415,7 +433,6 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeChangeChannelPrivacy,
 		PostTypeAddBotTeamsChannels,
 		PostTypeSystemWarnMetricStatus,
-		PostTypeWelcomePost,
 		PostTypeReminder,
 		PostTypeMe:
 	default:
@@ -803,11 +820,26 @@ func (o *Post) GetPreviewedPostProp() string {
 }
 
 func (o *Post) GetPriority() *PostPriority {
-	if o.Metadata != nil && o.Metadata.Priority != nil {
-		return o.Metadata.Priority
+	if o.Metadata == nil {
+		return nil
 	}
+	return o.Metadata.Priority
+}
 
-	return nil
+func (o *Post) GetPersistentNotification() *bool {
+	priority := o.GetPriority()
+	if priority == nil {
+		return nil
+	}
+	return priority.PersistentNotifications
+}
+
+func (o *Post) GetRequestedAck() *bool {
+	priority := o.GetPriority()
+	if priority == nil {
+		return nil
+	}
+	return priority.RequestedAck
 }
 
 func (o *Post) IsUrgent() bool {

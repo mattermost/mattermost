@@ -8,10 +8,10 @@ import {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import {DeepPartial} from '@mattermost/types/utilities';
 
 import {localizeMessage} from 'utils/utils';
+
 import SaveButton from 'components/save_button';
 import Tooltip from 'components/tooltip';
 import FormError from 'components/form_error';
-
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 export type BaseProps = {
@@ -63,7 +63,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
 
     protected abstract renderSettings(): React.ReactElement;
 
-    protected handleSaved?: ((config: AdminConfig) => React.ReactElement);
+    protected handleSaved?: ((config: AdminConfig) => React.ReactElement | void);
 
     protected canSave?: () => boolean;
 
@@ -79,7 +79,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         }
     };
 
-    protected handleChange = (id: string, value: boolean) => {
+    protected handleChange = (id: string, value: unknown) => {
         this.setState((prevState) => ({
             ...prevState,
             saveNeeded: true,

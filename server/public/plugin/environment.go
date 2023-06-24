@@ -13,9 +13,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/public/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 var ErrNotFound = errors.New("Item not found")
@@ -104,10 +104,8 @@ func scanSearchPath(path string) ([]*model.BundleInfo, error) {
 }
 
 var pluginIDBlocklist = map[string]bool{
-	"playbooks": true,
 	"com.mattermost.plugin-incident-response":   true,
 	"com.mattermost.plugin-incident-management": true,
-	"focalboard": true,
 }
 
 func PluginIDIsBlocked(id string) bool {

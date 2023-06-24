@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestGetClientConfig(t *testing.T) {
@@ -324,6 +324,19 @@ func TestGetClientConfig(t *testing.T) {
 			},
 			map[string]string{
 				"ExperimentalSharedChannels": "true",
+			},
+		},
+		{
+			"Disable App Bar",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					DisableAppBar: model.NewBool(true),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"DisableAppBar": "true",
 			},
 		},
 	}
