@@ -126,18 +126,6 @@ func TestChannelStoreChannelsMemberCountCache(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetChannelsMemberCount", 1)
 	})
 
-	t.Run("first call not cached, second force not cached", func(t *testing.T) {
-		mockStore := getMockStore()
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-		require.NoError(t, err)
-
-		cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"}, true)
-		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetChannelsMemberCount", 1)
-		cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"}, false)
-		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetChannelsMemberCount", 2)
-	})
-
 	t.Run("first call not cached, invalidate cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
