@@ -3,17 +3,18 @@
 
 import React, {PureComponent} from 'react';
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
 import {Post, PostImage} from '@mattermost/types/posts';
+
+import {ModalData} from 'types/actions';
 
 import MarkdownImageExpand from 'components/markdown_image_expand';
 import ExternalImage from 'components/external_image';
 import SizeAwareImage from 'components/size_aware_image';
 import FilePreviewModal from 'components/file_preview_modal';
+import ExternalLink from 'components/external_link';
 
 import brokenImageIcon from 'images/icons/brokenimage.png';
-import ExternalLink from 'components/external_link';
-import {ModalData} from 'types/actions';
+import Constants, {ModalIdentifiers} from 'utils/constants';
 
 export type Props = {
     alt: string;
