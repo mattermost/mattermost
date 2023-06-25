@@ -3602,7 +3602,7 @@ func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) 
 	return searchFields
 }
 
-const spaceFulltextSearchChars = "<>+-()~:*\"!@"
+const spaceFulltextSearchChars = "<>+-()~:*\"!@&"
 
 func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) (fulltextClause, fulltextTerm string) {
 	// Copy the terms as we will need to prepare them differently for each search type.
