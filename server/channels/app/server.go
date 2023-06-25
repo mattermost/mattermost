@@ -494,12 +494,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.runEssentialJobs {
-		s.Go(func() {
-			appInstance := New(ServerConnector(s.Channels()))
-			s.runLicenseExpirationCheckJob()
-			runDNDStatusExpireJob(appInstance)
-			runPostReminderJob(appInstance)
-		})
 		s.runJobs()
 	}
 
@@ -521,6 +515,12 @@ func NewServer(options ...Option) (*Server, error) {
 }
 
 func (s *Server) runJobs() {
+	s.Go(func() {
+		appInstance := New(ServerConnector(s.Channels()))
+		s.runLicenseExpirationCheckJob()
+		runDNDStatusExpireJob(appInstance)
+		runPostReminderJob(appInstance)
+	})
 	s.Go(func() {
 		runSecurityJob(s)
 	})
