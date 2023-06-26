@@ -97,7 +97,7 @@ type WebsocketBroadcast struct {
 	UserId                string                                       `json:"user_id"`                           // broadcast only occurs for this user
 	OmitUsers             map[string]bool                              `json:"omit_users"`                        // broadcast is omitted for users listed here
 	ChannelId             string                                       `json:"channel_id"`                        // broadcast only occurs for users in this channel
-	ChannelHook           func(userID string, ev *WebSocketEvent) bool `json:"-"`                                 // ChannelHook is a function that runs for a channel scoped event. It can be used to modify the event payload based on some custom logic that runs only for connected users.
+	ChannelHook           func(userID string, ev *WebSocketEvent) bool `json:"-"`                                 // ChannelHook is a function that runs for a channel scoped event. It can be used to modify the event payload based on some custom logic that runs only for connected users. The return value indicates whether the websocket event was modified or not.
 	TeamId                string                                       `json:"team_id"`                           // broadcast only occurs for users in this team
 	ContainsSanitizedData bool                                         `json:"contains_sanitized_data,omitempty"` // broadcast only occurs for non-sysadmins
 	ContainsSensitiveData bool                                         `json:"contains_sensitive_data,omitempty"` // broadcast only occurs for sysadmins
