@@ -4,7 +4,9 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import BleveSettings from 'components/admin_console/bleve_settings.jsx';
+import {AdminConfig} from '@mattermost/types/config';
+
+import BleveSettings from 'components/admin_console/bleve_settings';
 
 jest.mock('actions/admin_actions.jsx', () => {
     return {
@@ -21,7 +23,7 @@ describe('components/BleveSettings', () => {
                 EnableSearching: false,
                 EnableAutocomplete: false,
             },
-        };
+        } as AdminConfig;
         const wrapper = shallow(
             <BleveSettings
                 config={config}
@@ -38,7 +40,7 @@ describe('components/BleveSettings', () => {
                 EnableSearching: false,
                 EnableAutocomplete: false,
             },
-        };
+        } as AdminConfig;
         const wrapper = shallow(
             <BleveSettings
                 config={config}
