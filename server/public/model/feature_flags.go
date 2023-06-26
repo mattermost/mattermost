@@ -55,9 +55,6 @@ type FeatureFlags struct {
 
 	PeopleProduct bool
 
-	// A/B Test on reduced onboarding task list item
-	ReduceOnBoardingTaskList bool
-
 	ThreadsEverywhere bool
 
 	GlobalDrafts bool
@@ -86,7 +83,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsEnabled = true
 	f.PostPriority = true
 	f.PeopleProduct = false
-	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
 	f.DeprecateCloudFree = false
