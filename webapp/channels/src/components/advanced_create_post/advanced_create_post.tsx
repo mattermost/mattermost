@@ -1463,7 +1463,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
             const draft = {
                 ...this.props.draft,
-                newMessage,
+                message: newMessage,
             };
 
             this.handleDraftChange(draft);
