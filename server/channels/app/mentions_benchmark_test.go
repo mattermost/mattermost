@@ -221,3 +221,5 @@ func BenchmarkMentionParsing_AhoCorasick_Cached(b *testing.B) {
 		})
 	}
 }
+
+// go test -benchmem -run=^$ -bench=^BenchmarkMentionParsing_ github.com/mattermost/mattermost/server/v8/channels/app -v
