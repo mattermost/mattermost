@@ -4,7 +4,7 @@
 import React, {useState, useEffect, useRef, useCallback, FocusEvent} from 'react';
 
 import {useIntl} from 'react-intl';
-import {useLocation, useHistory} from 'react-router-dom';
+import {useLocation, useHistory, Route} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
@@ -29,12 +29,11 @@ import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {removeGlobalItem, setGlobalItem} from 'actions/storage';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-import {loginById, loginWithDesktopToken} from 'actions/views/login';
+import {loginById} from 'actions/views/login';
 
 import AlertBanner, {ModeType, AlertBannerProps} from 'components/alert_banner';
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import ManWithLaptopSVG from 'components/common/svg_images_components/man_with_laptop_svg';
-import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLoginButton, {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
@@ -55,11 +54,11 @@ import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityC
 import ExternalLink from 'components/external_link';
 
 import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
-import {DesktopAuthStatus, generateDesktopToken, getExternalLoginURL} from 'utils/desktop_app/auth';
 import {isDesktopApp} from 'utils/user_agent';
 import {isValidUsername, isValidPassword, getPasswordConfig, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
 
 import './signup.scss';
+import DesktopAuthToken from 'components/desktop_auth_token';
 
 const MOBILE_SCREEN_WIDTH = 1200;
 
@@ -104,7 +103,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         CustomBrandText,
         TermsOfServiceLink,
         PrivacyPolicyLink,
-        SiteURL,
     } = config;
     const {IsLicensed} = useSelector(getLicense);
     const loggedIn = Boolean(useSelector(getCurrentUserId));
@@ -152,11 +150,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const canSubmit = Boolean(email && name && password) && !hasError && !loading;
     const {error: passwordInfo} = isValidPassword('', getPasswordConfig(config), intl);
 
-    const query = new URLSearchParams(search);
-
-    const [desktopToken, setDesktopToken] = useState('');
-    const [desktopAuthLogin, setDesktopAuthLogin] = useState(query.get('desktopAuthStatus') === 'complete' ? DesktopAuthStatus.Complete : DesktopAuthStatus.None);
-    const desktopAuthInterval = useRef<NodeJS.Timer>();
+    const [desktopLoginLink, setDesktopLoginLink] = useState('');
 
     const subscribeToSecurityNewsletterFunc = () => {
         try {
@@ -167,8 +161,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
     };
 
-    const getExternalURL = (url: string) => getExternalLoginURL(url, search, desktopToken);
-
     const getExternalSignupOptions = () => {
         const externalLoginOptions: ExternalLoginButtonType[] = [];
 
@@ -177,40 +169,48 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
 
         if (enableSignUpWithGitLab) {
+            const url = `${Client4.getOAuthRoute()}/gitlab/signup${search}`;
             externalLoginOptions.push({
                 id: 'gitlab',
-                url: getExternalURL(`${Client4.getOAuthRoute()}/gitlab/signup`),
+                url,
                 icon: <LoginGitlabIcon/>,
                 label: GitLabButtonText || formatMessage({id: 'login.gitlab', defaultMessage: 'GitLab'}),
                 style: {color: GitLabButtonColor, borderColor: GitLabButtonColor},
+                onClick: desktopExternalAuth(url),
             });
         }
 
         if (isLicensed && enableSignUpWithGoogle) {
+            const url = `${Client4.getOAuthRoute()}/google/signup${search}`;
             externalLoginOptions.push({
                 id: 'google',
-                url: getExternalURL(`${Client4.getOAuthRoute()}/google/signup`),
+                url,
                 icon: <LoginGoogleIcon/>,
                 label: formatMessage({id: 'login.google', defaultMessage: 'Google'}),
+                onClick: desktopExternalAuth(url),
             });
         }
 
         if (isLicensed && enableSignUpWithOffice365) {
+            const url = `${Client4.getOAuthRoute()}/office365/signup${search}`;
             externalLoginOptions.push({
                 id: 'office365',
-                url: getExternalURL(`${Client4.getOAuthRoute()}/office365/signup`),
+                url,
                 icon: <LoginOffice365Icon/>,
                 label: formatMessage({id: 'login.office365', defaultMessage: 'Office 365'}),
+                onClick: desktopExternalAuth(url),
             });
         }
 
         if (isLicensed && enableSignUpWithOpenId) {
+            const url = `${Client4.getOAuthRoute()}/openid/signup${search}`;
             externalLoginOptions.push({
                 id: 'openid',
-                url: getExternalURL(`${Client4.getOAuthRoute()}/openid/signup`),
+                url,
                 icon: <LoginOpenIDIcon/>,
                 label: OpenIdButtonText || formatMessage({id: 'login.openid', defaultMessage: 'Open ID'}),
                 style: {color: OpenIdButtonColor, borderColor: OpenIdButtonColor},
+                onClick: desktopExternalAuth(url),
             });
         }
 
@@ -223,6 +223,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 url: `${Client4.getUrl()}/login?${newSearchParam.toString()}`,
                 icon: <LockIcon/>,
                 label: LdapLoginFieldName || formatMessage({id: 'signup.ldap', defaultMessage: 'AD/LDAP Credentials'}),
+                onClick: () => {},
             });
         }
 
@@ -230,11 +231,13 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             const newSearchParam = new URLSearchParams(search);
             newSearchParam.set('action', 'signup');
 
+            const url = `${Client4.getUrl()}/login/sso/saml?${newSearchParam.toString()}`;
             externalLoginOptions.push({
                 id: 'saml',
-                url: getExternalLoginURL(`${Client4.getUrl()}/login/sso/saml`, newSearchParam.toString(), desktopToken),
+                url,
                 icon: <LockIcon/>,
                 label: SamlLoginButtonText || formatMessage({id: 'login.saml', defaultMessage: 'SAML'}),
+                onClick: desktopExternalAuth(url),
             });
         }
 
@@ -307,51 +310,20 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         setIsMobileView(window.innerWidth < MOBILE_SCREEN_WIDTH);
     }, 100);
 
-    const desktopExternalAuth = () => {
-        if (isDesktopApp()) {
-            setDesktopAuthLogin(DesktopAuthStatus.Polling);
+    const desktopExternalAuth = (href: string) => {
+        return (event: React.MouseEvent) => {
+            if (isDesktopApp()) {
+                event.preventDefault();
 
-            desktopAuthInterval.current = setInterval(tryDesktopLogin, 2000);
-        }
-    };
-
-    const tryDesktopLogin = async () => {
-        const {error: loginError} = await dispatch(loginWithDesktopToken(desktopToken));
-
-        if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
-            if (loginError.server_error_id === 'app.desktop_token.validate.expired') {
-                clearInterval(desktopAuthInterval.current as unknown as number);
-                setDesktopAuthLogin(DesktopAuthStatus.Expired);
+                setDesktopLoginLink(href);
+                history.push(`/signup_user_complete/desktop${search}`);
             }
-            return;
-        }
-
-        clearInterval(desktopAuthInterval.current as unknown as number);
-        setDesktopAuthLogin(DesktopAuthStatus.Complete);
-        await postSignupSuccess();
-    };
-
-    const openDesktopApp = () => {
-        if (!SiteURL) {
-            return;
-        }
-        const url = new URL(SiteURL);
-        url.protocol = 'mattermost';
-        window.location.href = url.toString();
+        };
     };
 
     useEffect(() => {
         dispatch(removeGlobalItem('team'));
         trackEvent('signup', 'signup_user_01_welcome', {...getRoleFromTrackFlow(), ...getMediumFromTrackFlow()});
-
-        if (desktopAuthLogin === DesktopAuthStatus.Complete) {
-            openDesktopApp();
-            return () => {};
-        }
-
-        if (isDesktopApp()) {
-            setDesktopToken(generateDesktopToken());
-        }
 
         onWindowResize();
 
@@ -376,13 +348,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
 
         return () => {
-            if (desktopAuthInterval.current) {
-                clearInterval(desktopAuthInterval.current);
-
-                // Attempt to make a final call to log in if not already logged in
-                dispatch(loginWithDesktopToken(desktopToken));
-            }
-
             window.removeEventListener('resize', onWindowResize);
         };
     }, []);
@@ -762,13 +727,16 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             );
         }
 
-        if (desktopAuthLogin) {
+        if (desktopLoginLink) {
             return (
-                <DesktopAuthToken
-                    authStatus={desktopAuthLogin}
-                    onComplete={openDesktopApp}
-                    onLogin={tryDesktopLogin}
-                    onRestart={() => history.push('/')}
+                <Route
+                    path={'/signup_user_complete/desktop'}
+                    render={() => (
+                        <DesktopAuthToken
+                            href={desktopLoginLink}
+                            onLogin={postSignupSuccess}
+                        />
+                    )}
                 />
             );
         }
@@ -917,7 +885,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         <ExternalLoginButton
                                             key={option.id}
                                             direction={enableSignUpWithEmail ? undefined : 'column'}
-                                            onClick={desktopExternalAuth}
                                             {...option}
                                         />
                                     ))}

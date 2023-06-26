@@ -205,13 +205,13 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		queryString := map[string]string{
-			"desktopAuthStatus": "complete",
+			"desktopAuthComplete": "true",
 		}
 		if val, ok := relayProps["redirect_to"]; ok {
 			queryString["redirect_to"] = val
 		}
 
-		redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login", queryString)
+		redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login/desktop", queryString)
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}

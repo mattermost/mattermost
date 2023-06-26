@@ -360,12 +360,12 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			queryString := map[string]string{
-				"desktopAuthStatus": "complete",
+				"desktopAuthComplete": "true",
 			}
 			if val, ok := props["redirect_to"]; ok {
 				queryString["redirect_to"] = val
 			}
-			redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login", queryString)
+			redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login/desktop", queryString)
 		}
 	}
 
