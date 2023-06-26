@@ -1,20 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {connect, ConnectedProps} from 'react-redux';
 
 import {updateMe} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from 'types/store';
 
-import UserSettingsNotifications, {Props} from './user_settings_notifications';
+import UserSettingsNotifications from './user_settings_notifications';
 import {isCallsEnabled, isCallsRingingEnabled} from 'selectors/calls';
 
-function mapStateToProps(state: GlobalState) {
+const mapStateToProps = (state: GlobalState) => {
     const config = getConfig(state);
 
     const sendPushNotifications = config.SendPushNotifications === 'true';
@@ -26,14 +24,14 @@ function mapStateToProps(state: GlobalState) {
         isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
         isCallsRingingEnabled: isCallsEnabled(state, '0.17.0') && isCallsRingingEnabled(state),
     };
-}
+};
 
-function mapDispatchToProps(dispatch: Dispatch) {
-    return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
-            updateMe,
-        }, dispatch),
-    };
-}
+const mapDispatchToProps = {
+    updateMe,
+};
+
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+export type PropsFromRedux = ConnectedProps<typeof connector>;
 
 export default connect(mapStateToProps, mapDispatchToProps)(UserSettingsNotifications);
