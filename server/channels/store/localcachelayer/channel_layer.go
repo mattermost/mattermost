@@ -227,7 +227,7 @@ func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMemb
 
 func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string, allowFromCache bool) (_ map[string]int64, err error) {
 	if !allowFromCache {
-		return s.GetChannelsMemberCount(channelIDs, false)
+		return s.ChannelStore.GetChannelsMemberCount(channelIDs, false)
 	}
 
 	counts := make(map[string]int64)
