@@ -1127,6 +1127,8 @@
   "admin.guest_access.disableConfirmWarning": "All current guest account sessions will be revoked, and marked as inactive",
   "admin.guest_access.enableDescription": "When true, external guest can be invited to channels within teams. Please see [Permissions Schemes](../user_management/permissions/system_scheme) for which roles can invite guests.",
   "admin.guest_access.enableTitle": "Enable Guest Access: ",
+  "admin.guest_access.hideTags": "Hide guest tag",
+  "admin.guest_access.hideTagsDescription": "When true, the \"guest\" tag will not be shown next to the name of all guest users in the Mattermost chat interface.",
   "admin.guest_access.mfaDescription": "When true, <link>multi-factor authentication</link> for guests is required for login. New guest users will be required to configure MFA on signup. Logged in guest users without MFA configured are redirected to the MFA setup page until configuration is complete.\n \nIf your system has guest users with login methods other than AD/LDAP and email, MFA must be enforced with the authentication provider outside of Mattermost.",
   "admin.guest_access.mfaDescriptionMFANotEnabled": "[Multi-factor authentication](./mfa) is currently not enabled.",
   "admin.guest_access.mfaDescriptionMFANotEnforced": "[Multi-factor authentication](./mfa) is currently not enforced.",
