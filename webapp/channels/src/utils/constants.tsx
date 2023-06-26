@@ -179,12 +179,6 @@ export const suitePluginIds = {
     playbooks: 'playbooks',
 
     /**
-     * @warning This only applies to the Boards product and will not work with the Boards plugin. Both cases need to
-     * be supported until we enable the Boards product permanently.
-     */
-    boards: 'boards',
-
-    /**
      * @deprecated This only applies to the Boards plugin and will not work with the Boards product. Both cases need
      * to be supported until we enable the Boards product permanently.
      */

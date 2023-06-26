@@ -871,7 +871,6 @@ type AppIface interface {
 	HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte)
 	HandleIncomingWebhook(c *request.Context, hookID string, req *model.IncomingWebhookRequest) *model.AppError
 	HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
-	HasBoardProduct() (bool, error)
 	HasPermissionTo(askingUserId string, permission *model.Permission) bool
 	HasPermissionToChannel(c request.CTX, askingUserId string, channelID string, permission *model.Permission) bool
 	HasPermissionToChannelByPost(askingUserId string, postID string, permission *model.Permission) bool

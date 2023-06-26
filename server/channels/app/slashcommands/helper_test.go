@@ -143,7 +143,6 @@ func setup(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadBoardsMigrationsIfNeeded()
 
 	return setupTestHelper(dbStore, false, true, tb, nil)
 }
