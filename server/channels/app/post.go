@@ -766,22 +766,27 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 
 	defer a.Publish(message)
 
-	var previewedPostID string
-	if val, ok := post.GetProp(model.PostPropsPreviewedPost).(string); ok {
-		previewedPostID = val
-	} else {
+	permalinkPreviewedPost := post.GetPreviewPost()
+	if permalinkPreviewedPost == nil {
 		return nil
 	}
 
-	if !model.IsValidId(previewedPostID) {
-		mlog.Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewedPostID))
+	if !model.IsValidId(permalinkPreviewedPost.PostID) {
+		mlog.Warn("invalid preview post ID", mlog.String("prop_value", permalinkPreviewedPost.PostID))
 		return nil
 	}
 
-	previewedPost, appErr := a.GetSinglePost(previewedPostID, false)
+	// To remain secure by default, we wipe out the metadata unconditionally.
+	post.Metadata.Embeds[0].Data = nil
+	postWithoutPermalinkPreviewJSON, err := post.ToJSON()
+	if err != nil {
+		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	previewedPost, appErr := a.GetSinglePost(permalinkPreviewedPost.PostID, false)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
-			mlog.Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))
+			mlog.Warn("permalinked post not found", mlog.String("referenced_post_id", permalinkPreviewedPost.PostID))
 			return nil
 		}
 		return appErr
@@ -796,19 +801,9 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 		return appErr
 	}
 
-	permalinkPreviewedPost := post.GetPreviewPost()
-	if permalinkPreviewedPost == nil {
-		return nil
-	}
-
-	// To remain secure by default, we wipe out the metadata unconditionally.
-	post.Metadata.Embeds[0].Data = nil
-	postWithoutPermalinkPreviewJSON, err := post.ToJSON()
-	if err != nil {
-		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-	}
-
 	// In case the user does have permission to read, we set the metadata back.
+	// Note that this is the return value to the post creator, and has nothing to do
+	// with the content of the websocket broadcast to that user or any other.
 	if a.HasPermissionToReadChannel(c, post.UserId, permalinkPreviewedChannel) {
 		post.Metadata.Embeds[0].Data = permalinkPreviewedPost
 	}
