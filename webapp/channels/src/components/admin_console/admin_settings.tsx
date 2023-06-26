@@ -15,7 +15,7 @@ import FormError from 'components/form_error';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 export type BaseProps = {
-    config: DeepPartial<AdminConfig>;
+    config?: DeepPartial<AdminConfig>;
     environmentConfig?: EnvironmentConfig;
     setNavigationBlocked?: (blocked: boolean) => void;
     isDisabled?: boolean;

@@ -19,12 +19,22 @@ import ClusterTableContainer from './cluster_table_container.jsx';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
-export type ClusterSettingsProps = BaseProps & {
+export type Props = BaseProps & {
     license: ClientLicense;
+    config: AdminConfig;
 };
-type State = BaseState & { Enable: boolean; ClusterName: string; OverrideHostname: string; UseIPAddress: boolean; EnableExperimentalGossipEncryption: boolean; EnableGossipCompression: boolean; GossipPort: number; StreamingPort: number; showWarning: boolean };
 
-export default class ClusterSettings extends AdminSettings<ClusterSettingsProps, State> {
+type State = BaseState &
+{ Enable: boolean;
+    ClusterName: string;
+    OverrideHostname: string;
+    UseIPAddress: boolean;
+    EnableExperimentalGossipEncryption: boolean;
+    EnableGossipCompression: boolean;
+    GossipPort: number; StreamingPort: number;
+    showWarning: boolean; };
+
+export default class ClusterSettings extends AdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.ClusterSettings.Enable = this.state.Enable;
         config.ClusterSettings.ClusterName = this.state.ClusterName;
@@ -37,7 +47,7 @@ export default class ClusterSettings extends AdminSettings<ClusterSettingsProps,
         return config;
     };
 
-    getStateFromConfig(config: ClusterSettingsProps['config']) {
+    getStateFromConfig(config: Props['config']) {
         const settings = config.ClusterSettings!;
 
         return {
@@ -63,8 +73,7 @@ export default class ClusterSettings extends AdminSettings<ClusterSettingsProps,
     }
 
     overrideHandleChange = (id: string, value: boolean) => {
-        this.setState((prevState) => ({
-            ...prevState,
+        this.setState(({
             showWarning: true,
         }));
 
