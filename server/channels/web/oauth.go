@@ -315,31 +315,10 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	desktopToken := ""
-	if val, ok := props["desktop_token"]; ok {
-		desktopToken = val
-	}
-
 	if action == model.OAuthActionEmailToSSO {
 		redirectURL = c.GetSiteURLHeader() + "/login?extra=signin_change"
 	} else if action == model.OAuthActionSSOToEmail {
 		redirectURL = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
-	} else if desktopToken != "" {
-		desktopTokenErr := c.App.AuthenticateDesktopToken(desktopToken, time.Now().Add(-model.DesktopTokenTTL).Unix(), user)
-		if desktopTokenErr != nil {
-			desktopTokenErr.Translate(c.AppContext.T)
-			c.LogErrorByCode(desktopTokenErr)
-			renderError(desktopTokenErr)
-			return
-		}
-
-		queryString := map[string]string{
-			"desktopAuthStatus": "complete",
-		}
-		if val, ok := props["redirect_to"]; ok {
-			queryString["redirect_to"] = val
-		}
-		redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login", queryString)
 	} else {
 		err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, false)
 		if err != nil {
@@ -364,6 +343,29 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else { // For web
 			c.App.AttachSessionCookies(c.AppContext, w, r)
+		}
+
+		desktopToken := ""
+		if val, ok := props["desktop_token"]; ok {
+			desktopToken = val
+		}
+
+		if desktopToken != "" {
+			desktopTokenErr := c.App.AuthenticateDesktopToken(desktopToken, time.Now().Add(-model.DesktopTokenTTL).Unix(), user)
+			if desktopTokenErr != nil {
+				desktopTokenErr.Translate(c.AppContext.T)
+				c.LogErrorByCode(desktopTokenErr)
+				renderError(desktopTokenErr)
+				return
+			}
+
+			queryString := map[string]string{
+				"desktopAuthStatus": "complete",
+			}
+			if val, ok := props["redirect_to"]; ok {
+				queryString["redirect_to"] = val
+			}
+			redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login", queryString)
 		}
 	}
 

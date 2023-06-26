@@ -191,6 +191,11 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+	c.LogAuditWithUserId(user.Id, "success")
+
+	c.App.AttachSessionCookies(c.AppContext, w, r)
+
 	desktopToken := relayProps["desktop_token"]
 	if desktopToken != "" {
 		desktopTokenErr := c.App.AuthenticateDesktopToken(desktopToken, time.Now().Add(-model.DesktopTokenTTL).Unix(), user)
@@ -210,11 +215,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}
-
-	auditRec.Success()
-	c.LogAuditWithUserId(user.Id, "success")
-
-	c.App.AttachSessionCookies(c.AppContext, w, r)
 
 	if hasRedirectURL {
 		if isMobile {
