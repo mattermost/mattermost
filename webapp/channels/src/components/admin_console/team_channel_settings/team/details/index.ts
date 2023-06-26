@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {bindActionCreators} from 'redux';
-
+import {ActionCreatorsMapObject, Dispatch, bindActionCreators} from 'redux';
+import {RouteComponentProps} from 'react-router-dom';
 import {connect} from 'react-redux';
 
-import {getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {GlobalState} from 'types/store';
 
+import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getTeam as fetchTeam, membersMinusGroupMembers, patchTeam, removeUserFromTeam, updateTeamMemberSchemeRoles, addUserToTeam, deleteTeam, unarchiveTeam} from 'mattermost-redux/actions/teams';
 import {getAllGroups, getGroupsAssociatedToTeam} from 'mattermost-redux/selectors/entities/groups';
 import {
@@ -15,16 +16,23 @@ import {
     unlinkGroupSyncable,
     patchGroupSyncable,
 } from 'mattermost-redux/actions/groups';
+import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
-import TeamDetails from './team_details';
+import TeamDetails, {Props} from './team_details';
 
-function mapStateToProps(state, props) {
+type Params = {
+    team_id: string;
+}
+
+export type OwnProps = RouteComponentProps<Params>;
+
+function mapStateToProps(state: GlobalState, props: OwnProps) {
     const teamID = props.match.params.team_id;
     const team = getTeam(state, teamID);
     const groups = getGroupsAssociatedToTeam(state, teamID);
-    const allGroups = getAllGroups(state, teamID);
+    const allGroups = getAllGroups(state);
     const totalGroups = groups.length;
     const isLicensedForLDAPGroups = state.entities.general.license.LDAPGroups === 'true';
     return {
@@ -37,9 +45,9 @@ function mapStateToProps(state, props) {
     };
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators({
+        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Props['actions']>({
             getTeam: fetchTeam,
             getGroups: fetchAssociatedGroups,
             patchTeam,
