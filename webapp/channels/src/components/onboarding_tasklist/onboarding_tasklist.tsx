@@ -8,7 +8,6 @@ import styled, {css} from 'styled-components';
 import {FormattedMessage} from 'react-intl';
 
 import {getShowTaskListBool} from 'selectors/onboarding';
-import {shouldShowAutoLinkedBoard} from 'selectors/plugins';
 
 import {
     getBool,
@@ -32,11 +31,10 @@ import CompassThemeProvider from 'components/compass_theme_provider/compass_them
 
 import {openModal} from 'actions/views/modals';
 import {GlobalState} from 'types/store';
-import {showRHSPlugin} from 'actions/views/rhs';
 import {trackEvent} from 'actions/telemetry_actions';
 import checklistImg from 'images/onboarding-checklist.svg';
 
-import {Preferences, RecommendedNextStepsLegacy, suitePluginIds} from 'utils/constants';
+import {Preferences, RecommendedNextStepsLegacy} from 'utils/constants';
 
 import {TaskListPopover} from './onboarding_tasklist_popover';
 import {Task} from './onboarding_tasklist_task';
@@ -187,22 +185,9 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     const [showTaskList, firstTimeOnboarding] = useSelector(getShowTaskListBool);
     const theme = useSelector(getTheme);
 
-    // a/b test auto show linked boards
-    const autoShowLinkedBoard = useSelector((state: GlobalState) => shouldShowAutoLinkedBoard(state));
-    const pluginsComponentsList = useSelector((state: GlobalState) => state.plugins.components);
-
     const startTask = (taskName: string) => {
         toggleTaskList();
         handleTaskTrigger(taskName);
-    };
-
-    const findRhsPluginId = (pluginId: string) => {
-        const rhsPlugins = pluginsComponentsList.RightHandSidebarComponent;
-
-        if (rhsPlugins.length) {
-            return rhsPlugins.find((plugin) => plugin.pluginId === pluginId)?.id;
-        }
-        return null;
     };
 
     const initOnboardingPrefs = async () => {
@@ -288,16 +273,6 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         }];
         dispatch(savePreferences(currentUserId, preferences));
         trackEvent(OnboardingTaskCategory, open ? OnboardingTaskList.ONBOARDING_TASK_LIST_CLOSE : OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN);
-
-        // check if the AB test FF is set and also check that the linkedBoard has only been shown once, then open the RHS
-        if (autoShowLinkedBoard && open) {
-            const boardsId = findRhsPluginId(suitePluginIds.boards);
-            if (!boardsId) {
-                return;
-            }
-
-            dispatch(showRHSPlugin(boardsId));
-        }
     }, [open, currentUserId]);
 
     const openVideoModal = useCallback(() => {
