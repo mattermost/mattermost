@@ -52,7 +52,7 @@ function renderJoinChannelMessage(post: Post): ReactNode {
 
 function renderGuestJoinChannelMessage(post: Post, hideGuestTags: boolean): ReactNode {
     if (hideGuestTags) {
-        renderJoinChannelMessage(post);
+        return renderJoinChannelMessage(post);
     }
     const username = renderUsername(post.props.username);
 
@@ -369,13 +369,9 @@ function renderMeMessage(post: Post): ReactNode {
 
 const systemMessageRenderers = {
     [Posts.POST_TYPES.JOIN_CHANNEL]: renderJoinChannelMessage,
-
-    //[Posts.POST_TYPES.GUEST_JOIN_CHANNEL]: renderGuestJoinChannelMessage,
     [Posts.POST_TYPES.LEAVE_CHANNEL]: renderLeaveChannelMessage,
     [Posts.POST_TYPES.ADD_TO_CHANNEL]: renderAddToChannelMessage,
     [Posts.POST_TYPES.EPHEMERAL_ADD_TO_CHANNEL]: renderAddToChannelMessage,
-
-    //[Posts.POST_TYPES.ADD_GUEST_TO_CHANNEL]: renderAddGuestToChannelMessage,
     [Posts.POST_TYPES.REMOVE_FROM_CHANNEL]: renderRemoveFromChannelMessage,
     [Posts.POST_TYPES.JOIN_TEAM]: renderJoinTeamMessage,
     [Posts.POST_TYPES.LEAVE_TEAM]: renderLeaveTeamMessage,
