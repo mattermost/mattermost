@@ -11,7 +11,7 @@ import {t} from 'utils/i18n';
 
 import ExternalLink from 'components/external_link';
 
-import AdminSettings, {BaseProps as Props, BaseState} from './admin_settings';
+import AdminSettings, {BaseProps, BaseState} from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import JobsTable from './jobs';
 import RequestButton from './request_button/request_button';
@@ -38,6 +38,10 @@ interface State extends BaseState {
     canPurgeAndIndex: boolean;
     ignoredPurgeIndexes: string;
 }
+
+type Props = BaseProps & {
+    config: AdminConfig;
+};
 
 export default class ElasticsearchSettings extends AdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
