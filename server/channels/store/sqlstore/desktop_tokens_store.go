@@ -24,7 +24,7 @@ func newSqlDesktopTokensStore(sqlStore *SqlStore, metrics einterfaces.MetricsInt
 	}
 }
 
-func (s *SqlDesktopTokensStore) GetUserId(desktopToken string, minCreatedAt int64) (string, error) {
+func (s *SqlDesktopTokensStore) GetUserId(desktopToken string, minCreateAt int64) (string, error) {
 	query := s.getQueryBuilder().
 		Select("UserId").
 		From("DesktopTokens").
@@ -32,7 +32,7 @@ func (s *SqlDesktopTokensStore) GetUserId(desktopToken string, minCreatedAt int6
 			"DesktopToken": desktopToken,
 		}).
 		Where(sq.GtOrEq{
-			"CreatedAt": minCreatedAt,
+			"CreateAt": minCreateAt,
 		})
 
 	dt := struct{ UserId sql.NullString }{}
@@ -53,11 +53,11 @@ func (s *SqlDesktopTokensStore) GetUserId(desktopToken string, minCreatedAt int6
 	return "", nil
 }
 
-func (s *SqlDesktopTokensStore) Insert(desktopToken string, createdAt int64, userId *string) error {
+func (s *SqlDesktopTokensStore) Insert(desktopToken string, createAt int64, userId *string) error {
 	builder := s.getQueryBuilder().
 		Insert("DesktopTokens").
-		Columns("DesktopToken", "CreatedAt", "UserId").
-		Values(desktopToken, createdAt, userId)
+		Columns("DesktopToken", "CreateAt", "UserId").
+		Values(desktopToken, createAt, userId)
 
 	query, args, err := builder.ToSql()
 
@@ -72,7 +72,7 @@ func (s *SqlDesktopTokensStore) Insert(desktopToken string, createdAt int64, use
 	return nil
 }
 
-func (s *SqlDesktopTokensStore) SetUserId(desktopToken string, minCreatedAt int64, userId string) error {
+func (s *SqlDesktopTokensStore) SetUserId(desktopToken string, minCreateAt int64, userId string) error {
 	builder := s.getQueryBuilder().
 		Update("DesktopTokens").
 		Set("UserId", userId).
@@ -80,7 +80,7 @@ func (s *SqlDesktopTokensStore) SetUserId(desktopToken string, minCreatedAt int6
 			"DesktopToken": desktopToken,
 		}).
 		Where(sq.GtOrEq{
-			"CreatedAt": minCreatedAt,
+			"CreateAt": minCreateAt,
 		})
 
 	query, args, err := builder.ToSql()
@@ -143,11 +143,11 @@ func (s *SqlDesktopTokensStore) DeleteByUserId(userId string) error {
 	return nil
 }
 
-func (s *SqlDesktopTokensStore) DeleteOlderThan(minCreatedAt int64) error {
+func (s *SqlDesktopTokensStore) DeleteOlderThan(minCreateAt int64) error {
 	builder := s.getQueryBuilder().
 		Delete("DesktopTokens").
 		Where(sq.Lt{
-			"CreatedAt": minCreatedAt,
+			"CreateAt": minCreateAt,
 		})
 
 	query, args, err := builder.ToSql()

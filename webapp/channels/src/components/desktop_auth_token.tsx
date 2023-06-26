@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import classNames from 'classnames';
@@ -21,25 +21,18 @@ type Props = {
 }
 
 const DesktopAuthToken: React.FC<Props> = ({authStatus, onComplete, onLogin, onRestart}: Props) => {
-    const bottomMessageTimeout = useRef<number>();
     const [showBottomMessage, setShowBottomMessage] = useState<React.ReactNode>();
 
     useEffect(() => {
-        return () => {
-            clearTimeout(bottomMessageTimeout.current);
-        };
-    }, []);
-
-    useEffect(() => {
-        clearTimeout(bottomMessageTimeout.current);
         setShowBottomMessage(false);
 
-        bottomMessageTimeout.current = setTimeout(() => {
-            clearTimeout(bottomMessageTimeout.current);
-            bottomMessageTimeout.current = undefined;
-
+        const timeout = setTimeout(() => {
             setShowBottomMessage(true);
         }, BOTTOM_MESSAGE_TIMEOUT) as unknown as number;
+
+        return () => {
+            clearTimeout(timeout);
+        };
     }, [authStatus]);
 
     let mainMessage;

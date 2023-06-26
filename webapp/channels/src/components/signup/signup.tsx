@@ -156,7 +156,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
     const [desktopToken, setDesktopToken] = useState('');
     const [desktopAuthLogin, setDesktopAuthLogin] = useState(query.get('desktopAuthStatus') === 'complete' ? DesktopAuthStatus.Complete : DesktopAuthStatus.None);
-    const desktopAuthInterval = useRef<number>();
+    const desktopAuthInterval = useRef<NodeJS.Timer>();
 
     const subscribeToSecurityNewsletterFunc = () => {
         try {
@@ -311,7 +311,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         if (isDesktopApp()) {
             setDesktopAuthLogin(DesktopAuthStatus.Polling);
 
-            desktopAuthInterval.current = setInterval(tryDesktopLogin, 2000) as unknown as number;
+            desktopAuthInterval.current = setInterval(tryDesktopLogin, 2000);
         }
     };
 
@@ -320,13 +320,13 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
         if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
             if (loginError.server_error_id === 'app.desktop_token.validate.expired') {
-                clearInterval(desktopAuthInterval.current);
+                clearInterval(desktopAuthInterval.current as unknown as number);
                 setDesktopAuthLogin(DesktopAuthStatus.Expired);
             }
             return;
         }
 
-        clearInterval(desktopAuthInterval.current);
+        clearInterval(desktopAuthInterval.current as unknown as number);
         setDesktopAuthLogin(DesktopAuthStatus.Complete);
         await postSignupSuccess();
     };

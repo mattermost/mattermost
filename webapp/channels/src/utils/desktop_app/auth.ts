@@ -17,9 +17,14 @@ export const getExternalLoginURL = (url: string, search: string, token: string) 
     if (isDesktopApp() && token) {
         params.set('desktop_token', token);
     }
-    const externalurl = `${url}${params.toString().length ? `?${params.toString()}` : ''}`;
 
-    return externalurl;
+    // Only add the parameters if we need them
+    let paramsString = '';
+    if (params.toString().length) {
+        paramsString = `?${params.toString()}`;
+    }
+
+    return `${url}${paramsString}`;
 };
 
 export const generateDesktopToken = () => {

@@ -762,15 +762,10 @@ export default class Client4 {
             deviceId: '',
         };
 
-        const {
-            data: profile,
-            headers,
-        } = await this.doFetchWithResponse<UserProfile>(
+        return await this.doFetch<UserProfile>(
             `${this.getUsersRoute()}/login/desktop_token`,
             {method: 'post', body: JSON.stringify(body)},
         );
-
-        return profile;
     };
 
     loginById = (id: string, password: string, token = '') => {

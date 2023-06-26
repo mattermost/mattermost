@@ -14,7 +14,7 @@ func (a *App) CreateDesktopToken(token string, createdAt int64) *model.AppError 
 	// If so return an error
 	_, getErr := a.Srv().Store().DesktopTokens().GetUserId(token, 0)
 	if getErr == nil {
-		return model.NewAppError("CreateDesktopToken", "app.desktop_token.create.collision", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("CreateDesktopToken", "app.desktop_token.create.collision", nil, "", http.StatusBadRequest)
 	}
 
 	// Create token in the database
@@ -27,20 +27,15 @@ func (a *App) CreateDesktopToken(token string, createdAt int64) *model.AppError 
 }
 
 func (a *App) AuthenticateDesktopToken(token string, expiryTime int64, user *model.User) *model.AppError {
-	// Check if token is expired
-	_, err := a.Srv().Store().DesktopTokens().GetUserId(token, expiryTime)
+	// Throw an error if the token is expired
+	err := a.Srv().Store().DesktopTokens().SetUserId(token, expiryTime, user.Id)
 	if err != nil {
 		// Delete the token if it is expired
-		defer a.Srv().Store().DesktopTokens().Delete(token)
+		a.Srv().Go(func() {
+			a.Srv().Store().DesktopTokens().Delete(token)
+		})
 
-		return model.NewAppError("AuthenticateDesktopToken", "app.desktop_token.authenticate.invalid_or_expired", nil, err.Error(), http.StatusUnauthorized)
-	}
-
-	err = a.Srv().Store().DesktopTokens().SetUserId(token, expiryTime, user.Id)
-	if err != nil {
-		defer a.Srv().Store().DesktopTokens().Delete(token)
-
-		return model.NewAppError("AuthenticateDesktopToken", "app.desktop_token.authenticate.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AuthenticateDesktopToken", "app.desktop_token.authenticate.invalid_or_expired", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	return nil
@@ -51,7 +46,9 @@ func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User,
 	userId, err := a.Srv().Store().DesktopTokens().GetUserId(token, expiryTime)
 	if err != nil {
 		// Delete the token if it is expired
-		defer a.Srv().Store().DesktopTokens().Delete(token)
+		a.Srv().Go(func() {
+			a.Srv().Store().DesktopTokens().Delete(token)
+		})
 
 		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.expired", nil, err.Error(), http.StatusUnauthorized)
 	}
@@ -65,13 +62,17 @@ func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User,
 	user, userErr := a.GetUser(userId)
 	if userErr != nil {
 		// Delete the token if the user is invalid somehow
-		defer a.Srv().Store().DesktopTokens().Delete(token)
+		a.Srv().Go(func() {
+			a.Srv().Store().DesktopTokens().Delete(token)
+		})
 
 		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.no_user", nil, userErr.Error(), http.StatusInternalServerError)
 	}
 
 	// Clean up other tokens if they exist
-	defer a.Srv().Store().DesktopTokens().DeleteByUserId(userId)
+	a.Srv().Go(func() {
+		a.Srv().Store().DesktopTokens().DeleteByUserId(userId)
+	})
 
 	return user, nil
 }

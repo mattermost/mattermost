@@ -151,7 +151,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const [desktopToken, setDesktopToken] = useState('');
     const [desktopAuthLogin, setDesktopAuthLogin] = useState(query.get('desktopAuthStatus') === 'complete' ? DesktopAuthStatus.Complete : DesktopAuthStatus.None);
-    const desktopAuthInterval = useRef<number>();
+    const desktopAuthInterval = useRef<NodeJS.Timer>();
 
     const getExternalURL = (url: string) => getExternalLoginURL(url, search, desktopToken);
 
@@ -216,7 +216,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         if (isDesktopApp()) {
             setDesktopAuthLogin(DesktopAuthStatus.Polling);
 
-            desktopAuthInterval.current = setInterval(tryDesktopLogin, 2000) as unknown as number;
+            desktopAuthInterval.current = setInterval(tryDesktopLogin, 2000);
         }
     };
 
@@ -225,13 +225,13 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
         if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
             if (loginError.server_error_id === 'app.desktop_token.validate.expired') {
-                clearInterval(desktopAuthInterval.current);
+                clearInterval(desktopAuthInterval.current as unknown as number);
                 setDesktopAuthLogin(DesktopAuthStatus.Expired);
             }
             return;
         }
 
-        clearInterval(desktopAuthInterval.current);
+        clearInterval(desktopAuthInterval.current as unknown as number);
         setDesktopAuthLogin(DesktopAuthStatus.Complete);
         await postSubmit(userProfile);
     };
