@@ -73,7 +73,7 @@ function getNotificationsStateFromProps(props: Props): State {
     let sound: UserNotifyProps['desktop_sound'] = 'true';
     let callsSound: UserNotifyProps['calls_desktop_sound'] = 'true';
     let desktopNotificationSound: UserNotifyProps['desktop_notification_sound'] = 'Bing';
-    let callsNotificationSound: UserNotifyProps['calls_notification_sound'] = 'Dynamic';
+    let callsNotificationSound: UserNotifyProps['calls_notification_sound'] = 'Calm';
     let comments: UserNotifyProps['comments'] = 'never';
     let enableEmail: UserNotifyProps['email'] = 'true';
     let pushActivity: UserNotifyProps['push'] = NotificationLevels.MENTION;
