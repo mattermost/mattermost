@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
+import {notifyMe} from 'actions/notification_actions';
 import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 
 import BotTag from 'components/widgets/tag/bot_tag';
@@ -50,6 +51,7 @@ window.useNotifyAdmin = useNotifyAdmin;
 window.WebappUtils = {
     modals: {openModal, ModalIdentifiers},
     notificationSounds: {ring: NotificationSounds.ring, stopRing: NotificationSounds.stopRing},
+    sendDesktopNotificationToMe: notifyMe,
 };
 Object.defineProperty(window.WebappUtils, 'browserHistory', {
     get: () => getHistory(),

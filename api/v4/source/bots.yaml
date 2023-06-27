@@ -1,0 +1,800 @@
+  /api/v4/bots:
+    post:
+      tags:
+        - bots
+      summary: Create a bot
+      description: |
+        Create a new bot account on the system. Username is required.
+        ##### Permissions
+        Must have `create_bot` permission.
+        __Minimum server version__: 5.10
+      operationId: CreateBot
+      requestBody:
+          description: Bot to be created
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - username
+                properties:
+                  username:
+                    type: string
+                  display_name:
+                    type: string
+                  description:
+                    type: string
+      responses:
+        "201":
+          description: Bot creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bot"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $resp = $driver->getBotModel()->createBot([
+                "username" => "userbot",
+                "display_name" => "AwesomeBot",
+                "description" => "test bot"
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $createdBot = json_decode($resp->getBody());
+            }
+    get:
+      tags:
+        - bots
+      summary: Get bots
+      description: >
+        Get a page of a list of bots.
+
+        ##### Permissions
+
+        Must have `read_bots` permission for bots you are managing, and `read_others_bots` permission for bots others are managing.
+
+        __Minimum server version__: 5.10
+      operationId: GetBots
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of users per page. There is a maximum limit of 200 users
+            per page.
+          schema:
+            type: integer
+            default: 60
+        - name: include_deleted
+          in: query
+          description: If deleted bots should be returned.
+          schema:
+            type: boolean
+        - name: only_orphaned
+          in: query
+          description: When true, only orphaned bots will be returned. A bot is consitered
+            orphaned if it's owner has been deactivated.
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Bot page retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Bot"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $resp = $driver->getBotModel()->getBots([
+                "page" => 0,
+                "per_page" => 60,
+                "include_deleted" => true,
+                "only_orphaned" => true,
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $bots = json_decode($resp->getBody());
+            }
+  "/api/v4/bots/{bot_user_id}":
+    put:
+      tags:
+        - bots
+      summary: Patch a bot
+      description: >
+        Partially update a bot by providing only the fields you want to update.
+        Omitted fields will not be updated. The fields that can be updated are
+        defined in the request body, all other provided fields will be ignored.
+
+        ##### Permissions
+
+        Must have `manage_bots` permission. 
+
+        __Minimum server version__: 5.10
+      operationId: PatchBot
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+          description: Bot to be created
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - username
+                properties:
+                  username:
+                    type: string
+                  display_name:
+                    type: string
+                  description:
+                    type: string
+      responses:
+        "200":
+          description: Bot patch successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bot"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
+
+            $resp = $driver->getBotModel()->patchBot($botUserID, [
+                "username" => "userbot2",
+                "display_name" => "AwesomeBot2",
+                "description" => "test bot2"
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $bot = json_decode($resp->getBody());
+            }
+    get:
+      tags:
+        - bots
+      summary: Get a bot
+      description: >
+        Get a bot specified by its bot id.
+
+        ##### Permissions
+
+        Must have `read_bots` permission for bots you are managing, and `read_others_bots` permission for bots others are managing.
+
+        __Minimum server version__: 5.10
+      operationId: GetBot
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+        - name: include_deleted
+          in: query
+          description: If deleted bots should be returned.
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Bot successfully retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bot"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
+
+            $resp = $driver->getBotModel()->getBot($botUserID, [
+                "include_deleted" => true,
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $bot = json_decode($resp->getBody());
+            }
+  "/api/v4/bots/{bot_user_id}/disable":
+    post:
+      tags:
+        - bots
+      summary: Disable a bot
+      description: |
+        Disable a bot.
+        ##### Permissions
+        Must have `manage_bots` permission. 
+        __Minimum server version__: 5.10
+      operationId: DisableBot
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bot successfully disabled.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bot"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
+
+            $resp = $driver->getBotModel()->disableBot($botUserID);
+
+            if ($resp->getStatusCode() == 200) {
+                $disabledBot = json_decode($resp->getBody());
+            }
+  "/api/v4/bots/{bot_user_id}/enable":
+    post:
+      tags:
+        - bots
+      summary: Enable a bot
+      description: |
+        Enable a bot.
+        ##### Permissions
+        Must have `manage_bots` permission. 
+        __Minimum server version__: 5.10
+      operationId: EnableBot
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bot successfully enabled.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bot"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
+
+            $resp = $driver->getBotModel()->enableBot($botUserID);
+
+            if ($resp->getStatusCode() == 200) {
+                $enabledBot = json_decode($resp->getBody());
+            }
+  "/api/v4/bots/{bot_user_id}/assign/{user_id}":
+    post:
+      tags:
+        - bots
+      summary: Assign a bot to a user
+      description: |
+        Assign a bot to a specified user.
+        ##### Permissions
+        Must have `manage_bots` permission. 
+        __Minimum server version__: 5.10
+      operationId: AssignBot
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          description: The user ID to assign the bot to.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bot successfully assigned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bot"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
+            $userID = "adWv1qPZmHdtxk7Lmqh6RtxWxS";
+
+            $resp = $driver->getBotModel()->assignBotToUser($botUserID, $userID);
+
+            if ($resp->getStatusCode() == 200) {
+                $assignedBot = json_decode($resp->getBody());
+            }
+  "/api/v4/bots/{bot_user_id}/icon":
+    get:
+      tags:
+        - bots
+      summary: Get bot's LHS icon
+      description: |
+        Get a bot's LHS icon image based on bot_user_id string parameter.
+        ##### Permissions
+        Must be logged in.
+        __Minimum server version__: 5.14
+      operationId: GetBotIconImage
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bot's LHS icon image
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            botUserID := "4xp9fdt77pncbef59f4k1qe83o"
+
+            data, resp := Client.GetBotIconImage(botUserID)
+        - lang: PHP
+          source: |
+             require 'vendor/autoload.php';
+
+             use \Gnello\Mattermost\Driver;
+
+             $container = new \Pimple\Container([
+                 "driver" => [
+                     "url" => "https://your-mattermost-url.com",
+                     "login_id" => "email@domain.com",
+                     "password" => "Password1",
+                 ]
+             ]);
+
+             $driver = new Driver($container);
+             $driver->authenticate();
+
+             $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
+
+             $resp = $driver->getBotModel()->getBotIcon($botUserID);
+
+             if ($resp->getStatusCode() == 200) {
+                 $data = json_decode($resp->getBody());
+             }
+    post:
+      tags:
+        - bots
+      summary: Set bot's LHS icon image
+      description: >
+        Set a bot's LHS icon image based on bot_user_id string parameter. Icon
+        image must be SVG format, all other formats are rejected.
+
+        ##### Permissions
+
+        Must have `manage_bots` permission.
+
+        __Minimum server version__: 5.14
+      operationId: SetBotIconImage
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  description: SVG icon image to be uploaded
+                  type: string
+                  format: binary
+              required:
+                - image
+      responses:
+        "200":
+          description: SVG icon image set successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import (
+              "io/ioutil"
+              "log"
+
+              "github.com/mattermost/mattermost-server/v5/model"
+            )
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            data, err := ioutil.ReadFile("icon_image.svg")
+            if err != nil {
+              log.Fatal(err)
+            }
+
+            botUserID := "4xp9fdt77pncbef59f4k1qe83o"
+
+            ok, resp := Client.SetBotIconImage(botUserID, data)
+        - lang: PHP
+          source: |
+              require 'vendor/autoload.php';
+
+              use \Gnello\Mattermost\Driver;
+
+              $container = new \Pimple\Container([
+                  "driver" => [
+                      "url" => "https://your-mattermost-url.com",
+                      "login_id" => "email@domain.com",
+                      "password" => "Password1",
+                  ]
+              ]);
+
+              $driver = new Driver($container);
+              $driver->authenticate();
+
+              $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
+              $resource = fopen("icon_image.svg", 'rb');
+
+              if ($resource === false) {
+                  throw new \Exeption("Failure.");
+              }
+
+              $data = new \GuzzleHttp\Psr7\Stream($resource);
+
+              $resp = $driver->getBotModel()->setBotIcon($botUserID, [
+                  "image" => $data,
+              ]);
+
+              fclose($resource);
+
+              if ($resp->getStatusCode() == 200) {
+                  $ok = json_decode($resp->getBody())->status;
+              }
+    delete:
+      tags:
+        - bots
+      summary: Delete bot's LHS icon image
+      description: |
+        Delete bot's LHS icon image based on bot_user_id string parameter.
+        ##### Permissions
+        Must have `manage_bots` permission.
+        __Minimum server version__: 5.14
+      operationId: DeleteBotIconImage
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Icon image deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            botUserID := "4xp9fdt77pncbef59f4k1qe83o"
+
+            ok, resp := Client.DeleteBotIconImage(botUserID)
+        - lang: PHP
+          source: |
+              require 'vendor/autoload.php';
+
+              use \Gnello\Mattermost\Driver;
+
+              $container = new \Pimple\Container([
+                  "driver" => [
+                      "url" => "https://your-mattermost-url.com",
+                      "login_id" => "email@domain.com",
+                      "password" => "Password1",
+                  ]
+              ]);
+
+              $driver = new Driver($container);
+              $driver->authenticate();
+
+              $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
+
+              $resp = $driver->getBotModel()->deleteBotIcon($botUserID);
+
+              if ($resp->getStatusCode() == 200) {
+                  $ok = json_decode($resp->getBody())->status;
+              }
+  "/api/v4/bots/{bot_user_id}/convert_to_user":
+    post:
+      tags:
+        - bots
+        - users
+      summary: Convert a bot into a user
+      description: |
+        Convert a bot into a user.
+
+        __Minimum server version__: 5.26
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: ConvertBotToUser
+      parameters:
+        - name: bot_user_id
+          in: path
+          description: Bot user ID
+          required: true
+          schema:
+            type: string
+        - name: set_system_admin
+          in: query
+          description: Whether to give the user the system admin role.
+          schema:
+            type: boolean
+            default: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                nickname:
+                  type: string
+                locale:
+                  type: string
+                position:
+                  type: string
+                props:
+                  type: object
+                notify_props:
+                  $ref: "#/components/schemas/UserNotifyProps"
+        description: Data to be used in the user creation
+        required: true
+      responses:
+        "200":
+          description: Bot successfully converted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+
+            userId := "BbaYBYDV5IDOZFiJGBSzkw1k5u"
+            patch := &model.UserPatch{}
+            patch.Email = model.NewString("test@domain.com")
+            patch.Username = model.NewString("testUsername")
+            patch.Password = model.NewString("password")
+
+            user, resp := Client.ConvertBotToUser(userId, userPatch, false)
