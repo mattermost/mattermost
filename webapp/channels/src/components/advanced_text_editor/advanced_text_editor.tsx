@@ -78,7 +78,6 @@ type Props = {
     handlePostError: (postError: React.ReactNode) => void;
     emitTypingEvent: () => void;
     handleMouseUpKeyUp: (e: React.MouseEvent<TextboxElement> | React.KeyboardEvent<TextboxElement>) => void;
-    handleSelect: (e: React.SyntheticEvent<TextboxElement>) => void;
     handleKeyDown: (e: React.KeyboardEvent<TextboxElement>) => void;
     postMsgKeyPress: (e: React.KeyboardEvent<TextboxElement>) => void;
     handleChange: (e: React.ChangeEvent<TextboxElement>) => void;
@@ -136,7 +135,6 @@ const AdvanceTextEditor = ({
     handlePostError,
     emitTypingEvent,
     handleMouseUpKeyUp,
-    handleSelect,
     handleKeyDown,
     postMsgKeyPress,
     handleChange,
@@ -473,7 +471,6 @@ const AdvanceTextEditor = ({
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}
                             onKeyDown={handleKeyDown}
-                            onSelect={handleSelect}
                             onMouseUp={handleMouseUpKeyUp}
                             onKeyUp={handleMouseUpKeyUp}
                             onComposition={emitTypingEvent}

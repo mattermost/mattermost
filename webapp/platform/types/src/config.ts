@@ -195,7 +195,6 @@ export type ClientConfig = {
     DisableAppBar: string;
     EnableComplianceExport: string;
     PostPriority: string;
-    ReduceOnBoardingTaskList: string;
     PostAcknowledgements: string;
     AllowPersistentNotifications: string;
     PersistentNotificationMaxRecipients: string;

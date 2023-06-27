@@ -210,7 +210,7 @@ export function sendDesktopNotification(post, msgProps) {
     };
 }
 
-const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
+export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
     // handle notifications in desktop app
     if (isDesktopApp()) {
         const msg = {

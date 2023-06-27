@@ -33,9 +33,6 @@ const (
 	PreferenceRecommendedNextSteps        = "recommended_next_steps"
 	PreferenceNameInsights                = "insights_tutorial_state"
 
-	// initial onboarding preferences
-	PreferenceOnboarding = "onboarding"
-
 	PreferenceCategoryTheme = "theme"
 	// the name for theme props is the team id
 
