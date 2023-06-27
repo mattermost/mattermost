@@ -54,7 +54,6 @@ export default class SearchSuggestionList extends SuggestionList {
     constructor(props: Props) {
         super(props);
 
-        // this.itemRefs = new Map();
         this.popoverRef = React.createRef();
         this.itemsContainerRef = React.createRef();
         this.suggestionReadOut = React.createRef();

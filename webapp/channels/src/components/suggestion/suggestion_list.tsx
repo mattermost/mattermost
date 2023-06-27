@@ -12,8 +12,6 @@ import {isEmptyObject} from 'utils/utils';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-// When this file is migrated to TypeScript, type definitions for its props already exist in ./suggestion_list.d.ts.
-
 interface Props {
     ariaLiveRef?: React.Ref<HTMLDivElement>;
     inputRef?: React.Ref<HTMLInputElement>;
@@ -49,7 +47,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
     };
     contentRef: React.RefObject<HTMLDivElement>;
     wrapperRef: React.RefObject<HTMLDivElement>;
-    itemRefs: Map<any, any>;
+    itemRefs: Map<string, any>;
     currentLabel: string | null;
     currentItem: any;
     maxHeight: number;
@@ -92,7 +90,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
             return;
         }
 
-        //const inputElement = (this.props.inputRef as React.RefObject<HTMLInputElement>).current;
         const inputHeight = (this.props.inputRef as React.RefObject<HTMLInputElement>).current!.clientHeight ?? 0;
 
         this.maxHeight = Math.min(
@@ -106,14 +103,14 @@ export default class SuggestionList extends React.PureComponent<Props> {
     };
 
     announceLabel() {
-        const suggestionReadOut = (this.props.ariaLiveRef as React.RefObject<HTMLDivElement>).current;
+        const suggestionReadOut = (this.props.ariaLiveRef as React.RefObject<HTMLDivElement>)?.current;
         if (suggestionReadOut) {
             suggestionReadOut.innerHTML = this.currentLabel as string;
         }
     }
 
     removeLabel() {
-        const suggestionReadOut = (this.props.ariaLiveRef as React.RefObject<HTMLDivElement>).current;
+        const suggestionReadOut = (this.props.ariaLiveRef as React.RefObject<HTMLDivElement>)?.current;
         if (suggestionReadOut) {
             suggestionReadOut.innerHTML = '';
         }
@@ -145,7 +142,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
         return this.contentRef.current;
     };
 
-    scrollToItem = (term: any) => {
+    scrollToItem = (term: string) => {
         const content = this.getContent();
         if (!content) {
             return;
@@ -180,7 +177,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
     };
 
     getComputedCssProperty(element: Element, property: string) {
-        return parseInt(getComputedStyle(element)[property as keyof CSSStyleDeclaration] as string, 10);
+        return parseInt(getComputedStyle(element).getPropertyValue(property), 10);
     }
 
     getTransform() {
