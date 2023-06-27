@@ -1260,7 +1260,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  // Cannot update a system admin unless user making request is a systemadmin also.
+	// Cannot update a system admin unless user making request is a systemadmin also.
 	if ouser.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
