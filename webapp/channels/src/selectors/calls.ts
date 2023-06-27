@@ -4,8 +4,8 @@
 import {GlobalState} from 'types/store';
 import {PostTypes, suitePluginIds} from 'utils/constants';
 import semver from 'semver';
-import {Post} from '@mattermost/types/src/posts';
-import {Channel} from '@mattermost/types/src/channels';
+import {Post} from '@mattermost/types/posts';
+import {Channel} from '@mattermost/types/channels';
 import {General} from 'mattermost-redux/constants';
 
 export function isCallsEnabled(state: GlobalState, minVersion = '0.4.2') {
