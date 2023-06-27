@@ -803,6 +803,7 @@ export const PostTypes = {
     REMOVE_LINK_PREVIEW: 'remove_link_preview',
     ME: 'me',
     REMINDER: 'reminder',
+    CUSTOM_CALLS: 'custom_calls',
 };
 
 export const StatTypes = keyMirror({
