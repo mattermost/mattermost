@@ -2,24 +2,20 @@
 // See LICENSE.txt for license information.
 
 import marked from 'marked';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import FormattedMarkdownMessage, {CustomRenderer} from 'components/formatted_markdown_message';
 
-export default class SchemaText extends React.PureComponent {
-    static propTypes = {
-        isMarkdown: PropTypes.bool,
-        isTranslated: PropTypes.bool,
-        text: PropTypes.oneOfType([
-            PropTypes.string,
-            PropTypes.object,
-        ]).isRequired,
-        textDefault: PropTypes.string,
-        textValues: PropTypes.object,
-    };
+type Props = {
+    isMarkdown?: boolean;
+    isTranslated?: boolean;
+    text: string | object;
+    textDefault?: string;
+    textValues?: Record<string, React.ReactNode>;
+}
 
+export default class SchemaText extends React.PureComponent<Props> {
     static defaultProps = {
         isTranslated: true,
     };
@@ -56,8 +52,12 @@ export default class SchemaText extends React.PureComponent {
     };
 
     renderUntranslated = () => {
-        if (this.props.isMarkdown) {
-            const html = marked(this.props.text, {
+        const {isMarkdown, text} = this.props;
+        if (isMarkdown) {
+            if (typeof text === 'object') {
+                return text;
+            }
+            const html = marked(text, {
                 breaks: true,
                 sanitize: true,
                 renderer: new CustomRenderer(),
@@ -66,7 +66,7 @@ export default class SchemaText extends React.PureComponent {
             return <span dangerouslySetInnerHTML={{__html: html}}/>;
         }
 
-        return <span>{this.props.text}</span>;
+        return <span>{text}</span>;
     };
 
     render() {
