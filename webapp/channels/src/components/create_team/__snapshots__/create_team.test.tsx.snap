@@ -2,7 +2,7 @@
 
 exports[`component/create_team should match snapshot default 1`] = `
 <div>
-  <Connect(Component) />
+  <Connect(_class) />
   <BackButton
     url="/undefined/channels/undefined"
   />
