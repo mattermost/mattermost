@@ -100,6 +100,7 @@ class TestHelper {
                 comments: 'never',
                 desktop: 'default',
                 desktop_sound: 'false',
+                calls_desktop_sound: 'true',
                 email: 'false',
                 first_name: 'false',
                 mark_unread: 'mention',
@@ -140,6 +141,7 @@ class TestHelper {
                 comments: 'never',
                 desktop: 'default',
                 desktop_sound: 'false',
+                calls_desktop_sound: 'true',
                 email: 'false',
                 first_name: 'false',
                 mark_unread: 'mention',
@@ -463,6 +465,7 @@ class TestHelper {
         return {
             desktop: 'default',
             desktop_sound: 'true',
+            calls_desktop_sound: 'true',
             email: 'true',
             mark_unread: 'all',
             push: 'default',

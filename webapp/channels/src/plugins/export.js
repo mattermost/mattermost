@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
+import {notifyMe} from 'actions/notification_actions';
 import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 
 import BotTag from 'components/widgets/tag/bot_tag';
 
 import messageHtmlToComponent from 'utils/message_html_to_component';
+import * as NotificationSounds from 'utils/notification_sounds';
 import {formatText} from 'utils/text_formatting';
 import {getHistory} from 'utils/browser_history';
 
@@ -48,6 +50,8 @@ window.openInteractiveDialog = openInteractiveDialog;
 window.useNotifyAdmin = useNotifyAdmin;
 window.WebappUtils = {
     modals: {openModal, ModalIdentifiers},
+    notificationSounds: {ring: NotificationSounds.ring, stopRing: NotificationSounds.stopRing},
+    sendDesktopNotificationToMe: notifyMe,
 };
 Object.defineProperty(window.WebappUtils, 'browserHistory', {
     get: () => getHistory(),

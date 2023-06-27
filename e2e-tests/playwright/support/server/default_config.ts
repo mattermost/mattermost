@@ -36,7 +36,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             ClusterName: testConfig.haClusterName,
         },
         ExperimentalSettings: {
-            EnableAppBar: true,
+            DisableAppBar: false,
         },
         PasswordSettings: {
             MinimumLength: 5,
@@ -312,6 +312,8 @@ const defaultServerConfig: AdminConfig = {
         ConnectionSecurity: '',
         SendPushNotifications: true,
         PushNotificationServer: 'https://push-test.mattermost.com',
+        PushNotificationServerType: 'custom',
+        PushNotificationServerLocation: 'us',
         PushNotificationContents: 'full',
         PushNotificationBuffer: 1000,
         EnableEmailBatching: false,
@@ -338,11 +340,11 @@ const defaultServerConfig: AdminConfig = {
         ShowFullName: true,
     },
     SupportSettings: {
-        TermsOfServiceLink: 'https://mattermost.com/terms-of-use/',
-        PrivacyPolicyLink: 'https://mattermost.com/privacy-policy/',
-        AboutLink: 'https://docs.mattermost.com/about/product.html/',
-        HelpLink: 'https://mattermost.com/default-help/',
-        ReportAProblemLink: 'https://mattermost.com/default-report-a-problem/',
+        TermsOfServiceLink: 'https://mattermost.com/pl/terms-of-use/',
+        PrivacyPolicyLink: 'https://mattermost.com/pl/privacy-policy/',
+        AboutLink: 'https://docs.mattermost.com/pl/about-mattermost',
+        HelpLink: 'https://mattermost.com/pl/help/',
+        ReportAProblemLink: 'https://mattermost.com/pl/report-a-bug',
         SupportEmail: '',
         CustomTermsOfServiceEnabled: false,
         CustomTermsOfServiceReAcceptancePeriod: 365,
@@ -500,9 +502,9 @@ const defaultServerConfig: AdminConfig = {
     },
     NativeAppSettings: {
         AppCustomURLSchemes: ['mmauth://', 'mmauthbeta://'],
-        AppDownloadLink: 'https://mattermost.com/download/#mattermostApps',
-        AndroidAppDownloadLink: 'https://mattermost.com/mattermost-android-app/',
-        IosAppDownloadLink: 'https://mattermost.com/mattermost-ios-app/',
+        AppDownloadLink: 'https://mattermost.com/pl/download-apps',
+        AndroidAppDownloadLink: 'https://mattermost.com/pl/android-app/',
+        IosAppDownloadLink: 'https://mattermost.com/pl/ios-app/',
     },
     ClusterSettings: {
         Enable: false,
@@ -534,7 +536,7 @@ const defaultServerConfig: AdminConfig = {
         UseNewSAMLLibrary: false,
         EnableSharedChannels: false,
         EnableRemoteClusterService: false,
-        EnableAppBar: false,
+        DisableAppBar: true,
         DisableRefetchingOnBrowserFocus: false,
         DelayChannelAutocomplete: false,
     },
@@ -606,9 +608,7 @@ const defaultServerConfig: AdminConfig = {
         CleanupJobsThresholdDays: -1,
         CleanupConfigThresholdDays: -1,
     },
-    ProductSettings: {
-        EnablePlaybooks: true,
-    },
+    ProductSettings: {},
     PluginSettings: {
         Enable: true,
         EnableUploads: false,
@@ -618,9 +618,6 @@ const defaultServerConfig: AdminConfig = {
         ClientDirectory: './client/plugins',
         Plugins: {},
         PluginStates: {
-            'com.mattermost.apps': {
-                Enable: true,
-            },
             'com.mattermost.calls': {
                 Enable: true,
             },
@@ -678,12 +675,10 @@ const defaultServerConfig: AdminConfig = {
         WysiwygEditor: false,
         PeopleProduct: false,
         ReduceOnBoardingTaskList: false,
-        OnboardingAutoShowLinkedBoard: false,
         ThreadsEverywhere: false,
         GlobalDrafts: true,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
-        AppsSidebarCategory: false,
         CloudReverseTrial: false,
     },
     ImportSettings: {
