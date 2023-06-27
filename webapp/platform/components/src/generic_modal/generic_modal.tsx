@@ -95,6 +95,9 @@ export class GenericModal extends React.PureComponent<Props, State> {
 
     private onEnterKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (event.key === 'Enter') {
+            if (event.nativeEvent.isComposing) {
+                return;
+            }
             if (this.props.autoCloseOnConfirmButton) {
                 this.onHide();
             }

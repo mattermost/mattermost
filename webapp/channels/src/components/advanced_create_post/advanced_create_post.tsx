@@ -1127,10 +1127,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         });
     };
 
-    handleSelect = (e: React.SyntheticEvent<Element, Event>) => {
-        Utils.adjustSelection(this.textboxRef.current?.getInputBox(), e as React.KeyboardEvent<HTMLInputElement>);
-    };
-
     handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
         const messageIsEmpty = this.state.message.length === 0;
         const draftMessageIsEmpty = this.props.draft.message.length === 0;
@@ -1467,7 +1463,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
             const draft = {
                 ...this.props.draft,
-                newMessage,
+                message: newMessage,
             };
 
             this.handleDraftChange(draft);
@@ -1612,7 +1608,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                     handlePostError={this.handlePostError}
                     emitTypingEvent={this.emitTypingEvent}
                     handleMouseUpKeyUp={this.handleMouseUpKeyUp}
-                    handleSelect={this.handleSelect}
                     handleKeyDown={this.handleKeyDown}
                     postMsgKeyPress={this.postMsgKeyPress}
                     handleChange={this.handleChange}

@@ -401,7 +401,9 @@ function applyBoldItalicMarkdown({selectionEnd, selectionStart, message, markdow
     };
 }
 
-export function applyLinkMarkdown({selectionEnd, selectionStart, message, url = 'url'}: ApplyLinkMarkdownOptions) {
+export const DEFAULT_PLACEHOLDER_URL = 'url';
+
+export function applyLinkMarkdown({selectionEnd, selectionStart, message, url = DEFAULT_PLACEHOLDER_URL}: ApplyLinkMarkdownOptions) {
     // <prefix> <selection> <suffix>
     const prefix = message.slice(0, selectionStart);
     const selection = message.slice(selectionStart, selectionEnd);
