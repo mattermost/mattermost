@@ -177,11 +177,6 @@ export const TrialPeriodDays = {
 
 export const suitePluginIds = {
     playbooks: 'playbooks',
-
-    /**
-     * @deprecated This only applies to the Boards plugin and will not work with the Boards product. Both cases need
-     * to be supported until we enable the Boards product permanently.
-     */
     focalboard: 'focalboard',
 
     apps: 'com.mattermost.apps',
