@@ -6,8 +6,8 @@ package testlib
 import (
 	"sync"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 type FakeClusterInterface struct {

@@ -1,0 +1,40 @@
+{
+  "postgres": {
+    "10": "postgres:10@sha256:7a484b11fcabd39596b1bf08780cdb61fa9b0d8bfad0844dbdce3a6922df95d1",
+    "12": "postgres:12@sha256:cc7a021d9aff3aa02788d35c27a5cc32d4790ad92d72232a6be75b76ab7d79db"
+  },
+  "mysql": {
+    "5.7.12": "mysql/mysql-server:5.7.12@sha256:3f0d90736a3298bb04965db697a3a85f1df1480da49eafd256be1ea2b9b5337e"
+  },
+  "minio": {
+    "RELEASE.2019-10-11T00-38-09Z-1": "minio/minio:RELEASE.2019-10-11T00-38-09Z@sha256:0d02f16a1662653f9b961211b21ed7de04bf04492f44c2b7594bacbfcc519eb5"
+  },
+  "inbucket": {
+    "3.0.0": "inbucket/inbucket:3.0.0@sha256:1f10a0efea694592c06799c729aee1d6d71c9a4f72b73031d4a426ef5f26dfc1"
+  },
+  "openldap": {
+    "1.4.0": "osixia/openldap:1.4.0@sha256:d5b2f2b816b25a1b57033b34f5d48c91cc3161a7d041811a9032604030bad9db"
+  },
+  "keycloak": {
+    "10.0.2": "jboss/keycloak:10.0.2@sha256:3720b5ace316b5790a58ce838f46e8cd44cedbdb7e35d3866311ddc5a5e71466"
+  },
+  "dejavu": {
+    "3.4.2": "appbaseio/dejavu:3.4.2@sha256:8f2f4d45565da53c4235495737fff3921d302955daeb2f53a433c7b0e2044951"
+  },
+  "prometheus": {
+    "v2.27.1": "prom/prometheus:v2.27.1@sha256:5accb68b56ba452e449a5e552411acaeabbbe0f087acf19a1157ce3dd10a8bed"
+  },
+  "grafana": {
+    "8.0.1": "grafana/grafana:8.0.1@sha256:1c3e2fc7896adf9e33be5d062c08066087cb556f63b0a95f8aefe92bd37a6f38"
+  },
+  "cypress-browsers-public": {
+    "node16.14.2-slim-chrome100-ff99-edge": "cypress/browsers:node16.14.2-slim-chrome100-ff99-edge@sha256:f8459ee677ce356eff64698095fbdf48eb9ab018fc5eb0d30c07ba23884edace"
+  },
+  "golang": {
+    "1.19.5": "golang:1.19.5@sha256:bb9811fad43a7d6fd2173248d8331b2dcf5ac9af20976b1937ecd214c5b8c383"
+  },
+  "node": {
+    "16.10.0": "node:16.10.0",
+    "16.17.0": "node:16.17.0"
+  }
+}

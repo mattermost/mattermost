@@ -5,7 +5,6 @@ import React from 'react';
 import {shallow, ReactWrapper} from 'enzyme';
 import {IntlProvider} from 'react-intl';
 import {BrowserRouter} from 'react-router-dom';
-import {act, screen} from '@testing-library/react';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
@@ -19,7 +18,7 @@ import {RequestStatus} from 'mattermost-redux/constants';
 import {ClientConfig} from '@mattermost/types/config';
 import {GlobalState} from 'types/store';
 import {WindowSizes} from 'utils/constants';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {act, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 
 let mockState: GlobalState;
 let mockLocation = {pathname: '', search: '', hash: ''};

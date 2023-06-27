@@ -14,7 +14,7 @@ import {DateTime} from 'luxon';
 import {ActionFunc} from 'mattermost-redux/types/actions';
 import {UserStatus} from '@mattermost/types/users';
 
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
 import Constants, {A11yCustomEventTypes, A11yFocusEventDetail, UserStatuses} from 'utils/constants';

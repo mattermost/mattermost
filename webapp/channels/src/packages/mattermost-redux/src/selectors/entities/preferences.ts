@@ -282,17 +282,9 @@ export function localDraftsAreEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'GlobalDrafts') === 'true';
 }
 
-export function isReduceOnBoardingTaskList(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'ReduceOnBoardingTaskList') === 'true';
-}
-
 export function getVisibleDmGmLimit(state: GlobalState) {
     const defaultLimit = 40;
     return getInt(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit);
-}
-
-export function autoShowLinkedBoardFFEnabled(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'OnboardingAutoShowLinkedBoard') === 'true';
 }
 
 export function onboardingTourTipsEnabled(state: GlobalState): boolean {
@@ -305,8 +297,4 @@ export function deprecateCloudFree(state: GlobalState): boolean {
 
 export function cloudReverseTrial(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'CloudReverseTrial') === 'true';
-}
-
-export function appsSidebarCategoryEnabled(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'AppsSidebarCategory') === 'true';
 }

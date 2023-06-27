@@ -216,7 +216,7 @@ Cypress.Commands.add('apiCreateAdmin', () => {
     });
 });
 
-function generateRandomUser(prefix = 'user') {
+function generateRandomUser(prefix = 'user', createAt = 0) {
     const randomId = getRandomId();
 
     return {
@@ -226,18 +226,20 @@ function generateRandomUser(prefix = 'user') {
         first_name: `First${randomId}`,
         last_name: `Last${randomId}`,
         nickname: `Nickname${randomId}`,
+        create_at: createAt,
     };
 }
 
 Cypress.Commands.add('apiCreateUser', ({
     prefix = 'user',
+    createAt = 0,
     bypassTutorial = true,
     hideActionsMenu = true,
     hideOnboarding = true,
     bypassWhatsNewModal = true,
     user = null,
 } = {}) => {
-    const newUser = user || generateRandomUser(prefix);
+    const newUser = user || generateRandomUser(prefix, createAt);
 
     const createUserOption = {
         headers: {'X-Requested-With': 'XMLHttpRequest'},
@@ -260,7 +262,7 @@ Cypress.Commands.add('apiCreateUser', ({
         cy.apiSaveDraftsTourTipPreference(createdUser.id, true);
 
         if (bypassTutorial) {
-            cy.apiSaveTutorialStep(createdUser.id, '999');
+            cy.apiDisableTutorials(createdUser.id);
         }
 
         if (hideActionsMenu) {

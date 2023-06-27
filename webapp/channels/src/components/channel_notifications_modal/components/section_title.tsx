@@ -6,24 +6,43 @@ import {FormattedMessage} from 'react-intl';
 
 import {NotificationSections} from 'utils/constants';
 
+import './section_title.scss';
+
 type Props = {
     section: string;
+    isExpanded?: boolean;
+    isNotificationsSettingSameAsGlobal?: boolean;
+    onClickResetButton?: () => void;
 }
 
-export default function SectionTitle({section}: Props) {
-    if (section === NotificationSections.DESKTOP) {
+export default function SectionTitle({section, isExpanded, isNotificationsSettingSameAsGlobal, onClickResetButton}: Props) {
+    if (section === NotificationSections.DESKTOP || section === NotificationSections.PUSH) {
         return (
-            <FormattedMessage
-                id='channel_notifications.sendDesktop'
-                defaultMessage='Send desktop notifications'
-            />
-        );
-    } else if (section === NotificationSections.PUSH) {
-        return (
-            <FormattedMessage
-                id='channel_notifications.push'
-                defaultMessage='Send mobile push notifications'
-            />
+            <div className='SectionTitle__wrapper'>
+                {section === NotificationSections.DESKTOP &&
+                <FormattedMessage
+                    id='channel_notifications.desktopNotifications'
+                    defaultMessage='Desktop notifications'
+                />}
+
+                {section === NotificationSections.PUSH &&
+                <FormattedMessage
+                    id='channel_notifications.push'
+                    defaultMessage='Mobile push notifications'
+                />}
+                {isExpanded && !isNotificationsSettingSameAsGlobal &&
+                <button
+                    className='SectionTitle__resetButton color--link'
+                    onClick={onClickResetButton}
+                >
+                    <i className='icon icon-refresh'/>
+                    <FormattedMessage
+                        id='channel_notifications.resetToDefaults'
+                        defaultMessage='Reset to defaults'
+                    />
+                </button>
+                }
+            </div>
         );
     } else if (section === NotificationSections.MARK_UNREAD) {
         return (

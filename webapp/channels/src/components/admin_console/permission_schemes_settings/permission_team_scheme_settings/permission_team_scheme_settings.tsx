@@ -14,7 +14,7 @@ import {ServerError} from '@mattermost/types/errors';
 import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 import GeneralConstants from 'mattermost-redux/constants/general';
 
-import {PermissionsScope, ModalIdentifiers} from 'utils/constants';
+import {PermissionsScope, ModalIdentifiers, DocLinks} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 import {t} from 'utils/i18n';
 
@@ -612,7 +612,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                                         values={{
                                             linkTeamOverride: (msg: React.ReactNode) => (
                                                 <ExternalLink
-                                                    href='https://docs.mattermost.com/onboard/advanced-permissions.html'
+                                                    href={DocLinks.ONBOARD_ADVANCED_PERMISSIONS}
                                                     location='permission_team_scheme_settings'
                                                 >
                                                     {msg}
@@ -620,7 +620,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                                             ),
                                             linkSystemScheme: (msg: React.ReactNode) => (
                                                 <ExternalLink
-                                                    href='https://mattermost.com/pl/advanced-permissions/'
+                                                    href={DocLinks.ONBOARD_ADVANCED_PERMISSIONS}
                                                     location='permission_team_scheme_settings'
                                                 >
                                                     {msg}

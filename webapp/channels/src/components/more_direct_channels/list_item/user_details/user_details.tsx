@@ -76,6 +76,11 @@ export default function UserDetails(props: Props): JSX.Element {
                         userID={option.id}
                         showTooltip={true}
                         emojiSize={15}
+                        spanStyle={{
+                            display: 'flex',
+                            flex: '0 0 auto',
+                            alignItems: 'center',
+                        }}
                     />
                 </div>
                 {!isBot && (
