@@ -10,7 +10,7 @@ import {Constants, DocLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import AdminSettings, {BaseProps, BaseState} from './admin_settings';
-import DropdownSetting from './dropdown_setting.jsx';
+import DropdownSetting from './dropdown_setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 import {AdminConfig, ClientLicense, EmailSettings} from '@mattermost/types/config';

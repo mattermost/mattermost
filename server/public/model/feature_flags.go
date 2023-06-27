@@ -86,7 +86,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsEnabled = true
 	f.PostPriority = true
 	f.PeopleProduct = false
-	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
 	f.DeprecateCloudFree = false
