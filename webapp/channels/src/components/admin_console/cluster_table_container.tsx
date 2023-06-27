@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {MouseEvent} from 'react';
 
 import {ClusterInfo} from '@mattermost/types/admin';
 import {getClusterStatus} from 'actions/admin_actions.jsx';
@@ -50,7 +50,7 @@ export default class ClusterTableContainer extends React.PureComponent<object, S
         }
     }
 
-    reload = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    reload = (e: MouseEvent<HTMLButtonElement>) => {
         if (e) {
             e.preventDefault();
         }

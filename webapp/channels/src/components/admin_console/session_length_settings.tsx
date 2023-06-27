@@ -167,7 +167,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionLengthWebInHours')}
                     disabled={this.props.isDisabled}
-                    type={'number'}
+                    type='number'
                 />
                 <TextSetting
                     id='sessionLengthMobileInHours'
@@ -182,7 +182,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionLengthMobileInHours')}
                     disabled={this.props.isDisabled}
-                    type={'number'}
+                    type='number'
                 />
                 <TextSetting
                     id='sessionLengthSSOInHours'
@@ -197,7 +197,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionLengthSSOInHours')}
                     disabled={this.props.isDisabled}
-                    type={'number'}
+                    type='number'
                 />
                 <TextSetting
                     id='sessionCacheInMinutes'
@@ -216,7 +216,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionCacheInMinutes')}
                     disabled={this.props.isDisabled}
-                    type={'number'}
+                    type='number'
                 />
                 {sessionTimeoutSetting}
             </SettingsGroup>
