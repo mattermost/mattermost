@@ -292,7 +292,7 @@ func (a *App) getEmbedForPost(c request.CTX, post *model.Post, firstLink string,
 		return nil, err
 	}
 
-	if !*a.Config().ServiceSettings.EnablePermalinkPreviews || !a.Config().FeatureFlags.PermalinkPreviews {
+	if !*a.Config().ServiceSettings.EnablePermalinkPreviews {
 		permalink = nil
 	}
 
@@ -582,7 +582,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 
 	// Check cache
 	og, image, permalink, ok := getLinkMetadataFromCache(requestURL, timestamp)
-	if !*a.Config().ServiceSettings.EnablePermalinkPreviews || !a.Config().FeatureFlags.PermalinkPreviews {
+	if !*a.Config().ServiceSettings.EnablePermalinkPreviews {
 		permalink = nil
 	}
 
@@ -600,7 +600,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	}
 
 	var err error
-	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews && a.Config().FeatureFlags.PermalinkPreviews {
+	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews {
 		referencedPostID := requestURL[len(requestURL)-26:]
 
 		referencedPost, appErr := a.GetSinglePost(referencedPostID, false)
