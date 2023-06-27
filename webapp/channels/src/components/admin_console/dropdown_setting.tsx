@@ -2,11 +2,23 @@
 // See LICENSE.txt for license information.
 
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {PureComponent, ReactNode, ChangeEvent} from 'react';
 
 import Setting from './setting';
+import {EmailSettings} from '@mattermost/types/config';
 
-export default class DropdownSetting extends React.PureComponent {
+type Props = {
+    id: string;
+    values: Array<{text: string; value: string}>;
+    label: ReactNode;
+    value: string;
+    onChange: (id: string, value: string | EmailSettings['PushNotificationServerType'] | EmailSettings['PushNotificationServerLocation']) => void;
+    disabled?: boolean;
+    setByEnv: boolean;
+    helpText?: ReactNode;
+}
+
+export default class DropdownSetting extends PureComponent<Props> {
     static propTypes = {
         id: PropTypes.string.isRequired,
         values: PropTypes.array.isRequired,
@@ -22,7 +34,7 @@ export default class DropdownSetting extends React.PureComponent {
         isDisabled: false,
     };
 
-    handleChange = (e) => {
+    handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
         this.props.onChange(this.props.id, e.target.value);
     };
 
