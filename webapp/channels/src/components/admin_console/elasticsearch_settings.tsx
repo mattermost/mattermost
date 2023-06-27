@@ -19,7 +19,6 @@ import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 import {AdminConfig} from '@mattermost/types/config';
 import {Job, JobType} from '@mattermost/types/jobs';
-import { DeepPartial } from 'redux';
 
 interface State extends BaseState {
     connectionUrl: string;
