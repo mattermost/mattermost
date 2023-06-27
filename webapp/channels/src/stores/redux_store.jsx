@@ -8,4 +8,8 @@ import configureStore from 'store';
 
 const store = configureStore();
 
+// Export the store to simplify debugging in production environments. This is not a supported API,
+// and should not be relied upon by plugins.
+window.store = store;
+
 export default store;
