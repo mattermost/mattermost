@@ -1486,11 +1486,12 @@ func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
 }
 
 type PasswordSettings struct {
-	MinimumLength *int  `access:"authentication_password"`
-	Lowercase     *bool `access:"authentication_password"`
-	Number        *bool `access:"authentication_password"`
-	Uppercase     *bool `access:"authentication_password"`
-	Symbol        *bool `access:"authentication_password"`
+	MinimumLength    *int  `access:"authentication_password"`
+	Lowercase        *bool `access:"authentication_password"`
+	Number           *bool `access:"authentication_password"`
+	Uppercase        *bool `access:"authentication_password"`
+	Symbol           *bool `access:"authentication_password"`
+	EnableForgotLink *bool `access:"authentication_password"`
 }
 
 func (s *PasswordSettings) SetDefaults() {
@@ -1512,6 +1513,10 @@ func (s *PasswordSettings) SetDefaults() {
 
 	if s.Symbol == nil {
 		s.Symbol = NewBool(false)
+	}
+
+	if s.EnableForgotLink == nil {
+		s.EnableForgotLink = NewBool(true)
 	}
 }
 

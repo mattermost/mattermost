@@ -44,6 +44,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             Number: false,
             Uppercase: false,
             Symbol: false,
+            EnableForgotLink: true,
         },
         PluginSettings: {
             EnableUploads: true,

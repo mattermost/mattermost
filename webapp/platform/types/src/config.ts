@@ -154,6 +154,7 @@ export type ClientConfig = {
     GitLabButtonColor: string;
     OpenIdButtonText: string;
     OpenIdButtonColor: string;
+    PasswordEnableForgotLink: string;
     PasswordMinimumLength: string;
     PasswordRequireLowercase: string;
     PasswordRequireNumber: string;
@@ -477,6 +478,7 @@ export type PasswordSettings = {
     Number: boolean;
     Uppercase: boolean;
     Symbol: boolean;
+    EnableForgotLink: boolean;
 };
 
 export type FileSettings = {

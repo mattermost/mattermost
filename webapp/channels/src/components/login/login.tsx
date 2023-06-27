@@ -100,6 +100,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         SiteName,
         ExperimentalPrimaryTeam,
         ForgotPasswordLink,
+        PasswordEnableForgotLink,
     } = useSelector(getConfig);
     const {IsLicensed} = useSelector(getLicense);
     const initializing = useSelector((state: GlobalState) => state.requests.users.logout.status === RequestStatus.SUCCESS || !state.storage.initialized);
@@ -706,6 +707,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     };
 
     const getResetPasswordLink = () => {
+        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false') {
+            return null;
+        }
+
         if (ForgotPasswordLink) {
             return (
                 <div className='login-body-card-form-link'>

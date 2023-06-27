@@ -296,6 +296,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
 	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
 	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
+	props["PasswordEnableForgotLink"] = strconv.FormatBool(*c.PasswordSettings.EnableForgotLink)
 
 	// Set default values for all options that require a license.
 	props["EnableCustomBrand"] = "false"
