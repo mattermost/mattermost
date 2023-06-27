@@ -1,18 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import {getGroups} from 'mattermost-redux/actions/groups';
+import {connect, ConnectedProps} from 'react-redux';
 import {t} from 'utils/i18n';
 import {Group} from '@mattermost/types/groups';
 import List from './group_list';
 import {GlobalState} from 'types/store';
 
-type Actions = {
-    getData(): Promise<Group[]>;
-}
 type OwnProps = {
     groups: Group[];
     totalGroups: number;
@@ -32,13 +26,12 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch) {
-    return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
-            getData: () => getGroups(),
-        }, dispatch),
-    };
-}
+const mapDispatchToProps = {
+    getData: () => Promise.resolve(),
+};
 
-export default connect(mapStateToProps, mapDispatchToProps)(List);
+const connector = connect(mapStateToProps, mapDispatchToProps);
 
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(List);
