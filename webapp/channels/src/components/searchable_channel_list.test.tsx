@@ -3,12 +3,14 @@
 
 import React from 'react';
 import {shallow} from 'enzyme';
+import {TestHelper} from 'utils/test_helper';
+
 
 import SearchableChannelList from 'components/searchable_channel_list';
 
 describe('components/SearchableChannelList', () => {
     const baseProps = {
-        channels: [],
+        channels: [TestHelper.getChannelMock({})],
         isSearch: false,
         channelsPerPage: 10,
         nextPage: jest.fn(),
@@ -18,6 +20,7 @@ describe('components/SearchableChannelList', () => {
         toggleArchivedChannels: jest.fn(),
         closeModal: jest.fn(),
         hideJoinedChannelsPreference: jest.fn(),
+        myChannelMemberships: {},
         shouldShowArchivedChannels: false,
         canShowArchivedChannels: false,
         rememberHideJoinedChannelsChecked: false,
