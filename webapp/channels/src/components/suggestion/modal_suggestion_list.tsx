@@ -10,7 +10,7 @@ import {getClosestParent} from 'utils/utils';
 interface SuggestionItem {}
 
 type SuggestionListProps = {
-    ariaLiveRef?: React.Ref<HTMLDivElement>;
+    ariaLiveRef?: React.RefObject<HTMLDivElement>;
     renderDividers?: string[];
     renderNoResults?: boolean;
     preventClose?: () => void;

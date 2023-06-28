@@ -13,8 +13,8 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 interface Props {
-    ariaLiveRef?: React.Ref<HTMLDivElement>;
-    inputRef?: React.Ref<HTMLInputElement>;
+    ariaLiveRef?: React.RefObject<HTMLDivElement>;
+    inputRef?: React.RefObject<HTMLDivElement>;
     open: boolean;
     position?: 'top' | 'bottom';
     renderDividers?: string[];
@@ -103,14 +103,14 @@ export default class SuggestionList extends React.PureComponent<Props> {
     };
 
     announceLabel() {
-        const suggestionReadOut = (this.props.ariaLiveRef as React.RefObject<HTMLDivElement>)?.current;
+        const suggestionReadOut = (this.props.ariaLiveRef)?.current;
         if (suggestionReadOut) {
             suggestionReadOut.innerHTML = this.currentLabel as string;
         }
     }
 
     removeLabel() {
-        const suggestionReadOut = (this.props.ariaLiveRef as React.RefObject<HTMLDivElement>)?.current;
+        const suggestionReadOut = (this.props.ariaLiveRef)?.current;
         if (suggestionReadOut) {
             suggestionReadOut.innerHTML = '';
         }

@@ -18,8 +18,8 @@ interface Item extends UserProfile {
 }
 
 interface Props {
-    ariaLiveRef?: React.Ref<HTMLDivElement>;
-    inputRef?: React.Ref<HTMLInputElement>;
+    ariaLiveRef?: React.RefObject<HTMLDivElement>;
+    inputRef?: React.RefObject<HTMLInputElement>;
     open: boolean;
     position?: 'top' | 'bottom';
     renderDividers?: string[];
