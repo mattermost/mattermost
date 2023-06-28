@@ -1089,7 +1089,6 @@ func TestAllowChannelMentions(t *testing.T) {
 }
 
 func TestAllowGroupMentions(t *testing.T) {
-	t.Skip("MM-41972")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1114,6 +1113,9 @@ func TestAllowGroupMentions(t *testing.T) {
 			})
 		}
 	})
+
+	// we set the enterprise license for the rest of the tests
+	th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuEnterprise))
 
 	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
 		allowGroupMentions := th.App.allowGroupMentions(th.Context, post)
