@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`LegacyGenericModal should match snapshot for base case 1`] = `
+exports[`GenericModal should match snapshot for base case 1`] = `
 Object {
   "asFragment": [Function],
   "baseElement": <body
@@ -31,10 +31,6 @@ Object {
             class="modal-content"
             role="document"
           >
-            <div
-              data-testid="sentinelStart"
-              tabindex="-1"
-            />
             <div
               class="GenericModal__wrapper-enter-key-press-catcher"
               tabindex="0"
@@ -76,10 +72,6 @@ Object {
                 />
               </div>
             </div>
-            <div
-              data-testid="sentinelEnd"
-              tabindex="-1"
-            />
           </div>
         </div>
       </div>
