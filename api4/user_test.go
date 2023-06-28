@@ -1920,7 +1920,7 @@ func TestUpdateAdminUser(t *testing.T) {
 	th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
-	_, resp, err := th.Client.UpdateUser(context.Background(), user)
+	_, resp, err := th.Client.UpdateUser(user)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
