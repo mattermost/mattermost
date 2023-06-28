@@ -1,11 +1,13 @@
-name: mattermost-build
+# Base CI template which is called from server-ci-pr.yml
+# and server-ci-master.yml
+
+name: Server CI Template
 on:
-  pull_request:
-  push:
-    branches:
-      - master
-      - cloud
-      - release-*
+  workflow_call:
+
+env:
+  go-version: "1.19.5"
+
 jobs:
   check-mocks:
     name: Check mocks
@@ -13,11 +15,15 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - uses: actions/setup-go@v4
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: '1.19'
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Generate mocks
-        run: go version && make mocks
+        run: make mocks
       - name: Check mocks
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
   check-go-mod-tidy:
@@ -26,6 +32,11 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: go.sum
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
@@ -36,6 +47,11 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: go.sum
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
@@ -46,6 +62,11 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: go.sum
       - name: Checkout focalboard
         run: |
           cd ..
@@ -53,8 +74,8 @@ jobs:
           cd focalboard
           git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || git checkout rolling-stable
           echo $(git rev-parse HEAD)
-          cd ../mattermost
-          make setup-go-work
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Reset config
         run: make config-reset
       - name: Run plugin-checker
@@ -77,6 +98,11 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: go.sum
       - name: Checkout mattermost-api-reference
         run: |
           cd ..
@@ -85,7 +111,6 @@ jobs:
           echo "Trying to checkout the same branch on mattermost-api-reference as mattermost"
           git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || true
           make build
-          cd ../mattermost
   check-generate-work-templates:
     name: Generate work templates
     runs-on: ubuntu-22.04
@@ -114,6 +139,11 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: go.sum
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
@@ -124,30 +154,39 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: go.sum
       - name: Generate app layers
         run: make app-layers
       - name: Check generated code
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
   test-postgres-binary:
-    name: Run tests on postgres with binary parameters
+    if: github.ref_name != 'master' # Do not run postgres binary tests on master
+    name: Postgres with binary parameters
     needs: check-mattermost-vet
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/server-test-template.yml
     with:
+      name: Postgres with binary parameters
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
       drivername: postgres
   test-postgres-normal:
-    name: Run tests on postgres
+    name: Postgres
     needs: check-mattermost-vet
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/server-test-template.yml
     with:
+      name: Postgres
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
   test-mysql:
-    name: Run tests on mysql
+    name: MySQL
     needs: check-mattermost-vet
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/server-test-template.yml
     with:
-      datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
+      name: MySQL
+      datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304
       drivername: mysql
   build-mattermost-server:
     name: Build mattermost-server
@@ -208,91 +247,3 @@ jobs:
           name: server-dist-artifact
           path: dist/
           retention-days: 14
-      - name: Persist build artifacts
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
-        with:
-          name: server-build-artifact
-          path: build/
-          retention-days: 14 
-  upload-s3:
-    name: Upload to S3 bucket
-    runs-on: ubuntu-22.04
-    needs: 
-      - build-mattermost-server
-      - test-mysql
-      - test-postgres-binary
-      - test-postgres-normal 
-    env:
-      REPO_NAME: ${{ github.event.repository.name }}
-    steps:
-    - name: Download dist artifacts
-      uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b  # v3.0.2
-      with:
-        name: server-dist-artifact
-        path: dist/
-    - name: Configure AWS
-      uses: aws-actions/configure-aws-credentials@07c2f971bac433df982ccc261983ae443861db49 # v1-node16
-      with:
-        aws-region: us-east-1
-        aws-access-key-id: ${{ secrets.MM_SERVER_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.MM_SERVER_AWS_SECRET_ACCESS_KEY }}
-    # We need to sanitize the branch name before using it
-    - name: ci/sanitize-branch-name
-      id: branch
-      uses: transferwise/sanitize-branch-name@b10b4d524ac5a7b645b43a3527db3a6cca017b9d # v1
-    # Search for the string "pull" and replace it with "PR" in branch-name
-    - name: ci/sanitize-branch-name-replace-pull-with-PR-
-      run: echo "BRANCH_NAME=$(echo ${{ steps.branch.outputs.sanitized-branch-name }} | sed 's/^pull\//PR-/g')" >> $GITHUB_ENV
-    - name: ci/artifact-upload
-      run: |
-        aws s3 cp dist/ s3://pr-builds.mattermost.com/$REPO_NAME/$BRANCH_NAME/ --acl public-read --cache-control "no-cache" --recursive
-        aws s3 cp dist/ s3://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.sha }}/ --acl public-read --cache-control "no-cache" --recursive
-  build-docker:
-    name: Build docker image
-    runs-on: ubuntu-22.04
-    needs: upload-s3
-    env:
-      REPO_NAME: ${{ github.event.repository.name }}
-    steps:
-    - name: Download build artifacts
-      uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b  # v3.0.2
-      with:
-        name: server-build-artifact
-        path: build/
-    - name: Login to Docker Hub
-      uses: docker/login-action@3da7dc6e2b31f99ef2cb9fb4c50fb0971e0d0139 # v2.1.0
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@11e8a2e2910826a92412015c515187a2d6750279 # v2.4
-    - name: Docker build and push
-      env:
-        DOCKER_CLI_EXPERIMENTAL: enabled
-      run: |
-        export TAG=$(echo "${{ github.event.pull_request.head.sha || github.sha }}" | cut -c1-7)
-        cd build
-        export DOCKER_CLI_EXPERIMENTAL=enabled
-        export MM_PACKAGE=https://pr-builds.mattermost.com/$REPO_NAME/commit/${GITHUB_SHA}/mattermost-team-linux-amd64.tar.gz
-        docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mm-te-test:${TAG} .
-  sentry:
-    name: Send build info to sentry
-    runs-on: ubuntu-22.04
-    needs:
-      - test-postgres-binary
-      - test-postgres-normal
-      - test-mysql
-      - build-mattermost-server
-    if: ${{ github.event_name == 'push' }}
-    env:
-      SENTRY_AUTH_TOKEN: ${{ secrets.MM_SERVER_SENTRY_AUTH_TOKEN }}
-      SENTRY_ORG: ${{ secrets.MM_SERVER_SENTRY_ORG }}
-      SENTRY_PROJECT: ${{ secrets.MM_SERVER_SENTRY_PROJECT }}
-      SENTRY_LOG_LEVEL: 'debug'
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: Create Sentry release
-        uses: getsentry/action-release@85e0095193a153d57c458995f99d0afd81b9e5ea # v1.3.0
-        with:
-          ignore_missing: true
