@@ -218,7 +218,12 @@ func (h *MainHelper) PreloadBoardsMigrationsIfNeeded() {
 
 	basePath := os.Getenv("MM_SERVER_PATH")
 	if basePath == "" {
-		basePath = "mattermost-server/server"
+		_, errFile := os.Stat("mattermost-server/server")
+		if os.IsNotExist(errFile) {
+			basePath = "mattermost/server"
+		} else {
+			basePath = "mattermost-server/server"
+		}
 	}
 	relPath := "channels/testlib/testdata"
 
