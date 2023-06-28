@@ -675,7 +675,6 @@ const defaultServerConfig: AdminConfig = {
         WysiwygEditor: false,
         PeopleProduct: false,
         ReduceOnBoardingTaskList: false,
-        OnboardingAutoShowLinkedBoard: false,
         ThreadsEverywhere: false,
         GlobalDrafts: true,
         OnboardingTourTips: true,

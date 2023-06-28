@@ -5,10 +5,8 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {appBarEnabled, getAppBarAppBindings} from 'mattermost-redux/selectors/entities/apps';
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 
-import {autoShowLinkedBoardFFEnabled, get, getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {Preferences} from 'mattermost-redux/constants';
-
-import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
 
 import {GlobalState} from 'types/store';
 
@@ -104,12 +102,3 @@ export function showNewChannelWithBoardPulsatingDot(state: GlobalState): boolean
     const showPulsatingDot = pulsatingDotState !== '' && JSON.parse(pulsatingDotState)[Preferences.NEW_CHANNEL_WITH_BOARD_TOUR_SHOWED] === false;
     return showPulsatingDot;
 }
-
-export const shouldShowAutoLinkedBoard = createSelector(
-    'shouldShowAutoLinkedBoard',
-    (state: GlobalState) => getBool(state, OnboardingTaskCategory, OnboardingTaskList.ONBOARDING_LINKED_BOARD_AUTO_SHOWN),
-    (state: GlobalState) => autoShowLinkedBoardFFEnabled(state),
-    (showAutoLinkedBoardPref: boolean, showAutoLinkedBoardFFEnabled: boolean) => {
-        return !showAutoLinkedBoardPref && showAutoLinkedBoardFFEnabled;
-    },
-);

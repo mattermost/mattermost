@@ -5,8 +5,8 @@ import React from 'react';
 
 type Modal = {
     open: boolean;
-    dialogProps: Record<string, any>;
     dialogType: React.ComponentType;
+    dialogProps?: Record<string, any>;
 }
 
 type Props = {
@@ -64,7 +64,7 @@ export default class ModalController extends React.PureComponent<Props> {
         }
 
         return (
-            <>{modalOutput}</>
+            modalOutput
         );
     }
 }
