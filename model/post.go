@@ -120,6 +120,11 @@ type Post struct {
 }
 
 func (o *Post) Auditable() map[string]interface{} {
+	var metaData map[string]any
+	if o.Metadata != nil {
+		metaData = o.Metadata.Auditable()
+	}
+
 	return map[string]interface{}{
 		"id":              o.Id,
 		"create_at":       o.CreateAt,
@@ -139,7 +144,7 @@ func (o *Post) Auditable() map[string]interface{} {
 		"reply_count":     o.ReplyCount,
 		"last_reply_at":   o.LastReplyAt,
 		"is_following":    o.IsFollowing,
-		"metadata":        o.Metadata,
+		"metadata":        metaData,
 	}
 }
 
