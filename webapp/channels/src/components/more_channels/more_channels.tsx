@@ -95,22 +95,24 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        this.props.actions.getChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2).then((result) => {
-            this.props.actions.getChannelsMemberCount(result.data?.map((channel) => channel.id) || []);
-        });
-        if (this.props.canShowArchivedChannels) {
-            this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2).then((result) => {
-                this.props.actions.getChannelsMemberCount(result.data?.map((channel) => channel.id) || []);
-            });
-        }
-        this.loadComplete();
-    }
+        const promises = [
+            this.props.actions.getChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2),
+        ];
 
-    componentDidUpdate(prevProps: Props) {
-        if (this.props.channels.length !== prevProps.channels.length || this.props.archivedChannels.length !== prevProps.archivedChannels.length) {
-            const allChannelIds = this.props.channels.map((channel) => channel.id).concat(this.props.archivedChannels.map((channel) => channel.id));
-            this.props.actions.getChannelsMemberCount(allChannelIds);
+        if (this.props.canShowArchivedChannels) {
+            promises.push(this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2));
         }
+
+        Promise.all(promises).then((results) => {
+            const channelIDsForMemberCount = results.flatMap((result) => {
+                return result.data ? result.data.map((channel) => channel.id) : [];
+            },
+            );
+            if (channelIDsForMemberCount.length > 0) {
+                this.props.actions.getChannelsMemberCount(channelIDsForMemberCount);
+            }
+        });
+        this.loadComplete();
     }
 
     loadComplete = () => {
@@ -149,7 +151,9 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
 
     nextPage = (page: number) => {
         this.props.actions.getChannels(this.props.teamId, page + 1, CHANNELS_PER_PAGE).then((result) => {
-            this.props.actions.getChannelsMemberCount(result.data?.map((channel) => channel.id) || []);
+            if (result.data && result.data.length > 0) {
+                this.props.actions.getChannelsMemberCount(result.data.map((channel) => channel.id));
+            }
         });
     };
 
@@ -164,7 +168,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         if (result?.error) {
             this.setState({serverError: result.error.message});
         } else {
-            await this.props.actions.getChannelsMemberCount([channel.id]);
+            this.props.actions.getChannelsMemberCount([channel.id]);
             getHistory().push(getRelativeChannelURL(teamName, channel.name));
             this.closeEditRHS();
         }
