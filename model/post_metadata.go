@@ -30,7 +30,7 @@ type PostMetadata struct {
 	Acknowledgements []*PostAcknowledgement `json:"acknowledgements,omitempty"`
 }
 
-func (pm *PostMetadata) Auditable() map[string]any {
+func (p *PostMetadata) Auditable() map[string]any {
 	embeds := make([]map[string]any, 0, len(pm.Embeds))
 	for _, pe := range pm.Embeds {
 		embeds = append(embeds, pe.Auditable())
