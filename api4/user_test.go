@@ -1924,7 +1924,7 @@ func TestUpdateAdminUser(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	u2, _, err := th.SystemAdminClient.UpdateUser(context.Background(), user)
+	u2, _, err := th.SystemAdminClient.UpdateUser(user)
 	require.NoError(t, err)
 	require.Equal(t, user.Email, u2.Email)
 }
@@ -2053,11 +2053,11 @@ func TestPatchAdminUser(t *testing.T) {
 	th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
-	_, resp, err := th.Client.PatchUser(context.Background(), user.Id, patch)
+	_, resp, err := th.Client.PatchUser(user.Id, patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, _, err = th.SystemAdminClient.PatchUser(context.Background(), user.Id, patch)
+	_, _, err = th.SystemAdminClient.PatchUser(user.Id, patch)
 	require.NoError(t, err)
 }
 func TestUserUnicodeNames(t *testing.T) {
