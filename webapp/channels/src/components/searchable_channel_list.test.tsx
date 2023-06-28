@@ -3,14 +3,12 @@
 
 import React from 'react';
 import {shallow} from 'enzyme';
-import {TestHelper} from 'utils/test_helper';
-
 
 import SearchableChannelList from 'components/searchable_channel_list';
 
 describe('components/SearchableChannelList', () => {
     const baseProps = {
-        channels: [TestHelper.getChannelMock({})],
+        channels: [],
         isSearch: false,
         channelsPerPage: 10,
         nextPage: jest.fn(),
