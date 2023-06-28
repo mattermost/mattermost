@@ -2195,6 +2195,24 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	require.ElementsMatch(t, cmc, resp)
 }
 
+func TestGetChannelsMemberCount(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockChannelStore := mocks.ChannelStore{}
+	channelsMemberCount := map[string]int64{
+		"channel1": int64(10),
+		"channel2": int64(20),
+	}
+	mockChannelStore.On("GetChannelsMemberCount", []string{"channel1", "channel2"}, true).Return(channelsMemberCount, nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
+	resp, err := th.App.GetChannelsMemberCount(th.Context, []string{"channel1", "channel2"})
+	require.Nil(t, err)
+	require.Equal(t, channelsMemberCount, resp)
+}
+
 func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

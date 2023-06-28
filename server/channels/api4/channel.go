@@ -682,7 +682,6 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// todo sinan write test
 func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
