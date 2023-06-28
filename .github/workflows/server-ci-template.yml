@@ -72,7 +72,7 @@ jobs:
           cd ..
           git clone --depth=1 --no-single-branch https://github.com/mattermost/focalboard.git  
           cd focalboard
-          git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || git checkout rolling-stable
+          git checkout "$GITHUB_HEAD_REF" || git checkout "$GITHUB_BASE_REF" || git checkout release-7.9
           echo $(git rev-parse HEAD)
       - name: Run setup-go-work
         run: make setup-go-work
@@ -205,7 +205,7 @@ jobs:
           cd ..
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
-          git checkout $GITHUB_HEAD_REF || git checkout release-7.9
+          git checkout "$GITHUB_HEAD_REF" || git checkout "$GITHUB_BASE_REF" || git checkout release-7.9
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
           FILE_DIST=dist.tar.gz
@@ -230,7 +230,7 @@ jobs:
           cd ..
           git clone --depth=1 --no-single-branch https://github.com/mattermost/focalboard.git
           cd focalboard
-          git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || git checkout rolling-stable
+          git checkout "$GITHUB_HEAD_REF" || git checkout "$GITHUB_BASE_REF" || git checkout release-7.9
           echo $(git rev-parse HEAD)
           make server-linux
           echo "Building Boards product for web app"
