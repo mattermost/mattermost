@@ -1,0 +1,52 @@
+name: Server Test Template
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: true
+        type: string
+      datasource:
+        required: true
+        type: string
+      drivername:
+        required: true
+        type: string
+jobs:
+  test:
+    name: ${{ inputs.name }}
+    runs-on: ubuntu-latest-8-cores
+    env:
+      COMPOSE_PROJECT_NAME: ghactions
+      BUILD_IMAGE: mattermost/mattermost-build-server:20230118_golang-1.19.5
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Run docker compose
+        run: |
+          cd build
+          docker-compose --no-ansi run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker-compose --no-ansi ps
+          cd ..
+      - name: Wait for docker compose
+        run: |
+          until docker network inspect ghactions_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
+          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+      - name: Run Tests
+        run: |
+          if [[ ${{ github.event_name }} == 'push' ]]; then
+            export RACE_MODE="-race"
+          fi
+          mkdir -p client/plugins
+          cd build
+          docker run --net ghactions_mm-test \
+            --ulimit nofile=8096:8096 \
+            --env-file=dotenv/test.env \
+            --env MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}" \
+            --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
+            -v ~/work/mattermost:/mattermost \
+            -w /mattermost/mattermost \
+            $BUILD_IMAGE \
+            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID TESTFLAGS= TESTFLAGSEE=
