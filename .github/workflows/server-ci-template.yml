@@ -192,15 +192,20 @@ jobs:
     name: Build mattermost-server
     runs-on: ubuntu-latest-8-cores
     needs: check-mattermost-vet
+    defaults:
+      run:
+        working-directory: mattermost-server
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        with:
+          path: mattermost-server
       - name: Checkout mattermost-webapp
         run: |
           cd ..
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
-          git checkout $GITHUB_HEAD_REF || git checkout release-7.10
+          git checkout $GITHUB_HEAD_REF || git checkout release-7.9
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
           FILE_DIST=dist.tar.gz
@@ -220,7 +225,6 @@ jobs:
           echo "Building web app from source"
           make dist
           fi
-          cd ../mattermost
       - name: Checkout and build focalboard
         run: |
           cd ..
@@ -234,7 +238,7 @@ jobs:
           make prebuild
           cd mattermost-plugin/webapp
           npm run build:product
-          cd ../../../mattermost
+          cd ../../../mattermost-server
           make setup-go-work
       - name: Build
         run: |
