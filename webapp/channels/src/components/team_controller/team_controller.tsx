@@ -209,11 +209,6 @@ function TeamController(props: Props) {
         }
     }, [teamNameParam, teamsListDependency]);
 
-    if (props.mfaRequired) {
-        history.push('/mfa/setup');
-        return null;
-    }
-
     if (team === null) {
         return null;
     }

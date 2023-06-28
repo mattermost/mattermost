@@ -8,9 +8,16 @@ import {UserTypes} from 'mattermost-redux/action_types';
 
 import {ActionFunc, GenericAction, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
+import EventEmitter from 'mattermost-redux/utils/event_emitter';
+
 import {logError} from './errors';
+
 type ActionType = string;
+
 const HTTP_UNAUTHORIZED = 401;
+
+export const REQUEST_ERROR = 'request_error';
+
 export function forceLogoutIfNecessary(err: ServerError, dispatch: DispatchFunc, getState: GetStateFunc) {
     const {currentUserId} = getState().entities.users;
 
@@ -18,6 +25,8 @@ export function forceLogoutIfNecessary(err: ServerError, dispatch: DispatchFunc,
         Client4.setToken('');
         dispatch({type: UserTypes.LOGOUT_SUCCESS, data: {}});
     }
+
+    EventEmitter.emit(REQUEST_ERROR, {error: err});
 }
 
 function dispatcher(type: ActionType, data: any, dispatch: DispatchFunc) {

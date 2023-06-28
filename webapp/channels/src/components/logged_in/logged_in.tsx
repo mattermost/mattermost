@@ -10,6 +10,7 @@ import * as GlobalActions from 'actions/global_actions';
 import * as WebSocketActions from 'actions/websocket_actions.jsx';
 import * as UserAgent from 'utils/user_agent';
 import LoadingScreen from 'components/loading_screen';
+import MfaEnforcementListener from 'components/mfa/mfa_enforcement_listener';
 import {getBrowserTimezone} from 'utils/timezone';
 import WebSocketClient from 'client/web_websocket_client.jsx';
 import BrowserStore from 'stores/browser_store';
@@ -140,11 +141,11 @@ export default class LoggedIn extends React.PureComponent<Props> {
             return <LoadingScreen/>;
         }
 
-        if (this.props.mfaRequired) {
-            if (this.props.location.pathname !== '/mfa/setup') {
-                return <Redirect to={'/mfa/setup'}/>;
-            }
-        } else if (this.props.location.pathname === '/mfa/confirm') {
+        // Harrison: This is the code that's causing an issue when both TOS and MFA enforcement are enabeld. When you
+        // log in or open the app, you're sent to /select_team or /TEAMNAME/channels/CHANNEL which causes the TOS
+        // redirection to trigger. Then, the TOS API fails because you don't have MFA enabled, and you're logged out
+        // and sent to the login page before you can be redirected to the MFA setup page.
+        if (this.props.location.pathname === '/mfa/setup' || this.props.location.pathname === '/mfa/confirm') {
             // Nothing to do. Wait for MFA flow to complete before prompting TOS.
         } else if (this.props.showTermsOfService) {
             if (this.props.location.pathname !== '/terms_of_service') {
@@ -152,7 +153,12 @@ export default class LoggedIn extends React.PureComponent<Props> {
             }
         }
 
-        return this.props.children;
+        return (
+            <>
+                <MfaEnforcementListener/>
+                {this.props.children}
+            </>
+        );
     }
 
     private onFocusListener(): void {
