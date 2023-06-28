@@ -544,6 +544,21 @@ export const getLatestReplyablePostId: (state: GlobalState) => Post['id'] = crea
     },
 );
 
+export const getLatestNotMinePostInChannel: (state: GlobalState, channelId: string) => Post | undefined = createSelector(
+    'getLatestNotMinePostInChannel',
+    getAllPosts,
+    (state: GlobalState, channelId: string) => getPostIdsInChannel(state, channelId),
+    getCurrentUser,
+    (posts, postIDsInChannel, me) => {
+        if (!posts || !postIDsInChannel) {
+            return undefined;
+        }
+
+        const postID = postIDsInChannel.find(postID => posts[postID].state !== Posts.POST_DELETED && posts[postID].user_id !== me.id)
+        return postID ? posts[postID] : undefined
+    },
+);
+
 export const getCurrentUsersLatestPost: (state: GlobalState, postId: Post['id']) => PostWithFormatData | undefined | null = createSelector(
     'getCurrentUsersLatestPost',
     getPostsInCurrentChannel,

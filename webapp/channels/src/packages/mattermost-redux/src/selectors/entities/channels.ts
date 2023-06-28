@@ -71,7 +71,7 @@ import {
 } from '@mattermost/types/utilities';
 
 import {getThreadCounts, getThreadCountsIncludingDirect} from './threads';
-import {isPostPriorityEnabled} from './posts';
+import {getLatestNotMinePostInChannel, isPostPriorityEnabled} from './posts';
 
 export {getCurrentChannelId, getMyChannelMemberships, getMyCurrentChannelMembership};
 export function getAllChannels(state: GlobalState): IDMappedObjects<Channel> {
@@ -348,8 +348,17 @@ export function makeGetChannelUnreadCount(): (state: GlobalState, channelId: str
         (state: GlobalState, channelId: string) => getChannelMessageCount(state, channelId),
         (state: GlobalState, channelId: string) => getMyChannelMembership(state, channelId),
         isCollapsedThreadsEnabled,
-        (messageCount: ChannelMessageCount, member: ChannelMembership, crtEnabled) =>
-            calculateUnreadCount(messageCount, member, crtEnabled),
+        getLatestNotMinePostInChannel,
+        getMyCurrentChannelMembership,
+        (messageCount: ChannelMessageCount, member: ChannelMembership, crtEnabled, mostRecentPost, channelMembership) => {
+            var unreadCount = calculateUnreadCount(messageCount, member, crtEnabled)
+
+            if (mostRecentPost) {
+                unreadCount.showUnread = mostRecentPost.create_at > member.last_viewed_at
+            }
+
+            return unreadCount
+        },
     );
 }
 
