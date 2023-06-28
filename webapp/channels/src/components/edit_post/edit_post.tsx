@@ -349,12 +349,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
     };
 
-    const handleSelect = (e: React.SyntheticEvent<TextboxElement>) => {
-        if (textboxRef.current) {
-            Utils.adjustSelection(textboxRef.current.getInputBox(), e);
-        }
-    };
-
     const handleChange = (e: React.ChangeEvent<TextboxElement>) => {
         const message = e.target.value;
 
@@ -490,7 +484,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 onChange={handleChange}
                 onKeyPress={handleEditKeyPress}
                 onKeyDown={handleKeyDown}
-                onSelect={handleSelect}
                 onHeightChange={handleHeightChange}
                 handlePostError={handlePostError}
                 onPaste={handlePaste}
