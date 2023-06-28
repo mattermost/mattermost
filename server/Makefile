@@ -60,6 +60,8 @@ GOTESTSUM_JSONFILE ?= gotestsum.json
 MMCTL_BUILD_TAGS =
 MMCTL_TESTFLAGS = -timeout 30m -race
 MMCTL_PKG = github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands
+MMCTL_BUILD_DATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
+MMCTL_LDFLAGS += -X "$(MMCTL_PKG).buildDate=$(MMCTL_BUILD_DATE)"
 
 # Enterprise
 BUILD_ENTERPRISE_DIR ?= ../../enterprise
@@ -790,7 +792,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 mmctl-build: ## Compiles and generates the mmctl binary
-	go build -trimpath -ldflags '$(LDFLAGS)' -o $(GOBIN) ./cmd/mmctl
+	go build -trimpath -ldflags '$(MMCTL_LDFLAGS)' -o $(GOBIN) ./cmd/mmctl
 
 mmctl-docs: ## Generate the mmctl docs
 	rm -rf ./cmd/mmctl/docs

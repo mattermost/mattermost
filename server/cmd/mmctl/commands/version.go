@@ -16,6 +16,8 @@ import (
 
 var (
 	Version = model.CurrentVersion
+	// Build date in ISO8601 format, output of $(date -u +'%Y-%m-%dT%H:%M:%SZ')
+	buildDate = "dev"
 )
 
 var VersionCmd = &cobra.Command{
@@ -34,17 +36,18 @@ func versionCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	printer.PrintT("mmctl:\nVersion:\t{{.Version}}\nGitCommit:\t{{.GitCommit}}"+
-		"\nGitTreeState:\t{{.GitTreeState}}\nBuildDate:\t{{.BuildDate}}\nGoVersion:\t{{.GoVersion}}"+
+	printer.PrintT("mmctl:\nVersion:\t{{.Version}}\nBuiltDate:\t{{.BuildDate}}\nCommitDate:\t{{.CommitDate}}\nGitCommit:\t{{.GitCommit}}"+
+		"\nGitTreeState:\t{{.GitTreeState}}\nGoVersion:\t{{.GoVersion}}"+
 		"\nCompiler:\t{{.Compiler}}\nPlatform:\t{{.Platform}}", v)
 	return nil
 }
 
 type Info struct {
 	Version      string
+	BuildDate    string
+	CommitDate   string
 	GitCommit    string
 	GitTreeState string
-	BuildDate    string
 	GoVersion    string
 	Compiler     string
 	Platform     string
@@ -59,7 +62,7 @@ func getVersionInfo() (*Info, error) {
 	var (
 		revision     = "dev"
 		gitTreeState = "dev"
-		buildTime    = "dev"
+		commitDate   = "dev"
 
 		os       string
 		arch     string
@@ -71,7 +74,7 @@ func getVersionInfo() (*Info, error) {
 		case "vcs.revision":
 			revision = s.Value
 		case "vcs.time":
-			buildTime = s.Value
+			commitDate = s.Value
 		case "vcs.modified":
 			if s.Value == "true" {
 				gitTreeState = "dirty"
@@ -89,9 +92,10 @@ func getVersionInfo() (*Info, error) {
 
 	return &Info{
 		Version:      Version,
+		BuildDate:    buildDate,
+		CommitDate:   commitDate,
 		GitCommit:    revision,
 		GitTreeState: gitTreeState,
-		BuildDate:    buildTime,
 		GoVersion:    info.GoVersion,
 		Compiler:     compiler,
 		Platform:     fmt.Sprintf("%s/%s", arch, os),
