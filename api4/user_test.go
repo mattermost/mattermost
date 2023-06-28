@@ -1924,7 +1924,7 @@ func TestUpdateAdminUser(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	u2, _, err := th.SystemAdminClient.UpdateUser(context.Background(), user)
+	u2, _, err := th.SystemAdminClient.UpdateUser(user)
 	require.NoError(t, err)
 	require.Equal(t, user.Email, u2.Email)
 }
