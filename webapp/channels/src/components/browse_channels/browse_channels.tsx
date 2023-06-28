@@ -24,7 +24,7 @@ import classNames from 'classnames';
 import {localizeMessage} from 'utils/utils';
 import LoadingScreen from 'components/loading_screen';
 
-import './more_channels.scss';
+import './browse_channels.scss';
 
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
@@ -46,7 +46,6 @@ type Actions = {
     getChannelsMemberCount: (channelIds: string[]) => Promise<ActionResult>;
 }
 
-// todo sinan rename based on feedback on previous email
 export type Props = {
     channels: Channel[];
     archivedChannels: Channel[];
@@ -74,7 +73,7 @@ type State = {
     searchTerm: string;
 }
 
-export default class MoreChannels extends React.PureComponent<Props, State> {
+export default class BrowseChannels extends React.PureComponent<Props, State> {
     public searchTimeoutId: number;
     activeChannels: Channel[] = [];
 
@@ -338,8 +337,8 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         return (
             <GenericModal
                 onExited={this.handleExit}
-                id='moreChannelsModal'
-                aria-labelledby='moreChannelsModalLabel'
+                id='browseChannelsModal'
+                aria-labelledby='browseChannelsModalLabel'
                 compassDesign={true}
                 modalHeaderText={title}
                 headerButton={createNewChannelButton('outlineButton')}

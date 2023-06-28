@@ -8,7 +8,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 import EditCategoryModal from 'components/edit_category_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
 import DataPrefetch from 'components/data_prefetch';
-import MoreChannels from 'components/more_channels';
+import BrowseChannels from 'components/browse_channels';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import InvitationModal from 'components/invitation_modal';
 import UserSettingsModal from 'components/user_settings/modal';
@@ -155,7 +155,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
     showMoreChannelsModal = () => {
         this.props.actions.openModal({
             modalId: ModalIdentifiers.MORE_CHANNELS,
-            dialogType: MoreChannels,
+            dialogType: BrowseChannels,
             dialogProps: {morePublicChannelsModalType: 'public'},
         });
         trackEvent('ui', 'ui_channels_more_public_v2');
@@ -230,7 +230,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
 
     render() {
         if (!this.props.teamId) {
-            return (<div/>);
+            return (<div />);
         }
 
         const ariaLabel = Utils.localizeMessage('accessibility.sections.lhsNavigator', 'channel navigator region');
@@ -243,7 +243,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     dragging: this.state.isDragging,
                 })}
             >
-                {this.props.isMobileView ? <MobileSidebarHeader/> : (
+                {this.props.isMobileView ? <MobileSidebarHeader /> : (
                     <SidebarHeader
                         showNewChannelModal={this.showNewChannelModal}
                         showMoreChannelsModal={this.showMoreChannelsModal}
@@ -279,14 +279,14 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     />
                 </div>
                 <div className='sidebar--left__icons'>
-                    <Pluggable pluggableName='LeftSidebarHeader'/>
+                    <Pluggable pluggableName='LeftSidebarHeader' />
                 </div>
                 <SidebarList
                     handleOpenMoreDirectChannelsModal={this.handleOpenMoreDirectChannelsModal}
                     onDragStart={this.onDragStart}
                     onDragEnd={this.onDragEnd}
                 />
-                <DataPrefetch/>
+                <DataPrefetch />
                 {this.renderModals()}
             </div>
         );

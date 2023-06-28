@@ -23,7 +23,7 @@ import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {ModalData} from 'types/actions';
 import {GlobalState} from 'types/store';
 
-import MoreChannels from './more_channels';
+import BrowseChannels from './browse_channels';
 import {makeGetGlobalItem} from 'selectors/storage';
 import Constants, {StoragePrefixes} from 'utils/constants';
 import {setGlobalItem} from 'actions/storage';
@@ -88,4 +88,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(MoreChannels);
+export default connect(mapStateToProps, mapDispatchToProps)(BrowseChannels);

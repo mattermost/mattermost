@@ -7,7 +7,7 @@ import {shallow} from 'enzyme';
 import {ActionResult} from 'mattermost-redux/types/actions';
 import {Channel} from '@mattermost/types/channels';
 
-import MoreChannels, {Props} from 'components/more_channels/more_channels';
+import BrowseChannels, {Props} from 'components/browse_channels/browse_channels';
 import SearchableChannelList from 'components/searchable_channel_list';
 
 import {getHistory} from 'utils/browser_history';
@@ -15,7 +15,7 @@ import {TestHelper} from 'utils/test_helper';
 
 jest.useFakeTimers('legacy');
 
-describe('components/MoreChannels', () => {
+describe('components/BrowseChannels', () => {
     const searchResults = {
         data: [{
             id: 'channel-id-1',
@@ -106,8 +106,8 @@ describe('components/MoreChannels', () => {
     };
 
     test('should match snapshot and state', () => {
-        const wrapper = shallow<MoreChannels>(
-            <MoreChannels {...baseProps}/>,
+        const wrapper = shallow<BrowseChannels>(
+            <BrowseChannels {...baseProps} />,
         );
 
         expect(wrapper).toMatchSnapshot();
@@ -123,8 +123,8 @@ describe('components/MoreChannels', () => {
     });
 
     test('should call closeModal on handleExit', () => {
-        const wrapper = shallow<MoreChannels>(
-            <MoreChannels {...baseProps}/>,
+        const wrapper = shallow<BrowseChannels>(
+            <BrowseChannels {...baseProps} />,
         );
 
         wrapper.instance().handleExit();
@@ -132,8 +132,8 @@ describe('components/MoreChannels', () => {
     });
 
     test('should match state on onChange', () => {
-        const wrapper = shallow<MoreChannels>(
-            <MoreChannels {...baseProps}/>,
+        const wrapper = shallow<BrowseChannels>(
+            <BrowseChannels {...baseProps} />,
         );
         wrapper.setState({searchedChannels: [TestHelper.getChannelMock({id: 'other_channel_id'})]});
 
@@ -147,8 +147,8 @@ describe('components/MoreChannels', () => {
     });
 
     test('should call props.getChannels on nextPage', () => {
-        const wrapper = shallow<MoreChannels>(
-            <MoreChannels {...baseProps}/>,
+        const wrapper = shallow<BrowseChannels>(
+            <BrowseChannels {...baseProps} />,
         );
 
         wrapper.instance().nextPage(1);
@@ -159,7 +159,7 @@ describe('components/MoreChannels', () => {
 
     test('should have loading prop true when searching state is true', () => {
         const wrapper = shallow(
-            <MoreChannels {...baseProps}/>,
+            <BrowseChannels {...baseProps} />,
         );
 
         wrapper.setState({search: true, searching: true});
@@ -182,8 +182,8 @@ describe('components/MoreChannels', () => {
             },
         };
 
-        const wrapper = shallow<MoreChannels>(
-            <MoreChannels {...props}/>,
+        const wrapper = shallow<BrowseChannels>(
+            <BrowseChannels {...props} />,
         );
 
         const callback = jest.fn();
@@ -210,8 +210,8 @@ describe('components/MoreChannels', () => {
             },
         };
 
-        const wrapper = shallow<MoreChannels>(
-            <MoreChannels {...props}/>,
+        const wrapper = shallow<BrowseChannels>(
+            <BrowseChannels {...props} />,
         );
 
         const callback = jest.fn();
@@ -226,8 +226,8 @@ describe('components/MoreChannels', () => {
     });
 
     test('should not perform a search if term is empty', () => {
-        const wrapper = shallow<MoreChannels>(
-            <MoreChannels {...baseProps}/>,
+        const wrapper = shallow<BrowseChannels>(
+            <BrowseChannels {...baseProps} />,
         );
 
         wrapper.instance().onChange = jest.fn();
@@ -241,8 +241,8 @@ describe('components/MoreChannels', () => {
     });
 
     test('should handle a failed search', (done) => {
-        const wrapper = shallow<MoreChannels>(
-            <MoreChannels {...baseProps}/>,
+        const wrapper = shallow<BrowseChannels>(
+            <BrowseChannels {...baseProps} />,
         );
 
         wrapper.instance().onChange = jest.fn();
@@ -269,8 +269,8 @@ describe('components/MoreChannels', () => {
     });
 
     test('should perform search and set the correct state', (done) => {
-        const wrapper = shallow<MoreChannels>(
-            <MoreChannels {...baseProps}/>,
+        const wrapper = shallow<BrowseChannels>(
+            <BrowseChannels {...baseProps} />,
         );
 
         wrapper.instance().onChange = jest.fn();
@@ -295,8 +295,8 @@ describe('components/MoreChannels', () => {
     });
 
     test('should perform search on archived channels and set the correct state', (done) => {
-        const wrapper = shallow<MoreChannels>(
-            <MoreChannels {...baseProps}/>,
+        const wrapper = shallow<BrowseChannels>(
+            <BrowseChannels {...baseProps} />,
         );
 
         wrapper.instance().onChange = jest.fn();
