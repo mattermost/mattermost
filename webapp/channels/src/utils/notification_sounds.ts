@@ -97,7 +97,7 @@ export function stopTryNotificationRing() {
 }
 
 export function loopNotificationRing(name: string) {
-    const audio = new Audio(callsNotificationSounds.get(name) ?? callsNotificationSounds.get('Dynamic'));
+    const audio = new Audio(callsNotificationSounds.get(name) ?? callsNotificationSounds.get('Calm'));
     audio.loop = true;
     audio.play();
     return audio;
