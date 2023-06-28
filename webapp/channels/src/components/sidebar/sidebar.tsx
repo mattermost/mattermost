@@ -230,7 +230,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
 
     render() {
         if (!this.props.teamId) {
-            return (<div />);
+            return (<div/>);
         }
 
         const ariaLabel = Utils.localizeMessage('accessibility.sections.lhsNavigator', 'channel navigator region');
@@ -243,7 +243,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     dragging: this.state.isDragging,
                 })}
             >
-                {this.props.isMobileView ? <MobileSidebarHeader /> : (
+                {this.props.isMobileView ? <MobileSidebarHeader/> : (
                     <SidebarHeader
                         showNewChannelModal={this.showNewChannelModal}
                         showMoreChannelsModal={this.showMoreChannelsModal}
@@ -279,14 +279,14 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     />
                 </div>
                 <div className='sidebar--left__icons'>
-                    <Pluggable pluggableName='LeftSidebarHeader' />
+                    <Pluggable pluggableName='LeftSidebarHeader'/>
                 </div>
                 <SidebarList
                     handleOpenMoreDirectChannelsModal={this.handleOpenMoreDirectChannelsModal}
                     onDragStart={this.onDragStart}
                     onDragEnd={this.onDragEnd}
                 />
-                <DataPrefetch />
+                <DataPrefetch/>
                 {this.renderModals()}
             </div>
         );
