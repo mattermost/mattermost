@@ -2,12 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Route, RouteProps} from 'react-router-dom';
+import {Route, RouteProps, RouteComponentProps} from 'react-router-dom';
 
 const HeaderFooterTemplate = React.lazy(() => import('components/header_footer_template'));
 const LoggedIn = React.lazy(() => import('components/logged_in'));
 
-export const HFTRoute = ({component: Component, ...rest}: RouteProps) => (
+interface Props extends RouteProps {
+    component: React.ComponentType<RouteComponentProps>;
+}
+
+export const HFTRoute = ({component: Component, ...rest}: Props) => (
     <Route
         {...rest}
         render={(props) => (
@@ -20,7 +24,7 @@ export const HFTRoute = ({component: Component, ...rest}: RouteProps) => (
     />
 );
 
-export const LoggedInHFTRoute = ({component: Component, ...rest}: RouteProps) => (
+export const LoggedInHFTRoute = ({component: Component, ...rest}: Props) => (
     <Route
         {...rest}
         render={(props) => (
