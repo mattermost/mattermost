@@ -349,15 +349,14 @@ export function makeGetChannelUnreadCount(): (state: GlobalState, channelId: str
         (state: GlobalState, channelId: string) => getMyChannelMembership(state, channelId),
         isCollapsedThreadsEnabled,
         getLatestNotMinePostInChannel,
-        getMyCurrentChannelMembership,
-        (messageCount: ChannelMessageCount, member: ChannelMembership, crtEnabled, mostRecentPost, channelMembership) => {
-            var unreadCount = calculateUnreadCount(messageCount, member, crtEnabled)
+        (messageCount: ChannelMessageCount, member: ChannelMembership, crtEnabled, mostRecentPost) => {
+            const unreadCount = calculateUnreadCount(messageCount, member, crtEnabled);
 
             if (mostRecentPost) {
-                unreadCount.showUnread = mostRecentPost.create_at > member.last_viewed_at
+                unreadCount.showUnread = mostRecentPost.create_at > member.last_viewed_at;
             }
 
-            return unreadCount
+            return unreadCount;
         },
     );
 }

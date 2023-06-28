@@ -554,8 +554,8 @@ export const getLatestNotMinePostInChannel: (state: GlobalState, channelId: stri
             return undefined;
         }
 
-        const postID = postIDsInChannel.find(postID => posts[postID].state !== Posts.POST_DELETED && posts[postID].user_id !== me.id)
-        return postID ? posts[postID] : undefined
+        const postID = postIDsInChannel.find((postID) => posts[postID].state !== Posts.POST_DELETED && posts[postID].user_id !== me.id);
+        return postID ? posts[postID] : undefined;
     },
 );
 
