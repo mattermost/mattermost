@@ -1755,7 +1755,6 @@ export default class Client4 {
         );
     };
 
-    // todo sinan create a selector
     getChannelsMemberCount = (channelIds: string[]) => {
         return this.doFetch<Record<string, number>>(
             `${this.getChannelsRoute()}/stats/member_count`,
