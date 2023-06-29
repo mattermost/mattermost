@@ -266,6 +266,7 @@ const defaultServerConfig: AdminConfig = {
         Number: false,
         Uppercase: false,
         Symbol: false,
+        EnableForgotLink: true,
     },
     FileSettings: {
         EnableFileAttachments: true,
