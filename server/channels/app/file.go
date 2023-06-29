@@ -227,7 +227,7 @@ func (a *App) WriteExportFileContext(ctx context.Context, fr io.Reader, path str
 }
 
 func (a *App) WriteExportFile(fr io.Reader, path string) (int64, *model.AppError) {
-	return a.Srv().writeFile(fr, path)
+	return a.Srv().writeExportFile(fr, path)
 }
 
 func writeFileContext(ctx context.Context, backend filestore.FileBackend, fr io.Reader, path string) (int64, *model.AppError) {
