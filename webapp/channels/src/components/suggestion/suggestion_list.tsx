@@ -190,16 +190,14 @@ export default class SuggestionList extends React.PureComponent<Props> {
 
         if (this.props.position === 'bottom' && pixelsToMoveY) {
             // Add the line height and 4 extra px so it looks less tight
-            const intialLineHeight = lineHeight ? lineHeight : 0;
-            pixelsToMoveY += intialLineHeight + 4;
-      
+            pixelsToMoveY += (lineHeight || 0) + 4;
         }
 
         // If the suggestion box was invoked from the first line in the post box, stick to the top of the post box
         // if the lineHeight is smalller or undefined, then pixelsToMoveY should be 0
-        if(lineHeight && pixelsToMoveY){
-            pixelsToMoveY =  pixelsToMoveY > lineHeight ? pixelsToMoveY : 0;
-        } else{
+        if (lineHeight && pixelsToMoveY) {
+            pixelsToMoveY = pixelsToMoveY > lineHeight ? pixelsToMoveY : 0;
+        } else {
             pixelsToMoveY = 0;
         }
 
