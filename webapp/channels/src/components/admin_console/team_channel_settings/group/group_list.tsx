@@ -47,7 +47,7 @@ type Props = {
     emptyListTextId: string;
     emptyListTextDefaultMessage: string;
     actions: {
-        getData: () => Promise<Group[]>;
+        getData: () => Promise<any>;
     };
     removeGroup: (gid: string) => void;
     setNewGroupRole: (gid: string) => void;
