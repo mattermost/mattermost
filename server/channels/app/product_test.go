@@ -50,29 +50,32 @@ func TestInitializeProducts(t *testing.T) {
 
 	t.Run("2 products and no circular dependency", func(t *testing.T) {
 		serviceMap := map[product.ServiceKey]any{
-			product.ConfigKey:    nil,
-			product.LicenseKey:   nil,
-			product.FilestoreKey: nil,
-			product.ClusterKey:   nil,
+			product.ConfigKey:          nil,
+			product.LicenseKey:         nil,
+			product.FilestoreKey:       nil,
+			product.ExportFilestoreKey: nil,
+			product.ClusterKey:         nil,
 		}
 
 		products := map[string]product.Manifest{
 			"productA": {
 				Initializer: newProductA,
 				Dependencies: map[product.ServiceKey]struct{}{
-					product.ConfigKey:    {},
-					product.LicenseKey:   {},
-					product.FilestoreKey: {},
-					product.ClusterKey:   {},
+					product.ConfigKey:          {},
+					product.LicenseKey:         {},
+					product.FilestoreKey:       {},
+					product.ExportFilestoreKey: {},
+					product.ClusterKey:         {},
 				},
 			},
 			"productB": {
 				Initializer: newProductB,
 				Dependencies: map[product.ServiceKey]struct{}{
-					product.ConfigKey:    {},
-					testSrvKey1:          {},
-					product.FilestoreKey: {},
-					product.ClusterKey:   {},
+					product.ConfigKey:          {},
+					testSrvKey1:                {},
+					product.FilestoreKey:       {},
+					product.ExportFilestoreKey: {},
+					product.ClusterKey:         {},
 				},
 			},
 		}
@@ -89,30 +92,33 @@ func TestInitializeProducts(t *testing.T) {
 
 	t.Run("2 products and circular dependency", func(t *testing.T) {
 		serviceMap := map[product.ServiceKey]any{
-			product.ConfigKey:    nil,
-			product.LicenseKey:   nil,
-			product.FilestoreKey: nil,
-			product.ClusterKey:   nil,
+			product.ConfigKey:          nil,
+			product.LicenseKey:         nil,
+			product.FilestoreKey:       nil,
+			product.ExportFilestoreKey: nil,
+			product.ClusterKey:         nil,
 		}
 
 		products := map[string]product.Manifest{
 			"productA": {
 				Initializer: newProductA,
 				Dependencies: map[product.ServiceKey]struct{}{
-					product.ConfigKey:    {},
-					product.LicenseKey:   {},
-					product.FilestoreKey: {},
-					product.ClusterKey:   {},
-					testSrvKey2:          {},
+					product.ConfigKey:          {},
+					product.LicenseKey:         {},
+					product.FilestoreKey:       {},
+					product.ExportFilestoreKey: {},
+					product.ClusterKey:         {},
+					testSrvKey2:                {},
 				},
 			},
 			"productB": {
 				Initializer: newProductB,
 				Dependencies: map[product.ServiceKey]struct{}{
-					product.ConfigKey:    {},
-					testSrvKey1:          {},
-					product.FilestoreKey: {},
-					product.ClusterKey:   {},
+					product.ConfigKey:          {},
+					testSrvKey1:                {},
+					product.FilestoreKey:       {},
+					product.ExportFilestoreKey: {},
+					product.ClusterKey:         {},
 				},
 			},
 		}
@@ -130,6 +136,7 @@ func TestInitializeProducts(t *testing.T) {
 			product.ConfigKey:    nil,
 			product.LicenseKey:   nil,
 			product.FilestoreKey: nil,
+			product.ExportFilestoreKey: nil,
 			product.ClusterKey:   nil,
 		}
 

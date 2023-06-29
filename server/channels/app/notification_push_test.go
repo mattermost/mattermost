@@ -1458,10 +1458,11 @@ func TestPushNotificationRace(t *testing.T) {
 		platform.StoreOverride(mockStore))
 	require.NoError(t, err)
 	serviceMap := map[product.ServiceKey]any{
-		ServerKey:            s,
-		product.ConfigKey:    s.platform,
-		product.LicenseKey:   &licenseWrapper{s},
-		product.FilestoreKey: s.FileBackend(),
+		ServerKey:                  s,
+		product.ConfigKey:          s.platform,
+		product.LicenseKey:         &licenseWrapper{s},
+		product.FilestoreKey:       s.FileBackend(),
+		product.ExportFilestoreKey: s.ExportFileBackend(),
 	}
 	ch, err := NewChannels(serviceMap)
 	require.NoError(t, err)
