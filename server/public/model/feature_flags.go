@@ -55,9 +55,6 @@ type FeatureFlags struct {
 
 	PeopleProduct bool
 
-	// A/B Test on reduced onboarding task list item
-	ReduceOnBoardingTaskList bool
-
 	ThreadsEverywhere bool
 
 	GlobalDrafts bool

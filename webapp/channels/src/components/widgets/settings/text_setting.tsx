@@ -5,7 +5,7 @@ import React from 'react';
 
 import Setting from './setting';
 
-export type InputTypes = 'input' | 'textarea' | 'number' | 'email' | 'tel' | 'url' | 'password' | undefined
+export type InputTypes = 'input' | 'textarea' | 'number' | 'email' | 'tel' | 'url' | 'password'
 
 export type WidgetTextSettingProps = {
     id: string;
@@ -73,23 +73,8 @@ export default class TextSetting extends React.PureComponent<WidgetTextSettingPr
                     disabled={this.props.disabled}
                 />
             );
-        } else if (type === undefined) {
-            input = (
-                <input
-                    autoFocus={this.props.autoFocus}
-                    data-testid={this.props.id + type}
-                    id={this.props.id}
-                    className='form-control'
-                    type='input'
-                    placeholder={this.props.placeholder}
-                    value={this.props.value}
-                    maxLength={this.props.maxLength}
-                    onChange={this.handleChange}
-                    disabled={this.props.disabled}
-                />
-            );
         } else {
-            type = ['input', 'email', 'tel', 'number', 'url', 'password'].includes(type) ? type : 'input';
+            type = ['input', 'email', 'tel', 'number', 'url', 'password'].includes(type!) ? type : 'input';
 
             input = (
                 <input
