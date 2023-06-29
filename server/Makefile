@@ -177,7 +177,7 @@ PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.1
-PLUGIN_PACKAGES += focalboard-v7.10.3
+PLUGIN_PACKAGES += focalboard-v7.11.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -403,7 +403,7 @@ mmctl-mocks: ## Creates mocks for mmctl
 	$(GOBIN)/mockgen -destination=cmd/mmctl/mocks/client_mock.go -copyright_file=cmd/mmctl/mocks/copyright.txt -package=mocks github.com/mattermost/mattermost/server/v8/cmd/mmctl/client Client
 
 pluginapi: ## Generates api and hooks glue code for plugins
-	$(GO) generate $(GOFLAGS) ./public/plugin
+	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
 
 mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks
 

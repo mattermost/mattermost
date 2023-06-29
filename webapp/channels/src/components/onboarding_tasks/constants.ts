@@ -24,9 +24,6 @@ export const OnboardingTaskList = {
     ONBOARDING_TASK_LIST_CLOSE: 'onboarding_task_list_close',
     ONBOARDING_VIDEO_MODAL: 'onboarding_video_modal',
     DECLINED_ONBOARDING_TASK_LIST: 'declined_onboarding_task_list',
-
-    // auto show channel linked boards A/B test
-    ONBOARDING_LINKED_BOARD_AUTO_SHOWN: 'linked_board_auto_shown',
 };
 
 export const GenericTaskSteps = {
