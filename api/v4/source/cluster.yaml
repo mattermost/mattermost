@@ -1,0 +1,24 @@
+  /api/v4/cluster/status:
+    get:
+      tags:
+        - cluster
+      summary: Get cluster status
+      description: >
+        Get a set of information for each node in the cluster, useful for
+        checking the status and health of each node.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: GetClusterStatus
+      responses:
+        "200":
+          description: Cluster status retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClusterInfo"
+        "403":
+          $ref: "#/components/responses/Forbidden"

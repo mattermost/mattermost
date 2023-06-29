@@ -1608,31 +1608,6 @@ export function getClosestParent(elem: HTMLElement, selector: string) {
     return null;
 }
 
-/**
- * Adjust selection to correct text when there is Italic markdown (_) around selected text.
- */
-export function adjustSelection(inputBox: HTMLInputElement, e: React.SyntheticEvent<TextboxElement>) {
-    const el = e.target as TextboxElement;
-    const {selectionEnd, selectionStart, value} = el;
-
-    if (selectionStart === selectionEnd) {
-        // nothing selected.
-        return;
-    }
-
-    e.preventDefault();
-
-    const firstUnderscore = value.charAt(selectionStart!) === '_';
-    const lastUnderscore = value.charAt(selectionEnd! - 1) === '_';
-
-    const spaceBefore = value.charAt(selectionStart! - 1) === ' ';
-    const spaceAfter = value.charAt(selectionEnd!) === ' ';
-
-    if (firstUnderscore && lastUnderscore && (spaceBefore || spaceAfter)) {
-        setSelectionRange(inputBox, selectionStart! + 1, selectionEnd! - 1);
-    }
-}
-
 export function getNextBillingDate() {
     const nextBillingDate = moment().add(1, 'months').startOf('month');
     return nextBillingDate.format('MMM D, YYYY');
