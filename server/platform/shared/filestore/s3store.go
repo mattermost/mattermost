@@ -576,7 +576,7 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 }
 
 func (b *S3FileBackend) GeneratePublicLink(path string) (string, time.Duration, error) {
-	path = filepath.Join(b.pathPrefix, path)
+	path = b.prefixedPath(path)
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 

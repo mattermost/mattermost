@@ -1516,30 +1516,31 @@ func (s *PasswordSettings) SetDefaults() {
 }
 
 type FileSettings struct {
-	EnableFileAttachments                    *bool   `access:"site_file_sharing_and_downloads"`
-	EnableMobileUpload                       *bool   `access:"site_file_sharing_and_downloads"`
-	EnableMobileDownload                     *bool   `access:"site_file_sharing_and_downloads"`
-	MaxFileSize                              *int64  `access:"environment_file_storage,cloud_restrictable"`
-	MaxImageResolution                       *int64  `access:"environment_file_storage,cloud_restrictable"`
-	MaxImageDecoderConcurrency               *int64  `access:"environment_file_storage,cloud_restrictable"`
-	DriverName                               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	Directory                                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	EnablePublicLink                         *bool   `access:"site_public_links,cloud_restrictable"`
-	ExtractContent                           *bool   `access:"environment_file_storage,write_restrictable"`
-	ArchiveRecursion                         *bool   `access:"environment_file_storage,write_restrictable"`
-	PublicLinkSalt                           *string `access:"site_public_links,cloud_restrictable"`                           // telemetry: none
-	InitialFont                              *string `access:"environment_file_storage,cloud_restrictable"`                    // telemetry: none
-	AmazonS3AccessKeyId                      *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3SecretAccessKey                  *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3Bucket                           *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3PathPrefix                       *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3Region                           *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3Endpoint                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3SSL                              *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	AmazonS3SignV2                           *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	AmazonS3SSE                              *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	AmazonS3Trace                            *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	AmazonS3RequestTimeoutMilliseconds       *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableFileAttachments              *bool   `access:"site_file_sharing_and_downloads"`
+	EnableMobileUpload                 *bool   `access:"site_file_sharing_and_downloads"`
+	EnableMobileDownload               *bool   `access:"site_file_sharing_and_downloads"`
+	MaxFileSize                        *int64  `access:"environment_file_storage,cloud_restrictable"`
+	MaxImageResolution                 *int64  `access:"environment_file_storage,cloud_restrictable"`
+	MaxImageDecoderConcurrency         *int64  `access:"environment_file_storage,cloud_restrictable"`
+	DriverName                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	Directory                          *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	EnablePublicLink                   *bool   `access:"site_public_links,cloud_restrictable"`
+	ExtractContent                     *bool   `access:"environment_file_storage,write_restrictable"`
+	ArchiveRecursion                   *bool   `access:"environment_file_storage,write_restrictable"`
+	PublicLinkSalt                     *string `access:"site_public_links,cloud_restrictable"`                           // telemetry: none
+	InitialFont                        *string `access:"environment_file_storage,cloud_restrictable"`                    // telemetry: none
+	AmazonS3AccessKeyId                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3SecretAccessKey            *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3Bucket                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3PathPrefix                 *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3Region                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3Endpoint                   *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3SSL                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AmazonS3SignV2                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	// Export store settings
 	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	ExportDirectory                          *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -1671,7 +1672,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.ExportDriverName = NewString(ImageDriverLocal)
 	}
 
-	if s.ExportDirectory == nil || *s.Directory == "" {
+	if s.ExportDirectory == nil || *s.ExportDirectory == "" {
 		s.Directory = NewString(FileSettingsDefaultDirectory)
 	}
 
@@ -1695,7 +1696,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.ExportAmazonS3Region = NewString("")
 	}
 
-	if s.ExportAmazonS3Endpoint == nil || *s.AmazonS3Endpoint == "" {
+	if s.ExportAmazonS3Endpoint == nil || *s.ExportAmazonS3Endpoint == "" {
 		// Defaults to "s3.amazonaws.com"
 		s.ExportAmazonS3Endpoint = NewString("s3.amazonaws.com")
 	}
