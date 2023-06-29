@@ -35,7 +35,6 @@ import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {removeUserFromList} from 'mattermost-redux/utils/user_utils';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
 import {General} from 'mattermost-redux/constants';
 
@@ -215,12 +214,10 @@ export function getFilteredUsersStats(options: GetFilteredUsersStatsOpts = {}, u
 
 export function getProfiles(page = 0, perPage: number = General.PROFILE_CHUNK_SIZE, options: any = {}): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles: UserProfile[];
 
         try {
             profiles = await Client4.getProfiles(page, perPage, options);
-            removeUserFromList(currentUserId, profiles);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -303,12 +300,10 @@ export function getProfilesByIds(userIds: string[], options?: any): ActionFunc {
 
 export function getProfilesByUsernames(usernames: string[]): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles;
 
         try {
             profiles = await Client4.getProfilesByUsernames(usernames);
-            removeUserFromList(currentUserId, profiles);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -326,7 +321,6 @@ export function getProfilesByUsernames(usernames: string[]): ActionFunc {
 
 export function getProfilesInTeam(teamId: string, page: number, perPage: number = General.PROFILE_CHUNK_SIZE, sort = '', options: any = {}): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles;
 
         try {
@@ -345,7 +339,7 @@ export function getProfilesInTeam(teamId: string, page: number, perPage: number 
             },
             {
                 type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: removeUserFromList(currentUserId, [...profiles]),
+                data: profiles,
             },
         ]));
 
@@ -415,7 +409,6 @@ export enum ProfilesInChannelSortBy {
 
 export function getProfilesInChannel(channelId: string, page: number, perPage: number = General.PROFILE_CHUNK_SIZE, sort = '', options: {active?: boolean} = {}): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles;
 
         try {
@@ -434,7 +427,7 @@ export function getProfilesInChannel(channelId: string, page: number, perPage: n
             },
             {
                 type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: removeUserFromList(currentUserId, [...profiles]),
+                data: profiles,
             },
         ]));
 
@@ -444,7 +437,6 @@ export function getProfilesInChannel(channelId: string, page: number, perPage: n
 
 export function getProfilesInGroupChannels(channelsIds: string[]): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let channelProfiles;
 
         try {
@@ -468,7 +460,7 @@ export function getProfilesInGroupChannels(channelsIds: string[]): ActionFunc {
                     },
                     {
                         type: UserTypes.RECEIVED_PROFILES_LIST,
-                        data: removeUserFromList(currentUserId, [...profiles]),
+                        data: profiles,
                     },
                 );
             }
@@ -482,7 +474,6 @@ export function getProfilesInGroupChannels(channelsIds: string[]): ActionFunc {
 
 export function getProfilesNotInChannel(teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles;
 
         try {
@@ -503,7 +494,7 @@ export function getProfilesNotInChannel(teamId: string, channelId: string, group
             },
             {
                 type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: removeUserFromList(currentUserId, [...profiles]),
+                data: profiles,
             },
         ]));
 
@@ -564,7 +555,6 @@ export function updateMyTermsOfServiceStatus(termsOfServiceId: string, accepted:
 
 export function getProfilesInGroup(groupId: string, page = 0, perPage: number = General.PROFILE_CHUNK_SIZE, sort = ''): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles;
 
         try {
@@ -583,7 +573,7 @@ export function getProfilesInGroup(groupId: string, page = 0, perPage: number = 
             },
             {
                 type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: removeUserFromList(currentUserId, [...profiles]),
+                data: profiles,
             },
         ]));
 
@@ -593,7 +583,6 @@ export function getProfilesInGroup(groupId: string, page = 0, perPage: number = 
 
 export function getProfilesNotInGroup(groupId: string, page = 0, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
         let profiles;
 
         try {
@@ -612,7 +601,7 @@ export function getProfilesNotInGroup(groupId: string, page = 0, perPage: number
             },
             {
                 type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: removeUserFromList(currentUserId, [...profiles]),
+                data: profiles,
             },
         ]));
 
@@ -844,9 +833,6 @@ export function autocompleteUsers(term: string, teamId = '', channelId = '', opt
 }): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         dispatch({type: UserTypes.AUTOCOMPLETE_USERS_REQUEST, data: null});
-
-        const {currentUserId} = getState().entities.users;
-
         let data;
         try {
             data = await Client4.autocompleteUsers(term, teamId, channelId, options);
@@ -861,7 +847,6 @@ export function autocompleteUsers(term: string, teamId = '', channelId = '', opt
         if (data.out_of_channel) {
             users = [...users, ...data.out_of_channel];
         }
-        removeUserFromList(currentUserId, users);
         const actions: AnyAction[] = [{
             type: UserTypes.RECEIVED_PROFILES_LIST,
             data: users,
@@ -904,8 +889,6 @@ export function autocompleteUsers(term: string, teamId = '', channelId = '', opt
 
 export function searchProfiles(term: string, options: any = {}): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {currentUserId} = getState().entities.users;
-
         let profiles;
         try {
             profiles = await Client4.searchUsers(term, options);
@@ -915,7 +898,7 @@ export function searchProfiles(term: string, options: any = {}): ActionFunc {
             return {error};
         }
 
-        const actions: AnyAction[] = [{type: UserTypes.RECEIVED_PROFILES_LIST, data: removeUserFromList(currentUserId, [...profiles])}];
+        const actions: AnyAction[] = [{type: UserTypes.RECEIVED_PROFILES_LIST, data: profiles}];
 
         if (options.in_channel_id) {
             actions.push({
