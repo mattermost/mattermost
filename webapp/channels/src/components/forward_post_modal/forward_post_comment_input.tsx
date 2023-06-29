@@ -44,13 +44,6 @@ const ForwardPostCommentInput = ({channelId, canForwardPost, comment, permaLinkL
     // we do not allow sending the forwarding when hitting enter
     const postMsgKeyPress = () => {};
 
-    const handleSelect = (e: React.SyntheticEvent<Element, Event>) => {
-        Utils.adjustSelection(
-            textboxRef?.current?.getInputBox(),
-            e as React.KeyboardEvent<HTMLInputElement>,
-        );
-    };
-
     const handleChange = useCallback(
         (e: React.ChangeEvent<TextboxElement>) => {
             const message = e.target.value;
@@ -138,7 +131,6 @@ const ForwardPostCommentInput = ({channelId, canForwardPost, comment, permaLinkL
             onChange={handleChange}
             onKeyPress={postMsgKeyPress}
             onKeyDown={handleKeyDown}
-            onSelect={handleSelect}
             onHeightChange={onHeightChange}
             handlePostError={onError}
             value={comment}
