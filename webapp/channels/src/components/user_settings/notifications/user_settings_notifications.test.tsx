@@ -27,7 +27,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         isCollapsedThreadsEnabled: false,
         sendPushNotifications: false,
         enableAutoResponder: false,
-        isCallsEnabled: true,
+        isCallsRingingEnabled: true,
     };
 
     test('should have called handleSubmit', async () => {

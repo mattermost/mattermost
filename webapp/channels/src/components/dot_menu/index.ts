@@ -43,7 +43,6 @@ import {allAtMentions} from 'utils/text_formatting';
 import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
 
 import {Post} from '@mattermost/types/posts';
-import {setGlobalItem} from '../../actions/storage';
 
 import DotMenu from './dot_menu';
 
@@ -141,7 +140,6 @@ type Actions = {
     openModal: <P>(modalData: ModalData<P>) => void;
     markPostAsUnread: (post: Post) => void;
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
-    setGlobalItem: (name: string, value: any) => void;
 }
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
@@ -155,7 +153,6 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
             openModal,
             markPostAsUnread,
             setThreadFollow,
-            setGlobalItem,
         }, dispatch),
     };
 }
