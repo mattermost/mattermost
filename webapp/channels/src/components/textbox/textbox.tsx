@@ -19,7 +19,7 @@ import CommandProvider from 'components/suggestion/command_provider/command_prov
 import EmoticonProvider from 'components/suggestion/emoticon_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
-import SuggestionList from 'components/suggestion/suggestion_list.jsx';
+import SuggestionList from 'components/suggestion/suggestion_list';
 
 import * as Utils from 'utils/utils';
 

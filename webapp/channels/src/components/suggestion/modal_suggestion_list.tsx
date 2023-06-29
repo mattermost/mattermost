@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import SuggestionList from 'components/suggestion/suggestion_list.jsx';
+import SuggestionList from 'components/suggestion/suggestion_list';
 import {getClosestParent} from 'utils/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

@@ -34,9 +34,9 @@ interface Props {
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret
     // as the user is typing.
     suggestionBoxAlgn?: {
-        lineHeight: number;
-        pixelsToMoveX: number;
-        pixelsToMoveY: number;
+        lineHeight?: number;
+        pixelsToMoveX?: number;
+        pixelsToMoveY?: number;
     };
 }
 
@@ -188,13 +188,20 @@ export default class SuggestionList extends React.PureComponent<Props> {
         const {lineHeight, pixelsToMoveX} = this.props.suggestionBoxAlgn;
         let pixelsToMoveY = this.props.suggestionBoxAlgn.pixelsToMoveY;
 
-        if (this.props.position === 'bottom') {
+        if (this.props.position === 'bottom' && pixelsToMoveY) {
             // Add the line height and 4 extra px so it looks less tight
-            pixelsToMoveY += this.props.suggestionBoxAlgn.lineHeight + 4;
+            const intialLineHeight = lineHeight ? lineHeight : 0;
+            pixelsToMoveY += intialLineHeight + 4;
+      
         }
 
         // If the suggestion box was invoked from the first line in the post box, stick to the top of the post box
-        pixelsToMoveY = pixelsToMoveY > lineHeight ? pixelsToMoveY : 0;
+        // if the lineHeight is smalller or undefined, then pixelsToMoveY should be 0
+        if(lineHeight && pixelsToMoveY){
+            pixelsToMoveY =  pixelsToMoveY > lineHeight ? pixelsToMoveY : 0;
+        } else{
+            pixelsToMoveY = 0;
+        }
 
         return {
             transform: `translate(${pixelsToMoveX}px, ${pixelsToMoveY}px)`,
