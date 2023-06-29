@@ -218,7 +218,7 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: Ge
                 const newEmbeds: PostEmbed[] = [];
 
                 for (const embed of otherPost.metadata.embeds) {
-                   if (embed.type === 'permalink' && embed.data && (embed.data as PostPreviewMetadata).post_id === post.id) {
+                    if (embed.type === 'permalink' && embed.data && (embed.data as PostPreviewMetadata).post_id === post.id) {
                         // skip if the embed is the deleted post
                         continue;
                     }
