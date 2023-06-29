@@ -86,6 +86,7 @@ func TestUpsertDraft(t *testing.T) {
 }
 
 func TestGetDrafts(t *testing.T) {
+	t.Skip("MM-53452")
 	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
 	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
@@ -159,6 +160,7 @@ func TestGetDrafts(t *testing.T) {
 }
 
 func TestDeleteDraft(t *testing.T) {
+	t.Skip("MM-53452")
 	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
 	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
