@@ -15,11 +15,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps() {
-    return {};
-}
-
-const connector = connect(mapStateToProps, mapDispatchToProps);
+const connector = connect(mapStateToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
