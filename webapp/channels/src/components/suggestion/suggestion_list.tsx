@@ -103,14 +103,14 @@ export default class SuggestionList extends React.PureComponent<Props> {
     };
 
     announceLabel() {
-        const suggestionReadOut = (this.props.ariaLiveRef)?.current;
+        const suggestionReadOut = this.props.ariaLiveRef?.current;
         if (suggestionReadOut) {
             suggestionReadOut.innerHTML = this.currentLabel as string;
         }
     }
 
     removeLabel() {
-        const suggestionReadOut = (this.props.ariaLiveRef)?.current;
+        const suggestionReadOut = this.props.ariaLiveRef?.current;
         if (suggestionReadOut) {
             suggestionReadOut.innerHTML = '';
         }
@@ -263,7 +263,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
 
             // ReactComponent names need to be upper case when used in JSX
             const Component = this.props.components[i];
-            if ((renderDividers!.includes('all') || renderDividers!.includes(item.type)) && prevItemType !== item.type) {
+            if ((renderDividers?.includes('all') || renderDividers?.includes(item.type)) && prevItemType !== item.type) {
                 items.push(this.renderDivider(item.type));
                 prevItemType = item.type;
             }
