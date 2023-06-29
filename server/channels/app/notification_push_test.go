@@ -1454,6 +1454,7 @@ func TestPushNotificationRace(t *testing.T) {
 			ConfigStore: memoryStore,
 		},
 		platform.SetFileStore(&fmocks.FileBackend{}),
+		platform.SetExportFileStore(&fmocks.FileBackend{}),
 		platform.StoreOverride(mockStore))
 	require.NoError(t, err)
 	serviceMap := map[product.ServiceKey]any{
