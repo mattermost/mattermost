@@ -1673,7 +1673,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ExportDirectory == nil || *s.ExportDirectory == "" {
-		s.Directory = NewString(FileSettingsDefaultDirectory)
+		s.ExportDirectory = NewString(FileSettingsDefaultDirectory)
 	}
 
 	if s.ExportAmazonS3AccessKeyId == nil {
