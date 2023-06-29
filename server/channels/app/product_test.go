@@ -133,11 +133,11 @@ func TestInitializeProducts(t *testing.T) {
 
 	t.Run("2 products and one w/o any dependency", func(t *testing.T) {
 		serviceMap := map[product.ServiceKey]any{
-			product.ConfigKey:    nil,
-			product.LicenseKey:   nil,
-			product.FilestoreKey: nil,
+			product.ConfigKey:          nil,
+			product.LicenseKey:         nil,
+			product.FilestoreKey:       nil,
 			product.ExportFilestoreKey: nil,
-			product.ClusterKey:   nil,
+			product.ClusterKey:         nil,
 		}
 
 		products := map[string]product.Manifest{
