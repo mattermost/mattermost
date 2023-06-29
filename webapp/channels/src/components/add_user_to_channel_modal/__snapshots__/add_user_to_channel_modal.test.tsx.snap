@@ -89,7 +89,6 @@ exports[`components/AddUserToChannelModal should match snapshot 1`] = `
                 "latestComplete": true,
                 "latestPrefix": "",
                 "requestStarted": false,
-                "triggerCharacter": undefined,
               },
             ]
           }

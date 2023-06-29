@@ -308,7 +308,7 @@ Object {
                 </a>
                 , 
                 <a
-                  href="https://mattermost.com/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123"
+                  href="https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123"
                   location="start_trial_form_modal"
                   rel="noopener noreferrer"
                   target="_blank"

@@ -15,8 +15,6 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
 >
   <InviteMembersButton
     isAdmin={false}
-    onClick={[MockFunction]}
-    touchedInviteMembersButton={false}
   >
     <Connect(TeamPermissionGate)
       permissions={
@@ -82,7 +80,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
             >
               <li
                 aria-label="Invite Members"
-                className="SidebarChannelNavigator__inviteMembersLhsButton SidebarChannelNavigator__inviteMembersLhsButton--untouched"
+                className="SidebarChannelNavigator__inviteMembersLhsButton"
               >
                 <i
                   className="icon-plus-box"

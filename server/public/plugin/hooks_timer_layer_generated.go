@@ -11,7 +11,7 @@ import (
 	"net/http"
 	timePkg "time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 type hooksTimerLayer struct {
@@ -251,5 +251,12 @@ func (hooks *hooksTimerLayer) GetTopicMetadataByIds(c *Context, topicType string
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := hooks.hooksImpl.GetTopicMetadataByIds(c, topicType, topicIds)
 	hooks.recordTime(startTime, "GetTopicMetadataByIds", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.ConfigurationWillBeSaved(newCfg)
+	hooks.recordTime(startTime, "ConfigurationWillBeSaved", _returnsB == nil)
 	return _returnsA, _returnsB
 }

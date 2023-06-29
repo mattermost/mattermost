@@ -17,7 +17,7 @@ export default function ExtraInfo({section}: Props) {
             <span>
                 <FormattedMessage
                     id='channel_notifications.override'
-                    defaultMessage='Selecting an option other than "Default" will override the global notification settings. Desktop notifications are available on Firefox, Safari, and Chrome.'
+                    defaultMessage='Selecting an option other than the "default" will override the global notification settings. Desktop notifications are available on Firefox, Safari, and Chrome.'
                 />
             </span>
         );
@@ -26,7 +26,7 @@ export default function ExtraInfo({section}: Props) {
             <span>
                 <FormattedMessage
                     id='channel_notifications.overridePush'
-                    defaultMessage='Selecting an option other than "Global default" will override the global notification settings for mobile push notifications in Settings. Push notifications must be enabled by the System Admin.'
+                    defaultMessage='Selecting an option other than the "default" will override the global notification settings for mobile push notifications.'
                 />
             </span>
         );

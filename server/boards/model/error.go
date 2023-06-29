@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"strings"
 
-	mm_model "github.com/mattermost/mattermost-server/server/public/model"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
 )
 
 var (

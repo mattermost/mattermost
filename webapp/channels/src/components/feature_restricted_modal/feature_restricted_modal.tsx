@@ -17,7 +17,7 @@ import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preference
 
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import {NotifyStatus} from 'components/common/hooks/useGetNotifyAdmin';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 

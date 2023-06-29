@@ -1,0 +1,1063 @@
+  /api/v4/posts:
+    post:
+      tags:
+        - posts
+      summary: Create a post
+      description: >
+        Create a new post in a channel. To create the post as a comment on
+        another post, provide `root_id`.
+
+        ##### Permissions
+
+        Must have `create_post` permission for the channel the post is being created in.
+      operationId: CreatePost
+      parameters:
+        - name: set_online
+          in: query
+          description: Whether to set the user status as online or not.
+          required: false
+          schema:
+            type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel_id
+                - message
+              properties:
+                channel_id:
+                  type: string
+                  description: The channel ID to post in
+                message:
+                  type: string
+                  description: The message contents, can be formatted with Markdown
+                root_id:
+                  type: string
+                  description: The post ID to comment on
+                file_ids:
+                  type: array
+                  description: A list of file IDs to associate with the post. Note that
+                    posts are limited to 5 files maximum. Please use additional
+                    posts for more files.
+                  items:
+                    type: string
+                props:
+                  description: A general JSON property bag to attach to the post
+                  type: object
+                metadata:
+                  description: A JSON object to add post metadata, e.g the post's priority
+                  type: object
+                  properties:
+                    priority:
+                      type: object
+                      description: An object containing the post's priority properties
+                      properties:
+                        priority:
+                          type: string
+                          description: The priority label of the post, could empty, important, or urgent
+                        requested_ack:
+                          type: boolean
+                          description: Set to true to request for acknowledgements
+        description: Post object to create
+        required: true
+      responses:
+        "201":
+          description: Post creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/posts/ephemeral:
+    post:
+      tags:
+        - posts
+      summary: Create a ephemeral post
+      description: >
+        Create a new ephemeral post in a channel.
+
+        ##### Permissions
+
+        Must have `create_post_ephemeral` permission (currently only given to system admin)
+      operationId: CreatePostEphemeral
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - post
+              properties:
+                user_id:
+                  type: string
+                  description: The target user id for the ephemeral post
+                post:
+                  type: object
+                  required:
+                    - channel_id
+                    - message
+                  description: Post object to create
+                  properties:
+                    channel_id:
+                      type: string
+                      description: The channel ID to post in
+                    message:
+                      type: string
+                      description: The message contents, can be formatted with Markdown
+        description: Ephemeral Post object to send
+        required: true
+      responses:
+        "201":
+          description: Post creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: Go
+          source: |
+            client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            client.Login("email@domain.com", "Password1")
+
+            ephemeralPost := &model.PostEphemeral{
+              UserID: "<ID OF THE USER THAT WOULD RECEIVE THE POST>",
+              Post: &model.Post{
+                ChannelId: "<ID OF CHANNEL>",
+                Message:   "<YOUR MESSAGE>",
+              },
+            }
+
+            createdPost, response := client.CreatePostEphemeral(ephemeralPost)
+  "/api/v4/posts/{post_id}":
+    get:
+      tags:
+        - posts
+      summary: Get a post
+      description: >
+        Get a single post.
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel the post is in or if the channel is public, have the `read_public_channels` permission for the team.
+      operationId: GetPost
+      parameters:
+        - name: post_id
+          in: path
+          description: ID of the post to get
+          required: true
+          schema:
+            type: string
+        - name: include_deleted
+          in: query
+          description: Defines if result should include deleted posts, must have 'manage_system' (admin) permission.
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Post retrieval successful
+          headers:
+            Has-Inaccessible-Posts:
+              schema:
+                type: boolean
+              description: This header is included with the value "true" if the post is past the cloud's plan limit.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    delete:
+      tags:
+        - posts
+      summary: Delete a post
+      description: >
+        Soft deletes a post, by marking the post as deleted in the database.
+        Soft deleted posts will not be returned in post queries.
+
+        ##### Permissions
+
+        Must be logged in as the user or have `delete_others_posts` permission.
+      operationId: DeletePost
+      parameters:
+        - name: post_id
+          in: path
+          description: ID of the post to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    put:
+      tags:
+        - posts
+      summary: Update a post
+      description: >
+        Update a post. Only the fields listed below are updatable, omitted
+        fields will be treated as blank.
+
+        ##### Permissions
+
+        Must have `edit_post` permission for the channel the post is in.
+      operationId: UpdatePost
+      parameters:
+        - name: post_id
+          in: path
+          description: ID of the post to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  description: ID of the post to update
+                  type: string
+                is_pinned:
+                  description: Set to `true` to pin the post to the channel it is in
+                  type: boolean
+                message:
+                  description: The message text of the post
+                  type: string
+                has_reactions:
+                  description: Set to `true` if the post has reactions to it
+                  type: boolean
+                props:
+                  description: A general JSON property bag to attach to the post
+                  type: string
+        description: Post object that is to be updated
+        required: true
+      responses:
+        "200":
+          description: Post update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/posts/{post_id}/set_unread":
+    post:
+      tags:
+        - posts
+      summary: Mark as unread from a post.
+      description: >
+        Mark a channel as being unread from a given post.
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel the post is in or if the channel is public, have the `read_public_channels` permission for the team.
+
+        Must have `edit_other_users` permission if the user is not the one marking the post for himself.
+
+
+        __Minimum server version__: 5.18
+      operationId: SetPostUnread
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+        - name: post_id
+          in: path
+          description: Post GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post marked as unread successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelUnreadAt"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/posts/{post_id}/patch":
+    put:
+      tags:
+        - posts
+      summary: Patch a post
+      description: >
+        Partially update a post by providing only the fields you want to update.
+        Omitted fields will not be updated. The fields that can be updated are
+        defined in the request body, all other provided fields will be ignored.
+
+        ##### Permissions
+
+        Must have the `edit_post` permission.
+      operationId: PatchPost
+      parameters:
+        - name: post_id
+          in: path
+          description: Post GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_pinned:
+                  description: Set to `true` to pin the post to the channel it is in
+                  type: boolean
+                message:
+                  description: The message text of the post
+                  type: string
+                file_ids:
+                  description: The list of files attached to this post
+                  type: array
+                  items:
+                    type: string
+                has_reactions:
+                  description: Set to `true` if the post has reactions to it
+                  type: boolean
+                props:
+                  description: A general JSON property bag to attach to the post
+                  type: string
+        description: Post object that is to be updated
+        required: true
+      responses:
+        "200":
+          description: Post patch successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/posts/{post_id}/thread":
+    get:
+      tags:
+        - posts
+      summary: Get a thread
+      description: >
+        Get a post and the rest of the posts in the same thread.
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel the post is in or if the channel is public, have the `read_public_channels` permission for the team.
+      operationId: GetPostThread
+      parameters:
+        - name: post_id
+          in: path
+          description: ID of a post in the thread
+          required: true
+          schema:
+            type: string
+        - name: perPage
+          in: query
+          description: The number of posts per page
+          schema:
+            type: integer
+            default: 0
+        - name: fromPost
+          in: query
+          description: The post_id to return the next page of posts from
+          schema:
+            type: string
+            default: ""
+        - name: fromCreateAt
+          in: query
+          description: The create_at timestamp to return the next page of posts from
+          schema:
+            type: integer
+            default: 0
+        - name: direction
+          in: query
+          description: The direction to return the posts. Either up or down.
+          schema:
+            type: string
+            default: ""
+        - name: skipFetchThreads
+          in: query
+          description: Whether to skip fetching threads or not
+          schema:
+            type: boolean
+            default: false
+        - name: collapsedThreads
+          in: query
+          description: Whether the client uses CRT or not
+          schema:
+            type: boolean
+            default: false
+        - name: collapsedThreadsExtended
+          in: query
+          description: Whether to return the associated users as part of the response or not
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Post list retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/posts/flagged":
+    get:
+      tags:
+        - posts
+      summary: Get a list of flagged posts
+      description: >
+        Get a page of flagged posts of a user provided user id string. Selects
+        from a channel, team, or all flagged posts by a user. Will only return
+        posts from channels in which the user is member.
+
+        ##### Permissions
+
+        Must be user or have `manage_system` permission.
+      operationId: GetFlaggedPostsForUser
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: string
+        - name: team_id
+          in: query
+          description: Team ID
+          schema:
+            type: string
+        - name: channel_id
+          in: query
+          description: Channel ID
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of posts per page
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Post list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PostList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/posts/{post_id}/files/info":
+    get:
+      tags:
+        - posts
+      summary: Get file info for post
+      description: >
+        Gets a list of file information objects for the files attached to a
+        post.
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel the post is in.
+      operationId: GetFileInfosForPost
+      parameters:
+        - name: post_id
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+        - name: include_deleted
+          in: query
+          description: Defines if result should include deleted posts, must have 'manage_system' (admin) permission.
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: File info retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FileInfo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/channels/{channel_id}/posts":
+    get:
+      tags:
+        - posts
+      summary: Get posts for a channel
+      description: >
+        Get a page of posts in a channel. Use the query parameters to modify the
+        behaviour of this endpoint. The parameter `since` must not be used with any of
+        `before`, `after`, `page`, and `per_page` parameters.
+
+        If `since` is used, it will always return all posts modified since that time,
+        ordered by their create time limited till 1000. A caveat with this parameter is that
+        there is no guarantee that the returned posts will be consecutive. It is left to the clients
+        to maintain state and fill any missing holes in the post order.
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel.
+      operationId: GetPostsForChannel
+      parameters:
+        - name: channel_id
+          in: path
+          description: The channel ID to get the posts for
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of posts per page
+          schema:
+            type: integer
+            default: 60
+        - name: since
+          in: query
+          description: Provide a non-zero value in Unix time milliseconds to select posts
+            modified after that time
+          schema:
+            type: integer
+        - name: before
+          in: query
+          description: A post id to select the posts that came before this one
+          schema:
+            type: string
+        - name: after
+          in: query
+          description: A post id to select the posts that came after this one
+          schema:
+            type: string
+        - name: include_deleted
+          in: query
+          description: Whether to include deleted posts or not. Must have system admin permissions.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Post list retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/channels/{channel_id}/posts/unread":
+    get:
+      tags:
+        - posts
+      summary: Get posts around oldest unread
+      description: >
+        Get the oldest unread post in the channel for the given user as well as
+        the posts around it.
+        The returned list is sorted in descending order (most recent post first).
+
+        ##### Permissions
+
+        Must be logged in as the user or have `edit_other_users` permission, and must have `read_channel` permission for the channel.
+
+        __Minimum server version__: 5.14
+      operationId: GetPostsAroundLastUnread
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: string
+        - name: channel_id
+          in: path
+          description: The channel ID to get the posts for
+          required: true
+          schema:
+            type: string
+        - name: limit_before
+          in: query
+          description: Number of posts before the oldest unread posts. Maximum is 200 posts
+            if limit is set greater than that.
+          schema:
+            type: integer
+            default: 60
+            maximum: 200
+            minimum: 0
+        - name: limit_after
+          in: query
+          description: Number of posts after and including the oldest unread post. Maximum is
+            200 posts if limit is set greater than that.
+          schema:
+            type: integer
+            default: 60
+            maximum: 200
+            minimum: 1
+        - name: skipFetchThreads
+          in: query
+          description: Whether to skip fetching threads or not
+          schema:
+            type: boolean
+            default: false
+        - name: collapsedThreads
+          in: query
+          description: Whether the client uses CRT or not
+          schema:
+            type: boolean
+            default: false
+        - name: collapsedThreadsExtended
+          in: query
+          description: Whether to return the associated users as part of the response or not
+          schema:
+            type: boolean
+            default: false                    
+      responses:
+        "200":
+          description: Post list retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/teams/{team_id}/posts/search":
+    post:
+      tags:
+        - posts
+      summary: Search for team posts
+      description: |
+        Search posts in the team and from the provided terms string.
+        ##### Permissions
+        Must be authenticated and have the `view_team` permission.
+      operationId: SearchPosts
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - terms
+                - is_or_search
+              properties:
+                terms:
+                  type: string
+                  description: The search terms as inputed by the user. To search for posts
+                    from a user include `from:someusername`, using a user's
+                    username. To search in a specific channel include
+                    `in:somechannel`, using the channel name (not the display
+                    name).
+                is_or_search:
+                  type: boolean
+                  description: Set to true if an Or search should be performed vs an And
+                    search.
+                time_zone_offset:
+                  type: integer
+                  default: 0
+                  description: Offset from UTC of user timezone for date searches.
+                include_deleted_channels:
+                  type: boolean
+                  description: Set to true if deleted channels should be included in the
+                    search. (archived channels)
+                page:
+                  type: integer
+                  default: 0
+                  description: The page to select. (Only works with Elasticsearch)
+                per_page:
+                  type: integer
+                  default: 60
+                  description: The number of posts per page. (Only works with Elasticsearch)
+        description: The search terms and logic to use in the search.
+        required: true
+      responses:
+        "200":
+          description: Post list retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostListWithSearchMatches"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/posts/{post_id}/pin":
+    post:
+      tags:
+        - posts
+      summary: Pin a post to the channel
+      description: >
+        Pin a post to a channel it is in based from the provided post id string.
+
+        ##### Permissions
+
+        Must be authenticated and have the `read_channel` permission to the channel the post is in.
+      operationId: PinPost
+      parameters:
+        - name: post_id
+          in: path
+          description: Post GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Pinned post successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/posts/{post_id}/unpin":
+    post:
+      tags:
+        - posts
+      summary: Unpin a post to the channel
+      description: >
+        Unpin a post to a channel it is in based from the provided post id
+        string.
+
+        ##### Permissions
+
+        Must be authenticated and have the `read_channel` permission to the channel the post is in.
+      operationId: UnpinPost
+      parameters:
+        - name: post_id
+          in: path
+          description: Post GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Unpinned post successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/posts/{post_id}/actions/{action_id}":
+    post:
+      tags:
+        - posts
+      summary: Perform a post action
+      description: >
+        Perform a post action, which allows users to interact with integrations
+        through posts.
+
+        ##### Permissions
+
+        Must be authenticated and have the `read_channel` permission to the channel the post is in.
+      operationId: DoPostAction
+      parameters:
+        - name: post_id
+          in: path
+          description: Post GUID
+          required: true
+          schema:
+            type: string
+        - name: action_id
+          in: path
+          description: Action GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post action successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/posts/ids":
+    post:
+      tags:
+        - posts
+      summary: Get posts by a list of ids
+      description: >
+        Fetch a list of posts based on the provided postIDs
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel the post is in or if the channel is public, have the `read_public_channels` permission for the team.
+      operationId: getPostsByIds
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: List of post ids
+        required: true
+      responses:
+        "200":
+          description: Post list retrieval successful
+          headers:
+            Has-Inaccessible-Posts:
+              schema:
+                type: boolean
+              description: Indicates whether the posts have been truncated as per the cloud's plan limit.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/posts/{post_id}/reminder":
+    post:
+      tags:
+        - posts
+      summary: Set a post reminder
+      description: >
+        Set a reminder for the user for the post.
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel the post is in.
+
+
+        __Minimum server version__: 7.2
+      operationId: SetPostReminder
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+        - name: post_id
+          in: path
+          description: Post GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - target_time
+              properties:
+                target_time:
+                  type: integer
+                  description: Target time for the reminder
+        description: Target time for the reminder
+        required: true
+      responses:
+        "200":
+          description: Reminder set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/users/{user_id}/posts/{post_id}/ack":
+    post:
+      tags:
+        - posts
+      summary: Acknowledge a post
+      description: >
+        Acknowledge a post that has a request for acknowledgements.
+
+        ##### Permissions
+ 
+        Must have `read_channel` permission for the channel the post is in.<br/>
+        Must be logged in as the user or have `edit_other_users` permission.
+
+
+        __Minimum server version__: 7.7
+      operationId: SaveAcknowledgementForPost
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+        - name: post_id
+          in: path
+          description: Post GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Acknowledgement saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostAcknowledgement"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+        - posts
+      summary: Delete a post acknowledgement
+      description: >
+        Delete an acknowledgement form a post that you had previously acknowledged.
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel the post is in.<br/>
+        Must be logged in as the user or have `edit_other_users` permission.<br/>
+        The post must have been acknowledged in the previous 5 minutes.
+
+
+        __Minimum server version__: 7.7
+      operationId: SaveAcknowledgementForPost
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+        - name: post_id
+          in: path
+          description: Post GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Acknowledgement deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
