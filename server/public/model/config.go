@@ -2929,11 +2929,6 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdNPS] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates[PluginIdFocalboard] == nil {
-		// Enable the focalboard plugin by default
-		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: true}
-	}
-
 	if s.PluginStates[PluginIdCalls] == nil {
 		// Enable the calls plugin by default
 		s.PluginStates[PluginIdCalls] = &PluginState{Enable: true}
