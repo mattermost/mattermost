@@ -66,7 +66,7 @@ func downloadExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	filePath := filepath.Join(*c.App.Config().ExportSettings.Directory, c.Params.ExportName)
-	if ok, err := c.App.FileExists(filePath); err != nil {
+	if ok, err := c.App.ExportFileExists(filePath); err != nil {
 		c.Err = err
 		return
 	} else if !ok {
@@ -74,7 +74,7 @@ func downloadExport(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := c.App.FileReader(filePath)
+	file, err := c.App.ExportFileReader(filePath)
 	if err != nil {
 		c.Err = err
 		return

@@ -818,7 +818,7 @@ func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.App
 }
 
 func (a *App) ListExports() ([]string, *model.AppError) {
-	exports, appErr := a.ListDirectory(*a.Config().ExportSettings.Directory)
+	exports, appErr := a.ListExportDirectory(*a.Config().ExportSettings.Directory)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -834,13 +834,13 @@ func (a *App) ListExports() ([]string, *model.AppError) {
 func (a *App) DeleteExport(name string) *model.AppError {
 	filePath := filepath.Join(*a.Config().ExportSettings.Directory, name)
 
-	if ok, err := a.FileExists(filePath); err != nil {
+	if ok, err := a.ExportFileExists(filePath); err != nil {
 		return err
 	} else if !ok {
 		return nil
 	}
 
-	return a.RemoveFile(filePath)
+	return a.RemoveExportFile(filePath)
 }
 
 func updateJobProgress(logger mlog.LoggerIFace, store store.Store, job *model.Job, key string, value int) {
