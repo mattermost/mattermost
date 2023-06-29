@@ -28,19 +28,19 @@ tags:
       If you have questions on API routes not listed in this reference, please [join the Mattermost community server](https://community.mattermost.com) to ask questions in the Developers channel, [or post questions to our Developer Discussion forum](https://forum.mattermost.org/c/dev).
 
 
-      [Bug reports](https://github.com/mattermost/mattermost-api-reference/issues) in the documentation or the API are also welcome, as are pull requests to fix the issues.
+      [Bug reports](https://github.com/mattermost/mattermost/issues) in the documentation or the API are also welcome, as are pull requests to fix the issues.
 
 
       ### Contributing
 
 
-      When you have answers to API questions not addressed in our documentation we ask you to consider making a pull request to improve our reference. [Small changes](https://github.com/mattermost/mattermost-api-reference/commit/d574c0c1e95dc2228dc96663afd562f1305e3ece) and [larger changes](https://github.com/mattermost/mattermost-api-reference/commit/1ae3314f0935eebba8c885d8969dcad72f801501) are all welcome.
+      When you have answers to API questions not addressed in our documentation we ask you to consider making a pull request to improve our reference. Small and large changes are all welcome.
 
 
-      We also have [Help Wanted tickets](https://github.com/mattermost/mattermost-api-reference/issues) available for community members who would like to help others more easily use the APIs. We acknowledge everyone's contribution in the [release notes of our next version](https://docs.mattermost.com/administration/changelog.html#contributors).
+      We also have [Help Wanted tickets](https://github.com/mattermost/mattermost/issues?q=is%3Aopen+is%3Aissue+label%3AArea%2FAPI) available for community members who would like to help others more easily use the APIs. We acknowledge everyone's contribution in the [release notes of our next version](https://docs.mattermost.com/administration/changelog.html#contributors).
 
 
-      The source code for this API reference is hosted at https://github.com/mattermost/mattermost-api-reference.
+      The source code for this API reference is hosted at https://github.com/mattermost/mattermost/tree/master/api.
   - name: schema
     description: >
       All API access is through HTTP(S) requests at
