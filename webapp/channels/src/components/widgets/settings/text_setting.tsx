@@ -1,21 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent} from 'react';
+import React, {ChangeEvent, ReactNode} from 'react';
 
 import Setting from './setting';
 
-export const INPUT_TYPES = ['input', 'textarea', 'number', 'email', 'tel', 'url', 'password'] as const;
-
+const INPUT_TYPES = ['input', 'textarea', 'number', 'email', 'tel', 'url', 'password'] as const;
 export type InputTypes = typeof INPUT_TYPES[number];
 
 export type Props = {
     id: string;
-    label: React.ReactNode;
+    label: ReactNode;
     labelClassName?: string;
     placeholder?: string;
-    helpText?: React.ReactNode;
-    footer?: React.ReactNode;
+    helpText?: ReactNode;
+    footer?: ReactNode;
     value: string | number;
     inputClassName?: string;
     maxLength?: number;
