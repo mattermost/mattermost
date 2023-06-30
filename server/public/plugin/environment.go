@@ -104,7 +104,6 @@ func scanSearchPath(path string) ([]*model.BundleInfo, error) {
 }
 
 var pluginIDBlocklist = map[string]bool{
-	"playbooks": true,
 	"com.mattermost.plugin-incident-response":   true,
 	"com.mattermost.plugin-incident-management": true,
 }

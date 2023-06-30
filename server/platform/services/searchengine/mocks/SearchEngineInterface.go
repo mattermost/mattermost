@@ -326,6 +326,20 @@ func (_m *SearchEngineInterface) IsAutocompletionEnabled() bool {
 	return r0
 }
 
+// IsEnabled provides a mock function with given fields:
+func (_m *SearchEngineInterface) IsEnabled() bool {
+	ret := _m.Called()
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // IsIndexingEnabled provides a mock function with given fields:
 func (_m *SearchEngineInterface) IsIndexingEnabled() bool {
 	ret := _m.Called()

@@ -54,7 +54,7 @@ const usesLDAP = async (
             configUrl: ConsolePages.AD_LDAP,
             configText: formatMessage({id: 'admin.reporting.workspace_optimization.ease_of_management.ldap.cta', defaultMessage: 'Try AD/LDAP'}),
         } : options.trialOrEnterpriseCtaConfig),
-        infoUrl: DocLinks.AD_LDAP,
+        infoUrl: DocLinks.SETUP_LDAP,
         infoText: formatMessage({id: 'admin.reporting.workspace_optimization.cta.learnMore', defaultMessage: 'Learn more'}),
         telemetryAction: 'ad-ldap',
         status,

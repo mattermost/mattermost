@@ -188,6 +188,6 @@ describe('System Console - Empty Billing Screen', () => {
 
     it('should show empty screen picture and link to /cloud-billing.html', () => {
         cy.get('.BillingHistory__cardHeaderText-bottom').should('have.text', 'All of your invoices will be shown here');
-        cy.get('.BillingHistory__noHistory-link').should('have.text', 'See how billing works').should('have.attr', 'href').and('include', 'cloud/cloud-billing/cloud-billing.html');
+        cy.get('.BillingHistory__noHistory-link').should('have.text', 'See how billing works').should('have.attr', 'href').and('include', '/pl/cloud-billing');
     });
 });

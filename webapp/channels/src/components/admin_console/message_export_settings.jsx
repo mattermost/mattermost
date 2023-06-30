@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
-import {JobTypes, exportFormats} from 'utils/constants';
+import {DocLinks, JobTypes, exportFormats} from 'utils/constants';
 import * as Utils from 'utils/utils';
 import {getSiteURL} from 'utils/url';
 
@@ -14,7 +14,7 @@ import ExternalLink from 'components/external_link';
 
 import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
-import DropdownSetting from './dropdown_setting.jsx';
+import DropdownSetting from './dropdown_setting';
 import JobsTable from './jobs';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
@@ -248,7 +248,7 @@ export default class MessageExportSettings extends AdminSettings {
                             values={{
                                 link: (msg) => (
                                     <ExternalLink
-                                        href='https://docs.mattermost.com/comply/compliance-export.html'
+                                        href={DocLinks.COMPILANCE_EXPORT}
                                         location='message_export_settings'
                                     >
                                         {msg}
