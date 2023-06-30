@@ -80,7 +80,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = false
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.SendWelcomePost = true
 	f.PeopleProduct = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
