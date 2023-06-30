@@ -55,8 +55,6 @@ type FeatureFlags struct {
 
 	PeopleProduct bool
 
-	ThreadsEverywhere bool
-
 	GlobalDrafts bool
 
 	OnboardingTourTips bool
@@ -84,7 +82,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsEnabled = true
 	f.PostPriority = true
 	f.PeopleProduct = false
-	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
