@@ -35,7 +35,7 @@ type Props = {
     selectedSound: string;
     callsSelectedSound: string;
     isCollapsedThreadsEnabled: boolean;
-    isCallsEnabled: boolean;
+    isCallsRingingEnabled: boolean;
 };
 
 type State = {
@@ -164,7 +164,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                     /></div>);
             }
 
-            if (this.props.isCallsEnabled) {
+            if (this.props.isCallsRingingEnabled) {
                 const callsSoundRadio = [false, false];
                 if (this.props.callsSound === 'false') {
                     callsSoundRadio[1] = true;
