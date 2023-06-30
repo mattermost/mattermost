@@ -218,9 +218,17 @@ func (a *App) SanitizePostMetadataForUser(c request.CTX, post *model.Post, userI
 	}
 
 	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
+		// Remove all permalink embeds and only keep non-permalink embeds.
+		// We always have only one permalink embed even if the post
+		// contains multiple permalinks.
+		var newEmbeds []*model.PostEmbed
 		for _, embed := range post.Metadata.Embeds {
-			embed.Data = nil
+			if embed.Type != model.PostEmbedPermalink {
+				newEmbeds = append(newEmbeds, embed)
+			}
 		}
+
+		post.Metadata.Embeds = newEmbeds
 	}
 
 	return post, nil

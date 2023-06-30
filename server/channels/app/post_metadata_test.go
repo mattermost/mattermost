@@ -2869,3 +2869,60 @@ func TestSanitizePostMetaDataForAudit(t *testing.T) {
 		}
 	}
 }
+
+func TestSanitizePostMetadataForUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	privateChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
+		Name:      "private_chanenl",
+		Type:      model.ChannelTypePrivate,
+		TeamId:    th.BasicTeam.Id,
+		CreatorId: th.SystemAdminUser.Id,
+	}, true)
+
+	require.Nil(t, err)
+	require.NotEmpty(t, privateChannel.Id)
+
+	post := &model.Post{
+		Id:     "post_id_1",
+		UserId: th.BasicUser.Id,
+		Metadata: &model.PostMetadata{
+			Embeds: []*model.PostEmbed{
+				{
+					Type: model.PostEmbedPermalink,
+					Data: &model.PreviewPost{
+						PostID: "permalink_post_id",
+						Post: &model.Post{
+							Id:        "permalink_post_id",
+							Message:   "permalink post message",
+							ChannelId: privateChannel.Id,
+						},
+					},
+				},
+				{
+					Type: model.PostEmbedPermalink,
+					Data: &model.PreviewPost{
+						PostID: "permalink_post_id_2",
+						Post: &model.Post{
+							Id:        "permalink_post_id_2",
+							Message:   "permalink post message 2",
+							ChannelId: privateChannel.Id,
+						},
+					},
+				},
+				{
+					Type: model.PostEmbedLink,
+					URL:  "https://mattermost.com",
+				},
+			},
+		},
+	}
+
+	sanitizedPost, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, sanitizedPost)
+
+	require.Equal(t, 1, len(sanitizedPost.Metadata.Embeds))
+	require.Equal(t, model.PostEmbedLink, sanitizedPost.Metadata.Embeds[0].Type)
+}
