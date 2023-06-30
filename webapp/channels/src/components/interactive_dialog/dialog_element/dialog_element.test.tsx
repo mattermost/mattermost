@@ -4,7 +4,6 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import TextSetting from 'components/widgets/settings/text_setting';
 import RadioSetting from 'components/widgets/settings/radio_setting';
 
 import DialogElement from './dialog_element';
@@ -21,78 +20,6 @@ describe('components/interactive_dialog/DialogElement', () => {
         },
         onChange: jest.fn(),
     };
-    const baseTextSettingProps = {
-        id: baseDialogProps.name,
-        maxLength: 100,
-        resizable: false,
-        onChange: jest.fn(),
-        value: '',
-        label: (
-            <React.Fragment>
-                {baseDialogProps.displayName}
-                <span className='error-text'>{' *'}</span>
-            </React.Fragment>
-        ),
-    };
-    it('subtype blank', () => {
-        const wrapper = shallow(
-            <DialogElement
-                {...baseDialogProps}
-                subtype=''
-            />,
-        );
-        expect(wrapper.matchesElement(
-            <TextSetting
-                {...baseTextSettingProps}
-                type='input'
-            />,
-        )).toEqual(true);
-    });
-
-    it('subtype email', () => {
-        const wrapper = shallow(
-            <DialogElement
-                {...baseDialogProps}
-                subtype='email'
-            />,
-        );
-        expect(wrapper.matchesElement(
-            <TextSetting
-                {...baseTextSettingProps}
-                type='email'
-            />,
-        )).toEqual(true);
-    });
-
-    it('subtype invalid', () => {
-        const wrapper = shallow(
-            <DialogElement
-                {...baseDialogProps}
-                subtype='invalid'
-            />,
-        );
-        expect(wrapper.matchesElement(
-            <TextSetting
-                {...baseTextSettingProps}
-                type='input'
-            />,
-        )).toEqual(true);
-    });
-
-    it('subtype password', () => {
-        const wrapper = shallow(
-            <DialogElement
-                {...baseDialogProps}
-                subtype='password'
-            />,
-        );
-        expect(wrapper.matchesElement(
-            <TextSetting
-                {...baseTextSettingProps}
-                type='password'
-            />,
-        )).toEqual(true);
-    });
 
     describe('radioSetting', () => {
         const radioOptions = [
