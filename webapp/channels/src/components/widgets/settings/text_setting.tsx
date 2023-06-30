@@ -5,7 +5,7 @@ import React, {ChangeEvent, ReactNode} from 'react';
 
 import Setting from './setting';
 
-const INPUT_TYPES = ['input', 'textarea', 'number', 'email', 'tel', 'url', 'password'] as const;
+const INPUT_TYPES = ['text', 'textarea', 'number', 'email', 'tel', 'url', 'password'] as const;
 export type InputTypes = typeof INPUT_TYPES[number];
 
 export type Props = {
@@ -21,12 +21,14 @@ export type Props = {
     resizable?: boolean;
     onChange(id: string, value: string | number | boolean): void;
     disabled?: boolean;
+
+    // This is a custom prop that is not part of the HTML input element type
     type?: InputTypes;
     autoFocus?: boolean;
 }
 
 function TextSetting(props: Props) {
-    const {labelClassName = '', inputClassName = '', maxLength = -1, resizable = true, type = 'input'} = props;
+    const {labelClassName = '', inputClassName = '', maxLength = -1, resizable = true, type = 'text'} = props;
 
     function handleChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
         if (props.type === 'number') {
@@ -57,11 +59,11 @@ function TextSetting(props: Props) {
     } else {
         input = (
             <input
-                autoFocus={props.autoFocus}
-                data-testid={props.id + type}
                 id={props.id}
+                data-testid={props.id + type}
                 className='form-control'
-                type={type && INPUT_TYPES.includes(type) ? type : 'input'}
+                autoFocus={props.autoFocus}
+                type={INPUT_TYPES.includes(type) ? type : 'text'}
                 placeholder={props.placeholder}
                 value={props.value}
                 maxLength={maxLength}

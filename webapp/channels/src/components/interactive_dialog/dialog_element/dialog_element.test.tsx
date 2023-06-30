@@ -4,6 +4,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
+import TextSetting from 'components/widgets/settings/text_setting';
 import RadioSetting from 'components/widgets/settings/radio_setting';
 
 import DialogElement from './dialog_element';
@@ -20,6 +21,37 @@ describe('components/interactive_dialog/DialogElement', () => {
         },
         onChange: jest.fn(),
     };
+
+    it('subtype blank', () => {
+        const wrapper = shallow(
+            <DialogElement
+                {...baseDialogProps}
+                subtype=''
+            />,
+        );
+
+        expect(wrapper.find(TextSetting).props().type).toEqual('text');
+    });
+
+    it('subtype email', () => {
+        const wrapper = shallow(
+            <DialogElement
+                {...baseDialogProps}
+                subtype='email'
+            />,
+        );
+        expect(wrapper.find(TextSetting).props().type).toEqual('email');
+    });
+
+    it('subtype password', () => {
+        const wrapper = shallow(
+            <DialogElement
+                {...baseDialogProps}
+                subtype='password'
+            />,
+        );
+        expect(wrapper.find(TextSetting).props().type).toEqual('password');
+    });
 
     describe('radioSetting', () => {
         const radioOptions = [
