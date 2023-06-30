@@ -835,6 +835,7 @@ func (ts *TelemetryService) trackConfig() {
 		"boards_retention_days":         *cfg.DataRetentionSettings.BoardsRetentionDays,
 		"deletion_job_start_time":       *cfg.DataRetentionSettings.DeletionJobStartTime,
 		"batch_size":                    *cfg.DataRetentionSettings.BatchSize,
+		"time_between_batches":          *cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds,
 		"cleanup_jobs_threshold_days":   *cfg.JobSettings.CleanupJobsThresholdDays,
 		"cleanup_config_threshold_days": *cfg.JobSettings.CleanupConfigThresholdDays,
 	})
