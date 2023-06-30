@@ -52,6 +52,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             value: '',
             id: baseDialogTextProps.name,
             helpText: (<Markdown message='The description'/>),
+            onChange: jest.fn(),
         };
 
         it('subtype blank - optional field', () => {

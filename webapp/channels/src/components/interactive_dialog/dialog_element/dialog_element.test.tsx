@@ -25,6 +25,7 @@ describe('components/interactive_dialog/DialogElement', () => {
         id: baseDialogProps.name,
         maxLength: 100,
         resizable: false,
+        onChange: jest.fn(),
         value: '',
         label: (
             <React.Fragment>

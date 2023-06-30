@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {ChangeEvent} from 'react';
 
 import Setting from './setting';
 
-export type InputTypes = 'input' | 'textarea' | 'number' | 'email' | 'tel' | 'url' | 'password'
+export const INPUT_TYPES = ['input', 'textarea', 'number', 'email', 'tel', 'url', 'password'] as const;
 
-export type WidgetTextSettingProps = {
+export type InputTypes = typeof INPUT_TYPES[number];
+
+export type Props = {
     id: string;
     label: React.ReactNode;
     labelClassName?: string;
@@ -18,91 +20,70 @@ export type WidgetTextSettingProps = {
     inputClassName?: string;
     maxLength?: number;
     resizable?: boolean;
-    onChange(name: string, value: any): void;
+    onChange(id: string, value: string | number | boolean): void;
     disabled?: boolean;
-    type: InputTypes;
+    type?: InputTypes;
     autoFocus?: boolean;
 }
 
-// Since handle change is read from input and textarea element
-type HandleChangeTypes = React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
+function TextSetting(props: Props) {
+    const {labelClassName = '', inputClassName = '', maxLength = -1, resizable = true, type = 'input'} = props;
 
-export default class TextSetting extends React.PureComponent<WidgetTextSettingProps> {
-    public static validTypes: string[] = ['input', 'textarea', 'number', 'email', 'tel', 'url', 'password'];
-
-    public static defaultProps: Partial<WidgetTextSettingProps> = {
-        labelClassName: '',
-        inputClassName: '',
-        type: 'input',
-        maxLength: -1, // A negative number allows for values of any length
-        resizable: true,
-    };
-
-    private handleChange: HandleChangeTypes = (e) => {
-        if (this.props.type === 'number') {
-            this.props.onChange(this.props.id, parseInt(e.target.value, 10));
+    function handleChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+        if (props.type === 'number') {
+            props.onChange(props.id, parseInt(event.target.value, 10));
         } else {
-            this.props.onChange(this.props.id, e.target.value);
+            props.onChange(props.id, event.target.value);
         }
-    };
+    }
 
-    public render(): JSX.Element {
-        const {resizable} = this.props;
-        let {type} = this.props;
-        let input = null;
-
-        if (type === 'textarea') {
-            let style = {};
-            if (!resizable) {
-                style = Object.assign({}, {resize: 'none'});
-            }
-
-            input = (
-                <textarea
-                    autoFocus={this.props.autoFocus}
-                    data-testid={this.props.id + 'input'}
-                    id={this.props.id}
-                    dir='auto'
-                    style={style}
-                    className='form-control'
-                    rows={5}
-                    placeholder={this.props.placeholder}
-                    value={this.props.value}
-                    maxLength={this.props.maxLength}
-                    onChange={this.handleChange}
-                    disabled={this.props.disabled}
-                />
-            );
-        } else {
-            type = ['input', 'email', 'tel', 'number', 'url', 'password'].includes(type) ? type : 'input';
-
-            input = (
-                <input
-                    autoFocus={this.props.autoFocus}
-                    data-testid={this.props.id + type}
-                    id={this.props.id}
-                    className='form-control'
-                    type={type}
-                    placeholder={this.props.placeholder}
-                    value={this.props.value}
-                    maxLength={this.props.maxLength}
-                    onChange={this.handleChange}
-                    disabled={this.props.disabled}
-                />
-            );
-        }
-
-        return (
-            <Setting
-                label={this.props.label}
-                labelClassName={this.props.labelClassName}
-                inputClassName={this.props.inputClassName}
-                helpText={this.props.helpText}
-                inputId={this.props.id}
-                footer={this.props.footer}
-            >
-                {input}
-            </Setting>
+    let input = null;
+    if (type === 'textarea') {
+        input = (
+            <textarea
+                autoFocus={props.autoFocus}
+                data-testid={props.id + 'input'}
+                id={props.id}
+                dir='auto'
+                style={resizable === false ? {resize: 'none'} : undefined}
+                className='form-control'
+                rows={5}
+                placeholder={props.placeholder}
+                value={props.value}
+                maxLength={maxLength}
+                onChange={handleChange}
+                disabled={props.disabled}
+            />
+        );
+    } else {
+        input = (
+            <input
+                autoFocus={props.autoFocus}
+                data-testid={props.id + type}
+                id={props.id}
+                className='form-control'
+                type={type && INPUT_TYPES.includes(type) ? type : 'input'}
+                placeholder={props.placeholder}
+                value={props.value}
+                maxLength={maxLength}
+                onChange={handleChange}
+                disabled={props.disabled}
+            />
         );
     }
+
+    return (
+        <Setting
+            label={props.label}
+            labelClassName={labelClassName}
+            inputClassName={inputClassName}
+            helpText={props.helpText}
+            inputId={props.id}
+            footer={props.footer}
+        >
+            {input}
+        </Setting>
+    );
 }
+
+export default TextSetting;

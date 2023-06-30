@@ -116,9 +116,10 @@ export default class DialogElement extends React.PureComponent<Props, State> {
             errorText,
             optional,
             options,
+            type,
         } = this.props;
 
-        let {type, maxLength} = this.props;
+        let {maxLength} = this.props;
 
         let displayNameContent: React.ReactNode = displayName;
         if (optional) {
@@ -157,12 +158,6 @@ export default class DialogElement extends React.PureComponent<Props, State> {
         if (type === 'text' || type === 'textarea') {
             if (type === 'text') {
                 maxLength = maxLength || TEXT_DEFAULT_MAX_LENGTH;
-
-                if (subtype && TextSetting.validTypes.includes(subtype)) {
-                    type = subtype;
-                } else {
-                    type = 'input';
-                }
             } else {
                 maxLength = maxLength || TEXTAREA_DEFAULT_MAX_LENGTH;
             }
@@ -172,7 +167,7 @@ export default class DialogElement extends React.PureComponent<Props, State> {
                 <TextSetting
                     autoFocus={this.props.autoFocus}
                     id={name}
-                    type={type as InputTypes}
+                    type={subtype as InputTypes}
                     label={displayNameContent}
                     maxLength={maxLength}
                     value={textValue || ''}
