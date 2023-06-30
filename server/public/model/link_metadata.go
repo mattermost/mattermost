@@ -85,7 +85,7 @@ func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 }
 
 func (o *LinkMetadata) PreSave() {
-	o.Hash = GenerateLinkMetadataHash(o.URL, o.Timestamp)
+	o.Hash = GeneratePresignedURLMetadataHash(o.URL, o.Timestamp)
 }
 
 func (o *LinkMetadata) IsValid() *AppError {
@@ -182,8 +182,8 @@ func isRoundedToNearestHour(ms int64) bool {
 	return FloorToNearestHour(ms) == ms
 }
 
-// GenerateLinkMetadataHash generates a unique hash for a given URL and timestamp for use as a database key.
-func GenerateLinkMetadataHash(url string, timestamp int64) int64 {
+// GeneratePresignedURLMetadataHash generates a unique hash for a given URL and timestamp for use as a database key.
+func GeneratePresignedURLMetadataHash(url string, timestamp int64) int64 {
 	hash := fnv.New32()
 
 	// Note that we ignore write errors here because the Hash interface says that its Write will never return an error

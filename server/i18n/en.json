@@ -824,20 +824,12 @@
     "translation": "No export file has been found."
   },
   {
-    "id": "api.command_exportlink.exists.app_error",
-    "translation": "Error while checking if the file exists"
-  },
-  {
     "id": "api.command_exportlink.hint",
     "translation": "[job-id|zip file path|latest]"
   },
   {
     "id": "api.command_exportlink.invalid.app_error",
     "translation": "Unable to find the file you requested."
-  },
-  {
-    "id": "api.command_exportlink.link.app_error",
-    "translation": "Unable to generate the link."
   },
   {
     "id": "api.command_exportlink.link.text",
@@ -852,12 +844,12 @@
     "translation": "exportlink"
   },
   {
-    "id": "api.command_exportlink.notfound.app_error",
-    "translation": "File not found."
-  },
-  {
     "id": "api.command_exportlink.permission.app_error",
     "translation": "You don't have enough permissions to run this command."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Unable to generate presign url."
   },
   {
     "id": "api.command_groupmsg.desc",
@@ -5146,6 +5138,30 @@
   {
     "id": "app.emoji.get_list.internal_error",
     "translation": "Unable to get the emoji."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "This actions requires the use of a dedicated export store."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Your export store driver does not support presign url generation."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "This feature is restricted by a feature flag."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Unable to check if the file exists."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Unable to generate the presigned url."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "The export file was not found."
   },
   {
     "id": "app.export.export_attachment.copy_file.error",

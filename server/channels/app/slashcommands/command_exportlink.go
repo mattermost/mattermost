@@ -61,7 +61,7 @@ func (*ExportLinkProvider) DoCommand(a *app.App, c request.CTX, args *model.Comm
 	}
 
 	b := a.ExportFileBackend()
-	backend, ok := b.(filestore.FileBackendWithLinkGenerator)
+	_, ok := b.(filestore.FileBackendWithLinkGenerator)
 	if !ok {
 		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.driver.app_error")}
 	}
@@ -104,24 +104,14 @@ func (*ExportLinkProvider) DoCommand(a *app.App, c request.CTX, args *model.Comm
 		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.invalid.app_error")}
 	}
 
-	p := path.Join(*a.Config().ExportSettings.Directory, "/", file)
-	found, err := b.FileExists(p)
+	res, err := a.GeneratePresignURLForExport(file)
 	if err != nil {
-		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.exists.app_error")}
-	}
-
-	if !found {
-		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.notfound.app_error")}
-	}
-
-	link, exp, err := backend.GeneratePublicLink(p)
-	if err != nil {
-		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.link.app_error")}
+		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.presign.app_error")}
 	}
 
 	// return link
 	return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.link.text", map[string]interface{}{
-		"Link":       link,
-		"Expiration": exp.String(),
+		"Link":       res.URL,
+		"Expiration": res.Expiration.String(),
 	})}
 }

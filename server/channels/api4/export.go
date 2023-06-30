@@ -17,6 +17,7 @@ func (api *API) InitExport() {
 	api.BaseRoutes.Exports.Handle("", api.APISessionRequired(listExports)).Methods("GET")
 	api.BaseRoutes.Export.Handle("", api.APISessionRequired(deleteExport)).Methods("DELETE")
 	api.BaseRoutes.Export.Handle("", api.APISessionRequired(downloadExport)).Methods("GET")
+	api.BaseRoutes.Export.Handle("/presign-url", api.APISessionRequired(generatePresignURLExport)).Methods("POST")
 }
 
 func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -83,4 +84,31 @@ func downloadExport(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/zip")
 	http.ServeContent(w, r, c.Params.ExportName, time.Time{}, file)
+}
+
+func generatePresignURLExport(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("generatePresignURLExport", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	audit.AddEventParameter(auditRec, "export_name", c.Params.ExportName)
+
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	res, appErr := c.App.GeneratePresignURLForExport(c.Params.ExportName)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	data, err := json.Marshal(res)
+	if err != nil {
+		c.Err = model.NewAppError("generatePresignURLExport", "app.export.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(data)
+	auditRec.Success()
 }

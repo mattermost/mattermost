@@ -40,6 +40,13 @@ var ExportDownloadCmd = &cobra.Command{
 	RunE: withClient(exportDownloadCmdF),
 }
 
+var ExportGeneratePresignedURLCmd = &cobra.Command{
+	Use:   "generate-presigned-url [exportname]",
+	Short: "Generate a presigned url for an export file",
+	Args:  cobra.ExactArgs(1),
+	RunE:  withClient(exportGeneratePresignedURLCmdF),
+}
+
 var ExportDeleteCmd = &cobra.Command{
 	Use:     "delete [exportname]",
 	Aliases: []string{"rm"},
@@ -115,6 +122,7 @@ func init() {
 		ExportListCmd,
 		ExportDeleteCmd,
 		ExportDownloadCmd,
+		ExportGeneratePresignedURLCmd,
 		ExportJobCmd,
 	)
 	RootCmd.AddCommand(ExportCmd)
@@ -167,6 +175,22 @@ func exportDeleteCmdF(c client.Client, command *cobra.Command, args []string) er
 	}
 
 	printer.Print(fmt.Sprintf("Export file %q has been deleted", name))
+
+	return nil
+}
+
+func exportGeneratePresignedURLCmdF(c client.Client, command *cobra.Command, args []string) error {
+	name := args[0]
+
+	presignedURL, _, err := c.GeneratePresignedURL(context.TODO(), name)
+	if err != nil {
+		return fmt.Errorf("failed to generate export link: %w", err)
+	}
+
+	printer.PrintT("Export link: {{.Link}}\nExpiration: {{.Expiration}}", map[string]interface{}{
+		"Link":       presignedURL.URL,
+		"Expiration": presignedURL.Expiration.String(),
+	})
 
 	return nil
 }
