@@ -595,6 +595,7 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
             );
         }
 
+        const allowOrIsAdmin = UserUtils.isSystemAdmin(user.roles) ? UserUtils.isSystemAdmin(currentUser.roles) : true;
         let showMakeActive = false;
         let showMakeNotActive = !UserUtils.isSystemAdmin(user.roles);
         let showManageTeams = true;
@@ -634,6 +635,14 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
                 {promoteToUserModal}
                 {demoteToGuestModal}
                 {createGroupSyncablesMembershipsModal}
+                {!allowOrIsAdmin &&
+                <div className='text-right'>
+                    <a style={{pointerEvents: 'none'}}>
+                        <span>{currentRoles}</span>
+                    </a>
+                </div>
+                }
+                {allowOrIsAdmin &&
                 <MenuWrapper
                     isDisabled={this.props.isDisabled}
                 >
@@ -722,6 +731,7 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
                         </SystemPermissionGate>
                     </Menu>
                 </MenuWrapper>
+                }
             </React.Fragment>
         );
     }
