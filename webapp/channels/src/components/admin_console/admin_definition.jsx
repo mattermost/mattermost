@@ -5728,6 +5728,16 @@ const AdminDefinition = {
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
                     },
                     {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'GuestAccountsSettings.HideTags',
+                        label: t('admin.guest_access.hideTags'),
+                        label_default: 'Hide guest tag',
+                        help_text: t('admin.guest_access.hideTagsDescription'),
+                        help_text_default: 'When true, the "guest" tag will not be shown next to the name of all guest users in the Mattermost chat interface.',
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
+                    },
+                    {
                         type: Constants.SettingsTypes.TYPE_TEXT,
                         key: 'GuestAccountsSettings.RestrictCreationToDomains',
                         label: t('admin.guest_access.whitelistedDomainsTitle'),
