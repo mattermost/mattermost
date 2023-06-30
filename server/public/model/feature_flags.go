@@ -64,6 +64,8 @@ type FeatureFlags struct {
 	DeprecateCloudFree bool
 
 	CloudReverseTrial bool
+
+	DataRetentionConcurrencyEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -88,6 +90,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
+	f.DataRetentionConcurrencyEnabled = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
