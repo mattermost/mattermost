@@ -90,7 +90,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
-	f.DataRetentionConcurrencyEnabled = false
+	f.DataRetentionConcurrencyEnabled = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
