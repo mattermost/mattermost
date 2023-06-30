@@ -204,4 +204,8 @@ class Constants {
     static readonly SystemUserID = 'system'
 }
 
+export const CloudLinks = {
+    PRICING: 'https://mattermost.com/pl/pricing/',
+}
+
 export {Constants, Permission}

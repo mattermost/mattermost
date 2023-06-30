@@ -127,6 +127,7 @@ export type ClientConfig = {
     GuestAccountsEnforceMultifactorAuthentication: string;
     HasImageProxy: string;
     HelpLink: string;
+    HideGuestTags: string;
     IosAppDownloadLink: string;
     IosLatestVersion: string;
     IosMinVersion: string;
@@ -194,7 +195,6 @@ export type ClientConfig = {
     DisableAppBar: string;
     EnableComplianceExport: string;
     PostPriority: string;
-    ReduceOnBoardingTaskList: string;
     PostAcknowledgements: string;
     AllowPersistentNotifications: string;
     PersistentNotificationMaxRecipients: string;
@@ -526,6 +526,8 @@ export type EmailSettings = {
     ConnectionSecurity: string;
     SendPushNotifications: boolean;
     PushNotificationServer: string;
+    PushNotificationServerType: 'off' | 'mhpns' | 'mtpns' | 'custom';
+    PushNotificationServerLocation: 'us' | 'de';
     PushNotificationContents: string;
     PushNotificationBuffer: number;
     EnableEmailBatching: boolean;
@@ -845,6 +847,7 @@ export type DisplaySettings = {
 
 export type GuestAccountsSettings = {
     Enable: boolean;
+    HideTags: boolean;
     AllowEmailAccounts: boolean;
     EnforceMultifactorAuthentication: boolean;
     RestrictCreationToDomains: string;

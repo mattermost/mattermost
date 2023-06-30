@@ -48,21 +48,12 @@ type FeatureFlags struct {
 
 	CommandPalette bool
 
-	// A/B Test on posting a welcome message
-	SendWelcomePost bool
-
 	PostPriority bool
 
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
 
 	PeopleProduct bool
-
-	// A/B Test on reduced onboarding task list item
-	ReduceOnBoardingTaskList bool
-
-	// A/B Test to control when to show onboarding linked board
-	OnboardingAutoShowLinkedBoard bool
 
 	ThreadsEverywhere bool
 
@@ -80,7 +71,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = true
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
-	f.PermalinkPreviews = true
 	f.BoardsFeatureFlags = ""
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
@@ -88,14 +78,11 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = false
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.SendWelcomePost = true
 	f.PostPriority = true
 	f.PeopleProduct = false
-	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
-	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
 }
