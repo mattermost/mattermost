@@ -19,21 +19,19 @@ export interface Props {
     hasNextPage: boolean;
     isNextPageLoading: boolean;
     searchTerms: string;
-
-    actions: {
-        openDirectMessage: (user: UserProfile) => void;
-        loadMore: () => void;
-    };
+    openDirectMessage: (user: UserProfile) => void;
+    loadMore: () => void;
 }
 
-const MemberList = ({
+const MemberList = React.memo(({
     hasNextPage,
     isNextPageLoading,
     channel,
     members,
     searchTerms,
     editing,
-    actions,
+    openDirectMessage,
+    loadMore,
 }: Props) => {
     const infiniteLoaderRef = useRef<InfiniteLoader | null>(null);
     const variableSizeListRef = useRef<VariableSizeList | null>(null);
@@ -53,7 +51,7 @@ const MemberList = ({
 
     const itemCount = hasNextPage ? members.length + 1 : members.length;
 
-    const loadMoreItems = isNextPageLoading ? () => {} : actions.loadMore;
+    const loadMoreItems = isNextPageLoading ? () => {} : loadMore;
 
     const isItemLoaded = (index: number) => {
         return !hasNextPage || index < members.length;
@@ -91,7 +89,7 @@ const MemberList = ({
                             totalUsers={members.length}
                             member={member}
                             editing={editing}
-                            actions={{openDirectMessage: actions.openDirectMessage}}
+                            actions={{openDirectMessage}}
                         />
                     </div>
                 );
@@ -147,6 +145,6 @@ const MemberList = ({
             )}
         </AutoSizer>
     );
-};
+});
 
 export default MemberList;
