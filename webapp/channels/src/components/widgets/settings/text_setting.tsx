@@ -19,7 +19,7 @@ export type Props = {
     inputClassName?: string;
     maxLength?: number;
     resizable?: boolean;
-    onChange(id: string, value: string | number | boolean): void;
+    onChange(id: string, value: any): void;
     disabled?: boolean;
 
     // This is a custom prop that is not part of the HTML input element type

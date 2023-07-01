@@ -21,7 +21,7 @@ describe('components/admin_console/TextSetting', () => {
                 inputClassName=''
                 maxLength={-1}
                 resizable={true}
-                type='input'
+                type='text'
             />,
         );
 
