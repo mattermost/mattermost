@@ -20,6 +20,7 @@ import CommentIcon from 'components/common/comment_icon';
 import {Emoji} from '@mattermost/types/emojis';
 import {Post} from '@mattermost/types/posts';
 import classnames from 'classnames';
+import {useFollowElementDimensions} from '@mattermost/components';
 
 type Props = {
     post: Post;
@@ -123,6 +124,8 @@ const PostOptions = (props: Props): JSX.Element => {
         );
     }
 
+    const sidebarDimensions = useFollowElementDimensions('sidebar-right');
+
     const showRecentlyUsedReactions = (!isMobileView && !isReadOnly && !isEphemeral && !post.failed && !systemMessage && !channelIsArchived && oneClickReactionsEnabled && props.enableEmojiPicker && hoverLocal);
 
     let showRecentReactions: ReactNode;
@@ -133,7 +136,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 postId={post.id}
                 teamId={props.teamId}
                 emojis={props.recentEmojis}
-                size={props.isExpanded || props.location === 'CENTER' ? 3 : 1}
+                size={props.isExpanded || props.location === 'CENTER' || sidebarDimensions?.width > 400 ? 3 : 1}
             />
         );
     }
