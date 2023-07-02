@@ -43,7 +43,7 @@ function TextSetting(props: Props) {
         input = (
             <textarea
                 autoFocus={props.autoFocus}
-                data-testid={props.id + 'input'}
+                data-testid={`${props.id}--${type}`}
                 id={props.id}
                 dir='auto'
                 style={resizable === false ? {resize: 'none'} : undefined}
@@ -57,13 +57,14 @@ function TextSetting(props: Props) {
             />
         );
     } else {
+        const inputType = INPUT_TYPES.includes(type) ? type : 'text';
         input = (
             <input
                 id={props.id}
-                data-testid={props.id + type}
+                data-testid={`${props.id}--${inputType}`}
                 className='form-control'
                 autoFocus={props.autoFocus}
-                type={INPUT_TYPES.includes(type) ? type : 'text'}
+                type={inputType}
                 placeholder={props.placeholder}
                 value={props.value}
                 maxLength={maxLength}

@@ -9,24 +9,22 @@ import AdminTextSetting from './text_setting';
 
 describe('components/admin_console/TextSetting', () => {
     test('render component with required props', () => {
-        const onChange = jest.fn();
         renderWithIntl(
             <AdminTextSetting
-                id='string.id'
+                id='some.id'
                 label='some label'
                 value='some value'
-                onChange={onChange}
+                onChange={jest.fn()}
                 setByEnv={false}
                 labelClassName=''
                 inputClassName=''
                 maxLength={-1}
                 resizable={true}
-                type='text'
             />,
         );
 
         screen.getByText('some label', {exact: false});
-        expect(screen.getByTestId('string.idinput')).toHaveProperty('id', 'string.id');
-        expect(screen.getByTestId('string.idinput')).toHaveValue('some value');
+        expect(screen.getByTestId('some.id--text')).toHaveProperty('id', 'some.id');
+        expect(screen.getByTestId('some.id--text')).toHaveValue('some value');
     });
 });
