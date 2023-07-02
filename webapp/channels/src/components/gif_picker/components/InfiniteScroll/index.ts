@@ -5,6 +5,22 @@ import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 
 export default class InfiniteScroll extends PureComponent {
+	public pageLoaded: any;
+	public props: any;
+	public scrollComponent: any;
+	public defaultLoader: any;
+	public children: any;
+	public element: any;
+	public hasMore: any;
+	public initialLoad: any;
+	public loader: any;
+	public loadMore: any;
+	public pageStart: any;
+	public threshold: any;
+	public useWindow: any;
+	public isReverse: any;
+	public scrollPosition: any;
+	public containerHeight: any;
     static propTypes = {
         children: PropTypes.array,
         element: PropTypes.string,
