@@ -3055,6 +3055,7 @@ func (s *DisplaySettings) SetDefaults() {
 
 type GuestAccountsSettings struct {
 	Enable                           *bool   `access:"authentication_guest_access"`
+	HideTags                         *bool   `access:"authentication_guest_access"`
 	AllowEmailAccounts               *bool   `access:"authentication_guest_access"`
 	EnforceMultifactorAuthentication *bool   `access:"authentication_guest_access"`
 	RestrictCreationToDomains        *string `access:"authentication_guest_access"`
@@ -3063,6 +3064,10 @@ type GuestAccountsSettings struct {
 func (s *GuestAccountsSettings) SetDefaults() {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
+	}
+
+	if s.HideTags == nil {
+		s.HideTags = NewBool(false)
 	}
 
 	if s.AllowEmailAccounts == nil {
