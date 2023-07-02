@@ -66,6 +66,8 @@ type Props = {
      */
     isMilitaryTime?: boolean;
     timezone?: string;
+
+    hideGuestTags: boolean;
 }
 
 export default class PostMarkdown extends React.PureComponent<Props> {
@@ -94,6 +96,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             const renderedSystemMessage = renderSystemMessage(post,
                 this.props.currentTeam,
                 this.props.channel,
+                this.props.hideGuestTags,
                 this.props.isUserCanManageMembers,
                 this.props.isMilitaryTime,
                 this.props.timezone);
