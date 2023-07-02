@@ -58,10 +58,8 @@ exports[`components/MarkdownImage should match snapshot for broken link 1`] = `
 exports[`components/MarkdownImage should provide image src as an alt text for MarkdownImageExpand if image has no own alt text 1`] = `
 <div>
   <Connect(MarkdownImageExpand)
-    actions={Object {}}
     alt="https://example.com/image.png"
     imageKey="https://example.com/image.png"
-    isExpanded={false}
     postId="post_id"
   >
     <SizeAwareImage
@@ -150,10 +148,8 @@ exports[`components/MarkdownImage should render an image with preview modal if t
 exports[`components/MarkdownImage should render image with MarkdownImageExpand if it is taller than 100px 1`] = `
 <div>
   <Connect(MarkdownImageExpand)
-    actions={Object {}}
     alt="test image"
     imageKey="https://example.com/image.png"
-    isExpanded={false}
     postId="post_id"
   >
     <SizeAwareImage

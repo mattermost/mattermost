@@ -17,9 +17,7 @@ const MarkdownImageExpand: React.FC<Props> = ({children, alt, isExpanded, postId
     }, [isExpanded]);
 
     const handleToggleButtonClick = () => {
-        if (toggleInlineImageVisibility) {
-            toggleInlineImageVisibility(postId, imageKey);
-        }
+        toggleInlineImageVisibility(postId, imageKey);
     };
 
     const wrapperClassName = `markdown-image-expand ${isExpanded ? 'markdown-image-expand--expanded' : ''}`;

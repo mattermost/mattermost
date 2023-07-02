@@ -42,10 +42,8 @@ type State = {
     loaded: boolean;
 };
 
-type DefaultProps = Partial<Props>;
-
 export default class MarkdownImage extends PureComponent<Props, State> {
-    static defaultProps: DefaultProps = {
+    static defaultProps: Partial<Props> = {
         imageMetadata: {} as PostImage,
     };
 
@@ -87,7 +85,7 @@ export default class MarkdownImage extends PureComponent<Props, State> {
         return index > 0 ? url.substring(index + 1) : null;
     };
 
-    showModal = (e: React.MouseEvent<Element, MouseEvent>, link: string) => {
+    showModal = (e: React.MouseEvent<HTMLImageElement>, link: string) => {
         const extension = this.getFileExtensionFromUrl(link);
 
         if (!this.props.imageIsLink && extension) {
@@ -218,8 +216,6 @@ export default class MarkdownImage extends PureComponent<Props, State> {
                                 postId={postId}
                                 imageKey={safeSrc}
                                 onToggle={onImageHeightChanged}
-                                isExpanded={false}
-                                actions={{}}
                             >
                                 {imageElement}
                             </MarkdownImageExpand>

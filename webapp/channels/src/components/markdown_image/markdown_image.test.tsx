@@ -229,7 +229,7 @@ describe('components/MarkdownImage', () => {
         const mockEvent = {
             preventDefault: () => {},
         };
-        (wrapper.instance() as MarkdownImage).showModal(mockEvent as unknown as React.MouseEvent<Element, MouseEvent>, 'https://example.com/image.png');
+        (wrapper.instance() as MarkdownImage).showModal(mockEvent as unknown as React.MouseEvent<HTMLImageElement>, 'https://example.com/image.png');
         expect(props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
