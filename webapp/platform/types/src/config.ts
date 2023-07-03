@@ -127,6 +127,7 @@ export type ClientConfig = {
     GuestAccountsEnforceMultifactorAuthentication: string;
     HasImageProxy: string;
     HelpLink: string;
+    HideGuestTags: string;
     IosAppDownloadLink: string;
     IosLatestVersion: string;
     IosMinVersion: string;
@@ -846,6 +847,7 @@ export type DisplaySettings = {
 
 export type GuestAccountsSettings = {
     Enable: boolean;
+    HideTags: boolean;
     AllowEmailAccounts: boolean;
     EnforceMultifactorAuthentication: boolean;
     RestrictCreationToDomains: string;

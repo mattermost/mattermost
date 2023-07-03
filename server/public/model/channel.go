@@ -243,11 +243,11 @@ func (o *Channel) Props_() StringInterface {
 }
 
 func (o *Channel) DeepCopy() *Channel {
-	copy := *o
-	if copy.SchemeId != nil {
-		copy.SchemeId = NewString(*o.SchemeId)
+	cCopy := *o
+	if cCopy.SchemeId != nil {
+		cCopy.SchemeId = NewString(*o.SchemeId)
 	}
-	return &copy
+	return &cCopy
 }
 
 func (o *Channel) Etag() string {
