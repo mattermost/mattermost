@@ -83,12 +83,6 @@ type Channels struct {
 
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
-
-	// collectionTypes maps from collection types to the registering plugin id
-	collectionTypes map[string]string
-	// topicTypes maps from topic types to collection types
-	topicTypes                 map[string]string
-	collectionAndTopicTypesMut sync.Mutex
 }
 
 func init() {
@@ -111,11 +105,9 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 		return nil, errors.New("server not passed")
 	}
 	ch := &Channels{
-		srv:             s,
-		imageProxy:      imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap:   map[string]bool{},
-		collectionTypes: map[string]string{},
-		topicTypes:      map[string]string{},
+		srv:           s,
+		imageProxy:    imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap: map[string]bool{},
 	}
 
 	// To get another service:
