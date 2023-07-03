@@ -6,7 +6,6 @@ package app
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,20 +17,18 @@ import (
 	"sort"
 	"strings"
 
-	fb_model "github.com/mattermost/mattermost-server/server/v8/boards/model"
-
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/teams"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 // teamServiceWrapper provides an implementation of `product.TeamService` to be used by products.
@@ -163,128 +160,6 @@ func (a *App) SoftDeleteAllTeamsExcept(teamID string) *model.AppError {
 	return nil
 }
 
-// MM-48246 A/B test show linked boards
-const preferenceName = "linked_board_created"
-
-func (a *App) shouldCreateOnboardingLinkedBoard(c request.CTX, teamId string) bool {
-	ffEnabled := a.Config().FeatureFlags.OnboardingAutoShowLinkedBoard
-	if !ffEnabled {
-		return false
-	}
-
-	hasBoard, err := a.HasBoardProduct()
-	if err != nil {
-		a.Log().Error("error checking the existence of boards product: ", mlog.Err(err))
-		return false
-	}
-
-	if !hasBoard {
-		a.Log().Warn("board product not found")
-		return false
-	}
-
-	data, sysValErr := a.Srv().Store().System().GetByName(model.PreferenceOnboarding + "_" + preferenceName)
-	if sysValErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(sysValErr, &nfErr) { // if no board has been registered, it can create one for this team
-			return true
-		}
-		a.Log().Error("cannot get the system values", mlog.Err(sysValErr))
-		return false
-	}
-
-	// get the team list and check if the team value has been already stored, if so, no need to create a board in town square in that team
-	teamsList := strings.Split(data.Value, ",")
-	for _, team := range teamsList {
-		if team == teamId {
-			return false
-		}
-	}
-
-	return true
-}
-
-func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_model.Board, *model.AppError) {
-	const defaultTemplatesTeam = "0"
-
-	// see https://github.com/mattermost/mattermost-server/server/v8/boards/blob/main/server/services/store/sqlstore/board.go#L302
-	// and https://github.com/mattermost/mattermost-server/pull/22201#discussion_r1099536430
-	const defaultTemplateTitle = "Welcome to Boards!"
-	welcomeToBoardsTemplateId := fmt.Sprintf("%x", md5.Sum([]byte(defaultTemplateTitle)))
-	userId := c.Session().UserId
-
-	boardServiceItf, ok := a.Srv().services[product.BoardsKey]
-	if !ok {
-		return nil, model.NewAppError("CreateBoard", "app.team.create_onboarding_linked_board.product_key_not_found", nil, "", http.StatusBadRequest)
-	}
-
-	boardService, typeOk := boardServiceItf.(product.BoardsService)
-	if !typeOk {
-		// boardServiceItf is NOT of type product.BoardsService
-		return nil, model.NewAppError("CreateBoard", "app.team.create_onboarding_linked_board.itf_not_of_type", nil, "", http.StatusBadRequest)
-	}
-
-	templates, err := boardService.GetTemplates(defaultTemplatesTeam, userId)
-	if err != nil {
-		return nil, model.NewAppError("CreateBoard", "app.team.create_onboarding_linked_board.error_getting_templates", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-
-	channel, appErr := a.GetChannelByName(c, model.DefaultChannelName, teamId, false)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	var template *fb_model.Board = nil
-	for _, t := range templates {
-		v := t.Properties["trackingTemplateId"]
-		if v == welcomeToBoardsTemplateId {
-			template = t
-			break
-		}
-	}
-	if template == nil && len(templates) > 0 {
-		template = templates[0]
-	}
-
-	// Duplicate board From template
-	boardsAndBlocks, _, err := boardService.DuplicateBoard(template.ID, userId, teamId, false)
-	if err != nil {
-		return nil, model.NewAppError("CreateBoard", "app.team.create_onboarding_linked_board.error_duplicating_board", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-	if len(boardsAndBlocks.Boards) != 1 {
-		return nil, model.NewAppError("CreateBoard", "app.team.create_onboarding_linked_board.error_no_board", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-
-	// link the board with the channel
-	patchedBoard, err := boardService.PatchBoard(&fb_model.BoardPatch{
-		ChannelID: &channel.Id,
-	}, boardsAndBlocks.Boards[0].ID, userId)
-	if err != nil && patchedBoard == nil {
-		return nil, model.NewAppError("CreateBoard", "app.team.create_onboarding_linked_board.error_patching_board", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-
-	// Save in the system preferences that the board was already created once per team
-	data, sysValErr := a.Srv().Store().System().GetByName(model.PreferenceOnboarding + "_" + preferenceName)
-	if sysValErr != nil {
-		c.Logger().Error("cannot get the system preferences", mlog.Err(sysValErr))
-	}
-
-	teamsList := teamId
-	// if data is not nil, data.Value contains the list of teams where the A/B test has alredy created a channel for town square
-	if data != nil {
-		teamsList = data.Value + "," + teamId
-	}
-
-	if err := a.Srv().Store().System().SaveOrUpdate(&model.System{
-		Name:  model.PreferenceOnboarding + "_" + preferenceName,
-		Value: teamsList,
-	}); err != nil {
-		c.Logger().Warn("encountered error saving user preferences", mlog.Err(err))
-	}
-
-	return patchedBoard, nil
-}
-
 func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.AppError) {
 	rteam, err := a.ch.srv.teamService.CreateTeam(team)
 	if err != nil {
@@ -313,20 +188,6 @@ func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.A
 			return nil, appErr
 		default:
 			return nil, model.NewAppError("CreateTeam", "app.team.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-
-	// MM-48246 A/B test show linked boards. Create a welcome to boards linked board per user
-	if a.shouldCreateOnboardingLinkedBoard(c, team.Id) {
-		board, aErr := a.createOnboardingLinkedBoard(c, team.Id)
-		if aErr != nil || board == nil {
-			a.Log().Warn("Error creating the linked board, only team created", mlog.Err(err))
-			return rteam, nil
-		}
-
-		if board.ID != "" {
-			logInfo := fmt.Sprintf("Board created with id %s and associated to channel %s in team %s", board.ID, board.ChannelID, team.Id)
-			a.Log().Info(logInfo, mlog.Err(err))
 		}
 	}
 
@@ -956,11 +817,9 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 		return nil, model.NewAppError("JoinUserToTeam", "app.user.update_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	appsCategoryEnabled := a.Config().FeatureFlags.AppsSidebarCategory
 	opts := &store.SidebarCategorySearchOpts{
-		TeamID:              team.Id,
-		ExcludeTeam:         false,
-		AppsCategoryEnabled: appsCategoryEnabled,
+		TeamID:      team.Id,
+		ExcludeTeam: false,
 	}
 	if _, err := a.createInitialSidebarCategories(user.Id, opts); err != nil {
 		mlog.Warn(
@@ -1897,7 +1756,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	if includeCollapsedThreads {
-		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.isPostPriorityEnabled())
+		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled())
 		if err != nil {
 			return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1974,6 +1833,10 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
 		return err
+	}
+
+	if err := a.Srv().Store().PostPersistentNotification().DeleteByTeam([]string{team.Id}); err != nil {
+		return model.NewAppError("SoftDeleteTeam", "app.post_persistent_notification.delete_by_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	team.DeleteAt = model.GetMillis()

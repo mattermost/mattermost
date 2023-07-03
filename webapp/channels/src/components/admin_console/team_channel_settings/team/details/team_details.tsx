@@ -14,9 +14,11 @@ import {ActionResult} from 'mattermost-redux/types/actions';
 import {getHistory} from 'utils/browser_history';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
+
 import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import RemoveConfirmModal from '../../remove_confirm_modal';
 import {NeedDomainsError, NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
@@ -494,7 +496,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
         return (
             <div className='wrapper--fixed'>
-                <div className='admin-console__header with-back'>
+                <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/user_management/teams'
@@ -505,7 +507,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             defaultMessage='Team Configuration'
                         />
                     </div>
-                </div>
+                </AdminHeader>
 
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>

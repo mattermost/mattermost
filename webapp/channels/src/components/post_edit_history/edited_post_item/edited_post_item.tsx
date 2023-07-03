@@ -15,7 +15,6 @@ import {Post} from '@mattermost/types/posts';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';
-import {t} from 'utils/i18n';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
@@ -38,15 +37,15 @@ const DATE_RANGES = [
 
 const itemMessages = defineMessages({
     helpText: {
-        id: t('post_info.edit.restore'),
+        id: 'post_info.edit.restore',
         defaultMessage: 'Restore this version',
     },
     currentVersionText: {
-        id: t('post_info.edit.current_version'),
+        id: 'post_info.edit.current_version',
         defaultMessage: 'Current Version',
     },
     ariaLabelMessage: {
-        id: t('post_info.edit.aria_label'),
+        id: 'post_info.edit.aria_label',
         defaultMessage: 'Select to restore an old message.',
     },
 });

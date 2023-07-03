@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/xtgo/uuid"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func randomString() string {
@@ -122,6 +122,33 @@ func (s *FileBackendTestSuite) TestReadWriteFile() {
 
 	readString := string(read)
 	s.EqualValues(readString, "test")
+}
+
+func (s *FileBackendTestSuite) TestEncode() {
+	s3Backend, ok := s.backend.(*S3FileBackend)
+	// This test is only for S3backend.
+	if !ok {
+		return
+	}
+	s3Backend.isCloud = true
+	defer func() {
+		s3Backend.isCloud = false
+	}()
+
+	originalPath := "dir1/test+.png"
+	encodedPath := s3Backend.prefixedPath(originalPath)
+	b := []byte("test")
+	written, err := s3Backend.WriteFile(bytes.NewReader(b), encodedPath)
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
+	defer s3Backend.RemoveFile(encodedPath)
+
+	files, err := s3Backend.ListDirectory("dir1")
+	s.Nil(err)
+	s.Require().Len(files, 1)
+	// There's another layer of encoding since the backend is Minio
+	// and it doesn't store the path unescaped.
+	s.Equal("dir1/test%252B.png", files[0])
 }
 
 func (s *FileBackendTestSuite) TestReadWriteFileContext() {
@@ -487,10 +514,7 @@ func (s *FileBackendTestSuite) TestAppendFile() {
 	s.Run("should correctly append the data", func() {
 		// First part needs to be at least 5MB for the S3 implementation to work.
 		size := 5 * 1024 * 1024
-		b := make([]byte, size)
-		for i := range b {
-			b[i] = 'A'
-		}
+		b := bytes.Repeat([]byte{'A'}, size)
 		path := "tests/" + randomString()
 
 		written, err := s.backend.WriteFile(bytes.NewReader(b), path)

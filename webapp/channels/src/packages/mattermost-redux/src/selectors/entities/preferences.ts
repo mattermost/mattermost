@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
-
 import {General, Preferences} from 'mattermost-redux/constants';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
@@ -283,17 +282,9 @@ export function localDraftsAreEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'GlobalDrafts') === 'true';
 }
 
-export function isReduceOnBoardingTaskList(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'ReduceOnBoardingTaskList') === 'true';
-}
-
 export function getVisibleDmGmLimit(state: GlobalState) {
     const defaultLimit = 40;
     return getInt(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit);
-}
-
-export function autoShowLinkedBoardFFEnabled(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'OnboardingAutoShowLinkedBoard') === 'true';
 }
 
 export function onboardingTourTipsEnabled(state: GlobalState): boolean {
@@ -306,8 +297,4 @@ export function deprecateCloudFree(state: GlobalState): boolean {
 
 export function cloudReverseTrial(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'CloudReverseTrial') === 'true';
-}
-
-export function appsSidebarCategoryEnabled(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'AppsSidebarCategory') === 'true';
 }

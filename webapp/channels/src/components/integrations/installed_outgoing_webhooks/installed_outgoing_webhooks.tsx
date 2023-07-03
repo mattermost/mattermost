@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {localizeMessage} from 'utils/utils';
-import Constants from 'utils/constants';
+import {Constants, DeveloperLinks} from 'utils/constants';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import InstalledOutgoingWebhook, {matchesFilter} from 'components/integrations/installed_outgoing_webhook';
@@ -195,7 +195,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
                         values={{
                             buildYourOwn: (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-outgoing/'
+                                    href={DeveloperLinks.SETUP_OUTGOING_WEBHOOKS}
                                     location='installed_outgoing_webhooks'
                                 >
                                     <FormattedMessage

@@ -4,12 +4,13 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import GeneralConstants from 'mattermost-redux/constants/general';
 import {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import {Role} from '@mattermost/types/roles';
+
+import GeneralConstants from 'mattermost-redux/constants/general';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
-import {PermissionsScope, DefaultRolePermissions} from 'utils/constants';
+import {PermissionsScope, DefaultRolePermissions, DocLinks} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 import {t} from 'utils/i18n';
 
@@ -19,11 +20,12 @@ import LoadingScreen from 'components/loading_screen';
 import FormError from 'components/form_error';
 import BlockableLink from 'components/admin_console/blockable_link';
 import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_togglable';
+import ExternalLink from 'components/external_link';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
 import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
 import PermissionsTreePlaybooks from '../permissions_tree_playbooks';
-import ExternalLink from 'components/external_link';
 
 type Props = {
     config: Partial<ClientConfig>;
@@ -351,7 +353,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
         const isLicensed = this.props.license?.IsLicensed === 'true';
         return (
             <div className='wrapper--fixed'>
-                <div className='admin-console__header with-back'>
+                <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/user_management/permissions'
@@ -362,7 +364,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                             defaultMessage='System Scheme'
                         />
                     </div>
-                </div>
+                </AdminHeader>
 
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
@@ -375,7 +377,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                                         values={{
                                             link: (msg: React.ReactNode) => (
                                                 <ExternalLink
-                                                    href='https://docs.mattermost.com/onboard/advanced-permissions.html'
+                                                    href={DocLinks.ONBOARD_ADVANCED_PERMISSIONS}
                                                     location='permission_system_scheme_settings'
                                                 >
                                                     {msg}

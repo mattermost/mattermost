@@ -21,7 +21,8 @@ import (
 
 	"github.com/mattermost/ldap"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 const (
@@ -130,11 +131,11 @@ const (
 
 	EmailSettingsDefaultFeedbackOrganization = ""
 
-	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/terms-of-use/"
-	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/privacy-policy/"
-	SupportSettingsDefaultAboutLink          = "https://docs.mattermost.com/about/product.html/"
-	SupportSettingsDefaultHelpLink           = "https://mattermost.com/default-help/"
-	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/default-report-a-problem/"
+	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/pl/terms-of-use/"
+	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/pl/privacy-policy/"
+	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermomst"
+	SupportSettingsDefaultHelpLink           = "https://mattermost.com/pl/help/"
+	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/pl/report-a-bug"
 	SupportSettingsDefaultSupportEmail       = ""
 	SupportSettingsDefaultReAcceptancePeriod = 365
 
@@ -170,9 +171,9 @@ const (
 	SamlSettingsCanonicalAlgorithmC14n11  = "Canonical1.1"
 	SamlSettingsDefaultCanonicalAlgorithm = SamlSettingsCanonicalAlgorithmC14n
 
-	NativeappSettingsDefaultAppDownloadLink        = "https://mattermost.com/download/#mattermostApps"
-	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/mattermost-android-app/"
-	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/mattermost-ios-app/"
+	NativeappSettingsDefaultAppDownloadLink        = "https://mattermost.com/pl/download-apps"
+	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/pl/android-app/"
+	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/pl/ios-app/"
 
 	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds = 5000
 
@@ -375,6 +376,11 @@ type ServiceSettings struct {
 	EnableLatex                                       *bool `access:"site_posts"`
 	EnableInlineLatex                                 *bool `access:"site_posts"`
 	PostPriority                                      *bool `access:"site_posts"`
+	AllowPersistentNotifications                      *bool `access:"site_posts"`
+	AllowPersistentNotificationsForGuests             *bool `access:"site_posts"`
+	PersistentNotificationIntervalMinutes             *int  `access:"site_posts"`
+	PersistentNotificationMaxCount                    *int  `access:"site_posts"`
+	PersistentNotificationMaxRecipients               *int  `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool   `access:"cloud_restrictable"`
 	LocalModeSocketLocation                           *string `access:"cloud_restrictable"` // telemetry: none
@@ -853,6 +859,26 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.PostPriority = NewBool(true)
 	}
 
+	if s.AllowPersistentNotifications == nil {
+		s.AllowPersistentNotifications = NewBool(true)
+	}
+
+	if s.AllowPersistentNotificationsForGuests == nil {
+		s.AllowPersistentNotificationsForGuests = NewBool(false)
+	}
+
+	if s.PersistentNotificationIntervalMinutes == nil {
+		s.PersistentNotificationIntervalMinutes = NewInt(5)
+	}
+
+	if s.PersistentNotificationMaxCount == nil {
+		s.PersistentNotificationMaxCount = NewInt(6)
+	}
+
+	if s.PersistentNotificationMaxRecipients == nil {
+		s.PersistentNotificationMaxRecipients = NewInt(5)
+	}
+
 	if s.AllowSyncedDrafts == nil {
 		s.AllowSyncedDrafts = NewBool(true)
 	}
@@ -970,7 +996,7 @@ type ExperimentalSettings struct {
 	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
-	EnableAppBar                    *bool   `access:"experimental_features"`
+	DisableAppBar                   *bool   `access:"experimental_features"`
 	DisableRefetchingOnBrowserFocus *bool   `access:"experimental_features"`
 	DelayChannelAutocomplete        *bool   `access:"experimental_features"`
 }
@@ -1004,8 +1030,8 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.EnableRemoteClusterService = NewBool(false)
 	}
 
-	if s.EnableAppBar == nil {
-		s.EnableAppBar = NewBool(false)
+	if s.DisableAppBar == nil {
+		s.DisableAppBar = NewBool(false)
 	}
 
 	if s.DisableRefetchingOnBrowserFocus == nil {
@@ -1238,19 +1264,20 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 }
 
 type LogSettings struct {
-	EnableConsole          *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	ConsoleLevel           *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	ConsoleJson            *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	EnableColor            *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableFile             *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	FileLevel              *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	FileJson               *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	FileLocation           *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	EnableWebhookDebugging *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	EnableDiagnostics      *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	VerboseDiagnostics     *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableSentry           *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	AdvancedLoggingConfig  *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableConsole          *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	ConsoleLevel           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	ConsoleJson            *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableColor            *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableFile             *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	FileLevel              *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	FileJson               *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	FileLocation           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableWebhookDebugging *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableDiagnostics      *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	VerboseDiagnostics     *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableSentry           *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	AdvancedLoggingJSON    json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig  *string         `access:"environment_logging,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 
 func NewLogSettings() *LogSettings {
@@ -1308,20 +1335,37 @@ func (s *LogSettings) SetDefaults() {
 		s.FileJson = NewBool(true)
 	}
 
+	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		s.AdvancedLoggingJSON = []byte("{}")
+	}
+
 	if s.AdvancedLoggingConfig == nil {
 		s.AdvancedLoggingConfig = NewString("")
 	}
 }
 
+// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
+// AdvancedLoggingJSON takes precedence over the deprecated AdvancedLoggingConfig.
+func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		return s.AdvancedLoggingJSON
+	}
+	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+		return []byte(*s.AdvancedLoggingConfig)
+	}
+	return []byte("{}")
+}
+
 type ExperimentalAuditSettings struct {
-	FileEnabled           *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileName              *string `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
-	FileMaxSizeMB         *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxAgeDays        *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxBackups        *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileCompress          *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxQueueSize      *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	AdvancedLoggingConfig *string `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileEnabled           *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileName              *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
+	FileMaxSizeMB         *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxAgeDays        *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxBackups        *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileCompress          *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxQueueSize      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingJSON   json.RawMessage `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1353,21 +1397,38 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 		s.FileMaxQueueSize = NewInt(1000)
 	}
 
+	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		s.AdvancedLoggingJSON = []byte("{}")
+	}
+
 	if s.AdvancedLoggingConfig == nil {
 		s.AdvancedLoggingConfig = NewString("")
 	}
 }
 
+// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
+// AdvancedLoggingJSON takes precedence over the deprecated AdvancedLoggingConfig.
+func (s *ExperimentalAuditSettings) GetAdvancedLoggingConfig() []byte {
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		return s.AdvancedLoggingJSON
+	}
+	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+		return []byte(*s.AdvancedLoggingConfig)
+	}
+	return []byte("{}")
+}
+
 type NotificationLogSettings struct {
-	EnableConsole         *bool   `access:"write_restrictable,cloud_restrictable"`
-	ConsoleLevel          *string `access:"write_restrictable,cloud_restrictable"`
-	ConsoleJson           *bool   `access:"write_restrictable,cloud_restrictable"`
-	EnableColor           *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableFile            *bool   `access:"write_restrictable,cloud_restrictable"`
-	FileLevel             *string `access:"write_restrictable,cloud_restrictable"`
-	FileJson              *bool   `access:"write_restrictable,cloud_restrictable"`
-	FileLocation          *string `access:"write_restrictable,cloud_restrictable"`
-	AdvancedLoggingConfig *string `access:"write_restrictable,cloud_restrictable"`
+	EnableConsole         *bool           `access:"write_restrictable,cloud_restrictable"`
+	ConsoleLevel          *string         `access:"write_restrictable,cloud_restrictable"`
+	ConsoleJson           *bool           `access:"write_restrictable,cloud_restrictable"`
+	EnableColor           *bool           `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableFile            *bool           `access:"write_restrictable,cloud_restrictable"`
+	FileLevel             *string         `access:"write_restrictable,cloud_restrictable"`
+	FileJson              *bool           `access:"write_restrictable,cloud_restrictable"`
+	FileLocation          *string         `access:"write_restrictable,cloud_restrictable"`
+	AdvancedLoggingJSON   json.RawMessage `access:"write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig *string         `access:"write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 
 func (s *NotificationLogSettings) SetDefaults() {
@@ -1403,9 +1464,25 @@ func (s *NotificationLogSettings) SetDefaults() {
 		s.FileJson = NewBool(true)
 	}
 
+	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		s.AdvancedLoggingJSON = []byte("{}")
+	}
+
 	if s.AdvancedLoggingConfig == nil {
 		s.AdvancedLoggingConfig = NewString("")
 	}
+}
+
+// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
+// AdvancedLoggingJSON takes precedence over the deprecated AdvancedLoggingConfig.
+func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		return s.AdvancedLoggingJSON
+	}
+	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+		return []byte(*s.AdvancedLoggingConfig)
+	}
+	return []byte("{}")
 }
 
 type PasswordSettings struct {
@@ -2551,6 +2628,7 @@ type ElasticsearchSettings struct {
 	ClientCert                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	ClientKey                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Trace                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	IgnoredPurgeIndexes           *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -2648,6 +2726,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.Trace == nil {
 		s.Trace = NewString("")
+	}
+
+	if s.IgnoredPurgeIndexes == nil {
+		s.IgnoredPurgeIndexes = NewString("")
 	}
 }
 
@@ -2760,14 +2842,18 @@ type CloudSettings struct {
 
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
-		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
-		if !isProdLicensePublicKey {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
 		}
 	}
 	if s.CWSAPIURL == nil {
-		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
-		if !isProdLicensePublicKey {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 		}
 	}
@@ -2778,17 +2864,9 @@ func (s *CloudSettings) SetDefaults() {
 }
 
 type ProductSettings struct {
-	EnablePublicSharedBoards *bool
 }
 
-func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
-	if s.EnablePublicSharedBoards == nil {
-		if p, ok := plugins[PluginIdFocalboard]; ok {
-			s.EnablePublicSharedBoards = NewBool(p["enablepublicsharedboards"].(bool))
-		} else {
-			s.EnablePublicSharedBoards = NewBool(false)
-		}
-	}
+func (s *ProductSettings) SetDefaults() {
 }
 
 type PluginState struct {
@@ -2851,19 +2929,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdNPS] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates[PluginIdChannelExport] == nil && BuildEnterpriseReady == "true" {
-		// Enable the channel export plugin by default
-		s.PluginStates[PluginIdChannelExport] = &PluginState{Enable: true}
-	}
-
-	if s.PluginStates[PluginIdApps] == nil {
-		// Enable the Apps plugin by default
-		s.PluginStates[PluginIdApps] = &PluginState{Enable: true}
-	}
-
 	if s.PluginStates[PluginIdCalls] == nil {
 		// Enable the calls plugin by default
 		s.PluginStates[PluginIdCalls] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates[PluginIdPlaybooks] == nil {
+		// Enable the playbooks plugin by default
+		s.PluginStates[PluginIdPlaybooks] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -2982,6 +3055,7 @@ func (s *DisplaySettings) SetDefaults() {
 
 type GuestAccountsSettings struct {
 	Enable                           *bool   `access:"authentication_guest_access"`
+	HideTags                         *bool   `access:"authentication_guest_access"`
 	AllowEmailAccounts               *bool   `access:"authentication_guest_access"`
 	EnforceMultifactorAuthentication *bool   `access:"authentication_guest_access"`
 	RestrictCreationToDomains        *string `access:"authentication_guest_access"`
@@ -2990,6 +3064,10 @@ type GuestAccountsSettings struct {
 func (s *GuestAccountsSettings) SetDefaults() {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
+	}
+
+	if s.HideTags == nil {
+		s.HideTags = NewBool(false)
 	}
 
 	if s.AllowEmailAccounts == nil {
@@ -3270,7 +3348,7 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
-	o.ProductSettings.SetDefaults(o.PluginSettings.Plugins)
+	o.ProductSettings.SetDefaults()
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
@@ -3730,6 +3808,16 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.PersistentNotificationIntervalMinutes < 2 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+	if *s.PersistentNotificationMaxCount <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_count.app_error", nil, "", http.StatusBadRequest)
+	}
+	if *s.PersistentNotificationMaxRecipients <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_recipients.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	// we check if file has a valid parent, the server will try to create the socket
 	// file if it doesn't exist, but we need to be sure if the directory exist or not
 	if *s.EnableLocalMode {
@@ -3777,6 +3865,15 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 
 	if *s.RequestTimeoutSeconds < 1 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.request_timeout_seconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if ign := *s.IgnoredPurgeIndexes; ign != "" {
+		s := strings.Split(ign, ",")
+		for _, ix := range s {
+			if strings.HasPrefix(ix, "-") {
+				return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil

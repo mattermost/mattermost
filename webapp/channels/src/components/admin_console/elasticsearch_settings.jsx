@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {elasticsearchPurgeIndexes, elasticsearchTest} from 'actions/admin_actions.jsx';
-import {JobStatuses, JobTypes} from 'utils/constants';
+import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 
@@ -15,7 +15,7 @@ import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import JobsTable from './jobs';
 import RequestButton from './request_button/request_button';
-import SettingsGroup from './settings_group.jsx';
+import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
 export default class ElasticsearchSettings extends AdminSettings {
@@ -31,6 +31,7 @@ export default class ElasticsearchSettings extends AdminSettings {
         config.ElasticsearchSettings.EnableIndexing = this.state.enableIndexing;
         config.ElasticsearchSettings.EnableSearching = this.state.enableSearching;
         config.ElasticsearchSettings.EnableAutocomplete = this.state.enableAutocomplete;
+        config.ElasticsearchSettings.IgnoredPurgeIndexes = this.state.ignoredPurgeIndexes;
 
         return config;
     };
@@ -51,6 +52,7 @@ export default class ElasticsearchSettings extends AdminSettings {
             configTested: true,
             canSave: true,
             canPurgeAndIndex: config.ElasticsearchSettings.EnableIndexing,
+            ignoredPurgeIndexes: config.ElasticsearchSettings.IgnoredPurgeIndexes,
         };
     }
 
@@ -160,7 +162,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                                 documentationLink: (
                                     <ExternalLink
                                         location='elasticsearch_settings'
-                                        href='https://docs.mattermost.com/scale/elasticsearch.html'
+                                        href={DocLinks.ELASTICSEARCH}
                                     >
                                         <FormattedMessage
                                             id='admin.elasticsearch.enableIndexingDescription.documentationLinkText'
@@ -193,7 +195,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                                 documentationLink: (
                                     <ExternalLink
                                         location='elasticsearch_settings'
-                                        href='https://docs.mattermost.com/scale/elasticsearch.html'
+                                        href={DocLinks.ELASTICSEARCH}
                                     >
                                         <FormattedMessage
                                             id='admin.elasticsearch.connectionUrlExample.documentationLinkText'
@@ -429,6 +431,26 @@ export default class ElasticsearchSettings extends AdminSettings {
                             defaultMessage='Purge Indexes:'
                         />
                     )}
+                />
+                <TextSetting
+                    id='ignoredPurgeIndexes'
+                    label={
+                        <FormattedMessage
+                            id='admin.elasticsearch.ignoredPurgeIndexes'
+                            defaultMessage='Indexes to skip while purging:'
+                        />
+                    }
+                    placeholder={'E.g.: .opendistro*,.security*'}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.elasticsearch.ignoredPurgeIndexesDescription'
+                            defaultMessage='When filled in, these indexes will be ignored during the purge, separated by commas.'
+                        />
+                    }
+                    value={this.state.ignoredPurgeIndexes}
+                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    onChange={this.handleSettingChanged}
+                    setByEnv={this.isSetByEnv('ElasticsearchSettings.IgnoredPurgeIndexes')}
                 />
                 <BooleanSetting
                     id='enableSearching'

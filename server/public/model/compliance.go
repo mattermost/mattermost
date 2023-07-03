@@ -81,8 +81,8 @@ func (c *Compliance) PreSave() {
 }
 
 func (c *Compliance) DeepCopy() *Compliance {
-	copy := *c
-	return &copy
+	cCopy := *c
+	return &cCopy
 }
 
 func (c *Compliance) JobName() string {

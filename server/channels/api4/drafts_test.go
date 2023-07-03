@@ -4,14 +4,15 @@
 package api4
 
 import (
+	"context"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
 func TestUpsertDraft(t *testing.T) {
@@ -40,7 +41,7 @@ func TestUpsertDraft(t *testing.T) {
 	}
 
 	// try to upsert draft
-	draftResp, _, err := client.UpsertDraft(draft)
+	draftResp, _, err := client.UpsertDraft(context.Background(), draft)
 	require.NoError(t, err)
 
 	assert.Equal(t, draft.UserId, draftResp.UserId)
@@ -51,14 +52,14 @@ func TestUpsertDraft(t *testing.T) {
 	sent, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err := client.UploadFile(sent, channel.Id, "test.png")
+	fileResp, _, err := client.UploadFile(context.Background(), sent, channel.Id, "test.png")
 	require.NoError(t, err)
 
 	draftWithFiles := draft
 	draftWithFiles.FileIds = []string{fileResp.FileInfos[0].Id}
 
 	// try to upsert draft with file
-	draftResp, _, err = client.UpsertDraft(draftWithFiles)
+	draftResp, _, err = client.UpsertDraft(context.Background(), draftWithFiles)
 	require.NoError(t, err)
 
 	assert.Equal(t, draftWithFiles.UserId, draftResp.UserId)
@@ -70,7 +71,7 @@ func TestUpsertDraft(t *testing.T) {
 	draftInvalidChannel := draft
 	draftInvalidChannel.ChannelId = "12345"
 
-	_, resp, err := client.UpsertDraft(draft)
+	_, resp, err := client.UpsertDraft(context.Background(), draft)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -79,12 +80,13 @@ func TestUpsertDraft(t *testing.T) {
 	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 
-	_, resp, err = client.UpsertDraft(draft)
+	_, resp, err = client.UpsertDraft(context.Background(), draft)
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestGetDrafts(t *testing.T) {
+	t.Skip("MM-53452")
 	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
 	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
@@ -122,15 +124,15 @@ func TestGetDrafts(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	// upsert draft1
-	_, _, err := client.UpsertDraft(draft1)
+	_, _, err := client.UpsertDraft(context.Background(), draft1)
 	require.NoError(t, err)
 
 	// upsert draft2
-	_, _, err = client.UpsertDraft(draft2)
+	_, _, err = client.UpsertDraft(context.Background(), draft2)
 	require.NoError(t, err)
 
 	// try to get drafts
-	draftResp, _, err := client.GetDrafts(user.Id, team.Id)
+	draftResp, _, err := client.GetDrafts(context.Background(), user.Id, team.Id)
 	require.NoError(t, err)
 
 	assert.Equal(t, draft2.UserId, draftResp[0].UserId)
@@ -144,7 +146,7 @@ func TestGetDrafts(t *testing.T) {
 	assert.Len(t, draftResp, 2)
 
 	// try to get drafts on invalid team
-	_, resp, err := client.GetDrafts(user.Id, "12345")
+	_, resp, err := client.GetDrafts(context.Background(), user.Id, "12345")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -152,12 +154,13 @@ func TestGetDrafts(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
 	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
-	_, resp, err = client.GetDrafts(user.Id, team.Id)
+	_, resp, err = client.GetDrafts(context.Background(), user.Id, team.Id)
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestDeleteDraft(t *testing.T) {
+	t.Skip("MM-53452")
 	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
 	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
@@ -194,15 +197,15 @@ func TestDeleteDraft(t *testing.T) {
 	}
 
 	// upsert draft1
-	_, _, err := client.UpsertDraft(draft1)
+	_, _, err := client.UpsertDraft(context.Background(), draft1)
 	require.NoError(t, err)
 
 	// upsert draft2
-	_, _, err = client.UpsertDraft(draft2)
+	_, _, err = client.UpsertDraft(context.Background(), draft2)
 	require.NoError(t, err)
 
 	//get drafts
-	draftResp, _, err := client.GetDrafts(user.Id, team.Id)
+	draftResp, _, err := client.GetDrafts(context.Background(), user.Id, team.Id)
 	require.NoError(t, err)
 
 	assert.Equal(t, draft2.UserId, draftResp[0].UserId)
@@ -214,11 +217,11 @@ func TestDeleteDraft(t *testing.T) {
 	assert.Equal(t, draft1.ChannelId, draftResp[1].ChannelId)
 
 	// try to delete draft1
-	_, _, err = client.DeleteDraft(user.Id, channel1.Id, draft1.RootId)
+	_, _, err = client.DeleteDraft(context.Background(), user.Id, channel1.Id, draft1.RootId)
 	require.NoError(t, err)
 
 	//get drafts
-	draftResp, _, err = client.GetDrafts(user.Id, team.Id)
+	draftResp, _, err = client.GetDrafts(context.Background(), user.Id, team.Id)
 	require.NoError(t, err)
 
 	assert.Equal(t, draft2.UserId, draftResp[0].UserId)

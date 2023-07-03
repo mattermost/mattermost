@@ -37,6 +37,7 @@ type Draft = {
  */
 export function getDrafts(teamId: string) {
     const getLocalDrafts = makeGetDrafts(false);
+
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
 

@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-import Constants from 'utils/constants';
+import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isMobile} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
@@ -460,7 +460,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                         values={{
                             linkTokens: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                    href={DeveloperLinks.PERSONAL_ACCESS_TOKENS}
                                     location='user_access_token_section'
                                 >
                                     {msg}
@@ -487,7 +487,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                         values={{
                             linkTokens: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                    href={DeveloperLinks.PERSONAL_ACCESS_TOKENS}
                                     location='user_access_token_section'
                                 >
                                     {msg}
