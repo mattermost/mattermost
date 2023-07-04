@@ -155,7 +155,6 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                     <PostMarkdown
                         message={message}
                         imageProps={this.imageProps}
-                        isRHS={isRHS}
                         options={options}
                         post={post}
                         channelId={post.channel_id}
