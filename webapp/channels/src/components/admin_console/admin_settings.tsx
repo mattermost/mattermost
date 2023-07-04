@@ -160,7 +160,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         return n;
     };
 
-    private parseIntNonNegative = (str: string, defaultValue?: number) => {
+    public parseIntNonNegative = (str: string, defaultValue?: number) => {
         const n = parseInt(str, 10);
 
         if (isNaN(n) || n < 0) {
@@ -173,7 +173,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         return n;
     };
 
-    private parseIntZeroOrMin = (str: string, minimumValue = 1) => {
+    public parseIntZeroOrMin = (str: string, minimumValue = 1) => {
         const n = parseInt(str, 10);
 
         if (isNaN(n) || n < 0) {
