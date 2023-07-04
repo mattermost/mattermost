@@ -5,8 +5,8 @@
 //
 // 1. An integration creates an interactive message button or menu.
 // 2. A user clicks on a button or selects an option from the menu.
-// 3. The client sends a request to server to complete the post action, calling DoPostAction below.
-// 4. DoPostAction will send an HTTP POST request to the integration containing contextual data, including
+// 3. The client sends a request to server to complete the post action, calling DoPostActionWithCookie below.
+// 4. DoPostActionWithCookie will send an HTTP POST request to the integration containing contextual data, including
 // an encoded and signed trigger ID. Slash commands also include trigger IDs in their payloads.
 // 5. The integration performs any actions it needs to and optionally makes a request back to the MM server
 // using the trigger ID to open an interactive dialog.
