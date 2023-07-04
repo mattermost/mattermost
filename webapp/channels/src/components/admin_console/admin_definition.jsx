@@ -5977,7 +5977,7 @@ const AdminDefinition = {
                         label: t('admin.service.integrationRequestTitle'),
                         label_default: 'Integration request timeout: ',
                         help_text: t('admin.service.integrationRequestDesc'),
-                        help_text_default: 'The number of seconds to wait for Integration requests. That includes <slashCommands>Slash Commands</slashCommands>, <outgoingWebhooks>Outgoing Webhooks</outgoingWebhooks>, <interactiveMessages>Interative Messages</interactiveMessages> and <interactiveDialogs>Interative Dialogs</interactiveDialogs>.',
+                        help_text_default: 'The number of seconds to wait for Integration requests. That includes <slashCommands>Slash Commands</slashCommands>, <outgoingWebhooks>Outgoing Webhooks</outgoingWebhooks>, <interactiveMessages>Interactive Messages</interactiveMessages> and <interactiveDialogs>Interative Dialogs</interactiveDialogs>.',
                         help_text_values: {
                             slashCommands: (msg) => (
                                 <ExternalLink
