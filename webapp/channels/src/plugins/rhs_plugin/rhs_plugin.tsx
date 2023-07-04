@@ -7,8 +7,6 @@ import SearchResultsHeader from 'components/search_results_header';
 
 import Pluggable from 'plugins/pluggable';
 
-import AutoShowLinkedBoardTourTip from './auto_show_linked_board_tourtip';
-
 export type Props = {
     showPluggable: boolean;
     pluggableId: string;
@@ -17,15 +15,12 @@ export type Props = {
 
 export default class RhsPlugin extends React.PureComponent<Props> {
     render() {
-        const autoLinkedBoardTourTip = (<AutoShowLinkedBoardTourTip/>);
-
         return (
             <div
                 id='rhsContainer'
                 className='sidebar-right__body'
             >
                 <SearchResultsHeader>
-                    {autoLinkedBoardTourTip}
                     {this.props.title}
                 </SearchResultsHeader>
                 {

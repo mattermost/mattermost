@@ -10,7 +10,7 @@ import {Group} from '@mattermost/types/groups';
 import {FileInfo} from '@mattermost/types/files';
 import {Post} from '@mattermost/types/posts';
 import {CategorySorting, ChannelCategory} from '@mattermost/types/channel_categories';
-import {Command, IncomingWebhook} from '@mattermost/types/integrations';
+import {Command, IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
 import {Session} from '@mattermost/types/sessions';
@@ -267,6 +267,28 @@ export class TestHelper {
             channel_locked: false,
         };
         return Object.assign({}, defaultIncomingWebhook, override);
+    }
+
+    public static getOutgoingWebhookMock(override: Partial<OutgoingWebhook> = {}): OutgoingWebhook {
+        const defaultOutgoingWebhook: OutgoingWebhook = {
+            id: 'id',
+            token: 'hook_token',
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+            creator_id: 'creator_id',
+            channel_id: '',
+            team_id: '',
+            trigger_words: [],
+            trigger_when: 0,
+            callback_urls: [],
+            display_name: '',
+            description: '',
+            content_type: '',
+            username: '',
+            icon_url: '',
+        };
+        return Object.assign({}, defaultOutgoingWebhook, override);
     }
 
     public static getPostMock(override: Partial<Post> = {}): Post {
