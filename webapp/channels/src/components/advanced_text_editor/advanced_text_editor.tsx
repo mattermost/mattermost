@@ -473,7 +473,6 @@ const AdvanceTextEditor = ({
                             characterLimit={maxPostSize}
                             preview={shouldShowPreview}
                             badConnection={badConnection}
-                            listenForMentionKeyClick={true}
                             useChannelMentions={useChannelMentions}
                             rootId={postId}
                             onWidthChange={handleWidthChange}
