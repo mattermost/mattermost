@@ -15,8 +15,10 @@ import type {PropsFromRedux} from './index';
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
 
 import './post_edit_history.scss';
-import {Client4} from 'mattermost-redux/client';
 import {Post} from '@mattermost/types/posts';
+import {getPostEditHistory} from 'mattermost-redux/actions/posts';
+import {useDispatch} from 'react-redux';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (
     <div
@@ -46,6 +48,7 @@ const PostEditHistory = ({
     const [postEditHistory, setPostEditHistory] = useState<Post[]>([]);
     const [hasError, setHasError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const dispatch = useDispatch<DispatchFunc>();
     const scrollbars = useRef<Scrollbars | null>(null);
     const {formatMessage} = useIntl();
     const retrieveErrorHeading = formatMessage({
@@ -59,21 +62,20 @@ const PostEditHistory = ({
 
     useEffect(() => {
         const fetchPostEditHistory = async () => {
-            try {
-                setIsLoading(true);
-                const history = await Client4.getPostEditHistory(originalPost.id);
-                setPostEditHistory(history);
+            setIsLoading(true);
+            const result = await dispatch(getPostEditHistory(originalPost.id));
+            if (result.data) {
+                setPostEditHistory(result.data);
                 setHasError(false);
-            } catch (error) {
+            } else {
                 setHasError(true);
                 setPostEditHistory([]);
-            } finally {
-                setIsLoading(false);
             }
+            setIsLoading(false);
         };
         fetchPostEditHistory();
         scrollbars.current?.scrollToTop();
-    }, [originalPost]);
+    }, [originalPost, dispatch]);
 
     useEffect(() => {
         setPostEditHistory([]);
