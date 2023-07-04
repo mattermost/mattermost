@@ -4,6 +4,12 @@ include config.mk
 # The CI environment variable is set automatically in CircleCI and GitLab CI
 CI ?= false
 
+# Detect M1/M2 Macs and set a flag.
+ifeq ($(shell uname)/$(shell uname -m),Linux/aarch64)
+  LINUX_ARM64 = true
+  CPPFLAGS="-DPNG_ARM_NEON_OPT=0"
+endif
+
 .PHONY: run
 run: node_modules ## Runs app
 	@echo Running Mattermost Web App for development
@@ -61,7 +67,7 @@ node_modules: package.json $(wildcard package-lock.json)
 	@echo Getting dependencies using npm
 
 ifeq ($(CI),false)
-	npm install
+	CPPFLAGS=$(CPPFLAGS) npm install
 else
 	# This runs in CI with NODE_ENV=production which skips devDependencies without this flag
 	npm ci --include=dev

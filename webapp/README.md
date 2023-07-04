@@ -22,6 +22,16 @@ npm run clean --workspaces --if-present
 
 To install dependencies for a workspace, simply run `npm install` from this folder as you would do normally. Most packages' dependencies will be included in the root `node_modules`, and all packages' dependencies will appear in the `package-lock.json`. A `node_modules` will only be created inside a package if one of its dependencies conflicts with that of another package.
 
+NOTE: if you were on Linux ARM64 silicon (eg. virtual Linux on Mac M1) and encountered below errors when installing `optipng-bin` package:
+```
+error while loading shared libraries: libz.so.1: cannot open shared object file: No such file or directory
+```
+Then try to install with flag `CPPFLAGS="-DPNG_ARM_NEON_OPT=0"`:
+```bash
+CPPFLAGS="-DPNG_ARM_NEON_OPT=0" npm install
+```
+> See optipng-bin issue [Linux arm64 support](https://github.com/imagemin/optipng-bin/issues/118) for details.
+
 ## Useful Links
 
 - [Developer setup](https://developers.mattermost.com/contribute/developer-setup/), now included with the Mattermost server developer setup
