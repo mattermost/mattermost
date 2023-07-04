@@ -4,10 +4,10 @@ include config.mk
 # The CI environment variable is set automatically in CircleCI and GitLab CI
 CI ?= false
 
-# Detect M1/M2 Macs and set a flag.
+# Detect Linux/aarch64 and set a flag.
 ifeq ($(shell uname)/$(shell uname -m),Linux/aarch64)
   LINUX_ARM64 = true
-  CPPFLAGS="-DPNG_ARM_NEON_OPT=0"
+  CPPFLAGS = "-DPNG_ARM_NEON_OPT=0"
 endif
 
 .PHONY: run
