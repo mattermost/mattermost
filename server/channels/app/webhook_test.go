@@ -820,14 +820,14 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 	t.Run("with a slow response, long timeout configured", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(3 * time.Second)
+			time.Sleep(1 * time.Second)
 
 			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
 		}))
 		defer server.Close()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(5)
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(2)
 		})
 
 		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
