@@ -169,13 +169,16 @@ const AdvanceTextEditor = ({
 
     const [scrollbarWidth, setScrollbarWidth] = useState(0);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
+    const [rowsOfText, setRowsOfText] = useState(0);
     const [showFormattingSpacer, setShowFormattingSpacer] = useState(shouldShowPreview);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
 
     const input = textboxRef.current?.getInputBox();
 
-    const handleHeightChange = useCallback((height: number, maxHeight: number) => {
+    const handleHeightChange = useCallback((height: number, maxHeight: number, rows: number) => {
         setRenderScrollbar(height > maxHeight);
+
+        setRowsOfText(rows);
 
         window.requestAnimationFrame(() => {
             if (textboxRef.current) {
@@ -358,15 +361,29 @@ const AdvanceTextEditor = ({
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
 
     const handleWidthChange = useCallback((width: number) => {
+        return;
         if (!editorBodyRef.current || !editorActionsRef.current || !input) {
             return;
         }
 
+        editorBodyRef.current.style.borderWidth = '1px';
+        editorBodyRef.current.style.borderStyle = 'solid';
+        editorBodyRef.current.style.borderColor = 'green';
+
+        editorActionsRef.current.style.borderWidth = '1px';
+        editorActionsRef.current.style.borderStyle = 'solid';
+        editorActionsRef.current.style.borderColor = 'red';
+
+        input.style.borderWidth = '1px';
+        input.style.borderStyle = 'solid';
+        input.style.borderColor = 'yellow';
+
         const maxWidth = editorBodyRef.current.offsetWidth - editorActionsRef.current.offsetWidth;
+        input.style.maxWidth = '100%';
 
         if (!message) {
             // if we do not have a message we can just render the default state
-            input.style.maxWidth = `${maxWidth}px`;
+            // input.style.maxWidth = `${maxWidth}px`;
             setShowFormattingSpacer(false);
             return;
         }
@@ -375,12 +392,13 @@ const AdvanceTextEditor = ({
         const inputPaddingRight = parseInt(window.getComputedStyle(input, null).paddingRight || '0', 10);
         const inputPaddingX = inputPaddingLeft + inputPaddingRight;
         const currentWidth = width + inputPaddingX;
+        console.log('handleWidthChange', currentWidth, maxWidth, currentWidth > maxWidth);
 
         if (currentWidth >= maxWidth) {
-            input.style.maxWidth = '100%';
+            // input.style.maxWidth = '100%';
             setShowFormattingSpacer(true);
         } else {
-            input.style.maxWidth = `${maxWidth}px`;
+            // input.style.maxWidth = `${maxWidth}px`;
             setShowFormattingSpacer(false);
         }
     }, [message, input]);
@@ -391,21 +409,21 @@ const AdvanceTextEditor = ({
         }
     }, [handleWidthChange, message]);
 
-    useEffect(() => {
-        if (!input) {
-            return;
-        }
+    // useEffect(() => {
+    //     if (!input) {
+    //         return;
+    //     }
 
-        let padding = 16;
-        if (showFormattingBar) {
-            padding += 32;
-        }
-        if (renderScrollbar) {
-            padding += 8;
-        }
+    //     let padding = 16;
+    //     if (showFormattingBar) {
+    //         padding += 32;
+    //     }
+    //     if (renderScrollbar) {
+    //         padding += 8;
+    //     }
 
-        input.style.paddingRight = `${padding}px`;
-    }, [showFormattingBar, renderScrollbar, input]);
+    //     input.style.paddingRight = `${padding}px`;
+    // }, [showFormattingBar, renderScrollbar, input]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -431,12 +449,9 @@ const AdvanceTextEditor = ({
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
                     scroll: renderScrollbar,
+                    'no-formatting-bar': !showFormattingBar,
+                    'multi-line': rowsOfText > 1,
                 })}
-                style={
-                    renderScrollbar && scrollbarWidth ? ({
-                        '--detected-scrollbar-width': `${scrollbarWidth}px`,
-                    } as CSSProperties) : undefined
-                }
             >
                 <div
                     id={'speak-'}

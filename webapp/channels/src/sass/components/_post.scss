@@ -384,13 +384,13 @@
         scrollbar-width: thin;
         transition: height 150ms ease-in-out;
 
-        &:not(.custom-textarea--emoji-picker) {
-            padding-right: 40px;
-        }
+        // &:not(.custom-textarea--emoji-picker) {
+        //     padding-right: 40px;
+        // }
 
-        &.custom-textarea--emoji-picker {
-            padding-right: 90px;
-        }
+        // &.custom-textarea--emoji-picker {
+        //     padding-right: 90px;
+        // }
 
         &.textbox-preview-area {
             overflow-y: auto;
@@ -413,13 +413,13 @@
             -webkit-overflow-scrolling: touch;
             -ms-overflow-style: auto;
 
-            &:not(.custom-textarea--emoji-picker) {
-                padding-right: 50px;
-            }
+            // &:not(.custom-textarea--emoji-picker) {
+            //     padding-right: 50px;
+            // }
 
-            &.custom-textarea--emoji-picker {
-                padding-right: 90px;
-            }
+            // &.custom-textarea--emoji-picker {
+            //     padding-right: 90px;
+            // }
         }
     }
 

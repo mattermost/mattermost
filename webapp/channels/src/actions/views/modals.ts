@@ -6,6 +6,7 @@ import {ModalData} from 'types/actions';
 import {ActionTypes} from 'utils/constants';
 
 export function openModal<P>(modalData: ModalData<P>) {
+    console.log('ModalController opened ' + modalData.modalId);
     return {
         type: ActionTypes.MODAL_OPEN,
         modalId: modalData.modalId,
@@ -20,6 +21,7 @@ export type CloseModalType = {
 }
 
 export function closeModal(modalId: string): CloseModalType {
+    console.log('ModalController closed ' + modalId);
     return {
         type: ActionTypes.MODAL_CLOSE,
         modalId,

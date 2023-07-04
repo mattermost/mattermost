@@ -36,7 +36,7 @@ export type Props = {
     onChange: (e: ChangeEvent<TextboxElement>) => void;
     onKeyPress: (e: KeyboardEvent<any>) => void;
     onComposition?: () => void;
-    onHeightChange?: (height: number, maxHeight: number) => void;
+    onHeightChange?: (height: number, maxHeight: number, rows: number) => void;
     onWidthChange?: (width: number) => void;
     createMessage: string;
     onKeyDown?: (e: KeyboardEvent<TextboxElement>) => void;

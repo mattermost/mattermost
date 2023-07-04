@@ -2,17 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React, {ChangeEvent, FormEvent, CSSProperties} from 'react';
+import styled from 'styled-components';
 
 type Props = {
     id?: string;
+    className?: string;
     disabled?: boolean;
     value?: string;
     defaultValue?: string;
     onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
-    onHeightChange?: (height: number, maxHeight: number) => void;
+    onHeightChange?: (height: number, maxHeight: number, rows: number) => void;
     onWidthChange?: (width: number) => void;
     onInput?: (e: FormEvent<HTMLTextAreaElement>) => void;
     placeholder?: string;
+    style?: CSSProperties;
     forwardedRef?: ((instance: HTMLTextAreaElement | null) => void) | React.MutableRefObject<HTMLTextAreaElement | null> | null;
 }
 
@@ -20,13 +23,14 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
     private height: number;
 
     private textarea?: HTMLTextAreaElement;
-    private referenceRef: React.RefObject<HTMLTextAreaElement>;
+    private referenceRef: React.RefObject<HTMLDivElement>;
     private measuringRef: React.RefObject<HTMLDivElement>;
 
     constructor(props: Props) {
         super(props);
 
         this.height = 0;
+        this.width = 0;
 
         this.referenceRef = React.createRef();
         this.measuringRef = React.createRef();
@@ -40,7 +44,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
     componentDidUpdate() {
         this.recalculateHeight();
         this.recalculateWidth();
-        this.recalculatePadding();
+        // this.recalculatePadding();
     }
 
     private recalculateHeight = () => {
@@ -57,24 +61,29 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
             // Directly change the height to avoid circular rerenders
             textarea.style.height = `${height}px`;
 
+            const maxHeight = pixelsToNumber(style.maxHeight);
+
+            const heightMinusPadding = textarea.scrollHeight - pixelsToNumber(style.paddingTop) - pixelsToNumber(style.paddingBottom);
+            const rows = Math.floor(heightMinusPadding / pixelsToNumber(style.lineHeight));
+
+            this.props.onHeightChange?.(height, maxHeight, rows);
+
             this.height = height;
-
-            this.props.onHeightChange?.(height, parseInt(style.maxHeight || '0', 10));
         }
     };
 
-    private recalculatePadding = () => {
-        if (!this.referenceRef.current || !this.textarea) {
-            return;
-        }
+    // private recalculatePadding = () => {
+    //     if (!this.referenceRef.current || !this.textarea) {
+    //         return;
+    //     }
 
-        const textarea = this.textarea;
-        const {paddingRight} = getComputedStyle(textarea);
+    //     const textarea = this.textarea;
+    //     const {paddingRight} = getComputedStyle(textarea);
 
-        if (paddingRight && paddingRight !== this.referenceRef.current.style.paddingRight) {
-            this.referenceRef.current.style.paddingRight = paddingRight;
-        }
-    };
+    //     if (paddingRight && paddingRight !== this.referenceRef.current.style.paddingRight) {
+    //         this.referenceRef.current.style.paddingRight = paddingRight;
+    //     }
+    // };
 
     private recalculateWidth = () => {
         if (!this.measuringRef) {
@@ -105,6 +114,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
         const props = {...this.props};
 
         Reflect.deleteProperty(props, 'onHeightChange');
+        Reflect.deleteProperty(props, 'onWidthChange');
         Reflect.deleteProperty(props, 'providers');
         Reflect.deleteProperty(props, 'channelId');
         Reflect.deleteProperty(props, 'forwardedRef');
@@ -114,6 +124,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
             defaultValue,
             placeholder,
             disabled,
+            onChange,
             onInput,
 
             // TODO: The provided `id` is sometimes hard-coded and used to interface with the
@@ -128,8 +139,6 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
             rows: 0,
             height: 0,
         };
-
-        Reflect.deleteProperty(otherProps, 'onWidthChange');
 
         if (this.height <= 0) {
             // Set an initial number of rows so that the textarea doesn't appear too large when its first rendered
@@ -166,23 +175,23 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
                     aria-label={placeholderAriaLabel}
                     dir='auto'
                     disabled={disabled}
-                    onChange={this.props.onChange}
+                    onChange={onChange}
                     onInput={onInput}
                     value={value}
                     defaultValue={defaultValue}
                 />
                 <div style={styles.container}>
-                    <textarea
+                    <Reference
                         ref={this.referenceRef}
                         id={id + '-reference'}
                         style={styles.reference}
                         dir='auto'
                         disabled={true}
-                        rows={1}
                         {...otherProps}
-                        value={value || defaultValue}
                         aria-hidden={true}
-                    />
+                    >
+                        {value || defaultValue}
+                    </Reference>
                     <div
                         ref={this.measuringRef}
                         id={id + '-measuring'}
@@ -196,11 +205,23 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
     }
 }
 
+function pixelsToNumber(numPixels?: string): number {
+    return parseInt(numPixels || '0', 10);
+}
+
+const Reference = styled.div`
+    height: auto;
+    width: 100%;
+
+    border: 1px solid cyan;
+    background-color: rgba(192, 128, 128, 0.5);
+`;
+
 const styles: { [Key: string]: CSSProperties} = {
-    container: {height: 0, overflow: 'hidden'},
-    reference: {height: 'auto', width: '100%'},
+    container: {height: 0, overflow: 'hidden'}, //, position: 'fixed', top: 0, left: 0, zIndex: 69420},
+    reference: {height: 'auto', width: '100%', border: '1px solid cyan', backgroundColor: 'rgba(192, 128, 128, 0.5)'},
     placeholder: {overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.5, pointerEvents: 'none', position: 'absolute', whiteSpace: 'nowrap', background: 'none', borderColor: 'transparent'},
-    measuring: {width: 'auto', display: 'inline-block'},
+    measuring: {width: 'auto', display: 'inline-block', border: '1px solid pink', backgroundColor: 'rgba(128, 192, 128, 0.5)'},
 };
 
 const forwarded = React.forwardRef<HTMLTextAreaElement>((props, ref) => (
