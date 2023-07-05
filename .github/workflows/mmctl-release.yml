@@ -1,0 +1,114 @@
+name: E2E Tests
+on:
+  # TODO testing, remove this before merging
+  push:
+  ## This workflow gets triggered from the Argo Events platform.
+  ## Check the following repo for details: https://github.com/mattermost/delivery-platform
+  #workflow_dispatch:
+  #  inputs:
+  #    release_version:
+  #      type: string
+  #      required: true
+  #    dry_run:
+  #      type: boolean
+  #      required: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  go-version: "1.19.5"
+
+jobs:
+  update-initial-status:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ github.sha }}
+          context: mmctl/publish
+          description: Publish mmctl binaries
+          status: pending
+
+  build:
+    runs-on: ubuntu-22.04
+    needs:
+      - update-initial-status
+    defaults:
+      run:
+        working-directory: server
+    strategy:
+      matrix:
+        os: [linux, darwin, windows]
+        arch: [amd64, arm64]
+        exclude:
+          - os: windows
+            arch: arm64
+    env:
+      GOBIN: "bin"
+      GOOS: "${{ matrix.os }}"
+      GOARCH: "${{ matrix.arch }}"
+      DRY_RUN: "${{ inputs.dry_run || true }}" # NB: booleans get templated out as 0 and 1
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: ci/setup-go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: ci/mmctl-package
+        run: |
+          make mmctl-build
+          tar -cf build/mmctl-${GOOS}-${GOARCH}.tar bin/mmctl
+          md5sum <build/mmctl-${GOOS}-${GOARCH}.tar | cut -d ' ' -f 1 > build/mmctl-${GOOS}-${GOARCH}.tar.md5.txt
+      - name: ci/mmctl-upload-jobartifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: "mmctl-${{ matrix.os }}-${{ matrix.arch }}"
+          path: build/mmctl-*
+      - name: ci/mmctl-upload-s3
+        run: |
+          if [ "$DRY_RUN" != "0" ]; then
+            echo "Running in dry run mode, not uploading artifacts to S3."
+            exit 0
+          fi
+          echo "TODO: not in a dry run, must upload to S3"
+
+  update-failure-final-status:
+    runs-on: ubuntu-22.04
+    if: failure() || cancelled()
+    needs:
+      - smoketests
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ github.sha }}
+          context: mmctl/publish
+          description: Publish mmctl binaries
+          status: failure
+
+  update-success-final-status:
+    runs-on: ubuntu-22.04
+    if: success()
+    needs:
+      - smoketests
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ github.sha }}
+          context: mmctl/publish
+          description: Publish mmctl binaries
+          status: success
