@@ -407,7 +407,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                         <div className='job-table-setting'>
                             <JobsTable
                                 jobType={JobTypes.ELASTICSEARCH_POST_INDEXING as JobType}
-                                disabled={!this.state.canPurgeAndIndex || this.props.isDisabled}
+                                disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
                                 createJobButtonText={
                                     <FormattedMessage
                                         id='admin.elasticsearch.createJob.title'

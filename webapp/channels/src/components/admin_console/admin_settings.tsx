@@ -18,7 +18,7 @@ export type BaseProps = {
     config?: DeepPartial<AdminConfig>;
     environmentConfig?: EnvironmentConfig;
     setNavigationBlocked?: (blocked: boolean) => void;
-    isDisabled: boolean;
+    isDisabled?: boolean;
     updateConfig?: (config: AdminConfig) => {data: AdminConfig; error: ClientErrorPlaceholder};
 }
 
