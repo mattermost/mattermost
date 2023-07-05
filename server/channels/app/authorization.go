@@ -259,12 +259,12 @@ func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userID stri
 		return true
 	}
 
-	if _, err := a.GetBot(userID, true); err != nil {
+	err := a.SessionHasPermissionToManageBot(session, userID)
+	if err == nil {
+		return true
+	}
+	if err.Id == "store.sql_bot.get.missing.app_error" && err.Unwrap() != nil {
 		if a.SessionHasPermissionToUser(session, userID) {
-			return true
-		}
-	} else {
-		if err := a.SessionHasPermissionToManageBot(session, userID); err == nil {
 			return true
 		}
 	}
