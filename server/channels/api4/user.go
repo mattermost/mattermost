@@ -428,7 +428,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -499,7 +499,7 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1249,7 +1249,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), user.Id) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), user.Id) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1268,12 +1268,6 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddEventPriorState(ouser)
 	auditRec.AddEventObjectType("user")
-
-	if ouser.IsBot {
-		c.Logger.Info("Attempt to update bot via user update", mlog.String("bot_id", c.Params.UserId), mlog.String("session user", c.AppContext.Session().UserId))
-		c.SetInvalidParam("user_id")
-		return
-	}
 
 	if c.AppContext.Session().IsOAuth {
 		if ouser.Email != user.Email {
@@ -1332,7 +1326,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameterAuditable(auditRec, "user_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1345,12 +1339,6 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddEventPriorState(ouser)
 	auditRec.AddEventObjectType("user")
-
-	if ouser.IsBot {
-		c.Logger.Info("Attempt to patch bot via user patch", mlog.String("bot_id", c.Params.UserId), mlog.String("session user", c.AppContext.Session().UserId))
-		c.SetInvalidParam("user_id")
-		return
-	}
 
 	// Cannot update a system admin unless user making request is a systemadmin also
 	if ouser.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -1416,7 +1404,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userId) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), userId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1434,12 +1422,6 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(user)
 	auditRec.AddEventObjectType("user")
-
-	if user.IsBot {
-		c.Logger.Info("Attempt to delete bot via user delete", mlog.String("bot_id", c.Params.UserId), mlog.String("session user", c.AppContext.Session().UserId))
-		c.SetInvalidParam("user_id")
-		return
-	}
 
 	// Cannot update a system admin unless user making request is a systemadmin also
 	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {

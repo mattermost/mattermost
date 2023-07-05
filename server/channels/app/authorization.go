@@ -258,14 +258,16 @@ func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userID stri
 	if session.IsUnrestricted() {
 		return true
 	}
-	if a.SessionHasPermissionToUser(session, userID) {
-		return true
-	}
 
-	if err := a.SessionHasPermissionToManageBot(session, userID); err == nil {
-		return true
+	if _, err := a.GetBot(userID, true); err != nil {
+		if a.SessionHasPermissionToUser(session, userID) {
+			return true
+		}
+	} else {
+		if err := a.SessionHasPermissionToManageBot(session, userID); err == nil {
+			return true
+		}
 	}
-
 	return false
 }
 

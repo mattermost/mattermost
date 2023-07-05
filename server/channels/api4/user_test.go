@@ -1942,9 +1942,14 @@ func TestUpdateBotUser(t *testing.T) {
 	botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
 	require.NoError(t, err)
 
-	_, _, err = th.SystemAdminClient.UpdateUser(context.Background(), botUser)
-	require.Error(t, err)
+	updateUser, _, err := th.SystemAdminClient.UpdateUser(context.Background(), botUser)
+	require.NoError(t, err)
+	require.Equal(t, botUser.Id, updateUser.Id)
 	require.Equal(t, err.Error(), ": Invalid or missing user_id in request body.")
+
+	_, resp, err := th.Client.UpdateUser(context.Background(), botUser)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestPatchUser(t *testing.T) {
@@ -2070,9 +2075,13 @@ func TestPatchBotUser(t *testing.T) {
 	patch := &model.UserPatch{}
 	patch.Email = model.NewString("Anything")
 
-	_, _, err := th.SystemAdminClient.PatchUser(context.Background(), bot.UserId, patch)
+	user, _, err := th.SystemAdminClient.PatchUser(context.Background(), bot.UserId, patch)
+	require.NoError(t, err)
+	require.Equal(t, bot.UserId, user.Id)
+
+	_, resp, err := th.Client.PatchUser(context.Background(), bot.UserId, patch)
 	require.Error(t, err)
-	require.Equal(t, err.Error(), ": Invalid or missing user_id in request body.")
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestPatchAdminUser(t *testing.T) {
