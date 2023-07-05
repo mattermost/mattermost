@@ -1266,3 +1266,10 @@ func (api *apiTimerLayer) GetUploadSession(uploadID string) (*model.UploadSessio
 	api.recordTime(startTime, "GetUploadSession", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (api *apiTimerLayer) GetServiceEnvironment() string {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.GetServiceEnvironment()
+	api.recordTime(startTime, "GetServiceEnvironment", true)
+	return _returnsA
+}

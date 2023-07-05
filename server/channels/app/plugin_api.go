@@ -1262,3 +1262,7 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 	}
 	return fi, nil
 }
+
+func (api *PluginAPI) GetServiceEnvironment() string {
+	return model.GetServiceEnvironment()
+}

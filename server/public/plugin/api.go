@@ -1180,6 +1180,13 @@ type API interface {
 	// @tag Upload
 	// Minimum server version: 7.6
 	GetUploadSession(uploadID string) (*model.UploadSession, error)
+
+	// GetServiceEnvironment returns the currently configured service environment, deciding
+	// which public key is used to validate enterprise licenses, which telemetry keys are
+	// active, and which Stripe keys are in use.
+	//
+	// Minimum server version: 8.1
+	GetServiceEnvironment() string
 }
 
 var handshake = plugin.HandshakeConfig{

@@ -5834,3 +5834,30 @@ func (s *apiRPCServer) GetUploadSession(args *Z_GetUploadSessionArgs, returns *Z
 	}
 	return nil
 }
+
+type Z_GetServiceEnvironmentArgs struct {
+}
+
+type Z_GetServiceEnvironmentReturns struct {
+	A string
+}
+
+func (g *apiRPCClient) GetServiceEnvironment() string {
+	_args := &Z_GetServiceEnvironmentArgs{}
+	_returns := &Z_GetServiceEnvironmentReturns{}
+	if err := g.client.Call("Plugin.GetServiceEnvironment", _args, _returns); err != nil {
+		log.Printf("RPC call to GetServiceEnvironment API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetServiceEnvironment(args *Z_GetServiceEnvironmentArgs, returns *Z_GetServiceEnvironmentReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetServiceEnvironment() string
+	}); ok {
+		returns.A = hook.GetServiceEnvironment()
+	} else {
+		return encodableError(fmt.Errorf("API GetServiceEnvironment called but not implemented."))
+	}
+	return nil
+}

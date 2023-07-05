@@ -22,9 +22,9 @@ const (
 	ServiceEnvironmentDev = "dev"
 )
 
-// GetServiceEnvironment returns the currently configured external service environment,
-// deciding which public key is used to validate enterprise licenses, which telemetry keys are
-// active, and which Stripe keys are in use.
+// GetServiceEnvironment returns the currently configured service environment, deciding which
+// public key is used to validate enterprise licenses, which telemetry keys are active, and which
+// Stripe keys are in use.
 //
 // To configure an environment other than default, set MM_SERVICEENVIRONMENT before
 // starting the application. Production builds default to ServiceEnvironmentProduction, and
@@ -34,11 +34,11 @@ const (
 // should never be persisted to the config store nor accidentally configured in any other way than
 // the MM_SERVICEENVIRONMENT variable.
 func GetServiceEnvironment() string {
-	externalServiceEnvironment := strings.TrimSpace(strings.ToLower(os.Getenv("MM_SERVICEENVIRONMENT")))
+	serviceEnvironment := strings.TrimSpace(strings.ToLower(os.Getenv("MM_SERVICEENVIRONMENT")))
 
-	switch externalServiceEnvironment {
+	switch serviceEnvironment {
 	case ServiceEnvironmentProduction, ServiceEnvironmentTest, ServiceEnvironmentDev:
-		return externalServiceEnvironment
+		return serviceEnvironment
 	}
 
 	return getDefaultServiceEnvironment()

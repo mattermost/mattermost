@@ -2068,6 +2068,20 @@ func (_m *API) GetServerVersion() string {
 	return r0
 }
 
+// GetServiceEnvironment provides a mock function with given fields:
+func (_m *API) GetServiceEnvironment() string {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // GetSession provides a mock function with given fields: sessionID
 func (_m *API) GetSession(sessionID string) (*model.Session, *model.AppError) {
 	ret := _m.Called(sessionID)
