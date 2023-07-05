@@ -14,7 +14,7 @@ import ExternalLink from 'components/external_link';
 
 import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
-import ClusterTableContainer from './cluster_table_container.jsx';
+import ClusterTableContainer from './cluster_table_container';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 import DocLinks from 'utils/constants';
