@@ -26,7 +26,7 @@ export const renderWithIntl = (component: React.ReactNode | React.ReactNodeArray
     return render(<IntlProvider locale={locale}>{component}</IntlProvider>);
 };
 
-export const renderWithIntlAndStore = (component: React.ReactNode | React.ReactNodeArray, initialState: DeepPartial<GlobalState>, locale = 'en') => {
+export const renderWithIntlAndStore = (component: React.ReactNode | React.ReactNodeArray, initialState: DeepPartial<GlobalState> = {}, locale = 'en') => {
     // We use a redux-mock-store store for testing, but we set up a real store to ensure the initial state is complete
     const realStore = configureStore(initialState);
 
