@@ -10,13 +10,10 @@ exports[`components/post_view/PostReaction should match snapshot 1`] = `
   }
   teamId="current_team_id"
 >
-  <EmojiPickerOverlay
-    enableGifPicker={false}
+  <Connect(EmojiPickerOverlay)
     onEmojiClick={[Function]}
     onHide={[MockFunction]}
     show={false}
-    spaceRequiredAbove={476}
-    spaceRequiredBelow={497}
     target={[MockFunction]}
     topOffset={-7}
   />

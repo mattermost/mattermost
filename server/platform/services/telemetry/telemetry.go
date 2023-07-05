@@ -860,6 +860,7 @@ func (ts *TelemetryService) trackConfig() {
 
 	ts.SendTelemetry(TrackConfigGuestAccounts, map[string]any{
 		"enable":                                 *cfg.GuestAccountsSettings.Enable,
+		"hide_tag":                               *cfg.GuestAccountsSettings.HideTags,
 		"allow_email_accounts":                   *cfg.GuestAccountsSettings.AllowEmailAccounts,
 		"enforce_multifactor_authentication":     *cfg.GuestAccountsSettings.EnforceMultifactorAuthentication,
 		"isdefault_restrict_creation_to_domains": isDefault(*cfg.GuestAccountsSettings.RestrictCreationToDomains, ""),
