@@ -204,11 +204,12 @@ const (
 	BleveSettingsDefaultIndexDir  = ""
 	BleveSettingsDefaultBatchSize = 10000
 
-	DataRetentionSettingsDefaultMessageRetentionDays = 365
-	DataRetentionSettingsDefaultFileRetentionDays    = 365
-	DataRetentionSettingsDefaultBoardsRetentionDays  = 365
-	DataRetentionSettingsDefaultDeletionJobStartTime = "02:00"
-	DataRetentionSettingsDefaultBatchSize            = 3000
+	DataRetentionSettingsDefaultMessageRetentionDays           = 365
+	DataRetentionSettingsDefaultFileRetentionDays              = 365
+	DataRetentionSettingsDefaultBoardsRetentionDays            = 365
+	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
+	DataRetentionSettingsDefaultBatchSize                      = 3000
+	DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds = 100
 
 	PluginSettingsDefaultDirectory         = "./plugins"
 	PluginSettingsDefaultClientDirectory   = "./client/plugins"
@@ -2699,14 +2700,15 @@ func (bs *BleveSettings) SetDefaults() {
 }
 
 type DataRetentionSettings struct {
-	EnableMessageDeletion *bool   `access:"compliance_data_retention_policy"`
-	EnableFileDeletion    *bool   `access:"compliance_data_retention_policy"`
-	EnableBoardsDeletion  *bool   `access:"compliance_data_retention_policy"`
-	MessageRetentionDays  *int    `access:"compliance_data_retention_policy"`
-	FileRetentionDays     *int    `access:"compliance_data_retention_policy"`
-	BoardsRetentionDays   *int    `access:"compliance_data_retention_policy"`
-	DeletionJobStartTime  *string `access:"compliance_data_retention_policy"`
-	BatchSize             *int    `access:"compliance_data_retention_policy"`
+	EnableMessageDeletion          *bool   `access:"compliance_data_retention_policy"`
+	EnableFileDeletion             *bool   `access:"compliance_data_retention_policy"`
+	EnableBoardsDeletion           *bool   `access:"compliance_data_retention_policy"`
+	MessageRetentionDays           *int    `access:"compliance_data_retention_policy"`
+	FileRetentionDays              *int    `access:"compliance_data_retention_policy"`
+	BoardsRetentionDays            *int    `access:"compliance_data_retention_policy"`
+	DeletionJobStartTime           *string `access:"compliance_data_retention_policy"`
+	BatchSize                      *int    `access:"compliance_data_retention_policy"`
+	TimeBetweenBatchesMilliseconds *int    `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -2740,6 +2742,10 @@ func (s *DataRetentionSettings) SetDefaults() {
 
 	if s.BatchSize == nil {
 		s.BatchSize = NewInt(DataRetentionSettingsDefaultBatchSize)
+	}
+
+	if s.TimeBetweenBatchesMilliseconds == nil {
+		s.TimeBetweenBatchesMilliseconds = NewInt(DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds)
 	}
 }
 
