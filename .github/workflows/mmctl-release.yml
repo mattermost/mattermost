@@ -1,4 +1,4 @@
-name: E2E Tests
+name: mmctl release
 on:
   # TODO testing, remove this before merging
   push:
