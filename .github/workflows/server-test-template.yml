@@ -1,7 +1,10 @@
-name: Test
+name: Server Test Template
 on:
   workflow_call:
     inputs:
+      name:
+        required: true
+        type: string
       datasource:
         required: true
         type: string
@@ -9,7 +12,8 @@ on:
         required: true
         type: string
 jobs:
-  run-tests:
+  test:
+    name: ${{ inputs.name }}
     runs-on: ubuntu-latest-8-cores
     env:
       COMPOSE_PROJECT_NAME: ghactions
@@ -45,4 +49,4 @@ jobs:
             -v ~/work/mattermost:/mattermost \
             -w /mattermost/mattermost \
             $BUILD_IMAGE \
-            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID TESTFLAGS= TESTFLAGSEE= 
+            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID TESTFLAGS= TESTFLAGSEE=

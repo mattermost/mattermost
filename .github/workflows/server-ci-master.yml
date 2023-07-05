@@ -1,0 +1,12 @@
+name: Server CI Master
+on:
+  push:
+    branches:
+      - release-7.10
+
+env:
+  go-version: "1.19.5"
+
+jobs:
+  master-ci:
+    uses: ./.github/workflows/server-ci-template.yml
