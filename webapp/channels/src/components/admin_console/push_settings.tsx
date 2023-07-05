@@ -54,7 +54,7 @@ export default class PushSettings extends AdminSettings<Props, State> {
         });
     };
 
-    handleDropdownChange = (id: string, value: EmailSettings['PushNotificationServerType'] | EmailSettings['PushNotificationServerLocation']) => {
+    handleDropdownChange = (id: string, value: string) => {
         if (id === DROPDOWN_ID_SERVER_TYPE) {
             this.setState({
                 agree: false,
