@@ -85,7 +85,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: failure() || cancelled()
     needs:
-      - smoketests
+      - build
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
@@ -101,7 +101,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: success()
     needs:
-      - smoketests
+      - build
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
