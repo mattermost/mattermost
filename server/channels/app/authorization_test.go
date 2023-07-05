@@ -143,17 +143,17 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
 		assert.NotNil(t, err)
 		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
-		assert.Nil(t, err.Unwrap())
+		assert.NoError(t, err.Unwrap())
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
 		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
 		assert.NotNil(t, err)
 		assert.Equal(t, "api.context.permissions.app_error", err.Id)
-		assert.Nil(t, err.Unwrap())
+		assert.NoError(t, err.Unwrap())
 
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.SystemUserRoleId)
 		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		th.RemovePermissionFromRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
 		th.RemovePermissionFromRole(model.PermissionManageBots.Id, model.SystemUserRoleId)
@@ -167,13 +167,13 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
 		assert.NotNil(t, err)
 		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
-		assert.Nil(t, err.Unwrap())
+		assert.NoError(t, err.Unwrap())
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
 		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
 		assert.NotNil(t, err)
 		assert.Equal(t, "api.context.permissions.app_error", err.Id)
-		assert.Nil(t, err.Unwrap())
+		assert.NoError(t, err.Unwrap())
 
 		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
 		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
@@ -200,7 +200,7 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		err = th.App.SessionHasPermissionToManageBot(session, "12345")
 		assert.NotNil(t, err)
 		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
-		assert.NotNil(t, err.Unwrap())
+		assert.Error(t, err.Unwrap())
 	})
 }
 
