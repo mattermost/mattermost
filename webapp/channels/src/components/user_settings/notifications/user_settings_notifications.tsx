@@ -36,7 +36,7 @@ export type Props = {
         updateMe: (user: UserProfile) => Promise<ActionResult>;
     };
     isCollapsedThreadsEnabled: boolean;
-    isCallsEnabled: boolean;
+    isCallsRingingEnabled: boolean;
 }
 
 type State = {
@@ -73,7 +73,7 @@ function getNotificationsStateFromProps(props: Props): State {
     let sound: UserNotifyProps['desktop_sound'] = 'true';
     let callsSound: UserNotifyProps['calls_desktop_sound'] = 'true';
     let desktopNotificationSound: UserNotifyProps['desktop_notification_sound'] = 'Bing';
-    let callsNotificationSound: UserNotifyProps['calls_notification_sound'] = 'Dynamic';
+    let callsNotificationSound: UserNotifyProps['calls_notification_sound'] = 'Calm';
     let comments: UserNotifyProps['comments'] = 'never';
     let enableEmail: UserNotifyProps['email'] = 'true';
     let pushActivity: UserNotifyProps['push'] = NotificationLevels.MENTION;
@@ -1058,7 +1058,7 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
                         callsSelectedSound={this.state.callsNotificationSound || 'default'}
                         isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
                         areAllSectionsInactive={this.props.activeSection === ''}
-                        isCallsEnabled={this.props.isCallsEnabled}
+                        isCallsRingingEnabled={this.props.isCallsRingingEnabled}
                     />
                     <div className='divider-light'/>
                     <EmailNotificationSetting

@@ -1,0 +1,439 @@
+  /api/v4/teams/{team_id}/top/reactions:
+    get:
+      tags:
+        - insights
+      summary: Get a list of the top reactions for a team.
+      description: |
+        Get a list of the top reactions across all public and private channels (the user is a member of) for a given team.
+        ##### Permissions
+        Must have `view_team` permission for the team.
+      operationId: GetTopReactionsForTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: time_range
+          in: query
+          description: >
+            Time range can be "today", "7_day", or "28_day".
+
+            - `today`: reactions posted on the current day.
+            
+            - `7_day`: reactions posted in the last 7 days.
+            
+            - `28_day`: reactions posted in the last 28 days.
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of items per page, up to a maximum of 200.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Top reactions retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/TopReactionList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/users/me/top/reactions:
+    get:
+      tags:
+        - insights
+      summary: Get a list of the top reactions for a user.
+      description: |
+        Get a list of the top reactions across all public and private channels (the user is a member of) for a given user.
+        If no `team_id` is provided, this will also include reactions posted by the given user in direct and group messages.
+        ##### Permissions
+        Must be logged in as the user.
+      operationId: GetTopReactionsForUser
+      parameters:
+        - name: time_range
+          in: query
+          description: >
+            Time range can be "today", "7_day", or "28_day".
+
+            - `today`: reactions posted on the current day.
+            
+            - `7_day`: reactions posted in the last 7 days.
+            
+            - `28_day`: reactions posted in the last 28 days.
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of items per page, up to a maximum of 200.
+          schema:
+            type: integer
+            default: 60
+        - name: team_id
+          in: query
+          description: >
+            Team ID will scope the response to a given team and exclude direct and group messages.
+           
+            ##### Permissions
+            
+            Must have `view_team` permission for the team.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Top reactions retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/TopReactionList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/teams/{team_id}/top/channels:
+    get:
+      tags:
+        - insights
+      summary: Get a list of the top channels for a team.
+      description: |
+        Get a list of the top public and private channels (the user is a member of) for a given team.
+        ##### Permissions
+        Must have `view_team` permission for the team.
+      operationId: GetTopChannelsForTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: time_range
+          in: query
+          description: >
+            Time range can be "today", "7_day", or "28_day".
+
+            - `today`: channels with posts on the current day.
+            
+            - `7_day`: channels with posts in the last 7 days.
+            
+            - `28_day`: channels with posts in the last 28 days.
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of items per page, up to a maximum of 200.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Top channels retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/TopChannelList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/users/me/top/channels:
+    get:
+      tags:
+        - insights
+      summary: Get a list of the top channels for a user.
+      description: |
+        Get a list of the top public and private channels (the user is a member of) for a given user.
+        ##### Permissions
+        Must be logged in as the user.
+      operationId: GetTopChannelsForUser
+      parameters:
+        - name: time_range
+          in: query
+          description: >
+            Time range can be "today", "7_day", or "28_day".
+
+            - `today`: channels with posts on the current day.
+            
+            - `7_day`: channels with posts in the last 7 days.
+            
+            - `28_day`: channels with posts in the last 28 days.
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of items per page, up to a maximum of 200.
+          schema:
+            type: integer
+            default: 60
+        - name: team_id
+          in: query
+          description: >
+            Team ID will scope the response to a given team.
+
+            ##### Permissions
+           
+            Must have `view_team` permission for the team.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Top channels retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/TopChannelList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/teams/{team_id}/top/team_members:
+    get:
+      tags:
+        - insights
+      summary: Get a list of new team members.
+      description: |
+        Get a list of all of the new team members that have joined the given team during the given time period.
+        ##### Permissions
+        Must have `view_team` permission for the team.
+      operationId: GetNewTeamMembers
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: time_range
+          in: query
+          description: >
+            Time range can be "today", "7_day", or "28_day".
+
+            - `today`: team members who joined during the current day.
+
+            - `7_day`: team members who joined in the last 7 days.
+
+            - `28_day`: team members who joined in the last 28 days.
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of items per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: New team members retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/NewTeamMembersList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/teams/{team_id}/top/threads:
+    get:
+      tags:
+        - insights
+      summary: Get a list of the top threads for a team.
+      description: |
+        Get a list of the top threads from public and private channels (the user is a member of) for a given team.
+        ##### Permissions
+        Must have `view_team` permission for the team.
+      operationId: GetTopThreadsForTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: time_range
+          in: query
+          description: >
+            Time range can be "today", "7_day", or "28_day".
+
+            - `today`: threads with activity on the current day.
+            
+            - `7_day`: threads with activity in the last 7 days.
+            
+            - `28_day`: threads with activity in the last 28 days.
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of items per page, up to a maximum of 200.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Top threads retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/TopThreadList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/users/me/top/threads:
+    get:
+      tags:
+        - insights
+      summary: Get a list of the top threads for a user.
+      description: |
+        Get a list of the top threads from public and private channels (the user is a member of and participating in the thread) for a given user.
+        ##### Permissions
+        Must be logged in as the user.
+      operationId: GetTopThreadsForUser
+      parameters:
+        - name: time_range
+          in: query
+          description: >
+            Time range can be "today", "7_day", or "28_day".
+
+            - `today`: threads with activity on the current day.
+            
+            - `7_day`: threads with activity in the last 7 days.
+            
+            - `28_day`: threads with activity in the last 28 days.
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of items per page, up to a maximum of 200.
+          schema:
+            type: integer
+            default: 60
+        - name: team_id
+          in: query
+          description: >
+            Team ID will scope the response to a given team.
+
+            ##### Permissions
+           
+            Must have `view_team` permission for the team.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Top threads retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/TopThreadList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/users/me/top/dms:
+    get:
+      tags:
+        - insights
+      summary: Get a list of the top dms for a user.
+      description: |
+        Get a list of the top dms for a given user.
+        ##### Permissions
+        Must be logged in as the user.
+      operationId: GetTopDMsForUser
+      parameters:
+        - name: time_range
+          in: query
+          description: >
+            Time range can be "today", "7_day", or "28_day".
+
+            - `today`: threads with activity on the current day.
+            
+            - `7_day`: threads with activity in the last 7 days.
+            
+            - `28_day`: threads with activity in the last 28 days.
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of items per page, up to a maximum of 200.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Top dms retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/TopDMList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"

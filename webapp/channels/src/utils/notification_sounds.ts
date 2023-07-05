@@ -54,11 +54,18 @@ export function ring(name: string) {
     stopRing();
 
     currentRing = loopNotificationRing(name);
+    currentRing.addEventListener('pause', () => {
+        stopRing();
+    });
 }
 
 export function stopRing() {
-    currentRing?.pause();
-    currentRing = null;
+    if (currentRing) {
+        currentRing.pause();
+        currentRing.src = '';
+        currentRing.remove();
+        currentRing = null;
+    }
 }
 
 let currentTryRing: HTMLAudioElement | null = null;
@@ -71,18 +78,26 @@ export function tryNotificationRing(name: string) {
     clearTimeout(currentTimer);
 
     currentTryRing = loopNotificationRing(name);
+    currentTryRing.addEventListener('pause', () => {
+        stopTryNotificationRing();
+    });
+
     currentTimer = setTimeout(() => {
         stopTryNotificationRing();
     }, 5000);
 }
 
 export function stopTryNotificationRing() {
-    currentTryRing?.pause();
-    currentTryRing = null;
+    if (currentTryRing) {
+        currentTryRing.pause();
+        currentTryRing.src = '';
+        currentTryRing.remove();
+        currentTryRing = null;
+    }
 }
 
 export function loopNotificationRing(name: string) {
-    const audio = new Audio(callsNotificationSounds.get(name) ?? callsNotificationSounds.get('Dynamic'));
+    const audio = new Audio(callsNotificationSounds.get(name) ?? callsNotificationSounds.get('Calm'));
     audio.loop = true;
     audio.play();
     return audio;

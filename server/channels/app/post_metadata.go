@@ -206,9 +206,17 @@ func (a *App) SanitizePostMetadataForUser(c request.CTX, post *model.Post, userI
 	}
 
 	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
+		// Remove all permalink embeds and only keep non-permalink embeds.
+		// We always have only one permalink embed even if the post
+		// contains multiple permalinks.
+		var newEmbeds []*model.PostEmbed
 		for _, embed := range post.Metadata.Embeds {
-			embed.Data = nil
+			if embed.Type != model.PostEmbedPermalink {
+				newEmbeds = append(newEmbeds, embed)
+			}
 		}
+
+		post.Metadata.Embeds = newEmbeds
 	}
 
 	return post, nil
@@ -280,7 +288,7 @@ func (a *App) getEmbedForPost(c request.CTX, post *model.Post, firstLink string,
 		return nil, err
 	}
 
-	if !*a.Config().ServiceSettings.EnablePermalinkPreviews || !a.Config().FeatureFlags.PermalinkPreviews {
+	if !*a.Config().ServiceSettings.EnablePermalinkPreviews {
 		permalink = nil
 	}
 
@@ -570,7 +578,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 
 	// Check cache
 	og, image, permalink, ok := getLinkMetadataFromCache(requestURL, timestamp)
-	if !*a.Config().ServiceSettings.EnablePermalinkPreviews || !a.Config().FeatureFlags.PermalinkPreviews {
+	if !*a.Config().ServiceSettings.EnablePermalinkPreviews {
 		permalink = nil
 	}
 
@@ -588,7 +596,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	}
 
 	var err error
-	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews && a.Config().FeatureFlags.PermalinkPreviews {
+	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews {
 		referencedPostID := requestURL[len(requestURL)-26:]
 
 		referencedPost, appErr := a.GetSinglePost(referencedPostID, false)

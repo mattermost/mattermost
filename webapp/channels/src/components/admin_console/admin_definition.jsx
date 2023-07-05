@@ -56,14 +56,14 @@ import TeamDetails from './team_channel_settings/team/details';
 import ChannelSettings from './team_channel_settings/channel';
 import ChannelDetails from './team_channel_settings/channel/details';
 import PasswordSettings from './password_settings.jsx';
-import PushNotificationsSettings from './push_settings.jsx';
+import PushNotificationsSettings from './push_settings';
 import DataRetentionSettings from './data_retention_settings';
 import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
 import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
 import MessageExportSettings from './message_export_settings.jsx';
 import DatabaseSettings from './database_settings.jsx';
 import ElasticSearchSettings from './elasticsearch_settings.jsx';
-import BleveSettings from './bleve_settings.jsx';
+import BleveSettings from './bleve_settings';
 import FeatureFlags from './feature_flags.tsx';
 import ClusterSettings from './cluster_settings.jsx';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
@@ -5725,6 +5725,16 @@ const AdminDefinition = {
                         type: Constants.SettingsTypes.TYPE_CUSTOM,
                         component: CustomEnableDisableGuestAccountsSetting,
                         key: 'GuestAccountsSettings.Enable',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'GuestAccountsSettings.HideTags',
+                        label: t('admin.guest_access.hideTags'),
+                        label_default: 'Hide guest tag',
+                        help_text: t('admin.guest_access.hideTagsDescription'),
+                        help_text_default: 'When true, the "guest" tag will not be shown next to the name of all guest users in the Mattermost chat interface.',
+                        help_text_markdown: false,
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
                     },
                     {
