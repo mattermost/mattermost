@@ -3,6 +3,7 @@
 
 import React, {ChangeEvent, RefObject} from 'react';
 import {FormattedMessage, injectIntl, WrappedComponentProps} from 'react-intl';
+import CreatableReactSelect from 'react-select/creatable';
 
 import {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 import {ServerError} from '@mattermost/types/errors';
@@ -11,7 +12,7 @@ import {ActionResult} from 'mattermost-redux/types/actions';
 
 import Constants, {NotificationLevels} from 'utils/constants';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
-import {a11yFocus, moveCursorToEnd} from 'utils/utils';
+import {a11yFocus} from 'utils/utils';
 import {t} from 'utils/i18n';
 
 import SettingItem from 'components/setting_item';
@@ -23,6 +24,7 @@ import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
 
 import type {PropsFromRedux} from './index';
+import './user_settings_notifications.scss';
 
 type OwnProps = {
     user: UserProfile;
@@ -47,8 +49,8 @@ type State = {
     desktopNotificationSound: UserNotifyProps['desktop_notification_sound'];
     callsNotificationSound: UserNotifyProps['calls_notification_sound'];
     usernameKey: boolean;
-    customKeys: string;
-    customKeysChecked: boolean;
+    customKeysWithNotification: string;
+    isCustomKeysWithNotificationInputChecked: boolean;
     firstNameKey: boolean;
     channelKey: boolean;
     autoResponderActive: boolean;
@@ -127,7 +129,7 @@ function getNotificationsStateFromProps(props: Props): State {
     }
 
     let usernameKey = false;
-    let customKeys = '';
+    let customKeysWithNotification = '';
     let firstNameKey = false;
     let channelKey = false;
 
@@ -145,7 +147,7 @@ function getNotificationsStateFromProps(props: Props): State {
                 }
             }
 
-            customKeys = keys.join(',');
+            customKeysWithNotification = keys.join(',');
         }
 
         if (user.notify_props.first_name) {
@@ -170,8 +172,8 @@ function getNotificationsStateFromProps(props: Props): State {
         desktopNotificationSound,
         callsNotificationSound,
         usernameKey,
-        customKeys,
-        customKeysChecked: customKeys.length > 0,
+        customKeysWithNotification,
+        isCustomKeysWithNotificationInputChecked: customKeysWithNotification.length > 0,
         firstNameKey,
         channelKey,
         autoResponderActive,
@@ -183,7 +185,6 @@ function getNotificationsStateFromProps(props: Props): State {
 }
 
 class NotificationsTab extends React.PureComponent<Props, State> {
-    customCheckRef: RefObject<HTMLInputElement>;
     customMentionsRef: RefObject<HTMLInputElement>;
     drawerRef: RefObject<HTMLHeadingElement>;
     wrapperRef: RefObject<HTMLDivElement>;
@@ -196,7 +197,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         super(props);
 
         this.state = getNotificationsStateFromProps(props);
-        this.customCheckRef = React.createRef();
         this.customMentionsRef = React.createRef();
         this.drawerRef = React.createRef();
         this.wrapperRef = React.createRef();
@@ -232,8 +232,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
 
         let stringKeys = mentionKeys.join(',');
-        if (this.state.customKeys.length > 0 && this.state.customKeysChecked) {
-            stringKeys += ',' + this.state.customKeys;
+        if (this.state.customKeysWithNotification.length > 0 && this.state.isCustomKeysWithNotificationInputChecked) {
+            stringKeys += ',' + this.state.customKeysWithNotification;
         }
 
         data.mention_keys = stringKeys;
@@ -301,24 +301,26 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
     updateChannelKey = (val: boolean): void => this.setState({channelKey: val});
 
-    updateCustomMentionKeys = (): void => {
-        const checked = this.customCheckRef.current?.checked;
+    handleChangeForCustomKeysWithNotificationCheckbox = (event: ChangeEvent<HTMLInputElement>) => {
+        const {target: {checked}} = event;
 
-        if (checked) {
-            const text = this.customMentionsRef.current?.value || '';
+        this.setState({isCustomKeysWithNotificationInputChecked: checked});
 
-            // remove all spaces and split string into individual keys
-            this.setState({customKeys: text.replace(/ /g, ''), customKeysChecked: true});
-        } else {
-            this.setState({customKeys: '', customKeysChecked: false});
-        }
+        // if (checked) {
+        //     const text = this.customMentionsRef.current?.value || '';
+
+        //     // remove all spaces and split string into individual keys
+        //     this.setState({customKeysWithNotification: text.replace(/ /g, ''), isCustomKeysWithNotificationInputChecked: true});
+        // } else {
+        //     this.setState({customKeysWithNotification: '', isCustomKeysWithNotificationInputChecked: false});
+        // }
     };
 
     onCustomChange = (): void => {
-        if (this.customCheckRef.current) {
-            this.customCheckRef.current.checked = true;
-        }
-        this.updateCustomMentionKeys();
+        // if (this.customCheckRef.current) {
+        //     this.customCheckRef.current.checked = true;
+        // }
+        // this.handleChangeForCustomKeysWithNotificationCheckbox();
     };
 
     createPushNotificationSection = () => {
@@ -697,15 +699,17 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             );
 
             inputs.push(
-                <div key='userNotificationCustomOption'>
+                <div
+                    key='userNotificationCustomOption'
+                    className='customKeywordsWithNotificationSubsection'
+                >
                     <div className='checkbox'>
                         <label>
                             <input
-                                id='notificationTriggerCustom'
-                                ref={this.customCheckRef}
+                                id='customKeywordsWithNotificationCheckbox'
                                 type='checkbox'
-                                checked={this.state.customKeysChecked}
-                                onChange={this.updateCustomMentionKeys}
+                                checked={this.state.isCustomKeysWithNotificationInputChecked}
+                                onChange={this.handleChangeForCustomKeysWithNotificationCheckbox}
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.sensitiveCustomWords'
@@ -713,17 +717,33 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             />
                         </label>
                     </div>
-                    <input
-                        id='notificationTriggerCustomText'
-                        autoFocus={this.state.customKeysChecked}
+                    <CreatableReactSelect
+                        inputId='customKeywordsWithNotificationInput'
+                        autoFocus={true}
+                        isClearable={false}
+                        isMulti={true}
+                        className='multiInput'
+                        placeholder={this.props.intl.formatMessage({
+                            id: 'user.settings.notifications.sensitiveCustomWords.placeholder',
+                            defaultMessage: 'Write and press TAB to seperate keywords',
+                        })}
+                        components={{
+                            DropdownIndicator: null,
+                            Menu: () => null,
+                            MenuList: () => null,
+                        }}
+                        aria-labelledby='customKeywordsWithNotificationCheckbox'
+                        onChange={() => {
+                            console.log('onChange');
+                            this.setState({isCustomKeysWithNotificationInputChecked: true});
+                        }}
+                    />
+                    {/* <input
                         ref={this.customMentionsRef}
                         className='form-control mentions-input'
-                        type='text'
-                        defaultValue={this.state.customKeys}
+                        defaultValue={this.state.customKeysWithNotification}
                         onChange={this.onCustomChange}
-                        onFocus={moveCursorToEnd}
-                        aria-labelledby='notificationTriggerCustom'
-                    />
+                    /> */}
                 </div>,
             );
 
@@ -764,8 +784,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             selectedMentionKeys.push('@all');
             selectedMentionKeys.push('@here');
         }
-        if (this.state.customKeys.length > 0) {
-            const customMentionKeysArray = this.state.customKeys.split(',');
+        if (this.state.customKeysWithNotification.length > 0) {
+            const customMentionKeysArray = this.state.customKeysWithNotification.split(',');
             selectedMentionKeys.push(...customMentionKeysArray);
         }
         const collapsedDescription = selectedMentionKeys.filter((key) => key.trim().length !== 0).map((key) => `"${key}"`).join(', ');
