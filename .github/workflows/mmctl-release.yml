@@ -52,7 +52,6 @@ jobs:
       GOARCH: "${{ matrix.arch }}"
       DRY_RUN: "${{ inputs.dry_run || true }}"
       RELEASE_VERSION: "${{ inputs.release_version || 'prerelease' }}"
-      TAR_FILENAME: "mmctl-${{ inputs.release_version || 'prerelease' }}-${{ matrix.os }}-${{ matrix.arch }}.tar"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -65,14 +64,26 @@ jobs:
             server/public/go.sum
       - name: ci/mmctl-package
         run: |
+          mkdir -p .mmctl-build
           make mmctl-build
-          tar -cvf build/${TAR_FILENAME} bin/mmctl*  # For windows, the binary is named 'mmctl.exe'
-          md5sum < build/${TAR_FILENAME} | cut -d ' ' -f 1 | tee build/${TAR_FILENAME}.md5.txt
+          case $GOOS in
+          windows )
+            ARCHIVE_PATH=".mmctl-build/${GOOS}_${GOARCH}.zip"
+            zip ${ARCHIVE_PATH} bin/mmctl.exe
+            rm bin/mmctl.exe
+            ;;
+          * )
+            ARCHIVE_PATH=".mmctl-build/${GOOS}_${GOARCH}.tar"
+            tar -cvf ${ARCHIVE_PATH} bin/mmctl
+            rm bin/mmctl
+            ;;
+          esac
+          md5sum < ${ARCHIVE_PATH} | cut -d ' ' -f 1 | tee ${ARCHIVE_PATH}.md5.txt
       - name: ci/mmctl-upload-jobartifact
         uses: actions/upload-artifact@v3
         with:
-          name: "mmctl-${{ matrix.os }}-${{ matrix.arch }}"
-          path: server/build/mmctl-*
+          name: "${{ matrix.os }}_${{ matrix.arch }}"
+          path: server/.mmctl-build/*
       - name: ci/configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@5fd3084fc36e372ff1fff382a39b10d03659f355 # v2.2.0
         with:
@@ -83,9 +94,7 @@ jobs:
         run: |
           DRY_RUN_FLAG="--dryrun"
           [ "$DRY_RUN" = "false" ] && DRY_RUN_FLAG=""
-          for SUFFIX in "" ".md5.txt"; do
-            aws s3 cp ${DRY_RUN_FLAG} build/${TAR_FILENAME}${SUFFIX} s3://releasetest.mattermost.com/${RELEASE_VERSION}/${TAR_FILENAME}${SUFFIX} --acl public-read --cache-control "no-cache"
-          done
+          aws s3 cp ${DRY_RUN_FLAG} .mmctl-build/* s3://releases.mattermost.com/${RELEASE_VERSION}/ --acl public-read --cache-control "no-cache" --recursive
 
   update-failure-final-status:
     runs-on: ubuntu-22.04
