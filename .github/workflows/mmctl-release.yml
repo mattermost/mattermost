@@ -4,11 +4,12 @@ on:
   # Check the following repo for details: https://github.com/mattermost/delivery-platform
   workflow_dispatch:
     inputs:
-      release_version:
-        type: string
+      payload:
+        description: "The triggerer payload"
         required: true
+        type: string
       dry_run:
-        type: string    # Use "false" to enable the actual run
+        type: string # True if left empty. Set to "false" to enable the S3 upload
         required: false
 
 defaults:
@@ -33,10 +34,20 @@ jobs:
           description: Publish mmctl binaries
           status: pending
 
+  expose-incoming-variables:
+    runs-on: ubuntu-22.04
+    outputs:
+      ref_name: ${{ env.TRIGGERER_BRANCH }}
+    steps:
+      - uses: mattermost/actions/delivery/expose-events-vars@a74f6d87f847326c04d326bf1908da40cb9b3556
+        with:
+          payload: ${{ inputs.payload }}
+
   build:
     runs-on: ubuntu-22.04
     needs:
       - update-initial-status
+      - expose-incoming-variables
     strategy:
       matrix:
         os: [linux, darwin, windows]
@@ -49,7 +60,6 @@ jobs:
       GOOS: "${{ matrix.os }}"
       GOARCH: "${{ matrix.arch }}"
       DRY_RUN: "${{ inputs.dry_run || true }}"
-      RELEASE_VERSION: "${{ inputs.release_version || 'prerelease' }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -92,7 +102,7 @@ jobs:
         run: |
           DRY_RUN_FLAG="--dryrun"
           [ "$DRY_RUN" = "false" ] && DRY_RUN_FLAG=""
-          aws s3 cp ${DRY_RUN_FLAG} .mmctl-build/ s3://releases.mattermost.com/mmctl/${RELEASE_VERSION}/ --acl public-read --cache-control "no-cache" --recursive
+          aws s3 cp ${DRY_RUN_FLAG} .mmctl-build/ s3://releases.mattermost.com/mmctl/${{ needs.expose-incoming-variables.outputs.ref_name }}/ --acl public-read --cache-control "no-cache" --recursive
 
   update-failure-final-status:
     runs-on: ubuntu-22.04
