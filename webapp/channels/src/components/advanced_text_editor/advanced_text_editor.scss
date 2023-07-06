@@ -27,6 +27,7 @@
     .custom-textarea {
         // fix for a miscalculation due to the heavily overwritten custom-textarea class
         height: 0;
+        padding-right: calc(16px + var(--right-padding-for-scrollbar) + var(--right-padding-for-preview-button));
         box-shadow: none;
 
         &:focus {
@@ -37,6 +38,21 @@
             height: auto;
             padding-right: 16px;
         }
+    }
+
+    /* stylelint-disable length-zero-no-unit */
+    --right-padding-for-scrollbar: 0px;
+    --right-padding-for-preview-button: 0px;
+    /* stylelint-enable length-zero-no-unit */
+
+    &.scroll {
+        --right-padding-for-scrollbar: 8px;
+    }
+
+    // With the formatting bar disabled, leave room on the right for the post controls until the text takes up
+    // multiple lines. At that point, leave space below the text as if the controls were still there.
+    &.formatting-bar {
+        --right-padding-for-preview-button: 32px;
     }
 
     &__body {
