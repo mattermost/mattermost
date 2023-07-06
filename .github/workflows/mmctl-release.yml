@@ -10,7 +10,7 @@ on:
   #      type: string
   #      required: true
   #    dry_run:
-  #      type: boolean
+  #      type: string    # Use "false" to enable the actual run
   #      required: false
 
 defaults:
@@ -51,7 +51,8 @@ jobs:
       GOOS: "${{ matrix.os }}"
       GOARCH: "${{ matrix.arch }}"
       DRY_RUN: "${{ inputs.dry_run || true }}"
-      TAR_FILENAME: "mmctl-${{ matrix.os }}-${{ matrix.arch }}.tar"
+      RELEASE_VERSION: "${{ inputs.release_version || 'prerelease' }}"
+      TAR_FILENAME: "mmctl-${{ inputs.release_version || 'prerelease' }}-${{ matrix.os }}-${{ matrix.arch }}.tar"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -65,20 +66,26 @@ jobs:
       - name: ci/mmctl-package
         run: |
           make mmctl-build
-          tar -cvf build/${TAR_FILENAME} bin/mmctl*
+          tar -cvf build/${TAR_FILENAME} bin/mmctl*  # For windows, the binary is named 'mmctl.exe'
           md5sum < build/${TAR_FILENAME} | cut -d ' ' -f 1 | tee build/${TAR_FILENAME}.md5.txt
       - name: ci/mmctl-upload-jobartifact
         uses: actions/upload-artifact@v3
         with:
           name: "mmctl-${{ matrix.os }}-${{ matrix.arch }}"
           path: server/build/mmctl-*
+      - name: ci/configure-aws-credentials
+        uses: aws-actions/configure-aws-credentials@5fd3084fc36e372ff1fff382a39b10d03659f355 # v2.2.0
+        with:
+          aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.MM_SERVER_RELEASES_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.MM_SERVER_RELEASES_AWS_SECRET_ACCESS_KEY }}
       - name: ci/mmctl-upload-s3
         run: |
-          if [ "$DRY_RUN" != "false" ]; then
-            echo "Running in dry run mode, not uploading artifacts to S3."
-            exit 0
-          fi
-          echo "TODO: not in a dry run, must upload to S3"
+          DRY_RUN_FLAG="--dryrun"
+          [ "$DRY_RUN" = "false" ] && DRY_RUN_FLAG=""
+          for SUFFIX in "" ".md5.txt"; do
+            aws s3 cp ${DRY_RUN_FLAG} build/${TAR_FILENAME}${SUFFIX} s3://releasetest.mattermost.com/${RELEASE_VERSION}/${TAR_FILENAME}${SUFFIX} --acl public-read --cache-control "no-cache"
+          done
 
   update-failure-final-status:
     runs-on: ubuntu-22.04
