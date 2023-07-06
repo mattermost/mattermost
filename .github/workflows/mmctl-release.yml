@@ -99,11 +99,31 @@ jobs:
         run: |
           aws s3 cp .mmctl-build/ s3://releases.mattermost.com/mmctl/${{ needs.expose-incoming-variables.outputs.ref_name }}/ --acl public-read --cache-control "no-cache" --recursive
 
+  cloudfront-invalidate:
+    runs-on: ubuntu-22.04
+    needs:
+      - expose-incoming-variables
+      - build
+    env:
+      CF_DISTRIBUTION: "E38T4CYCA0KCH8"
+    steps:
+      - name: ci/configure-aws-credentials
+        uses: aws-actions/configure-aws-credentials@5fd3084fc36e372ff1fff382a39b10d03659f355 # v2.2.0
+        with:
+          aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.MM_SERVER_RELEASES_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.MM_SERVER_RELEASES_AWS_SECRET_ACCESS_KEY }}
+      - name: ci/mmctl-upload-s3
+        run: |
+          INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id $CF_DISTRIBUTION --paths "/mmctl/${{ needs.expose-incoming-variables.outputs.ref_name }}" | jq -r '.Invalidation.Id')
+          aws configure set preview.cloudfront true
+          aws cloudfront wait invalidation-completed --id $INVALIDATION_ID --distribution-id $CF_DISTRIBUTION
+
   update-failure-final-status:
     runs-on: ubuntu-22.04
     if: failure() || cancelled()
     needs:
-      - build
+      - cloudfront-invalidate
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
@@ -119,7 +139,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: success()
     needs:
-      - build
+      - cloudfront-invalidate
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
