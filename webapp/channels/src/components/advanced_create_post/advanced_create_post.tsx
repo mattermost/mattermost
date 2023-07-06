@@ -689,7 +689,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             return;
         } else if (memberNotifyCount > 0) {
             this.showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount);
-            this.isDraftSubmitting = false;
             return;
         }
 
