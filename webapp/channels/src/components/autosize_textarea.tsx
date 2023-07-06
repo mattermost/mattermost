@@ -22,7 +22,6 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
 
     private textarea?: HTMLTextAreaElement;
     private referenceRef: React.RefObject<HTMLDivElement>;
-    private measuringRef: React.RefObject<HTMLDivElement>;
 
     constructor(props: Props) {
         super(props);
@@ -30,7 +29,6 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
         this.height = 0;
 
         this.referenceRef = React.createRef();
-        this.measuringRef = React.createRef();
     }
 
     componentDidMount() {
@@ -64,11 +62,11 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
     };
 
     private recalculateWidth = () => {
-        if (!this.measuringRef) {
+        if (!this.referenceRef) {
             return;
         }
 
-        const width = this.measuringRef.current?.offsetWidth || -1;
+        const width = this.referenceRef.current?.offsetWidth || -1;
         if (width >= 0) {
             window.requestAnimationFrame(() => {
                 this.props.onWidthChange?.(width);
@@ -170,13 +168,6 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
                     >
                         {value || defaultValue}
                     </div>
-                    <div
-                        ref={this.measuringRef}
-                        id={id + '-measuring'}
-                        style={styles.measuring}
-                    >
-                        {value || defaultValue}
-                    </div>
                 </div>
             </div>
         );
@@ -185,9 +176,8 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
 
 const styles: { [Key: string]: CSSProperties} = {
     container: {height: 0, overflow: 'hidden'},
-    reference: {display: 'inline-block', height: 'auto', width: 'unset'},
+    reference: {display: 'inline-block', height: 'auto', width: 'auto'},
     placeholder: {overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.5, pointerEvents: 'none', position: 'absolute', whiteSpace: 'nowrap', background: 'none', borderColor: 'transparent'},
-    measuring: {width: 'auto', display: 'inline-block'},
 };
 
 const forwarded = React.forwardRef<HTMLTextAreaElement>((props, ref) => (
