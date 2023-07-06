@@ -531,6 +531,7 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
             );
             dataContent.push(
                 <div
+                    title={position}
                     className='overflow--ellipsis text-nowrap'
                     key='user-popover-position'
                 >
