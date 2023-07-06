@@ -94,7 +94,7 @@ jobs:
         run: |
           DRY_RUN_FLAG="--dryrun"
           [ "$DRY_RUN" = "false" ] && DRY_RUN_FLAG=""
-          aws s3 cp ${DRY_RUN_FLAG} .mmctl-build/* s3://releases.mattermost.com/${RELEASE_VERSION}/ --acl public-read --cache-control "no-cache" --recursive
+          aws s3 cp ${DRY_RUN_FLAG} .mmctl-build/ s3://releases.mattermost.com/${RELEASE_VERSION}/ --acl public-read --cache-control "no-cache" --recursive
 
   update-failure-final-status:
     runs-on: ubuntu-22.04
