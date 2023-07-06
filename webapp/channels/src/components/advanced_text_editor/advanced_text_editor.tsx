@@ -363,12 +363,7 @@ const AdvanceTextEditor = ({
             return;
         }
 
-        const inputPaddingLeft = parseInt(window.getComputedStyle(input, null).paddingLeft || '0', 10);
-        const inputPaddingRight = parseInt(window.getComputedStyle(input, null).paddingRight || '0', 10);
-        const inputPaddingX = inputPaddingLeft + inputPaddingRight;
-        const currentWidth = width + inputPaddingX;
-
-        if (currentWidth >= maxWidth) {
+        if (width >= maxWidth) {
             setShowFormattingSpacer(true);
         } else {
             setShowFormattingSpacer(false);
