@@ -264,22 +264,14 @@ export function getHasDismissedSystemConsoleLimitReached(state: GlobalState): bo
 }
 
 export function syncedDraftsAreAllowed(state: GlobalState): boolean {
-    const isFeatureEnabled = getFeatureFlagValue(state, 'GlobalDrafts') === 'true';
-    const isConfiguredForFeature = getConfig(state).AllowSyncedDrafts === 'true';
-
-    return isFeatureEnabled && isConfiguredForFeature;
+    return getConfig(state).AllowSyncedDrafts === 'true';
 }
 
 export function syncedDraftsAreAllowedAndEnabled(state: GlobalState): boolean {
-    const isFeatureEnabled = getFeatureFlagValue(state, 'GlobalDrafts') === 'true';
     const isConfiguredForFeature = getConfig(state).AllowSyncedDrafts === 'true';
     const isConfiguredForUser = getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_SYNC_DRAFTS, true);
 
-    return isFeatureEnabled && isConfiguredForFeature && isConfiguredForUser;
-}
-
-export function localDraftsAreEnabled(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'GlobalDrafts') === 'true';
+    return isConfiguredForFeature && isConfiguredForUser;
 }
 
 export function getVisibleDmGmLimit(state: GlobalState) {
