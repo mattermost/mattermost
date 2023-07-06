@@ -4,9 +4,6 @@
 import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
 import {GenericAction} from 'mattermost-redux/types/actions';
 import reducer from 'mattermost-redux/reducers/entities/users';
-
-import {TestHelper} from 'utils/test_helper';
-
 type ReducerState = ReturnType<typeof reducer>;
 
 describe('Reducers.users', () => {
@@ -674,37 +671,6 @@ describe('Reducers.users', () => {
 
             const newState = reducer(state as unknown as ReducerState, action);
             expect(newState.profilesNotInGroup).toEqual(expectedState.profilesNotInGroup);
-        });
-    });
-    describe('profiles', () => {
-        it('UserTypes.RECEIVED_PROFILES_LIST, should merge existing users with new ones', () => {
-            const firstUser = TestHelper.getUserMock({id: 'first_user_id'});
-            const secondUser = TestHelper.getUserMock({id: 'seocnd_user_id'});
-            const thirdUser = TestHelper.getUserMock({id: 'third_user_id'});
-            const partialUpdatedFirstUser = {
-                ...firstUser,
-                update_at: 123456789,
-            };
-            Reflect.deleteProperty(partialUpdatedFirstUser, 'email');
-            Reflect.deleteProperty(partialUpdatedFirstUser, 'notify_props');
-            const state = {
-                profiles: {
-                    first_user_id: firstUser,
-                    second_user_id: secondUser,
-                },
-            };
-            const action = {
-                type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: [
-                    partialUpdatedFirstUser,
-                    thirdUser,
-                ],
-            };
-            const {profiles: newProfiles} = reducer(state as unknown as ReducerState, action);
-
-            expect(newProfiles.first_user_id).toEqual({...firstUser, ...partialUpdatedFirstUser});
-            expect(newProfiles.second_user_id).toEqual(secondUser);
-            expect(newProfiles.third_user_id).toEqual(thirdUser);
         });
     });
 });

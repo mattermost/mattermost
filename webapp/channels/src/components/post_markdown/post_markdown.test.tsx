@@ -23,6 +23,7 @@ describe('components/PostMarkdown', () => {
         channelId: 'channel-id',
         channel: TestHelper.getChannelMock(),
         currentTeam: TestHelper.getTeamMock(),
+        hideGuestTags: false,
     };
 
     const state = {entities: {
