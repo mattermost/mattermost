@@ -5,6 +5,7 @@ import React, {ChangeEvent, FormEvent, CSSProperties} from 'react';
 
 type Props = {
     id?: string;
+    className?: string;
     disabled?: boolean;
     value?: string;
     defaultValue?: string;
@@ -20,7 +21,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
     private height: number;
 
     private textarea?: HTMLTextAreaElement;
-    private referenceRef: React.RefObject<HTMLTextAreaElement>;
+    private referenceRef: React.RefObject<HTMLDivElement>;
     private measuringRef: React.RefObject<HTMLDivElement>;
 
     constructor(props: Props) {
@@ -158,17 +159,17 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
                     defaultValue={defaultValue}
                 />
                 <div style={styles.container}>
-                    <textarea
+                    <div
                         ref={this.referenceRef}
                         id={id + '-reference'}
+                        className={otherProps.className}
                         style={styles.reference}
                         dir='auto'
                         disabled={true}
-                        rows={1}
-                        {...otherProps}
-                        value={value || defaultValue}
                         aria-hidden={true}
-                    />
+                    >
+                        {value || defaultValue}
+                    </div>
                     <div
                         ref={this.measuringRef}
                         id={id + '-measuring'}
@@ -184,7 +185,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
 
 const styles: { [Key: string]: CSSProperties} = {
     container: {height: 0, overflow: 'hidden'},
-    reference: {height: 'auto', width: '100%'},
+    reference: {display: 'inline-block', height: 'auto', width: 'unset'},
     placeholder: {overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.5, pointerEvents: 'none', position: 'absolute', whiteSpace: 'nowrap', background: 'none', borderColor: 'transparent'},
     measuring: {width: 'auto', display: 'inline-block'},
 };
