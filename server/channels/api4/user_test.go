@@ -2072,7 +2072,7 @@ func TestPatchBotUser(t *testing.T) {
 
 	bot := th.CreateBotWithSystemAdminClient()
 	patch := &model.UserPatch{}
-	patch.Email = model.NewString("Anything")
+	patch.Email = model.NewString("newemail@test.com")
 
 	user, _, err := th.SystemAdminClient.PatchUser(context.Background(), bot.UserId, patch)
 	require.NoError(t, err)
@@ -2280,9 +2280,9 @@ func TestDeleteBotUser(t *testing.T) {
 
 	bot := th.CreateBotWithSystemAdminClient()
 
-	_, err := th.SystemAdminClient.DeleteUser(context.Background(), bot.UserId)
+	_, err := th.Client.DeleteUser(context.Background(), bot.UserId)
 	require.Error(t, err)
-	require.Equal(t, err.Error(), ": Invalid or missing user_id in request body.")
+	require.Equal(t, err.Error(), ": You do not have the appropriate permissions.")
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
