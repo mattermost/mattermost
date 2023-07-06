@@ -475,6 +475,9 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 channelTimezoneCount,
                 memberNotifyCount,
                 onConfirm: () => this.handleNotifyAllConfirmation(),
+                onExited: () => {
+                    this.isDraftSubmitting = false;
+                },
             },
         });
     };
