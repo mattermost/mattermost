@@ -2566,7 +2566,7 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 	require.Equal(t, rPostId1, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
-	rPostId1, err = ss.Post().GetPostIdAfterTime(channelId, o0b.CreateAt, false)
+	rPostId1, err = ss.Post().GetPostIdAfterTime(channelId, o0b.CreateAt, false, false)
 	require.Equal(t, rPostId1, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
@@ -2578,7 +2578,7 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 	require.Empty(t, rPostId2, "should return no post")
 	require.NoError(t, err)
 
-	rPostId2, err = ss.Post().GetPostIdAfterTime(channelId, o0.CreateAt, false)
+	rPostId2, err = ss.Post().GetPostIdAfterTime(channelId, o0.CreateAt, false, false)
 	require.Equal(t, rPostId2, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
@@ -2590,7 +2590,7 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 	require.Equal(t, rPostId3, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
-	rPostId3, err = ss.Post().GetPostIdAfterTime(channelId, o2a.CreateAt, false)
+	rPostId3, err = ss.Post().GetPostIdAfterTime(channelId, o2a.CreateAt, false, false)
 	require.Empty(t, rPostId3, "should return no post")
 	require.NoError(t, err)
 

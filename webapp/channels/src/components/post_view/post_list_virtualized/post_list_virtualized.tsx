@@ -640,6 +640,8 @@ export default class PostList extends React.PureComponent<Props, State> {
         const {channelId} = this.props;
         const {dynamicListStyle} = this.state;
 
+        console.log(`AAA: ${this.props.postListIds?.indexOf('4u6yc8skjpgcbcjgezfzq4otar')}`);
+
         return (
             <div
                 role='list'

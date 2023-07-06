@@ -62,14 +62,18 @@ function makeMapStateToProps() {
         const focusedPost = getPost(state, focusedPostId || '');
 
         if (focusedPostId && focusedPost !== undefined) {
+            console.log('A');
             chunk = getPostsChunkAroundPost(state, focusedPostId, channelId);
         } else if (unreadChunkTimeStamp && !shouldStartFromBottomWhenUnread) {
+            console.log('B');
             chunk = getUnreadPostsChunk(state, channelId, unreadChunkTimeStamp);
         } else {
+            console.log('C');
             chunk = getRecentPostsChunkInChannel(state, channelId);
         }
 
         if (chunk) {
+            console.log(`chunk.order: ${chunk.order.indexOf('4u6yc8skjpgcbcjgezfzq4otar')}`);
             postIds = chunk.order;
             atLatestPost = Boolean(chunk.recent);
             atOldestPost = Boolean(chunk.oldest);

@@ -6170,7 +6170,7 @@ func (s *OpenTracingLayerPostStore) GetPostAfterTime(channelID string, timestamp
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
+func (s *OpenTracingLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool, includeDeleted bool) (string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetPostIdAfterTime")
 	s.Root.Store.SetContext(newCtx)
@@ -6179,7 +6179,7 @@ func (s *OpenTracingLayerPostStore) GetPostIdAfterTime(channelID string, timesta
 	}()
 
 	defer span.Finish()
-	result, err := s.PostStore.GetPostIdAfterTime(channelID, timestamp, collapsedThreads)
+	result, err := s.PostStore.GetPostIdAfterTime(channelID, timestamp, collapsedThreads, includeDeleted)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

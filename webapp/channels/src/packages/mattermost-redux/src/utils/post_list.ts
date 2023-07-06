@@ -39,8 +39,11 @@ export function makePreparePostIdsForPostList() {
     const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
     const combineUserActivityPosts = makeCombineUserActivityPosts();
     return (state: GlobalState, options: PostFilterOptions) => {
+        console.log(`ZZZ makePreparePostIdsForPostList INPUT ${options.postIds.indexOf('4u6yc8skjpgcbcjgezfzq4otar')}`);
         let postIds = filterPostsAndAddSeparators(state, options);
+        console.log(`ZZZ makePreparePostIdsForPostList AFTER FILTER ${postIds.indexOf('4u6yc8skjpgcbcjgezfzq4otar')}`);
         postIds = combineUserActivityPosts(state, postIds);
+        console.log(`ZZZ makePreparePostIdsForPostList AFTER COMBINE ${postIds.indexOf('4u6yc8skjpgcbcjgezfzq4otar')}`);
         return postIds;
     };
 }

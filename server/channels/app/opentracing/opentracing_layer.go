@@ -7987,7 +7987,7 @@ func (a *OpenTracingAppLayer) GetPostAfterTime(channelID string, time int64, col
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool, includeDeleted bool) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostIdAfterTime")
 
@@ -7999,7 +7999,7 @@ func (a *OpenTracingAppLayer) GetPostIdAfterTime(channelID string, time int64, c
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostIdAfterTime(channelID, time, collapsedThreads)
+	resultVar0, resultVar1 := a.app.GetPostIdAfterTime(channelID, time, collapsedThreads, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8224,7 +8224,7 @@ func (a *OpenTracingAppLayer) GetPostsEtag(channelID string, collapsedThreads bo
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(c request.CTX, channelID string, userID string, limitBefore int, limitAfter int, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(c request.CTX, channelID string, userID string, limitBefore int, limitAfter int, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool, includeDeleted bool) (*model.PostList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsForChannelAroundLastUnread")
 
@@ -8236,7 +8236,7 @@ func (a *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(c request.CTX, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostsForChannelAroundLastUnread(c, channelID, userID, limitBefore, limitAfter, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+	resultVar0, resultVar1 := a.app.GetPostsForChannelAroundLastUnread(c, channelID, userID, limitBefore, limitAfter, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

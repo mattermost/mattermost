@@ -121,6 +121,8 @@ export type Props = {
 };
 
 const PostComponent = (props: Props): JSX.Element => {
+    console.log(`PostComponent id: ${props.post.id} isDeleted: ${props.post.delete_at} state: ${props.post.state}`);
+
     const {post, shouldHighlight, togglePostMenu} = props;
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);

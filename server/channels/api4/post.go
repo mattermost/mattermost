@@ -347,7 +347,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	collapsedThreads := r.URL.Query().Get("collapsedThreads") == "true"
 	collapsedThreadsExtended := r.URL.Query().Get("collapsedThreadsExtended") == "true"
 
-	postList, err := c.App.GetPostsForChannelAroundLastUnread(c.AppContext, channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+	postList, err := c.App.GetPostsForChannelAroundLastUnread(c.AppContext, channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -361,7 +361,17 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 			return
 		}
 
-		postList, err = c.App.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: app.PageDefault, PerPage: c.Params.LimitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
+		getPostOptions := model.GetPostsOptions{
+			ChannelId:                channelId,
+			Page:                     app.PageDefault,
+			PerPage:                  c.Params.LimitBefore,
+			SkipFetchThreads:         skipFetchThreads,
+			CollapsedThreads:         collapsedThreads,
+			CollapsedThreadsExtended: collapsedThreadsExtended,
+			UserId:                   c.AppContext.Session().UserId,
+			IncludeDeleted:           true,
+		}
+		postList, err = c.App.GetPostsPage(getPostOptions)
 		if err != nil {
 			c.Err = err
 			return

@@ -1552,14 +1552,14 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 }
 
 func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64, collapsedThreads bool) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads)
+	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads, false)
 }
 
-func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64, collapsedThreads bool) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads)
+func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64, collapsedThreads, includeDeleted bool) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads, includeDeleted)
 }
 
-func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool) (string, error) {
+func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads, includeDeleted bool) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
 	if before {
@@ -1581,8 +1581,16 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 	conditions := sq.And{
 		direction,
 		sq.Eq{"Posts.ChannelId": channelId},
-		sq.Eq{"Posts.DeleteAt": int(0)},
+		//sq.Eq{"Posts.DeleteAt": int(0)},
 	}
+
+	if !includeDeleted {
+		conditions = sq.And{
+			conditions,
+			sq.Eq{"Posts.DeleteAt": int(0)},
+		}
+	}
+
 	if collapsedThreads {
 		conditions = sq.And{conditions, sq.Eq{"Posts.RootId": ""}}
 	}

@@ -527,15 +527,16 @@ export const getMostRecentPostIdInChannel: (state: GlobalState, channelId: Chann
     },
 );
 
-export const getLatestReplyablePostId: (state: GlobalState) => Post['id'] = createSelector(
+export const getLatestReplyablePostId: (state: GlobalState, includeDeleted?: boolean) => Post['id'] = createSelector(
     'getLatestReplyablePostId',
     getPostsInCurrentChannel,
-    (posts) => {
+    (state: GlobalState, includeDeleted?: boolean) => includeDeleted,
+    (posts, includeDeleted) => {
         if (!posts) {
             return '';
         }
 
-        const latestReplyablePost = posts.find((post) => post.state !== Posts.POST_DELETED && !isSystemMessage(post) && !isPostEphemeral(post));
+        const latestReplyablePost = posts.find((post) => (includeDeleted || post.state !== Posts.POST_DELETED) && !isSystemMessage(post) && !isPostEphemeral(post));
         if (!latestReplyablePost) {
             return '';
         }

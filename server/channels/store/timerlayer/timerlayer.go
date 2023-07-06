@@ -5589,10 +5589,10 @@ func (s *TimerLayerPostStore) GetPostAfterTime(channelID string, timestamp int64
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
+func (s *TimerLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool, includeDeleted bool) (string, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetPostIdAfterTime(channelID, timestamp, collapsedThreads)
+	result, err := s.PostStore.GetPostIdAfterTime(channelID, timestamp, collapsedThreads, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

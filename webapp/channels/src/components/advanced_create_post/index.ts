@@ -78,7 +78,7 @@ function makeMapStateToProps() {
         const currentChannelTeammateUsername = getUser(state, currentChannel.teammate_id || '')?.username;
         const draft = getChannelDraft(state, currentChannel.id);
         const isRemoteDraft = state.views.drafts.remotes[`${StoragePrefixes.DRAFT}${currentChannel.id}`] || false;
-        const latestReplyablePostId = getLatestReplyablePostId(state);
+        const latestReplyablePostId = getLatestReplyablePostId(state, true);
         const currentChannelMembersCount = getCurrentChannelStats(state) ? getCurrentChannelStats(state).member_count : 1;
         const enableEmojiPicker = config.EnableEmojiPicker === 'true';
         const enableGifPicker = config.EnableGifPicker === 'true';

@@ -68,7 +68,7 @@ function PanelBody({
             </div>
             <div
                 onClick={handleClick}
-                className='post__content'
+                className='post__content harshil '
             >
                 <div className='DraftPanelBody__right'>
                     <div className='post__header'>
