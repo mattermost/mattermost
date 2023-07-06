@@ -96,7 +96,7 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
 
     it('MM-T1473 Verify Tab Support in Unreads section', () => {
         // # Press tab from the Main Menu button
-        cy.uiGetLHSAddChannelButton().focus().tab().tab().tab();
+        cy.uiGetLHSAddChannelButton().focus().tab().tab();
 
         // * Verify if focus changes to different channels in Unread section
         cy.get('.SidebarChannel.unread').each((el) => {
@@ -111,7 +111,7 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
         markAsFavorite(testChannel.name);
 
         // # Press tab from the add channel button down to all unread channels
-        cy.uiGetLHSAddChannelButton().focus().tab().tab().tab();
+        cy.uiGetLHSAddChannelButton().focus().tab().tab();
         cy.get('.SidebarChannel.unread').each(() => {
             cy.focused().tab().tab();
         });
