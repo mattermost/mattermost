@@ -153,7 +153,7 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.SystemUserRoleId)
 		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 
 		th.RemovePermissionFromRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
 		th.RemovePermissionFromRole(model.PermissionManageBots.Id, model.SystemUserRoleId)
@@ -169,7 +169,7 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
 		assert.NoError(t, err.Unwrap())
 
-		th.AddPermissionToRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.SystemUserRoleId)
 		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
 		assert.NotNil(t, err)
 		assert.Equal(t, "api.context.permissions.app_error", err.Id)
@@ -179,14 +179,14 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
 		assert.Nil(t, err)
 
-		th.RemovePermissionFromRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionReadOthersBots.Id, model.SystemUserRoleId)
 		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
 	})
 
 	t.Run("test sysadmin role", func(t *testing.T) {
 		session := model.Session{
 			UserId: th.SystemAdminUser.Id,
-			Roles:  model.SystemUserRoleId,
+			Roles:  model.SystemAdminRoleId,
 		}
 		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
 		assert.Nil(t, err)
@@ -208,28 +208,34 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	session := model.Session{
-		UserId: th.BasicUser.Id,
-		Roles:  model.SystemUserRoleId,
-	}
-
 	t.Run("test my user access", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
 		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser.Id))
 		assert.False(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
 	})
 
 	t.Run("test user manager access", func(t *testing.T) {
-		session.Roles = model.SystemUserManagerRoleId
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemUserManagerRoleId,
+		}
 		assert.False(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
 
 		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
-		assert.False(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
+		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
 		th.RemovePermissionFromRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 	})
 
 	t.Run("test admin user access", func(t *testing.T) {
-		session.Roles = model.SystemAdminRoleId
+		session := model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemAdminRoleId,
+		}
 		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser.Id))
+		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
 	})
 }
 

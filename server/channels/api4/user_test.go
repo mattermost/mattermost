@@ -1945,7 +1945,6 @@ func TestUpdateBotUser(t *testing.T) {
 	updateUser, _, err := th.SystemAdminClient.UpdateUser(context.Background(), botUser)
 	require.NoError(t, err)
 	require.Equal(t, botUser.Id, updateUser.Id)
-	require.Equal(t, err.Error(), ": Invalid or missing user_id in request body.")
 
 	_, resp, err := th.Client.UpdateUser(context.Background(), botUser)
 	require.Error(t, err)
