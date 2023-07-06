@@ -86,11 +86,11 @@ export default class SuggestionList extends React.PureComponent<Props> {
     }
 
     updateMaxHeight = () => {
-        if (!this.props.inputRef) {
+        if (!this.props.inputRef?.current) {
             return;
         }
 
-        const inputHeight = (this.props.inputRef as React.RefObject<HTMLInputElement>).current!.clientHeight ?? 0;
+        const inputHeight = (this.props.inputRef as React.RefObject<HTMLInputElement>).current?.clientHeight ?? 0;
 
         this.maxHeight = Math.min(
             window.innerHeight - (inputHeight + Constants.POST_MODAL_PADDING),
@@ -161,23 +161,21 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 return;
             }
 
-            if (item instanceof HTMLElement) {
-                const itemTop = item.offsetTop - this.getComputedCssProperty(item, 'marginTop');
-                const itemBottomMargin = this.getComputedCssProperty(item, 'marginBottom') + this.getComputedCssProperty(item, 'paddingBottom');
-                const itemBottom = item.offsetTop + this.getComputedCssProperty(item, 'height') + itemBottomMargin;
-                if (itemTop - contentTopPadding < contentTop) {
-                    // the item is off the top of the visible space
-                    content.scrollTop = itemTop - contentTopPadding;
-                } else if (itemBottom + contentTopPadding + contentBottomPadding > contentTop + visibleContentHeight) {
-                    // the item has gone off the bottom of the visible space
-                    content.scrollTop = (itemBottom - visibleContentHeight) + contentTopPadding + contentBottomPadding;
-                }
+            const itemTop = (item as HTMLElement).offsetTop - this.getComputedCssProperty(item, 'marginTop');
+            const itemBottomMargin = this.getComputedCssProperty(item, 'marginBottom') + this.getComputedCssProperty(item, 'paddingBottom');
+            const itemBottom = (item as HTMLElement).offsetTop + this.getComputedCssProperty(item, 'height') + itemBottomMargin;
+            if (itemTop - contentTopPadding < contentTop) {
+                // the item is off the top of the visible space
+                content.scrollTop = itemTop - contentTopPadding;
+            } else if (itemBottom + contentTopPadding + contentBottomPadding > contentTop + visibleContentHeight) {
+                // the item has gone off the bottom of the visible space
+                content.scrollTop = (itemBottom - visibleContentHeight) + contentTopPadding + contentBottomPadding;
             }
         }
     };
 
-    getComputedCssProperty(element: Element, property: string) {
-        return parseInt(getComputedStyle(element).getPropertyValue(property), 10);
+    getComputedCssProperty(element: Element | Text, property: string) {
+        return parseInt(getComputedStyle(element as HTMLElement).getPropertyValue(property), 10);
     }
 
     getTransform() {
