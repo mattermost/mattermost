@@ -61,18 +61,6 @@ describe('Selectors.Lhs', () => {
             expect(items).toEqual([]);
         });
 
-        it('handles insights', () => {
-            jest.spyOn(PreferencesSelectors, 'isCollapsedThreadsEnabled').mockImplementation(() => false);
-            jest.spyOn(Lhs, 'getDraftsCount').mockImplementationOnce(() => 0);
-            const items = Lhs.getVisibleStaticPages(state as GlobalState);
-            expect(items).toEqual([
-                {
-                    id: 'activity-and-insights',
-                    isVisible: true,
-                },
-            ]);
-        });
-
         it('handles threads - default off', () => {
             jest.spyOn(PreferencesSelectors, 'isCollapsedThreadsEnabled').mockImplementation(() => true);
             jest.spyOn(Lhs, 'getDraftsCount').mockImplementationOnce(() => 0);
