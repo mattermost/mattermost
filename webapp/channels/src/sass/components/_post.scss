@@ -376,14 +376,6 @@
         scrollbar-width: thin;
         transition: height 150ms ease-in-out;
 
-        &:not(.custom-textarea--emoji-picker) {
-            padding-right: 40px;
-        }
-
-        &.custom-textarea--emoji-picker {
-            padding-right: 90px;
-        }
-
         &.textbox-preview-area {
             overflow-y: auto;
         }
@@ -404,14 +396,6 @@
             overflow: auto;
             -webkit-overflow-scrolling: touch;
             -ms-overflow-style: auto;
-
-            &:not(.custom-textarea--emoji-picker) {
-                padding-right: 50px;
-            }
-
-            &.custom-textarea--emoji-picker {
-                padding-right: 90px;
-            }
         }
     }
 
@@ -688,7 +672,7 @@
 
         .custom-textarea {
             max-height: calc(50vh - 40px);
-            padding: 13px 0 12px 16px;
+            padding: 13px 16px 12px 16px;
             background-color: var(--center-channel-bg);
 
             &.custom-textarea--emoji-picker {
