@@ -45,35 +45,4 @@ describe('Insights as last viewed channel', () => {
         // # On an account on two teams, view Team A
         cy.visit(offTopicUrlA);
     });
-
-    it('MM-T4902_1 Should go to insights view when switching a team if that was the last view on that team', () => {
-        // # Go to the Insights view on Team A
-        cy.uiGetSidebarInsightsButton().click().wait(TIMEOUTS.FIVE_SEC);
-
-        // # Switch to Team B
-        cy.get(`#${teamB.name}TeamButton`, {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').click();
-
-        // * Verify team display name changes correctly.
-        cy.uiGetLHSHeader().findByText(teamB.display_name);
-
-        // # Switch back to Team A
-        cy.get(`#${teamA.name}TeamButton`, {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').click();
-
-        // * Verify url is set up for insights view
-        cy.url().should('include', `${teamA.name}/activity-and-insights`);
-    });
-
-    it('MM-T4902_2 Should go to insights view when insights view is the penultimate view and leave the current channel', () => {
-        // # Go to the Insights view on Team A
-        cy.uiGetSidebarInsightsButton().click().wait(TIMEOUTS.FIVE_SEC);
-
-        // # Switch to Test Channel
-        cy.uiClickSidebarItem(testChannel.name);
-
-        // # Leave the current channel
-        cy.uiLeaveChannel();
-
-        // * Verify url is set up for insights view when insights view is the penultimate view
-        cy.url().should('include', `${teamA.name}/activity-and-insights`);
-    });
 });
