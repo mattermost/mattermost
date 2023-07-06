@@ -25,11 +25,8 @@ describe('Forward Message', () => {
     const commentMessage = 'Comment for the forwarded message';
 
     before(() => {
-        // # Testing Forwarding from Insights view requires a license
-        cy.apiRequireLicense();
-        cy.shouldHaveFeatureFlag('InsightsEnabled', true);
 
-        cy.apiUpdateConfig({
+        cy.apiUpdateConfig({Forwarding
             ServiceSettings: {
                 ThreadAutoFollow: true,
                 CollapsedThreads: 'default_on',

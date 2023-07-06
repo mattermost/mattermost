@@ -20,8 +20,6 @@ describe('Keyboard Shortcuts', () => {
     let testTeam;
     let publicChannel;
     let privateChannel;
-    const insights = 'Insights';
-    const insightsSidebar = {name: insights};
 
     before(() => {
         cy.apiGetMe().then(({user: adminUser}) => {
@@ -87,8 +85,6 @@ describe('Keyboard Shortcuts', () => {
         // * Verify that it redirects into expected URL
         if (toChannel.type === 'D') {
             cy.url().should('include', `/${teamName}/messages/@${toChannel.name}`);
-        } else if (toChannel.name === insights) {
-            cy.url().should('include', `/${teamName}/activity-and-insights`);
         } else {
             cy.url().should('include', `/${teamName}/channels/${toChannel.name}`);
         }
