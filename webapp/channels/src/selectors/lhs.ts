@@ -8,7 +8,6 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetDraftsCount} from 'selectors/drafts';
 import {
     isCollapsedThreadsEnabled,
-    localDraftsAreEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
 
 export function getIsLhsOpen(state: GlobalState): boolean {
@@ -24,9 +23,8 @@ export const getDraftsCount = makeGetDraftsCount();
 export const getVisibleStaticPages = createSelector(
     'getVisibleSidebarStaticPages',
     isCollapsedThreadsEnabled,
-    localDraftsAreEnabled,
     getDraftsCount,
-    (collapsedThreadsEnabled, localDraftsEnabled, draftsCount) => {
+    (collapsedThreadsEnabled, draftsCount) => {
         const staticPages: StaticPage[] = [];
 
         if (collapsedThreadsEnabled) {
@@ -36,12 +34,10 @@ export const getVisibleStaticPages = createSelector(
             });
         }
 
-        if (localDraftsEnabled) {
-            staticPages.push({
-                id: 'drafts',
-                isVisible: draftsCount > 0,
-            });
-        }
+        staticPages.push({
+            id: 'drafts',
+            isVisible: draftsCount > 0,
+        });
 
         return staticPages.filter((item) => item.isVisible);
     },

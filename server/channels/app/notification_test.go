@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func getLicWithSkuShortName(skuShortName string) *model.License {
@@ -1089,7 +1089,6 @@ func TestAllowChannelMentions(t *testing.T) {
 }
 
 func TestAllowGroupMentions(t *testing.T) {
-	t.Skip("MM-41972")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1114,6 +1113,9 @@ func TestAllowGroupMentions(t *testing.T) {
 			})
 		}
 	})
+
+	// we set the enterprise license for the rest of the tests
+	th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuEnterprise))
 
 	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
 		allowGroupMentions := th.App.allowGroupMentions(th.Context, post)

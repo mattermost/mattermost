@@ -27,51 +27,51 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/public/shared/timezones"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/teams"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/active_users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/expirynotify"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/export_delete"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/export_process"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/extract_content"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/hosted_purchase_screening"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/import_delete"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/import_process"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/last_accessible_file"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/last_accessible_post"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/migrations"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/notify_admin"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/plugins"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/post_persistent_notifications"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/product_notices"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/resend_invitation_email"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/awsmeter"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/remotecluster"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine/indexer"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/sharedchannel"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/telemetry"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/tracing"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/upgrader"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/timezones"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_process"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_file"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/migrations"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/notify_admin"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/plugins"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/product_notices"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/services/awsmeter"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine/indexer"
+	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
+	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
+	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
 var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
@@ -413,7 +413,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if _, err = url.ParseRequestURI(*s.platform.Config().ServiceSettings.SiteURL); err != nil {
-		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://docs.mattermost.com/configure/configuration-settings.html#site-url")
+		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
 	}
 
 	// Start email batching because it's not like the other jobs
@@ -462,12 +462,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// if enabled - perform initial product notices fetch
 	if *s.platform.Config().AnnouncementSettings.AdminNoticesEnabled || *s.platform.Config().AnnouncementSettings.UserNoticesEnabled {
-		go func() {
+		s.platform.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			if err := appInstance.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failed to perform initial product notices fetch", mlog.Err(err))
 			}
-		}()
+		})
 	}
 
 	if s.skipPostInit {

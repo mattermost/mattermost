@@ -11,17 +11,15 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/logr/v2"
-
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // channelsWrapper provides an implementation of `product.ChannelService` to be used by products.
@@ -188,35 +186,6 @@ func (a *App) JoinDefaultChannels(c request.CTX, teamID string, user *model.User
 		message.Add("user_id", user.Id)
 		message.Add("team_id", channel.TeamId)
 		a.Publish(message)
-
-		// A/B Test on the welcome post
-		if a.Config().FeatureFlags.SendWelcomePost && channelName == model.DefaultChannelName {
-			nbTeams, err := a.Srv().Store().Team().AnalyticsTeamCount(&model.TeamSearch{
-				IncludeDeleted: model.NewBool(true),
-			})
-			if err != nil {
-				c.Logger().Warn("unable to get number of teams", logr.Err(err))
-				return nil
-			}
-
-			if nbTeams == 1 && a.IsFirstAdmin(user) {
-				// Post the welcome message
-				if _, err := a.CreatePost(c, &model.Post{
-					ChannelId: channel.Id,
-					Type:      model.PostTypeWelcomePost,
-					UserId:    user.Id,
-				}, channel, false, false); err != nil {
-					c.Logger().Warn("unable to post welcome message", logr.Err(err))
-					return nil
-				}
-				ts := a.Srv().GetTelemetryService()
-				if ts != nil {
-					ts.SendTelemetry("welcome-message-sent", map[string]any{
-						"category": "growth",
-					})
-				}
-			}
-		}
 	}
 
 	if nErr != nil {

@@ -24,12 +24,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 func newServer(t *testing.T) (*Server, error) {
@@ -42,6 +42,8 @@ func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, erro
 	store, err := config.NewStoreFromBacking(configStore, nil, false)
 	require.NoError(t, err)
 	cfg := store.Get()
+	*cfg.AnnouncementSettings.AdminNoticesEnabled = false
+	*cfg.AnnouncementSettings.UserNoticesEnabled = false
 	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	f(cfg)
 
@@ -110,6 +112,8 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 		AmazonS3SSL:             model.NewBool(false),
 	}
 	*cfg.ServiceSettings.ListenAddress = "localhost:0"
+	*cfg.AnnouncementSettings.AdminNoticesEnabled = false
+	*cfg.AnnouncementSettings.UserNoticesEnabled = false
 	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	_, _, err := store.Set(cfg)
 	require.NoError(t, err)
@@ -191,6 +195,8 @@ func TestStartServerTLSVersion(t *testing.T) {
 	cfg := store.Get()
 	testDir, _ := fileutils.FindDir("tests")
 
+	*cfg.AnnouncementSettings.AdminNoticesEnabled = false
+	*cfg.AnnouncementSettings.UserNoticesEnabled = false
 	*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 	*cfg.ServiceSettings.TLSMinVer = "1.2"

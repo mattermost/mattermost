@@ -21,8 +21,8 @@ import (
 
 	"github.com/mattermost/ldap"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/public/utils"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 const (
@@ -131,11 +131,11 @@ const (
 
 	EmailSettingsDefaultFeedbackOrganization = ""
 
-	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/terms-of-use/"
-	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/privacy-policy/"
-	SupportSettingsDefaultAboutLink          = "https://docs.mattermost.com/about/product.html/"
-	SupportSettingsDefaultHelpLink           = "https://mattermost.com/default-help/"
-	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/default-report-a-problem/"
+	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/pl/terms-of-use/"
+	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/pl/privacy-policy/"
+	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermomst"
+	SupportSettingsDefaultHelpLink           = "https://mattermost.com/pl/help/"
+	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/pl/report-a-bug"
 	SupportSettingsDefaultSupportEmail       = ""
 	SupportSettingsDefaultReAcceptancePeriod = 365
 
@@ -171,9 +171,9 @@ const (
 	SamlSettingsCanonicalAlgorithmC14n11  = "Canonical1.1"
 	SamlSettingsDefaultCanonicalAlgorithm = SamlSettingsCanonicalAlgorithmC14n
 
-	NativeappSettingsDefaultAppDownloadLink        = "https://mattermost.com/download/#mattermostApps"
-	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/mattermost-android-app/"
-	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/mattermost-ios-app/"
+	NativeappSettingsDefaultAppDownloadLink        = "https://mattermost.com/pl/download-apps"
+	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/pl/android-app/"
+	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/pl/ios-app/"
 
 	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds = 5000
 
@@ -205,11 +205,12 @@ const (
 	BleveSettingsDefaultIndexDir  = ""
 	BleveSettingsDefaultBatchSize = 10000
 
-	DataRetentionSettingsDefaultMessageRetentionDays = 365
-	DataRetentionSettingsDefaultFileRetentionDays    = 365
-	DataRetentionSettingsDefaultBoardsRetentionDays  = 365
-	DataRetentionSettingsDefaultDeletionJobStartTime = "02:00"
-	DataRetentionSettingsDefaultBatchSize            = 3000
+	DataRetentionSettingsDefaultMessageRetentionDays           = 365
+	DataRetentionSettingsDefaultFileRetentionDays              = 365
+	DataRetentionSettingsDefaultBoardsRetentionDays            = 365
+	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
+	DataRetentionSettingsDefaultBatchSize                      = 3000
+	DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds = 100
 
 	PluginSettingsDefaultDirectory         = "./plugins"
 	PluginSettingsDefaultClientDirectory   = "./client/plugins"
@@ -996,7 +997,7 @@ type ExperimentalSettings struct {
 	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
-	EnableAppBar                    *bool   `access:"experimental_features"`
+	DisableAppBar                   *bool   `access:"experimental_features"`
 	DisableRefetchingOnBrowserFocus *bool   `access:"experimental_features"`
 	DelayChannelAutocomplete        *bool   `access:"experimental_features"`
 }
@@ -1030,8 +1031,8 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.EnableRemoteClusterService = NewBool(false)
 	}
 
-	if s.EnableAppBar == nil {
-		s.EnableAppBar = NewBool(false)
+	if s.DisableAppBar == nil {
+		s.DisableAppBar = NewBool(false)
 	}
 
 	if s.DisableRefetchingOnBrowserFocus == nil {
@@ -2628,6 +2629,7 @@ type ElasticsearchSettings struct {
 	ClientCert                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	ClientKey                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Trace                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	IgnoredPurgeIndexes           *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -2726,6 +2728,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 	if s.Trace == nil {
 		s.Trace = NewString("")
 	}
+
+	if s.IgnoredPurgeIndexes == nil {
+		s.IgnoredPurgeIndexes = NewString("")
+	}
 }
 
 type BleveSettings struct {
@@ -2760,14 +2766,15 @@ func (bs *BleveSettings) SetDefaults() {
 }
 
 type DataRetentionSettings struct {
-	EnableMessageDeletion *bool   `access:"compliance_data_retention_policy"`
-	EnableFileDeletion    *bool   `access:"compliance_data_retention_policy"`
-	EnableBoardsDeletion  *bool   `access:"compliance_data_retention_policy"`
-	MessageRetentionDays  *int    `access:"compliance_data_retention_policy"`
-	FileRetentionDays     *int    `access:"compliance_data_retention_policy"`
-	BoardsRetentionDays   *int    `access:"compliance_data_retention_policy"`
-	DeletionJobStartTime  *string `access:"compliance_data_retention_policy"`
-	BatchSize             *int    `access:"compliance_data_retention_policy"`
+	EnableMessageDeletion          *bool   `access:"compliance_data_retention_policy"`
+	EnableFileDeletion             *bool   `access:"compliance_data_retention_policy"`
+	EnableBoardsDeletion           *bool   `access:"compliance_data_retention_policy"`
+	MessageRetentionDays           *int    `access:"compliance_data_retention_policy"`
+	FileRetentionDays              *int    `access:"compliance_data_retention_policy"`
+	BoardsRetentionDays            *int    `access:"compliance_data_retention_policy"`
+	DeletionJobStartTime           *string `access:"compliance_data_retention_policy"`
+	BatchSize                      *int    `access:"compliance_data_retention_policy"`
+	TimeBetweenBatchesMilliseconds *int    `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -2801,6 +2808,10 @@ func (s *DataRetentionSettings) SetDefaults() {
 
 	if s.BatchSize == nil {
 		s.BatchSize = NewInt(DataRetentionSettingsDefaultBatchSize)
+	}
+
+	if s.TimeBetweenBatchesMilliseconds == nil {
+		s.TimeBetweenBatchesMilliseconds = NewInt(DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds)
 	}
 }
 
@@ -2859,21 +2870,9 @@ func (s *CloudSettings) SetDefaults() {
 }
 
 type ProductSettings struct {
-	EnablePublicSharedBoards *bool
-	EnablePlaybooks          *bool
 }
 
-func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
-	if s.EnablePublicSharedBoards == nil {
-		if p, ok := plugins[PluginIdFocalboard]; ok {
-			s.EnablePublicSharedBoards = NewBool(p["enablepublicsharedboards"].(bool))
-		} else {
-			s.EnablePublicSharedBoards = NewBool(false)
-		}
-	}
-	if s.EnablePlaybooks == nil {
-		s.EnablePlaybooks = NewBool(true)
-	}
+func (s *ProductSettings) SetDefaults() {
 }
 
 type PluginState struct {
@@ -2936,19 +2935,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdNPS] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates[PluginIdChannelExport] == nil && BuildEnterpriseReady == "true" {
-		// Enable the channel export plugin by default
-		s.PluginStates[PluginIdChannelExport] = &PluginState{Enable: true}
-	}
-
-	if s.PluginStates[PluginIdApps] == nil {
-		// Enable the Apps plugin by default
-		s.PluginStates[PluginIdApps] = &PluginState{Enable: true}
-	}
-
 	if s.PluginStates[PluginIdCalls] == nil {
 		// Enable the calls plugin by default
 		s.PluginStates[PluginIdCalls] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates[PluginIdPlaybooks] == nil {
+		// Enable the playbooks plugin by default
+		s.PluginStates[PluginIdPlaybooks] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -3067,6 +3061,7 @@ func (s *DisplaySettings) SetDefaults() {
 
 type GuestAccountsSettings struct {
 	Enable                           *bool   `access:"authentication_guest_access"`
+	HideTags                         *bool   `access:"authentication_guest_access"`
 	AllowEmailAccounts               *bool   `access:"authentication_guest_access"`
 	EnforceMultifactorAuthentication *bool   `access:"authentication_guest_access"`
 	RestrictCreationToDomains        *string `access:"authentication_guest_access"`
@@ -3075,6 +3070,10 @@ type GuestAccountsSettings struct {
 func (s *GuestAccountsSettings) SetDefaults() {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
+	}
+
+	if s.HideTags == nil {
+		s.HideTags = NewBool(false)
 	}
 
 	if s.AllowEmailAccounts == nil {
@@ -3355,7 +3354,7 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
-	o.ProductSettings.SetDefaults(o.PluginSettings.Plugins)
+	o.ProductSettings.SetDefaults()
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
@@ -3872,6 +3871,15 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 
 	if *s.RequestTimeoutSeconds < 1 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.request_timeout_seconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if ign := *s.IgnoredPurgeIndexes; ign != "" {
+		s := strings.Split(ign, ",")
+		for _, ix := range s {
+			if strings.HasPrefix(ix, "-") {
+				return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil

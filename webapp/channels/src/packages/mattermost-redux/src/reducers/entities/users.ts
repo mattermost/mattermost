@@ -198,18 +198,15 @@ function profiles(state: IDMappedObjects<UserProfile> = {}, action: GenericActio
         const users: UserProfile[] = action.data;
 
         return users.reduce((nextState, user) => {
-            const oldUser = nextState[user.id] || {};
+            const oldUser = nextState[user.id];
 
-            if (isEqual(user, oldUser)) {
+            if (oldUser && isEqual(user, oldUser)) {
                 return nextState;
             }
 
             return {
                 ...nextState,
-                [user.id]: {
-                    ...oldUser,
-                    ...user,
-                },
+                [user.id]: user,
             };
         }, state);
     }

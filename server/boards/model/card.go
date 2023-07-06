@@ -9,7 +9,7 @@ import (
 
 	"github.com/rivo/uniseg"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost/server/v8/boards/utils"
 )
 
 var ErrBoardIDMismatch = errors.New("Board IDs do not match")

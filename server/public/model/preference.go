@@ -31,9 +31,6 @@ const (
 	PreferenceNameUseMilitaryTime         = "use_military_time"
 	PreferenceRecommendedNextSteps        = "recommended_next_steps"
 
-	// initial onboarding preferences
-	PreferenceOnboarding = "onboarding"
-
 	PreferenceCategoryTheme = "theme"
 	// the name for theme props is the team id
 

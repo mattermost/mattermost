@@ -122,7 +122,7 @@ describe('Markdown', () => {
 
     it('channel header is markdown image', () => {
         // # Update channel header
-        cy.updateChannelHeader('![MM Logo](https://raw.githubusercontent.com/furqanmlk/furqanmlk.github.io/main/images/small-image.png)').wait(TIMEOUTS.TWO_SEC);
+        cy.updateChannelHeader('![MM Logo](https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/small-image.png)').wait(TIMEOUTS.TWO_SEC);
 
         // * Verify image in header
         cy.get('#channelHeaderDescription').find('span.markdown__paragraph-inline').as('imageDiv');
@@ -145,7 +145,7 @@ describe('Markdown', () => {
 
     it('channel header is markdown image that is also a link', () => {
         // # Update channel header
-        cy.updateChannelHeader('[![Build Status](https://raw.githubusercontent.com/furqanmlk/furqanmlk.github.io/main/images/small-image.png)](https://raw.githubusercontent.com/furqanmlk/furqanmlk.github.io/main/images/small-image.png)').wait(TIMEOUTS.TWO_SEC);
+        cy.updateChannelHeader('[![Build Status](https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/small-image.png)](https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/small-image.png)').wait(TIMEOUTS.TWO_SEC);
 
         // * Verify image in header
         cy.get('#channelHeaderDescription').find('span.markdown__paragraph-inline').as('imageDiv');

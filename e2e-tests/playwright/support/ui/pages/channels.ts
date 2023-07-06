@@ -18,6 +18,8 @@ export default class ChannelsPage {
     readonly appBar;
     readonly sidebarLeft;
     readonly sidebarRight;
+    readonly postDotMenu;
+    readonly deletePostModal;
 
     constructor(page: Page) {
         this.page = page;
@@ -29,6 +31,8 @@ export default class ChannelsPage {
         this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
+        this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
+        this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
     }
 
     async goto(teamName = '', channelName = '') {

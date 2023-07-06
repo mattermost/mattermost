@@ -10,7 +10,7 @@ import {Role} from '@mattermost/types/roles';
 import GeneralConstants from 'mattermost-redux/constants/general';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
-import {PermissionsScope, DefaultRolePermissions} from 'utils/constants';
+import {PermissionsScope, DefaultRolePermissions, DocLinks} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 import {t} from 'utils/i18n';
 
@@ -377,7 +377,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                                         values={{
                                             link: (msg: React.ReactNode) => (
                                                 <ExternalLink
-                                                    href='https://docs.mattermost.com/onboard/advanced-permissions.html'
+                                                    href={DocLinks.ONBOARD_ADVANCED_PERMISSIONS}
                                                     location='permission_system_scheme_settings'
                                                 >
                                                     {msg}
