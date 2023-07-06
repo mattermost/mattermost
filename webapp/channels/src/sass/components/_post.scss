@@ -31,14 +31,6 @@
     position: relative;
     min-height: 37px;
 
-    &.textarea-wrapper--preview {
-        > div {
-            &:first-child {
-                display: none;
-            }
-        }
-    }
-
     .textbox-preview-area {
         ul {
             white-space: normal;
