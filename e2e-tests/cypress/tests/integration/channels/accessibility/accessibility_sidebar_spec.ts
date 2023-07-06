@@ -74,6 +74,7 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
 
         // * Verify if the Plus button has focus
         cy.findByRole('button', {name: 'Find Channels'}).should('be.focused');
+        cy.focused().tab();
 
         // * Verify if focus changes to different channels in Unread section
         cy.get('.SidebarChannel.unread').each((el) => {
