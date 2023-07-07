@@ -497,11 +497,12 @@ func (s *Server) doFirstAdminSetupCompleteMigration() error {
 	// if there are teams, then if this isn't a new installation, there should be posts
 	postCount, err := s.Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
 	if err != nil {
-		return fmt.Errorf("could not get posts count form the database: %w", err)
+		return fmt.Errorf("could not get posts count from the database: %w", err)
 	} else if postCount < existingInstallationPostsThreshold {
 		mlog.Info("Post count is lower than expected, aborting migration",
 			mlog.Int("expected", int(existingInstallationPostsThreshold)),
 			mlog.Int("actual", int(postCount)))
+		return nil
 	}
 
 	system := model.System{
