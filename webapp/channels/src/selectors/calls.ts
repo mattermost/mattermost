@@ -19,19 +19,3 @@ export function isCallsRingingEnabledOnServer(state: GlobalState) {
     // @ts-ignore
     return Boolean(state[`plugins-${suitePluginIds.calls}`]?.callsConfig?.EnableRinging);
 }
-
-function isDmGmChannel(channelType: Channel['type']) {
-    return channelType === General.DM_CHANNEL || channelType === General.GM_CHANNEL;
-}
-
-export function callsWillNotify(state: GlobalState, post: Post, channel: Channel): boolean {
-    // Calls will notify if:
-    //  1. it's a custom_calls post (call has started)
-    //  2. in a DM or GM channel
-    //  3. calls is enabled and is v0.17.0+
-    //  4. calls ringing is enabled on the server
-    return post.type === PostTypes.CUSTOM_CALLS &&
-        isDmGmChannel(channel.type) &&
-        isCallsEnabled(state, '0.17.0') &&
-        isCallsRingingEnabledOnServer(state);
-}

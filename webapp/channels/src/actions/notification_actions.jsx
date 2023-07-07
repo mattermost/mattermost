@@ -25,7 +25,6 @@ import {isDesktopApp, isMobileApp, isWindowsApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 import {stripMarkdown} from 'utils/markdown';
-import {callsWillNotify} from 'selectors/calls';
 import {runDesktopNotificationHooks} from './hooks';
 
 const NOTIFY_TEXT_MAX_LENGTH = 50;
@@ -194,11 +193,6 @@ export function sendDesktopNotification(post, msgProps) {
             notify = activeChannel && activeChannel.id !== channelId;
         }
         notify = notify || !state.views.browser.focused;
-
-        // Do not notify if Calls will handle this notification
-        if (callsWillNotify(state, post, channel)) {
-            notify = false;
-        }
 
         let soundName = getNotificationSoundFromChannelMemberAndUser(member, user);
 
