@@ -168,7 +168,6 @@ type Store interface {
 	PostMessage(message, postType, channelID string) error
 	SendMessage(message, postType string, receipts []string) error
 
-	// Insights
 	GetUserTimezone(userID string) (string, error)
 
 	// Compliance
