@@ -175,7 +175,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
     };
 
     getComputedCssProperty(element: Element | Text, property: string) {
-        return parseInt(getComputedStyle(element as HTMLElement).getPropertyValue(property), 10);
+        return parseInt(getComputedStyle(element as HTMLElement).getPropertyValue(property) || '0', 10);
     }
 
     getTransform() {
