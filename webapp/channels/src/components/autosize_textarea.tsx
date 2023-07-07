@@ -147,6 +147,18 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
             );
         }
 
+        let referenceValue = value || defaultValue;
+        if (referenceValue?.endsWith('\n')) {
+            // In a div, the browser doesn't always count characters at the end of a line when measuring the dimensions
+            // of text. In the spec, they refer to those characters as "hanging". No matter what value we set for the
+            // `white-space` of a div, a single newline at the end of the div will always hang.
+            //
+            // The textarea doesn't have that behaviour, so we need to trick the reference div into measuring that
+            // newline, and it seems like the best way to do that is by adding a second newline because only the final
+            // one hangs.
+            referenceValue += '\n';
+        }
+
         return (
             <div>
                 {textareaPlaceholder}
@@ -175,7 +187,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
                         disabled={true}
                         aria-hidden={true}
                     >
-                        {value || defaultValue}
+                        {referenceValue}
                     </div>
                 </div>
             </div>
