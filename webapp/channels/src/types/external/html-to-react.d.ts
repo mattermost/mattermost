@@ -1,6 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* 
+Searched for `Parser`, `ProcessingInstructions`, and `ProcessNodeDefinitions` types on the html-to-react 
+repository (https://github.com/aknuds1/html-to-react), but they assigned almost everything to an `any` type.
+*/
+
 declare module 'html-to-react' {
     interface Node {
         type: string;
