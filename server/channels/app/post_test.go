@@ -2214,7 +2214,6 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostPriority = true
-			cfg.FeatureFlags.PostPriority = true
 		})
 
 		user1 := th.BasicUser
