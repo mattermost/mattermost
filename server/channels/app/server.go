@@ -462,12 +462,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// if enabled - perform initial product notices fetch
 	if *s.platform.Config().AnnouncementSettings.AdminNoticesEnabled || *s.platform.Config().AnnouncementSettings.UserNoticesEnabled {
-		go func() {
+		s.platform.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			if err := appInstance.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failed to perform initial product notices fetch", mlog.Err(err))
 			}
-		}()
+		})
 	}
 
 	if s.skipPostInit {

@@ -639,6 +639,7 @@ const defaultServerConfig: AdminConfig = {
     },
     GuestAccountsSettings: {
         Enable: false,
+        HideTags: false,
         AllowEmailAccounts: true,
         EnforceMultifactorAuthentication: false,
         RestrictCreationToDomains: '',
@@ -675,9 +676,7 @@ const defaultServerConfig: AdminConfig = {
         WysiwygEditor: false,
         PeopleProduct: false,
         ReduceOnBoardingTaskList: false,
-        OnboardingAutoShowLinkedBoard: false,
         ThreadsEverywhere: false,
-        GlobalDrafts: true,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
         CloudReverseTrial: false,

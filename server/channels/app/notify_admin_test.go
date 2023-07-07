@@ -19,7 +19,6 @@ import (
 const PluginIdGithub = "github"
 
 func Test_SendNotifyAdminPosts(t *testing.T) {
-	t.Skip("MM-52743")
 	t.Run("no error sending non trial upgrade post when no notifications are available", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()

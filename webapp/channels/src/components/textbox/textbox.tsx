@@ -40,7 +40,6 @@ export type Props = {
     onWidthChange?: (width: number) => void;
     createMessage: string;
     onKeyDown?: (e: KeyboardEvent<TextboxElement>) => void;
-    onSelect?: (e: React.SyntheticEvent<TextboxElement>) => void;
     onMouseUp?: (e: React.MouseEvent<TextboxElement>) => void;
     onKeyUp?: (e: React.KeyboardEvent<TextboxElement>) => void;
     onBlur?: (e: FocusEvent<TextboxElement>) => void;
@@ -229,8 +228,6 @@ export default class Textbox extends React.PureComponent<Props> {
         this.props.onKeyDown?.(e as KeyboardEvent<TextboxElement>);
     };
 
-    handleSelect = (e: React.SyntheticEvent<TextboxElement>) => this.props.onSelect?.(e);
-
     handleMouseUp = (e: MouseEvent<TextboxElement>) => this.props.onMouseUp?.(e);
 
     handleKeyUp = (e: KeyboardEvent<TextboxElement>) => this.props.onKeyUp?.(e);
@@ -318,7 +315,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     placeholder={this.props.createMessage}
                     onChange={this.handleChange}
                     onKeyPress={this.props.onKeyPress}
-                    onSelect={this.handleSelect}
                     onKeyDown={this.handleKeyDown}
                     onMouseUp={this.handleMouseUp}
                     onKeyUp={this.handleKeyUp}
