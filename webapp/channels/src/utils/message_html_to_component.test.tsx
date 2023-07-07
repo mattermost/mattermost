@@ -9,13 +9,15 @@ import messageHtmlToComponent from 'utils/message_html_to_component';
 import * as TextFormatting from 'utils/text_formatting';
 import MarkdownImage from 'components/markdown_image';
 import AtMention from 'components/at_mention';
+import EmojiMap from './emoji_map';
 
 describe('messageHtmlToComponent', () => {
     test('plain text', () => {
         const input = 'Hello, world!';
-        const html = TextFormatting.formatText(input);
+        const emojiMap = new EmojiMap(new Map());
+        const html = TextFormatting.formatText(input, {}, emojiMap);
 
-        expect(messageHtmlToComponent(html)).toMatchSnapshot();
+        expect(messageHtmlToComponent(html, false, {})).toMatchSnapshot();
     });
 
     test('latex', () => {
@@ -29,9 +31,10 @@ F_m - 2 = F_0 F_1 \\dots F_{m-1}
 \`\`\`
 
 That was some latex!`;
-        const html = TextFormatting.formatText(input);
+        const emojiMap = new EmojiMap(new Map());
+        const html = TextFormatting.formatText(input, {}, emojiMap);
 
-        expect(messageHtmlToComponent(html)).toMatchSnapshot();
+        expect(messageHtmlToComponent(html, false, {})).toMatchSnapshot();
     });
 
     test('typescript', () => {
@@ -41,7 +44,8 @@ const myFunction = () => {
 };
 \`\`\`
 `;
-        const html = TextFormatting.formatText(input);
+        const emojiMap = new EmojiMap(new Map());
+        const html = TextFormatting.formatText(input, {}, emojiMap);
 
         expect(messageHtmlToComponent(html, false, {postId: 'randompostid'})).toMatchSnapshot();
     });
@@ -51,28 +55,32 @@ const myFunction = () => {
 <div>This is a html div</div>
 \`\`\`
 `;
-        const html = TextFormatting.formatText(input);
+        const emojiMap = new EmojiMap(new Map());
+        const html = TextFormatting.formatText(input, {}, emojiMap);
 
         expect(messageHtmlToComponent(html, false, {postId: 'randompostid'})).toMatchSnapshot();
     });
 
     test('link without enabled tooltip plugins', () => {
         const input = 'lorem ipsum www.dolor.com sit amet';
-        const html = TextFormatting.formatText(input);
+        const emojiMap = new EmojiMap(new Map());
+        const html = TextFormatting.formatText(input, {}, emojiMap);
 
-        expect(messageHtmlToComponent(html)).toMatchSnapshot();
+        expect(messageHtmlToComponent(html, false, {})).toMatchSnapshot();
     });
 
     test('link with enabled a tooltip plugin', () => {
         const input = 'lorem ipsum www.dolor.com sit amet';
-        const html = TextFormatting.formatText(input);
+        const emojiMap = new EmojiMap(new Map());
+        const html = TextFormatting.formatText(input, {}, emojiMap);
 
         expect(messageHtmlToComponent(html, false, {hasPluginTooltips: true})).toMatchSnapshot();
     });
 
     test('Inline markdown image', () => {
         const options = {markdown: true};
-        const html = TextFormatting.formatText('![Mattermost](/images/icon.png) and a [link](link)', options);
+        const emojiMap = new EmojiMap(new Map());
+        const html = TextFormatting.formatText('![Mattermost](/images/icon.png) and a [link](link)', options, emojiMap);
 
         const component = messageHtmlToComponent(html, false, {
             hasPluginTooltips: false,
@@ -85,7 +93,8 @@ const myFunction = () => {
 
     test('Inline markdown image where image is link', () => {
         const options = {markdown: true};
-        const html = TextFormatting.formatText('[![Mattermost](images/icon.png)](images/icon.png)', options);
+        const emojiMap = new EmojiMap(new Map());
+        const html = TextFormatting.formatText('[![Mattermost](images/icon.png)](images/icon.png)', options, emojiMap);
 
         const component = messageHtmlToComponent(html, false, {
             hasPluginTooltips: false,
@@ -98,7 +107,8 @@ const myFunction = () => {
 
     test('At mention', () => {
         const options = {mentionHighlight: true, atMentions: true, mentionKeys: [{key: '@joram'}]};
-        let html = TextFormatting.formatText('@joram', options);
+        const emojiMap = new EmojiMap(new Map());
+        let html = TextFormatting.formatText('@joram', options, emojiMap);
 
         let component = messageHtmlToComponent(html, false, {mentionHighlight: true});
         expect(component).toMatchSnapshot();
@@ -106,7 +116,7 @@ const myFunction = () => {
 
         options.mentionHighlight = false;
 
-        html = TextFormatting.formatText('@joram', options);
+        html = TextFormatting.formatText('@joram', options, emojiMap);
 
         component = messageHtmlToComponent(html, false, {mentionHighlight: false});
         expect(component).toMatchSnapshot();
@@ -114,8 +124,9 @@ const myFunction = () => {
     });
 
     test('At mention with group highlight disabled', () => {
-        const options = {mentionHighlight: true, atMentions: true, mentionKeys: [{key: '@joram'}]};
-        let html = TextFormatting.formatText('@developers', options);
+        const options = {mentionHighlight: true, atMentions: true, mentionKeys: [{key: '@joram'}], disableGroupHighlight: false};
+        const emojiMap = new EmojiMap(new Map());
+        let html = TextFormatting.formatText('@developers', options, emojiMap);
 
         let component = messageHtmlToComponent(html, false, {disableGroupHighlight: false});
         expect(component).toMatchSnapshot();
@@ -123,7 +134,7 @@ const myFunction = () => {
 
         options.disableGroupHighlight = true;
 
-        html = TextFormatting.formatText('@developers', options);
+        html = TextFormatting.formatText('@developers', options, emojiMap);
 
         component = messageHtmlToComponent(html, false, {disableGroupHighlight: true});
         expect(component).toMatchSnapshot();
@@ -139,8 +150,9 @@ const myFunction = () => {
             \`\`\`
             text after typescript block`;
 
-        const html = TextFormatting.formatText(input);
+        const emojiMap = new EmojiMap(new Map());
+        const html = TextFormatting.formatText(input, {}, emojiMap);
 
-        expect(messageHtmlToComponent(html)).toMatchSnapshot();
+        expect(messageHtmlToComponent(html, false, {})).toMatchSnapshot();
     });
 });

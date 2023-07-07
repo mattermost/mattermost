@@ -23,7 +23,7 @@ const tooltipContainerStyles: CSSProperties = {
 
 type Props = {
     href: string;
-    attributes: {[attribute: string]: string};
+    attributes: {[attribute: string]: string | boolean};
     children?: React.ReactNode;
 }
 
