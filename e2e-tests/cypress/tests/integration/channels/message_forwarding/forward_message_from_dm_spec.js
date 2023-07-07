@@ -26,7 +26,7 @@ describe('Forward Message', () => {
 
     before(() => {
 
-        cy.apiUpdateConfig({Forwarding
+        cy.apiUpdateConfig({
             ServiceSettings: {
                 ThreadAutoFollow: true,
                 CollapsedThreads: 'default_on',
