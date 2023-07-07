@@ -30,7 +30,6 @@ describe('Forward Message', () => {
     const replyMessage = 'Forward this reply';
 
     before(() => {
-
         cy.apiUpdateConfig({
             ServiceSettings: {
                 ThreadAutoFollow: true,

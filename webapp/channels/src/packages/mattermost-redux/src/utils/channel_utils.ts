@@ -367,7 +367,6 @@ export function calculateUnreadCount(
     member: ChannelMembership | null | undefined,
     crtEnabled: boolean,
 ): {showUnread: boolean; mentions: number; messages: number; hasUrgent: boolean} {
-    // LOL
     if (!member || !messageCount) {
         return {
             showUnread: false,
