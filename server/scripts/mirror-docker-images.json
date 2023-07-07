@@ -28,7 +28,8 @@
     "8.0.1": "grafana/grafana:8.0.1@sha256:1c3e2fc7896adf9e33be5d062c08066087cb556f63b0a95f8aefe92bd37a6f38"
   },
   "cypress-browsers-public": {
-    "node16.14.2-slim-chrome100-ff99-edge": "cypress/browsers:node16.14.2-slim-chrome100-ff99-edge@sha256:f8459ee677ce356eff64698095fbdf48eb9ab018fc5eb0d30c07ba23884edace"
+    "node16.14.2-slim-chrome100-ff99-edge": "cypress/browsers:node16.14.2-slim-chrome100-ff99-edge@sha256:f8459ee677ce356eff64698095fbdf48eb9ab018fc5eb0d30c07ba23884edace",
+    "node-18.16.0-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1": "cypress/browsers:node-18.16.0-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1@sha256:e4c1a47c8107c37ca47398d8936743965d871c7285f58b852d5cb2658c400922"
   },
   "golang": {
     "1.19.5": "golang:1.19.5@sha256:bb9811fad43a7d6fd2173248d8331b2dcf5ac9af20976b1937ecd214c5b8c383"
