@@ -2205,7 +2205,7 @@ func TestGetChannelsMemberCount(t *testing.T) {
 		"channel1": int64(10),
 		"channel2": int64(20),
 	}
-	mockChannelStore.On("GetChannelsMemberCount", []string{"channel1", "channel2"}, true).Return(channelsMemberCount, nil)
+	mockChannelStore.On("GetChannelsMemberCount", []string{"channel1", "channel2"}).Return(channelsMemberCount, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 	resp, err := th.App.GetChannelsMemberCount(th.Context, []string{"channel1", "channel2"})

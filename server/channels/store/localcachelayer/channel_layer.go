@@ -225,11 +225,7 @@ func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMemb
 	return members, nil
 }
 
-func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string, allowFromCache bool) (_ map[string]int64, err error) {
-	if !allowFromCache {
-		return s.ChannelStore.GetChannelsMemberCount(channelIDs, false)
-	}
-
+func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[string]int64, err error) {
 	counts := make(map[string]int64)
 	remainingChannels := make([]string, 0)
 
@@ -244,14 +240,14 @@ func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string, allo
 	}
 
 	if len(remainingChannels) > 0 {
-		remainingChannels, err := s.ChannelStore.GetChannelsMemberCount(remainingChannels, false)
+		remainingChannels, err := s.ChannelStore.GetChannelsMemberCount(remainingChannels)
 		if err != nil {
 			return nil, err
 		}
 
-		for remainingChannelID, remainingChannelCount := range remainingChannels {
-			s.rootStore.doStandardAddToCache(s.rootStore.channelMemberCountsCache, remainingChannelID, remainingChannelCount)
-			counts[remainingChannelID] = remainingChannelCount
+		for id, count := range remainingChannels {
+			s.rootStore.doStandardAddToCache(s.rootStore.channelMemberCountsCache, id, count)
+			counts[id] = count
 		}
 	}
 
