@@ -5,7 +5,10 @@ import {logError} from 'mattermost-redux/actions/errors';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannel, getMyChannelMember, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getTeammateNameDisplaySetting,
+    isCollapsedThreadsEnabled,
+} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
@@ -23,6 +26,7 @@ import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 import {stripMarkdown} from 'utils/markdown';
 import {callsWillNotify} from 'selectors/calls';
+import {runDesktopNotificationHooks} from './hooks';
 
 const NOTIFY_TEXT_MAX_LENGTH = 50;
 
@@ -196,17 +200,27 @@ export function sendDesktopNotification(post, msgProps) {
             notify = false;
         }
 
-        const soundName = getNotificationSoundFromChannelMemberAndUser(member, user);
+        let soundName = getNotificationSoundFromChannelMemberAndUser(member, user);
+
+        const updatedState = getState();
+        let url = getChannelURL(updatedState, channel, teamId);
+
+        if (isCrtReply) {
+            url = getPermalinkURL(updatedState, teamId, post.id);
+        }
+
+        // Allow plugins to change the notification, or re-enable a notification
+        const hookResult = await dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, title, body, !sound, soundName, url, notify));
+        if (hookResult.error) {
+            dispatch(logError(hookResult.error));
+            return;
+        }
+
+        let silent = false;
+        ({title, body, silent, soundName, url, notify} = hookResult.args);
 
         if (notify) {
-            const updatedState = getState();
-            let url = getChannelURL(updatedState, channel, teamId);
-
-            if (isCrtReply) {
-                url = getPermalinkURL(updatedState, teamId, post.id);
-            }
-
-            dispatch(notifyMe(title, body, channel, teamId, !sound, soundName, url));
+            dispatch(notifyMe(title, body, channel, teamId, silent, soundName, url));
 
             //Don't add extra sounds on native desktop clients
             if (sound && !isDesktopApp() && !isMobileApp()) {

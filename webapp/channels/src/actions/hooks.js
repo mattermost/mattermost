@@ -89,3 +89,31 @@ export function runMessageWillBeUpdatedHooks(newPost, oldPost) {
         return {data: post};
     };
 }
+
+export function runDesktopNotificationHooks(post, msgProps, channel, teamId, title, body, silent, soundName, url, notify) {
+    return async (dispatch, getState) => {
+        const hooks = getState().plugins.components.DesktopNotificationHooks;
+        if (!hooks || hooks.length === 0) {
+            return {args: {title, body, silent, soundName, url, notify}};
+        }
+
+        let args = {title, body, silent, soundName, url, notify};
+        for (const hook of hooks) {
+            const result = await hook.hook(post, msgProps, channel, teamId, args); // eslint-disable-line no-await-in-loop
+
+            if (result) {
+                if (result.error) {
+                    return {error: result.error};
+                }
+
+                if (!result.args) {
+                    return {error: 'returned empty args'};
+                }
+
+                args = result.args;
+            }
+        }
+
+        return {args};
+    };
+}
