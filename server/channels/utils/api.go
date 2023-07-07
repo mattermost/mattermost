@@ -41,6 +41,16 @@ func OriginChecker(allowedOrigins string) func(*http.Request) bool {
 	}
 }
 
+// CheckEmbeddedCookie returns true if the MMEMBED cookie is set to 1.
+// MMEMBED is set via the webapp to indicate Mattermost is embedded in an iframe.
+func CheckEmbeddedCookie(r *http.Request) bool {
+	cookie, err := r.Cookie("MMEMBED")
+	if err != nil {
+		return false
+	}
+	return cookie.Value == "1"
+}
+
 func RenderWebAppError(config *model.Config, w http.ResponseWriter, r *http.Request, err *model.AppError, s crypto.Signer) {
 	RenderWebError(config, w, r, err.StatusCode, url.Values{
 		"message": []string{err.Message},

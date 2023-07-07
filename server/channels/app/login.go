@@ -323,7 +323,7 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 		Secure:  secure,
 	}
 
-	if secure {
+	if secure && utils.CheckEmbeddedCookie(r) {
 		sessionCookie.SameSite = http.SameSiteNoneMode
 		userCookie.SameSite = http.SameSiteNoneMode
 		csrfCookie.SameSite = http.SameSiteNoneMode

@@ -80,11 +80,14 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     };
 
     isIFrame = () => {
+        let ret = false;
         try {
-            return window.self !== window.top;
+            ret = window.self !== window.top;
         } catch (e) {
-            return true;
+            ret = true;
         }
+        document.cookie = 'MMEMBED=' + (ret ? '1' : '0') + '; path=/';
+        return ret;
     };
 
     checkLandingPreferenceApp = () => {
