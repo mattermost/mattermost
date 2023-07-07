@@ -4,7 +4,8 @@ include config.mk
 # The CI environment variable is set automatically in CircleCI and GitLab CI
 CI ?= false
 
-# Detect Linux/aarch64 and set a flag.
+# Detect Linux/ARM64 and set a flag to fix the issue with optipng-bin on it:
+# please see optipng-bin Linux arm64 support issue (https://github.com/imagemin/optipng-bin/issues/118) for details:
 ifeq ($(shell uname)/$(shell uname -m),Linux/aarch64)
   LINUX_ARM64 = true
   CPPFLAGS = "-DPNG_ARM_NEON_OPT=0"
