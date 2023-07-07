@@ -26,7 +26,6 @@ type Props = {
     user: UserProfile;
     displayName: string;
     status: UserStatus['status'];
-    localDraftsAreEnabled: boolean;
     draftRemotes: Record<string, boolean>;
 }
 
@@ -36,7 +35,6 @@ function Drafts({
     draftRemotes,
     status,
     user,
-    localDraftsAreEnabled,
 }: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
@@ -49,10 +47,6 @@ function Drafts({
             dispatch(unsuppressRHS);
         };
     }, []);
-
-    if (!localDraftsAreEnabled) {
-        return null;
-    }
 
     return (
         <div

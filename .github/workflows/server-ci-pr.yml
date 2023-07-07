@@ -19,3 +19,4 @@ concurrency:
 jobs:
   pr-ci:
     uses: ./.github/workflows/server-ci-template.yml
+    secrets: inherit

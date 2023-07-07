@@ -63,7 +63,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
 
     protected abstract renderSettings(): React.ReactElement;
 
-    protected handleSaved?: ((config: AdminConfig) => React.ReactElement);
+    protected handleSaved?: ((config: AdminConfig) => React.ReactElement | void);
 
     protected canSave?: () => boolean;
 
@@ -173,8 +173,8 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         return n;
     };
 
-    private parseIntZeroOrMin = (str: string, minimumValue = 1) => {
-        const n = parseInt(str, 10);
+    protected parseIntZeroOrMin = (str: string | number, minimumValue = 1) => {
+        const n = typeof str === 'string' ? parseInt(str, 10) : str;
 
         if (isNaN(n) || n < 0) {
             return 0;
@@ -186,8 +186,8 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         return n;
     };
 
-    protected parseIntNonZero = (str: string, defaultValue?: number, minimumValue = 1) => {
-        const n = parseInt(str, 10);
+    protected parseIntNonZero = (str: string | number, defaultValue?: number, minimumValue = 1) => {
+        const n = typeof str === 'string' ? parseInt(str, 10) : str;
 
         if (isNaN(n) || n < minimumValue) {
             if (defaultValue) {

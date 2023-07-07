@@ -81,8 +81,8 @@ func (b *Bot) Trace() map[string]any {
 
 // Clone returns a shallow copy of the bot.
 func (b *Bot) Clone() *Bot {
-	copy := *b
-	return &copy
+	bCopy := *b
+	return &bCopy
 }
 
 // IsValidCreate validates bot for Create call. This skips validations of fields that are auto-filled on Create
