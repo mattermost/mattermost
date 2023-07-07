@@ -55,6 +55,14 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
         if (height > 0 && height !== this.height) {
             const style = getComputedStyle(textarea);
 
+            if (this.height === 0) {
+                // Disable the height transition when we first measure the textarea
+                textarea.style.transitionDuration = '0s';
+                requestAnimationFrame(() => {
+                    textarea.style.removeProperty('transition-duration');
+                });
+            }
+
             // Directly change the height to avoid circular rerenders
             textarea.style.height = `${height}px`;
 
