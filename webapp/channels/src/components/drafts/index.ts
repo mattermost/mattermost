@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 
 import {getCurrentUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import {localDraftsAreEnabled, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {GlobalState} from 'types/store';
@@ -25,7 +25,6 @@ function makeMapStateToProps() {
             draftRemotes: state.views.drafts.remotes,
             status,
             user,
-            localDraftsAreEnabled: localDraftsAreEnabled(state),
         };
     };
 }

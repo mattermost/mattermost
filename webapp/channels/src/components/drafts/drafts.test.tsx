@@ -19,7 +19,6 @@ describe('components/drafts/drafts', () => {
         user: {} as UserProfile,
         displayName: 'display_name',
         status: {} as UserStatus['status'],
-        localDraftsAreEnabled: true,
         draftRemotes: {},
     };
 
@@ -41,7 +40,6 @@ describe('components/drafts/drafts', () => {
 
         const props = {
             ...baseProps,
-            localDraftsAreEnabled: false,
         };
 
         const wrapper = shallow(
