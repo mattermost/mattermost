@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	frameAncestors = "'self' *.mattermost.com douglauder.com teams.microsoft.com"
+	frameAncestors = "'self' teams.microsoft.com"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
