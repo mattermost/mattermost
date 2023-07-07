@@ -888,7 +888,6 @@ describe('components/advanced_create_post', () => {
 
         instance.handleFileUploadComplete(fileInfos, clientIds, channelId);
 
-        jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
         expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + channelId, expectedDraft, channelId);
     });
 
