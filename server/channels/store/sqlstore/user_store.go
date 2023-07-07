@@ -2140,7 +2140,11 @@ func (us SqlUserStore) IsEmpty(excludeBots bool) (bool, error) {
 		From("Users")
 
 	if excludeBots {
-		builder = builder.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+		if isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres; isPostgreSQL {
+			builder = builder.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+		} else {
+			builder = builder.Where(sq.Expr("Users.Id NOT IN (SELECT UserId FROM Bots)"))
+		}
 	}
 
 	builder = builder.Suffix(")")
