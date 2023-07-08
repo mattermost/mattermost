@@ -39,7 +39,9 @@ type Props = {
     handleJoin: (channel: Channel, done: () => void) => void;
     noResultsText: JSX.Element;
     toggleArchivedChannels: (shouldShowArchivedChannels: boolean) => void;
+    togglePrivateChannels: (shouldShowPrivateChannels: boolean) => void;
     shouldShowArchivedChannels: boolean;
+    shouldShowPrivateChannels: boolean;
     myChannelMemberships: RelationOneToOne<Channel, ChannelMembership>;
     closeModal: (modalId: string) => void;
     hideJoinedChannelsPreference: (shouldHideJoinedChannels: boolean) => void;
@@ -247,6 +249,12 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
     toggleArchivedChannelsOff = () => {
         this.props.toggleArchivedChannels(false);
     };
+    togglePrivateChannelsOn = () => {
+        this.props.togglePrivateChannels(true);
+    };
+    togglePrivateChannelsOff = () => {
+        this.props.togglePrivateChannels(false);
+    };
     handleChecked = () => {
         // If it was checked, and now we're unchecking it, clear the preference
         if (this.props.rememberHideJoinedChannelsChecked) {
@@ -365,6 +373,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
         let channelDropdown;
         let checkIcon;
 
+        // todo sinan why there is a specific prop for canShowArchivedChannels. maybe only admin can see. test with normal user or there is a setting in admin panel
         if (this.props.canShowArchivedChannels) {
             checkIcon = (
                 <CheckIcon
@@ -388,6 +397,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                         <div id='modalPreferenceContainer'>
                             <Menu.ItemAction
                                 id='channelsMoreDropdownPublic'
+                                // onClick={this.toggleArchivedChannelsOff && this.togglePrivateChannelsOff} // todo sinan fix and add all channels
                                 onClick={this.toggleArchivedChannelsOff}
                                 icon={<GlobeIcon size={16}/>}
                                 text={localizeMessage('suggestion.search.public', 'Public Channels')}
@@ -402,6 +412,14 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                             text={localizeMessage('suggestion.archive', 'Archived Channels')}
                             rightDecorator={this.props.shouldShowArchivedChannels ? checkIcon : null}
                             ariaLabel={localizeMessage('suggestion.archive', 'Archived Channels')}
+                        />
+                        <Menu.ItemAction
+                            id='channelsMoreDropdownPrivate'
+                            onClick={this.togglePrivateChannelsOn}
+                            icon={<ArchiveOutlineIcon size={16} />}
+                            text={localizeMessage('suggestion.private', 'Private Channels')} // todo sinan add this to localization
+                            rightDecorator={this.props.shouldShowPrivateChannels ? checkIcon : null} // todo sinan burada kaldin
+                            ariaLabel={localizeMessage('suggestion.private', 'Private Channels')}
                         />
                     </Menu>
                 </MenuWrapper>

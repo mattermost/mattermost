@@ -875,6 +875,26 @@ export function getArchivedChannels(teamId: string, page = 0, perPage: number = 
     };
 }
 
+export function getPrivateChannels(teamId: string, page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE): ActionFunc {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        let channels;
+        try {
+            channels = await Client4.getPrivateChannels(teamId, page, perPage);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_CHANNELS,
+            teamId,
+            data: channels,
+        });
+
+        return {data: channels};
+    };
+}
+
 export function getAllChannelsWithCount(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, includeDeleted = false, excludePolicyConstrained = false): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});

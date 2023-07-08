@@ -11,7 +11,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {Action, ActionResult} from 'mattermost-redux/types/actions';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getChannels, getArchivedChannels, joinChannel} from 'mattermost-redux/actions/channels';
+import {getChannels, getArchivedChannels, joinChannel, getPrivateChannels} from 'mattermost-redux/actions/channels';
 import {getChannelsInCurrentTeam, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 
 import {searchMoreChannels} from 'actions/channel_actions';
@@ -40,6 +40,12 @@ const getArchivedOtherChannels = createSelector(
     (channels: Channel[]) => channels && channels.filter((c) => c.delete_at !== 0),
 );
 
+const getPrivateChannelsSelector = createSelector(
+    'getPrivateChannelsSelector',
+    getChannelsInCurrentTeam,
+    (channels: Channel[]) => channels && channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL),
+);
+
 function mapStateToProps(state: GlobalState) {
     const team = getCurrentTeam(state) || {};
     const getGlobalItem = makeGetGlobalItem(StoragePrefixes.HIDE_JOINED_CHANNELS, 'false');
@@ -47,6 +53,7 @@ function mapStateToProps(state: GlobalState) {
     return {
         channels: getChannelsWithoutArchived(state) || [],
         archivedChannels: getArchivedOtherChannels(state) || [],
+        privateChannels: getPrivateChannelsSelector(state) || [],
         currentUserId: getCurrentUserId(state),
         teamId: team.id,
         teamName: team.name,
@@ -62,6 +69,7 @@ function mapStateToProps(state: GlobalState) {
 type Actions = {
     getChannels: (teamId: string, page: number, perPage: number) => void;
     getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => void;
+    getPrivateChannels: (teamId: string, page: number, channelsPerPage: number) => void;
     joinChannel: (currentUserId: string, teamId: string, channelId: string) => Promise<ActionResult>;
     searchMoreChannels: (term: string, shouldShowArchivedChannels: boolean) => Promise<ActionResult>;
     openModal: <P>(modalData: ModalData<P>) => void;
@@ -75,6 +83,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
             getChannels,
             getArchivedChannels,
+            getPrivateChannels,
             joinChannel,
             searchMoreChannels,
             openModal,

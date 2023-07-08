@@ -33,6 +33,7 @@ const SEARCH_TIMEOUT_MILLISECONDS = 100;
 type Actions = {
     getChannels: (teamId: string, page: number, perPage: number) => void;
     getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => void;
+    getPrivateChannels: (teamId: string, page: number, channelsPerPage: number) => void;
     joinChannel: (currentUserId: string, teamId: string, channelId: string) => Promise<ActionResult>;
     searchMoreChannels: (term: string, shouldShowArchivedChannels: boolean, shouldHideJoinedChannels: boolean) => Promise<ActionResult>;
     openModal: <P>(modalData: ModalData<P>) => void;
@@ -48,6 +49,7 @@ type Actions = {
 export type Props = {
     channels: Channel[];
     archivedChannels: Channel[];
+    privateChannels: Channel[];
     currentUserId: string;
     teamId: string;
     teamName: string;
@@ -63,7 +65,9 @@ export type Props = {
 
 type State = {
     loading: boolean;
+    // todo sinan change it to filterState: (allChannels, archivedChannels, privateChannels)
     shouldShowArchivedChannels: boolean;
+    shouldShowPrivateChannels: boolean;
     search: boolean;
     searchedChannels: Channel[];
     serverError: React.ReactNode | string;
@@ -83,6 +87,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         this.state = {
             loading: true,
             shouldShowArchivedChannels: this.props.morePublicChannelsModalType === 'private',
+            shouldShowPrivateChannels: this.props.morePublicChannelsModalType === 'private',
             search: false,
             searchedChannels: [],
             serverError: null,
@@ -96,6 +101,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         if (this.props.canShowArchivedChannels) {
             this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
         }
+        this.props.actions.getPrivateChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
         this.loadComplete();
     }
 
@@ -157,6 +163,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         }
     };
 
+    // todo sinan check if you need to do something with private channels
     search = (term: string) => {
         clearTimeout(this.searchTimeoutId);
 
@@ -201,6 +208,12 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         this.setState({shouldShowArchivedChannels});
     };
 
+    togglePrivateChannels = (shouldShowPrivateChannels: boolean) => {
+        // search again when switching channels to update search results
+        this.search(this.state.searchTerm);
+        this.setState({shouldShowPrivateChannels});
+    };
+
     isMemberOfChannel(channelId: string) {
         return this.props.myChannelMemberships[channelId];
     }
@@ -221,6 +234,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
             teamId,
             channelsRequestStarted,
             shouldHideJoinedChannels,
+            privateChannels
         } = this.props;
 
         const {
@@ -229,19 +243,24 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
             serverError: serverErrorState,
             searching,
             shouldShowArchivedChannels,
+            shouldShowPrivateChannels,
         } = this.state;
 
         const otherChannelsWithoutJoined = channels.filter((channel) => !this.isMemberOfChannel(channel.id));
         const archivedChannelsWithoutJoined = archivedChannels.filter((channel) => !this.isMemberOfChannel(channel.id));
+        const privateChannelsWithoutJoined = privateChannels.filter((channel) => !this.isMemberOfChannel(channel.id));
 
-        if (shouldShowArchivedChannels && shouldHideJoinedChannels) {
-            this.activeChannels = search ? searchedChannels : archivedChannelsWithoutJoined;
-        } else if (shouldShowArchivedChannels && !shouldHideJoinedChannels) {
-            this.activeChannels = search ? searchedChannels : archivedChannels;
-        } else if (!shouldShowArchivedChannels && shouldHideJoinedChannels) {
-            this.activeChannels = search ? searchedChannels : otherChannelsWithoutJoined;
+
+        if (search) {
+            this.activeChannels = searchedChannels;
         } else {
-            this.activeChannels = search ? searchedChannels : channels;
+            if (shouldShowArchivedChannels) {
+                this.activeChannels = shouldHideJoinedChannels ? archivedChannelsWithoutJoined : archivedChannels;
+            } else if (shouldShowPrivateChannels) {
+                this.activeChannels = shouldHideJoinedChannels ? privateChannelsWithoutJoined : privateChannels;
+            } else {
+                this.activeChannels = shouldHideJoinedChannels ? otherChannelsWithoutJoined : channels;
+            }
         }
 
         let serverError;
@@ -282,11 +301,11 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('primaryButton', <i className='icon-plus'/>)}
+                {createNewChannelButton('primaryButton', <i className='icon-plus' />)}
             </>
         );
 
-        const body = this.state.loading ? <LoadingScreen/> : (
+        const body = this.state.loading ? <LoadingScreen /> : (
             <React.Fragment>
                 <SearchableChannelList
                     channels={this.activeChannels}
@@ -298,7 +317,9 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
                     noResultsText={noResultsText}
                     loading={search ? searching : channelsRequestStarted}
                     toggleArchivedChannels={this.toggleArchivedChannels}
+                    togglePrivateChannels={this.togglePrivateChannels}
                     shouldShowArchivedChannels={this.state.shouldShowArchivedChannels}
+                    shouldShowPrivateChannels={this.state.shouldShowPrivateChannels}
                     canShowArchivedChannels={this.props.canShowArchivedChannels}
                     myChannelMemberships={this.props.myChannelMemberships}
                     closeModal={this.props.actions.closeModal}
