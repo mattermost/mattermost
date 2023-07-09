@@ -27,6 +27,7 @@ import {t} from 'utils/i18n';
 import MenuWrapper from './widgets/menu/menu_wrapper';
 import Menu from './widgets/menu/menu';
 import {isKeyPressed} from 'utils/keyboard';
+import {FILTER, FilterType} from './more_channels/more_channels';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 
@@ -38,10 +39,8 @@ type Props = {
     search: (term: string) => void;
     handleJoin: (channel: Channel, done: () => void) => void;
     noResultsText: JSX.Element;
-    toggleArchivedChannels: (shouldShowArchivedChannels: boolean) => void;
-    togglePrivateChannels: (shouldShowPrivateChannels: boolean) => void;
-    shouldShowArchivedChannels: boolean;
-    shouldShowPrivateChannels: boolean;
+    changeFilter: (filter: FilterType) => void;
+    filter: FilterType;
     myChannelMemberships: RelationOneToOne<Channel, ChannelMembership>;
     closeModal: (modalId: string) => void;
     hideJoinedChannelsPreference: (shouldHideJoinedChannels: boolean) => void;
@@ -243,18 +242,6 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
     handleClear = () => {
         this.setState({channelSearchValue: ''}, () => this.doSearch());
     };
-    toggleArchivedChannelsOn = () => {
-        this.props.toggleArchivedChannels(true);
-    };
-    toggleArchivedChannelsOff = () => {
-        this.props.toggleArchivedChannels(false);
-    };
-    togglePrivateChannelsOn = () => {
-        this.props.togglePrivateChannels(true);
-    };
-    togglePrivateChannelsOff = () => {
-        this.props.togglePrivateChannels(false);
-    };
     handleChecked = () => {
         // If it was checked, and now we're unchecking it, clear the preference
         if (this.props.rememberHideJoinedChannelsChecked) {
@@ -270,6 +257,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
         let nextButton;
         let previousButton;
 
+        // todo sinan fix empty state
         let emptyStateMessage = (
             <FormattedMessage
                 id={this.props.shouldShowArchivedChannels ? t('more_channels.noArchived') : t('more_channels.noPublic')}
@@ -384,6 +372,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
             channelDropdown = (
                 <MenuWrapper id='channelsMoreDropdown'>
                     <button id='menuWrapper'>
+                        {/* todo sinan fix title */}
                         <span>{this.props.shouldShowArchivedChannels ? localizeMessage('more_channels.show_archived_channels', 'Channel Type: Archived') : localizeMessage('more_channels.show_public_channels', 'Channel Type: Public')}</span>
                         <ChevronDownIcon
                             color={'rgba(var(--center-channel-color-rgb), 0.64)'}
@@ -396,29 +385,38 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                     >
                         <div id='modalPreferenceContainer'>
                             <Menu.ItemAction
-                                id='channelsMoreDropdownPublic'
-                                // onClick={this.toggleArchivedChannelsOff && this.togglePrivateChannelsOff} // todo sinan fix and add all channels
-                                onClick={this.toggleArchivedChannelsOff}
-                                icon={<GlobeIcon size={16}/>}
-                                text={localizeMessage('suggestion.search.public', 'Public Channels')}
-                                rightDecorator={this.props.shouldShowArchivedChannels ? null : checkIcon}
-                                ariaLabel={localizeMessage('suggestion.search.public', 'Public Channels')}
+                                id='channelsMoreDropdownAll'
+                                onClick={() => this.props.changeFilter(FILTER.all)}
+                                icon={<GlobeIcon size={16}/>} //  todo sinan find correct icon
+                                text={localizeMessage('suggestion.search.all', 'All channel types')} // todo sinan add to localization
+                                rightDecorator={this.props.filter === FILTER.all ? checkIcon : null}
+                                ariaLabel={localizeMessage('suggestion.search.all', 'All channel types')}
                             />
                         </div>
                         <Menu.ItemAction
+                            id='channelsMoreDropdownPublic'
+
+                            // onClick={this.toggleArchivedChannelsOff}
+                            onClick={() => this.props.changeFilter(FILTER.public)}
+                            icon={<GlobeIcon size={16}/>}
+                            text={localizeMessage('suggestion.search.public', 'Public Channels')}
+                            rightDecorator={this.props.filter === FILTER.public ? checkIcon : null}
+                            ariaLabel={localizeMessage('suggestion.search.public', 'Public Channels')}
+                        />
+                        <Menu.ItemAction
                             id='channelsMoreDropdownArchived'
-                            onClick={this.toggleArchivedChannelsOn}
+                            onClick={() => this.props.changeFilter(FILTER.archived)}
                             icon={<ArchiveOutlineIcon size={16}/>}
                             text={localizeMessage('suggestion.archive', 'Archived Channels')}
-                            rightDecorator={this.props.shouldShowArchivedChannels ? checkIcon : null}
+                            rightDecorator={this.props.filter === FILTER.archived ? checkIcon : null}
                             ariaLabel={localizeMessage('suggestion.archive', 'Archived Channels')}
                         />
                         <Menu.ItemAction
                             id='channelsMoreDropdownPrivate'
-                            onClick={this.togglePrivateChannelsOn}
-                            icon={<ArchiveOutlineIcon size={16} />}
+                            onClick={() => this.props.changeFilter(FILTER.private)}
+                            icon={<LockOutlineIcon size={16}/>}
                             text={localizeMessage('suggestion.private', 'Private Channels')} // todo sinan add this to localization
-                            rightDecorator={this.props.shouldShowPrivateChannels ? checkIcon : null} // todo sinan burada kaldin
+                            rightDecorator={this.props.filter === FILTER.private ? checkIcon : null}
                             ariaLabel={localizeMessage('suggestion.private', 'Private Channels')}
                         />
                     </Menu>
