@@ -6,7 +6,7 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
 >
   <BackstageHeader>
     <Link
-      to="/test/integrations/outgoing_webhooks"
+      to="/team_name/integrations/outgoing_webhooks"
     >
       <MemoizedFormattedMessage
         defaultMessage="Outgoing Webhooks"
@@ -14,8 +14,8 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
       />
     </Link>
     <MemoizedFormattedMessage
-      defaultMessage="add"
-      id="add"
+      defaultMessage="Header"
+      id="header_id"
     />
   </BackstageHeader>
   <div
@@ -43,10 +43,10 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
           <input
             className="form-control"
             id="displayName"
-            maxLength="64"
+            maxLength={64}
             onChange={[Function]}
             type="text"
-            value=""
+            value="testOutgoingWebhook"
           />
           <div
             className="form__help"
@@ -76,10 +76,10 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
           <input
             className="form-control"
             id="description"
-            maxLength="500"
+            maxLength={500}
             onChange={[Function]}
             type="text"
-            value=""
+            value="testing"
           />
           <div
             className="form__help"
@@ -109,7 +109,7 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
           <select
             className="form-control"
             onChange={[Function]}
-            value="application/x-www-form-urlencoded"
+            value="test_content_type"
           >
             <option
               value="application/x-www-form-urlencoded"
@@ -164,10 +164,11 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
           className="col-md-5 col-sm-8"
         >
           <Connect(ChannelSelect)
-            id="channelId"
             onChange={[Function]}
+            selectDm={false}
             selectOpen={true}
-            value=""
+            selectPrivate={false}
+            value="88cxd9wpzpbpfp8pad78xj75pr"
           />
           <div
             className="form__help"
@@ -197,10 +198,13 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
           <textarea
             className="form-control"
             id="triggerWords"
-            maxLength="1000"
+            maxLength={1000}
             onChange={[Function]}
-            rows="3"
-            value=""
+            rows={3}
+            value="test
+trigger
+word
+"
           />
           <div
             className="form__help"
@@ -271,10 +275,12 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
           <textarea
             className="form-control"
             id="callbackUrls"
-            maxLength="1000"
+            maxLength={1000}
             onChange={[Function]}
-            rows="3"
-            value=""
+            rows={3}
+            value="callbackUrl1.com
+callbackUrl2.com
+"
           />
           <div
             className="form__help"
@@ -314,7 +320,7 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
         />
         <Link
           className="btn btn-link btn-sm"
-          to="/test/integrations/outgoing_webhooks"
+          to="/team_name/integrations/outgoing_webhooks"
         >
           <MemoizedFormattedMessage
             defaultMessage="Cancel"
@@ -326,12 +332,12 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
           id="saveWebhook"
           onClick={[Function]}
           spinning={false}
-          spinningText="loading"
+          spinningText="Loading"
           type="submit"
         >
           <MemoizedFormattedMessage
-            defaultMessage="save"
-            id="save"
+            defaultMessage="Footer"
+            id="footer_id"
           />
         </SpinnerButton>
       </div>
