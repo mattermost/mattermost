@@ -79,15 +79,9 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         return landingPreference && landingPreference === LandingPreferenceTypes.BROWSER;
     };
 
-    isIFrame = () => {
-        let ret = false;
-        try {
-            ret = window.self !== window.top;
-        } catch (e) {
-            ret = true;
-        }
-        document.cookie = 'MMEMBED=' + (ret ? '1' : '0') + '; path=/';
-        return ret;
+    isEmbedded = () => {
+        // this cookie is set when Mattermost is embedded in another app via iframe.
+        return document.cookie.includes('MMEMBED=1');
     };
 
     checkLandingPreferenceApp = () => {
@@ -446,7 +440,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     render() {
         const isMobile = UserAgent.isMobile();
 
-        if (this.checkLandingPreferenceBrowser() || this.isIFrame()) {
+        if (this.checkLandingPreferenceBrowser() || this.isEmbedded()) {
             this.openInBrowser();
             return null;
         }
