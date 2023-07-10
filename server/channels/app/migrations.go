@@ -48,7 +48,7 @@ func (s *Server) doAdvancedPermissionsMigration() error {
 		if err == nil {
 			continue
 		}
-		mlog.Info("Couldn't save the role for advanced permissions migration, this can be an expected case", mlog.Err(err))
+		mlog.Warn("Couldn't save the role for advanced permissions migration, this can be an expected case", mlog.Err(err))
 
 		// If this failed for reasons other than the role already existing, don't mark the migration as done.
 		fetchedRole, err := s.Store().Role().GetByName(context.Background(), role.Name)
