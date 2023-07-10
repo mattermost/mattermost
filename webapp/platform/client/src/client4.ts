@@ -1747,7 +1747,7 @@ export default class Client4 {
         );
     };
 
-    getChannelStats = (channelId: string, excludeFilesCount = false) => {
+    getChannelStats = (channelId: string, excludeFilesCount = true) => {
         const param = excludeFilesCount ? `?exclude_files_count=${excludeFilesCount}` : '';
         return this.doFetch<ChannelStats>(
             `${this.getChannelRoute(channelId)}/stats${param}`,
