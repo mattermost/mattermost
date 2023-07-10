@@ -11,10 +11,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/server"
+	"github.com/mattermost/mattermost/server/v8/boards/server"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func TestSetConfiguration(t *testing.T) {
@@ -74,18 +74,6 @@ func TestSetConfiguration(t *testing.T) {
 		config := server.CreateBoardsConfig(*mmConfig, "", "testId")
 		assert.Equal(t, true, config.Telemetry)
 		assert.Equal(t, "testId", config.TelemetryID)
-	})
-
-	t.Run("test enable shared boards", func(t *testing.T) {
-		baseProductSettings := &model.ProductSettings{
-			EnablePublicSharedBoards: &falseRef,
-		}
-
-		mmConfig := baseConfig
-		mmConfig.ProductSettings = *baseProductSettings
-		mmConfig.ProductSettings.EnablePublicSharedBoards = &boolTrue
-		config := server.CreateBoardsConfig(*mmConfig, "", "")
-		assert.Equal(t, true, config.EnablePublicSharedBoards)
 	})
 
 	t.Run("test boards feature flags", func(t *testing.T) {

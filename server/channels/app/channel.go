@@ -12,17 +12,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/logr/v2"
-
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // channelsWrapper provides an implementation of `product.ChannelService` to be used by products.
@@ -189,35 +187,6 @@ func (a *App) JoinDefaultChannels(c request.CTX, teamID string, user *model.User
 		message.Add("user_id", user.Id)
 		message.Add("team_id", channel.TeamId)
 		a.Publish(message)
-
-		// A/B Test on the welcome post
-		if a.Config().FeatureFlags.SendWelcomePost && channelName == model.DefaultChannelName {
-			nbTeams, err := a.Srv().Store().Team().AnalyticsTeamCount(&model.TeamSearch{
-				IncludeDeleted: model.NewBool(true),
-			})
-			if err != nil {
-				c.Logger().Warn("unable to get number of teams", logr.Err(err))
-				return nil
-			}
-
-			if nbTeams == 1 && a.IsFirstAdmin(user) {
-				// Post the welcome message
-				if _, err := a.CreatePost(c, &model.Post{
-					ChannelId: channel.Id,
-					Type:      model.PostTypeWelcomePost,
-					UserId:    user.Id,
-				}, channel, false, false); err != nil {
-					c.Logger().Warn("unable to post welcome message", logr.Err(err))
-					return nil
-				}
-				ts := a.Srv().GetTelemetryService()
-				if ts != nil {
-					ts.SendTelemetry("welcome-message-sent", map[string]any{
-						"category": "growth",
-					})
-				}
-			}
-		}
 	}
 
 	if nErr != nil {
@@ -1332,6 +1301,14 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 
 	if desktop, exists := data[model.DesktopNotifyProp]; exists {
 		filteredProps[model.DesktopNotifyProp] = desktop
+	}
+
+	if desktop_sound, exists := data[model.DesktopSoundNotifyProp]; exists {
+		filteredProps[model.DesktopSoundNotifyProp] = desktop_sound
+	}
+
+	if desktop_notification_sound, exists := data["desktop_notification_sound"]; exists {
+		filteredProps["desktop_notification_sound"] = desktop_notification_sound
 	}
 
 	if desktop_threads, exists := data[model.DesktopThreadsNotifyProp]; exists {
@@ -2976,7 +2953,7 @@ func (a *App) SearchChannelsUserNotIn(c request.CTX, teamID string, userID strin
 	return channelList, nil
 }
 
-func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
+func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError) {
 	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
 	channelsToClearPushNotifications := []string{}
 	if a.canSendPushNotifications() {
@@ -3019,7 +2996,7 @@ func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID st
 	}
 
 	var err error
-	updateThreads := *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !a.IsCRTEnabledForUser(c, userID))
+	updateThreads := *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !isCRTEnabled)
 	if updateThreads {
 		err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, channelIDs)
 		if err != nil {
@@ -3049,7 +3026,7 @@ func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID st
 		a.clearPushNotification(currentSessionId, userID, channelID, "")
 	}
 
-	if updateThreads && a.IsCRTEnabledForUser(c, userID) {
+	if updateThreads && isCRTEnabled {
 		timestamp := model.GetMillis()
 		for _, channelID := range channelIDs {
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
@@ -3080,7 +3057,7 @@ func (a *App) ViewChannel(c request.CTX, view *model.ChannelView, userID string,
 		return map[string]int64{}, nil
 	}
 
-	return a.MarkChannelsAsViewed(c, channelIDs, userID, currentSessionId, collapsedThreadsSupported)
+	return a.MarkChannelsAsViewed(c, channelIDs, userID, currentSessionId, collapsedThreadsSupported, a.IsCRTEnabledForUser(c, userID))
 }
 
 func (a *App) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError {

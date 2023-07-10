@@ -6,8 +6,8 @@ package post_persistent_notifications
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
 type Scheduler struct {

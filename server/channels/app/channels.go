@@ -11,16 +11,16 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 const ServerKey product.ServiceKey = "server"
@@ -83,12 +83,6 @@ type Channels struct {
 
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
-
-	// collectionTypes maps from collection types to the registering plugin id
-	collectionTypes map[string]string
-	// topicTypes maps from topic types to collection types
-	topicTypes                 map[string]string
-	collectionAndTopicTypesMut sync.Mutex
 }
 
 func init() {
@@ -111,11 +105,9 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 		return nil, errors.New("server not passed")
 	}
 	ch := &Channels{
-		srv:             s,
-		imageProxy:      imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap:   map[string]bool{},
-		collectionTypes: map[string]string{},
-		topicTypes:      map[string]string{},
+		srv:           s,
+		imageProxy:    imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap: map[string]bool{},
 	}
 
 	// To get another service:

@@ -65,7 +65,6 @@ describe('components/TextBox', () => {
                 onComposition={() => {}}
                 onHeightChange={() => {}}
                 onKeyDown={() => {}}
-                onSelect={() => {}}
                 onMouseUp={() => {}}
                 onKeyUp={() => {}}
                 onBlur={() => {}}

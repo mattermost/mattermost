@@ -15,15 +15,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 const (
@@ -100,9 +100,10 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 	// the post is NOT a reply post with CRT enabled
 	_, fromWebhook := post.GetProps()["from_webhook"]
 	_, fromBot := post.GetProps()["from_bot"]
-	isCRTReply := post.RootId != "" && a.IsCRTEnabledForUser(c, post.UserId)
+	isCRTEnabled := a.IsCRTEnabledForUser(c, post.UserId)
+	isCRTReply := post.RootId != "" && isCRTEnabled
 	if !fromWebhook && !fromBot && !isCRTReply {
-		if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
+		if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true, isCRTEnabled); err != nil {
 			c.Logger().Warn(
 				"Encountered error updating last viewed",
 				mlog.String("channel_id", post.ChannelId),
@@ -1336,6 +1337,12 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 	}
 	a.Srv().Go(func() {
 		a.deleteFlaggedPosts(post.Id)
+	})
+
+	a.Srv().Go(func() {
+		if err = a.RemoveNotifications(c, post, channel); err != nil {
+			a.Log().Error("DeletePost failed to delete notification", mlog.Err(err))
+		}
 	})
 
 	a.invalidateCacheForChannelPosts(post.ChannelId)

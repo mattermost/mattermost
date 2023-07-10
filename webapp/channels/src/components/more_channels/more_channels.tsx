@@ -2,23 +2,29 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import {ActionResult} from 'mattermost-redux/types/actions';
-import {Channel} from '@mattermost/types/channels';
+import {RelationOneToOne} from '@mattermost/types/utilities';
+import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
-import SearchableChannelList from 'components/searchable_channel_list.jsx';
+import SearchableChannelList from 'components/searchable_channel_list';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 
 import {ModalData} from 'types/actions';
 import {RhsState} from 'types/store/rhs';
 
 import {getHistory} from 'utils/browser_history';
-import {ModalIdentifiers, RHSStates} from 'utils/constants';
+import {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getRelativeChannelURL} from 'utils/url';
+import {GenericModal} from '@mattermost/components';
+import classNames from 'classnames';
+import {localizeMessage} from 'utils/utils';
+import LoadingScreen from 'components/loading_screen';
+
+import './more_channels.scss';
 
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
@@ -28,9 +34,14 @@ type Actions = {
     getChannels: (teamId: string, page: number, perPage: number) => void;
     getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => void;
     joinChannel: (currentUserId: string, teamId: string, channelId: string) => Promise<ActionResult>;
-    searchMoreChannels: (term: string, shouldShowArchivedChannels: boolean) => Promise<ActionResult>;
+    searchMoreChannels: (term: string, shouldShowArchivedChannels: boolean, shouldHideJoinedChannels: boolean) => Promise<ActionResult>;
     openModal: <P>(modalData: ModalData<P>) => void;
     closeModal: (modalId: string) => void;
+
+    /*
+     * Function to set a key-value pair in the local storage
+     */
+    setGlobalItem: (name: string, value: string) => void;
     closeRightHandSide: () => void;
 }
 
@@ -43,13 +54,15 @@ export type Props = {
     channelsRequestStarted?: boolean;
     canShowArchivedChannels?: boolean;
     morePublicChannelsModalType?: string;
+    myChannelMemberships: RelationOneToOne<Channel, ChannelMembership>;
+    shouldHideJoinedChannels: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
     actions: Actions;
 }
 
 type State = {
-    show: boolean;
+    loading: boolean;
     shouldShowArchivedChannels: boolean;
     search: boolean;
     searchedChannels: Channel[];
@@ -60,6 +73,7 @@ type State = {
 
 export default class MoreChannels extends React.PureComponent<Props, State> {
     public searchTimeoutId: number;
+    activeChannels: Channel[] = [];
 
     constructor(props: Props) {
         super(props);
@@ -67,7 +81,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         this.searchTimeoutId = 0;
 
         this.state = {
-            show: true,
+            loading: true,
             shouldShowArchivedChannels: this.props.morePublicChannelsModalType === 'private',
             search: false,
             searchedChannels: [],
@@ -82,10 +96,11 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         if (this.props.canShowArchivedChannels) {
             this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
         }
+        this.loadComplete();
     }
 
-    handleHide = () => {
-        this.setState({show: false});
+    loadComplete = () => {
+        this.setState({loading: false});
     };
 
     handleNewChannel = () => {
@@ -124,14 +139,17 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
 
     handleJoin = async (channel: Channel, done: () => void) => {
         const {actions, currentUserId, teamId, teamName} = this.props;
-        const result = await actions.joinChannel(currentUserId, teamId, channel.id);
+        let result;
 
-        if (result.error) {
+        if (!this.isMemberOfChannel(channel.id)) {
+            result = await actions.joinChannel(currentUserId, teamId, channel.id);
+        }
+
+        if (result?.error) {
             this.setState({serverError: result.error.message});
         } else {
             getHistory().push(getRelativeChannelURL(teamName, channel.name));
             this.closeEditRHS();
-            this.handleHide();
         }
 
         if (done) {
@@ -153,7 +171,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         const searchTimeoutId = window.setTimeout(
             async () => {
                 try {
-                    const {data} = await this.props.actions.searchMoreChannels(term, this.state.shouldShowArchivedChannels);
+                    const {data} = await this.props.actions.searchMoreChannels(term, this.state.shouldShowArchivedChannels, this.props.shouldHideJoinedChannels);
                     if (searchTimeoutId !== this.searchTimeoutId) {
                         return;
                     }
@@ -183,29 +201,47 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         this.setState({shouldShowArchivedChannels});
     };
 
+    isMemberOfChannel(channelId: string) {
+        return this.props.myChannelMemberships[channelId];
+    }
+
+    handleShowJoinedChannelsPreference = (shouldHideJoinedChannels: boolean) => {
+        // search again when switching channels to update search results
+        this.search(this.state.searchTerm);
+        this.props.actions.setGlobalItem(StoragePrefixes.HIDE_JOINED_CHANNELS, shouldHideJoinedChannels.toString());
+    };
+
+    otherChannelsWithoutJoined = this.props.channels.filter((channel) => !this.isMemberOfChannel(channel.id));
+    archivedChannelsWithoutJoined = this.props.archivedChannels.filter((channel) => !this.isMemberOfChannel(channel.id));
+
     render() {
         const {
             channels,
             archivedChannels,
             teamId,
             channelsRequestStarted,
+            shouldHideJoinedChannels,
         } = this.props;
 
         const {
             search,
             searchedChannels,
             serverError: serverErrorState,
-            show,
             searching,
             shouldShowArchivedChannels,
         } = this.state;
 
-        let activeChannels;
+        const otherChannelsWithoutJoined = channels.filter((channel) => !this.isMemberOfChannel(channel.id));
+        const archivedChannelsWithoutJoined = archivedChannels.filter((channel) => !this.isMemberOfChannel(channel.id));
 
-        if (shouldShowArchivedChannels) {
-            activeChannels = search ? searchedChannels : archivedChannels;
+        if (shouldShowArchivedChannels && shouldHideJoinedChannels) {
+            this.activeChannels = search ? searchedChannels : archivedChannelsWithoutJoined;
+        } else if (shouldShowArchivedChannels && !shouldHideJoinedChannels) {
+            this.activeChannels = search ? searchedChannels : archivedChannels;
+        } else if (!shouldShowArchivedChannels && shouldHideJoinedChannels) {
+            this.activeChannels = search ? searchedChannels : otherChannelsWithoutJoined;
         } else {
-            activeChannels = search ? searchedChannels : channels;
+            this.activeChannels = search ? searchedChannels : channels;
         }
 
         let serverError;
@@ -214,87 +250,87 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
                 <div className='form-group has-error'><label className='control-label'>{serverErrorState}</label></div>;
         }
 
-        const createNewChannelButton = (
-            <TeamPermissionGate
-                teamId={teamId}
-                permissions={[Permissions.CREATE_PUBLIC_CHANNEL]}
-            >
-                <button
-                    id='createNewChannel'
-                    type='button'
-                    className='btn btn-primary channel-create-btn'
-                    onClick={this.handleNewChannel}
+        const createNewChannelButton = (className: string, icon?: JSX.Element) => {
+            const buttonClassName = classNames('btn', className);
+            return (
+                <TeamPermissionGate
+                    teamId={teamId}
+                    permissions={[Permissions.CREATE_PUBLIC_CHANNEL]}
                 >
-                    <FormattedMessage
-                        id='more_channels.create'
-                        defaultMessage='Create Channel'
-                    />
-                </button>
-            </TeamPermissionGate>
-        );
+                    <button
+                        type='button'
+                        id='createNewChannelButton'
+                        className={buttonClassName}
+                        onClick={this.handleNewChannel}
+                        aria-label={localizeMessage('more_channels.create', 'Create New Channel')}
+                    >
+                        {icon}
+                        <FormattedMessage
+                            id='more_channels.create'
+                            defaultMessage='Create New Channel'
+                        />
+                    </button>
+                </TeamPermissionGate>
+            );
+        };
 
-        const createChannelHelpText = (
-            <TeamPermissionGate
-                teamId={teamId}
-                permissions={[Permissions.CREATE_PUBLIC_CHANNEL, Permissions.CREATE_PRIVATE_CHANNEL]}
-            >
+        const noResultsText = (
+            <>
                 <p className='secondary-message'>
                     <FormattedMessage
-                        id='more_channels.createClick'
-                        defaultMessage="Click 'Create New Channel' to make a new one"
+                        id='more_channels.searchError'
+                        defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-            </TeamPermissionGate>
+                {createNewChannelButton('primaryButton', <i className='icon-plus'/>)}
+            </>
         );
 
-        const body = (
+        const body = this.state.loading ? <LoadingScreen/> : (
             <React.Fragment>
                 <SearchableChannelList
-                    channels={activeChannels}
+                    channels={this.activeChannels}
                     channelsPerPage={CHANNELS_PER_PAGE}
                     nextPage={this.nextPage}
                     isSearch={search}
                     search={this.search}
                     handleJoin={this.handleJoin}
-                    noResultsText={createChannelHelpText}
+                    noResultsText={noResultsText}
                     loading={search ? searching : channelsRequestStarted}
                     toggleArchivedChannels={this.toggleArchivedChannels}
                     shouldShowArchivedChannels={this.state.shouldShowArchivedChannels}
                     canShowArchivedChannels={this.props.canShowArchivedChannels}
+                    myChannelMemberships={this.props.myChannelMemberships}
+                    closeModal={this.props.actions.closeModal}
+                    hideJoinedChannelsPreference={this.handleShowJoinedChannelsPreference}
+                    rememberHideJoinedChannelsChecked={shouldHideJoinedChannels}
                 />
                 {serverError}
             </React.Fragment>
         );
 
+        const title = (
+            <FormattedMessage
+                id='more_channels.title'
+                defaultMessage='Browse Channels'
+            />
+        );
+
         return (
-            <Modal
-                dialogClassName='a11y__modal more-modal more-modal--action'
-                show={show}
-                onHide={this.handleHide}
+            <GenericModal
                 onExited={this.handleExit}
-                role='dialog'
                 id='moreChannelsModal'
                 aria-labelledby='moreChannelsModalLabel'
+                compassDesign={true}
+                modalHeaderText={title}
+                headerButton={createNewChannelButton('outlineButton')}
+                autoCloseOnConfirmButton={false}
+                aria-modal={true}
+                enforceFocus={false}
+                bodyPadding={false}
             >
-                <Modal.Header
-                    id='moreChannelsModalHeader'
-                    closeButton={true}
-                >
-                    <Modal.Title
-                        componentClass='h1'
-                        id='moreChannelsModalLabel'
-                    >
-                        <FormattedMessage
-                            id='more_channels.title'
-                            defaultMessage='More Channels'
-                        />
-                    </Modal.Title>
-                    {createNewChannelButton}
-                </Modal.Header>
-                <Modal.Body>
-                    {body}
-                </Modal.Body>
-            </Modal>
+                {body}
+            </GenericModal>
         );
     }
 }

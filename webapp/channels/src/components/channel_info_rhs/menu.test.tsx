@@ -2,9 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act, fireEvent, screen} from '@testing-library/react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {
+    act,
+    fireEvent,
+    renderWithIntl,
+    screen,
+} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import {Channel, ChannelStats} from '@mattermost/types/channels';

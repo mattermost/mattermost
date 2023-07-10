@@ -31,7 +31,7 @@ func (o *ChannelCounts) Etag() string {
 
 	md5Counts := fmt.Sprintf("%x", md5.Sum([]byte(str)))
 
-	var update int64 = 0
+	var update int64
 	for _, u := range o.UpdateTimes {
 		if u > update {
 			update = u

@@ -1,0 +1,25 @@
+{
+  "name": "mattermost-api-reference",
+  "version": "1.0.0",
+  "description": "This respository holds the API reference available at [https://api.mattermost.com](https://api.mattermost.com).",
+  "main": "index.js",
+  "dependencies": {
+    "redoc-cli": "0.13.17",
+    "swagger-cli": "4.0.4",
+    "sync-fetch": "0.4.1",
+    "yaml": "2.1.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattermost/mattermost-api-reference.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mattermost/mattermost-api-reference/issues"
+  },
+  "homepage": "https://github.com/mattermost/mattermost-api-reference#readme"
+}

@@ -11,14 +11,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/utils"
 )
 
 var (
 	OneHour int64 = 360000
-	OneDay  int64 = OneHour * 24
-	OneYear int64 = OneDay * 365
+	OneDay        = OneHour * 24
+	OneYear       = OneDay * 365
 )
 
 func setupTestHelperForCompliance(t *testing.T, complianceLicense bool) (*TestHelper, Clients) {

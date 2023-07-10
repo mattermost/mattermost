@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest-8-cores
     timeout-minutes: 30
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Run docker compose
         run: |
@@ -61,8 +61,8 @@ jobs:
             --env-file=dotenv/test.env \
             --env MM_SQLSETTINGS_DRIVERNAME="mysql" \
             --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304" \
-            -v ~/work/mattermost:/mattermost \
-            -w /mattermost/mattermost \
+            -v ~/work/mattermost:/mm \
+            -w /mm \
             $BUILD_IMAGE &
           # In parallel, wait for the migrations to finish.
           # To verify this, we check that the server has finished the startup job through the log line "Server is listening on"
@@ -97,7 +97,7 @@ jobs:
     runs-on: ubuntu-latest-8-cores
     timeout-minutes: 30
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Run docker compose
         run: |
@@ -139,7 +139,7 @@ jobs:
           name: upgraded-dump-script
           path: ${{ env.DUMP_SCRIPT_NAME }}.gz
   esr-upgrade-diff:
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest
     needs:
       - esr-upgrade-server
       - esr-upgrade-script

@@ -1,0 +1,225 @@
+  /api/v4/jobs:
+    get:
+      tags:
+        - jobs
+      summary: Get the jobs.
+      description: >
+        Get a page of jobs. Use the query parameters to modify the behaviour of
+        this endpoint.
+
+        __Minimum server version: 4.1__
+
+        ##### Permissions
+
+        Must have `manage_jobs` permission.
+      operationId: GetJobs
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of jobs per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Job list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - jobs
+      summary: Create a new job.
+      description: |
+        Create a new job.
+        __Minimum server version: 4.1__
+        ##### Permissions
+        Must have `manage_jobs` permission.
+      operationId: CreateJob
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+              properties:
+                type:
+                  type: string
+                  description: The type of job to create
+                data:
+                  type: object
+                  description: An object containing any additional data required for this
+                    job type
+        description: Job object to be created
+        required: true
+      responses:
+        "201":
+          description: Job creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/jobs/{job_id}":
+    get:
+      tags:
+        - jobs
+      summary: Get a job.
+      description: |
+        Gets a single job.
+        __Minimum server version: 4.1__
+        ##### Permissions
+        Must have `manage_jobs` permission.
+      operationId: GetJob
+      parameters:
+        - name: job_id
+          in: path
+          description: Job GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Job retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/jobs/{job_id}/download":
+    get:
+      tags:
+        - jobs
+      summary: Download the results of a job.
+      description: |
+        Download the result of a single job.
+        __Minimum server version: 5.28__
+        ##### Permissions
+        Must have `manage_jobs` permission.
+      operationId: DownloadJob
+      parameters:
+        - name: job_id
+          in: path
+          description: Job GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/jobs/{job_id}/cancel":
+    post:
+      tags:
+        - jobs
+      summary: Cancel a job.
+      description: |
+        Cancel a job.
+        __Minimum server version: 4.1__
+        ##### Permissions
+        Must have `manage_jobs` permission.
+      operationId: CancelJob
+      parameters:
+        - name: job_id
+          in: path
+          description: Job GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Job canceled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/jobs/type/{type}":
+    get:
+      tags:
+        - jobs
+      summary: Get the jobs of the given type.
+      description: >
+        Get a page of jobs of the given type. Use the query parameters to modify
+        the behaviour of this endpoint.
+
+        __Minimum server version: 4.1__
+
+        ##### Permissions
+
+        Must have `manage_jobs` permission.
+      operationId: GetJobsByType
+      parameters:
+        - name: type
+          in: path
+          description: Job type
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of jobs per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Job list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
