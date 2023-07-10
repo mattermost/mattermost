@@ -677,7 +677,6 @@ const defaultServerConfig: AdminConfig = {
         PeopleProduct: false,
         ReduceOnBoardingTaskList: false,
         ThreadsEverywhere: false,
-        GlobalDrafts: true,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
         CloudReverseTrial: false,
