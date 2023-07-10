@@ -120,7 +120,7 @@ func TestSessionHasPermissionToChannelContent(t *testing.T) {
 	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 	require.Nil(t, err)
 
-	session2, err2 := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	session2, err2 := th.App.CreateSession(&model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
 	require.Nil(t, err2)
 
 	dm, err := th.App.createDirectChannel(th.Context, th.BasicUser2.Id, th.SystemAdminUser.Id)
