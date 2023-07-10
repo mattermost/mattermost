@@ -40,7 +40,6 @@ export type FilterType = keyof typeof FILTER;
 type Actions = {
     getChannels: (teamId: string, page: number, perPage: number) => void;
     getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => void;
-    getPrivateChannels: (teamId: string, page: number, channelsPerPage: number) => void;
     joinChannel: (currentUserId: string, teamId: string, channelId: string) => Promise<ActionResult>;
     searchMoreChannels: (term: string, shouldShowArchivedChannels: boolean, shouldHideJoinedChannels: boolean) => Promise<ActionResult>;
     openModal: <P>(modalData: ModalData<P>) => void;
@@ -105,7 +104,6 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         if (this.props.canShowArchivedChannels) {
             this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
         }
-        this.props.actions.getPrivateChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
         this.loadComplete();
     }
 

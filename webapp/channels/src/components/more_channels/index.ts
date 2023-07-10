@@ -11,7 +11,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {Action, ActionResult} from 'mattermost-redux/types/actions';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getChannels, getArchivedChannels, joinChannel, getPrivateChannels} from 'mattermost-redux/actions/channels';
+import {getChannels, getArchivedChannels, joinChannel} from 'mattermost-redux/actions/channels';
 import {getChannelsInCurrentTeam, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 
 import {searchMoreChannels} from 'actions/channel_actions';
@@ -83,7 +83,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
             getChannels,
             getArchivedChannels,
-            getPrivateChannels,
             joinChannel,
             searchMoreChannels,
             openModal,
