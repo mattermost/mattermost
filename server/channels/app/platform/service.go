@@ -252,9 +252,9 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.exportFilestore = ps.filestore
 		if *ps.Config().FileSettings.DedicatedExportStore {
 			insecure := ps.Config().ServiceSettings.EnableInsecureOutgoingConnections
-			backend, err2 := filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
-			if err2 != nil {
-				return nil, fmt.Errorf("failed to initialize export filebackend: %w", err2)
+			backend, errFileBack := filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+			if errFileBack != nil {
+				return nil, fmt.Errorf("failed to initialize export filebackend: %w", errFileBack)
 			}
 
 			ps.exportFilestore = backend
