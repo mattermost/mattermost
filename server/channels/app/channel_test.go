@@ -1422,9 +1422,9 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	unread, err = th.App.GetChannelUnread(th.Context, c1.Id, u2.Id)
 	require.Nil(t, err)
 	require.Equal(t, int64(4), unread.MsgCount)
-	_, err = th.App.MarkChannelsAsViewed(th.Context, []string{c1.Id, pc1.Id}, u1.Id, "", false)
+	_, err = th.App.MarkChannelsAsViewed(th.Context, []string{c1.Id, pc1.Id}, u1.Id, "", false, false)
 	require.Nil(t, err)
-	_, err = th.App.MarkChannelsAsViewed(th.Context, []string{c1.Id, pc1.Id}, u2.Id, "", false)
+	_, err = th.App.MarkChannelsAsViewed(th.Context, []string{c1.Id, pc1.Id}, u2.Id, "", false, false)
 	require.Nil(t, err)
 	unread, err = th.App.GetChannelUnread(th.Context, c1.Id, u2.Id)
 	require.Nil(t, err)
@@ -2146,7 +2146,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	mockThreadStore.On("MarkAllAsReadByChannels", "userID", []string{"channelID"}).Return(nil)
 	mockStore.On("Thread").Return(&mockThreadStore)
 
-	_, appErr := th.App.MarkChannelsAsViewed(th.Context, []string{"channelID"}, "userID", th.Context.Session().Id, false)
+	_, appErr := th.App.MarkChannelsAsViewed(th.Context, []string{"channelID"}, "userID", th.Context.Session().Id, false, false)
 	require.Nil(t, appErr)
 }
 
@@ -2256,7 +2256,7 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 	require.Truef(t, found, "did not find created thread in user's threads")
 
 	// Mark channel as read from a client that supports CRT
-	_, appErr = th.App.MarkChannelsAsViewed(th.Context, []string{c1.Id}, u1.Id, th.Context.Session().Id, true)
+	_, appErr = th.App.MarkChannelsAsViewed(th.Context, []string{c1.Id}, u1.Id, th.Context.Session().Id, true, th.App.IsCRTEnabledForUser(th.Context, u1.Id))
 	require.Nil(t, appErr)
 
 	// Thread should be marked as read because CRT has been turned off by user
