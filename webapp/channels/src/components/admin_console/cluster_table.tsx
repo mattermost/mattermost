@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
+import React, {CSSProperties, MouseEvent, PureComponent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import * as Utils from 'utils/utils';
 import statusGreen from 'images/status_green.png';
@@ -16,7 +16,7 @@ type Props = {
         hostname: string;
         ipaddress: string;
     }>;
-    reload: () => void;
+    reload: (e: MouseEvent<HTMLButtonElement>) => void;
 }
 
 type Style = {
@@ -25,7 +25,7 @@ type Style = {
     warning: CSSProperties;
 }
 
-export default class ClusterTable extends React.PureComponent<Props> {
+export default class ClusterTable extends PureComponent<Props> {
     render() {
         let versionMismatch = (
             <img

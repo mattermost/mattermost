@@ -26,7 +26,6 @@ func TestGetDraft(t *testing.T) {
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	user := th.BasicUser
@@ -57,10 +56,7 @@ func TestGetDraft(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
 		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
 
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = false })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
-
-		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 		_, err := th.App.GetDraft(user.Id, channel.Id, "")
@@ -75,7 +71,6 @@ func TestUpsertDraft(t *testing.T) {
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	user := th.BasicUser
@@ -124,10 +119,7 @@ func TestUpsertDraft(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
 		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
 
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = false })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
-
-		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 		_, err := th.App.UpsertDraft(th.Context, draft, "")
@@ -142,7 +134,6 @@ func TestCreateDraft(t *testing.T) {
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	user := th.BasicUser
@@ -201,7 +192,6 @@ func TestUpdateDraft(t *testing.T) {
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	user := th.BasicUser
@@ -247,7 +237,6 @@ func TestGetDraftsForUser(t *testing.T) {
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	user := th.BasicUser
@@ -325,10 +314,7 @@ func TestGetDraftsForUser(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
 		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
 
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = false })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
-
-		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 		_, err := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
@@ -343,7 +329,6 @@ func TestDeleteDraft(t *testing.T) {
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	user := th.BasicUser
@@ -377,10 +362,7 @@ func TestDeleteDraft(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
 		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
 
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = false })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
-
-		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 		_, err := th.App.DeleteDraft(user.Id, channel.Id, "", "")

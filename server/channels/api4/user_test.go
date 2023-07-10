@@ -41,6 +41,7 @@ func TestCreateUser(t *testing.T) {
 		Username:      GenerateTestUsername(),
 		Roles:         model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 		EmailVerified: true,
+		DeleteAt:      1,
 	}
 
 	ruser, resp, err := th.Client.CreateUser(context.Background(), &user)
@@ -53,6 +54,7 @@ func TestCreateUser(t *testing.T) {
 
 	require.Equal(t, user.Nickname, ruser.Nickname, "nickname didn't match")
 	require.Equal(t, model.SystemUserRoleId, ruser.Roles, "did not clear roles")
+	require.Equal(t, int64(0), ruser.DeleteAt, "did not reset deleteAt")
 
 	CheckUserSanitization(t, ruser)
 

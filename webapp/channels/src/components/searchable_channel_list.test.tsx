@@ -18,6 +18,7 @@ describe('components/SearchableChannelList', () => {
         toggleArchivedChannels: jest.fn(),
         closeModal: jest.fn(),
         hideJoinedChannelsPreference: jest.fn(),
+        myChannelMemberships: {},
         shouldShowArchivedChannels: false,
         canShowArchivedChannels: false,
         rememberHideJoinedChannelsChecked: false,

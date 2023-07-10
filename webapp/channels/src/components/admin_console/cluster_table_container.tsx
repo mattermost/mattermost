@@ -1,15 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {MouseEvent, PureComponent} from 'react';
 
+import {ClusterInfo} from '@mattermost/types/admin';
 import {getClusterStatus} from 'actions/admin_actions.jsx';
 import LoadingScreen from '../loading_screen';
 
 import ClusterTable from './cluster_table';
 
-export default class ClusterTableContainer extends React.PureComponent {
-    constructor(props) {
+interface State {
+    clusterInfos: ClusterInfo[] | null;
+}
+
+export default class ClusterTableContainer extends PureComponent<null, State> {
+    interval: NodeJS.Timeout | null;
+
+    constructor(props: null) {
         super(props);
 
         this.interval = null;
@@ -21,7 +28,7 @@ export default class ClusterTableContainer extends React.PureComponent {
 
     load = () => {
         getClusterStatus(
-            (data) => {
+            (data: ClusterInfo[]) => {
                 this.setState({
                     clusterInfos: data,
                 });
@@ -43,7 +50,7 @@ export default class ClusterTableContainer extends React.PureComponent {
         }
     }
 
-    reload = (e) => {
+    reload = (e: MouseEvent<HTMLButtonElement>) => {
         if (e) {
             e.preventDefault();
         }
