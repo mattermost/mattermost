@@ -4,16 +4,32 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {AdminConfig, ClientLicense, ServiceSettings} from '@mattermost/types/config';
+
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import * as Utils from 'utils/utils';
 
-import AdminSettings from './admin_settings';
+import AdminSettings, {BaseState, BaseProps} from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
-export default class SessionLengthSettings extends AdminSettings {
-    getConfigFromState = (config) => {
+interface State extends BaseState {
+    extendSessionLengthWithActivity: ServiceSettings['ExtendSessionLengthWithActivity'];
+    sessionLengthWebInHours: ServiceSettings['SessionLengthWebInHours'];
+    sessionLengthMobileInHours: ServiceSettings['SessionLengthMobileInHours'];
+    sessionLengthSSOInHours: ServiceSettings['SessionLengthSSOInHours'];
+    sessionCacheInMinutes: ServiceSettings['SessionCacheInMinutes'];
+    sessionIdleTimeoutInMinutes: ServiceSettings['SessionIdleTimeoutInMinutes'];
+    sessionIdleTimeoutMobileInMinutes: ClientLicense['SessionIdleTimeoutMobileInMinutes'];
+}
+
+interface Props extends BaseProps {
+    license: ClientLicense;
+}
+
+export default class SessionLengthSettings extends AdminSettings<Props, State> {
+    getConfigFromState = (config: AdminConfig) => {
         const MINIMUM_IDLE_TIMEOUT = 5;
 
         config.ServiceSettings.ExtendSessionLengthWithActivity = this.state.extendSessionLengthWithActivity;
@@ -26,7 +42,7 @@ export default class SessionLengthSettings extends AdminSettings {
         return config;
     };
 
-    getStateFromConfig(config) {
+    getStateFromConfig(config: AdminConfig) {
         return {
             extendSessionLengthWithActivity: config.ServiceSettings.ExtendSessionLengthWithActivity,
             sessionLengthWebInHours: config.ServiceSettings.SessionLengthWebInHours,
@@ -94,6 +110,7 @@ export default class SessionLengthSettings extends AdminSettings {
             sessionTimeoutSetting = (
                 <TextSetting
                     id='sessionIdleTimeoutInMinutes'
+                    type='number'
                     label={
                         <FormattedMessage
                             id='admin.service.sessionIdleTimeout'
@@ -150,6 +167,7 @@ export default class SessionLengthSettings extends AdminSettings {
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionLengthWebInHours')}
                     disabled={this.props.isDisabled}
+                    type='number'
                 />
                 <TextSetting
                     id='sessionLengthMobileInHours'
@@ -157,14 +175,14 @@ export default class SessionLengthSettings extends AdminSettings {
                         <FormattedMessage
                             id='admin.service.mobileSessionHours'
                             defaultMessage='Session Length Mobile (hours):'
-                        />
-                    }
+                        />}
                     placeholder={Utils.localizeMessage('admin.service.sessionHoursEx', 'E.g.: "720"')}
                     helpText={sessionLengthMobileHelpText}
                     value={this.state.sessionLengthMobileInHours}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionLengthMobileInHours')}
                     disabled={this.props.isDisabled}
+                    type='number'
                 />
                 <TextSetting
                     id='sessionLengthSSOInHours'
@@ -172,14 +190,14 @@ export default class SessionLengthSettings extends AdminSettings {
                         <FormattedMessage
                             id='admin.service.ssoSessionHours'
                             defaultMessage='Session Length SSO (hours):'
-                        />
-                    }
+                        />}
                     placeholder={Utils.localizeMessage('admin.service.sessionHoursEx', 'E.g.: "720"')}
                     helpText={sessionLengthSSOHelpText}
                     value={this.state.sessionLengthSSOInHours}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionLengthSSOInHours')}
                     disabled={this.props.isDisabled}
+                    type='number'
                 />
                 <TextSetting
                     id='sessionCacheInMinutes'
@@ -187,19 +205,18 @@ export default class SessionLengthSettings extends AdminSettings {
                         <FormattedMessage
                             id='admin.service.sessionCache'
                             defaultMessage='Session Cache (minutes):'
-                        />
-                    }
+                        />}
                     placeholder={Utils.localizeMessage('admin.service.sessionMinutesEx', 'E.g.: "10"')}
                     helpText={
                         <FormattedMessage
                             id='admin.service.sessionCacheDesc'
                             defaultMessage='The number of minutes to cache a session in memory:'
-                        />
-                    }
+                        />}
                     value={this.state.sessionCacheInMinutes}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionCacheInMinutes')}
                     disabled={this.props.isDisabled}
+                    type='number'
                 />
                 {sessionTimeoutSetting}
             </SettingsGroup>

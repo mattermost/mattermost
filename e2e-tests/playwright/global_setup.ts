@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {expect} from '@playwright/test';
+
 import {UserProfile} from '@mattermost/types/users';
+import { PreferenceType } from '@mattermost/types/preferences';
 
 import {Client, createRandomTeam, getAdminClient, getDefaultAdminUser, makeClient} from './support/server';
 import {defaultTeam} from './support/util';
@@ -62,6 +64,9 @@ async function sysadminSetup(client: Client, user: UserProfile | null) {
                 .map((channel) => client.deleteChannel(channel.id))
         );
     }
+
+    // Set default preferences
+    await savePreferences(client, user?.id ?? '');
 
     // Ensure all products as plugin are installed and active.
     await ensurePluginsLoaded(client);
@@ -181,6 +186,25 @@ async function ensureServerDeployment(client: Client) {
             // eslint-disable-next-line no-console
             console.log(`hostname: ${info.hostname}, version: ${info.version}, config_hash: ${info.config_hash}`)
         );
+    }
+}
+
+async function savePreferences(client: Client, userId: UserProfile['id']) {
+    try {
+        if (!userId) {
+            throw new Error('userId is not defined');
+        }
+
+        const preferences: PreferenceType[] = [
+            {user_id: userId, category: 'tutorial_step', name: userId, value: '999'},
+            {user_id: userId, category: 'drafts', name: 'drafts_tour_tip_showed', value: JSON.stringify({drafts_tour_tip_showed: true})},
+            {user_id: userId, category: 'crt_thread_pane_step', name: userId, value: '999'},
+        ];
+        
+        await client.savePreferences(userId, preferences);
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.log('Error saving preferences', error);
     }
 }
 

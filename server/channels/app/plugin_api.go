@@ -1232,10 +1232,9 @@ func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
 	return limits, err
 }
 
-// RegisterCollectionAndTopic informs the server that this plugin handles
-// the given collection and topic types.
+// RegisterCollectionAndTopic is no longer supported.
 func (api *PluginAPI) RegisterCollectionAndTopic(collectionType, topicType string) error {
-	return api.app.RegisterCollectionAndTopic(api.id, collectionType, topicType)
+	return nil
 }
 
 func (api *PluginAPI) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, error) {

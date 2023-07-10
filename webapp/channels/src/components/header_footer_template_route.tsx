@@ -1,13 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Route} from 'react-router-dom';
+import React, {ComponentType} from 'react';
+import {Route, RouteProps} from 'react-router-dom';
 
 const HeaderFooterTemplate = React.lazy(() => import('components/header_footer_template'));
 const LoggedIn = React.lazy(() => import('components/logged_in'));
 
-export const HFTRoute = ({component: Component, ...rest}) => (
+interface Props extends RouteProps {
+    component: ComponentType<any>;
+}
+
+export const HFTRoute = ({component: Component, ...rest}: Props) => (
     <Route
         {...rest}
         render={(props) => (
@@ -20,7 +24,7 @@ export const HFTRoute = ({component: Component, ...rest}) => (
     />
 );
 
-export const LoggedInHFTRoute = ({component: Component, ...rest}) => (
+export const LoggedInHFTRoute = ({component: Component, ...rest}: Props) => (
     <Route
         {...rest}
         render={(props) => (

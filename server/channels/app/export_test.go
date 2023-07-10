@@ -93,7 +93,7 @@ func TestExportUserChannels(t *testing.T) {
 		Value:    "true",
 	}
 
-	_, appErr := th.App.MarkChannelsAsViewed(th.Context, []string{th.BasicPost.ChannelId}, user.Id, "", true)
+	_, appErr := th.App.MarkChannelsAsViewed(th.Context, []string{th.BasicPost.ChannelId}, user.Id, "", true, th.App.IsCRTEnabledForUser(th.Context, user.Id))
 	require.Nil(t, appErr)
 
 	var preferences model.Preferences
