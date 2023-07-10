@@ -95,6 +95,7 @@ export type Props = {
     isLastActiveEnabled: boolean;
     timestampUnits?: string[];
     lastActivityTimestamp?: number;
+    hideGuestTags: boolean;
 };
 
 type State = {
@@ -292,12 +293,13 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             rhsState,
             hasGuests,
             teammateNameDisplaySetting,
+            hideGuestTags,
         } = this.props;
         const {formatMessage} = this.props.intl;
         const ariaLabelChannelHeader = localizeMessage('accessibility.sections.channelHeader', 'channel header region');
 
         let hasGuestsText: ReactNode = '';
-        if (hasGuests) {
+        if (hasGuests && !hideGuestTags) {
             hasGuestsText = (
                 <span className='has-guest-header'>
                     <span tabIndex={0}>
@@ -399,7 +401,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                 );
             });
 
-            if (hasGuests) {
+            if (hasGuests && !hideGuestTags) {
                 hasGuestsText = (
                     <span className='has-guest-header'>
                         <FormattedMessage

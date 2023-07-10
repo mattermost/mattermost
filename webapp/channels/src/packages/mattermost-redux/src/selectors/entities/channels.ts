@@ -143,6 +143,10 @@ export function getChannelMembersInChannels(state: GlobalState): RelationOneToOn
     return state.entities.channels.membersInChannel;
 }
 
+export function getChannelMember(state: GlobalState, channelId: string, userId: string): ChannelMembership | undefined {
+    return getChannelMembersInChannels(state)[channelId]?.[userId];
+}
+
 // makeGetChannel returns a selector that returns a channel from the store with the following filled in for DM/GM channels:
 // - The display_name set to the other user(s) names, following the Teammate Name Display setting
 // - The teammate_id for DM channels

@@ -45,8 +45,8 @@ describe('components/AboutBuildModal', () => {
             BuildHash: 'abcdef1234567890',
             BuildHashEnterprise: '0123456789abcdef',
             BuildDate: '21 January 2017',
-            TermsOfServiceLink: 'https://about.custom.com/default-terms/',
-            PrivacyPolicyLink: 'https://about.custom.com/privacy-policy/',
+            TermsOfServiceLink: AboutLinks.TERMS_OF_SERVICE,
+            PrivacyPolicyLink: AboutLinks.PRIVACY_POLICY,
         };
         license = {
             IsLicensed: 'true',

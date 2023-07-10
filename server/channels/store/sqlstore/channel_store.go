@@ -1190,38 +1190,6 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetBotChannelsByUser(userId string, opts store.ChannelSearchOpts) (model.ChannelList, error) {
-	query := s.getQueryBuilder().
-		Select("C.*").
-		From("Channels as C, ChannelMembers as CM1, ChannelMembers as CM2, Bots as B").
-		Where(sq.And{
-			sq.Expr("C.Id = CM1.ChannelId"),
-			sq.Eq{"CM1.UserId": userId},
-			sq.Eq{"C.Type": model.ChannelTypeDirect},
-			sq.Expr("C.Id = CM2.ChannelId"),
-			sq.Expr("CM2.UserId = B.UserId"),
-			sq.Eq{"B.DeleteAt": 0},
-		}).
-		OrderBy("C.Id ASC")
-
-	if !opts.IncludeDeleted {
-		query = query.Where(sq.Eq{"C.DeleteAt": int(0)})
-	}
-
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "GetBotChannelsByUser_ToSql")
-	}
-
-	channels := model.ChannelList{}
-	err = s.GetReplicaX().Select(&channels, sql, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get bot channels with UserId=%s", userId)
-	}
-
-	return channels, nil
-}
-
 func (s SqlChannelStore) GetAllChannelMembersById(channelID string) ([]string, error) {
 	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.Where(sq.Eq{
 		"ChannelId": channelID,
@@ -3605,7 +3573,7 @@ func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) 
 	return searchFields
 }
 
-const spaceFulltextSearchChars = "<>+-()~:*\"!@"
+const spaceFulltextSearchChars = "<>+-()~:*\"!@&"
 
 func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) (fulltextClause, fulltextTerm string) {
 	// Copy the terms as we will need to prepare them differently for each search type.

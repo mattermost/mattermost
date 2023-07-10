@@ -114,28 +114,8 @@ type OnCloudLimitsUpdatedIFace interface {
 	OnCloudLimitsUpdated(limits *model.ProductLimits)
 }
 
-type UserHasPermissionToCollectionIFace interface {
-	UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error)
-}
-
-type GetAllCollectionIDsForUserIFace interface {
-	GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error)
-}
-
-type GetAllUserIdsForCollectionIFace interface {
-	GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error)
-}
-
-type GetTopicRedirectIFace interface {
-	GetTopicRedirect(c *Context, topicType, topicID string) (string, error)
-}
-
-type GetCollectionMetadataByIdsIFace interface {
-	GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]*model.CollectionMetadata, error)
-}
-
-type GetTopicMetadataByIdsIFace interface {
-	GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error)
+type ConfigurationWillBeSavedIFace interface {
+	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
 }
 
 type HooksAdapter struct {
@@ -376,58 +356,13 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		return nil, errors.New("hook has OnCloudLimitsUpdated method but does not implement plugin.OnCloudLimitsUpdated interface")
 	}
 
-	// Assessing the type of the productHooks if it individually implements UserHasPermissionToCollection interface.
-	tt = reflect.TypeOf((*UserHasPermissionToCollectionIFace)(nil)).Elem()
+	// Assessing the type of the productHooks if it individually implements ConfigurationWillBeSaved interface.
+	tt = reflect.TypeOf((*ConfigurationWillBeSavedIFace)(nil)).Elem()
 
 	if ft.Implements(tt) {
-		a.implemented[UserHasPermissionToCollectionID] = struct{}{}
-	} else if _, ok := ft.MethodByName("UserHasPermissionToCollection"); ok {
-		return nil, errors.New("hook has UserHasPermissionToCollection method but does not implement plugin.UserHasPermissionToCollection interface")
-	}
-
-	// Assessing the type of the productHooks if it individually implements GetAllCollectionIDsForUser interface.
-	tt = reflect.TypeOf((*GetAllCollectionIDsForUserIFace)(nil)).Elem()
-
-	if ft.Implements(tt) {
-		a.implemented[GetAllCollectionIDsForUserID] = struct{}{}
-	} else if _, ok := ft.MethodByName("GetAllCollectionIDsForUser"); ok {
-		return nil, errors.New("hook has GetAllCollectionIDsForUser method but does not implement plugin.GetAllCollectionIDsForUser interface")
-	}
-
-	// Assessing the type of the productHooks if it individually implements GetAllUserIdsForCollection interface.
-	tt = reflect.TypeOf((*GetAllUserIdsForCollectionIFace)(nil)).Elem()
-
-	if ft.Implements(tt) {
-		a.implemented[GetAllUserIdsForCollectionID] = struct{}{}
-	} else if _, ok := ft.MethodByName("GetAllUserIdsForCollection"); ok {
-		return nil, errors.New("hook has GetAllUserIdsForCollection method but does not implement plugin.GetAllUserIdsForCollection interface")
-	}
-
-	// Assessing the type of the productHooks if it individually implements GetTopicRedirect interface.
-	tt = reflect.TypeOf((*GetTopicRedirectIFace)(nil)).Elem()
-
-	if ft.Implements(tt) {
-		a.implemented[GetTopicRedirectID] = struct{}{}
-	} else if _, ok := ft.MethodByName("GetTopicRedirect"); ok {
-		return nil, errors.New("hook has GetTopicRedirect method but does not implement plugin.GetTopicRedirect interface")
-	}
-
-	// Assessing the type of the productHooks if it individually implements GetCollectionMetadataByIds interface.
-	tt = reflect.TypeOf((*GetCollectionMetadataByIdsIFace)(nil)).Elem()
-
-	if ft.Implements(tt) {
-		a.implemented[GetCollectionMetadataByIdsID] = struct{}{}
-	} else if _, ok := ft.MethodByName("GetCollectionMetadataByIds"); ok {
-		return nil, errors.New("hook has GetCollectionMetadataByIds method but does not implement plugin.GetCollectionMetadataByIds interface")
-	}
-
-	// Assessing the type of the productHooks if it individually implements GetTopicMetadataByIds interface.
-	tt = reflect.TypeOf((*GetTopicMetadataByIdsIFace)(nil)).Elem()
-
-	if ft.Implements(tt) {
-		a.implemented[GetTopicMetadataByIdsID] = struct{}{}
-	} else if _, ok := ft.MethodByName("GetTopicMetadataByIds"); ok {
-		return nil, errors.New("hook has GetTopicMetadataByIds method but does not implement plugin.GetTopicMetadataByIds interface")
+		a.implemented[ConfigurationWillBeSavedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("ConfigurationWillBeSaved"); ok {
+		return nil, errors.New("hook has ConfigurationWillBeSaved method but does not implement plugin.ConfigurationWillBeSaved interface")
 	}
 
 	return a, nil
@@ -658,56 +593,11 @@ func (a *HooksAdapter) OnCloudLimitsUpdated(limits *model.ProductLimits) {
 
 }
 
-func (a *HooksAdapter) UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
-	if _, ok := a.implemented[UserHasPermissionToCollectionID]; !ok {
-		panic("product hooks must implement UserHasPermissionToCollection")
+func (a *HooksAdapter) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
+	if _, ok := a.implemented[ConfigurationWillBeSavedID]; !ok {
+		panic("product hooks must implement ConfigurationWillBeSaved")
 	}
 
-	return a.productHooks.(UserHasPermissionToCollectionIFace).UserHasPermissionToCollection(c, userID, collectionType, collectionId, permission)
-
-}
-
-func (a *HooksAdapter) GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error) {
-	if _, ok := a.implemented[GetAllCollectionIDsForUserID]; !ok {
-		panic("product hooks must implement GetAllCollectionIDsForUser")
-	}
-
-	return a.productHooks.(GetAllCollectionIDsForUserIFace).GetAllCollectionIDsForUser(c, userID, collectionType)
-
-}
-
-func (a *HooksAdapter) GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error) {
-	if _, ok := a.implemented[GetAllUserIdsForCollectionID]; !ok {
-		panic("product hooks must implement GetAllUserIdsForCollection")
-	}
-
-	return a.productHooks.(GetAllUserIdsForCollectionIFace).GetAllUserIdsForCollection(c, collectionType, collectionID)
-
-}
-
-func (a *HooksAdapter) GetTopicRedirect(c *Context, topicType, topicID string) (string, error) {
-	if _, ok := a.implemented[GetTopicRedirectID]; !ok {
-		panic("product hooks must implement GetTopicRedirect")
-	}
-
-	return a.productHooks.(GetTopicRedirectIFace).GetTopicRedirect(c, topicType, topicID)
-
-}
-
-func (a *HooksAdapter) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]*model.CollectionMetadata, error) {
-	if _, ok := a.implemented[GetCollectionMetadataByIdsID]; !ok {
-		panic("product hooks must implement GetCollectionMetadataByIds")
-	}
-
-	return a.productHooks.(GetCollectionMetadataByIdsIFace).GetCollectionMetadataByIds(c, collectionType, collectionIds)
-
-}
-
-func (a *HooksAdapter) GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error) {
-	if _, ok := a.implemented[GetTopicMetadataByIdsID]; !ok {
-		panic("product hooks must implement GetTopicMetadataByIds")
-	}
-
-	return a.productHooks.(GetTopicMetadataByIdsIFace).GetTopicMetadataByIds(c, topicType, topicIds)
+	return a.productHooks.(ConfigurationWillBeSavedIFace).ConfigurationWillBeSaved(newCfg)
 
 }

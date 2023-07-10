@@ -10,7 +10,7 @@ import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutl
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
-import {Constants, CloudProducts, LicenseSkus} from 'utils/constants';
+import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
 import {isCloudFreePlan} from 'utils/cloud_utils';
 import {isCloudLicense} from 'utils/license_utils';
 import {getSiteURL} from 'utils/url';
@@ -36,7 +36,7 @@ import ExternalLink from 'components/external_link';
 
 import OpenIdConvert from './openid_convert';
 import Audits from './audits';
-import CustomURLSchemesSetting from './custom_url_schemes_setting.jsx';
+import CustomURLSchemesSetting from './custom_url_schemes_setting';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import LicenseSettings from './license_settings';
 import PermissionSchemesSettings from './permission_schemes_settings';
@@ -56,14 +56,14 @@ import TeamDetails from './team_channel_settings/team/details';
 import ChannelSettings from './team_channel_settings/channel';
 import ChannelDetails from './team_channel_settings/channel/details';
 import PasswordSettings from './password_settings.jsx';
-import PushNotificationsSettings from './push_settings.jsx';
+import PushNotificationsSettings from './push_settings';
 import DataRetentionSettings from './data_retention_settings';
 import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
 import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
 import MessageExportSettings from './message_export_settings.jsx';
 import DatabaseSettings from './database_settings.jsx';
 import ElasticSearchSettings from './elasticsearch_settings.jsx';
-import BleveSettings from './bleve_settings.jsx';
+import BleveSettings from './bleve_settings';
 import FeatureFlags from './feature_flags.tsx';
 import ClusterSettings from './cluster_settings.jsx';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
@@ -803,7 +803,7 @@ const AdminDefinition = {
                         help_text: t('admin.service.forward80To443Description'),
                         help_text_default: 'Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server.',
                         disabled_help_text: t('admin.service.forward80To443Description.disabled'),
-                        disabled_help_text_default: 'Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server.\n \nThis setting cannot be enabled until your server is [listening](#ListenAddress) on port 443.',
+                        disabled_help_text_default: 'Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server.\n \nThis setting cannot be enabled until your server is [listening](#ServiceSettings.ListenAddress) on port 443.',
                         disabled_help_text_markdown: true,
                         isDisabled: it.any(
                             it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
@@ -862,7 +862,7 @@ const AdminDefinition = {
                         help_text: t('admin.service.useLetsEncryptDescription'),
                         help_text_default: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.',
                         disabled_help_text: t('admin.service.useLetsEncryptDescription.disabled'),
-                        disabled_help_text_default: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#Forward80To443) setting is set to true.',
+                        disabled_help_text_default: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#SystemSettings.Forward80To443) setting is set to true.',
                         disabled_help_text_markdown: true,
                         isDisabled: it.any(
                             it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
@@ -945,7 +945,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/install/desktop-managed-resources.html'
+                                    href={DocLinks.DESKTOP_MANAGED_RESOURCES}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -1155,7 +1155,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://www.mattermost.com/file-content-extraction'
+                                    href={DocLinks.CONFIGURE_DOCUMENT_CONTENT_SEARCH}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -1295,7 +1295,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/configure/configuration-settings.html#session-lengths'
+                                    href={DocLinks.SESSION_LENGTHS}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -1370,7 +1370,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deploy/image-proxy.html'
+                                    href={DocLinks.SETUP_IMAGE_PROXY}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -1850,7 +1850,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://mattermost.com/privacy-policy/'
+                                    href={AboutLinks.PRIVACY_POLICY}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -1925,7 +1925,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/metrics.html'
+                                    href={DocLinks.SETUP_PERFORMANCE_MONITORING}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -2981,7 +2981,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/messaging/sharing-messages.html'
+                                    href={DocLinks.SHARE_LINKS_TO_MESSAGES}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -3019,7 +3019,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/messaging/formatting-text.html'
+                                    href={DocLinks.FORMAT_MESSAGES}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -3068,12 +3068,6 @@ const AdminDefinition = {
                         help_text: t('admin.customization.allowSyncedDraftsDesc'),
                         help_text_default: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.',
                         help_text_markdown: false,
-                        isHidden: it.any(
-                            it.configIsFalse('FeatureFlags', 'GlobalDrafts'),
-                        ),
-                        isDisabled: it.any(
-                            it.configIsFalse('FeatureFlags', 'GlobalDrafts'),
-                        ),
                     },
                 ],
             },
@@ -3177,7 +3171,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/manage/in-product-notices.html'
+                                    href={DocLinks.IN_PRODUCT_NOTICES}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -3197,7 +3191,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/manage/in-product-notices.html'
+                                    href={DocLinks.IN_PRODUCT_NOTICES}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -3249,6 +3243,10 @@ const AdminDefinition = {
                         help_text_default: 'New user accounts are restricted to the above specified email domain (e.g. "mattermost.com") or list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.com"). New teams can only be created by users from the above domain(s). This setting only affects email login for users.',
                         placeholder: t('admin.team.restrictExample'),
                         placeholder_default: 'E.g.: "corp.mattermost.com, mattermost.com"',
+                        isHidden: it.all(
+                            it.licensed,
+                            it.not(it.licensedForSku('starter')),
+                        ),
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                     },
                     {
@@ -3396,7 +3394,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/auth.html'
+                                    href={DocLinks.MULTI_FACTOR_AUTH}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -3425,7 +3423,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/auth.html'
+                                    href={DocLinks.MULTI_FACTOR_AUTH}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -4042,7 +4040,7 @@ const AdminDefinition = {
                                     link: (msg) => (
                                         <ExternalLink
                                             location='admin_console'
-                                            href='https://mattermost.com/default-ldap-docs'
+                                            href={DocLinks.CONFIGURE_AD_LDAP_QUERY_TIMEOUT}
                                         >
                                             {msg}
                                         </ExternalLink>
@@ -4079,7 +4077,7 @@ const AdminDefinition = {
                                     link: (msg) => (
                                         <ExternalLink
                                             location='admin_console'
-                                            href='https://mattermost.com/default-ldap-docs'
+                                            href={DocLinks.SETUP_LDAP}
                                         >
                                             {msg}
                                         </ExternalLink>
@@ -4281,7 +4279,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/onboard/ad-ldap.html'
+                                    href={DocLinks.SETUP_LDAP}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -4319,7 +4317,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/sso-saml-ldapsync.html'
+                                    href={DocLinks.CONFIGURE_OVERRIDE_SAML_BIND_DATA_WITH_LDAP}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5724,6 +5722,16 @@ const AdminDefinition = {
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
                     },
                     {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'GuestAccountsSettings.HideTags',
+                        label: t('admin.guest_access.hideTags'),
+                        label_default: 'Hide guest tag',
+                        help_text: t('admin.guest_access.hideTagsDescription'),
+                        help_text_default: 'When true, the "guest" tag will not be shown next to the name of all guest users in the Mattermost chat interface.',
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
+                    },
+                    {
                         type: Constants.SettingsTypes.TYPE_TEXT,
                         key: 'GuestAccountsSettings.RestrictCreationToDomains',
                         label: t('admin.guest_access.whitelistedDomainsTitle'),
@@ -5771,7 +5779,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/auth.html'
+                                    href={DocLinks.MULTI_FACTOR_AUTH}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5896,7 +5904,7 @@ const AdminDefinition = {
                         help_text_values: {
                             link: (msg) => (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-incoming/'
+                                    href={DeveloperLinks.INCOMING_WEBHOOKS}
                                     location='admin_console'
                                 >
                                     {msg}
@@ -5917,7 +5925,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-outgoing/'
+                                    href={DeveloperLinks.OUTGOING_WEBHOOKS}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5937,7 +5945,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-slash-commands/'
+                                    href={DeveloperLinks.SETUP_CUSTOM_SLASH_COMMANDS}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5957,7 +5965,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-oauth2/'
+                                    href={DeveloperLinks.ENABLE_OAUTH2}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5996,7 +6004,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                    href={DeveloperLinks.PERSONAL_ACCESS_TOKENS}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -6371,7 +6379,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/administration/compliance.html'
+                                    href={DocLinks.COMPILANCE_MONITORING}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -6637,7 +6645,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/certificate-based-authentication.html'
+                                    href={DocLinks.ENABLE_CLIENT_SIDE_CERTIFICATION}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -6698,7 +6706,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/administration/config-settings.html#enable-hardened-mode-experimental'
+                                    href={DocLinks.ENABLE_HARDENED_MODE}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -6949,11 +6957,11 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'ExperimentalSettings.EnableAppBar',
-                        label: t('admin.experimental.enableAppBar.title'),
-                        label_default: 'Enable App Bar:',
-                        help_text: t('admin.experimental.enableAppBar.desc'),
-                        help_text_default: 'When true, all integrations move from the channel header to the App Bar. Channel header plugin icons that haven\'t explicitly registered an App Bar icon will be moved to the App Bar which may result in rendering issues. [See the documentation to learn more](https://docs.mattermost.com/welcome/what-changed-in-v70.html).',
+                        key: 'ExperimentalSettings.DisableAppBar',
+                        label: t('admin.experimental.disableAppBar.title'),
+                        label_default: 'Disable Apps Bar:',
+                        help_text: t('admin.experimental.disableAppBar.desc'),
+                        help_text_default: 'When false, all integrations move from the channel header to the Apps Bar. Channel header plugin icons that haven\'t explicitly registered an Apps Bar icon will be moved to the Apps Bar which may result in rendering issues.',
                         help_text_markdown: true,
                         isHidden: it.licensedForFeature('Cloud'),
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
