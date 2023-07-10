@@ -11548,23 +11548,6 @@ func (a *OpenTracingAppLayer) HasPermissionToChannel(c request.CTX, askingUserId
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) HasPermissionToChannelContent(c request.CTX, askingUserId string, channelID string, permission *model.Permission) bool {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionToChannelContent")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.HasPermissionToChannelContent(c, askingUserId, channelID, permission)
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) HasPermissionToChannelByPost(askingUserId string, postID string, permission *model.Permission) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionToChannelByPost")
@@ -11578,6 +11561,23 @@ func (a *OpenTracingAppLayer) HasPermissionToChannelByPost(askingUserId string, 
 
 	defer span.Finish()
 	resultVar0 := a.app.HasPermissionToChannelByPost(askingUserId, postID, permission)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) HasPermissionToChannelContent(c request.CTX, askingUserId string, channelID string, permission *model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionToChannelContent")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.HasPermissionToChannelContent(c, askingUserId, channelID, permission)
 
 	return resultVar0
 }
@@ -15938,23 +15938,6 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToChannel(c request.CTX, sessi
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SessionHasPermissionToChannelContent(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToChannelContent")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SessionHasPermissionToChannelContent(c, session, channelID, permission)
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToChannelByPost")
@@ -15968,6 +15951,23 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToChannelByPost(session model.
 
 	defer span.Finish()
 	resultVar0 := a.app.SessionHasPermissionToChannelByPost(session, postID, permission)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SessionHasPermissionToChannelContent(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToChannelContent")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SessionHasPermissionToChannelContent(c, session, channelID, permission)
 
 	return resultVar0
 }
