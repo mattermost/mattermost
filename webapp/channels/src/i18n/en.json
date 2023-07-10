@@ -2645,7 +2645,7 @@
   "announcement_bar.error.purchase_a_license_now": "Purchase a License Now",
   "announcement_bar.error.site_url_gitlab.full": "Please configure your <linkSite>site URL</linkSite> either on the <linkConsole>System Console</linkConsole> or, if you're using GitLab Mattermost, in gitlab.rb.",
   "announcement_bar.error.site_url.full": "Please configure your <linkSite>site URL</linkSite> on the <linkConsole>System Console</linkConsole>.",
-  "announcement_bar.error.trial_license_expiring": "**There are {days} days left on your free trial.**",
+  "announcement_bar.error.trial_license_expiring": "There are {days} days left on your free trial.",
   "announcement_bar.error.trial_license_expiring_last_day": "This is the last day of your free trial. Purchase a license now to continue using Mattermost Professional and Enterprise features.",
   "announcement_bar.error.trial_license_expiring_last_day.short": "This is the last day of your free trial.",
   "announcement_bar.error.warn_metric_status.link": "Learn more",

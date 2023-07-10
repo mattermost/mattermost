@@ -2594,7 +2594,7 @@
   "announcement_bar.error.purchase_a_license_now": "Köp en licens nu",
   "announcement_bar.error.site_url.full": "Konfigurera din <linkSite>sajt-URL</linkSite>, antingen i <linkConsole>Systemkonsolen</linkConsole>.",
   "announcement_bar.error.site_url_gitlab.full": "Konfigurera din <linkSite>sajt-URL </linkSite>, antingen i <linkConsole>Systemkonsolen </linkConsole> eller, om du använder GitLab Mattermost, i gitlab.rb.",
-  "announcement_bar.error.trial_license_expiring": "**Det är {days} dagar kvar på din kostnadsfria testperiod.**",
+  "announcement_bar.error.trial_license_expiring": "Det är {days} dagar kvar på din kostnadsfria testperiod.",
   "announcement_bar.error.trial_license_expiring_last_day": "Det här är din sista dag för din kostnadsfria testperiod. Köp en licens nu för att fortsätta använda Mattermost Professional och Enterprise-funktioner.",
   "announcement_bar.error.trial_license_expiring_last_day.short": "Idag är sista dagen på den kostnadsfria prova-på-perioden.",
   "announcement_bar.error.warn_metric_status.link": "Läs mer",
