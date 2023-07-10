@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
 
 import {AdminConfig} from '@mattermost/types/config';
 import {DeepPartial} from '@mattermost/types/utilities';
@@ -17,6 +16,7 @@ import BooleanSetting from './boolean_setting';
 import Setting from './setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
+import BlockableLink from './blockable_link';
 
 type Props = BaseProps & {
     config: AdminConfig;
@@ -317,9 +317,9 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
                             defaultMessage='When true, “Forgot password” link appears on the Mattermost login page, which allows users to reset their password. When false, the link is hidden from users. This link can be customized to redirect to a URL of your choice from <a>Site Configuration > Customization.</a>'
                             values={{
                                 a: (chunks) => (
-                                    <Link to='/admin_console/site_config/customization'>
+                                    <BlockableLink to='/admin_console/site_config/customization'>
                                         {chunks}
-                                    </Link>
+                                    </BlockableLink>
                                 ),
                             }}
                         />
