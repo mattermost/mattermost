@@ -5,6 +5,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook';
+import ChannelSelect from 'components/channel_select';
 import {Team} from '@mattermost/types/teams';
 
 describe('components/integrations/AbstractOutgoingWebhook', () => {
@@ -76,15 +77,89 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
+    test('should not render username in case of enablePostUsernameOverride is false ', () => {
+        const usernameTrueProps = {...requiredProps};
+        const wrapper = shallow(<AbstractOutgoingWebhook {...usernameTrueProps}/>);
+        expect(wrapper.find('#username')).toHaveLength(0);
+    });
+
+    test('should not render post icon override in case of enablePostIconOverride is false ', () => {
+        const iconUrlTrueProps = {...requiredProps};
+        const wrapper = shallow(<AbstractOutgoingWebhook {...iconUrlTrueProps}/>);
+        expect(wrapper.find('#iconURL')).toHaveLength(0);
+    });
+
     test('should render username in case of enablePostUsernameOverride is true ', () => {
         const usernameTrueProps = {...requiredProps, enablePostUsernameOverride: true};
         const wrapper = shallow(<AbstractOutgoingWebhook {...usernameTrueProps}/>);
         expect(wrapper.find('#username')).toHaveLength(1);
     });
 
-    test('should render username in case of enablePostUsernameOverride is true ', () => {
+    test('should render post icon override in case of enablePostIconOverride is true ', () => {
         const iconUrlTrueProps = {...requiredProps, enablePostIconOverride: true};
         const wrapper = shallow(<AbstractOutgoingWebhook {...iconUrlTrueProps}/>);
         expect(wrapper.find('#iconURL')).toHaveLength(1);
+    });
+
+    test('should update state.channelId when on channel change', () => {
+        const newChannelId = 'new_channel_id';
+        const evt = {
+            preventDefault: jest.fn(),
+            target: {value: newChannelId},
+        };
+
+        const wrapper = shallow(<AbstractOutgoingWebhook {...requiredProps}/>);
+        wrapper.find(ChannelSelect).simulate('change', evt);
+
+        expect(wrapper.state('channelId')).toBe(newChannelId);
+    });
+
+    test('should update state.description when on description change', () => {
+        const newDescription = 'new_description';
+        const evt = {
+            preventDefault: jest.fn(),
+            target: {value: newDescription},
+        };
+
+        const wrapper = shallow(<AbstractOutgoingWebhook {...requiredProps}/>);
+        wrapper.find('#description').simulate('change', evt);
+
+        expect(wrapper.state('description')).toBe(newDescription);
+    });
+
+    test('should update state.username on post username change', () => {
+        const usernameTrueProps = {...requiredProps, enablePostUsernameOverride: true};
+        const newUsername = 'new_username';
+        const evt = {
+            preventDefault: jest.fn(),
+            target: {value: newUsername},
+        };
+
+        const wrapper = shallow(<AbstractOutgoingWebhook {...usernameTrueProps}/>);
+        wrapper.find('#username').simulate('change', evt);
+
+        expect(wrapper.state('username')).toBe(newUsername);
+    });
+
+    test('should update state.triggerWhen on selection change', () => {
+        const wrapper = shallow(<AbstractOutgoingWebhook {...requiredProps}/>);
+        expect(wrapper.state('triggerWhen')).toBe(0);
+
+        const selector = wrapper.find('#triggerWhen');
+        selector.simulate('change', {target: {value: 1}})
+        console.log('selector: ', selector.debug());
+        expect(wrapper.state('triggerWhen')).toBe(1);
+    });
+
+    test('should call action function', () => {
+        const wrapper = shallow(<AbstractOutgoingWebhook {...requiredProps}/>);
+
+        wrapper.find('#displayName').simulate('change', {target: {value: 'name'}});
+        wrapper.find('.btn-primary').simulate('click', {preventDefault() {
+            return jest.fn();
+        }});
+
+        expect(action).toBeCalled();
+        expect(action).toHaveBeenCalledTimes(1);
     });
 });

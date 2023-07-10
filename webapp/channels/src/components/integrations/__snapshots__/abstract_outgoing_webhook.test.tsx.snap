@@ -233,6 +233,7 @@ word
         >
           <select
             className="form-control"
+            id="triggerWhen"
             onChange={[Function]}
             value={0}
           >

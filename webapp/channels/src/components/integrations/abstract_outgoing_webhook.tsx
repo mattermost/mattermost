@@ -450,6 +450,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                             </label>
                             <div className='col-md-5 col-sm-8'>
                                 <select
+                                    id='triggerWhen'
                                     className='form-control'
                                     value={this.state.triggerWhen}
                                     onChange={this.updateTriggerWhen}
