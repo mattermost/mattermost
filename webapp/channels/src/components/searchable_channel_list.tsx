@@ -141,10 +141,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                 aria-label={localizeMessage('more_channels.membership_indicator', 'Membership Indicator: Joined')}
             >
                 <CheckIcon size={14}/>
-                <FormattedMessage
-                    id={'more_channels.joined'}
-                    defaultMessage={'Joined'}
-                />
+                <FormattedMessage id={'more_channels.joined'} defaultMessage={'Joined'}/>
             </div>
         ) : null;
 
@@ -250,24 +247,9 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
             this.props.hideJoinedChannelsPreference(true);
         }
     };
-
-    render() {
-        const channels = this.props.channels;
-        let listContent;
-        let nextButton;
-        let previousButton;
-
-        // todo sinan fix empty state
-        let emptyStateMessage = (
-            <FormattedMessage
-                id={this.props.shouldShowArchivedChannels ? t('more_channels.noArchived') : t('more_channels.noPublic')}
-                tagName='strong'
-                defaultMessage={this.props.shouldShowArchivedChannels ? 'No archived channels' : 'No public channels'}
-            />
-        );
-
+    getEmptyStateMessage = () => {
         if (this.state.channelSearchValue.length > 0) {
-            emptyStateMessage = (
+            return (
                 <FormattedMessage
                     id='more_channels.noMore'
                     tagName='strong'
@@ -278,6 +260,53 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                 />
             );
         }
+        switch (this.props.filter) {
+            case 'archived':
+                return (
+                    <FormattedMessage
+                        id={t('more_channels.noArchived')}
+                        tagName='strong'
+                        defaultMessage={'No archived channels'}
+                    />
+                )
+            case 'private':
+                return (
+                    <FormattedMessage
+                        id={t('more_channels.noPublic')}
+                        tagName='strong'
+                        defaultMessage={'No Public channels'}
+                    />
+                )
+            default:
+                return (
+                    <FormattedMessage
+                        id={t('more_channels.noChannels')} // todo sinan add localization
+                        tagName='strong'
+                        defaultMessage={'No channels'}
+                    />
+                )
+        }
+    };
+    getFilterLabel = () => {
+        switch (this.props.filter) {
+            case 'archived':
+                return <span>{localizeMessage('more_channels.show_archived_channels', 'Channel Type: Archived')}</span>
+            case 'public':
+                return <span>{localizeMessage('more_channels.show_public_channels', 'Channel Type: Public')}</span>
+            case 'private':
+                // todo sinan add localization
+                return <span>{localizeMessage('more_channels.show_private_channels', 'Channel Type: Private')}</span>
+            default:
+                // todo sinan add localization
+                return <span>{localizeMessage('more_channels.show_all_channels', 'Channel Type: All')}</span>
+        }
+    };
+
+    render() {
+        const channels = this.props.channels;
+        let listContent;
+        let nextButton;
+        let previousButton;
 
         if (this.props.loading && channels.length === 0) {
             listContent = <LoadingScreen/>;
@@ -292,7 +321,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                 >
                     <MagnifyingGlassSVG/>
                     <h3 className='primary-message'>
-                        {emptyStateMessage}
+                        {this.getEmptyStateMessage()}
                     </h3>
                     {this.props.noResultsText}
                 </div>
@@ -311,10 +340,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                         disabled={this.state.nextDisabled}
                         aria-label={localizeMessage('more_channels.next', 'Next')}
                     >
-                        <FormattedMessage
-                            id='more_channels.next'
-                            defaultMessage='Next'
-                        />
+                        <FormattedMessage id='more_channels.next' defaultMessage='Next'/>
                     </button>
                 );
             }
@@ -337,10 +363,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
 
         const input = (
             <div className='filter-row filter-row--full'>
-                <span
-                    id='searchIcon'
-                    aria-hidden='true'
-                >
+                <span id='searchIcon' aria-hidden='true'>
                     <MagnifyIcon size={18}/>
                 </span>
                 <QuickInput
@@ -363,21 +386,12 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
 
         // todo sinan why there is a specific prop for canShowArchivedChannels. maybe only admin can see. test with normal user or there is a setting in admin panel
         if (this.props.canShowArchivedChannels) {
-            checkIcon = (
-                <CheckIcon
-                    size={18}
-                    color={'var(--button-bg)'}
-                />
-            );
+            checkIcon = <CheckIcon size={18} color={'var(--button-bg)'}/>;
             channelDropdown = (
                 <MenuWrapper id='channelsMoreDropdown'>
                     <button id='menuWrapper'>
-                        {/* todo sinan fix title */}
-                        <span>{this.props.shouldShowArchivedChannels ? localizeMessage('more_channels.show_archived_channels', 'Channel Type: Archived') : localizeMessage('more_channels.show_public_channels', 'Channel Type: Public')}</span>
-                        <ChevronDownIcon
-                            color={'rgba(var(--center-channel-color-rgb), 0.64)'}
-                            size={16}
-                        />
+                        {this.getFilterLabel()}
+                        <ChevronDownIcon color={'rgba(var(--center-channel-color-rgb), 0.64)'} size={16}/>
                     </button>
                     <Menu
                         openLeft={false}
@@ -395,8 +409,6 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                         </div>
                         <Menu.ItemAction
                             id='channelsMoreDropdownPublic'
-
-                            // onClick={this.toggleArchivedChannelsOff}
                             onClick={() => this.props.changeFilter(FILTER.public)}
                             icon={<GlobeIcon size={16}/>}
                             text={localizeMessage('suggestion.search.public', 'Public Channels')}
@@ -426,10 +438,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
 
         const hideJoinedButtonClass = classNames('get-app__checkbox', {checked: this.props.rememberHideJoinedChannelsChecked});
         const hideJoinedPreferenceCheckbox = (
-            <div
-                id={'hideJoinedPreferenceCheckbox'}
-                onClick={this.handleChecked}
-            >
+            <div id={'hideJoinedPreferenceCheckbox'} onClick={this.handleChecked}>
                 <button
                     className={hideJoinedButtonClass}
                     aria-label={this.props.rememberHideJoinedChannelsChecked ? localizeMessage('more_channels.hide_joined_checked', 'Hide joined channels checkbox, checked') : localizeMessage('more_channels.hide_joined_not_checked', 'Hide joined channels checkbox, not checked')
@@ -437,9 +446,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                 >
                     {this.props.rememberHideJoinedChannelsChecked ? <CheckboxCheckedIcon/> : null}
                 </button>
-                <FormattedMessage
-                    id='more_channels.hide_joined'
-                    defaultMessage='Hide Joined'
+                <FormattedMessage id='more_channels.hide_joined' defaultMessage='Hide Joined'
                 />
             </div>
         );
@@ -490,8 +497,3 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
         );
     }
 }
-
-// SearchableChannelList.defaultProps = {
-//     channels: [],
-//     isSearch: false,
-// };
