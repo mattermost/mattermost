@@ -767,15 +767,17 @@ func TestCreatePostAll(t *testing.T) {
 
 	post.ChannelId = th.BasicPrivateChannel.Id
 	_, _, err = client.CreatePost(context.Background(), post)
-	require.NoError(t, err)
+	require.Error(t, err)
 
 	post.ChannelId = directChannel.Id
-	_, _, err = client.CreatePost(context.Background(), post)
-	require.NoError(t, err)
+	_, resp, err = client.CreatePost(context.Background(), post)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
+	th.App.AddUserToChannel(th.Context, ruser, th.BasicPrivateChannel, false)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(context.Background(), user.Email, user.Password)
@@ -788,10 +790,10 @@ func TestCreatePostAll(t *testing.T) {
 	_, _, err = client.CreatePost(context.Background(), post)
 	require.NoError(t, err)
 
-	post.ChannelId = directChannel.Id
-	_, resp, err = client.CreatePost(context.Background(), post)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	directChannel2, _ := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, ruser.Id)
+	post.ChannelId = directChannel2.Id
+	_, _, err = client.CreatePost(context.Background(), post)
+	require.NoError(t, err)
 }
 
 func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
@@ -3762,7 +3764,7 @@ func TestPostGetInfo(t *testing.T) {
 			hasAccess:        true,
 		},
 
-		// Private channel - Current Team
+		// // Private channel - Current Team
 		{
 			name:      "Private post by sysadmin - Current team - Basic user",
 			team:      th.BasicTeam,
@@ -3818,7 +3820,7 @@ func TestPostGetInfo(t *testing.T) {
 			channel:   gmChannel,
 			post:      gmPost,
 			client:    sysadminClient,
-			hasAccess: false,
+			hasAccess: true,
 		},
 
 		// DM channel
@@ -3837,7 +3839,7 @@ func TestPostGetInfo(t *testing.T) {
 			channel:   dmChannel,
 			post:      dmPost,
 			client:    sysadminClient,
-			hasAccess: false,
+			hasAccess: true,
 		},
 
 		// Open channel - Open Team
