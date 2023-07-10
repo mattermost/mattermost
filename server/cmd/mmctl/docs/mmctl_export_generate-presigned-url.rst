@@ -3,13 +3,13 @@
 mmctl export generate-presigned-url
 -----------------------------------
 
-Generate a presigned url for an export file
+Generate a presigned url for an export file. This is helpful when an export is big and might have trouble downloading from the Mattermost server.
 
 Synopsis
 ~~~~~~~~
 
 
-Generate a presigned url for an export file
+Generate a presigned url for an export file. This is helpful when an export is big and might have trouble downloading from the Mattermost server.
 
 ::
 
