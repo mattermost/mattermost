@@ -15,7 +15,7 @@
  * under fixtures folder.
  */
 
-// Group: @channels @system_console @plugin @not_cloud
+// Group: @channels @system_console @plugin @plugins_uninstall @not_cloud
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {demoPlugin, demoPluginOld} from '../../../utils/plugins';

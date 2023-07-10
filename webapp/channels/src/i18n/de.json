@@ -2636,7 +2636,7 @@
   "announcement_bar.error.purchase_a_license_now": "Erwerbe jetzt eine Lizenz",
   "announcement_bar.error.site_url.full": "Bitte konfiguriere deine <linkSite>Site-URL</linkSite> in der <linkConsole>Systemkonsole</linkConsole>.",
   "announcement_bar.error.site_url_gitlab.full": "Bitte konfiguriere deine <linkSite>Site-URL</linkSite> in der <linkConsole>Systemkonsole</linkConsole> oder in gitlab.rb, falls du Gitlab-Mattermost verwenden.",
-  "announcement_bar.error.trial_license_expiring": "**Es sind {days} Tage verfügbar in deinem freien Test.**",
+  "announcement_bar.error.trial_license_expiring": "Es sind {days} Tage verfügbar in deinem freien Test.",
   "announcement_bar.error.trial_license_expiring_last_day": "Dies ist der letzte Tag deines freien Tests. Kaufe jetzt eine Lizenz um die Mattermost Professional und Enterprise Features weiter zu nutzen.",
   "announcement_bar.error.trial_license_expiring_last_day.short": "Heute ist der letzte Tag deiner kostenlosen Testphase.",
   "announcement_bar.error.warn_metric_status.link": "Mehr erfahren",
