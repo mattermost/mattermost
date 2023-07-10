@@ -49,6 +49,7 @@ type PermissionService interface {
 	HasPermissionTo(userID string, permission *model.Permission) bool
 	HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
 	HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool
+	HasPermissionToChannelContent(askingUserID string, channelID string, permission *model.Permission) bool
 	RolesGrantPermission(roleNames []string, permissionID string) bool
 }
 

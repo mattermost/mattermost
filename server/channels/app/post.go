@@ -244,7 +244,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	var ephemeralPost *model.Post
-	if post.Type == "" && !a.HasPermissionToChannel(c, user.Id, channel.Id, model.PermissionUseChannelMentions) {
+	if post.Type == "" && !a.HasPermissionToChannelContent(c, user.Id, channel.Id, model.PermissionUseChannelMentions) {
 		mention := post.DisableMentionHighlights()
 		if mention != "" {
 			T := i18n.GetUserTranslations(user.Locale)
@@ -499,7 +499,7 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 	}
 
 	matched := atMentionPattern.MatchString(post.Message)
-	if a.Srv().License() != nil && *a.Srv().License().Features.LDAPGroups && matched && !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
+	if a.Srv().License() != nil && *a.Srv().License().Features.LDAPGroups && matched && !a.HasPermissionToChannelContent(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
 		post.AddProp(model.PostPropsGroupHighlightDisabled, true)
 	}
 
@@ -839,7 +839,7 @@ func (a *App) PatchPost(c *request.Context, postID string, patch *model.PostPatc
 		return nil, err
 	}
 
-	if !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseChannelMentions) {
+	if !a.HasPermissionToChannelContent(c, post.UserId, post.ChannelId, model.PermissionUseChannelMentions) {
 		patch.DisableMentionHighlights()
 	}
 
@@ -2005,7 +2005,7 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 		return nil, err
 	}
 
-	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannel) {
+	if !a.SessionHasPermissionToChannelContent(c, *session, channel.Id, model.PermissionReadChannel) {
 		if channel.Type == model.ChannelTypeOpen {
 			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
 				return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
@@ -2270,7 +2270,7 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 	} else if channel.Type == model.ChannelTypePrivate {
 		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
 	} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannel)
+		hasPermissionToAccessChannel = a.HasPermissionToChannelContent(c, userID, channel.Id, model.PermissionReadChannel)
 	}
 
 	if !hasPermissionToAccessChannel {

@@ -113,6 +113,23 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 	})
 }
 
+func TestSessionHasPermissionToChannelContent(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	require.Nil(t, err)
+
+	session2, err2 := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	require.Nil(t, err2)
+
+	dm, err := th.App.createDirectChannel(th.Context, th.BasicUser2.Id, th.SystemAdminUser.Id)
+	require.Nil(t, err)
+
+	require.False(t, th.App.SessionHasPermissionToChannelContent(th.Context, *session, dm.Id, model.PermissionReadChannel))
+	require.True(t, th.App.SessionHasPermissionToChannelContent(th.Context, *session2, dm.Id, model.PermissionReadChannel))
+}
+
 func TestHasPermissionToCategory(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

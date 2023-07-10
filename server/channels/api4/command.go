@@ -324,7 +324,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameterAuditable(auditRec, "command_args", &commandArgs)
 
 	// Checks that user is a member of the specified channel, and that they have permission to create a post in it.
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), commandArgs.ChannelId, model.PermissionCreatePost) {
+	if !c.App.SessionHasPermissionToChannelContent(c.AppContext, *c.AppContext.Session(), commandArgs.ChannelId, model.PermissionCreatePost) {
 		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}

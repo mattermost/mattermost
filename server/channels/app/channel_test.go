@@ -2100,11 +2100,11 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 
 		_, err := th.App.PatchChannelModerationsForChannel(th.Context, channel.DeepCopy(), addCreatePosts)
 		require.Nil(t, err)
-		require.True(t, th.App.SessionHasPermissionToChannel(th.Context, mockSession, channel.Id, model.PermissionCreatePost))
+		require.True(t, th.App.SessionHasPermissionToChannelContent(th.Context, mockSession, channel.Id, model.PermissionCreatePost))
 
 		_, err = th.App.PatchChannelModerationsForChannel(th.Context, channel.DeepCopy(), removeCreatePosts)
 		require.Nil(t, err)
-		require.False(t, th.App.SessionHasPermissionToChannel(th.Context, mockSession, channel.Id, model.PermissionCreatePost))
+		require.False(t, th.App.SessionHasPermissionToChannelContent(th.Context, mockSession, channel.Id, model.PermissionCreatePost))
 	})
 }
 

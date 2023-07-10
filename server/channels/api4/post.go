@@ -62,7 +62,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameterAuditable(auditRec, "post", &post)
 
 	hasPermission := false
-	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionCreatePost) {
+	if c.App.SessionHasPermissionToChannelContent(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionCreatePost) {
 		hasPermission = true
 	} else if channel, err := c.App.GetChannel(c.AppContext, post.ChannelId); err == nil {
 		// Temporary permission check method until advanced permissions, please do not copy
@@ -249,7 +249,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannel) {
+	if !c.App.SessionHasPermissionToChannelContent(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
@@ -333,7 +333,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	channelId := c.Params.ChannelId
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannel) {
+	if !c.App.SessionHasPermissionToChannelContent(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
@@ -424,7 +424,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		if !ok {
 			allowed = false
 
-			if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannel) {
+			if c.App.SessionHasPermissionToChannelContent(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannel) {
 				allowed = true
 			}
 
@@ -529,7 +529,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 			channelMap[channel.Id] = channel
 		}
 
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
+		if !c.App.SessionHasPermissionToChannelContent(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
 			if channel.Type != model.ChannelTypeOpen || (channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)) {
 				continue
 			}
@@ -599,12 +599,12 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	auditRec.AddEventObjectType("post")
 
 	if c.AppContext.Session().UserId == post.UserId {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost) {
+		if !c.App.SessionHasPermissionToChannelContent(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost) {
 			c.SetPermissionError(model.PermissionDeletePost)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeleteOthersPosts) {
+		if !c.App.SessionHasPermissionToChannelContent(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeleteOthersPosts) {
 			c.SetPermissionError(model.PermissionDeleteOthersPosts)
 			return
 		}

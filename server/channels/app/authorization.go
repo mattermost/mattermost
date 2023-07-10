@@ -95,11 +95,7 @@ func (a *App) SessionHasPermissionToTeams(c request.CTX, session model.Session, 
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
-func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool {
-	if channelID == "" {
-		return false
-	}
-
+func (a *App) sessionHasPermissionHasChannelMember(session model.Session, channelID string, permission *model.Permission) bool {
 	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(session.UserId, true, true)
 
 	var channelRoles []string
@@ -110,6 +106,50 @@ func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session
 				return true
 			}
 		}
+	}
+
+	return false
+}
+
+func (a *App) SessionHasPermissionToChannelContent(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool {
+	if channelID == "" {
+		return false
+	}
+
+	if a.sessionHasPermissionHasChannelMember(session, channelID, permission) {
+		return true
+	}
+
+	channel, appErr := a.GetChannel(c, channelID)
+	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
+		return false
+	}
+
+	if session.IsUnrestricted() {
+		return true
+	}
+
+	if appErr == nil {
+		if channel.TeamId != "" {
+			if channel.Type == model.ChannelTypePrivate && !a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+				return false
+			}
+			return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
+		} else if !a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return false
+		}
+	}
+
+	return a.SessionHasPermissionTo(session, permission)
+}
+
+func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool {
+	if channelID == "" {
+		return false
+	}
+
+	if a.sessionHasPermissionHasChannelMember(session, channelID, permission) {
+		return true
 	}
 
 	channel, appErr := a.GetChannel(c, channelID)
@@ -293,11 +333,7 @@ func (a *App) HasPermissionToTeam(askingUserId string, teamID string, permission
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
-func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channelID string, permission *model.Permission) bool {
-	if channelID == "" || askingUserId == "" {
-		return false
-	}
-
+func (a *App) hasPermissionForChannelMember(c request.CTX, askingUserId string, channelID string, permission *model.Permission) bool {
 	channelMember, err := a.GetChannelMember(c, channelID, askingUserId)
 	if err == nil {
 		roles := channelMember.GetRoles()
@@ -306,10 +342,45 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 		}
 	}
 
-	var channel *model.Channel
-	channel, err = a.GetChannel(c, channelID)
+	return false
+}
+
+func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channelID string, permission *model.Permission) bool {
+	if channelID == "" || askingUserId == "" {
+		return false
+	}
+
+	if a.hasPermissionForChannelMember(c, askingUserId, channelID, permission) {
+		return true
+	}
+
+	channel, err := a.GetChannel(c, channelID)
 	if err == nil {
 		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
+	}
+
+	return a.HasPermissionTo(askingUserId, permission)
+}
+
+func (a *App) HasPermissionToChannelContent(c request.CTX, askingUserId string, channelID string, permission *model.Permission) bool {
+	if channelID == "" || askingUserId == "" {
+		return false
+	}
+
+	if a.hasPermissionForChannelMember(c, askingUserId, channelID, permission) {
+		return true
+	}
+
+	channel, err := a.GetChannel(c, channelID)
+	if err == nil {
+		if channel.TeamId != "" {
+			if channel.Type == model.ChannelTypePrivate && !a.HasPermissionTo(askingUserId, model.PermissionManageSystem) {
+				return false
+			}
+			return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
+		} else if !a.HasPermissionTo(askingUserId, model.PermissionManageSystem) {
+			return false
+		}
 	}
 
 	return a.HasPermissionTo(askingUserId, permission)

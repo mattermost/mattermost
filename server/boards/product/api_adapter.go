@@ -140,6 +140,10 @@ func (a *serviceAPIAdapter) HasPermissionToChannel(askingUserID string, channelI
 	return a.api.permissionsService.HasPermissionToChannel(askingUserID, channelID, permission)
 }
 
+func (a *serviceAPIAdapter) HasPermissionToChannelContent(askingUserID string, channelID string, permission *mm_model.Permission) bool {
+	return a.api.permissionsService.HasPermissionToChannelContent(askingUserID, channelID, permission)
+}
+
 //
 // Bot service.
 //

@@ -962,6 +962,10 @@ func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permissio
 	return api.app.HasPermissionToChannel(api.ctx, userID, channelID, permission)
 }
 
+func (api *PluginAPI) HasPermissionToChannelContent(userID, channelID string, permission *model.Permission) bool {
+	return api.app.HasPermissionToChannelContent(api.ctx, userID, channelID, permission)
+}
+
 func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId string) bool {
 	return api.app.RolesGrantPermission(roleNames, permissionId)
 }

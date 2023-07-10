@@ -39,7 +39,7 @@ func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hasPermission := false
 
-	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), draft.ChannelId, model.PermissionCreatePost) {
+	if c.App.SessionHasPermissionToChannelContent(c.AppContext, *c.AppContext.Session(), draft.ChannelId, model.PermissionCreatePost) {
 		hasPermission = true
 	} else if channel, err := c.App.GetChannel(c.AppContext, draft.ChannelId); err == nil {
 		// Temporary permission check method until advanced permissions, please do not copy

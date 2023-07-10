@@ -2841,7 +2841,7 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.HasPermissionToChannel(c.AppContext, c.Params.UserId, typingRequest.ChannelId, model.PermissionCreatePost) {
+	if !c.App.HasPermissionToChannelContent(c.AppContext, c.Params.UserId, typingRequest.ChannelId, model.PermissionCreatePost) {
 		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}

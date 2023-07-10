@@ -41,6 +41,10 @@ func (s *permissionsServiceWrapper) HasPermissionToChannel(askingUserID string, 
 	return s.app.HasPermissionToChannel(request.EmptyContext(s.app.Log()), askingUserID, channelID, permission)
 }
 
+func (s *permissionsServiceWrapper) HasPermissionToChannelContent(askingUserID string, channelID string, permission *model.Permission) bool {
+	return s.app.HasPermissionToChannelContent(request.EmptyContext(s.app.Log()), askingUserID, channelID, permission)
+}
+
 func (s *permissionsServiceWrapper) RolesGrantPermission(roleNames []string, permissionId string) bool {
 	return s.app.RolesGrantPermission(roleNames, permissionId)
 }
