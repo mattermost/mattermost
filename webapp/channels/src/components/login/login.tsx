@@ -34,6 +34,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 import AlertBanner, {ModeType, AlertBannerProps} from 'components/alert_banner';
 import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLoginButton, {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
+import ExternalLink from 'components/external_link';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
@@ -55,12 +56,12 @@ import {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 import {showNotification} from 'utils/notifications';
 import {t} from 'utils/i18n';
+import {isDesktopApp} from 'utils/user_agent';
 import {setCSRFFromCookie} from 'utils/utils';
 
 import LoginMfa from './login_mfa';
 
 import './login.scss';
-import {isDesktopApp} from 'utils/user_agent';
 
 const MOBILE_SCREEN_WIDTH = 1200;
 
@@ -100,6 +101,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         CustomDescriptionText,
         SiteName,
         ExperimentalPrimaryTeam,
+        ForgotPasswordLink,
+        PasswordEnableForgotLink,
     } = useSelector(getConfig);
     const {IsLicensed} = useSelector(getLicense);
     const initializing = useSelector((state: GlobalState) => state.requests.users.logout.status === RequestStatus.SUCCESS || !state.storage.initialized);
@@ -737,6 +740,34 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         );
     };
 
+    const getResetPasswordLink = () => {
+        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false') {
+            return null;
+        }
+
+        if (ForgotPasswordLink) {
+            return (
+                <div className='login-body-card-form-link'>
+                    <ExternalLink href={ForgotPasswordLink}>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                    </ExternalLink>
+                </div>
+            );
+        }
+
+        if (enableSignInWithUsername || enableSignInWithEmail) {
+            return (
+                <div className='login-body-card-form-link'>
+                    <Link to='/reset_password'>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                    </Link>
+                </div>
+            );
+        }
+
+        return null;
+    };
+
     const getContent = () => {
         if (showMfa) {
             return (
@@ -850,13 +881,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             hasError={hasError}
                                             disabled={isWaiting}
                                         />
-                                        {(enableSignInWithUsername || enableSignInWithEmail) && (
-                                            <div className='login-body-card-form-link'>
-                                                <Link to='/reset_password'>
-                                                    {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
-                                                </Link>
-                                            </div>
-                                        )}
+                                        {getResetPasswordLink()}
                                         <SaveButton
                                             extraClasses='login-body-card-form-button-submit large'
                                             saving={isWaiting}

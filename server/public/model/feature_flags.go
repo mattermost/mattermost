@@ -55,18 +55,13 @@ type FeatureFlags struct {
 
 	PeopleProduct bool
 
-	// A/B Test on reduced onboarding task list item
-	ReduceOnBoardingTaskList bool
-
-	ThreadsEverywhere bool
-
-	GlobalDrafts bool
-
 	OnboardingTourTips bool
 
 	DeprecateCloudFree bool
 
 	CloudReverseTrial bool
+
+	DataRetentionConcurrencyEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -76,7 +71,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = true
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
-	f.PermalinkPreviews = true
 	f.BoardsFeatureFlags = ""
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
@@ -84,15 +78,12 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = false
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.PostPriority = true
 	f.PeopleProduct = false
-	f.ReduceOnBoardingTaskList = false
-	f.ThreadsEverywhere = false
-	f.GlobalDrafts = true
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
+	f.DataRetentionConcurrencyEnabled = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

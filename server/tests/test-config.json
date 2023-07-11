@@ -115,7 +115,8 @@
         "Lowercase": false,
         "Number": false,
         "Uppercase": false,
-        "Symbol": false
+        "Symbol": false,
+        "EnableForgotLink": true
     },
     "FileSettings": {
         "EnableFileAttachments": true,
@@ -187,6 +188,7 @@
         "AboutLink": "https://mattermost.com/default-about/",
         "HelpLink": "https://mattermost.com/pl/help/",
         "ReportAProblemLink": "https://mattermost.com/pl/report-a-bug",
+        "ForgotPasswordLink": "",
         "SupportEmail": "feedback@mattermost.com"
     },
     "AnnouncementSettings": {

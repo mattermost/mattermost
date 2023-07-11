@@ -121,12 +121,14 @@ export type ClientConfig = {
     FeatureFlagBoardsProduct: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagGraphQL: string;
+    ForgotPasswordLink: string;
     GfycatAPIKey: string;
     GfycatAPISecret: string;
     GoogleDeveloperKey: string;
     GuestAccountsEnforceMultifactorAuthentication: string;
     HasImageProxy: string;
     HelpLink: string;
+    HideGuestTags: string;
     IosAppDownloadLink: string;
     IosLatestVersion: string;
     IosMinVersion: string;
@@ -153,6 +155,7 @@ export type ClientConfig = {
     GitLabButtonColor: string;
     OpenIdButtonText: string;
     OpenIdButtonColor: string;
+    PasswordEnableForgotLink: string;
     PasswordMinimumLength: string;
     PasswordRequireLowercase: string;
     PasswordRequireNumber: string;
@@ -194,7 +197,6 @@ export type ClientConfig = {
     DisableAppBar: string;
     EnableComplianceExport: string;
     PostPriority: string;
-    ReduceOnBoardingTaskList: string;
     PostAcknowledgements: string;
     AllowPersistentNotifications: string;
     PersistentNotificationMaxRecipients: string;
@@ -477,6 +479,7 @@ export type PasswordSettings = {
     Number: boolean;
     Uppercase: boolean;
     Symbol: boolean;
+    EnableForgotLink: boolean;
 };
 
 export type FileSettings = {
@@ -562,6 +565,7 @@ export type SupportSettings = {
     AboutLink: string;
     HelpLink: string;
     ReportAProblemLink: string;
+    ForgotPasswordLink: string;
     SupportEmail: string;
     CustomTermsOfServiceEnabled: boolean;
     CustomTermsOfServiceReAcceptancePeriod: number;
@@ -847,6 +851,7 @@ export type DisplaySettings = {
 
 export type GuestAccountsSettings = {
     Enable: boolean;
+    HideTags: boolean;
     AllowEmailAccounts: boolean;
     EnforceMultifactorAuthentication: boolean;
     RestrictCreationToDomains: string;
