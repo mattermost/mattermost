@@ -5724,7 +5724,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 
 		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
 		require.NoError(t, err)
-		require.Equal(t, "system_guest custom_role", updatedUser.Roles)
+		require.Equal(t, "system_guest", updatedUser.Roles)
 
 		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
 		require.NoError(t, nErr)
