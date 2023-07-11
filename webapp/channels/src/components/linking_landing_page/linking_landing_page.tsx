@@ -80,7 +80,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     };
 
     isEmbedded = () => {
-        // this cookie is set when Mattermost is embedded in another app via iframe.
+        // this cookie is set by any plugin that facilitates iframe embedding (e.g. mattermost-plugin-msteams-sync).
         const cookieName = 'MMEMBED';
         const cookies = document.cookie.split(';');
         for (let i = 0; i < cookies.length; i++) {
