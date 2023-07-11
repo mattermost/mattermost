@@ -42,14 +42,14 @@ function TextSetting(props: Props) {
     if (type === 'textarea') {
         input = (
             <textarea
-                autoFocus={props.autoFocus}
-                data-testid={`${props.id}--${type}`}
                 id={props.id}
-                dir='auto'
-                style={resizable === false ? {resize: 'none'} : undefined}
+                data-testid={`${props.id}input`} // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
                 className='form-control'
+                autoFocus={props.autoFocus}
+                dir='auto'
                 rows={5}
                 placeholder={props.placeholder}
+                style={resizable === false ? {resize: 'none'} : undefined}
                 value={props.value}
                 maxLength={maxLength}
                 onChange={handleChange}
@@ -58,10 +58,14 @@ function TextSetting(props: Props) {
         );
     } else {
         const inputType = INPUT_TYPES.includes(type) ? type : 'text';
+
+        // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
+        const testId = inputType === 'text' ? `${props.id}input` : `${props.id}${inputType}`;
+
         input = (
             <input
                 id={props.id}
-                data-testid={`${props.id}--${inputType}`}
+                data-testid={testId}
                 className='form-control'
                 autoFocus={props.autoFocus}
                 type={inputType}

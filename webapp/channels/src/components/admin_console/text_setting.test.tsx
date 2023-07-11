@@ -24,7 +24,7 @@ describe('components/admin_console/TextSetting', () => {
         );
 
         screen.getByText('some label', {exact: false});
-        expect(screen.getByTestId('some.id--text')).toHaveProperty('id', 'some.id');
-        expect(screen.getByTestId('some.id--text')).toHaveValue('some value');
+        expect(screen.getByTestId('some.idinput')).toHaveProperty('id', 'some.id');
+        expect(screen.getByTestId('some.idinput')).toHaveValue('some value');
     });
 });

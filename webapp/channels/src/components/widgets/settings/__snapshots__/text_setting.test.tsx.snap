@@ -9,7 +9,7 @@ exports[`components/widgets/settings/TextSetting render component with required 
 >
   <input
     className="form-control"
-    data-testid="string.id--text"
+    data-testid="string.idinput"
     id="string.id"
     maxLength={-1}
     onChange={[Function]}
@@ -28,7 +28,7 @@ exports[`components/widgets/settings/TextSetting render with textarea type 1`] =
 >
   <textarea
     className="form-control"
-    data-testid="string.id--textarea"
+    data-testid="string.idinput"
     dir="auto"
     id="string.id"
     maxLength={-1}
