@@ -475,6 +475,9 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 channelTimezoneCount,
                 memberNotifyCount,
                 onConfirm: () => this.handleNotifyAllConfirmation(),
+                onExited: () => {
+                    this.isDraftSubmitting = false;
+                },
             },
         });
     };
@@ -650,7 +653,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         if (memberNotifyCount > 0) {
             this.showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount);
-            this.isDraftSubmitting = false;
             return;
         }
 
