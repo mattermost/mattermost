@@ -2023,19 +2023,9 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err erro
 		return nil, err
 	}
 
-	roles := user.GetRoles()
-
-	newRoles := []string{}
-	for _, role := range roles {
-		if role == model.SystemUserRoleId {
-			newRoles = append(newRoles, model.SystemGuestRoleId)
-		} else if role != model.SystemAdminRoleId {
-			newRoles = append(newRoles, role)
-		}
-	}
-
 	curTime := model.GetMillis()
-	newRolesDBStr := strings.Join(newRoles, " ")
+	newRolesDBStr := model.SystemGuestRoleId
+
 	query := us.getQueryBuilder().Update("Users").
 		Set("Roles", newRolesDBStr).
 		Set("UpdateAt", curTime).
