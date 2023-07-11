@@ -81,7 +81,16 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
 
     isEmbedded = () => {
         // this cookie is set when Mattermost is embedded in another app via iframe.
-        return document.cookie.includes('MMEMBED=1');
+        const cookieName = 'MMEMBED';
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(cookieName + '=')) {
+                const value = cookie.substring(cookieName.length + 1);
+                return decodeURIComponent(value) === '1';
+            }
+        }
+        return false;
     };
 
     checkLandingPreferenceApp = () => {
