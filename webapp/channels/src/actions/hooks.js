@@ -90,16 +90,16 @@ export function runMessageWillBeUpdatedHooks(newPost, oldPost) {
     };
 }
 
-export function runDesktopNotificationHooks(post, msgProps, channel, teamId, title, body, silent, soundName, url, notify) {
+export function runDesktopNotificationHooks(post, msgProps, channel, teamId, args) {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.DesktopNotificationHooks;
         if (!hooks || hooks.length === 0) {
-            return {args: {title, body, silent, soundName, url, notify}};
+            return {args};
         }
 
-        let args = {title, body, silent, soundName, url, notify};
+        let nextArgs = args;
         for (const hook of hooks) {
-            const result = await hook.hook(post, msgProps, channel, teamId, args); // eslint-disable-line no-await-in-loop
+            const result = await hook.hook(post, msgProps, channel, teamId, nextArgs); // eslint-disable-line no-await-in-loop
 
             if (result) {
                 if (result.error) {
@@ -110,10 +110,10 @@ export function runDesktopNotificationHooks(post, msgProps, channel, teamId, tit
                     return {error: 'returned empty args'};
                 }
 
-                args = result.args;
+                nextArgs = result.args;
             }
         }
 
-        return {args};
+        return {args: nextArgs};
     };
 }

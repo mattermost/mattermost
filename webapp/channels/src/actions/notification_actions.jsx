@@ -204,7 +204,8 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         // Allow plugins to change the notification, or re-enable a notification
-        const hookResult = await dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, title, body, !sound, soundName, url, notify));
+        const args = {title, body, silent: !sound, soundName, url, notify};
+        const hookResult = await dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
         if (hookResult.error) {
             dispatch(logError(hookResult.error));
             return;

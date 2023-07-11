@@ -511,16 +511,18 @@ describe('runDesktopNotificationHooks', () => {
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId};
         const channel = {type: General.DM_CHANNEL};
-        const title = 'Notification title';
-        const body = 'Notification body';
-        const silent = false;
-        const soundName = 'Bing';
-        const url = 'http://localhost:8065/ad-1/channels/test';
-        const notify = true;
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
 
-        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, title, body, silent, soundName, url, notify));
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
 
-        expect(result.args).toEqual({title, body, silent, soundName, url, notify});
+        expect(result.args).toEqual(args);
     });
 
     test('should pass the args through every hook', async () => {
@@ -543,15 +545,16 @@ describe('runDesktopNotificationHooks', () => {
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId};
         const channel = {type: General.DM_CHANNEL};
-        const title = 'Notification title';
-        const body = 'Notification body';
-        const silent = false;
-        const soundName = 'Bing';
-        const url = 'http://localhost:8065/ad-1/channels/test';
-        const notify = true;
-        const args = {title, body, silent, soundName, url, notify};
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
 
-        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, title, body, silent, soundName, url, notify));
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
 
         expect(result.args).toEqual(args);
         expect(hook1).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
@@ -579,15 +582,16 @@ describe('runDesktopNotificationHooks', () => {
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId};
         const channel = {type: General.DM_CHANNEL};
-        const title = 'Notification title';
-        const body = 'Notification body';
-        const silent = false;
-        const soundName = 'Bing';
-        const url = 'http://localhost:8065/ad-1/channels/test';
-        const notify = true;
-        const args = {title, body, silent, soundName, url, notify};
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
 
-        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, title, body, silent, soundName, url, notify));
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
 
         expect(result).toEqual({error: 'an error occurred'});
         expect(hook1).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
@@ -615,15 +619,16 @@ describe('runDesktopNotificationHooks', () => {
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId};
         const channel = {type: General.DM_CHANNEL};
-        const title = 'Notification title';
-        const body = 'Notification body';
-        const silent = false;
-        const soundName = 'Bing';
-        const url = 'http://localhost:8065/ad-1/channels/test';
-        const notify = true;
-        const args = {title, body, silent, soundName, url, notify};
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
 
-        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, title, body, silent, soundName, url, notify));
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
 
         expect(result).toEqual({error: 'returned empty args'});
         expect(hook1).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
@@ -651,15 +656,16 @@ describe('runDesktopNotificationHooks', () => {
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId};
         const channel = {type: General.DM_CHANNEL};
-        const title = 'Notification title';
-        const body = 'Notification body';
-        const silent = false;
-        const soundName = 'Bing';
-        const url = 'http://localhost:8065/ad-1/channels/test';
-        const notify = true;
-        const args = {title, body, silent, soundName, url, notify};
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
 
-        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, title, body, silent, soundName, url, notify));
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
 
         expect(result.args).toEqual(args);
         expect(hook1).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
@@ -699,15 +705,16 @@ describe('runDesktopNotificationHooks', () => {
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId};
         const channel = {type: General.DM_CHANNEL};
-        const title = 'Notification title';
-        const body = 'Notification body';
-        const silent = false;
-        const soundName = 'Bing';
-        const url = 'http://localhost:8065/ad-1/channels/test';
-        const notify = true;
-        const args = {title, body, silent, soundName, url, notify};
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
 
-        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, title, body, silent, soundName, url, notify));
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
 
         expect(result.args).toEqual({...args, title: 'Notification titleabc', notify: true});
         expect(hook1).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
@@ -741,15 +748,16 @@ describe('runDesktopNotificationHooks', () => {
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId};
         const channel = {type: General.DM_CHANNEL};
-        const title = 'Notification title';
-        const body = 'Notification body';
-        const silent = false;
-        const soundName = 'Bing';
-        const url = 'http://localhost:8065/ad-1/channels/test';
-        const notify = true;
-        const args = {title, body, silent, soundName, url, notify};
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
 
-        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, title, body, silent, soundName, url, notify));
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
 
         expect(result.args).toEqual({...args, title: 'Notification title async'});
         expect(hook).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
