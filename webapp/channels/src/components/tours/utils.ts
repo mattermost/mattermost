@@ -27,8 +27,8 @@ export const KeyCodes: Record<string, [string, number]> = {
 // This is extracted from utils file to remove dependency on utils file of webapp
 export function isKeyPressed(event: KeyboardEvent, key: [string, number]): boolean {
     // There are two types of keyboards
-    // 1. English with different layouts(Ex: Dvorak)
-    // 2. Different language keyboards(Ex: Russian)
+    // 1. English with different layouts (Dvorak for example)
+    // 2. Different language keyboards (Russian for example)
 
     if (event.keyCode === KeyCodes.COMPOSING[1]) {
         return false;

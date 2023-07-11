@@ -15,8 +15,8 @@ export function cmdOrCtrlPressed(e: React.KeyboardEvent | KeyboardEvent, allowAl
 
 export function isKeyPressed(event: React.KeyboardEvent | KeyboardEvent, key: [string, number]) {
     // There are two types of keyboards
-    // 1. English with different layouts(Ex: Dvorak)
-    // 2. Different language keyboards(Ex: Russian)
+    // 1. English with different layouts (Dvorak for example)
+    // 2. Different language keyboards (Russian for example)
 
     if (event.keyCode === Constants.KeyCodes.COMPOSING[1]) {
         return false;
