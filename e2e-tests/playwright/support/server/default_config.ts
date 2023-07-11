@@ -44,6 +44,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             Number: false,
             Uppercase: false,
             Symbol: false,
+            EnableForgotLink: true,
         },
         PluginSettings: {
             EnableUploads: true,
@@ -265,6 +266,7 @@ const defaultServerConfig: AdminConfig = {
         Number: false,
         Uppercase: false,
         Symbol: false,
+        EnableForgotLink: true,
     },
     FileSettings: {
         EnableFileAttachments: true,
@@ -345,6 +347,7 @@ const defaultServerConfig: AdminConfig = {
         AboutLink: 'https://docs.mattermost.com/pl/about-mattermost',
         HelpLink: 'https://mattermost.com/pl/help/',
         ReportAProblemLink: 'https://mattermost.com/pl/report-a-bug',
+        ForgotPasswordLink: '',
         SupportEmail: '',
         CustomTermsOfServiceEnabled: false,
         CustomTermsOfServiceReAcceptancePeriod: 365,
