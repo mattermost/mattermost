@@ -70,8 +70,8 @@ type PushNotification struct {
 }
 
 func (pn *PushNotification) DeepCopy() *PushNotification {
-	copy := *pn
-	return &copy
+	pnCopy := *pn
+	return &pnCopy
 }
 
 func (pn *PushNotification) SetDeviceIdAndPlatform(deviceId string) {

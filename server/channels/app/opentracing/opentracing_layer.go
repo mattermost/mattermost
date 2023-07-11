@@ -12721,7 +12721,7 @@ func (a *OpenTracingAppLayer) MarkChannelAsUnreadFromPost(c request.CTX, postID 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
+func (a *OpenTracingAppLayer) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool, isCRTEnabled bool) (map[string]int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MarkChannelsAsViewed")
 
@@ -12733,7 +12733,7 @@ func (a *OpenTracingAppLayer) MarkChannelsAsViewed(c request.CTX, channelIDs []s
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.MarkChannelsAsViewed(c, channelIDs, userID, currentSessionId, collapsedThreadsSupported)
+	resultVar0, resultVar1 := a.app.MarkChannelsAsViewed(c, channelIDs, userID, currentSessionId, collapsedThreadsSupported, isCRTEnabled)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13907,28 +13907,6 @@ func (a *OpenTracingAppLayer) RegenerateTeamInviteId(teamID string) (*model.Team
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) RegisterCollectionAndTopic(pluginID string, collectionType string, topicType string) error {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RegisterCollectionAndTopic")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.RegisterCollectionAndTopic(pluginID, collectionType, topicType)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) RegisterPluginCommand(pluginID string, command *model.Command) error {

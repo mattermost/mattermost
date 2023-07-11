@@ -55,10 +55,6 @@ type FeatureFlags struct {
 
 	PeopleProduct bool
 
-	ThreadsEverywhere bool
-
-	GlobalDrafts bool
-
 	OnboardingTourTips bool
 
 	DeprecateCloudFree bool
@@ -66,6 +62,8 @@ type FeatureFlags struct {
 	CloudReverseTrial bool
 
 	EnableExportDirectDownload bool
+
+	DataRetentionConcurrencyEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -82,15 +80,13 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = false
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.PostPriority = true
 	f.PeopleProduct = false
-	f.ThreadsEverywhere = false
-	f.GlobalDrafts = true
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
+	f.DataRetentionConcurrencyEnabled = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
