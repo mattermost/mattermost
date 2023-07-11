@@ -76,6 +76,14 @@ clean: ## Clears cached; deletes node_modules and dist directories
 	npm run clean --workspaces --if-present
 	rm -rf node_modules
 
+.PHONY: package
+package: node_modules dist ## Generates ./mattermost-webapp.tar.gz for use by someone customizing the web app
+	mkdir tmp
+	mv channels/dist tmp/client
+	tar -C tmp -czf mattermost-webapp.tar.gz client
+	mv tmp/client channels/dist
+	rmdir tmp
+
 ## Help documentation à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
 help:

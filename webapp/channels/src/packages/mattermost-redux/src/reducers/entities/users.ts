@@ -105,7 +105,7 @@ function removeProfileFromSet(state: RelationOneToMany<Team, UserProfile>, actio
 function currentUserId(state = '', action: GenericAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_ME: {
-        const data = action.data || action.payload;
+        const data = action.data;
 
         return data.id;
     }
@@ -173,62 +173,81 @@ function myAudits(state = [], action: GenericAction) {
     }
 }
 
+function receiveUserProfile(state: IDMappedObjects<UserProfile>, received: UserProfile) {
+    const existing = state[received.id];
+
+    if (!existing) {
+        // No existing data to merge with
+        return {
+            ...state,
+            [received.id]: received,
+        };
+    }
+
+    const merged = {
+        ...existing,
+        ...received,
+    };
+
+    // MM-53377:
+    // For non-admin users, certain API responses don't return details for the current user that would be sanitized
+    // out for others. This currently includes:
+    // - email (if PrivacySettings.ShowEmailAddress is false)
+    // - first_name/last_name (if PrivacySettings.ShowFullName is false)
+    // - last_password_update
+    // - auth_service
+    // - notify_props
+    //
+    // Because email, first_name, last_name, and auth_service can all be empty strings regularly, we can't just
+    // merge the received user and the existing one together like we normally would. Instead, we can use the
+    // existence of existing.notify_props or existing.last_password_update to determine which object has that extra
+    // data so that it can take precedence. Those fields are:
+    // 1. Never empty or zero by Go standards
+    // 2. Only ever sent to the current user, not even to admins, so we know that the object contains privileged data
+    //
+    // Note that admins may have the email/name/auth_service of other users loaded as well. This does not prevent that
+    // data from being replaced when merging sanitized user objects. There doesn't seem to be a way for us to detect
+    // whether the object is sanitized for admins.
+    if (existing.notify_props && (!received.notify_props || Object.keys(received.notify_props).length === 0)) {
+        merged.email = existing.email;
+        merged.first_name = existing.first_name;
+        merged.last_name = existing.last_name;
+        merged.last_password_update = existing.last_password_update;
+        merged.auth_service = existing.auth_service;
+        merged.notify_props = existing.notify_props;
+    }
+
+    if (isEqual(existing, merged)) {
+        return state;
+    }
+
+    return {
+        ...state,
+        [merged.id]: merged,
+    };
+}
+
 function profiles(state: IDMappedObjects<UserProfile> = {}, action: GenericAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_ME:
     case UserTypes.RECEIVED_PROFILE: {
-        const data = action.data || action.payload;
-        const user = {...data};
-        const oldUser = state[data.id];
-        if (oldUser) {
-            user.terms_of_service_id = oldUser.terms_of_service_id;
-            user.terms_of_service_create_at = oldUser.terms_of_service_create_at;
+        const user = action.data;
 
-            if (isEqual(user, oldUser)) {
-                return state;
-            }
-        }
-
-        return {
-            ...state,
-            [data.id]: user,
-        };
+        return receiveUserProfile(state, user);
     }
     case UserTypes.RECEIVED_PROFILES_LIST: {
         const users: UserProfile[] = action.data;
 
-        return users.reduce((nextState, user) => {
-            const oldUser = nextState[user.id];
-
-            if (oldUser && isEqual(user, oldUser)) {
-                return nextState;
-            }
-
-            return {
-                ...nextState,
-                [user.id]: user,
-            };
-        }, state);
+        return users.reduce(receiveUserProfile, state);
     }
     case UserTypes.RECEIVED_PROFILES: {
         const users: UserProfile[] = Object.values(action.data);
 
-        return users.reduce((nextState, user) => {
-            const oldUser = nextState[user.id];
-
-            if (oldUser && isEqual(user, oldUser)) {
-                return nextState;
-            }
-
-            return {
-                ...nextState,
-                [user.id]: user,
-            };
-        }, state);
+        return users.reduce(receiveUserProfile, state);
     }
 
     case UserTypes.RECEIVED_TERMS_OF_SERVICE_STATUS: {
-        const data = action.data || action.payload;
+        const data = action.data;
         return {
             ...state,
             [data.user_id]: {
