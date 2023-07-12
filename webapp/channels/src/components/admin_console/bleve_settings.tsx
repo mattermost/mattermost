@@ -160,7 +160,6 @@ export default class BleveSettings extends AdminSettings<Props, State> {
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('BleveSettings.IndexDir')}
                     disabled={this.props.isDisabled}
-                    type='input'
                 />
                 <div className='form-group'>
                     <label

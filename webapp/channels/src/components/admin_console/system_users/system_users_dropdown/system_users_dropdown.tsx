@@ -565,6 +565,15 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
 
     render() {
         const {currentUser, user, isLicensed, config} = this.props;
+
+        let isDisabled = this.props.isDisabled;
+        if (!isDisabled) {
+            // if not already disabled,
+            // disable if SystemAdmin being edited by non SystemAdmin
+            // ie, userManager with EditOtherUsers permissions
+            isDisabled = UserUtils.isSystemAdmin(user.roles) && !UserUtils.isSystemAdmin(currentUser.roles);
+        }
+
         const isGuest = UserUtils.isGuest(user.roles);
         if (!user) {
             return <div/>;
@@ -635,12 +644,14 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
                 {demoteToGuestModal}
                 {createGroupSyncablesMembershipsModal}
                 <MenuWrapper
-                    isDisabled={this.props.isDisabled}
+                    isDisabled={isDisabled}
                 >
                     <div className='text-right'>
                         <a>
                             <span>{currentRoles} </span>
-                            <span className='caret'/>
+                            {!isDisabled &&
+                                <span className='caret'/>
+                            }
                         </a>
                         {this.renderAccessToken()}
                     </div>

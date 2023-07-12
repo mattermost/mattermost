@@ -1487,11 +1487,12 @@ func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
 }
 
 type PasswordSettings struct {
-	MinimumLength *int  `access:"authentication_password"`
-	Lowercase     *bool `access:"authentication_password"`
-	Number        *bool `access:"authentication_password"`
-	Uppercase     *bool `access:"authentication_password"`
-	Symbol        *bool `access:"authentication_password"`
+	MinimumLength    *int  `access:"authentication_password"`
+	Lowercase        *bool `access:"authentication_password"`
+	Number           *bool `access:"authentication_password"`
+	Uppercase        *bool `access:"authentication_password"`
+	Symbol           *bool `access:"authentication_password"`
+	EnableForgotLink *bool `access:"authentication_password"`
 }
 
 func (s *PasswordSettings) SetDefaults() {
@@ -1513,6 +1514,10 @@ func (s *PasswordSettings) SetDefaults() {
 
 	if s.Symbol == nil {
 		s.Symbol = NewBool(false)
+	}
+
+	if s.EnableForgotLink == nil {
+		s.EnableForgotLink = NewBool(true)
 	}
 }
 
@@ -1882,6 +1887,7 @@ type SupportSettings struct {
 	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	HelpLink                               *string `access:"site_customization"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	ForgotPasswordLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	SupportEmail                           *string `access:"site_notifications"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
 	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance_custom_terms_of_service"`
@@ -1927,6 +1933,14 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.ReportAProblemLink == nil {
 		s.ReportAProblemLink = NewString(SupportSettingsDefaultReportAProblemLink)
+	}
+
+	if !isSafeLink(s.ForgotPasswordLink) {
+		*s.ForgotPasswordLink = ""
+	}
+
+	if s.ForgotPasswordLink == nil {
+		s.ForgotPasswordLink = NewString("")
 	}
 
 	if s.SupportEmail == nil {
