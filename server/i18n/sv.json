@@ -9467,14 +9467,6 @@
     "translation": "Ogiltigt tidsintervall."
   },
   {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Samlingstypen finns redan."
-  },
-  {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Ämnestypen finns redan."
-  },
-  {
     "id": "app.draft.delete.app_error",
     "translation": "Kunde inte att radera utkastet."
   },
@@ -9695,30 +9687,6 @@
     "translation": "Tjänsten är endast tillgänglig i Mattermost Enterprise-edition"
   },
   {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "hittade inte produktnyckeln"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "gränssnittet är inte av förväntad typ"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "error när tavlan uppdaterades"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "fel, ingen tavla skapades"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "fel när mallar för tavlor hämtades"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "fel när tavlan duplicerades"
-  },
-  {
     "id": "api.system.logs.invalidFilter",
     "translation": "Felaktigt logg-filter"
   },
@@ -9733,13 +9701,6 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Kunde inte rensa oauth-information."
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "one": "Du har {{.Count}} tilldelad uppgift:",
-      "other": "Du har {{.Count}} tilldelade uppgifter:"
-    }
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",

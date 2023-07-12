@@ -2803,8 +2803,6 @@
   "authorize.app": "Die Anwendung **{appName}** möchte auf deine Daten zugreifen und sie bearbeiten können.",
   "authorize.deny": "Ablehnen",
   "authorize.title": "Autorisiere **{appName}** zur Verbindung mit deinem **Matermost**-Benutzerkonto",
-  "autoShowLinkedBoard.tutorialTip.description": "Verwalte Aufgaben, plane Sprints, führe Standups mit Hilfe von Kanban-Boards und Tabellen durch.",
-  "autoShowLinkedBoard.tutorialTip.title": "Verknüpfe Kanban-Boards mit Kanälen",
   "avatars.overflowUnnamedOnly": "{overflowUnnamedCount, plural, =1 {ein anderer} other {# andere}}",
   "avatars.overflowUsers": "{overflowUnnamedCount, plural, =0 {{names}} =1 {{names} und ein anderer} other {{names} und # andere}}",
   "backstage_list.search": "Suche",

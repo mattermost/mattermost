@@ -2803,8 +2803,6 @@
   "authorize.app": "Appen **{appName}** vill ha tillåtelse att läsa och ändra din grundläggande information.",
   "authorize.deny": "Neka",
   "authorize.title": "Aktorisera **{appName}** att ansluta till ditt användarkonto på **Mattermost**",
-  "autoShowLinkedBoard.tutorialTip.description": "Hantera uppgifter, planera sprintar, genomför standups med hjälp av kanbantavlor och tabeller.",
-  "autoShowLinkedBoard.tutorialTip.title": "Länka kanbantavlor till kanaler",
   "avatars.overflowUnnamedOnly": "{overflowUnnamedCount, plural, =1 {en annan} other {# andra}}",
   "avatars.overflowUsers": "{overflowUnnamedCount, plural, =0 {{names}} =1 {{names} och en till} other {{names} och # till}}",
   "backstage_list.search": "Sök",

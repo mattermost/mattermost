@@ -9467,14 +9467,6 @@
     "translation": "Ongeldig tijdsbereik."
   },
   {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Topictype bestaat al."
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Collectietype bestaat al."
-  },
-  {
     "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
     "translation": "geen ldap-gebruiker"
   },
@@ -9689,30 +9681,6 @@
   {
     "id": "app.group.username_conflict",
     "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Gebruikersnaam}}\"."
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "productsleutel niet gevonden"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "interface niet van het verwachte type"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "fout tijdens het patchen van het bord"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "fout geen bord aangemaakt"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "fout bij het ophalen van de bordsjablonen"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "fout bij het dupliceren van het bord"
   },
   {
     "id": "api.system.logs.invalidFilter",

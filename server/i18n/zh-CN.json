@@ -9520,30 +9520,6 @@
     "translation": "无法获取用户的奖章数目。"
   },
   {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "未找到产品密钥"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "接口不是预期的类型"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "更新 Board 时发生错误"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "在创建 Board 时发生错误"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "在取得 Board 模板时发生错误"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "在复制 Board 时发生错误"
-  },
-  {
     "id": "app.post_prority.get_for_post.app_error",
     "translation": "无法取得消息的优先级"
   },
@@ -9598,14 +9574,6 @@
   {
     "id": "app.draft.delete.app_error",
     "translation": "无法删除草稿。"
-  },
-  {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Topic 类型已存在。"
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Collection 类型已存在。"
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message_single",
@@ -9702,16 +9670,6 @@
   {
     "id": "api.server.cws.delete_workspace.app_error",
     "translation": "CWS 服务器删除工作区时失败。"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "添加到运行队列"
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "other": "您有 {{.Count}} 个任务现在已经逾期："
-    }
   },
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",

@@ -9460,14 +9460,6 @@
     "translation": "ゲストアカウントは無効化されています"
   },
   {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Topic type はすでに存在しています。"
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Collection typeはすでに存在しています。"
-  },
-  {
     "id": "model.draft.is_valid.user_id.app_error",
     "translation": "不正なuser idです。"
   },
@@ -9684,30 +9676,6 @@
     "translation": "CWS サーバーはワークスペースの削除に失敗しました。"
   },
   {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "プロダクトキーが見つかりませんでした"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "インターフェースが期待された型ではありませんでした"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "Boardへのパッチ適用エラー"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "Board作成エラー"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "Boardsテンプレート取得エラー"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "重複したBoardによるエラー"
-  },
-  {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
     "translation": "不正な認証サービス: {{.AuthService}}"
   },
@@ -9720,26 +9688,12 @@
     "translation": "Mattermost Enterprise Editionでのみ利用可能なサービスです"
   },
   {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "実行のタイムラインに追加する"
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "other": "対応期限を迎えている{{.Count}}タスクが割り当てられています:"
-    }
-  },
-  {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "oauth データを削除することができませんでした。"
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "営業に問い合わせる"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "簡単にコラボレーションできるようにするためにZoomなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",

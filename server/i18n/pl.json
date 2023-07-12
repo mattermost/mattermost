@@ -9468,14 +9468,6 @@
     "translation": "Nieprawidłowy zakres czasu."
   },
   {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Typ tematu już istnieje."
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Typ kolekcji już istnieje."
-  },
-  {
     "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
     "translation": "nie jest użytkownikiem ldap"
   },
@@ -9694,30 +9686,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Usługa dostępna tylko w edycji Mattermost Enterprise"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "nie znaleziono klucza produktu"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "interfejs nie jest oczekiwanym typem"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "błąd podczas paczowania tablicy"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "błąd nie utworzono tablicy"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "błąd pobierania szablonów tablic"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "błąd duplikowania tablicy"
   },
   {
     "id": "api.system.logs.invalidFilter",

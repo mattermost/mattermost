@@ -9467,14 +9467,6 @@
     "translation": "Ungültiger Zeitbereich."
   },
   {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Thementyp existiert schon."
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Collection Typ existiert schon."
-  },
-  {
     "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
     "translation": "Kein LDAP-Benutzer"
   },
@@ -9695,30 +9687,6 @@
     "translation": "Dienst nur in der Mattermost Enterprise Edition verfügbar"
   },
   {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "Produktschlüssel nicht gefunden"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "Schnittstelle nicht vom erwarteten Typ"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "Fehler beim Patchen des Boards"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "Fehler kein Board erstellt"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "Fehler beim Abrufen von Board-Templates"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "Fehler beim Duplizieren des Boards"
-  },
-  {
     "id": "api.system.logs.invalidFilter",
     "translation": "Ungültiger Protokollfilter"
   },
@@ -9733,13 +9701,6 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Oauth-Daten können nicht entfernt werden."
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "one": "Du hast eine zugewiesene Aufgabe:",
-      "other": "Du hast {{.Count}} zugewiesene Aufgaben:"
-    }
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",

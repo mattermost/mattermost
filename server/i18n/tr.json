@@ -9467,10 +9467,6 @@
     "translation": "Zaman aralığı geçersiz."
   },
   {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Konu türü zaten var."
-  },
-  {
     "id": "app.collection.add_collection.exists.app_error",
     "translation": "Derleme türü zaten var."
   },
@@ -9695,30 +9691,6 @@
     "translation": "Bu hizmet yalnızca Mattermost Enterprise sürümüyle kullanılabilir"
   },
   {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "ürün anahtarı bulunamadı"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "arayüz beklenen türde değil"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "pano düzenlenirken sorun çıktı"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "hata herhangi bir pano oluşturulmadı"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "pano kalıpları alınırken sorun çıktı"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "pano kopyalanırken sorun çıktı"
-  },
-  {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Oauth verileri kaldırılamadı."
   },
@@ -9735,24 +9707,8 @@
     "translation": "CWS sunucusu çalışma alanını silemedi."
   },
   {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "Kapsamlı bir hata ayıklama süreci yürütmek için deneme alanları ve otomatik görevler atamak üzere kontrol listeleri kullanın. Sürecinizi gözden geçirmek ve gelecek sefer daha iyi olmasını sağlamak için bir geçmiş değerlendirmesi yapın."
-  },
-  {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Bir lisans yüklenirken bayt değeri geçersiz."
-  },
-  {
-    "id": "app.user.run.confirm_finish.submit_label",
-    "translation": "Oyunu tamamla"
-  },
-  {
-    "id": "app.user.new_run.intro",
-    "translation": "**Sahibi** {{.Username}}"
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.heading",
-    "translation": "Gecikmiş durum güncellemeleri"
   },
   {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",

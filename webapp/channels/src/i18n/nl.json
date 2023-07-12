@@ -2803,8 +2803,6 @@
   "authorize.app": "De applicatie **{appName}** wil je toestemming om je basisinformatie te bekijken en te bewerken.",
   "authorize.deny": "Weigeren",
   "authorize.title": "**{appName}** toestaan om verbinding te maken met jouw **Mattermost** gebruikersaccount",
-  "autoShowLinkedBoard.tutorialTip.description": "Beheer taken, plan sprints, voer standups uit met behulp van kanban-borden en tabellen.",
-  "autoShowLinkedBoard.tutorialTip.title": "Kanban-borden koppelen aan kanalen",
   "avatars.overflowUnnamedOnly": "{overflowUnnamedCount, plural, =1 {one andere} other {# andere}}",
   "avatars.overflowUsers": "{overflowUnnamedCount, plural, =0 {{names}} =1 {{names} and one other} other {{names} en # anderen}}",
   "backstage_list.search": "Zoeken",

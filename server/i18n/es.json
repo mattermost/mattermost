@@ -9468,14 +9468,6 @@
     "translation": "Intervalo de tiempo inválido."
   },
   {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "El tipo de tema ya existe."
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "El tipo de colección ya existe."
-  },
-  {
     "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
     "translation": "no es un usuario ldap"
   },
