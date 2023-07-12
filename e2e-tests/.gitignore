@@ -9,3 +9,5 @@
 
 # node
 *.lock
+
+node_modules
