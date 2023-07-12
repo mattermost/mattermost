@@ -9539,10 +9539,6 @@
     "translation": "Ongeldig bericht-id."
   },
   {
-    "id": "app.worktemplates.get_categories.app_error",
-    "translation": "Kan geen werksjablooncategorieën ophalen"
-  },
-  {
     "id": "app.post_prority.get_for_post.app_error",
     "translation": "Kon geen berichtprioriteit ophalen voor bericht"
   },
@@ -9687,32 +9683,16 @@
     "translation": "Fout bij het bijwerken van de serververtalingen."
   },
   {
-    "id": "worktemplate.category.devops",
-    "translation": "DevOps"
-  },
-  {
     "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
     "translation": "Kan kanaal verbonden met een playbook niet vinden."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.channels.create_error",
-    "translation": "Fout bij het maken van een kanaal."
   },
   {
     "id": "app.worktemplates.execute_work_template.app_error",
     "translation": "Fout bij het uitvoeren van een werksjabloon."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
-    "translation": "Je hebt geen rechten om een publiek playbook te maken."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "Je hebt geen rechten om een openbaar bord aan te maken."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
-    "translation": "Je hebt geen rechten om een privékanaal te maken."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -9721,10 +9701,6 @@
   {
     "id": "app.group.username_conflict",
     "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Gebruikersnaam}}\"."
-  },
-  {
-    "id": "api.command_templates.unsupported.app_error",
-    "translation": "De sjablonenopdracht wordt niet ondersteund op jouw toestel."
   },
   {
     "id": "api.command_templates.desc",
@@ -9771,16 +9747,8 @@
     "translation": "Contacteer de verkoopsafdeling"
   },
   {
-    "id": "app.user.digest.tasks.all_tasks_command",
-    "translation": "Gebruik `/playbook todo` om al je taken te zien."
-  },
-  {
     "id": "app.user.digest.runs_in_progress.heading",
     "translation": "Runs in uitvoering"
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.heading",
-    "translation": "Achterstallige statusupdates"
   },
   {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
@@ -9795,24 +9763,12 @@
     "translation": "Ongeldig zakelijk e-mailadres voor proefperiode"
   },
   {
-    "id": "app.user.run.add_checklist_item.title",
-    "translation": "Nieuwe taak toevoegen"
-  },
-  {
     "id": "app.user.run.add_checklist_item.name",
     "translation": "Naam"
   },
   {
-    "id": "app.user.new_run.title",
-    "translation": "Playbook uitvoeren"
-  },
-  {
     "id": "app.user.new_run.run_name",
     "translation": "Naam van de uitvoering"
-  },
-  {
-    "id": "app.user.new_run.intro",
-    "translation": "**Eigenaar** {{.Username}}"
   },
   {
     "id": "app.user.digest.tasks.num_assigned_due_until_today",
@@ -9822,19 +9778,8 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.heading",
-    "translation": "Jouw toegewezen taken"
-  },
-  {
     "id": "app.user.digest.tasks.due_x_days_ago",
     "translation": "Verliep {{.Count}} dagen geleden"
-  },
-  {
-    "id": "app.user.digest.tasks.due_after_today",
-    "translation": {
-      "one": "Je hebt **{.Count}} taak toegewezen gekregen die verloopt na vandaag**.",
-      "other": "Je hebt **{.Count}} taken toegewezen gekregen die verlopen na vandaag**."
-    }
   },
   {
     "id": "app.user.digest.overdue_status_updates.num_overdue",
@@ -9852,10 +9797,6 @@
     "translation": "Plugin {{.Id}} staat op de lijst met geblokkeerde apps. Sommige plugins worden geblokkeerd omdat ze nu ingebouwd zijn in deze versie van Mattermost."
   },
   {
-    "id": "app.user.run.add_to_timeline.submit_label",
-    "translation": "Toevoegen aan de uitvoeringstijdlijn"
-  },
-  {
     "id": "app.user.run.update_status.num_channel",
     "translation": {
       "one": "Geef een update aan de belanghebbenden. Dit bericht zal verstuurd worden naar {{.Count}} kanaal.",
@@ -9863,30 +9804,115 @@
     }
   },
   {
-    "id": "app.user.run.update_status.finish_run",
-    "translation": "Uitvoering beëindigen"
-  },
-  {
     "id": "app.user.run.status_enable",
     "translation": "@{.Username}} heeft de statusupdates voor [{{.RunName}}]({{.RunURL}}) uitgeschakeld"
-  },
-  {
-    "id": "app.user.run.request_update",
-    "translation": "@here - @{{.Name}} vroeg een statusupdate aan voor [{{.RunName}}]({{.RunURL}}). \n"
   },
   {
     "id": "app.user.run.confirm_finish.title",
     "translation": "Bevestig beëindigen uitvoering"
   },
   {
-    "id": "app.user.run.confirm_finish.num_outstanding",
-    "translation": {
-      "one": "Er is **{.Count}} openstaande taak**. Weet je zeker dat je de uitvoering *{.RunName}}* voor alle deelnemers wilt beëindigen?",
-      "other": "Er is **{.Count}} openstaande taken**. Weet je zeker dat je de uitvoering *{.RunName}}* voor alle deelnemer wilt beëindigen?"
-    }
-  },
-  {
     "id": "app.user.run.add_to_timeline.summary.placeholder",
     "translation": "Korte samenvatting weergeven in de tijdlijn"
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Validatie van blijvende meldingen is mislukt."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "Gebruiker mag geen prioriteitspost of blijvende melding aanmaken."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Kan geen tokens per type krijgen bij het ongeldig maken van wachtwoordherstel tokens"
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Er is een fout opgetreden bij het ophalen van het team."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Kan de blijvende meldingen per team niet verwijderen."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Genegeerde indexen voor purge mogen niet beginnen met een streepje."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Kan de blijvende meldingen per kanaal niet verwijderen."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Blijvend bericht kon niet worden verwijderd"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Ongeldig totaal aantal blijvende meldingen per bericht. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Ongeldige frequentie van blijvende meldingen. Moet minstens twee minuten zijn."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Berichten met een blijvende meldingen laten maximaal {{.MaxRecipients}} ontvangers toe."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Alleen berichten die een draadje beginnen mogen prioriteit hebben."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Blijvende berichten moeten de prioriteit Dringend hebben."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch versie {{.Version}} is hoger dan de maximaal ondersteunde versie van {{.MaxVersion}}"
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Kon geen profiel met actueel aantal gebruikers versturen naar CWS."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Ongeldig maximum aantal ontvangers voor blijvende meldingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Kan lokale socket-bestandsmap niet vinden."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Fout geen organisatienaam opgegeven bij self hosted introductie."
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Kan gif niet decoderen."
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Ongeldige kanaal-automatisch-draadjes-volgen-waarde."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Ongeldige waarde voor bytes bij het uploaden van een licentie."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Kan token niet verwijderen bij het ongeldig maken van tokens voor wachtwoordherstel"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Kan token niet parsen bij het ongeldig maken van tokens voor wachtwoordherstel"
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Berichten met een blijvende meldingen moeten minimaal {{.MaxRecipients}} 1 ontvanger hebben."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Er is een fout opgetreden bij het uitvoeren van de pluginhook bij het opslaan van de configuratie."
   }
 ]
