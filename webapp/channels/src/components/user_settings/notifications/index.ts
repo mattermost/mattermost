@@ -10,7 +10,7 @@ import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/pre
 import {GlobalState} from 'types/store';
 
 import UserSettingsNotifications from './user_settings_notifications';
-import {isCallsEnabled, isCallsRingingEnabled} from 'selectors/calls';
+import {isCallsEnabled, isCallsRingingEnabledOnServer} from 'selectors/calls';
 
 const mapStateToProps = (state: GlobalState) => {
     const config = getConfig(state);
@@ -22,7 +22,7 @@ const mapStateToProps = (state: GlobalState) => {
         sendPushNotifications,
         enableAutoResponder,
         isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
-        isCallsRingingEnabled: isCallsEnabled(state, '0.17.0') && isCallsRingingEnabled(state),
+        isCallsRingingEnabled: isCallsEnabled(state, '0.17.0') && isCallsRingingEnabledOnServer(state),
     };
 };
 
