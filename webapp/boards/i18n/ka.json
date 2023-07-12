@@ -1,5 +1,10 @@
 {
   "AppBar.Tooltip": "დაკავშირებული დაფების გადართვა",
+  "Attachment.Attachment-title": "მიმაგრებული ფაილი",
+  "AttachmentBlock.DeleteAction": "წაშლა",
+  "AttachmentBlock.failed": "ფაილის ატვირთვა ვერ მოხერხდა ფაილის დაშვებული მაქსიმალური ზომის გადაჭარბების გამო.",
+  "AttachmentElement.delete-confirmation-dialog-button-text": "წაშლა",
+  "AttachmentElement.upload-percentage": "იტვირთება...({uploadPercent}%)",
   "BoardComponent.add-a-group": "+ ჯგუფის დამატება",
   "BoardComponent.delete": "წაშლა",
   "BoardComponent.hidden-columns": "დამალული სვეტები",
