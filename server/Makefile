@@ -767,7 +767,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 vet: ## Run mattermost go vet specific checks
-	$(GO) install github.com/mattermost/mattermost-govet@6c71c4bcb26283d06aa6c5e2dcb3a2cdfe15b3be
+	$(GO) install github.com/mattermost/mattermost-govet/v2@new
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry -errorAssertions ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
@@ -776,7 +776,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
-	$(GO) install github.com/mattermost/mattermost-govet@6c71c4bcb26283d06aa6c5e2dcb3a2cdfe15b3be
+	$(GO) install github.com/mattermost/mattermost-govet/v2@new
 	make -C ../api build
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -openApiSync -openApiSync.spec=$(ROOT)../api/v4/html/static/mattermost-openapi-v4.yaml ./...
 
