@@ -5,11 +5,10 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Group} from '@mattermost/types/groups';
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
 
 import AbstractList from 'components/admin_console/team_channel_settings/abstract_list';
 
+import type {OwnProps, PropsFromRedux} from './index'; 
 import GroupRow from './group_row';
 
 const Header = () => {
@@ -40,22 +39,7 @@ const Header = () => {
     );
 };
 
-type Props = {
-    data?: Group[];
-    onPageChangedCallback?: () => void;
-    total: number;
-    emptyListTextId: string;
-    emptyListTextDefaultMessage: string;
-    actions: {
-        getData: () => Promise<any>;
-    };
-    removeGroup: (gid: string) => void;
-    setNewGroupRole: (gid: string) => void;
-    type?: string;
-    team?: Team;
-    channel?: Partial<Channel>;
-    isDisabled?: boolean;
-}
+type Props = OwnProps & PropsFromRedux;
 
 export default class GroupList extends React.PureComponent<Props> {
     renderRow = (item: Partial<Group>) => {
