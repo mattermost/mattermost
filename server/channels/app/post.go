@@ -758,14 +758,18 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 //
 // This method assumes that if there's a permalink, it's already attached to the post.
 // If the user doesn't have access then this method will wipe that off.
-func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
+func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, message *model.WebSocketEvent) (appErr *model.AppError) {
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
 		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("post", postJSON)
 
-	defer a.Publish(message)
+	defer func() {
+		if appErr != nil {
+			a.Publish(message)
+		}
+	}()
 
 	permalinkPreviewedPost := post.GetPreviewPost()
 	if permalinkPreviewedPost == nil {
@@ -784,7 +788,8 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 
-	previewedPost, appErr := a.GetSinglePost(permalinkPreviewedPost.PostID, false)
+	var previewedPost *model.Post
+	previewedPost, appErr = a.GetSinglePost(permalinkPreviewedPost.PostID, false)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			mlog.Warn("permalinked post not found", mlog.String("referenced_post_id", permalinkPreviewedPost.PostID))
@@ -793,7 +798,8 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 		return appErr
 	}
 
-	permalinkPreviewedChannel, appErr := a.GetChannel(c, previewedPost.ChannelId)
+	var permalinkPreviewedChannel *model.Channel
+	permalinkPreviewedChannel, appErr = a.GetChannel(c, previewedPost.ChannelId)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
