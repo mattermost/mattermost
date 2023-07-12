@@ -9684,10 +9684,6 @@
     "translation": "użytkownik o nazwie \"{{.Username}}\" już istnieje."
   },
   {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "Błąd podczas wykonywania szablonu roboczego."
-  },
-  {
     "id": "api.work_templates.disabled",
     "translation": "Szablony robocze są wyłączone."
   },
@@ -9744,24 +9740,12 @@
     "translation": "Nie można usunąć danych oauth."
   },
   {
-    "id": "app.user.digest.tasks.heading",
-    "translation": "Twoje przydzielone zadania"
-  },
-  {
     "id": "app.user.run.add_to_timeline.playbook_run",
     "translation": "Uruchomienie Playbooka"
   },
   {
-    "id": "app.user.run.update_status.submit_label",
-    "translation": "Status aktualizacji"
-  },
-  {
     "id": "app.user.new_run.intro",
     "translation": "**Właściciel** {{.Username}}"
-  },
-  {
-    "id": "app.user.run.status_enable",
-    "translation": "@{.Username}} włączył aktualizacje statusu dla [{{.RunName}}]({{.RunURL}})"
   },
   {
     "id": "worktemplate.companywide.create_project.integration",
@@ -9792,16 +9776,8 @@
     "translation": "Nieprawidłowy e-mail służbowy dla wersji testowej"
   },
   {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Śledź postępy swojego zespołu w realizacji celów organizacyjnych dzięki tablicy Cele i OKR. Utrzymuj spotkania na właściwym torze dzięki tablicy Agenda spotkań."
-  },
-  {
     "id": "worktemplate.leadership.goals_and_okrs.integration",
     "translation": "Zwiększ produktywność swojego kanału, integrując najczęściej używane narzędzia, takie jak Zoom, aby ułatwić współpracę. Zostaną one pobrane za Ciebie."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "Użyj tablicy rozwiązywania incydentów, aby wspierać powtarzalne procesy i przypisywać zdefiniowane zadania w całym zespole."
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
@@ -9818,5 +9794,81 @@
   {
     "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
     "translation": "Powiadomienie stałe musi mieć co najmniej 1 odbiorcę."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ignorowane indeksy nie powinny zaczynać się od myślnika."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Nieprawidłowa całkowita liczba trwałych powiadomień na post. Musi być liczbą dodatnią."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Nie można usunąć trwałych powiadomień z zespołu."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Nieprawidłowa częstotliwość trwałych powiadomień. Musi wynosić co najmniej dwie minuty."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "Użytkownik nie może tworzyć priorytetowych postów ani trwałych powiadomień."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Walidacja trwałego powiadomienia nie powiodła się."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Tylko posty root mogą mieć priorytet."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Posty z powiadomieniami stałymi muszą mieć priorytet Pilne."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Wystąpił błąd podczas uruchamiania hooka wtyczki przy zapisywaniu konfiguracji."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Nie można uzyskać tokenów według typu podczas unieważniania tokenów odzyskiwania hasła"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Nie można usunąć tokena podczas unieważniania tokenów odzyskiwania hasła"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Nie można przetworzyć tokena podczas unieważniania tokenów odzyskiwania hasła"
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Nie można zdekodować gifa."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Nie można usunąć trwałych powiadomień z kanału."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Nie udało się usunąć trwałego wpisu powiadomienia"
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Wystąpił błąd podczas pobierania zespołu."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Nieprawidłowa maksymalna liczba odbiorców trwałych powiadomień. Musi to być liczba dodatnia."
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Nieprawidłowa wartość channel-auto-follow-threads."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Nie można zlokalizować lokalnego katalogu z plikami."
   }
 ]
