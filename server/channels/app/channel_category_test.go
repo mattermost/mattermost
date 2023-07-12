@@ -669,7 +669,7 @@ func createPostAsAdmin(th *TestHelper, channel *model.Channel) {
 	}
 
 	var err *model.AppError
-	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
+	if _, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
 		panic(err)
 	}
 }
@@ -697,12 +697,12 @@ func TestViewCategory(t *testing.T) {
 		// Confirm that the channels are unread
 		member1, err := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
-		assert.Equal(t, 1, member1.MsgCount)
-		assert.Equal(t, 1, member1.MsgCountRoot)
+		assert.Equal(t, 0, member1.MsgCount)
+		assert.Equal(t, 0, member1.MsgCountRoot)
 		member2, err := th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
-		assert.Equal(t, 1, member2.MsgCount)
-		assert.Equal(t, 1, member2.MsgCountRoot)
+		assert.Equal(t, 0, member2.MsgCount)
+		assert.Equal(t, 0, member2.MsgCountRoot)
 
 		// View the category
 		th.App.ViewCategory(th.Context, th.BasicUser.Id, channelsCategory.Id)
@@ -710,11 +710,11 @@ func TestViewCategory(t *testing.T) {
 		// Confirm that the channels are now read
 		member1, err = th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
-		assert.Equal(t, 0, member1.MsgCount)
-		assert.Equal(t, 0, member1.MsgCountRoot)
+		assert.Equal(t, 1, member1.MsgCount)
+		assert.Equal(t, 1, member1.MsgCountRoot)
 		member2, err = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
-		assert.Equal(t, 0, member2.MsgCount)
-		assert.Equal(t, 0, member2.MsgCountRoot)
+		assert.Equal(t, 1, member2.MsgCount)
+		assert.Equal(t, 1, member2.MsgCountRoot)
 	})
 }
