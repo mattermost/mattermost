@@ -4714,7 +4714,6 @@
   "widgets.users_emails_input.loading": "بارگذاری",
   "widgets.users_emails_input.no_user_found_matching": "هیچکس مطابق **{text}** پیدا نشد. برای دعوت از آنها ایمیل آنها را وارد کنید.",
   "widgets.users_emails_input.valid_email": "افزودن **{email}**",
-  "work_templates.menu.template_title": "الگو",
   "work_templates.preview.modal_cancel_button": "عقب",
   "workspace_limits.archived_file.archived_compact": "(بایگانی‌شده)",
   "workspace_limits.file_storage": "مخزن پرونده",

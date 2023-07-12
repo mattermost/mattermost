@@ -8814,12 +8814,5 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Функцията изисква надграждане до версия Enterprise Edition."
-  },
-  {
-    "id": "app.user.digest.tasks.due_in_x_days",
-    "translation": {
-      "one": "",
-      "other": ""
-    }
   }
 ]

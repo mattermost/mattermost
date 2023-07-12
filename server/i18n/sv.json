@@ -9679,20 +9679,12 @@
     "translation": "Det gick inte att skapa en statuspost för true up"
   },
   {
-    "id": "app.worktemplates.execute_work_template.boards.create_error",
-    "translation": "Fel vid skapandet av en tavla."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "Du har inte behörighet att skapa en publik tavla."
   },
   {
     "id": "app.group.username_conflict",
     "translation": "Användaren med användarnamn \"{{.Username}}\" finns redan."
-  },
-  {
-    "id": "worktemplate.category.companywide",
-    "translation": "Företagsgemensam"
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -9747,35 +9739,16 @@
     "translation": "Kunde inte rensa oauth-information."
   },
   {
-    "id": "app.user.run.update_status.num_channel",
-    "translation": {
-      "one": "Ge en uppdatering till intressenterna. Detta inlägg kommer att publiceras i {{.Count}} kanal.",
-      "other": "Ge en uppdatering till intressenterna. Detta inlägg kommer att publiceras i {{.Count}} kanaler."
-    }
-  },
-  {
     "id": "app.user.run.status_enable",
     "translation": "@{{.Username}} aktiverade statusuppdateringar för [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "app.user.run.confirm_finish.title",
-    "translation": "Bekräfta att avsluta körningen"
   },
   {
     "id": "app.user.run.add_to_timeline.summary.placeholder",
     "translation": "Kort sammanfattning som visas i tidslinjen"
   },
   {
-    "id": "app.user.run.add_to_timeline.playbook_run",
-    "translation": "Kör Playbook"
-  },
-  {
     "id": "app.user.run.add_checklist_item.description",
     "translation": "Beskrivning"
-  },
-  {
-    "id": "app.user.new_run.playbook",
-    "translation": "Playbook"
   },
   {
     "id": "app.user.digest.tasks.num_assigned",
@@ -9785,30 +9758,12 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.due_in_x_days",
-    "translation": {
-      "one": "Ska utföras inom {{.Count}} dag",
-      "other": "Ska utföras inom {{.Count}} dagar"
-    }
-  },
-  {
     "id": "app.user.digest.runs_in_progress.zero_in_progress",
     "translation": "Du har 0 pågående körningar."
   },
   {
-    "id": "app.user.digest.overdue_status_updates.num_overdue",
-    "translation": {
-      "one": "Du har {{.Count}} körning som borde ha fått en statusuppdatering:",
-      "other": "Du har {{.Count}} körningar som borde ha fått en statusuppdatering:"
-    }
-  },
-  {
     "id": "worktemplate.devops.incident_resolution.description.board",
     "translation": "Använd Incident Resolution tavlan för att stödja upprepbara processer och fördela definierade uppgifter i hela teamet."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Öka produktiviteten i din kanal genom att integrera dina mest använda verktyg. Dessa kommer att laddas ner åt dig."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",

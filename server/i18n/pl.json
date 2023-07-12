@@ -9684,10 +9684,6 @@
     "translation": "użytkownik o nazwie \"{{.Username}}\" już istnieje."
   },
   {
-    "id": "api.work_templates.disabled",
-    "translation": "Szablony robocze są wyłączone."
-  },
-  {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Nie udało się zaktualizować tłumaczeń serwera."
   },
@@ -9740,16 +9736,8 @@
     "translation": "Nie można usunąć danych oauth."
   },
   {
-    "id": "app.user.run.add_to_timeline.playbook_run",
-    "translation": "Uruchomienie Playbooka"
-  },
-  {
     "id": "app.user.new_run.intro",
     "translation": "**Właściciel** {{.Username}}"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Zwiększ produktywność na swoim kanale, integrując najczęściej używane narzędzia. Zostaną one pobrane za Ciebie."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
@@ -9774,10 +9762,6 @@
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Nieprawidłowy e-mail służbowy dla wersji testowej"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Zwiększ produktywność swojego kanału, integrując najczęściej używane narzędzia, takie jak Zoom, aby ułatwić współpracę. Zostaną one pobrane za Ciebie."
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",

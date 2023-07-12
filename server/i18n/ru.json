@@ -9680,10 +9680,6 @@
     "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_public_board",
-    "translation": "У вас нет прав для создания публичной доски."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "пользователь с таким именем \"{{.Username}}\" уже существует."
   },
@@ -9740,10 +9736,6 @@
     "translation": "Невозможно удалить данные oauth."
   },
   {
-    "id": "app.user.digest.overdue_status_updates.heading",
-    "translation": "Просроченные обновления статуса"
-  },
-  {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
     "translation": "Серверу CWS не удалось подписаться на рассылку новостей."
   },
@@ -9760,32 +9752,16 @@
     "translation": "Плагин {{.Id}} находится в списке блокировки. Некоторые плагины заблокированы, потому что они встроены в данную версию Mattermost."
   },
   {
-    "id": "app.user.run.add_to_timeline.submit_label",
-    "translation": "Добавить на временную шкалу"
-  },
-  {
     "id": "app.user.new_run.run_name",
     "translation": "Название запуска"
-  },
-  {
-    "id": "app.user.digest.tasks.due_x_days_ago",
-    "translation": "Срок исполнения {{.Count}} дн. назад"
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
     "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Zoom, для облегчения совместной работы. Они будут загружены для вас."
   },
   {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Повысьте продуктивность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Jira, для отслеживания хода работы над ошибками. Они будут загружены для вас."
-  },
-  {
     "id": "worktemplate.devops.incident_resolution.description.playbook",
     "translation": "Используйте контрольные списки и автоматизацию, чтобы привлечь ключевых членов команды, и расскажите, как продвигается процесс разрешения инцидента."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Используйте доску Kanban для определения и отслеживания задач и хода выполнения проекта."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
@@ -9794,10 +9770,6 @@
   {
     "id": "ent.elasticsearch.max_version.app_error",
     "translation": "Версия Elasticsearch {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Повысьте производительность вашего канала за счет интеграции наиболее часто используемых инструментов, таких как Zoom. Они будут загружены для вас."
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",

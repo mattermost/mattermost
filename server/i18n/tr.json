@@ -9679,16 +9679,8 @@
     "translation": "Alt tarifeye geçirilmiş bir çalışma alanında, yürütülen kritik iş akışları, bütünleştirmeler ve iş açısından önemli diğer işlemler olumsuz etkilenebilir."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
-    "translation": "Özel bir kanal oluşturma izniniz yok."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "\"{{.Username}}\" adında bir kullanıcı zaten var."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.channels.create_error",
-    "translation": "Bir kanal oluşturulurken sorun çıktı."
   },
   {
     "id": "worktemplate.category.companywide",
@@ -9747,85 +9739,42 @@
     "translation": "CWS sunucusu çalışma alanını silemedi."
   },
   {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Acil sorunlar, önceliklendirme, sahip atama ve yorumlarla ekibinizin haftalık hedeflere doğru ilerlemesini izleyin."
-  },
-  {
     "id": "worktemplate.product_teams.product_roadmap.board",
     "translation": "Kullanıcı geri bildirimlerini yönetmek, kaynak atamak, çıktıları takvimde görüntülemek ve sorunları önceliklendirmek için ürün yol haritası panosunu kullanın."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Özellik geliştirme sürecinizi destekleyen görev kontrol listeleri ve otomasyon ile işlevsel ekipler arasında işbirliğini artırın. İşiniz bittiğinde bir geçmiş değerlendirmesi yaparak ve süreci bir sonraki sürümünüz için iyileştirin."
   },
   {
     "id": "worktemplate.product_teams.bug_bash.playbook",
     "translation": "Kapsamlı bir hata ayıklama süreci yürütmek için deneme alanları ve otomatik görevler atamak üzere kontrol listeleri kullanın. Sürecinizi gözden geçirmek ve gelecek sefer daha iyi olmasını sağlamak için bir geçmiş değerlendirmesi yapın."
   },
   {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Hedefleriniz ve ilerlemeniz hakkında ekibinizle farklı zamanlarda ya da gerçek zamanlı olarak sohbet edin ve değişiklikleri tek bir kanaldan izleyerek güncel kalın."
-  },
-  {
     "id": "worktemplate.devops.product_release.board",
     "translation": "Sürüm zaman çerçevenizi ve sürecinizi desteklemek için ürün çıkarma panosunu kullanın ve herkesin hangi görevlerin bitiş zamanının geldiğini bilmesini sağlayın."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "İşbirliğini kolaylaştırmak için Zoom gibi sık kullandığınız araçları bütünleştirin ve kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Bir lisans yüklenirken bayt değeri geçersiz."
   },
   {
-    "id": "app.user.run.update_status.title",
-    "translation": "Durum güncellemesi"
-  },
-  {
     "id": "app.user.run.update_status.finish_run.placeholder",
     "translation": "Ayrıca oyunu da tamamlanmış olarak işaretle"
-  },
-  {
-    "id": "app.user.run.status_disable",
-    "translation": "@{{.Username}}, [{{.RunName}}]({{.RunURL}}) için durum güncellemelerini devre dışı bıraktı"
   },
   {
     "id": "app.user.run.confirm_finish.submit_label",
     "translation": "Oyunu tamamla"
   },
   {
-    "id": "app.user.run.add_to_timeline.summary.help",
-    "translation": "En fazla 64 karakter"
-  },
-  {
     "id": "app.user.run.add_checklist_item.title",
     "translation": "Yeni görev ekle"
-  },
-  {
-    "id": "app.user.new_run.title",
-    "translation": "Senaryoyu oyna"
   },
   {
     "id": "app.user.new_run.intro",
     "translation": "**Sahibi** {{.Username}}"
   },
   {
-    "id": "app.user.digest.tasks.heading",
-    "translation": "Atanmış görevleriniz"
-  },
-  {
     "id": "app.user.digest.tasks.due_in_x_days",
     "translation": {
       "one": "{{.Count}} gün içinde süresi dolacak",
       "other": "{{.Count}} gün içinde süresi dolacak"
-    }
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.num_in_progress",
-    "translation": {
-      "one": "Süren {{.Count}} oyununuz var:",
-      "other": "Süren {{.Count}} oyununuz var:"
     }
   },
   {
