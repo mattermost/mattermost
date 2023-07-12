@@ -721,7 +721,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     <div className='checkbox'>
                         <label>
                             <input
-                                id='customKeywordsWithNotificationCheckbox'
+                                id='notificationTriggerCustom'
                                 type='checkbox'
                                 checked={this.state.isCustomKeysWithNotificationInputChecked}
                                 onChange={this.handleChangeForCustomKeysWithNotificationCheckbox}
@@ -733,7 +733,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         </label>
                     </div>
                     <CreatableReactSelect
-                        inputId='customKeywordsWithNotificationInput'
+                        inputId='notificationTriggerCustomText'
                         autoFocus={true}
                         isClearable={false}
                         isMulti={true}
@@ -748,7 +748,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             Menu: () => null,
                             MenuList: () => null,
                         }}
-                        aria-labelledby='customKeywordsWithNotificationCheckbox'
+                        aria-labelledby='notificationTriggerCustom'
                         onChange={this.handleChangeForCustomKeysWithNotificationInput}
                         value={this.state.customKeysWithNotification}
                     />
