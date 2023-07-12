@@ -93,7 +93,7 @@
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "SMTP sunucusu, kapı numarası ya da kullanıcı adı değiştirilmiş. Lütfen bağlantı sınaması için SMTP parolanızı yeniden yazın."
+    "translation": "SMTP sunucusu, bağlantı noktası ya da kullanıcı adı değiştirilmiş. Lütfen bağlantı sınaması için SMTP parolanızı yeniden yazın."
   },
   {
     "id": "api.admin.test_email.subject",
@@ -1111,7 +1111,7 @@
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
-    "translation": "Gelen web bağlantıları sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Gelen internet kancaları sistem yöneticisi tarafından devre dışı bırakılmış."
   },
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
@@ -1211,19 +1211,19 @@
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
-    "translation": "Sunucu sorunu: Veritabanına erişilirken bir iç sunucu sorunu çıktı."
+    "translation": "Sunucu sorunu: Veri tabanına erişilirken bir iç sunucu sorunu çıktı."
   },
   {
     "id": "api.oauth.get_access_token.internal_saving.app_error",
-    "translation": "Sunucu sorunu: Erişim kodu veritabanına kaydedilirken bir iç sunucu sorunu çıktı."
+    "translation": "Sunucu sorunu: Erişim kodu veri tabanına kaydedilirken bir iç sunucu sorunu çıktı."
   },
   {
     "id": "api.oauth.get_access_token.internal_session.app_error",
-    "translation": "Sunucu sorunu: Oturum veritabanına kaydedilirken bir iç sunucu sorunu çıktı."
+    "translation": "Sunucu sorunu: Oturum veri tabanına kaydedilirken bir iç sunucu sorunu çıktı."
   },
   {
     "id": "api.oauth.get_access_token.internal_user.app_error",
-    "translation": "Sunucu sorunu: Kullanıcı veritabanından alınırken bir iç sunucu sorunu çıktı."
+    "translation": "Sunucu sorunu: Kullanıcı veri tabanından alınırken bir iç sunucu sorunu çıktı."
   },
   {
     "id": "api.oauth.get_access_token.missing_code.app_error",
@@ -1251,15 +1251,15 @@
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
-    "translation": "Oturum veritabanından silinirken sorun çıktı."
+    "translation": "Oturum veri tabanından silinirken sorun çıktı."
   },
   {
     "id": "api.oauth.revoke_access_token.del_token.app_error",
-    "translation": "Erişim kodu veritabanından silinirken sorun çıktı."
+    "translation": "Erişim kodu veri tabanından silinirken sorun çıktı."
   },
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
-    "translation": "Silinmeden önce erişim kodu veritabanından alınırken sorun çıktı."
+    "translation": "Silinmeden önce erişim kodu veri tabanından alınırken sorun çıktı."
   },
   {
     "id": "api.oauth.singup_with_oauth.disabled.app_error",
@@ -1275,7 +1275,7 @@
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
-    "translation": "Giden web bağlantıları sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Giden internet kancaları sistem yöneticisi tarafından devre dışı bırakılmış."
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -1481,7 +1481,7 @@
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "%s kapısı dinlenirken 80 numaralı kapı 443 numaralı kapıya yönlendirilemedi. Bir vekil sunucu kullanıyorsanız Forward80To443 seçeneğini devre dışı bırakın"
+    "translation": "%s bağlantı noktası dinlenirken 80 numaralı bağlantı noktası 443 numaralı bağlantı noktasına yönlendirilemedi. Bir vekil sunucu kullanıyorsanız Forward80To443 seçeneğini devre dışı bırakın"
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
@@ -2281,15 +2281,15 @@
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "Aynı kanaldaki giden web bağlantılarında aynı tetikleyici sözcük ve geri çağırma adresleri bulunamaz."
+    "translation": "Aynı kanaldaki giden internet kancalarında aynı tetikleyici sözcük ve geri çağırma adresleri bulunamaz."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
-    "translation": "Giden web bağlantıları yalnızca herkese açık kanallara eklenebilir."
+    "translation": "Giden internet kancaları yalnızca herkese açık kanallara eklenebilir."
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
-    "translation": "Giden web bağlantısı eklemek için izinleriniz yetersiz."
+    "translation": "Giden internet kancası eklemek için izinleriniz yetersiz."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -2297,15 +2297,15 @@
   },
   {
     "id": "api.webhook.incoming.error",
-    "translation": "Gelen web bağlantsının birden çok parçalı paketinin kodu çözülemedi."
+    "translation": "Gelen internet kancasının birkaç parçalı paketinin kodu çözülemedi."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "Web bağlantısı takımlar arasında güncellenemez."
+    "translation": "İnternet kancası takımlar arasında güncellenemez."
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
-    "translation": "Aynı kanaldaki giden web bağlantılarında aynı tetikleyici sözcük ve geri çağırma adresleri bulunamaz."
+    "translation": "Aynı kanaldaki giden internet kancalarında aynı tetikleyici sözcük ve geri çağırma adresleri bulunamaz."
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -4009,11 +4009,11 @@
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
-    "translation": "Web sunucusu bağlantı güvenliği değeri geçersiz."
+    "translation": "Site sunucusu bağlantı güvenliği değeri geçersiz."
   },
   {
     "id": "model.config.is_valid.websocket_url.app_error",
-    "translation": "Web soketi adresi ws:// ya da wss:// ile başlayan geçerli bir adres olmalıdır."
+    "translation": "WebSocket adresi ws:// ya da wss:// ile başlayan geçerli bir adres olmalıdır."
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
@@ -4657,15 +4657,15 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Bu web bağlantısının istenilen kanala gönderilmesine izin verilmiyor."
+    "translation": "Bu internet bağlantısının istenilen kanala gönderilmesine izin verilmiyor."
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
-    "translation": "Gelen web bağlantıları sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Gelen internet kancaları sistem yöneticisi tarafından devre dışı bırakılmış."
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
-    "translation": "Web bağlantısı geçersiz."
+    "translation": "İnternet kancası geçersiz."
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -4677,7 +4677,7 @@
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
-    "translation": "Web bağlantısı bölümleri {{.Max}} karakterlik parçalara ayrılamadı."
+    "translation": "İnternet kancası bölümleri {{.Max}} karakterlik parçalara ayrılamadı."
   },
   {
     "id": "web.incoming_webhook.text.app_error",
@@ -4825,7 +4825,7 @@
   },
   {
     "id": "app.plugin.webapp_bundle.app_error",
-    "translation": "Uygulama eki web uygulaması paketi oluşturulamadı."
+    "translation": "Uygulama eki internet uygulaması paketi oluşturulamadı."
   },
   {
     "id": "app.plugin.write_file.read.app_error",
@@ -4909,7 +4909,7 @@
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Veritabanından en eski varlık (kullanıcı, kanal ya da ileti) alınamadı."
+    "translation": "Veri tabanından en eski varlık (kullanıcı, kanal ya da ileti) alınamadı."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
@@ -5145,7 +5145,7 @@
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Lütfen beni etkileşimde bulunmamı istediğiniz takım ve kanallara ekleyin. Bu işlemi web tarayıcı ya da Mattermost Masaüstü uygulaması üzerinden yapabilirsiniz."
+    "translation": "Lütfen beni etkileşimde bulunmamı istediğiniz takım ve kanallara ekleyin. Bu işlemi tarayıcı ya da Mattermost masaüstü uygulaması üzerinden yapabilirsiniz."
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
@@ -5453,11 +5453,11 @@
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": "Mattermost uygulamasını indirin ya da daha iyi bir deneyim elde etmek için desteklenen bir web tarayıcı kullanın."
+    "translation": "Mattermost uygulamasını indirin ya da daha iyi bir deneyim elde etmek için desteklenen bir tarayıcı kullanın."
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "Bu web tarayıcı artık Mattermost tarafından desteklenmiyor"
+    "translation": "Bu tarayıcı artık Mattermost tarafından desteklenmiyor"
   },
   {
     "id": "api.push_notifications.session.expired",
@@ -5829,11 +5829,11 @@
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": "Desteklenen web tarayıcılarını öğrenin."
+    "translation": "Desteklenen tarayıcıları öğrenin."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 110+"
+    "translation": "Sürüm 112+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -5857,7 +5857,7 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "Kullandığınız web tarayıcının bu sürümü artık Mattermost tarafından desteklenmiyor"
+    "translation": "Kullandığınız tarayıcının bu sürümü artık Mattermost tarafından desteklenmiyor"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
@@ -5977,11 +5977,11 @@
   },
   {
     "id": "app.command_webhook.try_use.invalid",
-    "translation": "Web bağlantısı geçersiz."
+    "translation": "İnternet kancası geçersiz."
   },
   {
     "id": "app.command_webhook.try_use.internal_error",
-    "translation": "Web bağlantısı kullanılamaz."
+    "translation": "İnternet kancası kullanılamaz."
   },
   {
     "id": "app.command_webhook.handle_command_webhook.parse",
@@ -5989,19 +5989,19 @@
   },
   {
     "id": "app.command_webhook.get.missing",
-    "translation": "Web bağlantısı bulunamadı."
+    "translation": "İnternet kancası bulunamadı."
   },
   {
     "id": "app.command_webhook.get.internal_error",
-    "translation": "Web bağlantısı alınamadı."
+    "translation": "İnternet kancası alınamadı."
   },
   {
     "id": "app.command_webhook.create_command_webhook.internal_error",
-    "translation": "KomutWebBağlantısı kaydedilemedi."
+    "translation": "KomutİnternetKancası kaydedilemedi."
   },
   {
     "id": "app.command_webhook.create_command_webhook.existing",
-    "translation": "Var olan bir KomutWebBağlantısını güncelleyemezsiniz."
+    "translation": "Var olan bir KomutİnternetKancasını güncelleyemezsiniz."
   },
   {
     "id": "app.oauth.update_app.updating.app_error",
@@ -6353,83 +6353,83 @@
   },
   {
     "id": "app.webhooks.delete_incoming.app_error",
-    "translation": "Web bağlantısı silinemedi."
+    "translation": "İnternet kancası silinemedi."
   },
   {
     "id": "app.webhooks.analytics_outgoing_count.app_error",
-    "translation": "Giden web bağlantıları sayılamadı."
+    "translation": "Giden internet kancaları sayılamadı."
   },
   {
     "id": "app.webhooks.analytics_incoming_count.app_error",
-    "translation": "Gelen web bağlantıları sayılamadı."
+    "translation": "Gelen internet kancaları sayılamadı."
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
-    "translation": "Web bağlantısı güncellenemedi."
+    "translation": "İnternet kancası güncellenemedi."
   },
   {
     "id": "app.webhooks.update_incoming.app_error",
-    "translation": "Gelen web bağlantısı güncellenemedi."
+    "translation": "Gelen internet kancası güncellenemedi."
   },
   {
     "id": "app.webhooks.save_outgoing.override.app_error",
-    "translation": "Var olan bir giden web bağlantısının üzerine yazılamaz."
+    "translation": "Var olan bir giden internet kancasının üzerine yazılamaz."
   },
   {
     "id": "app.webhooks.save_outgoing.app_error",
-    "translation": "Giden web bağlantısı kaydedilemedi."
+    "translation": "Giden internet kancası kaydedilemedi."
   },
   {
     "id": "app.webhooks.save_incoming.existing.app_error",
-    "translation": "Var olan bir gelen web bağlantısının üzerine yazılamaz."
+    "translation": "Var olan bir gelen internet kancasının üzerine yazılamaz."
   },
   {
     "id": "app.webhooks.save_incoming.app_error",
-    "translation": "Gelen web bağlantısı kaydedilemedi."
+    "translation": "Gelen internet kancası kaydedilemedi."
   },
   {
     "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Web bağlantısı silinemedi."
+    "translation": "İnternet kancası silinemedi."
   },
   {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Web bağlantısı silinemedi."
+    "translation": "İnternet kancası silinemedi."
   },
   {
     "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Web bağlantısı silinemedi."
+    "translation": "İnternet kancası silinemedi."
   },
   {
     "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "Web bağlantısı silinemedi."
+    "translation": "İnternet kancası silinemedi."
   },
   {
     "id": "app.webhooks.get_outgoing_by_team.app_error",
-    "translation": "Web bağlantıları alınamadı."
+    "translation": "İnternet kancaları alınamadı."
   },
   {
     "id": "app.webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Web bağlantıları alınamadı."
+    "translation": "İnternet kancaları alınamadı."
   },
   {
     "id": "app.webhooks.get_outgoing.app_error",
-    "translation": "Web bağlantısı alınamadı."
+    "translation": "İnternet kancası alınamadı."
   },
   {
     "id": "app.webhooks.get_incoming_by_user.app_error",
-    "translation": "Web bağlantısı alınamadı."
+    "translation": "İnternet kancası alınamadı."
   },
   {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
-    "translation": "Web bağlantıları alınamadı."
+    "translation": "İnternet kancaları alınamadı."
   },
   {
     "id": "app.webhooks.get_incoming.app_error",
-    "translation": "Web bağlantısı alınamadı."
+    "translation": "İnternet kancası alınamadı."
   },
   {
     "id": "app.webhooks.delete_outgoing.app_error",
-    "translation": "Web bağlantısı silinemedi."
+    "translation": "İnternet kancası silinemedi."
   },
   {
     "id": "app.role.save.invalid_role.app_error",
@@ -6729,11 +6729,11 @@
   },
   {
     "id": "api.user.login_cws.license.error",
-    "translation": "CWS oturumu açmaya izin verilmiyor."
+    "translation": "Müşteri site sunucusu oturum açmaya izin vermiyor."
   },
   {
     "id": "api.user.login_by_cws.invalid_token.app_error",
-    "translation": "CWS kodu geçersiz"
+    "translation": "Müşteri site sunucusu kodu geçersiz"
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -6781,7 +6781,7 @@
   },
   {
     "id": "app.channel.sidebar_categories.app_error",
-    "translation": "Kayıt veritabanına eklenemedi."
+    "translation": "Kayıt veri tabanına eklenemedi."
   },
   {
     "id": "app.channel.get_members.app_error",
@@ -7193,7 +7193,7 @@
   },
   {
     "id": "api.cloud.request_error",
-    "translation": "CWS isteği işlenirken sorun çıktı."
+    "translation": "Müşteri site sunucusu isteği işlenirken sorun çıktı."
   },
   {
     "id": "model.plugin_command_error.error.app_error",
@@ -7213,7 +7213,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Mattermost sisteminizde çok sayıda ileti var. Varsayılan Mattermost veritabanı aramasının başarımı 2.5 milyon iletiye yaklaşıldığında düşmeye başlar. 5 milyondan fazla iletide Elasticsearch kullanmak, arama ve anma durumlarında zaman aşımları gibi önemli başarım sorunlarını önleyebilir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\n[Başarımı arttırmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
+    "translation": "Mattermost sisteminizde çok sayıda ileti var. Varsayılan Mattermost veri tabanı aramasının başarımı 2.5 milyon iletiye yaklaşıldığında düşmeye başlar. 5 milyondan fazla iletide Elasticsearch kullanmak, arama ve anma durumlarında zaman aşımları gibi önemli başarım sorunlarını önleyebilir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\n[Başarımı arttırmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "app.channel.save_member.exists.app_error",
@@ -7285,7 +7285,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
-    "translation": "En eski varlık (kullanıcı, kanal ya da ileti) veritabanından alınamadı"
+    "translation": "Veri tabanından en eski varlık (kullanıcı, kanal ya da ileti) alınamadı"
   },
   {
     "id": "app.user.verify_email.app_error",
@@ -7381,7 +7381,7 @@
   },
   {
     "id": "app.user.get_known_users.get_users.app_error",
-    "translation": "Veritabanından bilinen kullanıcılar alınamadı."
+    "translation": "Veri tabanından bilinen kullanıcılar alınamadı."
   },
   {
     "id": "app.user.get_by_username.app_error",
@@ -7501,7 +7501,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Mattermost sisteminizde çok sayıda ileti var. Varsayılan Mattermost veritabanı aramasının başarımı 2,5 milyon iletiye yaklaşıldığında düşmeye başlar. 5 milyondan fazla iletide Elasticsearch kullanmak, arama ve anma durumlarında zaman aşımları gibi önemli başarım sorunlarını önleyebilir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\n[Başarımı arttırmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Mattermost sisteminizde çok sayıda ileti var. Varsayılan Mattermost veri tabanı aramasının başarımı 2,5 milyon iletiye yaklaşıldığında düşmeye başlar. 5 milyondan fazla iletide Elasticsearch kullanmak, arama ve anma durumlarında zaman aşımları gibi önemli başarım sorunlarını önleyebilir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\n[Başarımı arttırmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
@@ -7513,11 +7513,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Kanallar iletişimi geliştirmeye yardımcı olur. Ancak Mattermost üzerindeki kullanıcıların kanallara katılması ve kanal oluşturması ile sistemi düzenli tutmak zorlaşır. Gelişmiş izinler, kanal ayarlarını ve üyeleri yönetmek, geniş kullanıcı gruplarını etiketlemek için @channel ya da @here kullanmak ve yeni web kancaları oluşturmak gibi işlemleri hangi kullanıcıların ya da rollerin yapabileceğini belirlemenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
+    "translation": "Kanallar iletişimi geliştirmeye yardımcı olur. Ancak Mattermost üzerindeki kullanıcıların kanallara katılması ve kanal oluşturması ile sistemi düzenli tutmak zorlaşır. Gelişmiş izinler, kanal ayarlarını ve üyeleri yönetmek, geniş kullanıcı gruplarını etiketlemek için @channel ya da @here kullanmak ve yeni internet kancaları oluşturmak gibi işlemleri hangi kullanıcıların ya da rollerin yapabileceğini belirlemenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Kanallar iletişimi geliştirmeye yardımcı olur. Ancak Mattermost üzerindeki kullanıcıların kanallara katılması ve kanal oluşturması ile sistemi düzenli tutmak zorlaşır. Gelişmiş izinler, kanal ayarlarını ve üyeleri yönetmek, geniş kullanıcı gruplarını etiketlemek için @channel ya da @here kullanmak ve yeni web kancaları oluşturmak gibi işlemleri hangi kullanıcıların ya da rollerin yapabileceğini belirlemenizi sağlar.\n\n[Gelimiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Kanallar iletişimi geliştirmeye yardımcı olur. Ancak Mattermost üzerindeki kullanıcıların kanallara katılması ve kanal oluşturması ile sistemi düzenli tutmak zorlaşır. Gelişmiş izinler, kanal ayarlarını ve üyeleri yönetmek, geniş kullanıcı gruplarını etiketlemek için @channel ya da @here kullanmak ve yeni internet kancaları oluşturmak gibi işlemleri hangi kullanıcıların ya da rollerin yapabileceğini belirlemenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
@@ -7537,7 +7537,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Projelerde genellikle bir kuruluşun hem içinden hem de dışından kişiler bulunur. Konuk Hesapları ile dış iş ortaklarınız Mattermost sisteminize erişmesini sağlayarak, kiminle çalışabileceklerini ve neleri görebileceklerini belirleyebilirsiniz.\n\n[Konuk hesaplarını etkinleştirmek hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
+    "translation": "Projelerde genellikle bir kuruluşun hem içinden hem de dışından kişiler bulunur. Konuk hesapları ile dış iş ortaklarınız Mattermost sisteminize erişmesini sağlayarak, kiminle çalışabileceklerini ve neleri görebileceklerini belirleyebilirsiniz.\n\n[Konuk hesaplarını etkinleştirmek hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
@@ -8201,7 +8201,7 @@
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
-    "translation": "Web bağlantısı işlemi yapılamadı. Eksik ya da geçersiz olabilir."
+    "translation": "İnternet kancası işlemi yapılamadı. Eksik ya da geçersiz olabilir."
   },
   {
     "id": "app.import.generate_password.app_error",
@@ -8345,7 +8345,7 @@
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "Site adresi ayarlanmamış. Lütfen Sistem panosu > Ortam > Web sunucusu bölümünden ayarlayın."
+    "translation": "Site adresi ayarlanmamış. Lütfen Sistem panosu > Ortam > Site sunucusu bölümünden ayarlayın."
   },
   {
     "id": "api.command_remote.service_not_enabled",
@@ -8784,7 +8784,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, aboneliğiniz {{.Days}} gün içinde sona erecek. Mattermost tarafından sunulan esnek ve güvenli ekip çalışmasını deneyimlediğinizi umuyoruz. Ekibinizin bu özellikleri kullanmayı sürdürebilmesi için aboneliğinizi yenileyin."
+    "translation": "{{.UserName}}, aboneliğiniz {{.Days}} gün içinde sona erecek. Mattermost tarafından sunulan esnek ve güvenli takım çalışmasını deneyimlediğinizi umuyoruz. Takımınızın bu özellikleri kullanmayı sürdürebilmesi için aboneliğinizi yenileyin."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
@@ -9388,7 +9388,7 @@
   },
   {
     "id": "api.templates.delinquency_14.title",
-    "translation": "Ödeme alınamadı"
+    "translation": "Ödeme alınmadı"
   },
   {
     "id": "api.templates.delinquency_14.subtitle2",
@@ -9465,10 +9465,6 @@
   {
     "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
     "translation": "Zaman aralığı geçersiz."
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Derleme türü zaten var."
   },
   {
     "id": "api.drafts.disabled.app_error",
@@ -9640,15 +9636,15 @@
   },
   {
     "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS sunucusu kullanılamıyor."
+    "translation": "Müşteri site sunucusu kullanılamıyor."
   },
   {
     "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Toplam giden web bağlantısı sayısı alınamadı"
+    "translation": "Toplam giden internet kancası sayısı alınamadı"
   },
   {
     "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Toplam gelen web bağlantısı sayısı alınamadı"
+    "translation": "Toplam gelen internet kancası sayısı alınamadı"
   },
   {
     "id": "api.license.true_up_review.user_count_fail",
@@ -9704,7 +9700,7 @@
   },
   {
     "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "CWS sunucusu çalışma alanını silemedi."
+    "translation": "Müşteri site sunucusu çalışma alanını silemedi."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
@@ -9712,10 +9708,114 @@
   },
   {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS sunucusu duyurulara abone olamadı."
+    "translation": "Müşteri site sunucusu duyurulara abone olamadı."
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Deneme için iş e-postası geçersiz"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Takıma göre kalıcı bildirimler silinemedi."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Kalıcı bildirimler için en fazla alıcı sayısı geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch {{.Version}} sürümü, desteklenen {{.MaxVersion}} sürümünden daha yeni"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Silinmek için yok sayılan dizinler tire ile başlamamalıdır."
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "channel-auto-follow-threads değeri geçersiz."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Yapılandırma kaydında uygulama eki kancası yürütülürken bir sorun çıktı."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Kalıcı bildirim gönderiminde en fazla {{.MaxRecipients}} alıcı olabilir."
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Lisans sayısı değerlendirme profili müşteri site sunucusuna gönderilemedi."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Kalıcı bildirim gönderiminde en az 1 alıcı olmalıdır."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Yalnızca root gönderilerinin önceliği olmasına izin veriliyor."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Parola kurtarma belirteçleri geçersiz kılınırken belirteçler türe göre alınamadı"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Parola kurtarma belirteçleri geçersiz kılınırken belirteçler kaldırılamadı"
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Gif kodu çözülemedi."
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "{{.Id}} uygulama eki engellenenler listesinde bulunuyor. Bazı uygulama ekleri bu Mattermost sürümü paketinde olduğundan engellenmiştir."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Kanala göre kalıcı bildirimler silinemedi."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Kalıcı bildirim iletisi silinemedi"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Kurulu sürümü aynı ya da daha yeni olduğundan {{.Id}} uygulama ekinin kurulumu atlanıyor."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Yerel soket dosyası klasörü bulunamadı."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Gönderi başına toplam kalıcı bildirim sayısı geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Kalıcı bildirimlerin geçersiz sayılacağı sıklık. En az iki dakika olmalıdır."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Hata: Özel barındırılan kullanıma geçmek için kuruluş adı belirtilmemiş."
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Takım alınırken bir sorun çıktı."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "Kullanıcının öncelikli gönderim ya da kalıcı bildirim oluşturma izni yok."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Kalıcı bildirim gönderilerinin önceliği Acil olmalıdır."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Parola kurtarma belirteçleri geçersiz kılınırken belirteç işlenemedi"
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Kalıcı bildirim doğrulanamadı."
   }
 ]
