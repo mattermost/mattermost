@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {memo, useEffect, useRef, useState} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {VariableSizeList, ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
@@ -23,7 +23,7 @@ export interface Props {
     loadMore: () => void;
 }
 
-const MemberList = React.memo(({
+const MemberList = ({
     hasNextPage,
     isNextPageLoading,
     channel,
@@ -145,6 +145,6 @@ const MemberList = React.memo(({
             )}
         </AutoSizer>
     );
-});
+};
 
-export default MemberList;
+export default memo(MemberList);
