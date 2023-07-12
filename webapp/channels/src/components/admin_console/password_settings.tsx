@@ -195,7 +195,6 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
                         onChange={this.handleChange}
                         setByEnv={this.isSetByEnv('PasswordSettings.MinimumLength')}
                         disabled={this.props.isDisabled}
-                        type='input'
                     />
                     <Setting
                         label={
@@ -299,7 +298,6 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
                         onChange={this.handleChange}
                         setByEnv={this.isSetByEnv('ServiceSettings.MaximumLoginAttempts')}
                         disabled={this.props.isDisabled}
-                        type='input'
                     />
                 )
                 }
