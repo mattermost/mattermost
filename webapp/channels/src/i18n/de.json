@@ -5681,7 +5681,6 @@
   "webapp.mattermost.feature.unlimited_file_storage": "Unbeschränkter Dateispeicher",
   "webapp.mattermost.feature.unlimited_messages": "Unbeschränkte Nachrichten",
   "webapp.mattermost.feature.upgrade_downgraded_workspace": "Den Arbeitsbereich auf einen kostenpflichtigen Plan zurücksetzen",
-  "welcome_post_renderer.user_message.second_paragraph": "Hier findest Du eine Liste von Befehlen, die Du verwenden kannst, um sich mit der Plattform vertraut zu machen.",
   "widget.input.clear": "Leeren",
   "widget.input.required": "Dieses Feld wird benötigt",
   "widget.passwordInput.createPassword": "Wähle ein Passwort",

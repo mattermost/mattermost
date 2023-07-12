@@ -9736,10 +9736,6 @@
     "translation": "Nie można usunąć danych oauth."
   },
   {
-    "id": "app.user.new_run.intro",
-    "translation": "**Właściciel** {{.Username}}"
-  },
-  {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Nieprawidłowa wartość dla bajtów podczas wgrywania licencji."
   },

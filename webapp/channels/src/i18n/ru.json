@@ -5690,7 +5690,6 @@
   "widgets.users_emails_input.loading": "Загрузка",
   "widgets.users_emails_input.no_user_found_matching": "Ничего не найдено по запросу **{text}**. Введите их адреса электронной почты, чтобы пригласить.",
   "widgets.users_emails_input.valid_email": "Добавить **{email}**",
-  "work_templates.menu.quick_use": "Быстрое использование",
   "work_templates.preview.modal_title": "Предварительный просмотр {useCase}",
   "workspace_limits.archived_file.archived": "Этот файл находится в архиве",
   "workspace_limits.archived_file.archived_compact": "(в архиве)",

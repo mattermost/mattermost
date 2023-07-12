@@ -9683,10 +9683,6 @@
     "translation": "\"{{.Username}}\" adında bir kullanıcı zaten var."
   },
   {
-    "id": "worktemplate.category.companywide",
-    "translation": "Kurum geneli"
-  },
-  {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Sunucu çevirileri güncellenemedi."
   },
@@ -9739,43 +9735,20 @@
     "translation": "CWS sunucusu çalışma alanını silemedi."
   },
   {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Kullanıcı geri bildirimlerini yönetmek, kaynak atamak, çıktıları takvimde görüntülemek ve sorunları önceliklendirmek için ürün yol haritası panosunu kullanın."
-  },
-  {
     "id": "worktemplate.product_teams.bug_bash.playbook",
     "translation": "Kapsamlı bir hata ayıklama süreci yürütmek için deneme alanları ve otomatik görevler atamak üzere kontrol listeleri kullanın. Sürecinizi gözden geçirmek ve gelecek sefer daha iyi olmasını sağlamak için bir geçmiş değerlendirmesi yapın."
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Sürüm zaman çerçevenizi ve sürecinizi desteklemek için ürün çıkarma panosunu kullanın ve herkesin hangi görevlerin bitiş zamanının geldiğini bilmesini sağlayın."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Bir lisans yüklenirken bayt değeri geçersiz."
   },
   {
-    "id": "app.user.run.update_status.finish_run.placeholder",
-    "translation": "Ayrıca oyunu da tamamlanmış olarak işaretle"
-  },
-  {
     "id": "app.user.run.confirm_finish.submit_label",
     "translation": "Oyunu tamamla"
   },
   {
-    "id": "app.user.run.add_checklist_item.title",
-    "translation": "Yeni görev ekle"
-  },
-  {
     "id": "app.user.new_run.intro",
     "translation": "**Sahibi** {{.Username}}"
-  },
-  {
-    "id": "app.user.digest.tasks.due_in_x_days",
-    "translation": {
-      "one": "{{.Count}} gün içinde süresi dolacak",
-      "other": "{{.Count}} gün içinde süresi dolacak"
-    }
   },
   {
     "id": "app.user.digest.overdue_status_updates.heading",

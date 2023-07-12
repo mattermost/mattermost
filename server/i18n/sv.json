@@ -9679,10 +9679,6 @@
     "translation": "Det gick inte att skapa en statuspost för true up"
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_public_board",
-    "translation": "Du har inte behörighet att skapa en publik tavla."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "Användaren med användarnamn \"{{.Username}}\" finns redan."
   },
@@ -9739,16 +9735,8 @@
     "translation": "Kunde inte rensa oauth-information."
   },
   {
-    "id": "app.user.run.status_enable",
-    "translation": "@{{.Username}} aktiverade statusuppdateringar för [{{.RunName}}]({{.RunURL}})"
-  },
-  {
     "id": "app.user.run.add_to_timeline.summary.placeholder",
     "translation": "Kort sammanfattning som visas i tidslinjen"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.description",
-    "translation": "Beskrivning"
   },
   {
     "id": "app.user.digest.tasks.num_assigned",
@@ -9756,10 +9744,6 @@
       "one": "Du har {{.Count}} tilldelad uppgift:",
       "other": "Du har {{.Count}} tilldelade uppgifter:"
     }
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.zero_in_progress",
-    "translation": "Du har 0 pågående körningar."
   },
   {
     "id": "worktemplate.devops.incident_resolution.description.board",

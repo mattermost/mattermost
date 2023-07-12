@@ -9735,10 +9735,6 @@
     "translation": "Oauth-Daten können nicht entfernt werden."
   },
   {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "Kurze Zusammenfassung auf der Zeitachse"
-  },
-  {
     "id": "app.user.digest.tasks.num_assigned",
     "translation": {
       "one": "Du hast eine zugewiesene Aufgabe:",
@@ -9748,10 +9744,6 @@
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Ungültige geschäftliche E-Mail für den Test"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Chatte mit deinem Team über Ziele und Fortschritte, asynchron oder in Echtzeit, und bleibe über Änderungen in einem einzigen Kanal auf dem Laufenden."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",

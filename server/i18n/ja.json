@@ -9656,10 +9656,6 @@
     "translation": "総アクティブユーザー数を取得できませんでした"
   },
   {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "作業テンプレートを実行する際にエラーが発生しました。"
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "ユーザー名 \"{{.Username}}\" のユーザーは既に存在します。"
   },
@@ -9724,26 +9720,14 @@
     "translation": "Mattermost Enterprise Editionでのみ利用可能なサービスです"
   },
   {
-    "id": "app.user.run.update_status.change_since_last_update",
-    "translation": "前回更新時からの変更点"
-  },
-  {
     "id": "app.user.run.add_to_timeline.title",
     "translation": "実行のタイムラインに追加する"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.name",
-    "translation": "名前"
   },
   {
     "id": "app.user.digest.tasks.num_assigned_due_until_today",
     "translation": {
       "other": "対応期限を迎えている{{.Count}}タスクが割り当てられています:"
     }
-  },
-  {
-    "id": "app.user.digest.tasks.all_tasks_command",
-    "translation": "`/playbook todo`を使用すると、あなたのすべてのタスクを確認することができます。"
   },
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
@@ -9754,16 +9738,8 @@
     "translation": "営業に問い合わせる"
   },
   {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "GoalsやOKRのBoardを使って、組織目標の達成に向けたチームの進捗を確認しましょう。ミーティングアジェンダBoardを使い、ミーティングを計画的に進めましょう。"
-  },
-  {
     "id": "worktemplate.leadership.goals_and_okrs.integration",
     "translation": "簡単にコラボレーションできるようにするためにZoomなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "インシデント解決Boardを使用して、チーム全体で再現性のあるプロセスをサポートし、定義済みのタスクを割り当てます。"
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",

@@ -5690,7 +5690,6 @@
   "widgets.users_emails_input.loading": "Loading",
   "widgets.users_emails_input.no_user_found_matching": "No user found matching **{text}**. Enter their email to invite them.",
   "widgets.users_emails_input.valid_email": "Add **{email}**",
-  "work_templates.menu.usecase_playbooks_count": "{playbooksCount, plural, =1 {# playbook} other {# playbooks}}",
   "workspace_limits.archived_file.archived": "This file is archived",
   "workspace_limits.archived_file.archived_compact": "(archived)",
   "workspace_limits.archived_file.tooltip_description": "Your workspace has hit the file storage limit of {storageLimit}. To view this again, upgrade to a paid plan.",

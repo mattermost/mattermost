@@ -9727,16 +9727,8 @@
     "translation": "Contact Sales"
   },
   {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
-  },
-  {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Invalid value for bytes when uploading a licence."
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "Short summary shown in the timeline"
   },
   {
     "id": "app.user.digest.tasks.num_assigned",

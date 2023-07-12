@@ -9743,20 +9743,12 @@
     "translation": "Ongeldig zakelijk e-mailadres voor proefperiode"
   },
   {
-    "id": "app.user.digest.tasks.due_x_days_ago",
-    "translation": "Verliep {{.Count}} dagen geleden"
-  },
-  {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "De installatie van plugin {{.Id}} wordt overgeslagen omdat de bestaande versie gelijk is of nieuwer."
   },
   {
     "id": "app.plugin.blocked.app_error",
     "translation": "Plugin {{.Id}} staat op de lijst met geblokkeerde apps. Sommige plugins worden geblokkeerd omdat ze nu ingebouwd zijn in deze versie van Mattermost."
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "Korte samenvatting weergeven in de tijdlijn"
   },
   {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
