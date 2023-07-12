@@ -1877,7 +1877,7 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}] あなたのパスワードが更新されました"
+    "translation": "[{{ .SiteName }}] あなたのサインイン方法が更新されました"
   },
   {
     "id": "api.templates.user_access_token_body.info",
@@ -9718,5 +9718,97 @@
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "トライアル用のビジネス用電子メールが不正です"
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "チームの取得中にエラーが発生しました。"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "チャンネル別の永続的な通知を削除できませんでした。"
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "設定保存時のplugin hookを実行する際にエラーが発生しました。"
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "ローカルソケットファイルのディレクトリが見つかりませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "投稿ごとの永続的な通知の総数が不正です。正の数である必要があります。"
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "棚卸しプロファイルをCWSに送信できませんでした。"
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "永続的な通知は、最大 {{.MaxRecipients}} 人の受信者への通知が許可されています。"
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "エラー: セルフホストのオンボーディングに組織名が指定されていません。"
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "削除されない通知では、少なくとも1人の受信対象の指定が必要です。"
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "永続的な通知の投稿を削除できませんでした"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "永続的な通知の間隔が不正です。2分以上でなくてはなりません。"
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "GIFをデコードできませんでした。"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "優先度付きの投稿や永続的な通知の作成は許可されていません。"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "優先度の設定はrootの投稿にのみ許可されています。"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "パスワードリカバリトークンを無効にする際に、タイプ別のトークンを取得できませんでした"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "パスワードリカバリトークンを無効にする際に、トークンを削除できませんでした"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "パスワードリカバリトークンを無効化する際にトークンを解析できませんでした"
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "永続的な通知の検証に失敗しました。"
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "永続的な通知の投稿は、緊急の優先度が設定されている必要があります。"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "チーム別の永続的な通知を削除できませんでした。"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "channel-auto-follow-threadsの値が不正です。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "破棄時に無視されるインデックスはダッシュで始まっていてはいけません。"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "永続的な通知の最大受信者数が不正です。正の数である必要があります。"
   }
 ]
