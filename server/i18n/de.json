@@ -9603,10 +9603,6 @@
     "translation": "Ungültige Priorität"
   },
   {
-    "id": "app.worktemplates.get_categories.app_error",
-    "translation": "Arbeitsvorlagenkategorien können nicht abgerufen werden"
-  },
-  {
     "id": "api.templates.cloud_welcome_email.yearly_plan_button",
     "translation": "Deine Rechnung einsehen"
   },
@@ -9683,16 +9679,8 @@
     "translation": "Ein herabgestufter Arbeitsbereich kann sich negativ auf kritische Arbeitsabläufe und andere geschäftskritische Aktivitäten auswirken, die in deinem Arbeitsbereich durchgeführt werden."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
-    "translation": "Du hast keine Berechtigung, einen öffentlichen Kanal zu erstellen."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
     "translation": "Du hast keine Berechtigung, ein privates Playbook zu erstellen."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_board",
-    "translation": "Du hast keine Berechtigung, ein privates Board zu erstellen."
   },
   {
     "id": "app.group.username_conflict",
@@ -9703,16 +9691,8 @@
     "translation": "Die Serverübersetzungen konnten nicht aktualisiert werden."
   },
   {
-    "id": "worktemplate.category.leadership",
-    "translation": "Führung"
-  },
-  {
     "id": "worktemplate.category.companywide",
     "translation": "Unternehmensweit"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.channels.create_error",
-    "translation": "Fehler beim Erstellen eines Kanals."
   },
   {
     "id": "app.worktemplates.execute_work_template.app_error",
@@ -9725,10 +9705,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Dienst nur in der Mattermost Enterprise Edition verfügbar"
-  },
-  {
-    "id": "api.command_templates.name",
-    "translation": "Vorlagen"
   },
   {
     "id": "app.team.create_onboarding_linked_board.product_key_not_found",
@@ -9771,10 +9747,6 @@
     "translation": "Oauth-Daten können nicht entfernt werden."
   },
   {
-    "id": "app.user.run.update_status.submit_label",
-    "translation": "Status aktualisieren"
-  },
-  {
     "id": "app.user.run.update_status.num_channel",
     "translation": {
       "one": "Bringe die Beteiligten auf den neuesten Stand. Dieser Beitrag wird in einem Kanal veröffentlicht.",
@@ -9782,59 +9754,28 @@
     }
   },
   {
-    "id": "app.user.run.update_status.finish_run",
-    "translation": "Durchlauf beenden"
-  },
-  {
     "id": "app.user.run.status_enable",
     "translation": "@{{.Username}} hat die Statusaktualisierungen für [{{.RunName}}]({{.RunURL}}) aktiviert"
-  },
-  {
-    "id": "app.user.run.request_update",
-    "translation": "@here — @{{.Name}} hat eine Statusaktualisierung für [{{.RunName}}]({{.RunURL}}) angefordert. \n"
   },
   {
     "id": "app.user.run.confirm_finish.title",
     "translation": "Beenden des Durchlaufs bestätigen"
   },
   {
-    "id": "app.user.run.confirm_finish.num_outstanding",
-    "translation": {
-      "one": "Es gibt **eine offene Aufgabe**. Bist du sicher, dass du den Durchlauf *{{.RunName}}* für alle Teilnehmer beenden willst?",
-      "other": "Es gibt **{{.Count}} offene Aufgaben**. Bist du sicher, dass du den Durchlauf *{{.RunName}}* für alle Teilnehmer beenden willst?"
-    }
-  },
-  {
     "id": "app.user.run.add_to_timeline.summary.placeholder",
     "translation": "Kurze Zusammenfassung auf der Zeitachse"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary",
-    "translation": "Zusammenfassung"
   },
   {
     "id": "app.user.run.add_to_timeline.playbook_run",
     "translation": "Playbook-Durchlauf"
   },
   {
-    "id": "app.user.run.add_checklist_item.submit_label",
-    "translation": "Aufgabe hinzufügen"
-  },
-  {
     "id": "app.user.run.add_checklist_item.description",
     "translation": "Beschreibung"
   },
   {
-    "id": "app.user.new_run.submit_label",
-    "translation": "Starte Durchlauf"
-  },
-  {
     "id": "app.user.new_run.playbook",
     "translation": "Playbook"
-  },
-  {
-    "id": "app.user.digest.tasks.zero_assigned",
-    "translation": "Du hast keine zugewiesene Aufgabe."
   },
   {
     "id": "app.user.digest.tasks.num_assigned",
@@ -9844,27 +9785,12 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.due_yesterday",
-    "translation": "Gestern fällig"
-  },
-  {
     "id": "app.user.digest.tasks.due_today",
     "translation": "Heute fällig"
   },
   {
-    "id": "app.user.digest.tasks.due_after_today",
-    "translation": {
-      "one": "Du hast **eine zugewiesene Aufgabe, die nach dem heutige Tag fällig ist**.",
-      "other": "Du hast **{{.Count}} zugewiesene Aufgaben, die nach dem heutige Tag fällig sind**."
-    }
-  },
-  {
     "id": "app.user.digest.runs_in_progress.zero_in_progress",
     "translation": "Du hast keinen aktiven Durchlauf."
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.heading",
-    "translation": "Aktive Durchläufe"
   },
   {
     "id": "app.user.digest.overdue_status_updates.num_overdue",
@@ -9874,64 +9800,32 @@
     }
   },
   {
-    "id": "app.command.execute.error",
-    "translation": "Kann Befehl nicht ausführen."
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Ungültige geschäftliche E-Mail für den Test"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Chatte mit deinem Team in einem Kanal, der sich leicht mit deinen Boards und Integrationen verbinden lässt."
   },
   {
     "id": "worktemplate.product_teams.product_roadmap.channel",
     "translation": "Chatte mit deinem Team über das Feedback deiner Kunden, setze Prioritäten und stimmt euch gemeinsam über den Fortschritt ab."
   },
   {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "Steigere die Produktivität in deinem Kanal, indem du die am häufigsten verwendeten Tools wie Zoom integrierst, um die Zusammenarbeit zu erleichtern. Diese werden für dich heruntergeladen."
-  },
-  {
     "id": "worktemplate.product_teams.goals_and_okrs.board",
     "translation": "Verfolge den Fortschritt deines Teams auf dem Weg zu den Unternehmenszielen mit dem Ziele und OKR Board. Halten Besprechungen mit der Besprechungsagenda auf Kurs."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Chatte mit deinem Team über alle Release-Blocker und Änderungen in einem Kanal, der sich leicht mit deinen Boards, Playbooks und anderen Integrationen verbinden lässt."
   },
   {
     "id": "worktemplate.product_teams.bug_bash.playbook",
     "translation": "Verwende Checklisten, um Testbereiche zuzuweisen, und automatisierte Aufgaben, um einen umfassenden Fehlerbehebungsprozess durchzuführen. Nutze eine Retrospektive, um deinen Prozess zu überprüfen und ihn für das nächste Mal zu verbessern."
   },
   {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "Plane und verwalte Fehlerberichte und -behebungen in einem einzigen Kanal, der für dein Team und deine Organisation leicht zugänglich ist."
-  },
-  {
     "id": "worktemplate.leadership.goals_and_okrs.channel",
     "translation": "Chatte mit deinem Team über Ziele und Fortschritte, asynchron oder in Echtzeit, und bleibe über Änderungen in einem einzigen Kanal auf dem Laufenden."
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "Erstelle wiederholbare Arbeitsabläufe, die einfach zu befolgen und zu implementieren sind, damit die Produktveröffentlichungen zuverlässig und pünktlich erfolgen."
   },
   {
     "id": "worktemplate.devops.product_release.board",
     "translation": "Verwende das Product Release Board, um den Zeitrahmen und den Prozess für die Freigabe zu unterstützen und sicherzustellen, dass jeder weiß, welche Aufgaben fällig sind."
   },
   {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "Chatte mit deinem Team über Prioritäten, füge Beteiligte hinzu, liefere Updates und arbeite an einer Lösung in einem einzigen Kanal."
-  },
-  {
     "id": "worktemplate.companywide.goals_and_okrs.integration",
     "translation": "Steigere die Produktivität in deinem Kanal, indem du die am häufigsten verwendeten Tools wie Zoom integrierst, um die Zusammenarbeit zu erleichtern. Diese werden für dich heruntergeladen."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Verfolge den Fortschritt deines Teams auf dem Weg zu den Unternehmenszielen mit dem Ziele und OKR Board. Halten Besprechungen mit der Besprechungsagenda auf Kurs."
   },
   {
     "id": "worktemplate.companywide.create_project.channel",

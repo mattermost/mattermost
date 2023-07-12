@@ -9680,10 +9680,6 @@
     "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
   },
   {
-    "id": "app.worktemplates.execute_work_template.boards.create_error",
-    "translation": "Ошибка при создании доски."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "У вас нет прав для создания публичной доски."
   },
@@ -9702,10 +9698,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Услуга доступна только в редакции Mattermost Enterprise"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.name_too_long",
-    "translation": "Поле имени не может содержать более 64 символов."
   },
   {
     "id": "app.team.create_onboarding_linked_board.product_key_not_found",
@@ -9748,14 +9740,6 @@
     "translation": "Невозможно удалить данные oauth."
   },
   {
-    "id": "app.user.digest.runs_in_progress.num_in_progress",
-    "translation": {
-      "few": "У вас запущено {{.Count}}:",
-      "many": "У вас запущены {{.Count}}:",
-      "one": "У вас запущен {{.Count}}:"
-    }
-  },
-  {
     "id": "app.user.digest.overdue_status_updates.heading",
     "translation": "Просроченные обновления статуса"
   },
@@ -9776,60 +9760,28 @@
     "translation": "Плагин {{.Id}} находится в списке блокировки. Некоторые плагины заблокированы, потому что они встроены в данную версию Mattermost."
   },
   {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "Добавить на временную шкалу"
-  },
-  {
     "id": "app.user.run.add_to_timeline.submit_label",
     "translation": "Добавить на временную шкалу"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.name",
-    "translation": "Имя"
   },
   {
     "id": "app.user.new_run.run_name",
     "translation": "Название запуска"
   },
   {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "few": "Вы получили {{.Count}} задачи, срок выполнения которых:",
-      "many": "Вы получили {{.Count}} задач, срок выполнения которых:",
-      "one": "Вы получили {{.Count}} задачу, срок выполнения которой:"
-    }
-  },
-  {
     "id": "app.user.digest.tasks.due_x_days_ago",
     "translation": "Срок исполнения {{.Count}} дн. назад"
-  },
-  {
-    "id": "app.user.run.request_update",
-    "translation": "@here — @{{.Name}} запросил обновление статуса для [{{.RunName}}]({{.RunURL}}). \n"
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
     "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Zoom, для облегчения совместной работы. Они будут загружены для вас."
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты для поддержки выпуска функций, например GitHub. Они будут загружены для вас."
-  },
-  {
     "id": "worktemplate.product_teams.bug_bash.integration",
     "translation": "Повысьте продуктивность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Jira, для отслеживания хода работы над ошибками. Они будут загружены для вас."
   },
   {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "Отслеживайте прогресс вашей команды в достижении организационных целей с помощью доски \"Цели и ОКР\" (OKR board). Следите за ходом совещаний с помощью доски \"Повестка совещания\" (Meeting Agenda)."
-  },
-  {
     "id": "worktemplate.devops.incident_resolution.description.playbook",
     "translation": "Используйте контрольные списки и автоматизацию, чтобы привлечь ключевых членов команды, и расскажите, как продвигается процесс разрешения инцидента."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Общайтесь о своих целях и прогрессе работ с командой в режиме асинхронного или реального времени и будьте в курсе всех изменений в едином канале."
   },
   {
     "id": "worktemplate.companywide.create_project.board",
@@ -9842,14 +9794,6 @@
   {
     "id": "ent.elasticsearch.max_version.app_error",
     "translation": "Версия Elasticsearch {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
-  },
-  {
-    "id": "app.user.run.update_status.num_channel",
-    "translation": {
-      "few": "Предоставьте заинтересованным сторонам обновленную информацию. Этот пост будет транслироваться на {{.Count}} канала.",
-      "many": "Предоставьте заинтересованным сторонам обновленную информацию. Этот пост будет транслироваться на {{.Count}} каналов.",
-      "one": "Предоставьте заинтересованным сторонам обновленную информацию. Этот пост будет транслироваться на {{.Count}} канал."
-    }
   },
   {
     "id": "worktemplate.product_teams.sprint_planning.integration",

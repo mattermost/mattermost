@@ -8816,13 +8816,6 @@
     "translation": "Функцията изисква надграждане до версия Enterprise Edition."
   },
   {
-    "id": "app.user.digest.runs_in_progress.num_in_progress",
-    "translation": {
-      "one": "",
-      "other": ""
-    }
-  },
-  {
     "id": "app.user.digest.tasks.due_in_x_days",
     "translation": {
       "one": "",
