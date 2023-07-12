@@ -766,7 +766,7 @@ func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, mess
 	message.Add("post", postJSON)
 
 	defer func() {
-		if appErr != nil {
+		if appErr == nil {
 			a.Publish(message)
 		}
 	}()
