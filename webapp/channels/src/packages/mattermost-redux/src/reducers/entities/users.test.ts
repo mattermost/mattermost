@@ -1,9 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
+import {IDMappedObjects} from '@mattermost/types/utilities';
+
 import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
 import {GenericAction} from 'mattermost-redux/types/actions';
 import reducer from 'mattermost-redux/reducers/entities/users';
+import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
 import {TestHelper} from 'utils/test_helper';
 
@@ -676,8 +680,304 @@ describe('Reducers.users', () => {
             expect(newState.profilesNotInGroup).toEqual(expectedState.profilesNotInGroup);
         });
     });
+
     describe('profiles', () => {
-        it('UserTypes.RECEIVED_PROFILES_LIST, should merge existing users with new ones', () => {
+        function sanitizeUser(user: UserProfile) {
+            const sanitized = {
+                ...user,
+                email: '',
+                first_name: '',
+                last_name: '',
+                auth_service: '',
+            };
+
+            Reflect.deleteProperty(sanitized, 'email_verify');
+            Reflect.deleteProperty(sanitized, 'last_password_update');
+            Reflect.deleteProperty(sanitized, 'notify_props');
+            Reflect.deleteProperty(sanitized, 'terms_of_service_id');
+            Reflect.deleteProperty(sanitized, 'terms_of_service_create_at');
+
+            return sanitized;
+        }
+
+        for (const actionType of [UserTypes.RECEIVED_ME, UserTypes.RECEIVED_PROFILE]) {
+            test(`should store a new user (${actionType})`, () => {
+                const user1 = TestHelper.getUserMock({id: 'user_id1'});
+                const user2 = TestHelper.getUserMock({id: 'user_id2'});
+
+                const state = deepFreezeAndThrowOnMutation({
+                    profiles: {
+                        [user1.id]: user1,
+                    },
+                });
+
+                const nextState = reducer(state, {
+                    type: actionType,
+                    data: user2,
+                });
+
+                expect(nextState.profiles).toEqual({
+                    [user1.id]: user1,
+                    [user2.id]: user2,
+                });
+            });
+
+            test(`should update an existing user (${actionType})`, () => {
+                const user1 = TestHelper.getUserMock({id: 'user_id1'});
+
+                const state = deepFreezeAndThrowOnMutation({
+                    profiles: {
+                        [user1.id]: user1,
+                    },
+                });
+
+                const nextState = reducer(state, {
+                    type: actionType,
+                    data: {
+                        ...user1,
+                        username: 'a different username',
+                    },
+                });
+
+                expect(nextState.profiles).toEqual({
+                    [user1.id]: {
+                        ...user1,
+                        username: 'a different username',
+                    },
+                });
+            });
+
+            test(`should not overwrite unsanitized data with sanitized data (${actionType})`, () => {
+                const user1 = TestHelper.getUserMock({
+                    id: 'user_id1',
+                    email: 'user1@example.com',
+                    first_name: 'User',
+                    last_name: 'One',
+                    auth_service: 'saml',
+                });
+
+                const state = deepFreezeAndThrowOnMutation({
+                    profiles: {
+                        [user1.id]: user1,
+                    },
+                });
+
+                const nextState = reducer(state, {
+                    type: actionType,
+                    data: {
+                        ...sanitizeUser(user1),
+                        username: 'a different username',
+                    },
+                });
+
+                expect(nextState.profiles).toEqual({
+                    [user1.id]: {
+                        ...user1,
+                        username: 'a different username',
+                    },
+                });
+                expect(nextState.profiles[user1.id].email).toBe(user1.email);
+                expect(nextState.profiles[user1.id].auth_service).toBe(user1.auth_service);
+            });
+
+            test(`should return the same state when given an identical user object (${actionType})`, () => {
+                const user1 = TestHelper.getUserMock({id: 'user_id1'});
+
+                const state = deepFreezeAndThrowOnMutation({
+                    profiles: {
+                        [user1.id]: user1,
+                    },
+                });
+
+                const nextState = reducer(state, {
+                    type: actionType,
+                    data: user1,
+                });
+
+                expect(nextState.profiles).toBe(state.profiles);
+            });
+
+            test(`should return the same state when given an sanitized but otherwise identical user object (${actionType})`, () => {
+                const user1 = TestHelper.getUserMock({
+                    id: 'user_id1',
+                    email: 'user1@example.com',
+                    first_name: 'User',
+                    last_name: 'One',
+                    auth_service: 'saml',
+                });
+
+                const state = deepFreezeAndThrowOnMutation({
+                    profiles: {
+                        [user1.id]: user1,
+                    },
+                });
+
+                const nextState = reducer(state, {
+                    type: actionType,
+                    data: sanitizeUser(user1),
+                });
+
+                expect(nextState.profiles).toBe(state.profiles);
+            });
+        }
+
+        for (const actionType of [UserTypes.RECEIVED_PROFILES, UserTypes.RECEIVED_PROFILES_LIST]) {
+            function usersToData(users: UserProfile[]) {
+                if (actionType === UserTypes.RECEIVED_PROFILES) {
+                    const userMap: IDMappedObjects<UserProfile> = {};
+                    for (const user of users) {
+                        userMap[user.id] = user;
+                    }
+                    return userMap;
+                }
+
+                return users;
+            }
+
+            test(`should store new users (${actionType})`, () => {
+                const user1 = TestHelper.getUserMock({id: 'user_id1'});
+                const user2 = TestHelper.getUserMock({id: 'user_id2'});
+                const user3 = TestHelper.getUserMock({id: 'user_id3'});
+
+                const state = deepFreezeAndThrowOnMutation({
+                    profiles: {
+                        [user1.id]: user1,
+                    },
+                });
+
+                const nextState = reducer(state, {
+                    type: actionType,
+                    data: usersToData([user2, user3]),
+                });
+
+                expect(nextState.profiles).toEqual({
+                    [user1.id]: user1,
+                    [user2.id]: user2,
+                    [user3.id]: user3,
+                });
+            });
+
+            test(`should update existing users (${actionType})`, () => {
+                const user1 = TestHelper.getUserMock({id: 'user_id1'});
+                const user2 = TestHelper.getUserMock({id: 'user_id2'});
+                const user3 = TestHelper.getUserMock({id: 'user_id3'});
+
+                const state = deepFreezeAndThrowOnMutation({
+                    profiles: {
+                        [user1.id]: user1,
+                        [user2.id]: user2,
+                        [user3.id]: user3,
+                    },
+                });
+
+                const newUser1 = {
+                    ...user1,
+                    username: 'a different username',
+                };
+                const newUser2 = {
+                    ...user2,
+                    nickname: 'a different nickname',
+                };
+
+                const nextState = reducer(state, {
+                    type: actionType,
+                    data: usersToData([newUser1, newUser2]),
+                });
+
+                expect(nextState.profiles).toEqual({
+                    [user1.id]: newUser1,
+                    [user2.id]: newUser2,
+                    [user3.id]: user3,
+                });
+            });
+
+            test(`should not overwrite unsanitized data with sanitized data (${actionType})`, () => {
+                const user1 = TestHelper.getUserMock({
+                    id: 'user_id1',
+                    email: 'user1@example.com',
+                    first_name: 'User',
+                    last_name: 'One',
+                    auth_service: 'saml',
+                });
+                const user2 = TestHelper.getUserMock({id: 'user_id2'});
+
+                const state = deepFreezeAndThrowOnMutation({
+                    profiles: {
+                        [user1.id]: user1,
+                    },
+                });
+
+                const newUser1 = {
+                    ...sanitizeUser(user1),
+                    username: 'a different username',
+                };
+                const newUser2 = {
+                    ...sanitizeUser(user2),
+                    nickname: 'a different nickname',
+                };
+
+                const nextState = reducer(state, {
+                    type: actionType,
+                    data: usersToData([newUser1, newUser2]),
+                });
+
+                expect(nextState.profiles).toEqual({
+                    [user1.id]: {
+                        ...user1,
+                        username: 'a different username',
+                    },
+                    [user2.id]: newUser2,
+                });
+                expect(nextState.profiles[user1.id].email).toBe(user1.email);
+                expect(nextState.profiles[user1.id].auth_service).toBe(user1.auth_service);
+            });
+
+            test(`should return the same state when given identical user objects (${actionType})`, () => {
+                const user1 = TestHelper.getUserMock({id: 'user_id1'});
+                const user2 = TestHelper.getUserMock({id: 'user_id2'});
+
+                const state = deepFreezeAndThrowOnMutation({
+                    profiles: {
+                        [user1.id]: user1,
+                        [user2.id]: user2,
+                    },
+                });
+
+                const nextState = reducer(state, {
+                    type: actionType,
+                    data: usersToData([user1, user2]),
+                });
+
+                expect(nextState.profiles).toBe(state.profiles);
+            });
+
+            test(`should return the same state when given an sanitized but otherwise identical user object (${actionType})`, () => {
+                const user1 = TestHelper.getUserMock({
+                    id: 'user_id1',
+                    email: 'user1@example.com',
+                    first_name: 'User',
+                    last_name: 'One',
+                    auth_service: 'saml',
+                });
+                const user2 = TestHelper.getUserMock({id: 'user_id2'});
+
+                const state = deepFreezeAndThrowOnMutation({
+                    profiles: {
+                        [user1.id]: user1,
+                        [user2.id]: user2,
+                    },
+                });
+
+                const nextState = reducer(state, {
+                    type: actionType,
+                    data: usersToData([sanitizeUser(user1), sanitizeUser(user2)]),
+                });
+
+                expect(nextState.profiles).toBe(state.profiles);
+            });
+        }
+
+        test('UserTypes.RECEIVED_PROFILES_LIST, should merge existing users with new ones', () => {
             const firstUser = TestHelper.getUserMock({id: 'first_user_id'});
             const secondUser = TestHelper.getUserMock({id: 'seocnd_user_id'});
             const thirdUser = TestHelper.getUserMock({id: 'third_user_id'});
