@@ -302,11 +302,20 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
     handleEmailRadio = (enableEmail: UserNotifyProps['email']): void => this.setState({enableEmail});
 
-    updateUsernameKey = (val: boolean): void => this.setState({usernameKey: val});
+    handleChangeForUsernameKeyCheckbox = (event: ChangeEvent<HTMLInputElement>) => {
+        const {target: {checked}} = event;
+        this.setState({usernameKey: checked});
+    };
 
-    updateFirstNameKey = (val: boolean): void => this.setState({firstNameKey: val});
+    handleChangeForFirstNameKeyCheckbox = (event: ChangeEvent<HTMLInputElement>) => {
+        const {target: {checked}} = event;
+        this.setState({firstNameKey: checked});
+    };
 
-    updateChannelKey = (val: boolean): void => this.setState({channelKey: val});
+    handleChangeForChannelKeyCheckbox = (event: ChangeEvent<HTMLInputElement>) => {
+        const {target: {checked}} = event;
+        this.setState({channelKey: checked});
+    };
 
     handleChangeForCustomKeysWithNotificationCheckbox = (event: ChangeEvent<HTMLInputElement>) => {
         const {target: {checked}} = event;
@@ -657,7 +666,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                     id='notificationTriggerFirst'
                                     type='checkbox'
                                     checked={this.state.firstNameKey}
-                                    onChange={(event) => this.updateFirstNameKey(event.target.checked)}
+                                    onChange={this.handleChangeForFirstNameKeyCheckbox}
                                 />
                                 <FormattedMessage
                                     id='user.settings.notifications.sensitiveName'
@@ -680,7 +689,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                 id='notificationTriggerUsername'
                                 type='checkbox'
                                 checked={this.state.usernameKey}
-                                onChange={(event) => this.updateUsernameKey(event.target.checked)}
+                                onChange={this.handleChangeForUsernameKeyCheckbox}
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.sensitiveUsername'
@@ -702,7 +711,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                 id='notificationTriggerShouts'
                                 type='checkbox'
                                 checked={this.state.channelKey}
-                                onChange={(event) => this.updateChannelKey(event.target.checked)}
+                                onChange={this.handleChangeForChannelKeyCheckbox}
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.channelWide'
