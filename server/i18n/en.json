@@ -825,7 +825,7 @@
   },
   {
     "id": "api.command_exportlink.hint",
-    "translation": "[job-id|zip file path|latest]"
+    "translation": "[job-id|zip filename|latest]"
   },
   {
     "id": "api.command_exportlink.invalid.app_error",

@@ -848,12 +848,11 @@ func (a *App) GeneratePresignURLForExport(name string) (*model.PresignURLRespons
 		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.driver.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	p := path.Join(*a.Config().ExportSettings.Directory, name)
+	p := path.Join(*a.Config().ExportSettings.Directory, filepath.Base(name)
 	found, err := b.FileExists(p)
 	if err != nil {
 		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.fileexist.app_error", nil, "", http.StatusInternalServerError)
 	}
-
 	if !found {
 		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.notfound.app_error", nil, "", http.StatusInternalServerError)
 	}
