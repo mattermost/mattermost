@@ -5519,6 +5519,7 @@
   "user.settings.notifications.push_threads": "When enabled, any reply to a thread you're following will send a mobile push notification.",
   "user.settings.notifications.push_threads.allActivity": "Notify me about threads I'm following",
   "user.settings.notifications.sensitiveCustomWords": "Other non case-sensitive words, press TAB to seperate keywords:",
+  "user.settings.notifications.sensitiveCustomWords.placeholder": "Write and press TAB to seperate keywords",
   "user.settings.notifications.sensitiveName": "Your case-sensitive first name \"{first_name}\"",
   "user.settings.notifications.sensitiveUsername": "Your non case-sensitive username \"{username}\"",
   "user.settings.notifications.soundConfig": "Please configure notification sounds in your browser settings",
