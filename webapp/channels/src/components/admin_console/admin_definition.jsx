@@ -55,7 +55,7 @@ import TeamSettings from './team_channel_settings/team';
 import TeamDetails from './team_channel_settings/team/details';
 import ChannelSettings from './team_channel_settings/channel';
 import ChannelDetails from './team_channel_settings/channel/details';
-import PasswordSettings from './password_settings.jsx';
+import PasswordSettings from './password_settings';
 import PushNotificationsSettings from './push_settings';
 import DataRetentionSettings from './data_retention_settings';
 import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
@@ -2132,6 +2132,16 @@ const AdminDefinition = {
                         label_default: 'About Link:',
                         help_text: t('admin.support.aboutDesc'),
                         help_text_default: 'The URL for the About link on the Mattermost login and sign-up pages. If this field is empty, the About link is hidden from users.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_TEXT,
+                        key: 'SupportSettings.ForgotPasswordLink',
+                        label: t('admin.support.forgotPasswordTitle'),
+                        label_default: 'Forgot Password Custom Link:',
+                        help_text: t('admin.support.forgotPasswordDesc'),
+                        help_text_default: 'The URL for the Forgot Password link on the Mattermost login page. If this field is empty the Forgot Password link takes users to the Password Reset page.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                         isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     },
