@@ -9675,10 +9675,6 @@
     "translation": "You cannot delete an acknowledgment after 5 minutes has elapsed."
   },
   {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "Error while executing a work template."
-  },
-  {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
     "translation": "Invalid auth service: {{.AuthService}}"
   },
@@ -9731,32 +9727,16 @@
     "translation": "Contact Sales"
   },
   {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organisational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
-  },
-  {
     "id": "worktemplate.devops.product_release.playbook",
     "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organisational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Invalid value for bytes when uploading a licence."
   },
   {
-    "id": "app.user.run.status_enable",
-    "translation": "@{{.Username}} enabled the status updates for [{{.RunName}}]({{.RunURL}})"
-  },
-  {
     "id": "app.user.run.add_to_timeline.summary.placeholder",
     "translation": "Short summary shown in the timeline"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.description",
-    "translation": "Description"
   },
   {
     "id": "app.user.digest.tasks.num_assigned",
@@ -9764,10 +9744,6 @@
       "one": "You have {{.Count}} assigned task:",
       "other": "You have {{.Count}} total assigned tasks:"
     }
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.zero_in_progress",
-    "translation": "You have 0 runs currently in progress."
   },
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
@@ -9780,5 +9756,109 @@
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Invalid business email for trial"
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "An error occurred running the plugin hook on configuration save."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ignored indexes for purge should not start with dash."
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Failed to submit true up review profile to CWS."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Error: no organisation name provided for self hosted onboarding."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Persistent notification post allows maximum of {{.MaxRecipients}} recipients."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Persistent notification post must have minimum 1 recipient."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Unable to remove token when invalidating password recovery tokens"
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Could not decode gif."
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Plugin {{.Id}} is on the block list. Some plugins are blocked because they are built into this version of Mattermost."
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Skipping installation of plugin {{.Id}} since existing version is equal or newer."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Unable to locate local socket file directory."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "User is not allowed to create priority post or persistent notification."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Only root posts are allowed to have priority."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Unable to parse token when invalidating password recovery tokens"
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Failed to delete persistent notification post"
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Persistent notification validation failed."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Persistent notification posts must have the Urgent Priority."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Unable to get tokens by type when invalidating password recovery tokens"
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "An error occurred getting the team."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Unable to delete the persistent notifications by channel."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Unable to delete the persistent notifications by team."
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Invalid channel-auto-follow-threads value."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Invalid total number of persistent notification per post. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Invalid frequency of persistent notifications. Must be at least two minutes."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Invalid maximum number of recipients for persistent notifications. Must be a positive number."
   }
 ]
