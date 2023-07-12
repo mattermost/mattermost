@@ -804,6 +804,7 @@ export const PostTypes = {
     ME: 'me',
     REMINDER: 'reminder',
     CUSTOM_CALLS: 'custom_calls',
+    CUSTOM_CALLS_RECORDING: 'custom_calls_recording',
 };
 
 export const StatTypes = keyMirror({
