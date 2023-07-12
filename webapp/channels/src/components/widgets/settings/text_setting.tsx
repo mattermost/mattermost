@@ -1,108 +1,95 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {ChangeEvent, ReactNode} from 'react';
 
 import Setting from './setting';
 
-export type InputTypes = 'input' | 'textarea' | 'number' | 'email' | 'tel' | 'url' | 'password'
+const INPUT_TYPES = ['text', 'textarea', 'number', 'email', 'tel', 'url', 'password'] as const;
+export type InputTypes = typeof INPUT_TYPES[number];
 
-export type WidgetTextSettingProps = {
+export type Props = {
     id: string;
-    label: React.ReactNode;
+    label: ReactNode;
     labelClassName?: string;
     placeholder?: string;
-    helpText?: React.ReactNode;
-    footer?: React.ReactNode;
+    helpText?: ReactNode;
+    footer?: ReactNode;
     value: string | number;
     inputClassName?: string;
     maxLength?: number;
     resizable?: boolean;
-    onChange(name: string, value: any): void;
+    onChange(id: string, value: any): void;
     disabled?: boolean;
+
+    // This is a custom prop that is not part of the HTML input element type
     type?: InputTypes;
     autoFocus?: boolean;
 }
 
-// Since handle change is read from input and textarea element
-type HandleChangeTypes = React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
+function TextSetting(props: Props) {
+    const {labelClassName = '', inputClassName = '', maxLength = -1, resizable = true, type = 'text'} = props;
 
-export default class TextSetting extends React.PureComponent<WidgetTextSettingProps> {
-    public static validTypes: string[] = ['input', 'textarea', 'number', 'email', 'tel', 'url', 'password'];
-
-    public static defaultProps: Partial<WidgetTextSettingProps> = {
-        labelClassName: '',
-        inputClassName: '',
-        type: 'input',
-        maxLength: -1, // A negative number allows for values of any length
-        resizable: true,
-    };
-
-    private handleChange: HandleChangeTypes = (e) => {
-        if (this.props.type === 'number') {
-            this.props.onChange(this.props.id, parseInt(e.target.value, 10));
+    function handleChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+        if (props.type === 'number') {
+            props.onChange(props.id, parseInt(event.target.value, 10));
         } else {
-            this.props.onChange(this.props.id, e.target.value);
+            props.onChange(props.id, event.target.value);
         }
-    };
+    }
 
-    public render(): JSX.Element {
-        const {resizable} = this.props;
-        let {type} = this.props;
-        let input = null;
+    let input = null;
+    if (type === 'textarea') {
+        input = (
+            <textarea
+                id={props.id}
+                data-testid={`${props.id}input`} // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
+                className='form-control'
+                autoFocus={props.autoFocus}
+                dir='auto'
+                rows={5}
+                placeholder={props.placeholder}
+                style={resizable === false ? {resize: 'none'} : undefined}
+                value={props.value}
+                maxLength={maxLength}
+                onChange={handleChange}
+                disabled={props.disabled}
+            />
+        );
+    } else {
+        const inputType = INPUT_TYPES.includes(type) ? type : 'text';
 
-        if (type === 'textarea') {
-            let style = {};
-            if (!resizable) {
-                style = Object.assign({}, {resize: 'none'});
-            }
+        // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
+        const testId = inputType === 'text' ? `${props.id}input` : `${props.id}${inputType}`;
 
-            input = (
-                <textarea
-                    autoFocus={this.props.autoFocus}
-                    data-testid={this.props.id + 'input'}
-                    id={this.props.id}
-                    dir='auto'
-                    style={style}
-                    className='form-control'
-                    rows={5}
-                    placeholder={this.props.placeholder}
-                    value={this.props.value}
-                    maxLength={this.props.maxLength}
-                    onChange={this.handleChange}
-                    disabled={this.props.disabled}
-                />
-            );
-        } else {
-            type = ['input', 'email', 'tel', 'number', 'url', 'password'].includes(type!) ? type : 'input';
-
-            input = (
-                <input
-                    autoFocus={this.props.autoFocus}
-                    data-testid={this.props.id + type}
-                    id={this.props.id}
-                    className='form-control'
-                    type={type}
-                    placeholder={this.props.placeholder}
-                    value={this.props.value}
-                    maxLength={this.props.maxLength}
-                    onChange={this.handleChange}
-                    disabled={this.props.disabled}
-                />
-            );
-        }
-
-        return (
-            <Setting
-                label={this.props.label}
-                labelClassName={this.props.labelClassName}
-                inputClassName={this.props.inputClassName}
-                helpText={this.props.helpText}
-                inputId={this.props.id}
-                footer={this.props.footer}
-            >
-                {input}
-            </Setting>
+        input = (
+            <input
+                id={props.id}
+                data-testid={testId}
+                className='form-control'
+                autoFocus={props.autoFocus}
+                type={inputType}
+                placeholder={props.placeholder}
+                value={props.value}
+                maxLength={maxLength}
+                onChange={handleChange}
+                disabled={props.disabled}
+            />
         );
     }
+
+    return (
+        <Setting
+            label={props.label}
+            labelClassName={labelClassName}
+            inputClassName={inputClassName}
+            helpText={props.helpText}
+            inputId={props.id}
+            footer={props.footer}
+        >
+            {input}
+        </Setting>
+    );
 }
+
+export default TextSetting;
