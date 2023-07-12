@@ -5537,7 +5537,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_username",
-    "translation": "Gültige E-Mail und/oder Passwort eingeben."
+    "translation": "Gültigen Benutzernamen und/oder Passwort eingeben."
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
@@ -5545,7 +5545,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
-    "translation": "Gültige E-Mail und/oder Passwort eingeben."
+    "translation": "Gültige E-Mail oder Benutzername und/oder Passwort eingeben."
   },
   {
     "id": "api.user.login.invalid_credentials_email",
@@ -9687,10 +9687,6 @@
     "translation": "Die Serverübersetzungen konnten nicht aktualisiert werden."
   },
   {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "Fehler beim Ausführen einer Arbeitsvorlage."
-  },
-  {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
     "translation": "Ungültiger AuthService: {{.AuthService}}"
   },
@@ -9739,16 +9735,8 @@
     "translation": "Oauth-Daten können nicht entfernt werden."
   },
   {
-    "id": "app.user.run.status_enable",
-    "translation": "@{{.Username}} hat die Statusaktualisierungen für [{{.RunName}}]({{.RunURL}}) aktiviert"
-  },
-  {
     "id": "app.user.run.add_to_timeline.summary.placeholder",
     "translation": "Kurze Zusammenfassung auf der Zeitachse"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.description",
-    "translation": "Beschreibung"
   },
   {
     "id": "app.user.digest.tasks.num_assigned",
@@ -9758,24 +9746,12 @@
     }
   },
   {
-    "id": "app.user.digest.runs_in_progress.zero_in_progress",
-    "translation": "Du hast keinen aktiven Durchlauf."
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Ungültige geschäftliche E-Mail für den Test"
   },
   {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Verfolge den Fortschritt deines Teams auf dem Weg zu den Unternehmenszielen mit dem Ziele und OKR Board. Halten Besprechungen mit der Besprechungsagenda auf Kurs."
-  },
-  {
     "id": "worktemplate.leadership.goals_and_okrs.channel",
     "translation": "Chatte mit deinem Team über Ziele und Fortschritte, asynchron oder in Echtzeit, und bleibe über Änderungen in einem einzigen Kanal auf dem Laufenden."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Steigere die Produktivität in deinem Kanal, indem du die am häufigsten verwendeten Tools wie Zoom integrierst, um die Zusammenarbeit zu erleichtern. Diese werden für dich heruntergeladen."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
@@ -9796,5 +9772,97 @@
   {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
     "translation": "CWS Server kann den Newsletter nicht abonnieren."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Dauerhafte Benachrichtigungen erlauben maximal {{.MaxRecipients}} Empfänger."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Eine dauerhafte Benachrichtigung muss mindestens einen Empfänger haben."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Dauerhafte Benachrichtigung konnte nicht gelöscht werden"
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Das Prüfen einer dauerhaften Benachrichtigung ist fehlgeschlagen."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "Der Benutzer darf keine Prioritätsnachrichten oder Dauermeldungen erstellen."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Es ist nicht möglich, die dauerhaften Benachrichtigungen nach Kanal zu löschen."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Ungültige Gesamtzahl der dauerhaften Benachrichtigungen pro Beitrag. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Antworten in Unterhaltungen dürfen keine Prioritäten haben."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Dauerhafte Benachrichtigungen müssen die Priorität \"Dringend\" haben."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Ungültige maximale Anzahl von Empfängern für dauerhafte Benachrichtigungen. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Fehler bei der Übermittlung eines True Up Überprüfungsprofils an CWS."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Token nach Typ konnten nicht geholt werden, wenn Passwort-Wiederherstellungstoken ungültig gemacht werden"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Token kann nicht entfernt werden, wenn Passwortwiederherstellungstoken ungültig gemacht werden"
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Fehler: Kein Organisationsname für selbst gehostetes Onboarding angegeben."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Token kann nicht verarbeitet werden, wenn Passwortwiederherstellungstoken ungültig gemacht werden"
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Konnte GIF nicht dekodieren."
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Ein Fehler ist beim Holen des Teams aufgetreten."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Es ist nicht möglich, die dauerhaften Benachrichtigungen nach Team zu löschen."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Bei der Ausführung des Plugin-Hooks beim Speichern der Konfiguration ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Ungültiger channel-auto-follow-threads-Wert."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ignorierte Indizes für Bereinigung dürfen nicht mit einem Bindestrich beginnen."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Das Verzeichnis der lokalen Socket-Dateien kann nicht gefunden werden."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Ungültige Häufigkeit der dauerhaften Benachrichtigungen. Muss mindestens zwei Minuten betragen."
   }
 ]
