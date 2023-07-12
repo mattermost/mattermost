@@ -1546,7 +1546,6 @@ export const Constants = {
         'help',
         'plugins',
         'playbooks',
-        'boards',
     ],
     RESERVED_USERNAMES: [
         'valet',

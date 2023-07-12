@@ -632,7 +632,6 @@ var reservedName = []string{
 	"plugins",
 	"post",
 	"signup",
-	"boards",
 	"playbooks",
 }
 
