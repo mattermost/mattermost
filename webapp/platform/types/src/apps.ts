@@ -141,7 +141,8 @@ export type AppExpandLevel = ''
 | 'summary'
 | '+summary'
 | 'all'
-| '+all';
+| '+all'
+| 'id';
 
 export type AppExpand = {
     app?: AppExpandLevel;
