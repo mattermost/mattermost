@@ -10,7 +10,7 @@ import {Constants, DocLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import AdminSettings, {BaseProps, BaseState} from './admin_settings';
-import DropdownSetting from './dropdown_setting.jsx';
+import DropdownSetting from './dropdown_setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 import {AdminConfig, ClientLicense, EmailSettings} from '@mattermost/types/config';
@@ -54,7 +54,7 @@ export default class PushSettings extends AdminSettings<Props, State> {
         });
     };
 
-    handleDropdownChange = (id: string, value: EmailSettings['PushNotificationServerType'] | EmailSettings['PushNotificationServerLocation']) => {
+    handleDropdownChange = (id: string, value: string) => {
         if (id === DROPDOWN_ID_SERVER_TYPE) {
             this.setState({
                 agree: false,
@@ -359,7 +359,6 @@ export default class PushSettings extends AdminSettings<Props, State> {
                     onChange={this.handleChange}
                     disabled={this.props.isDisabled || this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_CUSTOM}
                     setByEnv={this.isSetByEnv('EmailSettings.PushNotificationServer')}
-                    type='input'
                 />
                 <TextSetting
                     id='maxNotificationsPerChannel'

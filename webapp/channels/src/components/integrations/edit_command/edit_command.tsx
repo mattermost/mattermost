@@ -12,7 +12,7 @@ import {getHistory} from 'utils/browser_history';
 import {t} from 'utils/i18n';
 import LoadingScreen from 'components/loading_screen';
 import ConfirmModal from 'components/confirm_modal';
-import AbstractCommand from '../abstract_command.jsx';
+import AbstractCommand from '../abstract_command';
 
 const HEADER = {id: t('integrations.edit'), defaultMessage: 'Edit'};
 const FOOTER = {id: t('edit_command.update'), defaultMessage: 'Update'};

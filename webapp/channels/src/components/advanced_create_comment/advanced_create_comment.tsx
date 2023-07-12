@@ -475,6 +475,9 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 channelTimezoneCount,
                 memberNotifyCount,
                 onConfirm: () => this.handleNotifyAllConfirmation(),
+                onExited: () => {
+                    this.isDraftSubmitting = false;
+                },
             },
         });
     };
@@ -650,7 +653,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         if (memberNotifyCount > 0) {
             this.showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount);
-            this.isDraftSubmitting = false;
             return;
         }
 
@@ -824,10 +826,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.setState({
             caretPosition: (e.target as TextboxElement).selectionStart || 0,
         });
-    };
-
-    handleSelect = (e: React.SyntheticEvent<TextboxElement>) => {
-        Utils.adjustSelection(this.textboxRef.current?.getInputBox(), e);
     };
 
     handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
@@ -1237,7 +1235,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     handlePostError={this.handlePostError}
                     emitTypingEvent={this.emitTypingEvent}
                     handleMouseUpKeyUp={this.handleMouseUpKeyUp}
-                    handleSelect={this.handleSelect}
                     handleKeyDown={this.handleKeyDown}
                     postMsgKeyPress={this.commentMsgKeyPress}
                     handleChange={this.handleChange}

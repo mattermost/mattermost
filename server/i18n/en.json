@@ -4932,14 +4932,6 @@
     "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested a workspace upgrade for: "
   },
   {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Collection type already exists."
-  },
-  {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Topic type already exists."
-  },
-  {
     "id": "app.command.createcommand.internal_error",
     "translation": "Unable to save the command."
   },
@@ -5030,6 +5022,30 @@
   {
     "id": "app.custom_group.unique_name",
     "translation": "group name is not unique"
+  },
+  {
+    "id": "app.desktop_token.authenticate.invalid_or_expired",
+    "translation": "Token does not exist or is expired"
+  },
+  {
+    "id": "app.desktop_token.create.collision",
+    "translation": "This token already exists in the system"
+  },
+  {
+    "id": "app.desktop_token.create.error",
+    "translation": "An error occured attempted to create the token"
+  },
+  {
+    "id": "app.desktop_token.validate.expired",
+    "translation": "Token is expired"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Token is not valid"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Cannot find a user for this token"
   },
   {
     "id": "app.draft.delete.app_error",
@@ -6522,30 +6538,6 @@
   {
     "id": "app.team.clear_cache.app_error",
     "translation": "Error clearing team member cache"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "error duplicating board"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "error getting boards templates"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "error no board created"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "error while patching board"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "interface not of expected type"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "product key not found"
   },
   {
     "id": "app.team.get.find.app_error",
