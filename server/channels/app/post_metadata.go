@@ -715,7 +715,7 @@ func resolveMetadataURL(requestURL string, siteURL string) string {
 
 func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, bool) {
 	var cached linkMetadataCache
-	err := platform.LinkCache().Get(strconv.FormatInt(model.GeneratePresignedURLMetadataHash(requestURL, timestamp), 16), &cached)
+	err := platform.LinkCache().Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), &cached)
 	if err != nil {
 		return nil, nil, nil, false
 	}
@@ -770,7 +770,7 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 		Permalink: permalink,
 	}
 
-	platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GeneratePresignedURLMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration)
+	platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration)
 }
 
 // peekContentType peeks at the first 512 bytes of p, and attempts to detect
