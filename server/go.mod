@@ -250,5 +250,3 @@ exclude (
 	github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09
 	github.com/willf/bitset v1.2.0
 )
-
-replace github.com/mattermost/mattermost/server/public => ./public
