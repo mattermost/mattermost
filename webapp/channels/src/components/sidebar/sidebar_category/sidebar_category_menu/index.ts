@@ -3,7 +3,7 @@
 
 import {connect, ConnectedProps} from 'react-redux';
 
-import {setCategoryMuted, setCategorySorting} from 'mattermost-redux/actions/channel_categories';
+import {setCategoryMuted, setCategorySorting, viewCategory} from 'mattermost-redux/actions/channel_categories';
 
 import {openModal} from 'actions/views/modals';
 
@@ -13,6 +13,7 @@ const mapDispatchToProps = {
     openModal,
     setCategoryMuted,
     setCategorySorting,
+    viewCategory,
 };
 
 const connector = connect(null, mapDispatchToProps);

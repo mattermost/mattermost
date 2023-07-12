@@ -7973,6 +7973,16 @@ func (c *Client4) UpdateSidebarCategoryForTeamForUser(ctx context.Context, userI
 	return cat, BuildResponse(r), nil
 }
 
+func (c *Client4) ViewCategory(ctx context.Context, userID, teamID, categoryID string) (*Response, error) {
+	route := c.userCategoryRoute(userID, teamID) + "/" + categoryID + "/view"
+	r, err := c.DoAPIPost(ctx, route, "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), err
+}
+
 // CheckIntegrity performs a database integrity check.
 func (c *Client4) CheckIntegrity(ctx context.Context) ([]IntegrityCheckResult, *Response, error) {
 	r, err := c.DoAPIPost(ctx, "/integrity", "")

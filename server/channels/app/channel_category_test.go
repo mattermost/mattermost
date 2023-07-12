@@ -657,3 +657,64 @@ func TestDiffChannelsBetweenCategories(t *testing.T) {
 		)
 	})
 }
+
+func createPostAsAdmin(th *TestHelper, channel *model.Channel) {
+	id := model.NewId()
+
+	post := &model.Post{
+		UserId:    th.SystemAdminUser.Id,
+		ChannelId: channel.Id,
+		Message:   "message_" + id,
+		CreateAt:  model.GetMillis() - 10000,
+	}
+
+	var err *model.AppError
+	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
+		panic(err)
+	}
+}
+
+func TestViewCategory(t *testing.T) {
+	t.Run("should view all channels in a category", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+		require.Nil(t, err)
+
+		channelsCategory := categories.Categories[1]
+
+		// Create some channels to be part of the channels category
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel1)
+
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel2)
+
+		createPostAsAdmin(th, channel1)
+		createPostAsAdmin(th, channel2)
+
+		// Confirm that the channels are unread
+		member1, err := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, 1, member1.MsgCount)
+		assert.Equal(t, 1, member1.MsgCountRoot)
+		member2, err := th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, 1, member2.MsgCount)
+		assert.Equal(t, 1, member2.MsgCountRoot)
+
+		// View the category
+		th.App.ViewCategory(th.Context, th.BasicUser.Id, channelsCategory.Id)
+
+		// Confirm that the channels are now read
+		member1, err = th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, 0, member1.MsgCount)
+		assert.Equal(t, 0, member1.MsgCountRoot)
+		member2, err = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, 0, member2.MsgCount)
+		assert.Equal(t, 0, member2.MsgCountRoot)
+	})
+}

@@ -15,6 +15,7 @@ import {
     FolderPlusOutlineIcon,
     DotsVerticalIcon,
     ChevronRightIcon,
+    MarkAsUnreadIcon,
 } from '@mattermost/compass-icons/components';
 
 import {ChannelCategory, CategorySorting} from '@mattermost/types/channel_categories';
@@ -231,6 +232,26 @@ const SidebarCategoryMenu = (props: Props) => {
         />
     );
 
+    function handleViewCategory() {
+        props.viewCategory(props.category);
+        trackEvent('ui', 'ui_sidebar_category_menu_viewCategory');
+    }
+
+    const markAsReadMenuItem = (
+        <Menu.Item
+            id={`view-${props.category.id}`}
+            onClick={handleViewCategory}
+            aria-haspopup={true}
+            leadingElement={<MarkAsUnreadIcon size={18}/>}
+            labels={(
+                <FormattedMessage
+                    id='sidebar_left.sidebar_category_menu.viewCategory'
+                    defaultMessage='Mark category as read'
+                />
+            )}
+        />
+    );
+
     function handleMenuToggle(isOpen: boolean) {
         setIsMenuOpen(isOpen);
     }
@@ -264,6 +285,8 @@ const SidebarCategoryMenu = (props: Props) => {
                     onToggle: handleMenuToggle,
                 }}
             >
+                {markAsReadMenuItem}
+                <Menu.Separator/>
                 {muteUnmuteCategoryMenuItem}
                 {renameCategoryMenuItem}
                 {deleteCategoryMenuItem}

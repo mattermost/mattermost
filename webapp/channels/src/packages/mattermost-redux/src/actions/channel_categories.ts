@@ -137,6 +137,25 @@ function updateCategory(category: ChannelCategory) {
     };
 }
 
+export function viewCategory(category: ChannelCategory) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const state = getState();
+        const currentUserId = getCurrentUserId(state);
+
+        try {
+            await Client4.viewCategory(currentUserId, category.team_id, category);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        // Memberships get updated in the state after receiving the corresponding websocket event.
+
+        return {data: true};
+    };
+}
+
 export function fetchMyCategories(teamId: string, isWebSocket: boolean) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const currentUserId = getCurrentUserId(getState());

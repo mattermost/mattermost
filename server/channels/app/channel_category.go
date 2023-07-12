@@ -286,3 +286,17 @@ func (a *App) DeleteSidebarCategory(c request.CTX, userID, teamID, categoryId st
 
 	return nil
 }
+
+func (a *App) ViewCategory(c request.CTX, userID string, categoryId string) (map[string]int64, *model.AppError) {
+	categories, appErr := a.GetSidebarCategory(c, categoryId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	views, appErr := a.MarkChannelsAsViewed(c, categories.Channels, userID, c.Session().Id, true, a.IsCRTEnabledForUser(c, userID))
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return views, nil
+}
