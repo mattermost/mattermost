@@ -1358,20 +1358,15 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 	time := model.GetMillis() - timePeriod
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ?", time)
 
-	if us.DriverName() == model.DatabaseDriverPostgres {
-		if !options.IncludeBotAccounts {
+	if !options.IncludeBotAccounts {
+		if us.DriverName() == model.DatabaseDriverPostgres {
 			query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
-		}
-		if !options.IncludeDeleted {
-			query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
-		}
-	} else {
-		if !options.IncludeBotAccounts {
+		} else {
 			query = query.Where(sq.Expr("UserId NOT IN (SELECT UserId FROM Bots)"))
 		}
-		if !options.IncludeDeleted {
-			query = query.Where(sq.Expr("s.UserId IN (SELECT Id FROM Users WHERE DeleteAt = 0)"))
-		}
+	}
+	if !options.IncludeDeleted {
+		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
 	}
 
 	queryStr, args, err := query.ToSql()
@@ -1390,20 +1385,16 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ? AND LastActivityAt <= ?", startTime, endTime)
 
-	if us.DriverName() == model.DatabaseDriverPostgres {
-		if !options.IncludeBotAccounts {
+	if !options.IncludeBotAccounts {
+		if us.DriverName() == model.DatabaseDriverPostgres {
 			query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
-		}
-		if !options.IncludeDeleted {
-			query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
-		}
-	} else {
-		if !options.IncludeBotAccounts {
+		} else {
 			query = query.Where(sq.Expr("UserId NOT IN (SELECT UserId FROM Bots)"))
 		}
-		if !options.IncludeDeleted {
-			query = query.Where(sq.Expr("s.UserId IN (SELECT Id FROM Users WHERE DeleteAt = 0)"))
-		}
+	}
+
+	if !options.IncludeDeleted {
+		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
 	}
 
 	queryStr, args, err := query.ToSql()
