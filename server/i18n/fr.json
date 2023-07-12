@@ -4044,10 +4044,6 @@
     "translation": "Id créateur invalide"
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Impossible de décoder le gif."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Valeur invalide pour le paramètre « create_at »."
   },

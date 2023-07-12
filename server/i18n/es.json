@@ -4044,10 +4044,6 @@
     "translation": "Id del creador inválido."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "No se pudo decodificar el gif."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Valor no válido para create_at."
   },
@@ -9490,9 +9486,5 @@
   {
     "id": "api.admin.syncables_error",
     "translation": "Error al agregar usuario a grupo-equipos y grupo-canales"
-  },
-  {
-    "id": "api.command_templates.name",
-    "translation": "plantillas"
   }
 ]

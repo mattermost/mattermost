@@ -1856,10 +1856,6 @@
     "translation": "Érvénytelen érték: create_at."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Nem sikerült dekódolni a gif-et."
-  },
-  {
     "id": "model.emoji.user_id.app_error",
     "translation": "Érvénytelen létrehozó azonosító."
   },

@@ -4040,10 +4040,6 @@
     "translation": "Ongeldig creator id."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Kan gif niet decoderen."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Ongeldige waarde voor create_at."
   },
@@ -9499,10 +9495,6 @@
     "translation": "Je kan een bevestiging in een gearchiveerd kanaal niet verwijderen."
   },
   {
-    "id": "worktemplate.category.product_teams",
-    "translation": "Productteams"
-  },
-  {
     "id": "model.draft.is_valid.user_id.app_error",
     "translation": "Ongeldig gebruikers-id."
   },
@@ -9545,10 +9537,6 @@
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
     "translation": "Ongeldig bericht-id."
-  },
-  {
-    "id": "app.worktemplates.get_templates.app_error",
-    "translation": "Kon geen werksjablonen ophalen"
   },
   {
     "id": "app.worktemplates.get_categories.app_error",
@@ -9699,64 +9687,32 @@
     "translation": "Fout bij het bijwerken van de serververtalingen."
   },
   {
-    "id": "worktemplate.category.leadership",
-    "translation": "Leiderschap"
-  },
-  {
     "id": "worktemplate.category.devops",
     "translation": "DevOps"
-  },
-  {
-    "id": "worktemplate.category.companywide",
-    "translation": "Bedrijfswijd"
   },
   {
     "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
     "translation": "Kan kanaal verbonden met een playbook niet vinden."
   },
   {
-    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
-    "translation": "Fout bij het aanmaken van een playbook."
-  },
-  {
     "id": "app.worktemplates.execute_work_template.channels.create_error",
     "translation": "Fout bij het maken van een kanaal."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.boards.create_error",
-    "translation": "Fout bij het aanmaken van een bord."
   },
   {
     "id": "app.worktemplates.execute_work_template.app_error",
     "translation": "Fout bij het uitvoeren van een werksjabloon."
   },
   {
-    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
-    "translation": "Jouw licentie ondersteunt geen privé-playbooks."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
     "translation": "Je hebt geen rechten om een publiek playbook te maken."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
-    "translation": "Je hebt geen rechten om een publiek kanaal te maken."
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "Je hebt geen rechten om een openbaar bord aan te maken."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
-    "translation": "Je hebt geen rechten om een privé playbook aan te maken."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_private_channel",
     "translation": "Je hebt geen rechten om een privékanaal te maken."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_board",
-    "translation": "Je hebt geen rechten om een privé-bord te maken."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -9767,24 +9723,12 @@
     "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Gebruikersnaam}}\"."
   },
   {
-    "id": "api.work_templates.disabled",
-    "translation": "Werksjablonen zijn uitgeschakeld."
-  },
-  {
     "id": "api.command_templates.unsupported.app_error",
     "translation": "De sjablonenopdracht wordt niet ondersteund op jouw toestel."
   },
   {
-    "id": "api.command_templates.name",
-    "translation": "sjablonen"
-  },
-  {
     "id": "api.command_templates.desc",
     "translation": "Open het venster Aanmaken van sjabloon"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.name_too_long",
-    "translation": "Het naamveld kan niet meer dan 64 tekens bevatten."
   },
   {
     "id": "app.team.create_onboarding_linked_board.product_key_not_found",
@@ -9827,32 +9771,16 @@
     "translation": "Contacteer de verkoopsafdeling"
   },
   {
-    "id": "app.user.digest.tasks.due_today",
-    "translation": "Vandaag te voldoen"
-  },
-  {
     "id": "app.user.digest.tasks.all_tasks_command",
     "translation": "Gebruik `/playbook todo` om al je taken te zien."
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.zero_in_progress",
-    "translation": "Je hebt momenteel 0 runs lopen."
   },
   {
     "id": "app.user.digest.runs_in_progress.heading",
     "translation": "Runs in uitvoering"
   },
   {
-    "id": "app.user.digest.overdue_status_updates.zero_overdue",
-    "translation": "Je hebt 0 runs achterstand."
-  },
-  {
     "id": "app.user.digest.overdue_status_updates.heading",
     "translation": "Achterstallige statusupdates"
-  },
-  {
-    "id": "app.command.execute.error",
-    "translation": "Kan commando niet uitvoeren."
   },
   {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
@@ -9867,48 +9795,24 @@
     "translation": "Ongeldig zakelijk e-mailadres voor proefperiode"
   },
   {
-    "id": "app.user.run.add_to_timeline.playbook_run",
-    "translation": "Playbook Uitvoering"
-  },
-  {
     "id": "app.user.run.add_checklist_item.title",
     "translation": "Nieuwe taak toevoegen"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.submit_label",
-    "translation": "Taak toevoegen"
   },
   {
     "id": "app.user.run.add_checklist_item.name",
     "translation": "Naam"
   },
   {
-    "id": "app.user.run.add_checklist_item.description",
-    "translation": "Omschrijving"
-  },
-  {
     "id": "app.user.new_run.title",
     "translation": "Playbook uitvoeren"
-  },
-  {
-    "id": "app.user.new_run.submit_label",
-    "translation": "Uitvoering starten"
   },
   {
     "id": "app.user.new_run.run_name",
     "translation": "Naam van de uitvoering"
   },
   {
-    "id": "app.user.new_run.playbook",
-    "translation": "Playbook"
-  },
-  {
     "id": "app.user.new_run.intro",
     "translation": "**Eigenaar** {{.Username}}"
-  },
-  {
-    "id": "app.user.digest.tasks.zero_assigned",
-    "translation": "Je hebt 0 toegewezen taken."
   },
   {
     "id": "app.user.digest.tasks.num_assigned_due_until_today",
@@ -9918,43 +9822,18 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "one": "Je hebt {{.Count}} toegewezen taak:",
-      "other": "Je hebt {{.Count}} toegewezen taken:"
-    }
-  },
-  {
     "id": "app.user.digest.tasks.heading",
     "translation": "Jouw toegewezen taken"
-  },
-  {
-    "id": "app.user.digest.tasks.due_yesterday",
-    "translation": "Verliep gisteren"
   },
   {
     "id": "app.user.digest.tasks.due_x_days_ago",
     "translation": "Verliep {{.Count}} dagen geleden"
   },
   {
-    "id": "app.user.digest.tasks.due_in_x_days",
-    "translation": {
-      "one": "Verloopt binnen {{.Count}} dag",
-      "other": "Verloopt binnen {{.Count}} dagen"
-    }
-  },
-  {
     "id": "app.user.digest.tasks.due_after_today",
     "translation": {
       "one": "Je hebt **{.Count}} taak toegewezen gekregen die verloopt na vandaag**.",
       "other": "Je hebt **{.Count}} taken toegewezen gekregen die verlopen na vandaag**."
-    }
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.num_in_progress",
-    "translation": {
-      "one": "Je hebt {{.Count}} uitvoering lopen:",
-      "other": "Je hebt {{.Count}} uitvoeringen lopen:"
     }
   },
   {
@@ -9973,16 +9852,8 @@
     "translation": "Plugin {{.Id}} staat op de lijst met geblokkeerde apps. Sommige plugins worden geblokkeerd omdat ze nu ingebouwd zijn in deze versie van Mattermost."
   },
   {
-    "id": "app.user.run.add_to_timeline.summary",
-    "translation": "Samenvatting"
-  },
-  {
     "id": "app.user.run.add_to_timeline.submit_label",
     "translation": "Toevoegen aan de uitvoeringstijdlijn"
-  },
-  {
-    "id": "app.user.run.update_status.reminder_for_next_update",
-    "translation": "Herinnering voor de volgende update"
   },
   {
     "id": "app.user.run.update_status.num_channel",
@@ -9992,40 +9863,20 @@
     }
   },
   {
-    "id": "app.user.run.update_status.finish_run.placeholder",
-    "translation": "Markeer ook de uitvoering als beëindigd"
-  },
-  {
     "id": "app.user.run.update_status.finish_run",
     "translation": "Uitvoering beëindigen"
-  },
-  {
-    "id": "app.user.run.update_status.change_since_last_update",
-    "translation": "Wijziging sinds laatste update"
   },
   {
     "id": "app.user.run.status_enable",
     "translation": "@{.Username}} heeft de statusupdates voor [{{.RunName}}]({{.RunURL}}) uitgeschakeld"
   },
   {
-    "id": "app.user.run.status_disable",
-    "translation": "@{{.Username}} heeft de statusupdates voor [{{.RunName}}]({{.RunURL}}) uitgeschakeld"
-  },
-  {
     "id": "app.user.run.request_update",
     "translation": "@here - @{{.Name}} vroeg een statusupdate aan voor [{{.RunName}}]({{.RunURL}}). \n"
   },
   {
-    "id": "app.user.run.request_join_channel",
-    "translation": "@{{.Name}} is een deelnemer aan de uitvoering en wil lid worden van dit kanaal. Elk lid van het kanaal kan hen uitnodigen.\n"
-  },
-  {
     "id": "app.user.run.confirm_finish.title",
     "translation": "Bevestig beëindigen uitvoering"
-  },
-  {
-    "id": "app.user.run.confirm_finish.submit_label",
-    "translation": "Uitvoering beëindigen"
   },
   {
     "id": "app.user.run.confirm_finish.num_outstanding",
@@ -10035,15 +9886,7 @@
     }
   },
   {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "Toevoegen aan de uitvoeringstijdlijn"
-  },
-  {
     "id": "app.user.run.add_to_timeline.summary.placeholder",
     "translation": "Korte samenvatting weergeven in de tijdlijn"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.help",
-    "translation": "Maximaal 64 tekens"
   }
 ]

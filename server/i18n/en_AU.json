@@ -804,10 +804,6 @@
     "translation": "Invalid value for create_at."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Could not decode GIF."
-  },
-  {
     "id": "model.emoji.user_id.app_error",
     "translation": "Invalid creator ID."
   },
@@ -9579,16 +9575,8 @@
     "translation": "You cannot remove an acknowledgment in an archived channel."
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Create transparent workflows across development teams to ensure your feature development process is seamless."
-  },
-  {
     "id": "worktemplate.product_teams.feature_release.description.integration",
     "translation": "Increase productivity in your channel by integrating a Jira bot and GitHub bot. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Chat with your team in a Feature Release channel that connects easily with your boards, playbooks and app bots."
   },
   {
     "id": "worktemplate.category.product_teams",
@@ -9637,10 +9625,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_malformed",
     "translation": "Decoding of the CA for Elasticsearch failed"
-  },
-  {
-    "id": "app.worktemplates.get_templates.app_error",
-    "translation": "Unable to retrieve work templates"
   },
   {
     "id": "app.worktemplates.get_categories.app_error",
@@ -9703,64 +9687,32 @@
     "translation": "You cannot delete an acknowledgment after 5 minutes has elapsed."
   },
   {
-    "id": "worktemplate.category.leadership",
-    "translation": "Leadership"
-  },
-  {
     "id": "worktemplate.category.devops",
     "translation": "DevOps"
-  },
-  {
-    "id": "worktemplate.category.companywide",
-    "translation": "Company-wide"
   },
   {
     "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
     "translation": "Unable to find channel associated with a playbook."
   },
   {
-    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
-    "translation": "Error while creating a playbook."
-  },
-  {
     "id": "app.worktemplates.execute_work_template.channels.create_error",
     "translation": "Error while creating a channel."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.boards.create_error",
-    "translation": "Error while creating a board."
   },
   {
     "id": "app.worktemplates.execute_work_template.app_error",
     "translation": "Error while executing a work template."
   },
   {
-    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
-    "translation": "Your licence does not support private playbooks."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
     "translation": "You don't have permission to create a public playbook."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
-    "translation": "You don't have permission to create a public channel."
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "You don't have permission to create a public board."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
-    "translation": "You don't have permission to create a private playbook."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_private_channel",
     "translation": "You don't have permission to create a private channel."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_board",
-    "translation": "You don't have permission to create a private board."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -9771,10 +9723,6 @@
     "translation": "A user with the username '{{.Username}}' already exists."
   },
   {
-    "id": "api.work_templates.disabled",
-    "translation": "Work templates are disabled."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Service only available in Mattermost Enterprise edition"
   },
@@ -9783,16 +9731,8 @@
     "translation": "Failed to update server translations."
   },
   {
-    "id": "api.command_templates.unsupported.app_error",
-    "translation": "The templates command is not supported on your device."
-  },
-  {
     "id": "api.command_templates.name",
     "translation": "templates"
-  },
-  {
-    "id": "api.command_templates.desc",
-    "translation": "Open the create from template window"
   },
   {
     "id": "app.worktemplates.execute_work_template.name_too_long",
@@ -9835,128 +9775,64 @@
     "translation": "Contact Sales"
   },
   {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools such as Zoom. These will be downloaded for you."
-  },
-  {
     "id": "worktemplate.product_teams.sprint_planning.channel",
     "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Track your team's progress toward weekly goals with sprint breakdowns, prioritisation, owner assignment and comments."
   },
   {
     "id": "worktemplate.product_teams.product_roadmap.channel",
     "translation": "Chat with your team about your customers' feedback, prioritisation and get aligned on progress together."
   },
   {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Use the Product Roadmap board to manage user feedback, assign resources, view deliverables in a calendar view and prioritise issues."
-  },
-  {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
     "translation": "Increase productivity in your channel by integrating your most commonly used tools such as Zoom to facilitate easy collaboration. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Chat about your goals and progress with your team, async or real-time and stay up to date with changes in a single channel."
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.board",
     "translation": "Track your team's progress toward organisational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
-  },
-  {
     "id": "worktemplate.product_teams.bug_bash.playbook",
     "translation": "Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools such as Jira to track your bug bash progress. These will be downloaded for you."
   },
   {
     "id": "worktemplate.product_teams.bug_bash.channel",
     "translation": "Plan and manage bug reports and resolutions in a single channel that’s easily accessible to your team and organisation."
   },
   {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools such as Zoom to facilitate easy collaboration. These will be downloaded for you."
-  },
-  {
     "id": "worktemplate.leadership.goals_and_okrs.channel",
     "translation": "Chat about your goals and progress with your team, async or real-time and stay up to date with changes in a single channel."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organisational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
   },
   {
     "id": "worktemplate.devops.product_release.playbook",
     "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
   },
   {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "Chat with your team about daily milestones, any blockers and changes to deliverables, easily and quickly."
-  },
-  {
     "id": "worktemplate.devops.product_release.board",
     "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "Use checklists and automation to bring in key team members and share how your incident is tracking toward resolution."
   },
   {
     "id": "worktemplate.devops.incident_resolution.description.channel",
     "translation": "Chat with your team about priorities, add stakeholders, provide updates and work toward a resolution in a single channel."
   },
   {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
-  },
-  {
     "id": "worktemplate.companywide.goals_and_okrs.integration",
     "translation": "Increase productivity in your channel by integrating your most commonly used tools such as Zoom to facilitate easy collaboration. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Chat about your goals and progress with your team, async or real-time and stay up to date with changes in a single channel."
   },
   {
     "id": "worktemplate.companywide.goals_and_okrs.board",
     "translation": "Track your team's progress toward organisational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
   },
   {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
-  },
-  {
     "id": "worktemplate.companywide.create_project.channel",
     "translation": "Chat with your team about your new project and decide how you’re going to structure it in a collaborative channel."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Use a Kanban board to define and track your project tasks and progress."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Invalid value for bytes when uploading a licence."
   },
   {
-    "id": "app.user.run.update_status.title",
-    "translation": "Status update"
-  },
-  {
     "id": "app.user.run.update_status.submit_label",
     "translation": "Update status"
-  },
-  {
-    "id": "app.user.run.update_status.reminder_for_next_update",
-    "translation": "Reminder for next update"
   },
   {
     "id": "app.user.run.update_status.num_channel",
@@ -9966,40 +9842,20 @@
     }
   },
   {
-    "id": "app.user.run.update_status.finish_run.placeholder",
-    "translation": "Also mark the run as finished"
-  },
-  {
     "id": "app.user.run.update_status.finish_run",
     "translation": "Finish run"
-  },
-  {
-    "id": "app.user.run.update_status.change_since_last_update",
-    "translation": "Change since last update"
   },
   {
     "id": "app.user.run.status_enable",
     "translation": "@{{.Username}} enabled the status updates for [{{.RunName}}]({{.RunURL}})"
   },
   {
-    "id": "app.user.run.status_disable",
-    "translation": "@{{.Username}} disabled the status updates for [{{.RunName}}]({{.RunURL}})"
-  },
-  {
     "id": "app.user.run.request_update",
     "translation": "@here — @{{.Name}} requested a status update for [{{.RunName}}]({{.RunURL}}). \n"
   },
   {
-    "id": "app.user.run.request_join_channel",
-    "translation": "@{{.Name}} is a run participant and wants join this channel. Any member of the channel can invite them.\n"
-  },
-  {
     "id": "app.user.run.confirm_finish.title",
     "translation": "Confirm finish run"
-  },
-  {
-    "id": "app.user.run.confirm_finish.submit_label",
-    "translation": "Finish run"
   },
   {
     "id": "app.user.run.confirm_finish.num_outstanding",
@@ -10009,75 +9865,36 @@
     }
   },
   {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "Add to run timeline"
-  },
-  {
     "id": "app.user.run.add_to_timeline.summary.placeholder",
     "translation": "Short summary shown in the timeline"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.help",
-    "translation": "Max 64 characters"
   },
   {
     "id": "app.user.run.add_to_timeline.summary",
     "translation": "Summary"
   },
   {
-    "id": "app.user.run.add_to_timeline.submit_label",
-    "translation": "Add to run timeline"
-  },
-  {
     "id": "app.user.run.add_to_timeline.playbook_run",
     "translation": "Playbook Run"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.title",
-    "translation": "Add new task"
   },
   {
     "id": "app.user.run.add_checklist_item.submit_label",
     "translation": "Add task"
   },
   {
-    "id": "app.user.run.add_checklist_item.name",
-    "translation": "Name"
-  },
-  {
     "id": "app.user.run.add_checklist_item.description",
     "translation": "Description"
-  },
-  {
-    "id": "app.user.new_run.title",
-    "translation": "Run playbook"
   },
   {
     "id": "app.user.new_run.submit_label",
     "translation": "Start run"
   },
   {
-    "id": "app.user.new_run.run_name",
-    "translation": "Run name"
-  },
-  {
     "id": "app.user.new_run.playbook",
     "translation": "Playbook"
   },
   {
-    "id": "app.user.new_run.intro",
-    "translation": "**Owner** {{.Username}}"
-  },
-  {
     "id": "app.user.digest.tasks.zero_assigned",
     "translation": "You have 0 assigned tasks."
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "one": "You have {{.Count}} assigned task that is now due:",
-      "other": "You have {{.Count}} assigned tasks that are now due:"
-    }
   },
   {
     "id": "app.user.digest.tasks.num_assigned",
@@ -10087,27 +9904,12 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.heading",
-    "translation": "Your assigned tasks"
-  },
-  {
     "id": "app.user.digest.tasks.due_yesterday",
     "translation": "Due yesterday"
   },
   {
-    "id": "app.user.digest.tasks.due_x_days_ago",
-    "translation": "Due {{.Count}} days ago"
-  },
-  {
     "id": "app.user.digest.tasks.due_today",
     "translation": "Due today"
-  },
-  {
-    "id": "app.user.digest.tasks.due_in_x_days",
-    "translation": {
-      "one": "Due in {{.Count}} day",
-      "other": "Due in {{.Count}} days"
-    }
   },
   {
     "id": "app.user.digest.tasks.due_after_today",
@@ -10117,27 +9919,12 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.all_tasks_command",
-    "translation": "Please use `/playbook todo` to see all your tasks."
-  },
-  {
     "id": "app.user.digest.runs_in_progress.zero_in_progress",
     "translation": "You have 0 runs currently in progress."
   },
   {
-    "id": "app.user.digest.runs_in_progress.num_in_progress",
-    "translation": {
-      "one": "You have {{.Count}} run currently in progress:",
-      "other": "You have {{.Count}} runs currently in progress:"
-    }
-  },
-  {
     "id": "app.user.digest.runs_in_progress.heading",
     "translation": "Runs in Progress"
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.zero_overdue",
-    "translation": "You have 0 runs overdue."
   },
   {
     "id": "app.user.digest.overdue_status_updates.num_overdue",
@@ -10147,16 +9934,8 @@
     }
   },
   {
-    "id": "app.user.digest.overdue_status_updates.heading",
-    "translation": "Overdue Status Updates"
-  },
-  {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Unable to remove OAuth data."
-  },
-  {
-    "id": "app.command.execute.error",
-    "translation": "Unable to execute command."
   },
   {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",

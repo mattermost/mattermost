@@ -656,7 +656,6 @@
   "admin.customization.enableLinkPreviewsTitle": "启用网站链接预览：",
   "admin.customization.enablePermalinkPreviewsDesc": "启用后，指向 Mattermost 消息的链接将为有权访问原始消息的任何用户生成预览。请查看我们的<link>文档</link>了解详细信息。",
   "admin.customization.enablePermalinkPreviewsTitle": "开启消息链接预览：",
-  "admin.customization.enablePublicSharedBoardsTitle": "启用公共访问面板：",
   "admin.customization.enableSVGsDesc": "开启 SVG 附件预览并让它们显示在消息中。",
   "admin.customization.enableSVGsTitle": "开启 SVG：",
   "admin.customization.gfycatApiKey": "Gfycat API Key：",

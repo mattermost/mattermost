@@ -4044,10 +4044,6 @@
     "translation": "Id creatore non valido."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Impossibile decodificare la gif."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Valore non valido per il parametro create_at."
   },

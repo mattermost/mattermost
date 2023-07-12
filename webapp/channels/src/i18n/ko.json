@@ -3098,7 +3098,6 @@
   "status_dropdown.set_online": "온라인",
   "status_dropdown.set_ooo": "Out of Office",
   "status_dropdown.set_ooo.extra": "자동 회신 활성화됨",
-  "string.id": "default message",
   "suggestion.archive": "보관된 채널",
   "suggestion.mention.all": "이 채널의 모든 사용자들에게 알림을 보냅니다",
   "suggestion.mention.channel": "이 채널의 모든 사용자들에게 알림을 보냅니다",
