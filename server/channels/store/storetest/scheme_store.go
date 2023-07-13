@@ -67,6 +67,7 @@ func createDefaultRoles(ss store.Store) {
 		DisplayName: model.ChannelUserRoleId,
 		Permissions: []string{
 			model.PermissionReadChannel.Id,
+			model.PermissionReadChannelContent.Id,
 			model.PermissionCreatePost.Id,
 		},
 	})
@@ -76,6 +77,7 @@ func createDefaultRoles(ss store.Store) {
 		DisplayName: model.ChannelGuestRoleId,
 		Permissions: []string{
 			model.PermissionReadChannel.Id,
+			model.PermissionReadChannelContent.Id,
 			model.PermissionCreatePost.Id,
 		},
 	})
