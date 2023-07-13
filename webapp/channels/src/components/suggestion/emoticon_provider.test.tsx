@@ -138,7 +138,7 @@ describe("components/EmoticonProvider", () => {
                     name: "thumbsdown-custom",
                     category: "custom",
                 },
-            ],
+            ]
         ]);
         const emojiMapWithBlocklist = new EmojiMap(customEmojisWithBlocklist);
 
