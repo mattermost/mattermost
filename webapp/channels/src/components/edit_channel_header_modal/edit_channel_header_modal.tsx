@@ -264,7 +264,6 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
                         </div>
                         <div className='post-create-footer'>
                             <TextboxLinks
-                                isMarkdownPreviewEnabled={this.props.markdownPreviewFeatureIsEnabled}
                                 showPreview={this.props.shouldShowPreview}
                                 updatePreview={this.setShowPreview}
                                 hasText={this.state.header ? this.state.header.length > 0 : false}

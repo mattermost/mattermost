@@ -3404,10 +3404,6 @@
     "translation": "Felaktig inställning i användarens meddelandeformattering"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Felaktig inställning för användarens förhandsgranskning av markdown"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
     "translation": "Felaktig inställning för användarens e-postbatchintervall"
   },

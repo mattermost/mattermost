@@ -5660,10 +5660,6 @@
     "translation": "Invalid email batching interval setting for User"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Invalid markdown preview setting for User"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
     "translation": "Invalid post formatting setting for User"
   },

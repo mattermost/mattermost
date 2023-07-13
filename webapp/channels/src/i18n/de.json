@@ -5181,7 +5181,6 @@
   "user.settings.advance.icon": "\"Erweiterte Einstellungen\"-Symbol",
   "user.settings.advance.joinLeaveDesc": "Wenn \"An\" werden Systemnachrichten angezeigt, wenn ein Benutzer einen Kanal betritt oder verlässt. Wenn \"Aus\" werden diese Nachrichten nicht angezeigt. Es wird weiterhin eine Meldung angezeigt, wenn du einem Kanal hinzugefügt wirst, so dass du eine Benachrichtigung erhalten kannst.",
   "user.settings.advance.joinLeaveTitle": "Aktiviere Betreten-/Verlassen-Nachrichten",
-  "user.settings.advance.markdown_preview": "Zeige Markdown-Vorschauoption im Nachrichteneingabefeld",
   "user.settings.advance.off": "Aus",
   "user.settings.advance.on": "Ein",
   "user.settings.advance.onForAllMessages": "Ein für alle Nachrichten",

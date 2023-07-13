@@ -5101,7 +5101,6 @@
   "user.settings.advance.icon": "Ikona Zaawansowanych Ustawień",
   "user.settings.advance.joinLeaveDesc": "Kiedy \"Włączone\", Komunikaty Systemowe informujące, że użytkownik dołączył lub opuścił kanał, będą widoczne. Gdy \"Wyłączone\", Komunikaty Systemowe dotyczące łączenia lub opuszczania kanału będą ukryte. Wiadomość zostanie wyświetlona po dodaniu do kanału, dzięki czemu możesz otrzymać powiadomienie.",
   "user.settings.advance.joinLeaveTitle": "Włącz wiadomość dołączenia/opuszczenia",
-  "user.settings.advance.markdown_preview": "Pokaż opcję podglądu znaczników w polu wprowadzania wiadomości",
   "user.settings.advance.off": "Wył",
   "user.settings.advance.on": "Wł",
   "user.settings.advance.onForAllMessages": "Włącz dla wszystkich wiadomości",

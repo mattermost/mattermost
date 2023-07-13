@@ -5356,10 +5356,6 @@
     "translation": "Ungültige Einstellung der Nachrichtenformatierung für Benutzer"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Ungültige Einstellung der Markdown-Vorschau für Benutzer"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
     "translation": "Ungültige Einstellung des E-Mail-Stapelverarbeitungs-Intervalls für Benutzer"
   },

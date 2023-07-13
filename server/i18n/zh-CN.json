@@ -5296,10 +5296,6 @@
     "translation": "无效的用户邮件批量间隔设定"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "无效的用户 markdown 预览设定"
-  },
-  {
     "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
     "translation": "无效的用户风格"
   },

@@ -5101,7 +5101,6 @@
   "user.settings.advance.icon": "詳細設定アイコン",
   "user.settings.advance.joinLeaveDesc": "\"オン\"の場合、ユーザーがチャンネルへ参加・脱退したことを通知するシステムメッセージが見えるようになります。\"オフ\"の場合、チャンネルへ参加・脱退したことについてのシステムメッセージは見えなくなります。メッセージはあなたがチャンネルへ追加されたときにも現れるため、あなたは通知を受け取ることができます。",
   "user.settings.advance.joinLeaveTitle": "参加/脱退メッセージを有効にする",
-  "user.settings.advance.markdown_preview": "メッセージ入力ボックスでMarkdownプレビューオプションを表示する",
   "user.settings.advance.off": "オフ",
   "user.settings.advance.on": "オン",
   "user.settings.advance.onForAllMessages": "全てのメッセージについて",

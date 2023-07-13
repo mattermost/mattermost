@@ -3205,7 +3205,6 @@
   "user.settings.advance.icon": "고급 설정",
   "user.settings.advance.joinLeaveDesc": "\"켜기\"를 선택하면 사용자가 채널에 입장하거나 퇴장했을 때 시스템 메시지가 표시됩니다. \"끄기\"를 선택하면, 입장/퇴장 메시지가 화면에 표시되지 않습니다. 이 설정과 관계없이 채널 초대되었을 때 알림을 받을 수 있습니다.",
   "user.settings.advance.joinLeaveTitle": "입장/퇴장 메시지 표시",
-  "user.settings.advance.markdown_preview": "메시지 입력창에 마크다운 미리보기 옵션을 표시",
   "user.settings.advance.off": "끄기",
   "user.settings.advance.on": "켜기",
   "user.settings.advance.preReleaseDesc": "사용하고 싶은 시험판 기능을 선택하세요. 기능 활성화를 위해 페이지 새로고침이 필요할 수도 있습니다.",

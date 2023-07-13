@@ -4296,7 +4296,6 @@
   "user.settings.advance.icon": "Icône paramètres avancés",
   "user.settings.advance.joinLeaveDesc": "Si activé, les messages du système indiquant qu'un utilisateur s'est connecté ou a quitté un canal sont visibles. Si désactivé, ces messages sont masqués. Un message est toutefois toujours affiché lorsque vous êtes ajouté à un canal, de façon à ce que vous en soyez vous-même informé.",
   "user.settings.advance.joinLeaveTitle": "Activation des messages indiquant qu'un utilisateur a rejoint/quitté le canal",
-  "user.settings.advance.markdown_preview": "Voir l'option d'aperçu de formatage de texte Markdown dans la zone de saisie de message",
   "user.settings.advance.off": "Désactivé",
   "user.settings.advance.on": "Activé",
   "user.settings.advance.onForAllMessages": "Activé pour tous les messages",

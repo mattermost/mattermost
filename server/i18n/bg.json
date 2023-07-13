@@ -3148,10 +3148,6 @@
     "translation": "Невалидна настройка за форматирането на публикации за Потребител"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Невалидна настройка за предварителния преглед на markdown за потребител"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
     "translation": "Невалидна настройка за интервал на партидната ел.поща за Потребител"
   },

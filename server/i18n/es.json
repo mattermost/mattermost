@@ -5276,10 +5276,6 @@
     "translation": "Ajuste de usuario para dar formato a los mensajes es inválido"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Ajuste de usuario de vista previa de markdown es inválido"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
     "translation": "Ajuste de usuario del intervalo de envío de correo electrónico por lotes es inválido"
   },

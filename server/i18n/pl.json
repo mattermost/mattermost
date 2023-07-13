@@ -5316,10 +5316,6 @@
     "translation": "Nijeprawidłowe ustawienia formatowania wiadomości dla użytkownika"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Nieprawidłowe ustawienia podglądu markdownów dla użytkownika"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
     "translation": "Nieprawidłowe ustawienie interwału wsadowego wiadomości e-mail dla użytkownika"
   },

@@ -5090,7 +5090,6 @@
   "user.settings.advance.icon": "Gelişmiş ayarlar simgesi",
   "user.settings.advance.joinLeaveDesc": "Bu seçenek etkinleştirildiğinde, bir kullanıcının bir kanala katıldığı ya da ayrıldığını bildiren sistem iletileri görüntülenir. Devre dışı bırakıldığında bu iletiler görüntülenmez. Bununla birlikte bir kanala eklendiğinizde bir ileti görüntülenir ve bir bildirim alabilirsiniz.",
   "user.settings.advance.joinLeaveTitle": "Katılma/ayrılma iletileri kullanılsın",
-  "user.settings.advance.markdown_preview": "İleti kutusunda kod imi ön izleme seçeneği görüntülensin",
   "user.settings.advance.off": "Kapalı",
   "user.settings.advance.on": "Açık",
   "user.settings.advance.onForAllMessages": "Tüm iletiler için açık",

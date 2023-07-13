@@ -66,7 +66,6 @@ type UserImportData struct {
 	Position           *string   `json:"position"`
 	Roles              *string   `json:"roles"`
 	Locale             *string   `json:"locale"`
-	UseMarkdownPreview *string   `json:"feature_enabled_markdown_preview,omitempty"`
 	UseFormatting      *string   `json:"formatting,omitempty"`
 	ShowUnreadSection  *string   `json:"show_unread_section,omitempty"`
 	DeleteAt           *int64    `json:"delete_at,omitempty"`

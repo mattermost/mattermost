@@ -2088,10 +2088,6 @@
     "translation": "تنظیم قالب بندی پست برای کاربر نامعتبر است"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "تنظیم پیش نمایش علامت گذاری برای کاربر نامعتبر است"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
     "translation": "تنظیم فاصله دسته ای ایمیل برای کاربر نامعتبر است"
   },

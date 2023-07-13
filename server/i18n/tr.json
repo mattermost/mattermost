@@ -4760,10 +4760,6 @@
     "translation": "Kullanıcı kimlik doğrulama hizmeti ve kimlik doğrulama verileri karşılıklı birbirini kapsıyor."
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Kullanıcının markdown ön izleme ayarı geçersiz"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
     "translation": "Kullanıcının ileti biçimlendirme ayarı geçersiz"
   },

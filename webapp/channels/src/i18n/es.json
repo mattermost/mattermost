@@ -4519,7 +4519,6 @@
   "user.settings.advance.icon": "Icono de Configuración Avanzada",
   "user.settings.advance.joinLeaveDesc": "Cuando está \"Encendido\", un Mensaje del Sistema diciendo que un usuario se ha unido o abandonado el canal será visible. Cuando está \"Apagado\", los Mensajes de Sistema sobre los usuarios que se unen o abandonan el canal estarán ocultos. Un mensaje se seguirá mostrando cuando eres agregado a un canal, por lo que puedes recibir una notificación.",
   "user.settings.advance.joinLeaveTitle": "Habilitar Menajes de Union/Abandono",
-  "user.settings.advance.markdown_preview": "Mostrar la vista previa de mensajes escritos con markdown",
   "user.settings.advance.off": "Apagado",
   "user.settings.advance.on": "Encendido",
   "user.settings.advance.onForAllMessages": "Encendido para todos los mensajes",

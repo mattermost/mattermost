@@ -5316,10 +5316,6 @@
     "translation": "Paramètre de formatage de message invalide pour l'utilisateur"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Paramètre de prévisualisation de Markdown invalide pour l'utilisateur"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
     "translation": "Paramètre d'intervalle d'envoi d'e-mails par lots invalide pour l'utilisateur"
   },

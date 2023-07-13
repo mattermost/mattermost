@@ -27,8 +27,6 @@ import SettingItem from 'components/setting_item';
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
 
-const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
-
 type Settings = {
     [key: string]: string | undefined;
     send_on_ctrl_enter: Props['sendOnCtrlEnter'];
@@ -61,14 +59,11 @@ export type Props = {
 };
 
 type State = {
-    preReleaseFeatures: typeof PreReleaseFeatures;
     settings: Settings;
     enabledFeatures: number;
     isSaving: boolean;
-    previewFeaturesEnabled: boolean;
     showDeactivateAccountModal: boolean;
     serverError: string;
-    preReleaseFeaturesKeys: string[];
 }
 
 export default class AdvancedSettingsDisplay extends React.PureComponent<Props, State> {
@@ -572,20 +567,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         );
     };
 
-    renderFeatureLabel(feature: string): ReactNode {
-        switch (feature) {
-        case 'MARKDOWN_PREVIEW':
-            return (
-                <FormattedMessage
-                    id='user.settings.advance.markdown_preview'
-                    defaultMessage='Show markdown preview option in message input box'
-                />
-            );
-        default:
-            return null;
-        }
-    }
-
     renderCtrlSendSection = () => {
         const active = this.props.activeSection === 'advancedCtrlSend';
         const serverError = this.state.serverError || null;
@@ -697,79 +678,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         );
     };
 
-    renderPreviewFeaturesSection = () => {
-        const serverError = this.state.serverError || null;
-        const active = this.props.activeSection === 'advancedPreviewFeatures';
-        let max = null;
-        if (active) {
-            const inputs = [];
-
-            this.state.preReleaseFeaturesKeys.forEach((key) => {
-                const feature = this.state.preReleaseFeatures[key as keyof typeof PreReleaseFeatures];
-                inputs.push(
-                    <div key={'advancedPreviewFeatures_' + feature.label}>
-                        <div className='checkbox'>
-                            <label>
-                                <input
-                                    id={'advancedPreviewFeatures' + feature.label}
-                                    type='checkbox'
-                                    checked={this.state.settings[Constants.FeatureTogglePrefix + feature.label] === 'true'}
-                                    onChange={(e) => {
-                                        this.toggleFeature(feature.label, e.target.checked);
-                                    }}
-                                />
-                                {this.renderFeatureLabel(key)}
-                            </label>
-                        </div>
-                    </div>,
-                );
-            });
-
-            inputs.push(
-                <div key='advancedPreviewFeatures_helptext'>
-                    <br/>
-                    <FormattedMessage
-                        id='user.settings.advance.preReleaseDesc'
-                        defaultMessage="Check any pre-released features you'd like to preview. You may also need to refresh the page before the setting will take effect."
-                    />
-                </div>,
-            );
-
-            max = (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.advance.preReleaseTitle'
-                            defaultMessage='Preview Pre-release Features'
-                        />
-                    }
-                    inputs={inputs}
-                    submit={this.saveEnabledFeatures}
-                    saving={this.state.isSaving}
-                    serverError={serverError}
-                    updateSection={this.handleUpdateSection}
-                />
-            );
-        }
-        return (
-            <SettingItem
-                active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
-                title={localizeMessage('user.settings.advance.preReleaseTitle', 'Preview Pre-release Features')}
-                describe={
-                    <FormattedMessage
-                        id='user.settings.advance.enabledFeatures'
-                        defaultMessage='{count, number} {count, plural, one {feature} other {features}} enabled'
-                        values={{count: this.state.enabledFeatures}}
-                    />
-                }
-                section={'advancedPreviewFeatures'}
-                updateSection={this.handleUpdateSection}
-                max={max}
-            />
-        );
-    };
-
     render() {
         const ctrlSendSection = this.renderCtrlSendSection();
 
@@ -777,15 +685,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         let formattingSectionDivider = null;
         if (formattingSection) {
             formattingSectionDivider = <div className='divider-light'/>;
-        }
-
-        let previewFeaturesSection;
-        let previewFeaturesSectionDivider;
-        if (this.state.previewFeaturesEnabled && this.state.preReleaseFeaturesKeys.length > 0) {
-            previewFeaturesSectionDivider = (
-                <div className='divider-light'/>
-            );
-            previewFeaturesSection = this.renderPreviewFeaturesSection();
         }
 
         let deactivateAccountSection: ReactNode = '';
@@ -937,8 +836,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         onUpdateSection={this.handleUpdateSection}
                         renderOnOffLabel={this.renderOnOffLabel}
                     />
-                    {previewFeaturesSectionDivider}
-                    {previewFeaturesSection}
                     {formattingSectionDivider}
                     <PerformanceDebuggingSection
                         active={this.props.activeSection === AdvancedSections.PERFORMANCE_DEBUGGING}

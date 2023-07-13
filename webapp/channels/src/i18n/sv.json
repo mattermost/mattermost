@@ -5037,7 +5037,6 @@
   "user.settings.advance.icon": "Avancerade inställningar",
   "user.settings.advance.joinLeaveDesc": "Aktivera för att visa Systemmeddelande när användare ansluter eller lämnar kanalen. Avaktivera för att Systemmeddelanden ska döljas. Meddelandet att du anslutits till en kanal kommer synas så du blir notifierad.",
   "user.settings.advance.joinLeaveTitle": "Aktivera Gå med/Lämna-meddelanden",
-  "user.settings.advance.markdown_preview": "Visa förhandsval för markdown i meddelanderutan",
   "user.settings.advance.off": "Av",
   "user.settings.advance.on": "På",
   "user.settings.advance.onForAllMessages": "På för alla meddelanden",

@@ -711,15 +711,6 @@ func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun boo
 		})
 	}
 
-	if data.UseMarkdownPreview != nil {
-		preferences = append(preferences, model.Preference{
-			UserId:   savedUser.Id,
-			Category: model.PreferenceCategoryAdvancedSettings,
-			Name:     "feature_enabled_markdown_preview",
-			Value:    *data.UseMarkdownPreview,
-		})
-	}
-
 	if data.UseFormatting != nil {
 		preferences = append(preferences, model.Preference{
 			UserId:   savedUser.Id,

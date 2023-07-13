@@ -4856,10 +4856,6 @@
     "translation": "Некоторые пользователи не найдены"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Неверные параметры предпросмотра markdown для пользователя"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
     "translation": "Неверный параметр показа непрочитанного раздела для пользователя"
   },

@@ -293,10 +293,6 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 		}
 	}
 
-	if data.UseMarkdownPreview != nil && !isValidTrueOrFalseString(*data.UseMarkdownPreview) {
-		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error", nil, "", http.StatusBadRequest)
-	}
-
 	if data.UseFormatting != nil && !isValidTrueOrFalseString(*data.UseFormatting) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_formatting.error", nil, "", http.StatusBadRequest)
 	}

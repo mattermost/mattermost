@@ -5312,10 +5312,6 @@
     "translation": "使用者的文章格式設定無效。"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "使用者的 Markdown 預覽設定無效。"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
     "translation": "使用者的批次郵件間隔值無效。"
   },

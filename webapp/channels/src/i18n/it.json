@@ -3331,7 +3331,6 @@
   "user.settings.advance.icon": "Icona Impostazioni Avanzate",
   "user.settings.advance.joinLeaveDesc": "Se \"On\" i Messaggi di Sistema che indicano se un utente si è unito o ha lasciato un canale saranno visibili, altrimenti questi messaggi saranno nascosti. Un messaggio continuerà a comparire quando vieni aggiunto ad un canale in modo da ricevere una notifica.",
   "user.settings.advance.joinLeaveTitle": "Abilita Entra/Lascia messaggi",
-  "user.settings.advance.markdown_preview": "Visualizza l'anteprima di formattazione nella casella del messaggio",
   "user.settings.advance.off": "Disattivo",
   "user.settings.advance.on": "Attivo",
   "user.settings.advance.onForAllMessages": "Attivo per tutti i messaggi",

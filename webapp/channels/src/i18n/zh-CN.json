@@ -4093,7 +4093,6 @@
   "user.settings.advance.icon": "高级设置图标",
   "user.settings.advance.joinLeaveDesc": "当 \"开启\" 时，用户加入或退出频道将会显示系统消息。当 \"关闭\" 时，用户加入或退出频道将不会显示系统消息。不过您加入到一个频道时仍然会显示系统消息而收到通知。",
   "user.settings.advance.joinLeaveTitle": "开启加入/退出信息",
-  "user.settings.advance.markdown_preview": "在消息输入框中显示markdown预览选项",
   "user.settings.advance.off": "关闭",
   "user.settings.advance.on": "开启",
   "user.settings.advance.onForAllMessages": "对所有消息开启",

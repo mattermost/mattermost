@@ -5105,7 +5105,6 @@
   "user.settings.advance.icon": "Geavanceerde instellingen pictogram",
   "user.settings.advance.joinLeaveDesc": "Wanneer \"Aan\", Systeemberichten die zeggen dat een gebruiker een kanaal toetrad of verliet, zal zichtbaar zijn. Wanneer \"Off\" worden de systeemberichten verborgen dat een gebruiker een kanaal toetrad of verliet. Er verschijnt nog een bericht wanneer je toegevoegd wordt aan een kanaal , zo kan je nog meldingen kan ontvangen.",
   "user.settings.advance.joinLeaveTitle": "Aanzetten van Deelnemen/Verlaten Berichten",
-  "user.settings.advance.markdown_preview": "Toon markdown voorbeeld optie in bericht invoerveld",
   "user.settings.advance.off": "Uit",
   "user.settings.advance.on": "Aan",
   "user.settings.advance.onForAllMessages": "Aan voor alle berichten",

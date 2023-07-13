@@ -5279,7 +5279,6 @@
   "user.settings.advance.icon": "Advanced Settings Icon",
   "user.settings.advance.joinLeaveDesc": "When \"On\", System Messages saying a user has joined or left a channel will be visible. When \"Off\", the System Messages about joining or leaving a channel will be hidden. A message will still show up when you are added to a channel, so you can receive a notification.",
   "user.settings.advance.joinLeaveTitle": "Enable Join/Leave Messages",
-  "user.settings.advance.markdown_preview": "Show markdown preview option in message input box",
   "user.settings.advance.off": "Off",
   "user.settings.advance.on": "On",
   "user.settings.advance.onForAllMessages": "On for all messages",

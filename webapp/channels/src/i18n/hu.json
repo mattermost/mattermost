@@ -4630,7 +4630,6 @@
   "user.settings.advance.icon": "Haladó beállítások ikon",
   "user.settings.advance.joinLeaveDesc": "Ha \"Be\", akkor láthatók azok a rendszerüzenetek, amelyek azt mondják, hogy egy felhasználó csatlakozott egy csatornához vagy kilépett egyből. Ha \"Ki\", akkor azok a rendszerüzenetek, amelyek azt mondják, hogy egy felhasználó csatlakozott egy csatornához vagy kilépett egyből rejtve lesznek. Egy üzenet továbbra is megjelenik, ha Önt hozzáadják egy csatornához, így értesítést kaphat.",
   "user.settings.advance.joinLeaveTitle": "Csatlakozás/kilépés üzenetek engedélyezése",
-  "user.settings.advance.markdown_preview": "A markdown előnézet opció megjelenítése az üzenet beviteli mezőben",
   "user.settings.advance.off": "Ki",
   "user.settings.advance.on": "Be",
   "user.settings.advance.onForAllMessages": "Bekapcsolva minden üzenethez",

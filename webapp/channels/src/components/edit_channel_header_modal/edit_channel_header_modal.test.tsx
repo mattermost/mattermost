@@ -41,7 +41,6 @@ describe('components/EditChannelHeaderModal', () => {
     };
 
     const baseProps = {
-        markdownPreviewFeatureIsEnabled: false,
         channel,
         ctrlSend: false,
         show: false,

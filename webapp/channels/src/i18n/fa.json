@@ -4305,7 +4305,6 @@
   "user.settings.advance.icon": "نماد تنظیمات پیشرفته",
   "user.settings.advance.joinLeaveDesc": "وقتی «روشن» باشد، پیام‌های سیستمی که می‌گویند کاربر به کانالی پیوسته یا آن را ترک کرده است، قابل مشاهده خواهد بود. هنگامی که \"خاموش\" است، پیام های سیستم در مورد پیوستن یا ترک یک کانال پنهان می شود. وقتی به کانال اضافه می‌شوید، همچنان پیامی نمایش داده می‌شود، بنابراین می‌توانید اعلان دریافت کنید.",
   "user.settings.advance.joinLeaveTitle": "Join/Leave Messages را فعال کنید",
-  "user.settings.advance.markdown_preview": "نمایش گزینه پیش نمایش علامت گذاری در کادر ورودی پیام",
   "user.settings.advance.off": "خاموش",
   "user.settings.advance.on": "بر",
   "user.settings.advance.onForAllMessages": "برای همه پیام ها روشن است",

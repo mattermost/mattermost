@@ -3250,7 +3250,6 @@
   "user.settings.advance.icon": "進階設定圖示",
   "user.settings.advance.joinLeaveDesc": "當\"啟用\"時，頻道會顯示使用者加入或離開的系統訊息。當\"關閉\"時，頻道會隱藏使用者加入或離開的系統訊息。當您被加入頻道時，不論設定如何都會顯示訊息以提醒您。",
   "user.settings.advance.joinLeaveTitle": "啟用加入/離開訊息",
-  "user.settings.advance.markdown_preview": "在訊息輸入方塊顯示 Markdown 預覽選項",
   "user.settings.advance.off": "關閉",
   "user.settings.advance.on": "啟用",
   "user.settings.advance.onForAllMessages": "對所有訊息",

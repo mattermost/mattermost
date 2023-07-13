@@ -3725,7 +3725,6 @@
   "user.settings.advance.icon": "Setări avansate pictogramă",
   "user.settings.advance.joinLeaveDesc": "Când este activat mesajul System (Mesaje sistem) spunând că un utilizator sa alăturat sau lăsat un canal, va fi vizibil. Când opțiunea \"Off\" (Dezactivat), Mesajele sistemului despre aderarea sau ieșirea dintr-un canal vor fi ascunse. Un mesaj va apărea în continuare atunci când sunteți adăugat la un canal, astfel încât să puteți primi o notificare.",
   "user.settings.advance.joinLeaveTitle": "Activați conectarea / lăsați mesajele",
-  "user.settings.advance.markdown_preview": "Afișați opțiunea de examinare a marcajelor în caseta de introducere a mesajelor",
   "user.settings.advance.off": "Închis",
   "user.settings.advance.on": "Deschis",
   "user.settings.advance.onForAllMessages": "Pornit pentru toate mesajele",

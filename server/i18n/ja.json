@@ -5312,10 +5312,6 @@
     "translation": "ユーザーの投稿の書式設定が不正です"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "ユーザーのMarkdownプレビューの設定が不正です"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
     "translation": "ユーザーの電子メールバッチ処理間隔の設定が不正です"
   },

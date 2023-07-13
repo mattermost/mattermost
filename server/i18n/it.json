@@ -4756,10 +4756,6 @@
     "translation": "Impossibile salvare le preferenze del tema di squadra"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Impostazione anteprima markdown non valida per l'utente"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
     "translation": "Impostazione formato pubblicazione non valida per l'utente"
   },

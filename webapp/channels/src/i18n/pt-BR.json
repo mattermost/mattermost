@@ -3598,7 +3598,6 @@
   "user.settings.advance.icon": "Ícone Configurações Avançadas",
   "user.settings.advance.joinLeaveDesc": "Quando \"Ligado\", Mensagens do Sistema dizendo que um usuário entrou ou saiu de um canal serão visíveis. Quando \"Off\", as Mensagens do Sistema sobre entrada e saída de um canal serão ocultadas. Uma mensagem ainda vai aparecer quando você é adicionado a um canal para que você possa receber uma notificação.",
   "user.settings.advance.joinLeaveTitle": "Ativar Mensagens Entrar/Deixar",
-  "user.settings.advance.markdown_preview": "Mostrar opção pré-visualização markdown na caixa de entrada de mensagens",
   "user.settings.advance.off": "Desligado",
   "user.settings.advance.on": "Ligado",
   "user.settings.advance.onForAllMessages": "Ativado para todas as mensagens",

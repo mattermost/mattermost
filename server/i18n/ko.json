@@ -5308,10 +5308,6 @@
     "translation": "사용자에 대한 잘못된 게시물 형식 설정입니다"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "사용자에 대한 잘못된 마크다운 미리보기 설정"
-  },
-  {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
     "translation": "유효하지 않은 전자우편 일괄 처리 간격 설정"
   },
