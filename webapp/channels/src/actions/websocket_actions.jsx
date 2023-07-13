@@ -234,7 +234,7 @@ export function reconnect() {
             // we can request for getPosts again when socket is connected
             dispatch(getPosts(currentChannelId));
         }
-        StatusActions.loadStatusesForChannelAndSidebar();
+        dispatch(StatusActions.loadStatusesForChannelAndSidebar());
 
         const crtEnabled = isCollapsedThreadsEnabled(state);
         dispatch(TeamActions.getMyTeamUnreads(crtEnabled, true));

@@ -51,7 +51,7 @@ export interface Props {
 
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
-        openDirectChannelToUserId: (userId: string) => Promise<{ data: Channel }>;
+        openDirectChannelToUserId: (userId: string) => Promise<{data: Channel}>;
         closeRightHandSide: () => void;
         goBack: () => void;
         setChannelMembersRhsSearchTerm: (terms: string) => void;
@@ -150,7 +150,9 @@ export default function ChannelMembersRHS({
 
             listcp.push({type: ListItemType.Member, data: member});
         }
-        setList(listcp);
+        if (JSON.stringify(list) !== JSON.stringify(listcp)) {
+            setList(listcp);
+        }
     }, [channelMembers]);
 
     useEffect(() => {
@@ -200,7 +202,7 @@ export default function ChannelMembersRHS({
         });
     };
 
-    const openDirectMessage = async (user: UserProfile) => {
+    const openDirectMessage = useCallback(async (user: UserProfile) => {
         // we first prepare the DM channel...
         await actions.openDirectChannelToUserId(user.id);
 
@@ -208,16 +210,17 @@ export default function ChannelMembersRHS({
         history.push(teamUrl + '/messages/@' + user.username);
 
         await actions.closeRightHandSide();
-    };
+    }, [actions.openDirectChannelToUserId, history, teamUrl, actions.closeRightHandSide]);
 
-    const loadMore = async () => {
+    const loadMore = useCallback(async () => {
         setIsNextPageLoading(true);
 
         await actions.loadProfilesAndReloadChannelMembers(page + 1, USERS_PER_PAGE, channel.id, ProfilesInChannelSortBy.Admin);
         setPage(page + 1);
 
         setIsNextPageLoading(false);
-    };
+    }, [actions.loadProfilesAndReloadChannelMembers, page, channel.id],
+    );
 
     return (
         <div
@@ -281,7 +284,8 @@ export default function ChannelMembersRHS({
                         members={list}
                         editing={editing}
                         channel={channel}
-                        actions={{openDirectMessage, loadMore}}
+                        openDirectMessage={openDirectMessage}
+                        loadMore={loadMore}
                         hasNextPage={channelMembers.length < membersCount}
                         isNextPageLoading={isNextPageLoading}
                     />

@@ -4,17 +4,38 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {AdminConfig} from '@mattermost/types/config';
+import {DeepPartial} from '@mattermost/types/utilities';
+
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 
-import AdminSettings from './admin_settings';
+import AdminSettings, {BaseProps, BaseState} from './admin_settings';
+import BooleanSetting from './boolean_setting';
 import Setting from './setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
+import BlockableLink from './blockable_link';
 
-export default class PasswordSettings extends AdminSettings {
-    constructor(props) {
+type Props = BaseProps & {
+    config: AdminConfig;
+};
+
+type State = BaseState & {
+    passwordMinimumLength?: string;
+    passwordLowercase?: boolean;
+    passwordNumber?: boolean;
+    passwordUppercase?: boolean;
+    passwordSymbol?: boolean;
+    passwordEnableForgotLink?: boolean;
+    maximumLoginAttempts?: string;
+};
+
+export default class PasswordSettings extends AdminSettings<Props, State> {
+    sampleErrorMsg: React.ReactNode;
+
+    constructor(props: Props) {
         super(props);
 
         this.state = Object.assign(this.state, {
@@ -23,6 +44,7 @@ export default class PasswordSettings extends AdminSettings {
             passwordNumber: props.config.PasswordSettings.Number,
             passwordUppercase: props.config.PasswordSettings.Uppercase,
             passwordSymbol: props.config.PasswordSettings.Symbol,
+            passwordEnableForgotLink: props.config.PasswordSettings.EnableForgotLink,
             maximumLoginAttempts: props.config.ServiceSettings.MaximumLoginAttempts,
         });
 
@@ -59,7 +81,7 @@ export default class PasswordSettings extends AdminSettings {
         this.sampleErrorMsg = (
             <FormattedMessage
                 id={sampleErrorMsgId}
-                default='Your password must contain between {min} and {max} characters.'
+                defaultMessage='Your password must contain between {min} and {max} characters.'
                 values={{
                     min: (this.state.passwordMinimumLength || Constants.MIN_PASSWORD_LENGTH),
                     max: Constants.MAX_PASSWORD_LENGTH,
@@ -68,26 +90,32 @@ export default class PasswordSettings extends AdminSettings {
         );
     }
 
-    getConfigFromState = (config) => {
-        config.PasswordSettings.MinimumLength = this.parseIntNonZero(this.state.passwordMinimumLength, Constants.MIN_PASSWORD_LENGTH);
-        config.PasswordSettings.Lowercase = this.state.passwordLowercase;
-        config.PasswordSettings.Uppercase = this.state.passwordUppercase;
-        config.PasswordSettings.Number = this.state.passwordNumber;
-        config.PasswordSettings.Symbol = this.state.passwordSymbol;
+    getConfigFromState = (config: DeepPartial<AdminConfig>) => {
+        if (config.PasswordSettings) {
+            config.PasswordSettings.MinimumLength = this.parseIntNonZero(this.state.passwordMinimumLength ?? '', Constants.MIN_PASSWORD_LENGTH);
+            config.PasswordSettings.Lowercase = this.state.passwordLowercase;
+            config.PasswordSettings.Uppercase = this.state.passwordUppercase;
+            config.PasswordSettings.Number = this.state.passwordNumber;
+            config.PasswordSettings.Symbol = this.state.passwordSymbol;
+            config.PasswordSettings.EnableForgotLink = this.state.passwordEnableForgotLink;
+        }
 
-        config.ServiceSettings.MaximumLoginAttempts = this.parseIntNonZero(this.state.maximumLoginAttempts, Constants.MAXIMUM_LOGIN_ATTEMPTS_DEFAULT);
+        if (config.ServiceSettings) {
+            config.ServiceSettings.MaximumLoginAttempts = this.parseIntNonZero(this.state.maximumLoginAttempts ?? '', Constants.MAXIMUM_LOGIN_ATTEMPTS_DEFAULT);
+        }
 
         return config;
     };
 
-    getStateFromConfig(config) {
+    getStateFromConfig(config: DeepPartial<AdminConfig>) {
         return {
-            passwordMinimumLength: config.PasswordSettings.MinimumLength,
-            passwordLowercase: config.PasswordSettings.Lowercase,
-            passwordNumber: config.PasswordSettings.Number,
-            passwordUppercase: config.PasswordSettings.Uppercase,
-            passwordSymbol: config.PasswordSettings.Symbol,
-            maximumLoginAttempts: config.ServiceSettings.MaximumLoginAttempts,
+            passwordMinimumLength: String(config.PasswordSettings?.MinimumLength),
+            passwordLowercase: config.PasswordSettings?.Lowercase,
+            passwordNumber: config.PasswordSettings?.Number,
+            passwordUppercase: config.PasswordSettings?.Uppercase,
+            passwordSymbol: config.PasswordSettings?.Symbol,
+            passwordEnableForgotLink: config.PasswordSettings?.EnableForgotLink,
+            maximumLoginAttempts: String(config.ServiceSettings?.MaximumLoginAttempts),
         };
     }
 
@@ -96,7 +124,7 @@ export default class PasswordSettings extends AdminSettings {
             return (
                 <FormattedMessage
                     id='user.settings.security.passwordMinLength'
-                    default='Invalid minimum length, cannot show preview.'
+                    defaultMessage='Invalid minimum length, cannot show preview.'
                 />
             );
         }
@@ -116,7 +144,7 @@ export default class PasswordSettings extends AdminSettings {
         return (
             <FormattedMessage
                 id={sampleErrorMsgId}
-                default='Your password must contain between {min} and {max} characters.'
+                defaultMessage='Your password must contain between {min} and {max} characters.'
                 values={{
                     min: (this.state.passwordMinimumLength || Constants.MIN_PASSWORD_LENGTH),
                     max: Constants.MAX_PASSWORD_LENGTH,
@@ -125,13 +153,9 @@ export default class PasswordSettings extends AdminSettings {
         );
     };
 
-    handlePasswordLengthChange = (id, value) => {
-        this.handleChange(id, value);
-    };
-
-    handleCheckboxChange = (id) => {
-        return ({target: {checked}}) => {
-            this.handleChange(id, checked);
+    handleCheckboxChange = (id: string) => {
+        return (event: React.ChangeEvent<HTMLInputElement>) => {
+            this.handleChange(id, event.target.checked);
         };
     };
 
@@ -167,8 +191,8 @@ export default class PasswordSettings extends AdminSettings {
                                 }}
                             />
                         }
-                        value={this.state.passwordMinimumLength}
-                        onChange={this.handlePasswordLengthChange}
+                        value={this.state.passwordMinimumLength ?? ''}
+                        onChange={this.handleChange}
                         setByEnv={this.isSetByEnv('PasswordSettings.MinimumLength')}
                         disabled={this.props.isDisabled}
                     />
@@ -184,7 +208,6 @@ export default class PasswordSettings extends AdminSettings {
                             <label className='checkbox-inline'>
                                 <input
                                     type='checkbox'
-                                    ref={this.lowercase}
                                     defaultChecked={this.state.passwordLowercase}
                                     name='admin.password.lowercase'
                                     disabled={this.props.isDisabled}
@@ -200,7 +223,6 @@ export default class PasswordSettings extends AdminSettings {
                             <label className='checkbox-inline'>
                                 <input
                                     type='checkbox'
-                                    ref={this.uppercase}
                                     defaultChecked={this.state.passwordUppercase}
                                     name='admin.password.uppercase'
                                     disabled={this.props.isDisabled}
@@ -216,7 +238,6 @@ export default class PasswordSettings extends AdminSettings {
                             <label className='checkbox-inline'>
                                 <input
                                     type='checkbox'
-                                    ref={this.number}
                                     defaultChecked={this.state.passwordNumber}
                                     name='admin.password.number'
                                     disabled={this.props.isDisabled}
@@ -232,7 +253,6 @@ export default class PasswordSettings extends AdminSettings {
                             <label className='checkbox-inline'>
                                 <input
                                     type='checkbox'
-                                    ref={this.symbol}
                                     defaultChecked={this.state.passwordSymbol}
                                     name='admin.password.symbol'
                                     disabled={this.props.isDisabled}
@@ -274,13 +294,39 @@ export default class PasswordSettings extends AdminSettings {
                                 defaultMessage='Login attempts allowed before user is locked out and required to reset password via email.'
                             />
                         }
-                        value={this.state.maximumLoginAttempts}
+                        value={this.state.maximumLoginAttempts ?? ''}
                         onChange={this.handleChange}
                         setByEnv={this.isSetByEnv('ServiceSettings.MaximumLoginAttempts')}
                         disabled={this.props.isDisabled}
                     />
                 )
                 }
+                <BooleanSetting
+                    id='passwordEnableForgotLink'
+                    label={
+                        <FormattedMessage
+                            id='admin.password.enableForgotLink.title'
+                            defaultMessage='Enable Forgot Password Link:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.password.enableForgotLink.description'
+                            defaultMessage='When true, “Forgot password” link appears on the Mattermost login page, which allows users to reset their password. When false, the link is hidden from users. This link can be customized to redirect to a URL of your choice from <a>Site Configuration > Customization.</a>'
+                            values={{
+                                a: (chunks) => (
+                                    <BlockableLink to='/admin_console/site_config/customization'>
+                                        {chunks}
+                                    </BlockableLink>
+                                ),
+                            }}
+                        />
+                    }
+                    value={this.state.passwordEnableForgotLink ?? false}
+                    setByEnv={false}
+                    onChange={this.handleChange}
+                    disabled={this.props.isDisabled}
+                />
             </SettingsGroup>
         );
     };

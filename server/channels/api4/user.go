@@ -61,6 +61,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods("POST")
 
 	api.BaseRoutes.Users.Handle("/login", api.APIHandler(login)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: model.NewInt(2), MaxBurst: model.NewInt(1)})).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods("POST")
@@ -428,7 +429,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -499,7 +500,7 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1249,7 +1250,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), user.Id) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), user.Id) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1259,6 +1260,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
 	// Cannot update a system admin unless user making request is a systemadmin also.
 	if ouser.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -1325,7 +1327,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameterAuditable(auditRec, "user_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1335,6 +1337,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("user_id")
 		return
 	}
+
 	auditRec.AddEventPriorState(ouser)
 	auditRec.AddEventObjectType("user")
 
@@ -1402,7 +1405,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userId) {
+	if !c.App.SessionHasPermissionToUserOrBot(*c.AppContext.Session(), userId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1964,6 +1967,30 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJSON(r.Body)
+	token := props["token"]
+	deviceId := props["device_id"]
+
+	user, err := c.App.ValidateDesktopToken(token, time.Now().Add(-model.DesktopTokenTTL).Unix())
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	err = c.App.DoLogin(c.AppContext, w, r, user, deviceId, false, false, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.App.AttachSessionCookies(c.AppContext, w, r)
+
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	campaignToURL := map[string]string{
 		"focalboard": "/boards",
@@ -2212,6 +2239,10 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Domain:   c.App.GetCookieDomain(),
 		Secure:   secure,
+	}
+
+	if secure && utils.CheckEmbeddedCookie(r) {
+		sessionCookie.SameSite = http.SameSiteNoneMode
 	}
 
 	http.SetCookie(w, sessionCookie)
