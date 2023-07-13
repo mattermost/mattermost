@@ -10,7 +10,8 @@ export function isCallsEnabled(state: GlobalState, minVersion = '0.4.2') {
         semver.gte(state.plugins.plugins[suitePluginIds.calls].version || '0.0.0', minVersion));
 }
 
-export function isCallsRingingEnabled(state: GlobalState) {
+// isCallsRingingEnabledOnServer is the flag for the ringing/notification feature in calls
+export function isCallsRingingEnabledOnServer(state: GlobalState) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return Boolean(state[`plugins-${suitePluginIds.calls}`]?.callsConfig?.EnableRinging);

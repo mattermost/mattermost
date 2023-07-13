@@ -55,13 +55,13 @@ type FeatureFlags struct {
 
 	PeopleProduct bool
 
-	GlobalDrafts bool
-
 	OnboardingTourTips bool
 
 	DeprecateCloudFree bool
 
 	CloudReverseTrial bool
+
+	DataRetentionConcurrencyEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -78,13 +78,12 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = false
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.PostPriority = true
 	f.PeopleProduct = false
-	f.GlobalDrafts = true
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
+	f.DataRetentionConcurrencyEnabled = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

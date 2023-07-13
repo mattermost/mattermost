@@ -234,6 +234,7 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
       drivername: postgres
       logsartifact: postgres-binary-server-test-logs
+    secrets: inherit
   test-postgres-normal:
     name: Postgres
     needs: check-mattermost-vet
@@ -243,6 +244,7 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: postgres-server-test-logs
+    secrets: inherit
   test-mysql:
     name: MySQL
     needs: check-mattermost-vet
@@ -252,6 +254,7 @@ jobs:
       datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304
       drivername: mysql
       logsartifact: mysql-server-test-logs
+    secrets: inherit
   test-mmctl:
     name: Run mmctl tests
     needs: check-mattermost-vet
