@@ -121,6 +121,8 @@ services:
     image: "mattermostdevelopment/mirrored-golang:1.19.5"
     entrypoint: [ "/bin/bash", "-c" ]
     command: [ "until [ -f /var/run/mm_terminate ]; do sleep 5; done" ]
+    environment:
+      MM_SERVICEENVIRONMENT: "test" # Currently required for running the config_generator with the right environment
     working_dir: "/opt/mattermost-server"
     volumes:
     - "../../:/opt/mattermost-server"
