@@ -63,7 +63,7 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
         team,
         header,
         footer,
-        loading,   
+        loading,
         initialHook,
         enablePostUsernameOverride: false,
         enablePostIconOverride: false,
@@ -146,7 +146,7 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
         expect(wrapper.state('triggerWhen')).toBe(0);
 
         const selector = wrapper.find('#triggerWhen');
-        selector.simulate('change', {target: {value: 1}})
+        selector.simulate('change', {target: {value: 1}});
         console.log('selector: ', selector.debug());
         expect(wrapper.state('triggerWhen')).toBe(1);
     });

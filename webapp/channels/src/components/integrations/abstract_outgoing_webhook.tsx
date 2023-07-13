@@ -64,7 +64,7 @@ interface Props {
     /**
      * The hook used to set the initial state
      */
-    initialHook?: OutgoingWebhook | Record<string, never>;
+    initialHook?: OutgoingWebhook;
 
     /**
      * The async function to run when the action button is pressed
@@ -86,12 +86,12 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
     constructor(props: Props | Readonly<Props>) {
         super(props);
 
-        this.state = this.getStateFromHook(this.props.initialHook || {});
+        this.state = this.getStateFromHook(this.props.initialHook);
     }
 
-    getStateFromHook = (hook: OutgoingWebhook | Record<string, never>) => {
+    getStateFromHook = (hook?: OutgoingWebhook) => {
         let triggerWords = '';
-        if (hook.trigger_words) {
+        if (hook?.trigger_words) {
             let i = 0;
             for (i = 0; i < hook.trigger_words.length; i++) {
                 triggerWords += hook.trigger_words[i] + '\n';
@@ -99,7 +99,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
         }
 
         let callbackUrls = '';
-        if (hook.callback_urls) {
+        if (hook?.callback_urls) {
             let i = 0;
             for (i = 0; i < hook.callback_urls.length; i++) {
                 callbackUrls += hook.callback_urls[i] + '\n';
@@ -107,17 +107,17 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
         }
 
         return {
-            displayName: hook.display_name || '',
-            description: hook.description || '',
-            contentType: hook.content_type || 'application/x-www-form-urlencoded',
-            channelId: hook.channel_id || '',
+            displayName: hook?.display_name || '',
+            description: hook?.description || '',
+            contentType: hook?.content_type || 'application/x-www-form-urlencoded',
+            channelId: hook?.channel_id || '',
             triggerWords,
-            triggerWhen: hook.trigger_when || 0,
+            triggerWhen: hook?.trigger_when || 0,
             callbackUrls,
             saving: false,
             clientError: null,
-            username: hook.username || '',
-            iconURL: hook.icon_url || '',
+            username: hook?.username || '',
+            iconURL: hook?.icon_url || '',
         };
     };
 
@@ -261,9 +261,9 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
         const contentTypeOption1 = 'application/x-www-form-urlencoded';
         const contentTypeOption2 = 'application/json';
 
-        var headerToRender = this.props.header;
-        var footerToRender = this.props.footer;
-        var renderExtra = this.props.renderExtra;
+        const headerToRender = this.props.header;
+        const footerToRender = this.props.footer;
+        const renderExtra = this.props.renderExtra;
 
         return (
             <div className='backstage-content'>
@@ -456,12 +456,12 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                     onChange={this.updateTriggerWhen}
                                 >
                                     <option
-                                        value="0"
+                                        value='0'
                                     >
                                         {localizeMessage('add_outgoing_webhook.triggerWordsTriggerWhenFullWord', 'First word matches a trigger word exactly')}
                                     </option>
                                     <option
-                                        value="1"
+                                        value='1'
                                     >
                                         {localizeMessage('add_outgoing_webhook.triggerWordsTriggerWhenStartsWith', 'First word starts with a trigger word')}
                                     </option>
