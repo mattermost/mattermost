@@ -160,7 +160,7 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 
 	role4, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelUserRole)
 	assert.NoError(t, err)
-	assert.Equal(t, role4.Permissions, []string{"read_channel", "create_post"})
+	assert.Equal(t, role4.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role4.SchemeManaged)
 
 	role5, err := ss.Role().GetByName(context.Background(), d1.DefaultTeamGuestRole)
@@ -170,7 +170,7 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 
 	role6, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelGuestRole)
 	assert.NoError(t, err)
-	assert.Equal(t, role6.Permissions, []string{"read_channel", "create_post"})
+	assert.Equal(t, role6.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role6.SchemeManaged)
 
 	// Change the scheme description and update.
@@ -388,7 +388,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 
 	role4, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelUserRole)
 	assert.NoError(t, err)
-	assert.Equal(t, role4.Permissions, []string{"read_channel", "create_post"})
+	assert.Equal(t, role4.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role4.SchemeManaged)
 
 	role5, err := ss.Role().GetByName(context.Background(), d1.DefaultTeamGuestRole)
@@ -398,7 +398,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 
 	role6, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelGuestRole)
 	assert.NoError(t, err)
-	assert.Equal(t, role6.Permissions, []string{"read_channel", "create_post"})
+	assert.Equal(t, role6.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role6.SchemeManaged)
 
 	// Delete the scheme.
