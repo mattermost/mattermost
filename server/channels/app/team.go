@@ -2149,7 +2149,7 @@ func (a *App) GetNewTeamMembersSince(c request.CTX, teamID string, opts *model.I
 		return nil, 0, model.NewAppError("GetNewTeamMembersSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	ntms, count, err := a.Srv().Store().Team().GetNewTeamMembersSince(teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	ntms, count, err := a.Srv().Store().Team().GetNewTeamMembersSince(teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage, *a.Config().PrivacySettings.ShowFullName || a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem))
 	if err != nil {
 		return nil, 0, model.NewAppError("GetNewTeamMembersSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
