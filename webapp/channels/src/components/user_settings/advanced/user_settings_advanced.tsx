@@ -84,33 +84,17 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             [Preferences.UNREAD_SCROLL_POSITION]: this.props.unreadScrollPosition,
         };
 
-        const PreReleaseFeaturesLocal = JSON.parse(JSON.stringify(PreReleaseFeatures));
-        delete PreReleaseFeaturesLocal.MARKDOWN_PREVIEW;
-        const preReleaseFeaturesKeys = Object.keys(PreReleaseFeaturesLocal);
+
 
         let enabledFeatures = 0;
-        for (const as of advancedSettings) {
-            for (const key of preReleaseFeaturesKeys) {
-                const feature = PreReleaseFeaturesLocal[key];
 
-                if (as.name === Constants.FeatureTogglePrefix + feature.label) {
-                    settings[as.name] = as.value;
-
-                    if (as.value === 'true') {
-                        enabledFeatures += 1;
-                    }
-                }
-            }
-        }
 
         const isSaving = false;
 
         const showDeactivateAccountModal = false;
 
         return {
-            preReleaseFeatures: PreReleaseFeaturesLocal,
             settings,
-            preReleaseFeaturesKeys,
             enabledFeatures,
             isSaving,
             showDeactivateAccountModal,

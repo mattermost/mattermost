@@ -38,8 +38,6 @@ type Props = {
      */
     shouldShowPreview: boolean;
 
-    markdownPreviewFeatureIsEnabled: boolean;
-
     /**
      * Called when the modal has been hidden and should be removed.
      */

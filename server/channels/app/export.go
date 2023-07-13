@@ -32,9 +32,6 @@ var exportablePreferences = map[imports.ComparablePreference]string{{
 	Name:     "",
 }: "Theme", {
 	Category: model.PreferenceCategoryAdvancedSettings,
-	Name:     "feature_enabled_markdown_preview",
-}: "UseMarkdownPreview", {
-	Category: model.PreferenceCategoryAdvancedSettings,
 	Name:     "formatting",
 }: "UseFormatting", {
 	Category: model.PreferenceCategorySidebarSettings,
