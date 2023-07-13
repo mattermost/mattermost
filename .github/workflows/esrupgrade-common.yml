@@ -18,8 +18,8 @@ env:
   DUMP_SERVER_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.dump.server.sql
   DUMP_SCRIPT_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.dump.script.sql
   MIGRATION_SCRIPT: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.mysql.up.sql
-  CLEANUP_SCRIPT:   esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.mysql.cleanup.sql
-  PREPROCESS_SCRIPT: esr.common.mysql.preprocess.sql
+  CLEANUP_SCRIPT:   testing/esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.mysql.cleanup.sql
+  PREPROCESS_SCRIPT: testing/esr.common.mysql.preprocess.sql
   DIFF_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.diff
 jobs:
   esr-upgrade-server:
