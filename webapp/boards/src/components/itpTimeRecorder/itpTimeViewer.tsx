@@ -22,14 +22,14 @@ const ItpTimeViewer = ({ board }: Props)  => {
 
 useEffect(() => {
 
-  if (istrigger) {
-    
+  console.log(retrievedValue+'---'+istrigger);
+  if (retrievedValue && istrigger === null || retrievedValue && istrigger || retrievedValue && !istrigger  ) {
+      
       setIsShown(true);
 
-    }else{
 
+    }else{
       setIsShown(false);
-      
     }
   
 }, [istrigger]);
