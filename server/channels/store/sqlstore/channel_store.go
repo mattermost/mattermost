@@ -1283,11 +1283,21 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 		query = query.Where(sq.NotEq{"c.Name": opts.ExcludeChannelNames})
 	}
 
-	if opts.ExcludePolicyConstrained || opts.IncludePolicyID {
-		query = query.LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId")
-	}
+	// includePolicy true exclude true - left join where is null
+	// includePolicy false exclude true - left join where is null
+	// includePolicy true exclude false - left join
+	// includePolicy false exclude false - nothing
+
 	if opts.ExcludePolicyConstrained {
-		query = query.Where("RetentionPoliciesChannels.ChannelId IS NULL")
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			query = query.
+				LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
+				Where("RetentionPoliciesChannels.ChannelId IS NULL")
+		} else {
+			query = query.Where(sq.Expr("c.Id NOT IN (SELECT ChannelId FROM RetentionPoliciesChannels)"))
+		}
+	} else if opts.IncludePolicyID {
+		query = query.LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId")
 	}
 
 	return query
