@@ -3954,11 +3954,11 @@ func (s *RetryLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 
 }
 
-func (s *RetryLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
+func (s *RetryLayerEmojiStore) GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error) {
 
 	tries := 0
 	for {
-		result, err := s.EmojiStore.GetMultipleByName(names)
+		result, err := s.EmojiStore.GetMultipleByName(ctx, names)
 		if err == nil {
 			return result, nil
 		}

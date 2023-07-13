@@ -3533,7 +3533,7 @@ func (s *OpenTracingLayerEmojiStore) GetList(offset int, limit int, sort string)
 	return result, err
 }
 
-func (s *OpenTracingLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
+func (s *OpenTracingLayerEmojiStore) GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "EmojiStore.GetMultipleByName")
 	s.Root.Store.SetContext(newCtx)
@@ -3542,7 +3542,7 @@ func (s *OpenTracingLayerEmojiStore) GetMultipleByName(names []string) ([]*model
 	}()
 
 	defer span.Finish()
-	result, err := s.EmojiStore.GetMultipleByName(names)
+	result, err := s.EmojiStore.GetMultipleByName(ctx, names)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
