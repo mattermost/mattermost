@@ -21,20 +21,6 @@ func newSqlPreferenceStore(sqlStore *SqlStore) store.PreferenceStore {
 	return s
 }
 
-func (s SqlPreferenceStore) deleteUnusedFeatures() {
-	mlog.Debug("Deleting any unused pre-release features")
-	sql, args, err := s.getQueryBuilder().
-		Delete("Preferences").
-		Where(sq.Eq{"Category": model.PreferenceCategoryAdvancedSettings}).
-		Where(sq.Eq{"Value": "false"}).
-		Where(sq.Like{"Name": store.FeatureTogglePrefix + "%"}).ToSql()
-	if err != nil {
-		mlog.Warn("Could not build sql query to delete unused features", mlog.Err(err))
-	}
-	if _, err = s.GetMasterX().Exec(sql, args...); err != nil {
-		mlog.Warn("Failed to delete unused features", mlog.Err(err))
-	}
-}
 
 func (s SqlPreferenceStore) Save(preferences model.Preferences) (err error) {
 	// wrap in a transaction so that if one fails, everything fails

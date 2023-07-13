@@ -229,7 +229,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 
-	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store
 }
