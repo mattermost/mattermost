@@ -84,7 +84,7 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
 		api.APISessionRequired(deleteGroup)).Methods("DELETE")
 
-	// GET /api/v4/groups/:group_id
+	// POST /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/restore",
 		api.APISessionRequired(restoreGroup)).Methods("POST")
 
