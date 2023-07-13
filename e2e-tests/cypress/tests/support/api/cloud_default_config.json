@@ -16,7 +16,6 @@
         "GfycatAPIKey": "2_KtH_W5",
         "GfycatAPISecret": "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof",
         "PostEditTimeLimit": -1,
-        "EnablePreviewFeatures": true,
         "EnableTutorial": true,
         "EnableOnboardingFlow": false,
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,

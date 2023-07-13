@@ -833,8 +833,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "Csatornával megtekintett WebSocket üzenetek engedélyezése:",
   "admin.experimental.enableOnboardingFlow.desc": "Ha igaz, akkor az új felhasználók látni fognak egy több lépcsős üdvözlő varázslót a kezdeti beállításokhoz",
   "admin.experimental.enableOnboardingFlow.title": "Üdvözlő varázsló engedélyezése:",
-  "admin.experimental.enablePreviewFeatures.desc": "Ha igaz, akkor az előnézeti funkciókat a **Beállítások > Speciális > Kiadás előtti szolgáltatások előnézete** menüpontban engedélyezheti. Ha hamis, letiltja és elrejti az előnézeti funkciókat a **Beállítások > Speciális > Kiadás előtti szolgáltatások előnézete** menüpontban.",
-  "admin.experimental.enablePreviewFeatures.title": "Előnézet funkciók engedélyezése:",
   "admin.experimental.enableSharedChannels.desc": "Ha igaz, akkor a megosztott csatornák kezelésére jogosult felhasználók beállíthatnak egy másik Mattermost szervert egy csatorna szinkronizálására és megosztására. A megosztott csatornák letiltása leállítja a csatorna szinkronizálását a másik Mattermost szerverrel, azonban a csatorna továbbra is működik a helyi felhasználók számára normál csatornaként.",
   "admin.experimental.enableSharedChannels.title": "Megosztott csatornák engedélyezése:",
   "admin.experimental.enableThemeSelection.desc": "Engedélyezi a **Kijelző > Téma** fületet a Beállításokban, így a felhasználók kiválaszthatják a témájukat.",

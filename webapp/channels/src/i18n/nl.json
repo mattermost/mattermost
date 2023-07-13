@@ -920,8 +920,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "Websocket berichten van Bekeken Kanalen inschakelen:",
   "admin.experimental.enableOnboardingFlow.desc": "Indien waar, krijgen nieuwe gebruikers stappen te zien die ze moeten doorlopen als onderdeel van een verwerlkomingsproces",
   "admin.experimental.enableOnboardingFlow.title": "Maak Verwelkoming mogelijk:",
-  "admin.experimental.enablePreviewFeatures.desc": "Als dit ingeschakeld is, dan zijn de previewfuncties ingeschakeld vanuit **Instellingen > Geavanceerd > Preview van pre-release-functies**. Als dit uitgeschakeld is, zijn de previewfuncties uitgeschakeld en verborgen in **Instellingen > Geavanceerd > Preview van pre-release functies**.",
-  "admin.experimental.enablePreviewFeatures.title": "Previewfuncties inschakelen:",
   "admin.experimental.enableSharedChannels.desc": "Wanneer waar, kunnen gebruikers die het recht hebben om gedeelde kanalen te beheren een andere Mattermost server configureren om een kanaal te synchroniseren en te delen. Het uitschakelen van gedeelde kanalen stopt het synchroniseren van de chatroom met de andere Mattermost server, maar het kanaal blijft functioneren voor lokale gebruikers volgens het normale kanaalgedrag.",
   "admin.experimental.enableSharedChannels.title": "Schakel gedeelde kanalen in:",
   "admin.experimental.enableThemeSelection.desc": "Hiermee schakel je in het tabblad Instellingen **Weergave > Thema** in zodat gebruikers hun thema kunnen selecteren.",

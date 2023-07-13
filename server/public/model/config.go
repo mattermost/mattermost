@@ -360,7 +360,6 @@ type ServiceSettings struct {
 	EnableUserStatuses                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalEnableAuthenticationTransfer          *bool   `access:"experimental_features"`
 	ClusterLogTimeoutMilliseconds                     *int    `access:"write_restrictable,cloud_restrictable"`
-	EnablePreviewFeatures                             *bool   `access:"experimental_features"`
 	EnableTutorial                                    *bool   `access:"experimental_features"`
 	EnableOnboardingFlow                              *bool   `access:"experimental_features"`
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool   `access:"experimental_features"`
@@ -748,9 +747,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.PostEditTimeLimit = NewInt(-1)
 	}
 
-	if s.EnablePreviewFeatures == nil {
-		s.EnablePreviewFeatures = NewBool(true)
-	}
 
 	if s.ExperimentalEnableDefaultChannelLeaveJoinMessages == nil {
 		s.ExperimentalEnableDefaultChannelLeaveJoinMessages = NewBool(true)

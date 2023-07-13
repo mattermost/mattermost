@@ -678,8 +678,6 @@
   "admin.experimental.emailSettingsLoginButtonTextColor.title": "Cor do Texto do Botão de Login por Email:",
   "admin.experimental.enableChannelViewedMessages.desc": "Esta configuração determina se os eventos WebSocket `channel_viewed` são enviados, o que sincroniza notificações não lidas em clientes e dispositivos. Desabilitar a configuração em implantações maiores pode melhorar o desempenho do servidor.",
   "admin.experimental.enableChannelViewedMessages.title": "Ativa Mensagens do WebSocket Visualizadas no Canal:",
-  "admin.experimental.enablePreviewFeatures.desc": "Quando verdadeiro, os recursos de visualização podem ser ativados em **Configurações da Conta > Avançado> Visualizar recursos de pré-lançamento**. Quando falso, desativa e oculta os recursos em pré-visualização em **Configurações da Conta > Avançado> Visualizar recursos de pré-lançamento**.",
-  "admin.experimental.enablePreviewFeatures.title": "Ativa Pré-Visualização de Recursos:",
   "admin.experimental.enableThemeSelection.desc": "Ativa a guia **Exibição > Tema** em Configurações da Conta para que os usuários possam selecionar o tema.",
   "admin.experimental.enableThemeSelection.title": "Ativa Seleção de Tema:",
   "admin.experimental.enableTutorial.desc": "Quando verdadeiro, é exibido aos usuários um tutorial quando abrem o Mattermost pela primeira vez após a criação da conta. Quando falso, o tutorial é desativado e os usuários são colocados em Town Square quando abrem o Mattermost pela primeira vez após a criação da conta.",

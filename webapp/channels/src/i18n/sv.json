@@ -897,8 +897,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "Aktivera Channel Viewed WebSocket Messages:",
   "admin.experimental.enableOnboardingFlow.desc": "När aktiverad kommer nya användare få stöd att slutför introduktionsprocessen",
   "admin.experimental.enableOnboardingFlow.title": "Aktivera introduktionsprocessen:",
-  "admin.experimental.enablePreviewFeatures.desc": "När aktiverad kan förhandsvisning av funktioner aktiveras via **Inställningar >Avancerat > Förhandsvisa förhandsutgåva**. När avaktiverat är alternativet inaktivt och dolt i **Inställningar >Avancerat > Förhandsvisa förhandsutgåva**.",
-  "admin.experimental.enablePreviewFeatures.title": "Aktivera Förhandsvisa funktioner:",
   "admin.experimental.enableSharedChannels.desc": "När aktiverad så kan användare som har behörighet att hantera delade kanaler konfigurera en annan Mattermost-server för att synkronisera och dela en kanal. Om funktionen delade kanaler inaktiveras upphör synkroniseringen av kanalen med den andra Mattermost-servern, men kanalen fortsätter att fungera för lokala användare som en vanlig kanal.",
   "admin.experimental.enableSharedChannels.title": "Aktivera delade kanaler:",
   "admin.experimental.enableThemeSelection.desc": "Aktiverar panelen **Visa > Tema** i Inställningar så användare kan välja eget tema.",

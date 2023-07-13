@@ -772,8 +772,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "Разреши WebSocket съобщенията Channel Viewed:",
   "admin.experimental.enableOnboardingFlow.desc": "Когато е true, на новите потребители се показват стъпките, които трябва да изпълнят за включване в системата",
   "admin.experimental.enableOnboardingFlow.title": "Разреши включване:",
-  "admin.experimental.enablePreviewFeatures.desc": "Когато е true, функциите за предварителен преглед могат да бъдат активирани от **Настройки> Разширени> Преглед на функциите за предварителен преглед** Когато е false, деактивира и скрива функциите за предварителен преглед от **Настройки> Разширени> Преглед на функциите за предварителен преглед**.",
-  "admin.experimental.enablePreviewFeatures.title": "Разреши функциите за преглед:",
   "admin.experimental.enableSharedChannels.desc": "Когато е true потребителите, които имат разрешение да управляват споделени канали, могат да конфигурират друг Mattermost сървър да синхронизира и споделя даден канал. Деактивирането на споделените канали спира синхронизирането на канала с другия Mattermost сървър, но каналът продължава да функционира за местните потребители според нормалното поведение на канала.",
   "admin.experimental.enableSharedChannels.title": "Разрешаване на споделените канали:",
   "admin.experimental.enableThemeSelection.desc": "Разрешава раздела **Дисплей> Тема** в Настройки, така че потребителите да могат да изберат темата си.",

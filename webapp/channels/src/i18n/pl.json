@@ -914,8 +914,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "Włącz Wiadomości WebSocket Kanał Przejrzany:",
   "admin.experimental.enableOnboardingFlow.desc": "Jeśli jest to prawda, nowi użytkownicy są informowani o krokach, które muszą wykonać w ramach procesu wprowadzania do systemu",
   "admin.experimental.enableOnboardingFlow.title": "Włączenie Onboarding:",
-  "admin.experimental.enablePreviewFeatures.desc": "Jeśli włączone, funkcje podglądowe będą mogły zostać włączone z menu **Ustawienia > Zaawansowane > Funkcje eksperymentalne**. Jeśli wyłączone wyłącza oraz ukrywa funkcje podglądowe z menu **Ustawienia > Zaawansowane > Funkcje eksperymentalne**.",
-  "admin.experimental.enablePreviewFeatures.title": "Włączyć funkcje eksperymentalne:",
   "admin.experimental.enableSharedChannels.desc": "Gdy jest to prawda, użytkownicy, którzy mają uprawnienia do zarządzania udostępnionymi kanałami, mogą skonfigurować inny serwer Mattermost aby zsynchronizować i udostępnić kanał. Wyłączenie kanałów udostępnionych zatrzymuje synchronizację kanału z innym serwerem Mattermost, ale kanał nadal działa dla użytkowników lokalnych zgodnie z normalnym zachowaniem kanału.",
   "admin.experimental.enableSharedChannels.title": "Włącz udostępnione kanały:",
   "admin.experimental.enableThemeSelection.desc": "Włącza zakładkę **Wyglą > Motyw** w Ustawieniach konta, tak więc użytkownicy będą mogli wybrać swój motyw.",

@@ -848,8 +848,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "Habilitar Mensajes del WebSocket para Canal Visto:",
   "admin.experimental.enableOnboardingFlow.desc": "Cuando es verdadero, se muestran a los nuevos usuarios los pasos que deben completar como parte del proceso de incorporación",
   "admin.experimental.enableOnboardingFlow.title": "Habilitar la incorporación:",
-  "admin.experimental.enablePreviewFeatures.desc": "Cuando es verdadero, las características preliminares pueden ser habilitadas en **Configuración > Avanzada > Previsualizar características de pre-lanzamiento**. Cuando es falso, estas características son inhabilitadas y se esconde la opción en **Configuración > Avanzada > Previsualizar características de pre-lanzamiento**.",
-  "admin.experimental.enablePreviewFeatures.title": "Habilitar Características Preliminares:",
   "admin.experimental.enableSharedChannels.desc": "Cuando es verdadero, los usuarios que tienen permiso para gestionar canales compartidos pueden configurar otro servidor Mattermost para sincronizar y compartir un canal. Al deshabilitar los canales compartidos se deja de sincronizar el canal con el otro servidor Mattermost, sin embargo el canal sigue funcionando para los usuarios locales según el comportamiento normal del canal.",
   "admin.experimental.enableSharedChannels.title": "Habilitar los canales compartidos:",
   "admin.experimental.enableThemeSelection.desc": "Habilita la pestaña **Visualización > Tema** en Configuración para que los usuarios puedan escoger su tema.",

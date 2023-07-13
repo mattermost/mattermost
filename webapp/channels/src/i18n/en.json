@@ -920,8 +920,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "Enable Channel Viewed WebSocket Messages:",
   "admin.experimental.enableOnboardingFlow.desc": "When true, new users are shown steps to complete as part of an onboarding process",
   "admin.experimental.enableOnboardingFlow.title": "Enable Onboarding:",
-  "admin.experimental.enablePreviewFeatures.desc": "When true, preview features can be enabled from **Settings > Advanced > Preview pre-release features**. When false, disables and hides preview features from **Settings > Advanced > Preview pre-release features**.",
-  "admin.experimental.enablePreviewFeatures.title": "Enable Preview Features:",
   "admin.experimental.enableSharedChannels.desc": "When true, users who have permission to manage shared channels can configure another Mattermost server to synchronize and share a channel. Disabling shared channels stops synchronizing the channel with the other Mattermost server, however the channel continues to function for local users per normal channel behavior.",
   "admin.experimental.enableSharedChannels.title": "Enable Shared Channels:",
   "admin.experimental.enableThemeSelection.desc": "Enables the **Display > Theme** tab in Settings so users can select their theme.",

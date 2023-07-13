@@ -43,7 +43,6 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         syncDrafts: '',
         unreadScrollPosition: Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT,
         codeBlockOnCtrlEnter: 'false',
-        enablePreviewFeatures: false,
         enableUserDeactivation: false,
         syncedDraftsAreAllowed: true,
     };

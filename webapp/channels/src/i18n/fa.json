@@ -813,8 +813,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "فعال کردن پیام‌های WebSocket مشاهده شده از کانال:",
   "admin.experimental.enableOnboardingFlow.desc": "وقتی درست است، مراحلی را به کاربران جدید نشان داده می‌شود که باید آنها را به عنوان بخشی از فرآیند سوار شدن کامل انجام دهند",
   "admin.experimental.enableOnboardingFlow.title": "فعال کردن Onboarding:",
-  "admin.experimental.enablePreviewFeatures.desc": "وقتی درست است، ویژگی‌های پیش‌نمایش را می‌توان از **تنظیمات > پیشرفته > پیش‌نمایش ویژگی‌های پیش‌انتشار ** فعال کرد. وقتی نادرست است، ویژگی‌های پیش‌نمایش را از **تنظیمات > پیشرفته > پیش‌نمایش ویژگی‌های پیش‌انتشار** غیرفعال و پنهان می‌کند.",
-  "admin.experimental.enablePreviewFeatures.title": "فعال کردن ویژگی های پیش نمایش:",
   "admin.experimental.enableSharedChannels.desc": "وقتی درست است، کاربرانی که مجوز مدیریت کانال‌های مشترک را دارند، می‌توانند سرور Mattermost دیگری را برای همگام‌سازی و اشتراک‌گذاری یک کانال پیکربندی کنند. غیرفعال کردن کانال‌های اشتراک‌گذاری شده، همگام‌سازی کانال را با دیگر سرور Mattermost متوقف می‌کند، با این حال، کانال برای کاربران محلی در هر رفتار عادی کانال به کار خود ادامه می‌دهد.",
   "admin.experimental.enableSharedChannels.title": "فعال کردن کانال های مشترک:",
   "admin.experimental.enableThemeSelection.desc": "برگه **نمایش > تم** را در تنظیمات فعال می کند تا کاربران بتوانند موضوع خود را انتخاب کنند.",

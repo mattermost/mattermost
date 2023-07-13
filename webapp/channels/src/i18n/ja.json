@@ -914,8 +914,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "チャンネル閲覧ウェブソケットメッセージを有効にする:",
   "admin.experimental.enableOnboardingFlow.desc": "有効な場合、オンボーディング・プロセスの一環として、新規ユーザーに対して操作方法に関するステップが表示されます",
   "admin.experimental.enableOnboardingFlow.title": "オンボーディングを有効にする:",
-  "admin.experimental.enablePreviewFeatures.desc": "有効な場合、**設定 > 詳細 > プリリリース機能をプレビューする** からプレビュー機能を有効にすることができます。無効な場合、**設定 > 詳細 > プリリリース機能をプレビューする** にプレビュー機能が表示されなくなります。",
-  "admin.experimental.enablePreviewFeatures.title": "プレビュー機能を有効にする:",
   "admin.experimental.enableSharedChannels.desc": "有効な場合、共有チャンネルを管理する権限を持つユーザーは、別のMattermostサーバーにチャンネルの同期と共有を設定できます。共有チャンネルを無効にすると、他のMattermostサーバーとのチャンネルの同期が停止しますが、ローカルユーザーに対しては通常のチャンネル動作で機能し続けます。",
   "admin.experimental.enableSharedChannels.title": "共有チャンネルの有効化:",
   "admin.experimental.enableThemeSelection.desc": "ユーザーがテーマを選択できるよう、設定の **表示 > テーマ** タブを有効にします。",

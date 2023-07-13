@@ -588,8 +588,6 @@
   "admin.experimental.emailSettingsLoginButtonTextColor.title": "電子郵件登入按鈕文字顏色：",
   "admin.experimental.enableChannelViewedMessages.desc": "此設定決定 WebSocket 是否發送 `channel_viewed` 事件，該事件用於不同的用戶端之間同步未讀通知。在大型站台停用此設定可能可以改進伺服器效能。",
   "admin.experimental.enableChannelViewedMessages.title": "啟用已觀看頻道 WebSocket 訊息：",
-  "admin.experimental.enablePreviewFeatures.desc": "啟用時，將可從**帳號設定 > 進階 >預覽預先發佈功能**啟用預覽功能。停用時預覽功能將被停用且隱藏。",
-  "admin.experimental.enablePreviewFeatures.title": "啟用預覽功能：",
   "admin.experimental.enableThemeSelection.desc": "在帳號設定當中啟用**顯示 > 佈景主題**分頁以讓使用者選取自己的佈景主題。",
   "admin.experimental.enableThemeSelection.title": "啟用選取佈景主題：",
   "admin.experimental.enableTutorial.desc": "啟用時，在使用者於帳號建立後第一次開啟 Mattermost 時會被提示教學課程。停用時該教學課程會被停用，使用者在第一次開啟 Mattermost 時將被放於公眾大廳。",

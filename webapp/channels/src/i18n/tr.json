@@ -912,8 +912,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "Kanal görüldü web soketi iletileri kullanılsın:",
   "admin.experimental.enableOnboardingFlow.desc": "Bu seçenek etkinleştirildiğinde, yeni kullanıcılara başlamaya hazırlanma adımları görüntülenir",
   "admin.experimental.enableOnboardingFlow.title": "Başlamaya hazırlanma görüntülensin:",
-  "admin.experimental.enablePreviewFeatures.desc": "Bu seçenek etkinleştirildiğinde, **Ayarlar > Gelişmiş > Özellikleri önceden dene** bölümünden yayınlanmamış özellikleri önceden deneme özelliği etkinleştirilebilir. Devre dışı bırakıldığında **Ayarlar > Gelişmiş > Özellikleri önceden dene** bölümünde yayınlanmamış özellikler devre dışı bırakılır ve gizlenir.",
-  "admin.experimental.enablePreviewFeatures.title": "Yayınlanmamış özellikler önceden denenebilsin:",
   "admin.experimental.enableSharedChannels.desc": "Bu seçenek etkinleştirildiğinde, paylaşılan kanalları yönetme izni olan kullanıcılar, bir kanalı eşitlemek ve paylaşmak için başka bir Mattermost sunucusunu yapılandırabilir. Paylaşılan kanalların devre dışı bırakılması, kanalın diğer Mattermost sunucusu ile eşitlenmesini durdurur. Ancak kanal, yerel kullanıcılar için normal kanal davranışına uygun olarak çalışmayı sürdürür.",
   "admin.experimental.enableSharedChannels.title": "Paylaşılmış kanalları etkinleştir:",
   "admin.experimental.enableThemeSelection.desc": "Bu seçenek etkinleştirildiğinde, ayarlar bölümünde kullanıcıların temalarını seçebileceği **Görünüm > Tema** sekmesi görülebilir.",

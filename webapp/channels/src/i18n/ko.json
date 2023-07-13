@@ -784,8 +784,6 @@
   "admin.experimental.enableChannelViewedMessages.desc": "이 설정은 클라이언트와 디바이스 간에 읽지 않은 알림을 동기화하는 `Channel_viewed` 웹소켓 이벤트를 전송할지 여부를 결정합니다. 대규모 배치에서 설정을 비활성화하면 서버 성능이 향상될 수 있습니다.",
   "admin.experimental.enableChannelViewedMessages.title": "채널 조회 웹소켓 메시지 :",
   "admin.experimental.enableOnboardingFlow.desc": "정상일 경우, 신규 사용자가 온보드 프로세스의 일부로 완료해야 하는 단계가 표시됩니다",
-  "admin.experimental.enablePreviewFeatures.desc": "이 설정이 활성화되면 **설정 > 고급 > 시험판 기능 미리보기** 설정을 통해 미리보기 기능이 활성화 될 수 있습니다. 비활성화되면 **설정 > 고급 > 시험판 기능 미리보기** 설정에서 미리보기 기능이 비활성화됩니다.",
-  "admin.experimental.enablePreviewFeatures.title": "미리보기 기능 :",
   "admin.experimental.enableThemeSelection.desc": "사용자들이 테마를 선택할 수 있도록 설정에서 **화면 > 테마** 탭이 활성화 합니다.",
   "admin.experimental.enableThemeSelection.title": "테마 선택 :",
   "admin.experimental.enableTutorial.desc": "활성화 시, 계정 생성 후 처음 Mattermost를 실행하면 튜토리얼이 표시됩니다. 비활성화 시, 사용자는 계정 생성 후 처음 Mattermost를 열면 튜토리얼이 비활성화되고 Town Square로 들어갑니다.",

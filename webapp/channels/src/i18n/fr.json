@@ -840,8 +840,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "Activer les messages WebSocket de canal lu :",
   "admin.experimental.enableOnboardingFlow.desc": "Si activé, les nouveaux utilisateurs ont des étapes à compléter dans le cadre du processus d'inscription",
   "admin.experimental.enableOnboardingFlow.title": "Activer le processus d'embarquement :",
-  "admin.experimental.enablePreviewFeatures.desc": "Si activé, les fonctionnalités expérimentales peuvent être activées à partir de **Paramètres > Options avancées > Aperçu des fonctionnalités expérimentales**. Si désactivé, désactive et masque les fonctionnalités de **Paramètres > Options avancées > Aperçu des fonctionnalités expérimentales**.",
-  "admin.experimental.enablePreviewFeatures.title": "Aperçu des fonctionnalités expérimentales :",
   "admin.experimental.enableSharedChannels.desc": "Si activé, les utilisateurs qui ont la permission de gérer des canaux partagés peuvent configurer un autre serveur Mattermost pour synchroniser et partager un canal. Désactivez les canaux partagés arrête la synchronisation avec l'autre serveur Mattermost, mais le canal continue cependant de fonctionner comme un canal normal pour les utilisateurs locaux.",
   "admin.experimental.enableSharedChannels.title": "Activer les canaux partagés :",
   "admin.experimental.enableThemeSelection.desc": "Active l'onglet **Affichage > Thème** dans les paramètres de façon à ce que les utilisateurs puisse sélectionner leur thème.",

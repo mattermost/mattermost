@@ -922,8 +922,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "Включить WebSocket сообщения \"Channel Viewed\":",
   "admin.experimental.enableOnboardingFlow.desc": "Если установлено значение \"да\", новым пользователям показываются шаги, которые необходимо выполнить в рамках процесса адаптации",
   "admin.experimental.enableOnboardingFlow.title": "Включить адаптацию:",
-  "admin.experimental.enablePreviewFeatures.desc": "При значении \"да\" предрелизные функции можно включить из **Параметры > Дополнительно > Ознакомление с предрелизными функциями**. При значении \"нет\" отключает и скрывает предрелизные функции из **Параметры > Дополнительно > Ознакомление с предрелизными функциями**.",
-  "admin.experimental.enablePreviewFeatures.title": "Включить предрелизные функции:",
   "admin.experimental.enableSharedChannels.desc": "При значении \"да\", пользователи, у которых есть разрешение на управление общими каналами, могут настроить другой сервер Mattermost для синхронизации и совместного использования канала. Отключение общих каналов прекращает синхронизацию канала с другим сервером Mattermost, однако канал продолжает работать для локальных пользователей в обычном режиме.",
   "admin.experimental.enableSharedChannels.title": "Включить общие каналы:",
   "admin.experimental.enableThemeSelection.desc": "Включите **Вид > Тема** в Параметрах, чтобы пользователи могли выбирать свою тему.",

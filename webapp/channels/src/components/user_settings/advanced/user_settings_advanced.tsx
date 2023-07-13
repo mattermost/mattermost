@@ -51,7 +51,6 @@ export type Props = {
     activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
-    enablePreviewFeatures: boolean;
     enableUserDeactivation: boolean;
     syncedDraftsAreAllowed: boolean;
     actions: {
@@ -111,7 +110,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
         const isSaving = false;
 
-        const previewFeaturesEnabled = this.props.enablePreviewFeatures;
         const showDeactivateAccountModal = false;
 
         return {
@@ -120,7 +118,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             preReleaseFeaturesKeys,
             enabledFeatures,
             isSaving,
-            previewFeaturesEnabled,
             showDeactivateAccountModal,
             serverError: '',
         };

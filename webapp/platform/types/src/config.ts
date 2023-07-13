@@ -84,7 +84,6 @@ export type ClientConfig = {
     EnableOutgoingWebhooks: string;
     EnablePostIconOverride: string;
     EnablePostUsernameOverride: string;
-    EnablePreviewFeatures: string;
     EnablePreviewModeBanner: string;
     EnablePublicLink: string;
     EnableReliableWebSockets: string;
@@ -348,7 +347,6 @@ export type ServiceSettings = {
     EnableUserStatuses: boolean;
     ExperimentalEnableAuthenticationTransfer: boolean;
     ClusterLogTimeoutMilliseconds: number;
-    EnablePreviewFeatures: boolean;
     EnableTutorial: boolean;
     EnableOnboardingFlow: boolean;
     ExperimentalEnableDefaultChannelLeaveJoinMessages: boolean;

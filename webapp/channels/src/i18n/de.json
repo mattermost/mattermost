@@ -922,8 +922,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "Aktiviere \"Channel Viewed\"-WebSocket-Nachrichten:",
   "admin.experimental.enableOnboardingFlow.desc": "Wenn dies zutrifft, werden neuen Benutzern Schritte angezeigt, die diese als Teil eines Einführungsprozesses ausführen müssen",
   "admin.experimental.enableOnboardingFlow.title": "Onboarding aktivieren:",
-  "admin.experimental.enablePreviewFeatures.desc": "Wenn wahr, können Vorschaufunktionen über **Einstellungen > Erweitert > Vorschau auf Funktionen der neuen Version** aktiviert werden. Wenn falsch, werden Vorschaufunktionen in **Einstellungen > Erweitert > Vorschau auf Funktionen der neuen Version** deaktiviert und ausgeblendet.",
-  "admin.experimental.enablePreviewFeatures.title": "Vorschau auf Funktionen der neuen Version aktivieren:",
   "admin.experimental.enableSharedChannels.desc": "Wenn aktiv können Benutzer, die Berechtigung haben, gemeinsame Kanäle zu verwalten, einen anderen Mattermost-Server konfigurieren, um einen Kanal zu synchronisieren und gemeinsam zu nutzen. Das Deaktivieren von geteilten Kanälen stoppt die Synchronisierung des Kanals mit dem anderen Mattermost-Server, der Kanal funktioniert jedoch weiterhin für lokale Benutzer gemäß dem normalen Kanalverhalten.",
   "admin.experimental.enableSharedChannels.title": "Geteilte Kanäle aktivieren:",
   "admin.experimental.enableThemeSelection.desc": "Aktiviert die Registerkarte **Anzeige > Motiv** in den Einstellungen, damit Benutzer ihr Motiv auswählen können.",

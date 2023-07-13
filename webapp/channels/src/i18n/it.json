@@ -672,8 +672,6 @@
   "admin.experimental.emailSettingsLoginButtonTextColor.title": "Colore testo pulsante di login email:",
   "admin.experimental.enableChannelViewedMessages.desc": "Questa impostazione determina dove vengono inviati gli eventi `channel_viewed` del WebSocket, che sincronizza le notifiche non lette tra diversi client e dispositivi. Disattivando questa impostazione in grandi installazioni può migliorare le impostazioni del server.",
   "admin.experimental.enableChannelViewedMessages.title": "Abilita il WebSocket dei messaggi visualizzati:",
-  "admin.experimental.enablePreviewFeatures.desc": "Se vero, le funzionalità di anteprima possono essere attivate in **Impostazioni Account > Avanzate > Funzionalità di anteprima pre-rilascio**. Se falso, disattiva e nasconde le funzionalità di anteprima in **Impostazioni Account > Avanzate > Funzionalità di anteprima pre-rilascio**.",
-  "admin.experimental.enablePreviewFeatures.title": "Abilita Funzionalità di Anteprima:",
   "admin.experimental.enableThemeSelection.desc": "Abilita la scheda **Aspetto > Tema** nelle Impostazioni Account in modo da permettere agli utenti di cambiare il loro tema.",
   "admin.experimental.enableThemeSelection.title": "Attiva Seleziona Tema:",
   "admin.experimental.enableTutorial.desc": "Se vero, gli utenti seguono un tutorial quando accedono a Mattermost per la prima volta dopo la creazione dell'account. Se falso, il tutorial è disattivato e gli utenti finiscono nel gruppo principale quando aprono Mattermost per la prima volta dopo la creazione dell'account.",

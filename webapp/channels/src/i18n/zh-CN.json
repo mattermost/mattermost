@@ -892,8 +892,6 @@
   "admin.experimental.enableChannelViewedMessages.title": "开启频道已读 WebSocket 消息：",
   "admin.experimental.enableOnboardingFlow.desc": "当为是时，向新用户显示作为入职流程一部分要完成的步骤",
   "admin.experimental.enableOnboardingFlow.title": "开启入职流程：",
-  "admin.experimental.enablePreviewFeatures.desc": "当设为是时，预览功能可在 **设定 > 高级 > 预览预发行功能** 开启。当为否时，停用并屏蔽预览功能选项。",
-  "admin.experimental.enablePreviewFeatures.title": "开启预览功能：",
   "admin.experimental.enableSharedChannels.desc": "当为是时，有权管理共享频道的用户可以配置另一个 Mattermost 服务器来同步和共享频道。禁用共享频道会停止与其他 Mattermost 服务器同步该频道，但该频道继续按照正常的频道行为为本地用户运行。",
   "admin.experimental.enableSharedChannels.title": "启用共享频道：",
   "admin.experimental.enableThemeSelection.desc": "在设定中开启 **显示 > 风格** 标签以让用户选择他们的风格。",
