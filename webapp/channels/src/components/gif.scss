@@ -1,0 +1,38 @@
+@charset 'UTF-8';
+
+.gif,
+.still-gif {
+  display: none;
+}
+
+.show-gif,
+.show-still-gif {
+  display: block;
+}
+
+.gif-container {
+  position: relative;
+}
+
+.gif-play_button {
+  position: absolute;
+  z-index: 1000;
+  background: #000000B8;
+  width: 74px;
+  height: 44px;
+  border-radius: 100px;
+  padding: 12px, 16px, 12px, 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: calc(50% - 30px);
+  right: calc(50% - 35px);
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+
+  &-svg {
+    fill: #FFFFFF;
+  }
+}

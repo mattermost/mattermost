@@ -16,6 +16,7 @@ import LoadingImagePreview from 'components/loading_image_preview';
 import Tooltip from 'components/tooltip';
 import OverlayTrigger from 'components/overlay_trigger';
 import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
+import GifPlayerContainer from './gif';
 
 const MIN_IMAGE_SIZE = 48;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
@@ -208,6 +209,20 @@ export default class SizeAwareImage extends React.PureComponent {
             />
         );
 
+        const gif = (
+            <GifPlayerContainer
+                {...props}
+                src={src}
+                autoplay={true}
+                aria-label={ariaLabelImage}
+                tabIndex='0'
+                handleLoad={() => this.setState({loaded: true})}
+                handleError={this.handleError}
+                onClick={this.handleImageClick}
+                onKeyDown={this.onEnterKeyDown}
+            />
+        );
+
         // copyLink, download are two buttons overlayed on image preview
         // copyLinkTooltip, downloadTooltip are tooltips for the buttons respectively.
         // if linkCopiedRecently is true, defaultMessage would be 'Copy Link', else 'Copied!'
@@ -365,7 +380,11 @@ export default class SizeAwareImage extends React.PureComponent {
             );
         return (
             <figure className={classNames('image-loaded-container')}>
-                {image}
+                {fileInfo.extension === 'gif' ? (
+                    gif
+                ) : (
+                    image
+                )}
                 {utilityButtonsWrapper}
             </figure>
         );
