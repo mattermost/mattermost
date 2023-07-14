@@ -27,6 +27,7 @@ describe('components/sidebar/sidebar_category/sidebar_category_menu', () => {
         openModal: jest.fn(),
         setCategoryMuted: jest.fn(),
         setCategorySorting: jest.fn(),
+        viewCategory: jest.fn(),
     };
 
     test('should match snapshot and contain correct buttons', () => {

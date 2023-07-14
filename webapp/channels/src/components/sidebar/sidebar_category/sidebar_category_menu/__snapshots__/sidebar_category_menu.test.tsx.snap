@@ -31,6 +31,23 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
     }
   >
     <MenuItem
+      aria-haspopup={true}
+      id="view-test_category_id"
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Mark category as read"
+          id="sidebar_left.sidebar_category_menu.viewCategory"
+        />
+      }
+      leadingElement={
+        <MarkAsUnreadIcon
+          size={18}
+        />
+      }
+      onClick={[Function]}
+    />
+    <MenuItemSeparator />
+    <MenuItem
       id="mute-test_category_id"
       labels={
         <Memo(MemoizedFormattedMessage)
