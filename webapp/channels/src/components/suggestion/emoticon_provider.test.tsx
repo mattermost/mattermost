@@ -8,6 +8,8 @@ import EmoticonProvider, {
     MIN_EMOTICON_LENGTH,
     EMOJI_CATEGORY_SUGGESTION_BLOCKLIST,
 } from './emoticon_provider';
+import { CustomEmoji } from '@mattermost/types/src/emojis';
+import { Emoji } from '@mattermost/types/src/emojis';
 
 jest.mock('selectors/emojis', () => ({
     getEmojiMap: jest.fn(),
@@ -16,8 +18,10 @@ jest.mock('selectors/emojis', () => ({
 
 describe('components/EmoticonProvider', () => {
     const resultsCallback = jest.fn();
+    const getEmojiMap = jest.fn();
+    const getRecentEmojisNames = jest.fn();;
     const emoticonProvider = new EmoticonProvider();
-    const customEmojis = new Map([
+    const customEmojis = new Map<string,CustomEmoji>([
         ['thumbsdown-custom', {name: 'thumbsdown-custom', category: 'custom'}],
         ['thumbsup-custom', {name: 'thumbsup-custom', category: 'custom'}],
         ['lithuania-custom', {name: 'lithuania-custom', category: 'custom'}],
@@ -53,8 +57,8 @@ describe('components/EmoticonProvider', () => {
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
-        const results = args.items.filter((item) => item.name.indexOf('skin') === -1);
-        expect(results.map((item) => item.name)).toEqual([
+        const results = args.items.filter((item:Emoji) => item.name.indexOf('skin') === -1);
+        expect(results.map((item:Emoji) => item.name)).toEqual([
             'thumbsup', // thumbsup is a special case where it always appears before thumbsdown
             'thumbsdown',
             'thunder_cloud_and_rain',
@@ -86,7 +90,7 @@ describe('components/EmoticonProvider', () => {
             const name = `blocklisted-${index}`;
             return [name, {name, category}];
         });
-        const customEmojisWithBlocklist = new Map([
+        const customEmojisWithBlocklist = new Map<string,CustomEmoji>([
             ...blocklistedEmojis,
             ['not-blocklisted', {name: 'not-blocklisted', category: 'custom'}],
         ]);
@@ -113,8 +117,8 @@ describe('components/EmoticonProvider', () => {
             emoticonProvider.handlePretextChanged(pretext, resultsCallback);
             expect(resultsCallback).toHaveBeenCalled();
             const args = resultsCallback.mock.calls[0][0];
-            const results = args.items.filter((item) => item.name.indexOf('skin') === -1);
-            expect(results.map((item) => item.name)).toEqual([
+            const results = args.items.filter((item:Emoji) => item.name.indexOf('skin') === -1);
+            expect(results.map((item:Emoji) => item.name)).toEqual([
                 'thumbsup',
                 'thunder_cloud_and_rain',
                 'thumbsdown',
@@ -135,8 +139,8 @@ describe('components/EmoticonProvider', () => {
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
-        const results = args.items.filter((item) => item.name.indexOf('skin') === -1);
-        expect(results.map((item) => item.name)).toEqual([
+        const results = args.items.filter((item:Emoji) => item.name.indexOf('skin') === -1);
+        expect(results.map((item:Emoji) => item.name)).toEqual([
             'thumbsdown-custom',
             'lithuania-custom',
             'thumbsup',
@@ -156,8 +160,8 @@ describe('components/EmoticonProvider', () => {
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
-        const results = args.items.filter((item) => item.name.indexOf('skin') === -1);
-        expect(results.map((item) => item.name)).toEqual([
+        const results = args.items.filter((item:Emoji) => item.name.indexOf('skin') === -1);
+        expect(results.map((item:Emoji) => item.name)).toEqual([
             'thumbsup',
             'thumbsdown',
             'thumbsdown-custom',
@@ -177,8 +181,8 @@ describe('components/EmoticonProvider', () => {
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
-        const results = args.items.filter((item) => item.name.indexOf('skin') === -1);
-        expect(results.map((item) => item.name)).toEqual([
+        const results = args.items.filter((item:Emoji) => item.name.indexOf('skin') === -1);
+        expect(results.map((item:Emoji) => item.name)).toEqual([
             'thumbsup',
             'thumbsup-custom',
             'thumbsdown',
