@@ -2636,7 +2636,7 @@
   "announcement_bar.error.purchase_a_license_now": "Приобрести лицензию",
   "announcement_bar.error.site_url.full": "Настройте свой <linkSite>URL-адрес сайта</linkSite> в <linkConsole>Системной консоли</linkConsole>.",
   "announcement_bar.error.site_url_gitlab.full": "Пожалуйста, настройте свой <linkSite>URL сайта</linkSite> в <linkConsole>Системной консоли</linkConsole> или в gitlab.rb, если вы используете GitLab Mattermost.",
-  "announcement_bar.error.trial_license_expiring": "**До окончания бесплатного пробного периода осталось {days} дн.**",
+  "announcement_bar.error.trial_license_expiring": "До окончания бесплатного пробного периода осталось {days} дн.",
   "announcement_bar.error.trial_license_expiring_last_day": "Это последний день вашего бесплатного пробного периода. Приобретите лицензию, чтобы продолжить использование функций Professional и Enterprise.",
   "announcement_bar.error.trial_license_expiring_last_day.short": "Это последний день вашей бесплатной пробной версии.",
   "announcement_bar.error.warn_metric_status.link": "Узнать больше",

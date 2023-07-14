@@ -74,7 +74,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = false
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.PostPriority = true
 	f.PeopleProduct = false
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
