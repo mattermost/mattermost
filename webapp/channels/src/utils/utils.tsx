@@ -1513,8 +1513,15 @@ export function copyToClipboard(data: string) {
     // Attempt to use the newer clipboard API when possible
     const clipboard = navigator.clipboard;
     if (clipboard) {
-        clipboard.writeText(data);
-        return;
+        clipboard.writeText(data).then(
+            () => {
+                /* clipboard successfully set */
+                return
+            },
+            () => {
+                /* clipboard write failed, falls back to workaround below */
+            },            
+        );
     }
 
     // creates a tiny temporary text area to copy text out of
