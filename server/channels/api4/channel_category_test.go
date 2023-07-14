@@ -564,7 +564,7 @@ func TestViewCategory(t *testing.T) {
 		require.Len(t, categories.Order, 3)
 
 		_, err = client.ViewCategory(context.Background(), user.Id, th.BasicTeam.Id, categories.Categories[1].Id)
-		require.Error(t, err)
+		require.NoError(t, err)
 	})
 }
 

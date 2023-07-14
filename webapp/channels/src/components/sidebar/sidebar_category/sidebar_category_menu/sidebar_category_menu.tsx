@@ -241,7 +241,6 @@ const SidebarCategoryMenu = (props: Props) => {
         <Menu.Item
             id={`view-${props.category.id}`}
             onClick={handleViewCategory}
-            aria-haspopup={true}
             leadingElement={<MarkAsUnreadIcon size={18}/>}
             labels={(
                 <FormattedMessage
