@@ -14,26 +14,27 @@ var searchTermPuncStart = regexp.MustCompile(`^[^\pL\d\s#"]+`)
 var searchTermPuncEnd = regexp.MustCompile(`[^\pL\d\s*"]+$`)
 
 type SearchParams struct {
-	Terms                  string
-	ExcludedTerms          string
-	IsHashtag              bool
-	InChannels             []string
-	ExcludedChannels       []string
-	FromUsers              []string
-	ExcludedUsers          []string
-	AfterDate              string
-	ExcludedAfterDate      string
-	BeforeDate             string
-	ExcludedBeforeDate     string
-	Extensions             []string
-	ExcludedExtensions     []string
-	OnDate                 string
-	ExcludedDate           string
-	OrTerms                bool
-	IncludeDeletedChannels bool
-	TimeZoneOffset         int
+	Terms                  string   `json:"terms,omitempty"`
+	ExcludedTerms          string   `json:"excluded_terms,omitempty"`
+	IsHashtag              bool     `json:"ishashtag,omitempty"`
+	InChannels             []string `json:"in_channels,omitempty"`
+	ExcludedChannels       []string `json:"excluded_channels,omitempty"`
+	FromUsers              []string `json:"from_users,omitempty"`
+	ExcludedUsers          []string `json:"excluded_users,omitempty"`
+	AfterDate              string   `json:"after_date,omitempty"`
+	ExcludedAfterDate      string   `json:"excluded_after_date,omitempty"`
+	BeforeDate             string   `json:"before_date,omitempty"`
+	ExcludedBeforeDate     string   `json:"excluded_before_date,omitempty"`
+	Extensions             []string `json:"extensions,omitempty"`
+	ExcludedExtensions     []string `json:"excluded_extensions,omitempty"`
+	OnDate                 string   `json:"on_date,omitempty"`
+	ExcludedDate           string   `json:"excluded_date,omitempty"`
+	OrTerms                bool     `json:"or_terms,omitempty"`
+	IncludeDeletedChannels bool     `json:"include_deleted_channels,omitempty"`
+	TimeZoneOffset         int      `json:"timezone_offset,omitempty"`
 	// True if this search doesn't originate from a "current user".
-	SearchWithoutUserId bool
+	SearchWithoutUserId bool   `json:"search_without_user_id,omitempty"`
+	Modifier            string `json:"modifier"`
 }
 
 // Returns the epoch timestamp of the start of the day specified by SearchParams.AfterDate
