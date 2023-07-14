@@ -44,7 +44,7 @@ export type Actions = {
     openModal: (input: ModalData<DialogProps>) => void;
     scrollPostListToBottom: () => void;
     getPostEditHistory: (postId: string) => void;
-    runMessageWillBeUpdatedHooks: (newPost: Post, oldPost: Post) => Promise<ActionResult>;
+    runMessageWillBeUpdatedHooks: (newPost: Partial<Post>, oldPost: Post) => Promise<ActionResult>;
 }
 
 export type Props = {
@@ -237,13 +237,15 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
 
         let updatedPost = {
-            ...editingPost.post,
             message: editText,
+            id: editingPost.postId,
+            channel_id: editingPost.post.channel_id,
         };
 
         const hookResult = await actions.runMessageWillBeUpdatedHooks(updatedPost, editingPost.post);
         if (hookResult.error) {
-            setPostError(hookResult.error);
+            setPostError(hookResult.error); // also, we need to make sure we get error handling correct
+            return;
         }
 
         updatedPost = hookResult.data;
