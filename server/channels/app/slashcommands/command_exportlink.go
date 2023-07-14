@@ -20,7 +20,8 @@ type ExportLinkProvider struct {
 }
 
 const (
-	CmdExportLink = "exportlink"
+	CmdExportLink       = "exportlink"
+	LatestExportMessage = "latest"
 )
 
 func init() {
@@ -50,8 +51,10 @@ func (*ExportLinkProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.C
 		Trigger:          CmdExportLink,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_exportlink.desc"),
-		AutoCompleteHint: T("api.command_exportlink.hint"),
-		DisplayName:      T("api.command_exportlink.name"),
+		AutoCompleteHint: T("api.command_exportlink.hint", map[string]any{
+			"LatestMsg": LatestExportMessage,
+		}),
+		DisplayName: T("api.command_exportlink.name"),
 	}
 }
 
@@ -67,7 +70,7 @@ func (*ExportLinkProvider) DoCommand(a *app.App, c request.CTX, args *model.Comm
 	}
 
 	file := ""
-	if message == "latest" {
+	if message == LatestExportMessage {
 		files, err := b.ListDirectory(*a.Config().ExportSettings.Directory)
 		if err != nil {
 			return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.list.app_error")}

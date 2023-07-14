@@ -825,7 +825,7 @@
   },
   {
     "id": "api.command_exportlink.hint",
-    "translation": "[job-id|zip filename|latest]"
+    "translation": "[job-id|zip filename|{{.LatestMsg}}]"
   },
   {
     "id": "api.command_exportlink.invalid.app_error",
