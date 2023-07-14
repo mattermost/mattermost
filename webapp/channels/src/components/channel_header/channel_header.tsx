@@ -103,7 +103,6 @@ type State = {
     showChannelHeaderPopover: boolean;
     leftOffset: number;
     topOffset: number;
-    popoverOverlayWidth: number;
 };
 
 class ChannelHeader extends React.PureComponent<Props, State> {
@@ -122,7 +121,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
         this.headerOverlayRef = React.createRef();
 
         this.state = {
-            popoverOverlayWidth: 0,
             showChannelHeaderPopover: false,
             leftOffset: 0,
             topOffset: 0,
@@ -244,12 +242,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
         } else {
             this.props.actions.showChannelMembers(this.props.channel.id);
         }
-    };
-
-    setPopoverOverlayWidth = () => {
-        const headerDescriptionRect = this.headerDescriptionRef.current?.getBoundingClientRect();
-        const ellipsisWidthAdjustment = 10;
-        this.setState({popoverOverlayWidth: (headerDescriptionRect?.width ?? 0) + ellipsisWidthAdjustment});
     };
 
     handleFormattedTextClick = (e: MouseEvent<HTMLSpanElement>) => handleFormattedTextClick(e, this.props.currentRelativeTeamUrl);
@@ -604,7 +596,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             rootClose={true}
                             target={this.headerDescriptionRef.current as React.ReactInstance}
                             ref={this.headerOverlayRef}
-                            onEnter={this.setPopoverOverlayWidth}
                             onHide={() => this.setState({showChannelHeaderPopover: false})}
                         >
                             {popoverContent}
