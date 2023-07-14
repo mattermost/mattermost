@@ -172,6 +172,16 @@ const PostComponent = (props: Props): JSX.Element => {
         }
     }, [hasReceivedA11yFocus, shouldHighlight]);
 
+    // Double Command Bug solution, this makes sure that the system message post that should be in root doesn't show in channels
+    if(post.channel_id && post.root_id && post.type == "system_ephemeral" ) {
+        console.log("MESSAGE THATT SHOULD BE IN THREAD", post.channel_id, post.root_id, post.type, props.location) 
+        if(props.location === Locations.RHS_COMMENT || props.location === Locations.RHS_ROOT) {
+            console.log("continue")
+        } else {
+            return <></>
+        }
+    }
+
     useEffect(() => {
         if (a11yActive) {
             postRef.current?.dispatchEvent(new Event(A11yCustomEventTypes.UPDATE));
