@@ -5797,22 +5797,6 @@ func (s *TimerLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceFo
 	return result, resultVar1, err
 }
 
-func (s *TimerLayerPostStore) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, error) {
-	start := time.Now()
-
-	result, err := s.PostStore.GetRecentSearchesForUser(userID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetRecentSearchesForUser", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerPostStore) GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error) {
 	start := time.Now()
 
@@ -5890,22 +5874,6 @@ func (s *TimerLayerPostStore) InvalidateLastPostTimeCache(channelID string) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.InvalidateLastPostTimeCache", success, elapsed)
 	}
-}
-
-func (s *TimerLayerPostStore) LogRecentSearch(userID string, searchQuery []byte, createAt int64) error {
-	start := time.Now()
-
-	err := s.PostStore.LogRecentSearch(userID, searchQuery, createAt)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.LogRecentSearch", success, elapsed)
-	}
-	return err
 }
 
 func (s *TimerLayerPostStore) Overwrite(post *model.Post) (*model.Post, error) {
