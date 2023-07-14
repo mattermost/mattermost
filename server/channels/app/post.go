@@ -100,9 +100,10 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 	// the post is NOT a reply post with CRT enabled
 	_, fromWebhook := post.GetProps()["from_webhook"]
 	_, fromBot := post.GetProps()["from_bot"]
-	isCRTReply := post.RootId != "" && a.IsCRTEnabledForUser(c, post.UserId)
+	isCRTEnabled := a.IsCRTEnabledForUser(c, post.UserId)
+	isCRTReply := post.RootId != "" && isCRTEnabled
 	if !fromWebhook && !fromBot && !isCRTReply {
-		if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
+		if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true, isCRTEnabled); err != nil {
 			c.Logger().Warn(
 				"Encountered error updating last viewed",
 				mlog.String("channel_id", post.ChannelId),

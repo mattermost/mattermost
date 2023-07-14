@@ -1235,7 +1235,6 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                 />
                                 <TextSetting
                                     id={'marketplaceUrl'}
-                                    type={'input'}
                                     label={
                                         <FormattedMessage
                                             id='admin.plugins.settings.marketplaceUrl'

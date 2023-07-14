@@ -124,17 +124,17 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
         }
 
         // show unread toast when a channel is marked as unread
-        if (props.channelMarkedAsUnread && !props.atBottom && !prevState.channelMarkedAsUnread && !prevState.showUnreadToast) {
+        if (props.channelMarkedAsUnread && (props.atBottom === false) && !prevState.channelMarkedAsUnread && !prevState.showUnreadToast) {
             showUnreadToast = true;
         }
 
         // show unread toast when a channel is remarked as unread using the change in lastViewedAt
         // lastViewedAt changes only if a channel is remarked as unread in channelMarkedAsUnread state
-        if (props.channelMarkedAsUnread && props.lastViewedAt !== prevState.lastViewedAt && !props.atBottom) {
+        if (props.channelMarkedAsUnread && props.lastViewedAt !== prevState.lastViewedAt && (props.atBottom === false)) {
             showUnreadToast = true;
         }
 
-        if (!showUnreadToast && unreadCount > 0 && !props.atBottom && props.latestPostTimeStamp && (props.lastViewedBottom < props.latestPostTimeStamp)) {
+        if (!showUnreadToast && unreadCount > 0 && (props.atBottom === false) && props.latestPostTimeStamp && (props.lastViewedBottom < props.latestPostTimeStamp)) {
             showNewMessagesToast = true;
         }
 
@@ -384,7 +384,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
             onDismiss: this.hideUnreadToast,
             onClick: this.scrollToLatestMessages,
             onClickMessage: localizeMessage('postlist.toast.scrollToBottom', 'Jump to recents'),
-            showActions: !atLatestPost || (atLatestPost && !atBottom),
+            showActions: !atLatestPost || (atLatestPost && (atBottom === false)),
         };
 
         if (showUnreadToast && unreadCount > 0) {
