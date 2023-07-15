@@ -37,7 +37,6 @@ exports[`components/channel_notifications_modal/NotificationSection should match
 
 exports[`components/channel_notifications_modal/NotificationSection should match snapshot, MARK_UNREAD on collapsed view 1`] = `
 <CollapseView
-  globalNotifyLevel={null}
   memberNotifyLevel="all"
   onExpandSection={[Function]}
   section="markUnread"
@@ -46,7 +45,6 @@ exports[`components/channel_notifications_modal/NotificationSection should match
 
 exports[`components/channel_notifications_modal/NotificationSection should match snapshot, MARK_UNREAD on expanded view 1`] = `
 <ExpandView
-  globalNotifyLevel={null}
   memberNotifyLevel="all"
   memberThreadsNotifyLevel="all"
   onChange={[Function]}

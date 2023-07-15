@@ -1,112 +1,120 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
-import React from 'react';
+import React, {ChangeEvent, PureComponent} from 'react';
+
+import {ValueType} from 'react-select';
 
 import {NotificationSections, NotificationLevels} from 'utils/constants';
+
+import {ChannelNotifyProps} from '@mattermost/types/channels';
 
 import CollapseView from './collapse_view';
 import ExpandView from './expand_view';
 
-export default class NotificationSection extends React.PureComponent {
-    static propTypes = {
+type SelectedOption = {
+    label: string;
+    value: string;
+};
 
-        /**
-         * Notification section
-         */
-        section: PropTypes.string.isRequired,
+export type NotificationSectionProps = {
 
-        /**
-         * Expand if true, else collapse the section
-         */
-        expand: PropTypes.bool.isRequired,
+    /**
+     * Notification section
+     */
+    section: string;
 
-        /**
-         * Member's desktop notification level
-         */
-        memberNotificationLevel: PropTypes.string.isRequired,
+    /**
+     * Expand if true, else collapse the section
+     */
+    expand: boolean;
 
-        memberDesktopSound: PropTypes.string,
+    /**
+     * Member's desktop notification level
+     */
+    memberNotificationLevel: string;
 
-        memberDesktopNotificationSound: PropTypes.string,
+    memberDesktopSound?: string;
 
-        /**
-         * Member's desktop_threads notification level
-         */
-        memberThreadsNotificationLevel: PropTypes.string,
+    memberDesktopNotificationSound?: string;
 
-        /**
-         * Ignore channel-wide mentions @channel, @here and @all
-         */
-        ignoreChannelMentions: PropTypes.string,
+    /**
+     * Member's desktop_threads notification level
+     */
+    memberThreadsNotificationLevel?: string;
 
-        /**
-         * Auto-follow all new threads in this channel
-         */
-        channelAutoFollowThreads: PropTypes.string,
+    /**
+     * Ignore channel-wide mentions @channel, @here and @all
+     */
+    ignoreChannelMentions?: string;
 
-        /**
-         * User's global notification level
-         */
-        globalNotificationLevel: PropTypes.string,
+    /**
+     * Auto-follow all new threads in this channel
+     */
+    channelAutoFollowThreads?: string;
 
-        /**
-         * User's global notification sound
-         */
-        globalNotificationSound: PropTypes.string,
+    /**
+     * User's global notification level
+     */
+    globalNotificationLevel?: string;
 
-        /**
-         * onChange handles update of desktop notification level
-         */
-        onChange: PropTypes.func.isRequired,
+    /**
+     * User's global notification sound
+     */
+    globalNotificationSound?: ChannelNotifyProps['desktop_notification_sound'];
 
-        /**
-         * onChangeThreads handles update of desktop_threads notification level
-         */
-        onChangeThreads: PropTypes.func,
+    /**
+     * onChange handles update of desktop notification level
+     */
+    onChange: (value?: string) => void;
 
-        onChangeDesktopSound: PropTypes.func,
+    /**
+     * onChangeThreads handles update of desktop_threads notification level
+     */
+    onChangeThreads?: (value?: string) => void;
 
-        onChangeNotificationSound: PropTypes.func,
+    onChangeDesktopSound?: (value?: string) => void;
 
-        onReset: PropTypes.func,
+    onChangeNotificationSound?: (value?: string) => void;
 
-        isNotificationsSettingSameAsGlobal: PropTypes.bool,
+    onReset?: () => void;
 
-        /**
-         * Submit function to save notification level
-         */
-        onSubmit: PropTypes.func.isRequired,
+    isNotificationsSettingSameAsGlobal?: boolean;
 
-        /**
-         * Update function to to expand or collapse a section
-         */
-        onUpdateSection: PropTypes.func.isRequired,
+    /**
+     * Submit function to save notification level
+     */
+    onSubmit: (setting?: string) => void;
 
-        /**
-         * Error string from the server
-         */
-        serverError: PropTypes.string,
+    /**
+     * Update function to to expand or collapse a section
+     */
+    onUpdateSection: (setting?: string) => void;
+
+    /**
+     * Error string from the server
+     */
+    serverError?: string;
+}
+
+export default class NotificationSection extends PureComponent<NotificationSectionProps> {
+    handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
+        this.props.onChange(e.currentTarget.value);
     };
 
-    handleOnChange = (e) => {
-        this.props.onChange(e.target.value);
-    };
-
-    handleOnChangeThreads = (e) => {
+    handleOnChangeThreads = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
 
-        this.props.onChangeThreads(value);
+        this.props.onChangeThreads?.(value);
     };
 
-    handleOnChangeDesktopSound = (e) => {
-        this.props.onChangeDesktopSound(e.target.value);
+    handleOnChangeDesktopSound = (e: ChangeEvent<HTMLInputElement>) => {
+        this.props.onChangeDesktopSound?.(e.target.value);
     };
 
-    handleOnChangeNotificationSound = (selectedOption) => {
+    handleOnChangeNotificationSound = (selectedOption: ValueType<SelectedOption>) => {
         if (selectedOption && 'value' in selectedOption) {
-            this.props.onChangeNotificationSound(selectedOption.value);
+            this.props.onChangeNotificationSound?.(selectedOption.value);
         }
     };
 
@@ -154,7 +162,7 @@ export default class NotificationSection extends React.PureComponent {
                     onChangeThreads={this.handleOnChangeThreads}
                     onChangeDesktopSound={this.handleOnChangeDesktopSound}
                     onChangeNotificationSound={this.handleOnChangeNotificationSound}
-                    onSubmit={onSubmit}
+                    onSubmit={onSubmit as (setting?: string) => void}
                     serverError={serverError}
                     onCollapseSection={this.handleCollapseSection}
                 />

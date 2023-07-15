@@ -34,7 +34,7 @@ type Props = {
     onChangeDesktopSound?: (e: ChangeEvent<HTMLInputElement>) => void;
     onChangeNotificationSound?: (selectedOption: ValueType<SelectedOption>) => void;
     onCollapseSection: (section: string) => void;
-    onReset: () => void;
+    onReset?: () => void;
     onSubmit: (setting?: string) => void;
     isNotificationsSettingSameAsGlobal?: boolean;
     globalNotifyLevel?: string;
