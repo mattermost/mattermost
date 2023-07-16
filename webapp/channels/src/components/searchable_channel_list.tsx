@@ -166,7 +166,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                 {membershipIndicator}
                 {membershipIndicator ? <span className='dot'/> : null}
                 <AccountOutlineIcon size={14}/>
-                <span>{memberCount}</span>
+                <span data-testid={`channelMemberCount-${channel.name}`} >{memberCount}</span>
                 {channel.purpose.length > 0 ? <span className='dot'/> : null}
                 <span className='more-modal__description'>{channel.purpose}</span>
             </div>
@@ -203,6 +203,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                 className='more-modal__row'
                 key={channel.id}
                 id={`ChannelRow-${channel.name}`}
+                data-testid={`ChannelRow-${channel.name}`}
                 aria-label={ariaLabel}
                 onClick={(e) => this.handleJoin(channel, e)}
                 tabIndex={0}

@@ -48,9 +48,9 @@ describe('Channels', () => {
         });
     });
 
-    it('MM-19337 Verify UI of More channels modal with archived selection', () => {
-        verifyMoreChannelsModalWithArchivedSelection(false, testUser, testTeam);
-        verifyMoreChannelsModalWithArchivedSelection(true, testUser, testTeam);
+    it('MM-19337 Verify UI of Browse channels modal with archived selection', () => {
+        verifyBrowseChannelsModalWithArchivedSelection(false, testUser, testTeam);
+        verifyBrowseChannelsModalWithArchivedSelection(true, testUser, testTeam);
     });
 
     it('MM-19337 Enable users to view archived channels', () => {
@@ -68,7 +68,7 @@ describe('Channels', () => {
         // # Go to LHS and click 'Browse channels'
         cy.uiBrowseOrCreateChannel('Browse channels').click();
 
-        cy.get('#moreChannelsModal').should('be.visible').within(() => {
+        cy.get('#browseChannelsModal').should('be.visible').within(() => {
             // * Dropdown should be visible, defaulting to "Public Channels"
             cy.get('#channelsMoreDropdown').should('be.visible').and('contain', channelType.public).wait(TIMEOUTS.HALF_SEC);
 
@@ -86,7 +86,7 @@ describe('Channels', () => {
         });
 
         // # Verify that the modal is not closed
-        cy.get('#moreChannelsModal').should('exist');
+        cy.get('#browseChannelsModal').should('exist');
         cy.url().should('include', `/${testTeam.name}/channels/${testChannel.name}`);
 
         // # Login as channel admin and go directly to the channel
@@ -111,7 +111,7 @@ describe('Channels', () => {
         // # Go to LHS and click 'Browse channels'
         cy.uiBrowseOrCreateChannel('Browse channels').click();
 
-        cy.get('#moreChannelsModal').should('be.visible').within(() => {
+        cy.get('#browseChannelsModal').should('be.visible').within(() => {
             // # CLick dropdown to open selection
             cy.get('#channelsMoreDropdown').should('be.visible').click().within((el) => {
                 // # Click on archived channels item
@@ -143,6 +143,38 @@ describe('Channels', () => {
 
         // * Assert that archived channel doesn't show up in LHS list
         cy.get('#sidebar-left').should('not.contain', testChannel.display_name);
+    });
+
+    it('MM-19337 Increase channel member count when user joins a channel', () => {
+        // # Login as new user and go to "/"
+        cy.apiLogin(otherUser);
+        cy.visit(`/${testTeam.name}/channels/town-square`);
+
+        let newChannel;
+        cy.apiCreateChannel(testTeam.id, 'channel-to-leave', 'Channel to leave').then(({channel}) => {
+            newChannel = channel;
+            cy.visit(`/${testTeam.name}/channels/${newChannel.name}`);
+
+            // # Leave the channel
+            cy.uiLeaveChannel();
+
+            // * Verify that we've switched to Town Square
+            cy.url().should('include', '/channels/town-square');
+        });
+
+        // # Go to LHS and click 'Browse channels'
+        cy.uiBrowseOrCreateChannel('Browse channels').click();
+
+        cy.get('#browseChannelsModal').should('be.visible').within(() => {
+            // * Verify that channel has zero members
+            cy.findByTestId(`channelMemberCount-${newChannel.name}`).should('be.visible').and('contain', 0);
+
+            // # Click the channel row to join the channel
+            cy.findByTestId(`ChannelRow-${newChannel.name}`).scrollIntoView().should('be.visible').click();
+
+            // * Verify that channel has one member
+            cy.findByTestId(`channelMemberCount-${newChannel.name}`).should('be.visible').and('contain', 1);
+        });
     });
 
     it('MM-T1702 Search works when changing public/archived options in the dropdown', () => {
@@ -210,7 +242,7 @@ describe('Channels', () => {
             cy.findByText(newChannel.display_name).should('be.visible');
         });
 
-        cy.get('#moreChannelsModal').should('be.visible').within(() => {
+        cy.get('#browseChannelsModal').should('be.visible').within(() => {
             // * Users should be able to switch to "Archived Channels" list
             cy.get('#channelsMoreDropdown').should('be.visible').and('contain', channelType.public).click().within((el) => {
                 // # Click on archived channels item
@@ -229,7 +261,7 @@ describe('Channels', () => {
     });
 });
 
-function verifyMoreChannelsModalWithArchivedSelection(isEnabled, testUser, testTeam) {
+function verifyBrowseChannelsModalWithArchivedSelection(isEnabled, testUser, testTeam) {
     // # Login as sysadmin and Update config to enable/disable viewing of archived channels
     cy.apiAdminLogin();
     cy.apiUpdateConfig({
@@ -238,22 +270,22 @@ function verifyMoreChannelsModalWithArchivedSelection(isEnabled, testUser, testT
         },
     });
 
-    // * Verify more channels modal
+    // * Verify browse channels modal
     cy.visit(`/${testTeam.name}/channels/town-square`);
-    verifyMoreChannelsModal(isEnabled);
+    verifyBrowseChannelsModal(isEnabled);
 
-    // # Login as regular user and verify more channels modal
+    // # Login as regular user and verify browse channels modal
     cy.apiLogin(testUser);
     cy.visit(`/${testTeam.name}/channels/town-square`);
-    verifyMoreChannelsModal(isEnabled);
+    verifyBrowseChannelsModal(isEnabled);
 }
 
-function verifyMoreChannelsModal(isEnabled) {
+function verifyBrowseChannelsModal(isEnabled) {
     // # Go to LHS and click 'Browse channels'
     cy.uiBrowseOrCreateChannel('Browse channels').click();
 
-    // * Verify that the more channels modal is open and with or without option to view archived channels
-    cy.get('#moreChannelsModal').should('be.visible').within(() => {
+    // * Verify that the browse channels modal is open and with or without option to view archived channels
+    cy.get('#browseChannelsModal').should('be.visible').within(() => {
         if (isEnabled) {
             cy.get('#channelsMoreDropdown').should('be.visible').and('have.text', channelType.public);
         } else {
