@@ -5024,6 +5024,30 @@
     "translation": "group name is not unique"
   },
   {
+    "id": "app.desktop_token.authenticate.invalid_or_expired",
+    "translation": "Token does not exist or is expired"
+  },
+  {
+    "id": "app.desktop_token.create.collision",
+    "translation": "This token already exists in the system"
+  },
+  {
+    "id": "app.desktop_token.create.error",
+    "translation": "An error occured attempted to create the token"
+  },
+  {
+    "id": "app.desktop_token.validate.expired",
+    "translation": "Token is expired"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Token is not valid"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Cannot find a user for this token"
+  },
+  {
     "id": "app.draft.delete.app_error",
     "translation": "Unable to delete the Draft."
   },

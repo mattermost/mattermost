@@ -10,15 +10,18 @@ import {Constants} from 'utils/constants';
 
 import {Emoji} from '@mattermost/types/emojis';
 
-import EmojiPickerTabs from './emoji_picker_tabs';
+import EmojiPickerTabs from '../emoji_picker_tabs';
 
-type Props = {
-    show: boolean;
+import type {PropsFromRedux} from './index';
+
+export interface Props extends PropsFromRedux {
     container?: () => ReactNode;
     target: () => ReactNode;
     onEmojiClick: (emoji: Emoji) => void;
     onGifClick?: (gif: string) => void;
     onHide: () => void;
+    onExited?: () => void;
+    show: boolean;
     topOffset?: number;
     rightOffset?: number;
     leftOffset?: number;
@@ -26,7 +29,6 @@ type Props = {
     spaceRequiredBelow?: number;
     enableGifPicker?: boolean;
     defaultHorizontalPosition?: 'left' | 'right';
-    onExited?: () => void;
 }
 
 export default class EmojiPickerOverlay extends React.PureComponent<Props> {
@@ -79,8 +81,7 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
     });
 
     render() {
-        const {target, rightOffset, spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition, show} = this.props;
-
+        const {target, rightOffset, spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition, show, isMobileView} = this.props;
         const calculatedRightOffset = typeof rightOffset === 'undefined' ? this.emojiPickerPosition(target(), show) : rightOffset;
         const placement = this.getPlacement(target(), spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition, show);
 
@@ -88,7 +89,7 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
             <Overlay
                 show={show}
                 placement={placement}
-                rootClose={true}
+                rootClose={!isMobileView}
                 container={this.props.container}
                 onHide={this.props.onHide}
                 target={target}

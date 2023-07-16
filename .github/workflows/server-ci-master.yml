@@ -12,3 +12,4 @@ env:
 jobs:
   master-ci:
     uses: ./.github/workflows/server-ci-template.yml
+    secrets: inherit
