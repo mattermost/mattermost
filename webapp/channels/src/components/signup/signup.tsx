@@ -4,7 +4,7 @@
 import React, {useState, useEffect, useRef, useCallback, FocusEvent} from 'react';
 
 import {useIntl} from 'react-intl';
-import {useLocation, useHistory, Route} from 'react-router-dom';
+import {useLocation, useHistory} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
@@ -54,11 +54,9 @@ import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityC
 import ExternalLink from 'components/external_link';
 
 import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
-import {isDesktopApp} from 'utils/user_agent';
 import {isValidUsername, isValidPassword, getPasswordConfig, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
 
 import './signup.scss';
-import DesktopAuthToken from 'components/desktop_auth_token';
 
 const MOBILE_SCREEN_WIDTH = 1200;
 
@@ -150,8 +148,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const canSubmit = Boolean(email && name && password) && !hasError && !loading;
     const {error: passwordInfo} = isValidPassword('', getPasswordConfig(config), intl);
 
-    const [desktopLoginLink, setDesktopLoginLink] = useState('');
-
     const subscribeToSecurityNewsletterFunc = () => {
         try {
             Client4.subscribeToNewsletter({email, subscribed_content: 'security_newsletter'});
@@ -169,48 +165,40 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
 
         if (enableSignUpWithGitLab) {
-            const url = `${Client4.getOAuthRoute()}/gitlab/signup${search}`;
             externalLoginOptions.push({
                 id: 'gitlab',
-                url,
+                url: `${Client4.getOAuthRoute()}/gitlab/signup${search}`,
                 icon: <LoginGitlabIcon/>,
                 label: GitLabButtonText || formatMessage({id: 'login.gitlab', defaultMessage: 'GitLab'}),
                 style: {color: GitLabButtonColor, borderColor: GitLabButtonColor},
-                onClick: desktopExternalAuth(url),
             });
         }
 
         if (isLicensed && enableSignUpWithGoogle) {
-            const url = `${Client4.getOAuthRoute()}/google/signup${search}`;
             externalLoginOptions.push({
                 id: 'google',
-                url,
+                url: `${Client4.getOAuthRoute()}/google/signup${search}`,
                 icon: <LoginGoogleIcon/>,
                 label: formatMessage({id: 'login.google', defaultMessage: 'Google'}),
-                onClick: desktopExternalAuth(url),
             });
         }
 
         if (isLicensed && enableSignUpWithOffice365) {
-            const url = `${Client4.getOAuthRoute()}/office365/signup${search}`;
             externalLoginOptions.push({
                 id: 'office365',
-                url,
+                url: `${Client4.getOAuthRoute()}/office365/signup${search}`,
                 icon: <LoginOffice365Icon/>,
                 label: formatMessage({id: 'login.office365', defaultMessage: 'Office 365'}),
-                onClick: desktopExternalAuth(url),
             });
         }
 
         if (isLicensed && enableSignUpWithOpenId) {
-            const url = `${Client4.getOAuthRoute()}/openid/signup${search}`;
             externalLoginOptions.push({
                 id: 'openid',
-                url,
+                url: `${Client4.getOAuthRoute()}/openid/signup${search}`,
                 icon: <LoginOpenIDIcon/>,
                 label: OpenIdButtonText || formatMessage({id: 'login.openid', defaultMessage: 'Open ID'}),
                 style: {color: OpenIdButtonColor, borderColor: OpenIdButtonColor},
-                onClick: desktopExternalAuth(url),
             });
         }
 
@@ -223,7 +211,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 url: `${Client4.getUrl()}/login?${newSearchParam.toString()}`,
                 icon: <LockIcon/>,
                 label: LdapLoginFieldName || formatMessage({id: 'signup.ldap', defaultMessage: 'AD/LDAP Credentials'}),
-                onClick: () => {},
             });
         }
 
@@ -231,13 +218,11 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             const newSearchParam = new URLSearchParams(search);
             newSearchParam.set('action', 'signup');
 
-            const url = `${Client4.getUrl()}/login/sso/saml?${newSearchParam.toString()}`;
             externalLoginOptions.push({
                 id: 'saml',
-                url,
+                url: `${Client4.getUrl()}/login/sso/saml?${newSearchParam.toString()}`,
                 icon: <LockIcon/>,
                 label: SamlLoginButtonText || formatMessage({id: 'login.saml', defaultMessage: 'SAML'}),
-                onClick: desktopExternalAuth(url),
             });
         }
 
@@ -309,17 +294,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const onWindowResize = throttle(() => {
         setIsMobileView(window.innerWidth < MOBILE_SCREEN_WIDTH);
     }, 100);
-
-    const desktopExternalAuth = (href: string) => {
-        return (event: React.MouseEvent) => {
-            if (isDesktopApp()) {
-                event.preventDefault();
-
-                setDesktopLoginLink(href);
-                history.push(`/signup_user_complete/desktop${search}`);
-            }
-        };
-    };
 
     useEffect(() => {
         dispatch(removeGlobalItem('team'));
@@ -473,12 +447,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
             return;
         }
-
-        await postSignupSuccess();
-    };
-
-    const postSignupSuccess = async () => {
-        const redirectTo = (new URLSearchParams(search)).get('redirect_to');
 
         if (graphQLEnabled) {
             await dispatch(loadMe());
@@ -722,20 +690,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                 {formatMessage({id: 'signup_user_completed.return', defaultMessage: 'Return to log in'})}
                             </button>
                         </div>
-                    )}
-                />
-            );
-        }
-
-        if (desktopLoginLink) {
-            return (
-                <Route
-                    path={'/signup_user_complete/desktop'}
-                    render={() => (
-                        <DesktopAuthToken
-                            href={desktopLoginLink}
-                            onLogin={postSignupSuccess}
-                        />
                     )}
                 />
             );
