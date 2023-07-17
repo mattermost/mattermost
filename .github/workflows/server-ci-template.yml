@@ -47,6 +47,8 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
@@ -67,7 +69,7 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
-      - name: Setup go.work
+      - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
         run: make golangci-lint
@@ -87,6 +89,8 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
@@ -107,10 +111,10 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
-      - name: Reset config
-        run: make config-reset
       - name: Run setup-go-work
         run: make setup-go-work
+      - name: Reset config
+        run: make config-reset
       - name: Run plugin-checker
         run: make plugin-checker
       - name: Run mattermost-vet
@@ -141,6 +145,8 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Checkout mattermost-api-reference
         run: |
           cd ..
@@ -181,6 +187,8 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
@@ -201,6 +209,8 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Generate app layers
         run: make app-layers
       - name: Check generated code
@@ -208,6 +218,9 @@ jobs:
   check-mmctl-docs:
     name: Check mmctl docs
     runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -218,10 +231,11 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Check docs
         run: |
           echo "Making sure docs are updated"
-          cd server
           make mmctl-docs
           if [[ -n $(git status --porcelain) ]]; then echo "Please update the mmctl docs using make mmctl-docs"; exit 1; fi
   test-postgres-binary:
@@ -281,6 +295,8 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Build
         run: |
           make config-reset
