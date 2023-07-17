@@ -433,7 +433,6 @@ type AppIface interface {
 	AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter, r *http.Request)
 	AttachDeviceId(sessionID string, deviceID string, expiresAt int64) *model.AppError
 	AttachSessionCookies(c *request.Context, w http.ResponseWriter, r *http.Request)
-	AuthenticateDesktopToken(token string, expiryTime int64, user *model.User) *model.AppError
 	AuthenticateUserForLogin(c *request.Context, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError)
 	AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service, code, state, redirectURI string) (io.ReadCloser, string, map[string]string, *model.User, *model.AppError)
 	AutocompleteChannels(c request.CTX, userID, term string) (model.ChannelListWithTeamData, *model.AppError)
@@ -486,7 +485,6 @@ type AppIface interface {
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
 	CreateCommand(cmd *model.Command) (*model.Command, *model.AppError)
 	CreateCommandWebhook(commandID string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError)
-	CreateDesktopToken(token string, createdAt int64) *model.AppError
 	CreateEmoji(c request.CTX, sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError)
 	CreateGroup(group *model.Group) (*model.Group, *model.AppError)
 	CreateGroupChannel(c request.CTX, userIDs []string, creatorId string) (*model.Channel, *model.AppError)
@@ -703,8 +701,8 @@ type AppIface interface {
 	GetOAuthAppsByCreator(userID string, page, perPage int) ([]*model.OAuthApp, *model.AppError)
 	GetOAuthCodeRedirect(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
 	GetOAuthImplicitRedirect(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
-	GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service, teamID, action, redirectTo, loginHint string, isMobile bool, desktopToken string) (string, *model.AppError)
-	GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service, teamID string, desktopToken string) (string, *model.AppError)
+	GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service, teamID, action, redirectTo, loginHint string, isMobile bool) (string, *model.AppError)
+	GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service, teamID string) (string, *model.AppError)
 	GetOAuthStateToken(token string) (*model.Token, *model.AppError)
 	GetOnboarding() (*model.System, *model.AppError)
 	GetOpenGraphMetadata(requestURL string) ([]byte, error)
@@ -1178,7 +1176,6 @@ type AppIface interface {
 	UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostFeature) bool
 	UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError)
 	UserIsFirstAdmin(user *model.User) bool
-	ValidateDesktopToken(token string, expiryTime int64) (*model.User, *model.AppError)
 	VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError
 	VerifyUserEmail(userID, email string) *model.AppError
 	ViewChannel(c request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
