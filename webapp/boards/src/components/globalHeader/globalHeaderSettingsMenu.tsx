@@ -8,13 +8,11 @@ import {Archiver} from 'src/archiver'
 import Menu from 'src/widgets/menu'
 import MenuWrapper from 'src/widgets/menuWrapper'
 import {useAppDispatch, useAppSelector} from 'src/store/hooks'
-import {storeLanguage} from 'src/store/language'
 import {getMe, patchProps} from 'src/store/users'
 import {Team, getCurrentTeam} from 'src/store/teams'
 import {IUser, UserConfigPatch} from 'src/user'
 import octoClient from 'src/octoClient'
 import {UserSettings} from 'src/userSettings'
-import CheckIcon from 'src/widgets/icons/check'
 import SettingsIcon from 'src/widgets/icons/settings'
 
 import {Constants} from 'src/constants'
@@ -68,23 +66,6 @@ const GlobalHeaderSettingsMenu = (props: Props) => {
                                         TelemetryClient.trackEvent(TelemetryCategory, i.telemetryName)
                                         window.open(i.href)
                                     }}
-                                />
-                            ))
-                        }
-                    </Menu.SubMenu>
-                    <Menu.SubMenu
-                        id='lang'
-                        name={intl.formatMessage({id: 'Sidebar.set-language', defaultMessage: 'Set language'})}
-                        position='left-bottom'
-                    >
-                        {
-                            Constants.languages.map((language) => (
-                                <Menu.Text
-                                    key={language.code}
-                                    id={`${language.name}-lang`}
-                                    name={language.displayName}
-                                    onClick={async () => dispatch(storeLanguage(language.code))}
-                                    rightIcon={intl.locale.toLowerCase() === language.code ? <CheckIcon/> : null}
                                 />
                             ))
                         }

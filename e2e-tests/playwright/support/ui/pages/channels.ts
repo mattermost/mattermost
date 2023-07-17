@@ -11,18 +11,28 @@ export default class ChannelsPage {
     readonly channels = 'Channels';
     readonly page: Page;
     readonly postCreate;
+    readonly findChannelsModal;
     readonly globalHeader;
     readonly header;
+    readonly headerMobile;
     readonly appBar;
+    readonly sidebarLeft;
     readonly sidebarRight;
+    readonly postDotMenu;
+    readonly deletePostModal;
 
     constructor(page: Page) {
         this.page = page;
         this.postCreate = new components.ChannelsPostCreate(page.locator('#post-create'));
+        this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
         this.globalHeader = new components.GlobalHeader(page.locator('#global-header'));
         this.header = new components.ChannelsHeader(page.locator('.channel-header'));
+        this.headerMobile = new components.ChannelsHeaderMobile(page.locator('.navbar'));
         this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
+        this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
+        this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
+        this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
     }
 
     async goto(teamName = '', channelName = '') {

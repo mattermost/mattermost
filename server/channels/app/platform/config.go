@@ -17,12 +17,14 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 // ServiceConfig is used to initialize the PlatformService.
@@ -73,6 +75,24 @@ func (ps *PlatformService) IsConfigReadOnly() bool {
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 // It returns both the previous and current configs.
 func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
+	if ps.pluginEnv != nil {
+		var hookErr error
+		ps.pluginEnv.RunMultiHook(func(hooks plugin.Hooks) bool {
+			var cfg *model.Config
+			cfg, hookErr = hooks.ConfigurationWillBeSaved(newCfg)
+			if hookErr == nil && cfg != nil {
+				newCfg = cfg
+			}
+			return hookErr == nil
+		}, plugin.ConfigurationWillBeSavedID)
+		if hookErr != nil {
+			if appErr, ok := hookErr.(*model.AppError); ok {
+				return nil, nil, appErr
+			}
+			return nil, nil, model.NewAppError("saveConfig", "app.save_config.plugin_hook_error", nil, "", http.StatusBadRequest).Wrap(hookErr)
+		}
+	}
+
 	oldCfg, newCfg, err := ps.configStore.Set(newCfg)
 	if errors.Is(err, config.ErrReadOnlyConfiguration) {
 		return nil, nil, model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, "", http.StatusForbidden).Wrap(err)
@@ -120,14 +140,16 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 	// file is loaded.  If no valid E20 license exists then advanced logging will be
 	// shutdown once license is loaded/checked.
 	var err error
-	dsn := *logSettings.AdvancedLoggingConfig
 	var logConfigSrc config.LogConfigSrc
-	if dsn != "" {
+	dsn := logSettings.GetAdvancedLoggingConfig()
+	if !utils.IsEmptyJSON(dsn) {
 		logConfigSrc, err = config.NewLogConfigSrc(dsn, ps.configStore)
 		if err != nil {
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
-		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", dsn))
+		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", string(dsn)))
+	} else {
+		ps.logger.Debug("Advanced logging config not provided for " + name)
 	}
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, logConfigSrc, getPath)
@@ -197,10 +219,7 @@ func (ps *PlatformService) regenerateClientConfig() {
 
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
 func (ps *PlatformService) AsymmetricSigningKey() *ecdsa.PrivateKey {
-	if key := ps.asymmetricSigningKey.Load(); key != nil {
-		return key.(*ecdsa.PrivateKey)
-	}
-	return nil
+	return ps.asymmetricSigningKey.Load()
 }
 
 // EnsureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
@@ -325,12 +344,31 @@ func (ps *PlatformService) LimitedClientConfig() map[string]string {
 }
 
 func (ps *PlatformService) IsFirstUserAccount() bool {
+	if !ps.isFirstUserAccount.Load() {
+		return false
+	}
+
+	ps.isFirstUserAccountLock.Lock()
+	defer ps.isFirstUserAccountLock.Unlock()
+	// Retry under lock as another call might have already succeeded.
+	if !ps.isFirstUserAccount.Load() {
+		return false
+	}
+
+	ps.logger.Debug("Fetching user count for first user account check")
 	count, err := ps.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {
 		return false
 	}
 
-	return count <= 0
+	// Avoid calling the user count query in future if we get a count > 0
+	if count > 0 {
+		ps.isFirstUserAccount.Store(false)
+		return false
+	}
+
+	return true
+
 }
 
 func (ps *PlatformService) MaxPostSize() int {

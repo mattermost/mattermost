@@ -11,8 +11,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -436,12 +436,13 @@ func (h *Hub) Start() {
 
 				conns := connIndex.ForUser(webConn.UserId)
 				if len(conns) == 0 || areAllInactive(conns) {
+					userID := webConn.UserId
 					h.platform.Go(func() {
-						h.platform.SetStatusOffline(webConn.UserId, false)
+						h.platform.SetStatusOffline(userID, false)
 					})
 					continue
 				}
-				var latestActivity int64 = 0
+				var latestActivity int64
 				for _, conn := range conns {
 					if !conn.active {
 						continue
@@ -452,8 +453,9 @@ func (h *Hub) Start() {
 				}
 
 				if h.platform.isUserAway(latestActivity) {
+					userID := webConn.UserId
 					h.platform.Go(func() {
-						h.platform.SetStatusLastActivityAt(webConn.UserId, latestActivity)
+						h.platform.SetStatusLastActivityAt(userID, latestActivity)
 					})
 				}
 			case userID := <-h.invalidateUser:

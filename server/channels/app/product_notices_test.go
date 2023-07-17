@@ -14,8 +14,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestNoticeValidation(t *testing.T) {
@@ -640,6 +640,9 @@ func TestNoticeValidation(t *testing.T) {
 			model.BuildNumber = tt.args.serverVersion
 			if model.BuildNumber == "" {
 				model.BuildNumber = "5.26.1"
+				defer func() {
+					model.BuildNumber = ""
+				}()
 			}
 			if ok, err := noticeMatchesConditions(
 				th.App.Config(),

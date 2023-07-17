@@ -51,20 +51,11 @@ check-types: node_modules ## Checks TS file for TypeScript confirmity
 
 	npm run check-types
 
-.PHONY: build
-build: node_modules ## Builds all web app packages
-	@echo Building Web App and related packages
-
-	npm run build
-
 .PHONY: dist
-dist: build ## Builds all web app packages and copies Boards/Playbooks files into Channels dist folder
+dist: node_modules ## Builds all web app packages
 	@echo Packaging Mattermost Web App
 
-	mkdir -p channels/dist/products/boards
-	cp -R boards/dist/* channels/dist/products/boards
-	mkdir -p channels/dist/products/playbooks
-	cp -R playbooks/dist/* channels/dist/products/playbooks
+	npm run build
 
 node_modules: package.json $(wildcard package-lock.json)
 	@echo Getting dependencies using npm
@@ -84,6 +75,14 @@ clean: ## Clears cached; deletes node_modules and dist directories
 
 	npm run clean --workspaces --if-present
 	rm -rf node_modules
+
+.PHONY: package
+package: node_modules dist ## Generates ./mattermost-webapp.tar.gz for use by someone customizing the web app
+	mkdir tmp
+	mv channels/dist tmp/client
+	tar -C tmp -czf mattermost-webapp.tar.gz client
+	mv tmp/client channels/dist
+	rmdir tmp
 
 ## Help documentation à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help

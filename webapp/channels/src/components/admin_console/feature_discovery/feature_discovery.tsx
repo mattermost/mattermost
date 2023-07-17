@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
@@ -196,12 +196,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         // if all conditions are set for being able to request a cloud trial, then show the cta start cloud trial button
             if (canRequestCloudFreeTrial) {
                 ctaPrimaryButton = (
-                    <CloudStartTrialButton
-                        message={Utils.localizeAndFormatMessage(
-                            'admin.ldap_feature_discovery.call_to_action.primary.cloudFree',
-                            'Try free for {trialLength} days',
-                            {trialLength: FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS},
-                        )}
+                    <FeatureDiscoveryCloudStartTrialButton
                         telemetryId={`start_cloud_trial_from_${this.props.featureName}`}
                         extraClass='btn btn-primary'
                     />
@@ -439,4 +434,23 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             </div>
         );
     }
+}
+
+function FeatureDiscoveryCloudStartTrialButton(props: Omit<React.ComponentProps<typeof CloudStartTrialButton>, 'message'>) {
+    const message = useIntl().formatMessage(
+        {
+            id: 'admin.ldap_feature_discovery.call_to_action.primary.cloudFree',
+            defaultMessage: 'Try free for {trialLength} days',
+        },
+        {
+            trialLength: FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS,
+        },
+    );
+
+    return (
+        <CloudStartTrialButton
+            {...props}
+            message={message}
+        />
+    );
 }

@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 const (

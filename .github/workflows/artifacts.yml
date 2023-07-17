@@ -1,7 +1,7 @@
 name: Artifacts generation and upload
 on:
   workflow_run:
-    workflows: ["Mattermost Build"]
+    workflows: ["Server CI Master", "Server CI PR"]
     types:
       - completed
 
@@ -75,7 +75,7 @@ jobs:
       SENTRY_ORG: ${{ secrets.MM_SERVER_SENTRY_ORG }}
       SENTRY_PROJECT: ${{ secrets.MM_SERVER_SENTRY_PROJECT }}
     steps:
-      - name: cd/Checkout mattermost-server
+      - name: cd/Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: cd/Create Sentry release
         uses: getsentry/action-release@85e0095193a153d57c458995f99d0afd81b9e5ea # v1.3.0

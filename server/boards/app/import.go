@@ -16,10 +16,10 @@ import (
 
 	"github.com/krolaw/zipstream"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/utils"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (

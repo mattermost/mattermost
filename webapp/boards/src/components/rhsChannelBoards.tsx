@@ -1,10 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useEffect} from 'react'
-import {FormattedMessage, IntlProvider, useIntl} from 'react-intl'
-
-import {getMessages} from 'src/i18n'
-import {getLanguage} from 'src/store/language'
+import {FormattedMessage, useIntl} from 'react-intl'
 
 import {useWebsockets} from 'src/hooks/websockets'
 
@@ -169,17 +166,4 @@ const RHSChannelBoards = () => {
     )
 }
 
-const IntlRHSChannelBoards = () => {
-    const language = useAppSelector<string>(getLanguage)
-
-    return (
-        <IntlProvider
-            locale={language.split(/[_]/)[0]}
-            messages={getMessages(language)}
-        >
-            <RHSChannelBoards/>
-        </IntlProvider>
-    )
-}
-
-export default IntlRHSChannelBoards
+export default RHSChannelBoards

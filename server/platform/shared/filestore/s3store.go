@@ -17,9 +17,10 @@ import (
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/minio/minio-go/v7/pkg/encrypt"
+	"github.com/minio/minio-go/v7/pkg/s3utils"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 // S3FileBackend contains all necessary information to communicate with
@@ -38,6 +39,7 @@ type S3FileBackend struct {
 	client     *s3.Client
 	skipVerify bool
 	timeout    time.Duration
+	isCloud    bool // field to indicate whether this is running under Mattermost cloud or not.
 }
 
 type S3FileBackendAuthError struct {
@@ -100,11 +102,13 @@ func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 		skipVerify: settings.SkipVerify,
 		timeout:    timeout,
 	}
-	cli, err := backend.s3New()
+	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
+	cli, err := backend.s3New(isCloud)
 	if err != nil {
 		return nil, err
 	}
 	backend.client = cli
+	backend.isCloud = isCloud
 	return backend, nil
 }
 
@@ -113,10 +117,9 @@ func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 //
 // Additionally this function also takes a user defined region, if set
 // disables automatic region lookup.
-func (b *S3FileBackend) s3New() (*s3.Client, error) {
+func (b *S3FileBackend) s3New(isCloud bool) (*s3.Client, error) {
 	var creds *credentials.Credentials
 
-	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
 	if isCloud {
 		creds = credentials.New(customProvider{isSignV2: b.signV2})
 	} else if b.accessKey == "" && b.secretKey == "" {
@@ -233,7 +236,7 @@ func (sc *s3WithCancel) CancelTimeout() bool {
 
 // Caller must close the first return value
 func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
-	path = filepath.Join(b.pathPrefix, path)
+	path = b.prefixedPath(path)
 	ctx, cancel := context.WithCancel(context.Background())
 	minioObject, err := b.client.GetObject(ctx, b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
@@ -251,7 +254,7 @@ func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
 }
 
 func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
-	path = filepath.Join(b.pathPrefix, path)
+	path = b.prefixedPath(path)
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	minioObject, err := b.client.GetObject(ctx, b.bucket, path, s3.GetObjectOptions{})
@@ -268,7 +271,7 @@ func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
 }
 
 func (b *S3FileBackend) FileExists(path string) (bool, error) {
-	path = filepath.Join(b.pathPrefix, path)
+	path = b.prefixedPath(path)
 
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
@@ -286,7 +289,7 @@ func (b *S3FileBackend) FileExists(path string) (bool, error) {
 }
 
 func (b *S3FileBackend) FileSize(path string) (int64, error) {
-	path = filepath.Join(b.pathPrefix, path)
+	path = b.prefixedPath(path)
 
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
@@ -299,7 +302,7 @@ func (b *S3FileBackend) FileSize(path string) (int64, error) {
 }
 
 func (b *S3FileBackend) FileModTime(path string) (time.Time, error) {
-	path = filepath.Join(b.pathPrefix, path)
+	path = b.prefixedPath(path)
 
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
@@ -312,8 +315,8 @@ func (b *S3FileBackend) FileModTime(path string) (time.Time, error) {
 }
 
 func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
-	oldPath = filepath.Join(b.pathPrefix, oldPath)
-	newPath = filepath.Join(b.pathPrefix, newPath)
+	oldPath = b.prefixedPath(oldPath)
+	newPath = b.prefixedPath(newPath)
 	srcOpts := s3.CopySrcOptions{
 		Bucket: b.bucket,
 		Object: oldPath,
@@ -340,8 +343,8 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 }
 
 func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
-	oldPath = filepath.Join(b.pathPrefix, oldPath)
-	newPath = filepath.Join(b.pathPrefix, newPath)
+	oldPath = b.prefixedPath(oldPath)
+	newPath = b.prefixedPath(newPath)
 	srcOpts := s3.CopySrcOptions{
 		Bucket: b.bucket,
 		Object: oldPath,
@@ -382,7 +385,7 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 
 func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, error) {
 	var contentType string
-	path = filepath.Join(b.pathPrefix, path)
+	path = b.prefixedPath(path)
 	if ext := filepath.Ext(path); isFileExtImage(ext) {
 		contentType = getImageMimeType(ext)
 	} else {
@@ -392,8 +395,7 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 	options := s3PutOptions(b.encrypt, contentType)
 
 	objSize := int64(-1)
-	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
-	if isCloud {
+	if b.isCloud {
 		options.DisableContentSha256 = true
 	} else {
 		// We pass an object size only in situations where bifrost is not
@@ -417,7 +419,7 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 }
 
 func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
-	fp := filepath.Join(b.pathPrefix, path)
+	fp := b.prefixedPath(path)
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	if _, err := b.client.StatObject(ctx, b.bucket, fp, s3.StatObjectOptions{}); err != nil {
@@ -437,13 +439,12 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel2()
 	objSize := -1
-	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
-	if isCloud {
+	if b.isCloud {
 		options.DisableContentSha256 = true
 	}
 	// We pass an object size only in situations where bifrost is not
 	// used. Bifrost needs to run in HTTPS, which is not yet deployed.
-	if buf, ok := fr.(*bytes.Buffer); ok && !isCloud {
+	if buf, ok := fr.(*bytes.Buffer); ok && !b.isCloud {
 		objSize = buf.Len()
 	}
 	info, err := b.client.PutObject(ctx2, b.bucket, partName, fr, int64(objSize), options)
@@ -480,7 +481,7 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 }
 
 func (b *S3FileBackend) RemoveFile(path string) error {
-	path = filepath.Join(b.pathPrefix, path)
+	path = b.prefixedPath(path)
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	if err := b.client.RemoveObject(ctx, b.bucket, path, s3.RemoveObjectOptions{}); err != nil {
@@ -511,7 +512,7 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
 }
 
 func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, error) {
-	path = filepath.Join(b.pathPrefix, path)
+	path = b.prefixedPath(path)
 	if !strings.HasSuffix(path, "/") && path != "" {
 		// s3Clnt returns only the path itself when "/" is not present
 		// appending "/" to make it consistent across all filestores
@@ -551,7 +552,7 @@ func (b *S3FileBackend) ListDirectoryRecursively(path string) ([]string, error) 
 
 func (b *S3FileBackend) RemoveDirectory(path string) error {
 	opts := s3.ListObjectsOptions{
-		Prefix:    filepath.Join(b.pathPrefix, path),
+		Prefix:    b.prefixedPath(path),
 		Recursive: true,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
@@ -568,6 +569,20 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 	}
 
 	return nil
+}
+
+func (b *S3FileBackend) prefixedPath(s string) string {
+	if b.isCloud {
+		// If the request is routed via bifrost, then we need to encode the path
+		// to avoid signature validation errors.
+		// This happens because in bifrost, we are signing the URL outside the SDK
+		// and therefore the signature sent from the bifrost client
+		// will contain the encoded path, whereas the original path is sent
+		// un-encoded.
+		// More info at: https://github.com/aws/aws-sdk-go/blob/a57c4d92784a43b716645a57b6fa5fb94fb6e419/aws/signer/v4/v4.go#L8
+		s = s3utils.EncodePath(s)
+	}
+	return filepath.Join(b.pathPrefix, s)
 }
 
 func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {

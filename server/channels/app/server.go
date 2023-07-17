@@ -27,54 +27,60 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/teams"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/active_users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/expirynotify"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/export_delete"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/export_process"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/extract_content"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/hosted_purchase_screening"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/import_delete"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/import_process"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/last_accessible_file"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/last_accessible_post"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/migrations"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/notify_admin"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/product_notices"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/resend_invitation_email"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/awsmeter"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/remotecluster"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine/indexer"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/sharedchannel"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/telemetry"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/timezones"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/tracing"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/upgrader"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/scheduler"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/timezones"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_process"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_file"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/migrations"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/notify_admin"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/plugins"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/product_notices"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/services/awsmeter"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine/indexer"
+	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
+	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
+	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
-// declaring this as var to allow overriding in tests
-var SentryDSN = "placeholder_sentry_dsn"
+var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
+
+// This is a placeholder to allow the existing release pipelines to run without failing to insert
+// the key that's now hard-coded above. Remove this once we converge on the unified delivery
+// pipeline in GitHub.
+var _ = "placeholder_sentry_dsn"
 
 type Server struct {
 	// RootRouter is the starting point for all HTTP requests to the server.
@@ -293,9 +299,10 @@ func NewServer(options ...Option) (*Server, error) {
 	// -------------------------------------------------------------------------
 
 	if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
-		if strings.Contains(SentryDSN, "placeholder") {
-			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
-		} else {
+		switch model.GetServiceEnvironment() {
+		case model.ServiceEnvironmentDev:
+			mlog.Warn("Sentry reporting is enabled, but service environment is dev. Disabling reporting.")
+		case model.ServiceEnvironmentProduction, model.ServiceEnvironmentTest:
 			if err2 := sentry.Init(sentry.ClientOptions{
 				Dsn:              SentryDSN,
 				Release:          model.BuildHash,
@@ -407,7 +414,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if _, err = url.ParseRequestURI(*s.platform.Config().ServiceSettings.SiteURL); err != nil {
-		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://docs.mattermost.com/configure/configuration-settings.html#site-url")
+		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
 	}
 
 	// Start email batching because it's not like the other jobs
@@ -423,6 +430,7 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.String("build_date", model.BuildDate),
 		mlog.String("build_hash", model.BuildHash),
 		mlog.String("build_hash_enterprise", model.BuildHashEnterprise),
+		mlog.String("service_environment", model.GetServiceEnvironment()),
 	)
 	if model.BuildEnterpriseReady == "true" {
 		mlog.Info("Enterprise Build", mlog.Bool("enterprise_build", true))
@@ -455,12 +463,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// if enabled - perform initial product notices fetch
 	if *s.platform.Config().AnnouncementSettings.AdminNoticesEnabled || *s.platform.Config().AnnouncementSettings.UserNoticesEnabled {
-		go func() {
+		s.platform.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			if err := appInstance.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failed to perform initial product notices fetch", mlog.Err(err))
 			}
-		}()
+		})
 	}
 
 	if s.skipPostInit {
@@ -906,11 +914,15 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
-	if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry && !strings.Contains(SentryDSN, "placeholder") {
-		sentryHandler := sentryhttp.New(sentryhttp.Options{
-			Repanic: true,
-		})
-		handler = sentryHandler.Handle(handler)
+	switch model.GetServiceEnvironment() {
+	case model.ServiceEnvironmentProduction, model.ServiceEnvironmentTest:
+		if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
+			sentryHandler := sentryhttp.New(sentryhttp.Options{
+				Repanic: true,
+			})
+			handler = sentryHandler.Handle(handler)
+		}
+	case model.ServiceEnvironmentDev:
 	}
 
 	if allowedOrigins := *s.platform.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
@@ -1151,7 +1163,31 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 
 		return utils.OriginChecker(allowed)
 	}
-	return nil
+
+	// Overriding the default origin checker
+	return func(r *http.Request) bool {
+		origin := r.Header["Origin"]
+		if len(origin) == 0 {
+			return true
+		}
+		if origin[0] == "null" {
+			return false
+		}
+		u, err := url.Parse(origin[0])
+		if err != nil {
+			return false
+		}
+
+		// To maintain the case where siteURL is not set.
+		if *a.Config().ServiceSettings.SiteURL == "" {
+			return strings.EqualFold(u.Host, r.Host)
+		}
+		siteURL, err := url.Parse(*a.Config().ServiceSettings.SiteURL)
+		if err != nil {
+			return false
+		}
+		return strings.EqualFold(u.Host, siteURL.Host) && strings.EqualFold(u.Scheme, siteURL.Scheme)
+	}
 }
 
 func (s *Server) checkPushNotificationServerURL() {
@@ -1500,8 +1536,8 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypePlugins,
-		scheduler.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
-		scheduler.MakeScheduler(s.Jobs),
+		plugins.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		plugins.MakeScheduler(s.Jobs),
 	)
 
 	s.Jobs.RegisterJobType(
@@ -1583,6 +1619,12 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
+		model.JobTypePostPersistentNotifications,
+		post_persistent_notifications.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		post_persistent_notifications.MakeScheduler(s.Jobs, func() *model.License { return s.License() }),
+	)
+
+	s.Jobs.RegisterJobType(
 		model.JobTypeInstallPluginNotifyAdmin,
 		notify_admin.MakeInstallPluginNotifyWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		notify_admin.MakeInstallPluginScheduler(s.Jobs, s.License(), model.JobTypeInstallPluginNotifyAdmin),
@@ -1592,6 +1634,12 @@ func (s *Server) initJobs() {
 		model.JobTypeHostedPurchaseScreening,
 		hosted_purchase_screening.MakeWorker(s.Jobs, s.License(), s.Store().System()),
 		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeCleanupDesktopTokens,
+		cleanup_desktop_tokens.MakeWorker(s.Jobs, s.Store()),
+		cleanup_desktop_tokens.MakeScheduler(s.Jobs),
 	)
 
 	s.platform.Jobs = s.Jobs

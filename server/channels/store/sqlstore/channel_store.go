@@ -15,11 +15,11 @@ import (
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 const (
@@ -1185,38 +1185,6 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 
 	if len(channels) == 0 {
 		return nil, store.NewErrNotFound("Channel", "userId="+userId)
-	}
-
-	return channels, nil
-}
-
-func (s SqlChannelStore) GetBotChannelsByUser(userId string, opts store.ChannelSearchOpts) (model.ChannelList, error) {
-	query := s.getQueryBuilder().
-		Select("C.*").
-		From("Channels as C, ChannelMembers as CM1, ChannelMembers as CM2, Bots as B").
-		Where(sq.And{
-			sq.Expr("C.Id = CM1.ChannelId"),
-			sq.Eq{"CM1.UserId": userId},
-			sq.Eq{"C.Type": model.ChannelTypeDirect},
-			sq.Expr("C.Id = CM2.ChannelId"),
-			sq.Expr("CM2.UserId = B.UserId"),
-			sq.Eq{"B.DeleteAt": 0},
-		}).
-		OrderBy("C.Id ASC")
-
-	if !opts.IncludeDeleted {
-		query = query.Where(sq.Eq{"C.DeleteAt": int(0)})
-	}
-
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "GetBotChannelsByUser_ToSql")
-	}
-
-	channels := model.ChannelList{}
-	err = s.GetReplicaX().Select(&channels, sql, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get bot channels with UserId=%s", userId)
 	}
 
 	return channels, nil
@@ -3593,7 +3561,7 @@ func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) 
 	return searchFields
 }
 
-const spaceFulltextSearchChars = "<>+-()~:*\"!@"
+const spaceFulltextSearchChars = "<>+-()~:*\"!@&"
 
 func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) (fulltextClause, fulltextTerm string) {
 	// Copy the terms as we will need to prepare them differently for each search type.

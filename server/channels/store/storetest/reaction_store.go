@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/retrylayer"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/retrylayer"
 )
 
 func TestReactionStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -118,6 +118,16 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	_, nErr = ss.Reaction().Save(reaction5)
 	require.Error(t, nErr, "should've failed for invalid reaction")
 
+	t.Run("channel not found", func(t *testing.T) {
+		// invalid reaction
+		reaction5 := &model.Reaction{
+			UserId:    reaction1.UserId,
+			PostId:    model.NewId(), // Unknown PostId
+			EmojiName: model.NewId(),
+		}
+		_, nErr = ss.Reaction().Save(reaction5)
+		require.Error(t, nErr, "should've failed because postId doesn't belong to a stored post")
+	})
 }
 
 func testReactionDelete(t *testing.T, ss store.Store) {
@@ -345,13 +355,13 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 	}
 
 	for _, reaction := range reactions {
-		delete := reaction.DeleteAt
+		del := reaction.DeleteAt
 		update := reaction.UpdateAt
 
 		_, err := ss.Reaction().Save(reaction)
 		require.NoError(t, err)
 
-		if delete > 0 {
+		if del > 0 {
 			_, err = ss.Reaction().Delete(reaction)
 			require.NoError(t, err)
 		}

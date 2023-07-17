@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   postgres:
-    image: ${CI_REGISTRY}/mattermost/ci/images/postgres:10-1
+    image: mattermostdevelopment/mirrored-postgres:12
     restart: always
     environment:
       POSTGRES_USER: mmuser
@@ -21,7 +21,7 @@ services:
           - postgres
 
   start_dependencies:
-    image: ${CI_REGISTRY}/mattermost/ci/images/mattermost-wait-for-dep:latest-1
+    image: mattermost/mattermost-wait-for-dep:latest
     depends_on:
       - postgres
     command: postgres:5432

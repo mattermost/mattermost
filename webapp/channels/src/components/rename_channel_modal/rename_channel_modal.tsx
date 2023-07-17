@@ -14,25 +14,24 @@ import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 import {getShortenedURL, validateChannelUrl} from 'utils/url';
 import * as Utils from 'utils/utils';
 
 const holders = defineMessages({
     maxLength: {
-        id: t('rename_channel.maxLength'),
+        id: 'rename_channel.maxLength',
         defaultMessage: 'This field must be less than {maxLength, number} characters',
     },
     url: {
-        id: t('rename_channel.url'),
+        id: 'rename_channel.url',
         defaultMessage: 'URL',
     },
     defaultError: {
-        id: t('rename_channel.defaultError'),
+        id: 'rename_channel.defaultError',
         defaultMessage: ' - Cannot be changed for the default channel',
     },
     displayNameHolder: {
-        id: t('rename_channel.displayNameHolder'),
+        id: 'rename_channel.displayNameHolder',
         defaultMessage: 'Enter display name',
     },
 });

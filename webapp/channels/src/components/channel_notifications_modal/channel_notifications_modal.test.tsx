@@ -4,7 +4,7 @@
 import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
 
-import {IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
+import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelNotificationsModal from 'components/channel_notifications_modal/channel_notifications_modal';
@@ -22,9 +22,12 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
         channelMember: {
             notify_props: {
                 desktop: NotificationLevels.ALL,
+                desktop_sound: DesktopSound.ON,
+                desktop_notification_sound: 'Bing',
                 mark_unread: NotificationLevels.ALL,
                 push: NotificationLevels.DEFAULT,
                 ignore_channel_mentions: IgnoreChannelMentions.DEFAULT,
+                channel_auto_follow_threads: ChannelAutoFollowThreads.OFF,
                 desktop_threads: NotificationLevels.ALL,
                 push_threads: NotificationLevels.DEFAULT,
             },
@@ -58,10 +61,13 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
             />,
         );
 
-        expect(wrapper.state('desktopNotifyLevel')).toEqual(NotificationLevels.DEFAULT);
+        expect(wrapper.state('desktopNotifyLevel')).toEqual(NotificationLevels.ALL);
+        expect(wrapper.state('desktopSound')).toEqual(DesktopSound.ON);
+        expect(wrapper.state('desktopNotifySound')).toEqual('Bing');
         expect(wrapper.state('markUnreadNotifyLevel')).toEqual(NotificationLevels.ALL);
-        expect(wrapper.state('pushNotifyLevel')).toEqual(NotificationLevels.DEFAULT);
+        expect(wrapper.state('pushNotifyLevel')).toEqual(NotificationLevels.ALL);
         expect(wrapper.state('ignoreChannelMentions')).toEqual(IgnoreChannelMentions.OFF);
+        expect(wrapper.state('channelAutoFollowThreads')).toEqual(ChannelAutoFollowThreads.OFF);
     });
 
     test('should provide correct default when currentUser channel notify props is true', () => {
@@ -184,7 +190,7 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
         wrapper.instance().handleExit();
         expect(baseProps.onExited).toHaveBeenCalledTimes(3);
         expect(wrapper.state('activeSection')).toEqual(NotificationSections.NONE);
-        expect(wrapper.state('pushNotifyLevel')).toEqual(NotificationLevels.DEFAULT);
+        expect(wrapper.state('pushNotifyLevel')).toEqual(NotificationLevels.ALL);
     });
 
     test('should match state on updateSection', () => {
@@ -207,12 +213,12 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
 
         expect(wrapper.state('desktopNotifyLevel')).toEqual(NotificationLevels.NONE);
 
-        wrapper.instance().updateSection('');
+        wrapper.instance().updateSection(NotificationSections.NONE);
 
         expect(wrapper.state('desktopNotifyLevel')).toEqual(baseProps.channelMember?.notify_props.desktop);
     });
 
-    test('should match state on handleSubmitDesktopNotifyLevel', () => {
+    test('should match state on handleSubmitDesktopNotification', () => {
         const wrapper = shallow<ChannelNotificationsModal>(
             <ChannelNotificationsModal {...baseProps}/>,
         );
@@ -221,12 +227,12 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
         instance.handleUpdateChannelNotifyProps = jest.fn();
         instance.updateSection = jest.fn();
 
-        wrapper.setState({desktopNotifyLevel: NotificationLevels.DEFAULT});
-        instance.handleSubmitDesktopNotifyLevel();
+        wrapper.setState({desktopNotifyLevel: NotificationLevels.MENTION});
+        instance.handleSubmitDesktopNotification();
         expect(instance.handleUpdateChannelNotifyProps).toHaveBeenCalledTimes(1);
 
         wrapper.setState({desktopNotifyLevel: NotificationLevels.ALL});
-        instance.handleSubmitDesktopNotifyLevel();
+        instance.handleSubmitDesktopNotification();
         expect(instance.updateSection).toHaveBeenCalledTimes(1);
         expect(instance.updateSection).toBeCalledWith('');
     });
@@ -348,6 +354,7 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
         expect(wrapper.state('markUnreadNotifyLevel')).toEqual(NotificationLevels.MENTION);
         expect(wrapper.state('pushNotifyLevel')).toEqual(NotificationLevels.ALL);
         expect(wrapper.state('ignoreChannelMentions')).toEqual(IgnoreChannelMentions.ON);
+        expect(wrapper.state('channelAutoFollowThreads')).toEqual(ChannelAutoFollowThreads.OFF);
 
         wrapper.instance().resetStateFromNotifyProps(currentUserNotifyProps, {...channelMemberNotifyProps, desktop: NotificationLevels.ALL});
         expect(wrapper.state('desktopNotifyLevel')).toEqual(NotificationLevels.ALL);

@@ -10,6 +10,9 @@ import {
     SetupIntent,
 } from '@stripe/stripe-js';
 
+import {GlobalState} from 'types/store';
+import {ServiceEnvironment} from '@mattermost/types/config';
+
 type ConfirmCardSetupType = (clientSecret: string, data?: ConfirmCardSetupData | undefined, options?: ConfirmCardSetupOptions | undefined) => Promise<{ setupIntent?: SetupIntent | undefined; error?: StripeError | undefined }> | undefined;
 
 function prodConfirmCardSetup(confirmCardSetup: ConfirmCardSetupType): ConfirmCardSetupType {
@@ -22,8 +25,19 @@ function devConfirmCardSetup(confirmCardSetup: ConfirmCardSetupType): ConfirmCar
     };
 }
 
-export const getConfirmCardSetup = (isDevMode?: boolean) => (isDevMode ? devConfirmCardSetup : prodConfirmCardSetup);
+export const getConfirmCardSetup = (isCwsMockMode?: boolean) => (isCwsMockMode ? devConfirmCardSetup : prodConfirmCardSetup);
 
 export const STRIPE_CSS_SRC = 'https://fonts.googleapis.com/css?family=Open+Sans:400,400i,600,600i&display=swap';
 //eslint-disable-next-line no-process-env
-export const STRIPE_PUBLIC_KEY = process.env.STRIPE_PUBLIC_KEY || 'pk_test_ttEpW6dCHksKyfAFzh6MvgBj';
+
+export const getStripePublicKey = (state: GlobalState) => {
+    switch (state.entities.general.config.ServiceEnvironment) {
+    case ServiceEnvironment.PRODUCTION:
+        return 'pk_live_cDF5gYLPf5vQjJ7jp71p7GRK';
+    case ServiceEnvironment.TEST:
+    case ServiceEnvironment.DEV:
+        return 'pk_test_ttEpW6dCHksKyfAFzh6MvgBj';
+    }
+
+    return '';
+};

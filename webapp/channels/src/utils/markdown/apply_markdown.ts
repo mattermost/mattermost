@@ -20,6 +20,11 @@ type ApplySpecificMarkdownOptions = ApplyMarkdownReturnValue & {
     delimiter?: string;
 }
 
+export type ApplyLinkMarkdownOptions = ApplySpecificMarkdownOptions & {
+    url?: string;
+
+}
+
 export function applyMarkdown(options: ApplyMarkdownOptions): ApplyMarkdownReturnValue {
     const {selectionEnd, selectionStart, message, markdownMode} = options;
 
@@ -396,14 +401,16 @@ function applyBoldItalicMarkdown({selectionEnd, selectionStart, message, markdow
     };
 }
 
-function applyLinkMarkdown({selectionEnd, selectionStart, message}: ApplySpecificMarkdownOptions) {
+export const DEFAULT_PLACEHOLDER_URL = 'url';
+
+export function applyLinkMarkdown({selectionEnd, selectionStart, message, url = DEFAULT_PLACEHOLDER_URL}: ApplyLinkMarkdownOptions) {
     // <prefix> <selection> <suffix>
     const prefix = message.slice(0, selectionStart);
     const selection = message.slice(selectionStart, selectionEnd);
     const suffix = message.slice(selectionEnd);
 
     const delimiterStart = '[';
-    const delimiterEnd = '](url)';
+    const delimiterEnd = `](${url})`;
 
     // Does the selection have link markdown?
     const hasMarkdown = prefix.endsWith(delimiterStart) && suffix.startsWith(delimiterEnd);
@@ -431,7 +438,7 @@ function applyLinkMarkdown({selectionEnd, selectionStart, message}: ApplySpecifi
         // there is something selected; put markdown around it and preserve selection
         newValue = prefix + delimiterStart + selection + delimiterEnd + suffix;
         newStart = selectionEnd + urlShift;
-        newEnd = newStart + urlShift;
+        newEnd = newStart + url.length;
     } else {
         // nothing is selected
         const spaceBefore = prefix.charAt(prefix.length - 1) === ' ';

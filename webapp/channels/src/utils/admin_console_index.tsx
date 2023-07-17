@@ -93,7 +93,6 @@ export function adminDefinitionsToUrlsAndTexts(adminDefinition: typeof AdminDefi
         adminDefinition.integrations,
         adminDefinition.compliance,
         adminDefinition.experimental,
-        adminDefinition.products,
         adminDefinition.billing,
     ];
     for (const section of sections) {

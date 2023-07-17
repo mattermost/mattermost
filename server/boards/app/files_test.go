@@ -15,11 +15,11 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
 const (

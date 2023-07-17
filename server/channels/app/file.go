@@ -24,16 +24,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/docextractor"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/docextractor"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 
 	"github.com/pkg/errors"
 )
@@ -66,7 +66,7 @@ func (a *App) FileBackend() filestore.FileBackend {
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	fileBackendSettings := settings.ToFileBackendSettings(false, false)
+	fileBackendSettings := filestore.NewFileBackendSettingsFromConfig(settings, false, false)
 	err := fileBackendSettings.CheckMandatoryS3Fields()
 	if err != nil {
 		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest).Wrap(err)
@@ -96,7 +96,7 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	license := a.Srv().License()
 	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections
-	backend, err := filestore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -260,7 +260,7 @@ func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, ol
 		return nil
 	}
 
-	info, err := model.GetInfoForBytes(name, bytes.NewReader(data), len(data))
+	info, err := getInfoForBytes(name, bytes.NewReader(data), len(data))
 	if err != nil {
 		mlog.Warn(
 			"Unable to fully decode file info when migrating post to use FileInfos",
@@ -315,7 +315,7 @@ func (a *App) findTeamIdForFilename(post *model.Post, id, filename string) strin
 }
 
 var fileMigrationLock sync.Mutex
-var oldFilenameMatchExp *regexp.Regexp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
+var oldFilenameMatchExp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
 
 // Parse the path from the Filename of the form /{channelID}/{userID}/{uid}/{nameWithExtension}
 func parseOldFilenames(filenames []string, channelID, userID string) [][]string {
@@ -879,7 +879,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	channelID := filepath.Base(rawChannelId)
 	userID := filepath.Base(rawUserId)
 
-	info, err := model.GetInfoForBytes(filename, bytes.NewReader(data), len(data))
+	info, err := getInfoForBytes(filename, bytes.NewReader(data), len(data))
 	if err != nil {
 		err.StatusCode = http.StatusBadRequest
 		return nil, data, err

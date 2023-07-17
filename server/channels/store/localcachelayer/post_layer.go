@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type LocalCachePostStore struct {

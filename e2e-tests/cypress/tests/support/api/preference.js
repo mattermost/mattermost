@@ -438,6 +438,12 @@ Cypress.Commands.add('apiDisableTutorials', (userId) => {
             name: 'drafts_tour_tip_showed',
             value: '{"drafts_tour_tip_showed":true}',
         },
+        {
+            user_id: userId,
+            category: 'app_bar',
+            name: 'channel_with_board_tip_showed',
+            value: '{"channel_with_board_tip_showed":true}',
+        },
     ];
 
     return cy.apiSaveUserPreference(preferences, userId);

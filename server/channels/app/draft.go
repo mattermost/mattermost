@@ -9,14 +9,14 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
+	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("GetDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
@@ -35,7 +35,7 @@ func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.A
 }
 
 func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
+	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("CreateDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
@@ -75,7 +75,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 }
 
 func (a *App) GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
+	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("GetDraftsForUser", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
@@ -118,7 +118,7 @@ func (a *App) getFileInfosForDraft(draft *model.Draft) ([]*model.FileInfo, *mode
 }
 
 func (a *App) DeleteDraft(userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
+	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("DeleteDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 

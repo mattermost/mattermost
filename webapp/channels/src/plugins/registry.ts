@@ -208,7 +208,7 @@ export default class PluginRegistry {
     // Accepts the following:
     // - icon - React element to use as the button's icon
     // - action - a function called when the button is clicked, passed the channel and channel member as arguments
-    // - text - a localized string to use as the button's text
+    // - text - a localized string or React element  to use as the button's text
     registerChannelIntroButtonAction = reArg([
         'icon',
         'action',
@@ -220,8 +220,7 @@ export default class PluginRegistry {
     }: {
         icon: ReactResolvable;
         action: PluginComponent['action'];
-        tooltipText: string;
-        text: string;
+        text: ReactResolvable;
     }) => {
         const id = generateId();
 
@@ -1164,5 +1163,53 @@ export default class PluginRegistry {
                 handler,
             },
         });
+    });
+
+    // Register a hook to intercept desktop notifications before they occur.
+    // Accepts a function to run before the desktop notification is triggered.
+    // The function has the following signature:
+    //   (post: Post, msgProps: NewPostMessageProps, channel: Channel,
+    //    teamId: string, args: DesktopNotificationArgs) => Promise<{
+    //         error?: string;
+    //         args?: DesktopNotificationArgs;
+    //     }>)
+    //
+    // DesktopNotificationArgs is the following type:
+    //   export type DesktopNotificationArgs = {
+    //     title: string;
+    //     body: string;
+    //     silent: boolean;
+    //     soundName: string;
+    //     url: string;
+    //     notify: boolean;
+    // };
+    //
+    // To stop a desktop notification and allow subsequent hooks to process the notification, return:
+    //   {args: {...args, notify: false}}
+    // To enable a desktop notification and allow subsequent hooks to process the notification, return:
+    //   {args: {...args, notify: true}}
+    // To stop a desktop notification and prevent subsequent hooks from processing the notification, return either:
+    //   {error: 'log this error'}, or {}
+    // To allow subsequent hooks to process the notification, return:
+    //   {args}, or null or undefined (thanks js)
+    //
+    // The args returned by the hook will be used as the args for the next hook, until all hooks are
+    // completed. The resulting args will be used as the arguments for the `notifyMe` function.
+    //
+    // Returns a unique identifier.
+    registerDesktopNotificationHook = reArg(['hook'], ({hook}) => {
+        const id = generateId();
+
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'DesktopNotificationHooks',
+            data: {
+                id,
+                pluginId: this.id,
+                hook,
+            },
+        });
+
+        return id;
     });
 }

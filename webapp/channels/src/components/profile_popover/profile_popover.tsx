@@ -50,7 +50,7 @@ import BotTag from '../widgets/tag/bot_tag';
 import GuestTag from '../widgets/tag/guest_tag';
 import Tag from '../widgets/tag/tag';
 
-interface ProfilePopoverProps extends Omit<React.ComponentProps<typeof Popover>, 'id'> {
+export interface ProfilePopoverProps extends Omit<React.ComponentProps<typeof Popover>, 'id'> {
 
     /**
      * Source URL from the image to display in the popover
@@ -892,7 +892,15 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                 {tabCatcher}
                 <div
                     role='dialog'
-                    aria-label={Utils.localizeAndFormatMessage('profile_popover.profileLabel', 'Profile for {name}', {name: displayName})}
+                    aria-label={formatMessage(
+                        {
+                            id: 'profile_popover.profileLabel',
+                            defaultMessage: 'Profile for {name}',
+                        },
+                        {
+                            name: displayName,
+                        },
+                    )}
                     onKeyDown={this.handleKeyDown}
                     className={A11yClassNames.POPUP}
                     aria-modal={true}

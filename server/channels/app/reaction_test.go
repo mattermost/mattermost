@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 func TestSharedChannelSyncForReactionActions(t *testing.T) {
@@ -92,6 +92,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	userId := th.BasicUser.Id
 	user2Id := th.BasicUser2.Id
@@ -263,6 +264,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	userId := th.BasicUser.Id
 

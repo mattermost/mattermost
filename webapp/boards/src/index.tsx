@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useEffect} from 'react'
-import {createIntl, createIntlCache} from 'react-intl'
+import {FormattedMessage} from 'react-intl'
 import {Action, Store} from 'redux'
 import {Provider as ReduxProvider} from 'react-redux'
 import {History, createBrowserHistory} from 'history'
@@ -12,6 +12,8 @@ import {SuiteWindow} from 'src/types/index'
 
 import {PluginRegistry} from 'src/types/mattermost-webapp'
 
+import {ServiceEnvironment} from '@mattermost/types/config'
+
 import {RudderTelemetryHandler, rudderAnalytics} from 'src/rudder'
 
 import appBarIcon from 'static/app-bar-icon.png'
@@ -21,7 +23,7 @@ import {Constants} from 'src/constants'
 import {setTeam} from 'src/store/teams'
 
 import {UserSettings} from 'src/userSettings'
-import {getCurrentLanguage, getMessages} from 'src/i18n'
+import {getMessages} from 'src/i18n'
 
 const windowAny = (window as SuiteWindow)
 windowAny.baseURL = '/plugins/boards'
@@ -74,6 +76,7 @@ import './plugin.scss'
 import CreateBoardFromTemplate from 'src/components/createBoardFromTemplate'
 
 import CloudUpgradeNudge from './components/cloudUpgradeNudge/cloudUpgradeNudge'
+import RhsChannelBoardsToggle from './components/rhsChannelBoardsToggleIcon'
 
 function getSubpath(siteURL: string): string {
     const url = new URL(siteURL)
@@ -82,8 +85,19 @@ function getSubpath(siteURL: string): string {
     return url.pathname.replace(/\/+$/, '')
 }
 
-const TELEMETRY_RUDDER_KEY = 'placeholder_boards_rudder_key'
-const TELEMETRY_RUDDER_DATAPLANE_URL = 'placeholder_rudder_dataplane_url'
+const TELEMETRY_RUDDER_URL = 'https://pdat.matterlytics.com'
+const TELEMETRY_RUDDER_KEY_PROD = '1myWcDbTkIThnpPYyms7DKlmQWl'
+const TELEMETRY_RUDDER_KEY_TEST = '1myWYwHRDFdLDTpznQ7qFlOPQaa'
+
+// TO_BE_DEPRECATED_* are placeholders to allow the existing release pipelines to run without
+// failing to insert the values that are now hard-coded above. Remove this once we converge
+// on the unified delivery pipeline in GitHub.
+//
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const TO_BE_DEPRECATED_TELEMETRY_RUDDER_URL = 'placeholder_rudder_dataplane_url'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const TO_BE_DEPRECATAED_TELEMETRY_RUDDER_KEY = 'placeholder_boards_rudder_key'
+
 const TELEMETRY_OPTIONS = {
     context: {
         ip: '0.0.0.0',
@@ -232,13 +246,6 @@ export default class Plugin {
         windowAny.frontendBaseURL = subpath + windowAny.frontendBaseURL
         windowAny.baseURL = subpath + windowAny.baseURL
         browserHistory = customHistory()
-        const cache = createIntlCache()
-        const intl = createIntl({
-
-            // modeled after <IntlProvider> in app.tsx
-            locale: getCurrentLanguage(),
-            messages: getMessages(getCurrentLanguage()),
-        }, cache)
 
         this.registry = registry
 
@@ -247,6 +254,16 @@ export default class Plugin {
         setMattermostTheme(theme)
 
         const productID = 'boards'
+
+        registry.registerTranslations((locale: string) => {
+            try {
+                const messages = getMessages(locale)
+
+                return messages
+            } catch {
+                return {}
+            }
+        })
 
         // register websocket handlers
         this.registry?.registerWebSocketEventHandler(`custom_${productID}_${ACTION_UPDATE_BOARD}`, (e: any) => wsClient.updateHandler(e.data))
@@ -362,10 +379,15 @@ export default class Plugin {
                 </ErrorBoundary>
             )
 
-            const {rhsId, toggleRHSPlugin} = this.registry.registerRightHandSidebarComponent(component, title)
-            this.rhsId = rhsId
+            const {id, toggleRHSPlugin} = this.registry.registerRightHandSidebarComponent(component, title)
+            this.rhsId = id
 
-            this.channelHeaderButtonId = registry.registerChannelHeaderButtonAction(<FocalboardIcon/>, () => mmStore.dispatch(toggleRHSPlugin), 'Boards', 'Boards')
+            this.channelHeaderButtonId = registry.registerChannelHeaderButtonAction(
+                () => <RhsChannelBoardsToggle boardsRhsId={id}/>,
+                () => mmStore.dispatch(toggleRHSPlugin),
+                'Boards',
+                'Boards'
+            )
 
             this.registry.registerProduct(
                 '/boards',
@@ -389,11 +411,25 @@ export default class Plugin {
             }
 
             if (registry.registerChannelIntroButtonAction) {
-                this.channelHeaderButtonId = registry.registerChannelIntroButtonAction(<FocalboardIcon/>, goToFocalboardTemplate, intl.formatMessage({id: 'ChannelIntro.CreateBoard', defaultMessage: 'Create a board'}))
+                this.channelHeaderButtonId = registry.registerChannelIntroButtonAction(
+                    <FocalboardIcon/>,
+                    goToFocalboardTemplate,
+                    <FormattedMessage
+                        id='ChannelIntro.CreateBoard'
+                        defaultMessage='Create a board'
+                    />
+                )
             }
 
             if (this.registry.registerAppBarComponent) {
-                this.registry.registerAppBarComponent(appBarIcon, () => mmStore.dispatch(toggleRHSPlugin), intl.formatMessage({id: 'AppBar.Tooltip', defaultMessage: 'Toggle linked boards'}))
+                this.registry.registerAppBarComponent(
+                    appBarIcon,
+                    () => mmStore.dispatch(toggleRHSPlugin),
+                    <FormattedMessage
+                        id='AppBar.Tooltip'
+                        defaultMessage='Toggle linked boards'
+                    />
+                )
             }
 
             if (this.registry.registerActionAfterChannelCreation) {
@@ -447,13 +483,23 @@ export default class Plugin {
                     if (siteStats) {
                         return {
                             boards_count: {
-                                name: intl.formatMessage({id: 'SiteStats.total_boards', defaultMessage: 'Total boards'}),
+                                name: (
+                                    <FormattedMessage
+                                        id='SiteStats.total_boards'
+                                        defaultMessage='Total boards'
+                                    />
+                                ),
                                 id: 'total_boards',
                                 icon: 'icon-product-boards',
                                 value: siteStats.board_count,
                             },
                             cards_count: {
-                                name: intl.formatMessage({id: 'SiteStats.total_cards', defaultMessage: 'Total cards'}),
+                                name: (
+                                    <FormattedMessage
+                                        id='SiteStats.total_cards'
+                                        defaultMessage='Total cards'
+                                    />
+                                ),
                                 id: 'total_cards',
                                 icon: 'icon-products',
                                 value: siteStats.card_count,
@@ -479,12 +525,17 @@ export default class Plugin {
 
         const config = await octoClient.getClientConfig()
         if (config?.telemetry) {
-            let rudderKey = TELEMETRY_RUDDER_KEY
-            let rudderUrl = TELEMETRY_RUDDER_DATAPLANE_URL
-
-            if (rudderKey.startsWith('placeholder') && rudderUrl.startsWith('placeholder')) {
-                rudderKey = process.env.RUDDER_KEY as string //eslint-disable-line no-process-env
-                rudderUrl = process.env.RUDDER_DATAPLANE_URL as string //eslint-disable-line no-process-env
+            const rudderUrl = TELEMETRY_RUDDER_URL
+            let rudderKey = ''
+            switch (mmStore.getState().entities.general.config.ServiceEnvironment) {
+            case ServiceEnvironment.PRODUCTION:
+                rudderKey = TELEMETRY_RUDDER_KEY_PROD
+                break
+            case ServiceEnvironment.TEST:
+                rudderKey = TELEMETRY_RUDDER_KEY_TEST
+                break
+            case ServiceEnvironment.DEV:
+                break
             }
 
             if (rudderKey !== '') {

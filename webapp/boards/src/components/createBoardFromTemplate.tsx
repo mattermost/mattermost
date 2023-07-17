@@ -7,8 +7,6 @@ import React, {
     useState,
 } from 'react'
 
-import {IntlProvider, createIntl, createIntlCache} from 'react-intl'
-
 import Select from 'react-select/async'
 import {
     FormatOptionLabelMeta,
@@ -20,10 +18,9 @@ import {
 
 import {CSSObject} from '@emotion/serialize'
 
-import {getCurrentLanguage, getMessages} from 'src/i18n'
-import {getLanguage} from 'src/store/language'
+import {useIntl} from 'react-intl'
+
 import CompassIcon from 'src/widgets/icons/compassIcon'
-import {useAppSelector} from 'src/store/hooks'
 import {mutator} from 'src/mutator'
 import {useGetAllTemplates} from 'src/hooks/useGetAllTemplates'
 
@@ -46,12 +43,6 @@ type ReactSelectItem = {
 const EMPTY_BOARD = 'empty_board'
 const TEMPLATE_DESCRIPTION_LENGTH = 70
 
-const cache = createIntlCache()
-const intl = createIntl({
-    locale: getCurrentLanguage(),
-    messages: getMessages(getCurrentLanguage()),
-}, cache)
-
 const {ValueContainer, Placeholder} = components
 const CustomValueContainer = ({children, ...props}: any) => {
     return (
@@ -67,6 +58,7 @@ const CustomValueContainer = ({children, ...props}: any) => {
 }
 
 const CreateBoardFromTemplate = (props: Props) => {
+    const intl = useIntl()
     const {formatMessage} = intl
 
     const [addBoard, setAddBoard] = useState(false)
@@ -259,17 +251,4 @@ const CreateBoardFromTemplate = (props: Props) => {
     )
 }
 
-const IntlCreateBoardFromTemplate = (props: Props) => {
-    const language = useAppSelector<string>(getLanguage)
-
-    return (
-        <IntlProvider
-            locale={language.split(/[_]/)[0]}
-            messages={getMessages(language)}
-        >
-            <CreateBoardFromTemplate {...props}/>
-        </IntlProvider>
-    )
-}
-
-export default IntlCreateBoardFromTemplate
+export default CreateBoardFromTemplate

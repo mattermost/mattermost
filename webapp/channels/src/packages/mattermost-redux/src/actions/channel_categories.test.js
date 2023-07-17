@@ -327,6 +327,88 @@ describe('fetchMyCategories', () => {
         expect(state.entities.channelCategories.byId.category2).toEqual(categories[1]);
         expect(state.entities.channelCategories.orderByTeam[teamId]).toEqual(['category1', 'category2']);
     });
+    test('should update collapse state if it\'s not from websocket', async () => {
+        const currentUserId = TestHelper.generateId();
+        const teamId = TestHelper.generateId();
+        const isWebSocket = false;
+
+        const categories = [
+            {
+                id: 'category1',
+                collapsed: false,
+                team_id: teamId,
+            },
+            {
+                id: 'category2',
+                collapsed: true,
+                team_id: teamId,
+            },
+        ];
+
+        const store = configureStore({
+            entities: {
+                users: {
+                    currentUserId,
+                },
+                channelCategories: {
+                    byId: {
+                        category1: {id: 'category1', team_id: teamId, collapsed: true},
+                        category2: {id: 'category2', team_id: teamId, collapsed: false},
+
+                    },
+                },
+            }});
+
+        nock(Client4.getBaseRoute()).
+            get(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
+            reply(200, {categories, order: categories.map((category) => category.id)});
+        await store.dispatch(Actions.fetchMyCategories(teamId, isWebSocket));
+        const categoriesById = getAllCategoriesByIds(store.getState());
+
+        expect(categoriesById.category1.collapsed).toEqual(false);
+        expect(categoriesById.category2.collapsed).toEqual(true);
+    });
+    test('should not update collapse state if it\'s from websocket', async () => {
+        const currentUserId = TestHelper.generateId();
+        const teamId = TestHelper.generateId();
+        const isWebSocket = true;
+
+        const categories = [
+            {
+                id: 'category1',
+                collapsed: false,
+                team_id: teamId,
+            },
+            {
+                id: 'category2',
+                collapsed: true,
+                team_id: teamId,
+            },
+        ];
+
+        const store = configureStore({
+            entities: {
+                users: {
+                    currentUserId,
+                },
+                channelCategories: {
+                    byId: {
+                        category1: {id: 'category1', team_id: teamId, collapsed: true},
+                        category2: {id: 'category2', team_id: teamId, collapsed: false},
+
+                    },
+                },
+            }});
+        nock(Client4.getBaseRoute()).
+            get(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
+            reply(200, {categories, order: categories.map((category) => category.id)});
+
+        await store.dispatch(Actions.fetchMyCategories(teamId, isWebSocket));
+        const categoriesById = getAllCategoriesByIds(store.getState());
+
+        expect(categoriesById.category1.collapsed).toEqual(true);
+        expect(categoriesById.category2.collapsed).toEqual(false);
+    });
 });
 
 describe('addChannelToInitialCategory', () => {

@@ -8,12 +8,12 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 
-	fb_model "github.com/mattermost/mattermost-server/server/v8/boards/model"
+	fb_model "github.com/mattermost/mattermost/server/v8/boards/model"
 )
 
 // RouterService enables registering the product router to the server. After registering the

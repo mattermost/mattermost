@@ -4,8 +4,8 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 )
 
 func (a *App) GetTeamUsers(teamID string, asGuestID string) ([]*model.User, error) {
