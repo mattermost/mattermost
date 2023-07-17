@@ -14,6 +14,7 @@ type Props = {
     value: string;
     onChange?: (id: string, color: string) => void;
     disabled?: boolean;
+    placeholder?: string
 }
 
 export default class ColorSetting extends React.PureComponent<Props> {
