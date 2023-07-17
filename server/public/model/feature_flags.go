@@ -36,9 +36,6 @@ type FeatureFlags struct {
 	// A dash separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
 
-	// Enable DataRetention for Boards
-	BoardsDataRetention bool
-
 	NormalizeLdapDNs bool
 
 	// Enable GraphQL feature
@@ -72,7 +69,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.BoardsFeatureFlags = ""
-	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.GraphQL = false
 	f.InsightsEnabled = false
