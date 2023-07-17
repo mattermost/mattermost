@@ -61,6 +61,10 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 		return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
+	if draft.Message == "" {
+		a.Srv().Store().Draft().Delete(draft.UserId, draft.ChannelId, draft.RootId)
+	}
+
 	dt = a.prepareDraftWithFileInfos(draft.UserId, dt)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventDraftCreated, "", dt.ChannelId, dt.UserId, nil, connectionID)
