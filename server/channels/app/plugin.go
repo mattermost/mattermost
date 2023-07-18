@@ -256,8 +256,6 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 	}
 	pluginsEnvironment.SetPrepackagedPlugins(plugins)
 
-	ch.installFeatureFlagPlugins()
-
 	// Sync plugin active state when config changes. Also notify plugins.
 	ch.pluginsLock.Lock()
 	ch.RemoveConfigListener(ch.pluginConfigListenerID)
@@ -265,7 +263,6 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		// If plugin status remains unchanged, only then run this.
 		// Because (*App).InitPlugins is already run as a config change hook.
 		if *old.PluginSettings.Enable == *new.PluginSettings.Enable {
-			ch.installFeatureFlagPlugins()
 			ch.syncPluginsActiveState()
 		}
 
@@ -987,69 +984,6 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	}
 
 	return plugin, nil
-}
-
-// installFeatureFlagPlugins handles the automatic installation/upgrade of plugins from feature flags
-func (ch *Channels) installFeatureFlagPlugins() {
-	ffControledPlugins := ch.cfgSvc.Config().FeatureFlags.Plugins()
-
-	// Respect the automatic prepackaged disable setting
-	if !*ch.cfgSvc.Config().PluginSettings.AutomaticPrepackagedPlugins {
-		return
-	}
-
-	for pluginID, version := range ffControledPlugins {
-		// Skip installing if the plugin has been previously disabled.
-		pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[pluginID]
-		if pluginState != nil && !pluginState.Enable {
-			ch.srv.Log().Debug("Not auto installing/upgrade because plugin was disabled", mlog.String("plugin_id", pluginID), mlog.String("version", version))
-			continue
-		}
-
-		// Check if we already installed this version as InstallMarketplacePlugin can't handle re-installs well.
-		pluginStatus, err := ch.GetPluginStatus(pluginID)
-		pluginExists := err == nil
-		if pluginExists && pluginStatus.Version == version {
-			continue
-		}
-
-		if version != "" && version != "control" {
-			// If we are on-prem skip installation if this is a downgrade
-			license := ch.srv.License()
-			inCloud := license != nil && *license.Features.Cloud
-			if !inCloud && pluginExists {
-				parsedVersion, err := semver.Parse(version)
-				if err != nil {
-					ch.srv.Log().Debug("Bad version from feature flag", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", version))
-					return
-				}
-				parsedExistingVersion, err := semver.Parse(pluginStatus.Version)
-				if err != nil {
-					ch.srv.Log().Debug("Bad version from plugin manifest", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", pluginStatus.Version))
-					return
-				}
-
-				if parsedVersion.LTE(parsedExistingVersion) {
-					ch.srv.Log().Debug("Skip installation because given version was a downgrade and on-prem installations should not downgrade.", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", pluginStatus.Version))
-					return
-				}
-			}
-
-			_, err := ch.InstallMarketplacePlugin(&model.InstallMarketplacePluginRequest{
-				Id:      pluginID,
-				Version: version,
-			})
-			if err != nil {
-				ch.srv.Log().Debug("Unable to install plugin from FF manifest", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", version))
-			} else {
-				if err := ch.enablePlugin(pluginID); err != nil {
-					ch.srv.Log().Debug("Unable to enable plugin installed from feature flag.", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", version))
-				} else {
-					ch.srv.Log().Debug("Installed and enabled plugin.", mlog.String("plugin_id", pluginID), mlog.String("version", version))
-				}
-			}
-		}
-	}
 }
 
 // getPrepackagedPlugin builds a PrepackagedPlugin from the plugin at the given path, additionally returning the directory in which it was extracted.
