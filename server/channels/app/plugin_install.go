@@ -46,7 +46,6 @@ import (
 	"github.com/blang/semver"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -332,12 +331,6 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	bundles, err := pluginsEnvironment.Available()
 	if err != nil {
 		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.install.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	// Check plugin id is not blocked
-	if plugin.PluginIDIsBlocked(manifest.Id) {
-		mlog.Debug("Skipping installation of plugin since plugin is on blocklist. Some plugins are blocked because they are built into this version of Mattermost.", mlog.String("plugin_id", manifest.Id))
-		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.blocked.app_error", map[string]any{"Id": manifest.Id}, "", http.StatusInternalServerError)
 	}
 
 	// Check for plugins installed with the same ID.
