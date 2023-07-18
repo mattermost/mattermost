@@ -135,6 +135,9 @@ jobs:
   build-api-spec:
     name: Build API specification
     runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -149,7 +152,7 @@ jobs:
         run: make setup-go-work
       - name: Checkout mattermost-api-reference
         run: |
-          cd ..
+          cd ../..
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
           cd mattermost-api-reference
           echo "Trying to checkout the same branch on mattermost-api-reference as mattermost"
