@@ -4921,6 +4921,7 @@
   "sidebar_left.sidebar_channel_navigator.addChannelsCta": "Add channels",
   "sidebar_left.sidebar_channel_navigator.inviteUsers": "Invite Users",
   "sidebar_left.sidebar_channel.selectedCount": "{count} selected",
+  "sidebar_left.sidebar_channel_menu_convert_to_channel": "Convert to a Channel",
   "sidebar_right_menu.console": "System Console",
   "sidebar_right_menu.flagged": "Saved Posts",
   "sidebar_right_menu.recentMentions": "Recent Mentions",

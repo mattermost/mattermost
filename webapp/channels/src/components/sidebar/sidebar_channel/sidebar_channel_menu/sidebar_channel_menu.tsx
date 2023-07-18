@@ -266,6 +266,23 @@ const SidebarChannelMenu = (props: Props) => {
         );
     }
 
+    let convertToChannelMenuItem: JSX.Element | null = null;
+    if (props.channel.type === Constants.GM_CHANNEL) {
+        let convertToChannelText = (
+            <FormattedMessage
+                id='sidebar_left.sidebar_channel_menu_convert_to_channel'
+                defaultMessage='Convert to a Channel'
+            />
+        );
+
+        convertToChannelMenuItem = (
+            <Menu.Item
+                id={`sidebar_left.sidebar_channel_menu_convert_to_channel`}
+                labels={convertToChannelText}
+            />
+        )
+    }
+
     return (
         <Menu.Container
             menuButton={{
@@ -290,6 +307,8 @@ const SidebarChannelMenu = (props: Props) => {
             {muteUnmuteChannelMenuItem}
             <Menu.Separator/>
             <ChannelMoveToSubmenu channel={props.channel}/>
+            {convertToChannelMenuItem && <Menu.Separator/>}
+            {convertToChannelMenuItem}
             {(copyLinkMenuItem || addMembersMenuItem) && <Menu.Separator/>}
             {copyLinkMenuItem}
             {addMembersMenuItem}
