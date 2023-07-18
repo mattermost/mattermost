@@ -52,6 +52,7 @@ export class TestHelper {
                 first_name: 'false',
                 mark_unread: 'mention',
                 mention_keys: '',
+                highlight_keys: '',
                 push: 'none',
                 push_status: 'offline',
             },

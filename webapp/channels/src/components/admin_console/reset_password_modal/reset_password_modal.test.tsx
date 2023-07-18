@@ -25,6 +25,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         first_name: 'true',
         mark_unread: 'all',
         mention_keys: '',
+        highlight_keys: '',
         push: 'default',
         push_status: 'ooo',
     };

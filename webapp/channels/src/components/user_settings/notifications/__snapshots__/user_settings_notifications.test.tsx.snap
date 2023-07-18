@@ -206,6 +206,45 @@ Object {
             class="divider-light"
           />
           <div
+            class="section-min"
+          >
+            <div
+              class="d-flex"
+            >
+              <h4
+                class="section-min__title"
+                id="keysWithHighlightTitle"
+              >
+                Keywords That Get Highlighted (without notifications)
+              </h4>
+              <div
+                class="section-min__edit"
+              >
+                <button
+                  aria-expanded="false"
+                  aria-labelledby="keysWithHighlightTitle keysWithHighlightEdit"
+                  class="color--link cursor--pointer style--none text-left"
+                  id="keysWithHighlightEdit"
+                >
+                  <i
+                    class="icon-pencil-outline"
+                    title="Edit Icon"
+                  />
+                  Edit
+                </button>
+              </div>
+            </div>
+            <div
+              class="section-min__describe"
+              id="keysWithHighlightDesc"
+            >
+              None
+            </div>
+          </div>
+          <div
+            class="divider-light"
+          />
+          <div
             class="divider-dark"
           />
         </div>
@@ -408,6 +447,45 @@ Object {
             id="keysWithNotificationDesc"
           >
             "@some-user"
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="section-min"
+        >
+          <div
+            class="d-flex"
+          >
+            <h4
+              class="section-min__title"
+              id="keysWithHighlightTitle"
+            >
+              Keywords That Get Highlighted (without notifications)
+            </h4>
+            <div
+              class="section-min__edit"
+            >
+              <button
+                aria-expanded="false"
+                aria-labelledby="keysWithHighlightTitle keysWithHighlightEdit"
+                class="color--link cursor--pointer style--none text-left"
+                id="keysWithHighlightEdit"
+              >
+                <i
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
+            </div>
+          </div>
+          <div
+            class="section-min__describe"
+            id="keysWithHighlightDesc"
+          >
+            None
           </div>
         </div>
         <div

@@ -104,6 +104,7 @@ class TestHelper {
                 email: 'false',
                 first_name: 'false',
                 mark_unread: 'mention',
+                highlight_keys: '',
                 mention_keys: '',
                 push: 'none',
                 push_status: 'offline',
@@ -146,6 +147,7 @@ class TestHelper {
                 first_name: 'false',
                 mark_unread: 'mention',
                 mention_keys: '',
+                highlight_keys: '',
                 push: 'none',
                 push_status: 'offline',
             },
@@ -474,6 +476,7 @@ class TestHelper {
             first_name: 'true',
             channel: 'true',
             mention_keys: '',
+            highlight_keys: '',
             ...override,
         };
     };
