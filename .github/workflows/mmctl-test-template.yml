@@ -30,6 +30,11 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+      - name: Run setup-go-work
+        run: |
+          cd server
+          make setup-go-work
+      - name: Checkout mattermost-api-reference
       - name: Run docker compose
         run: |
           cd server/build
