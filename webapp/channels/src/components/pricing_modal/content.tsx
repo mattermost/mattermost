@@ -41,7 +41,6 @@ import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
 import ExternalLink from 'components/external_link';
 
-import DowngradeTeamRemovalModal from './downgrade_team_removal_modal';
 import ContactSalesCTA from './contact_sales_cta';
 import StarterDisclaimerCTA from './starter_disclaimer_cta';
 import StartTrialCaution from './start_trial_caution';
@@ -379,29 +378,15 @@ function Content(props: ContentProps) {
                                     if (!starterProduct) {
                                         return;
                                     }
-
-                                    if (usage.teams.active > 1) {
-                                        dispatch(
-                                            openModal({
-                                                modalId: ModalIdentifiers.CLOUD_DOWNGRADE_CHOOSE_TEAM,
-                                                dialogType: DowngradeTeamRemovalModal,
-                                                dialogProps: {
-                                                    product_id: starterProduct?.id,
-                                                    starterProduct,
-                                                },
-                                            }),
-                                        );
-                                    } else {
-                                        dispatch(
-                                            openModal({
-                                                modalId: ModalIdentifiers.FEEDBACK,
-                                                dialogType: DowngradeFeedbackModal,
-                                                dialogProps: {
-                                                    onSubmit: handleClickDowngrade,
-                                                },
-                                            }),
-                                        );
-                                    }
+                                    dispatch(
+                                        openModal({
+                                            modalId: ModalIdentifiers.FEEDBACK,
+                                            dialogType: DowngradeFeedbackModal,
+                                            dialogProps: {
+                                                onSubmit: handleClickDowngrade,
+                                            },
+                                        }),
+                                    );
                                 },
                                 text: freeTierText,
                                 disabled: isStarter || isEnterprise || !isAdmin,
