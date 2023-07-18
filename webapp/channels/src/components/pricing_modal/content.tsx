@@ -23,7 +23,6 @@ import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 
 import {Feedback} from '@mattermost/types/cloud';
-import useGetUsage from 'components/common/hooks/useGetUsage';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import SuccessModal from 'components/cloud_subscribe_result_modal/success';
 import ErrorModal from 'components/cloud_subscribe_result_modal/error';
