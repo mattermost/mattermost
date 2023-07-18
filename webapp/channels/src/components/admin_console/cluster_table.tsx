@@ -15,6 +15,7 @@ type Props = {
         config_hash: string;
         hostname: string;
         ipaddress: string;
+        schema_version: string;
     }>;
     reload: (e: MouseEvent<HTMLButtonElement>) => void;
 }
