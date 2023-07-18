@@ -4888,6 +4888,14 @@
     "translation": "Unable to mark channel as unread."
   },
   {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Unable to update the channel member."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Unable to update the channel member, notify props size limit exceeded."
+  },
+  {
     "id": "app.channel.user_belongs_to_channels.app_error",
     "translation": "Unable to determine if the user belongs to a list of channels."
   },
@@ -4930,14 +4938,6 @@
   {
     "id": "app.cloud.upgrade_plan_bot_message_single",
     "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested a workspace upgrade for: "
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Collection type already exists."
-  },
-  {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Topic type already exists."
   },
   {
     "id": "app.command.createcommand.internal_error",
@@ -8230,6 +8230,10 @@
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Invalid notify level."
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Notify props size limit exceeded."
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",

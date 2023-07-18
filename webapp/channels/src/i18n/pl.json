@@ -2618,7 +2618,7 @@
   "announcement_bar.error.purchase_a_license_now": "Kup Licencję Teraz",
   "announcement_bar.error.site_url.full": "Proszę skonfigurować swój <linkSite> adres URL strony</linkSite> na <linkConsole> Konsoli systemowej</linkConsole>.",
   "announcement_bar.error.site_url_gitlab.full": "Proszę skonfigurować swój <linkSite>site URL</linkSite> albo na <linkConsole>System Console</linkConsole> albo, jeśli'używasz GitLab Mattermost, w gitlab.rb.",
-  "announcement_bar.error.trial_license_expiring": "** Pozostało {days} dni bezpłatnego okresu próbnego.**",
+  "announcement_bar.error.trial_license_expiring": "Pozostało {days} dni bezpłatnego okresu próbnego.",
   "announcement_bar.error.trial_license_expiring_last_day": "To ostatni dzień bezpłatnego okresu próbnego. Kup teraz licencję, aby nadal korzystać z funkcji Mattermost Professional i Enterprise.",
   "announcement_bar.error.trial_license_expiring_last_day.short": "To ostatni dzień darmowego okresu próbnego.",
   "announcement_bar.error.warn_metric_status.link": "Dowiedz się więcej",

@@ -2634,7 +2634,7 @@
   "announcement_bar.error.purchase_a_license_now": "Koop nu een licentie",
   "announcement_bar.error.site_url.full": "Gelieve jouw <linkSite>site URL</linkSite> te configureren op de <linkConsole>Systeem console</linkConsole>.",
   "announcement_bar.error.site_url_gitlab.full": "Gelieve jouw <linkSite>site URL</linkSite> te configureren, ofwel op de <linkConsole>Systeem console</linkConsole> of, als je GitLab Mattermost gebruikt, in gitlab.rb.",
-  "announcement_bar.error.trial_license_expiring": "**Er zijn nog {days} dagen over van je gratis proefperiode.**",
+  "announcement_bar.error.trial_license_expiring": "Er zijn nog {days} dagen over van je gratis proefperiode.",
   "announcement_bar.error.trial_license_expiring_last_day": "Dit is de laatste dag van je gratis proefperiode. Koop nu een licentie om de Mattermost Professional en Enterprise functies te blijven gebruiken.",
   "announcement_bar.error.trial_license_expiring_last_day.short": "Dit is de laatste dag van jouw gratis proefperiode.",
   "announcement_bar.error.warn_metric_status.link": "Meer Informatie",

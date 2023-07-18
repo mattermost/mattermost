@@ -2505,7 +2505,6 @@ func TestGetLinkMetadata(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnablePermalinkPreviews = true
 			*cfg.ServiceSettings.SiteURL = server.URL
-			cfg.FeatureFlags.PermalinkPreviews = true
 		})
 
 		requestURL := server.URL + "/pl/5rpoy4o3nbgwjm7gs4cm71h6ho"
@@ -2766,58 +2765,6 @@ func TestContainsPermalink(t *testing.T) {
 	}
 }
 
-func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableLinkPreviews = true
-		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
-	})
-
-	directChannel, err := th.App.createDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
-	assert.Nil(t, err)
-
-	userID := model.NewId()
-	post := &model.Post{
-		Id: userID,
-		Metadata: &model.PostMetadata{
-			Embeds: []*model.PostEmbed{
-				{
-					Type: model.PostEmbedOpengraph,
-					URL:  "ogURL",
-					Data: &opengraph.OpenGraph{
-						Images: []*ogimage.Image{
-							{
-								URL: "imageURL",
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	previewedPost := model.NewPreviewPost(post, th.BasicTeam, directChannel)
-
-	actual := th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, th.BasicUser2.Id)
-	assert.NotNil(t, actual.Metadata.Embeds[0].Data)
-
-	guestID := model.NewId()
-	guest := &model.User{
-		Email:         "success+" + guestID + "@simulator.amazonses.com",
-		Username:      "un_" + guestID,
-		Nickname:      "nn_" + guestID,
-		Password:      "Password1",
-		EmailVerified: true,
-	}
-	guest, appErr := th.App.CreateGuest(th.Context, guest)
-	require.Nil(t, appErr)
-
-	actual = th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, guest.Id)
-	assert.Nil(t, actual.Metadata.Embeds[0].Data)
-}
-
 func TestSanitizePostMetaDataForAudit(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2868,4 +2815,61 @@ func TestSanitizePostMetaDataForAudit(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestSanitizePostMetadataForUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	privateChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
+		Name:      "private_chanenl",
+		Type:      model.ChannelTypePrivate,
+		TeamId:    th.BasicTeam.Id,
+		CreatorId: th.SystemAdminUser.Id,
+	}, true)
+
+	require.Nil(t, err)
+	require.NotEmpty(t, privateChannel.Id)
+
+	post := &model.Post{
+		Id:     "post_id_1",
+		UserId: th.BasicUser.Id,
+		Metadata: &model.PostMetadata{
+			Embeds: []*model.PostEmbed{
+				{
+					Type: model.PostEmbedPermalink,
+					Data: &model.PreviewPost{
+						PostID: "permalink_post_id",
+						Post: &model.Post{
+							Id:        "permalink_post_id",
+							Message:   "permalink post message",
+							ChannelId: privateChannel.Id,
+						},
+					},
+				},
+				{
+					Type: model.PostEmbedPermalink,
+					Data: &model.PreviewPost{
+						PostID: "permalink_post_id_2",
+						Post: &model.Post{
+							Id:        "permalink_post_id_2",
+							Message:   "permalink post message 2",
+							ChannelId: privateChannel.Id,
+						},
+					},
+				},
+				{
+					Type: model.PostEmbedLink,
+					URL:  "https://mattermost.com",
+				},
+			},
+		},
+	}
+
+	sanitizedPost, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, sanitizedPost)
+
+	require.Equal(t, 1, len(sanitizedPost.Metadata.Embeds))
+	require.Equal(t, model.PostEmbedLink, sanitizedPost.Metadata.Embeds[0].Type)
 }
