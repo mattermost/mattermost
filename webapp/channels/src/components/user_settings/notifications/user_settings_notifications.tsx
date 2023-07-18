@@ -240,6 +240,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         data.comments = this.state.notifyCommentsLevel;
         data.auto_responder_active = this.state.autoResponderActive.toString() as UserNotifyProps['auto_responder_active'];
         data.auto_responder_message = this.state.autoResponderMessage;
+        data.first_name = this.state.firstNameKey.toString() as UserNotifyProps['first_name'];
+        data.channel = this.state.channelKey.toString() as UserNotifyProps['channel'];
 
         if (!data.auto_responder_message || data.auto_responder_message === '') {
             data.auto_responder_message = this.props.intl.formatMessage({
@@ -258,6 +260,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 mentionKeys.push(key.value);
             });
         }
+        data.mention_keys = mentionKeys.join(',');
 
         if (this.state.customKeysWithHighlight.length > 0) {
             this.state.customKeysWithHighlight.forEach((key) => {
@@ -265,10 +268,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             });
         }
         data.highlight_keys = highlightKeys;
-
-        data.mention_keys = mentionKeys.join(',');
-        data.first_name = this.state.firstNameKey.toString() as UserNotifyProps['first_name'];
-        data.channel = this.state.channelKey.toString() as UserNotifyProps['channel'];
 
         this.setState({isSaving: true});
         stopTryNotificationRing();
