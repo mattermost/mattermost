@@ -1305,14 +1305,17 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 	member, err := a.Srv().Store().Channel().UpdateMemberNotifyProps(channelID, userID, filteredProps)
 	if err != nil {
 		var appErr *model.AppError
+		var invErr *store.ErrInvalidInput
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("updateMemberNotifyProps", "app.channel.update_member.notify_props_limit_exceeded.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("updateMemberNotifyProps", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("updateMemberNotifyProps", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("updateMemberNotifyProps", "app.channel.update_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
