@@ -1,0 +1,38 @@
+  /api/v4/opengraph:
+    post:
+      tags:
+        - OpenGraph
+      summary: Get open graph metadata for url
+      description: >
+        Get Open Graph Metadata for a specif URL. Use the Open Graph protocol to
+        get some generic metadata about a URL. Used for creating link previews.
+
+
+        __Minimum server version__: 3.10
+
+
+        ##### Permissions
+
+        No permission required but must be logged in.
+      operationId: OpenGraph
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+              properties:
+                url:
+                  type: string
+                  description: The URL to get Open Graph Metadata.
+        required: true
+      responses:
+        "200":
+          description: Open Graph retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenGraph"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

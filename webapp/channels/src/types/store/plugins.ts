@@ -15,6 +15,8 @@ import {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import {WebSocketClient} from '@mattermost/client';
 
 import {GlobalState} from 'types/store';
+import {Channel} from '@mattermost/types/channels';
+import {NewPostMessageProps} from 'actions/new_post';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;
 
@@ -37,6 +39,7 @@ export type PluginsState = {
         FilesWillUploadHook: PluginComponent[];
         NeedsTeamComponent: NeedsTeamComponent[];
         CreateBoardFromTemplate: PluginComponent[];
+        DesktopNotificationHooks: DesktopNotificationHook[];
     };
 
     postTypes: {
@@ -65,7 +68,7 @@ export type PluginsState = {
 export type Menu = {
     id: string;
     parentMenuId?: string;
-    text?: React.ReactElement|string;
+    text?: React.ReactElement | string;
     selectedValueText?: string;
     subMenu?: Menu[];
     filter?: (id?: string) => boolean;
@@ -113,7 +116,7 @@ export type FilePreviewComponent = {
     id: string;
     pluginId: string;
     override: (fileInfo: FileInfo, post?: Post) => boolean;
-    component: React.ComponentType<{fileInfo: FileInfo; post?: Post; onModalDismissed: () => void}>;
+    component: React.ComponentType<{ fileInfo: FileInfo; post?: Post; onModalDismissed: () => void }>;
 }
 
 export type FileDropdownPluginComponent = {
@@ -220,3 +223,19 @@ export type ProductComponent = {
      */
     wrapped: boolean;
 };
+
+export type DesktopNotificationArgs = {
+    title: string;
+    body: string;
+    silent: boolean;
+    soundName: string;
+    url: string;
+    notify: boolean;
+};
+
+export type DesktopNotificationHook = PluginComponent & {
+    hook: (post: Post, msgProps: NewPostMessageProps, channel: Channel, teamId: string, args: DesktopNotificationArgs) => Promise<{
+        error?: string;
+        args?: DesktopNotificationArgs;
+    }>;
+}

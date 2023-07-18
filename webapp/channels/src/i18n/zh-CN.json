@@ -2426,7 +2426,7 @@
   "announcement_bar.error.purchase_a_license_now": "立即购买许可证",
   "announcement_bar.error.site_url.full": "请在<linkConsole>系统控制台</linkConsole>设置您的<linkSite>站点网址</linkSite>。",
   "announcement_bar.error.site_url_gitlab.full": "请在<linkConsole>系统控制台</linkConsole>中设置您的<linkSite>site URL</linkSite>，或如果您在使用 GitLab Mattermost，则使用 gitlab.rb。",
-  "announcement_bar.error.trial_license_expiring": "**您的免费试用期还剩 {days} 天。**",
+  "announcement_bar.error.trial_license_expiring": "您的免费试用期还剩 {days} 天。",
   "announcement_bar.error.trial_license_expiring_last_day": "这是您免费试用的最后一天。立即购买许可证以继续使用 Mattermost 专业版和企业版的功能。",
   "announcement_bar.error.warn_metric_status.link": "了解更多",
   "announcement_bar.notification.email_verified": "电子邮件已验证",

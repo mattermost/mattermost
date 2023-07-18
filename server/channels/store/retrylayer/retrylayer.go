@@ -3818,11 +3818,11 @@ func (s *RetryLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 
 }
 
-func (s *RetryLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
+func (s *RetryLayerEmojiStore) GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error) {
 
 	tries := 0
 	for {
-		result, err := s.EmojiStore.GetMultipleByName(names)
+		result, err := s.EmojiStore.GetMultipleByName(ctx, names)
 		if err == nil {
 			return result, nil
 		}
@@ -11021,11 +11021,11 @@ func (s *RetryLayerTeamStore) GetMembersByIds(teamID string, userIds []string, r
 
 }
 
-func (s *RetryLayerTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int) (*model.NewTeamMembersList, int64, error) {
+func (s *RetryLayerTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int, showFullName bool) (*model.NewTeamMembersList, int64, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.TeamStore.GetNewTeamMembersSince(teamID, since, offset, limit)
+		result, resultVar1, err := s.TeamStore.GetNewTeamMembersSince(teamID, since, offset, limit, showFullName)
 		if err == nil {
 			return result, resultVar1, nil
 		}

@@ -870,7 +870,6 @@ type AppIface interface {
 	HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte)
 	HandleIncomingWebhook(c *request.Context, hookID string, req *model.IncomingWebhookRequest) *model.AppError
 	HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
-	HasBoardProduct() (bool, error)
 	HasPermissionTo(askingUserId string, permission *model.Permission) bool
 	HasPermissionToChannel(c request.CTX, askingUserId string, channelID string, permission *model.Permission) bool
 	HasPermissionToChannelByPost(askingUserId string, postID string, permission *model.Permission) bool
@@ -920,7 +919,7 @@ type AppIface interface {
 	Log() *mlog.Logger
 	LoginByOAuth(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
 	MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError
-	MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
+	MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError)
 	MaxPostSize() int
 	MessageExport() einterfaces.MessageExportInterface
 	Metrics() einterfaces.MetricsInterface
@@ -970,7 +969,6 @@ type AppIface interface {
 	RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppError)
-	RegisterCollectionAndTopic(pluginID, collectionType, topicType string) error
 	RegisterPluginCommand(pluginID string, command *model.Command) error
 	RegisterProductCommand(ProductID string, command *model.Command) error
 	ReloadConfig() error

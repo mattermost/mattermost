@@ -289,7 +289,6 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadBoardsMigrationsIfNeeded()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(dbStore, searchEngine, false, true, updateConfig, nil)
 	th.InitLogin()

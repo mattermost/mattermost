@@ -126,7 +126,6 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         onChange={[Function]}
         placeholder="E.g.: \\"https://push-test.mattermost.com\\""
         setByEnv={false}
-        type="input"
         value="https://push.mattermost.com"
       />
       <AdminTextSetting
@@ -262,7 +261,6 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
         onChange={[Function]}
         placeholder="E.g.: \\"https://push-test.mattermost.com\\""
         setByEnv={false}
-        type="input"
         value="https://push.mattermost.com"
       />
       <AdminTextSetting

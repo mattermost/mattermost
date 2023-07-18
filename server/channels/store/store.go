@@ -171,7 +171,7 @@ type TeamStore interface {
 	// users belong.
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
 
-	GetNewTeamMembersSince(teamID string, since int64, offset int, limit int) (*model.NewTeamMembersList, int64, error)
+	GetNewTeamMembersSince(teamID string, since int64, offset int, limit int, showFullName bool) (*model.NewTeamMembersList, int64, error)
 }
 
 type ChannelStore interface {
@@ -669,7 +669,7 @@ type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, error)
 	Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error)
 	GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error)
-	GetMultipleByName(names []string) ([]*model.Emoji, error)
+	GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, timestamp int64) error
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
