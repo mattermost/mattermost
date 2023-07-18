@@ -34,7 +34,7 @@ export const useGetTourSteps = (tourCategory: string) => {
 
     let tourSteps: Record<string, number> = TTNameMapToTourSteps[tourCategory];
 
-    const {playbooksPlugin, playbooksProductEnabled, boardsPlugin, boardsProductEnabled} = useGetPluginsActivationState();
+    const {playbooksPlugin, playbooksProductEnabled, boardsPlugin} = useGetPluginsActivationState();
 
     if (tourCategory === TutorialTourName.EXPLORE_OTHER_TOOLS) {
         const steps: Record<string, number> = tourSteps as typeof ExploreOtherToolsTourSteps;
@@ -42,7 +42,7 @@ export const useGetTourSteps = (tourCategory: string) => {
             delete steps.PLAYBOOKS_TOUR;
         }
 
-        if (!boardsPlugin && !boardsProductEnabled) {
+        if (!boardsPlugin) {
             delete steps.BOARDS_TOUR;
         }
         tourSteps = steps;
@@ -52,6 +52,7 @@ export const useGetTourSteps = (tourCategory: string) => {
     }
     return tourSteps;
 };
+
 export const useHandleNavigationAndExtraActions = (tourCategory: string) => {
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
