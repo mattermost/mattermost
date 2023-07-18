@@ -882,6 +882,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             Menu: () => null,
                             MenuList: () => null,
                         }}
+                        placeholder={''}
                         aria-labelledby='mentionKeysWithHighlightInput'
                         onChange={this.handleChangeForCustomKeysWithHightlightInput}
                         value={this.state.customKeysWithHighlight}
