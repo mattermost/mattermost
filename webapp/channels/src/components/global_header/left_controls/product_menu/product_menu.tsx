@@ -81,11 +81,9 @@ const ProductMenu = (): JSX.Element => {
     const triggerStep = useSelector((state: GlobalState) => getInt(state, OnboardingTaskCategory, OnboardingTasksName.EXPLORE_OTHER_TOOLS, FINISHED));
     const exploreToolsTourTriggered = triggerStep === GenericTaskSteps.STARTED;
 
-    const {boardsProductEnabled, boardsPlugin, playbooksPlugin} = useGetPluginsActivationState();
+    const {boardsPlugin, playbooksPlugin} = useGetPluginsActivationState();
 
-    const boardsEnabled = boardsPlugin || boardsProductEnabled;
-
-    const showBoardsTour = enableTutorial && tutorialStep === ExploreOtherToolsTourSteps.BOARDS_TOUR && exploreToolsTourTriggered && boardsEnabled;
+    const showBoardsTour = enableTutorial && tutorialStep === ExploreOtherToolsTourSteps.BOARDS_TOUR && exploreToolsTourTriggered && boardsPlugin;
     const showPlaybooksTour = enableTutorial && tutorialStep === ExploreOtherToolsTourSteps.PLAYBOOKS_TOUR && exploreToolsTourTriggered && playbooksPlugin;
 
     const handleClick = () => dispatch(setProductMenuSwitcherOpen(!switcherOpen));
@@ -110,14 +108,13 @@ const ProductMenu = (): JSX.Element => {
         let tourTip;
 
         // focalboard
-        const boardsEnabled = product.pluginId === suitePluginIds.focalboard || product.pluginId === suitePluginIds.boards;
-        if (boardsEnabled && showBoardsTour) {
+        if (boardsPlugin && showBoardsTour) {
             tourTip = (<BoardsTourTip singleTip={!playbooksPlugin}/>);
         }
 
         // playbooks
         if (product.pluginId === suitePluginIds.playbooks && showPlaybooksTour) {
-            tourTip = (<PlaybooksTourTip singleTip={!boardsEnabled}/>);
+            tourTip = (<PlaybooksTourTip singleTip={!boardsPlugin}/>);
         }
 
         return (

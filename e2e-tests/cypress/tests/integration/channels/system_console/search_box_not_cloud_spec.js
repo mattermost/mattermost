@@ -8,7 +8,7 @@
 // ***************************************************************
 
 // Stage: @prod
-// Group: @channels @not_cloud @system_console
+// Group: @channels @not_cloud @system_console @plugins_uninstall
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 

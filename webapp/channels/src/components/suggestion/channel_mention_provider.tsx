@@ -40,7 +40,7 @@ export const ChannelMentionSuggestion = React.forwardRef<HTMLDivElement, Suggest
     } else {
         channelIcon = (
             <span className='suggestion-list__icon suggestion-list__icon--large'>
-                <i className={`icon icon--no-spacing icon-${item.channel?.type === Constants.OPEN_CHANNEL ? 'globe' : 'lock'}`}/>
+                <i className={`icon icon--no-spacing icon-${item.channel?.type === Constants.OPEN_CHANNEL ? 'globe' : 'lock-outline'}`}/>
             </span>
         );
     }
