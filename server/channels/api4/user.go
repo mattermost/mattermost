@@ -61,7 +61,6 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods("POST")
 
 	api.BaseRoutes.Users.Handle("/login", api.APIHandler(login)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: model.NewInt(2), MaxBurst: model.NewInt(1)})).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods("POST")
@@ -1967,30 +1966,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJSON(r.Body)
-	token := props["token"]
-	deviceId := props["device_id"]
-
-	user, err := c.App.ValidateDesktopToken(token, time.Now().Add(-model.DesktopTokenTTL).Unix())
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	err = c.App.DoLogin(c.AppContext, w, r, user, deviceId, false, false, false)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	c.App.AttachSessionCookies(c.AppContext, w, r)
-
-	if err := json.NewEncoder(w).Encode(user); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
 func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	campaignToURL := map[string]string{
 		"focalboard": "/boards",
@@ -2239,6 +2214,10 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Domain:   c.App.GetCookieDomain(),
 		Secure:   secure,
+	}
+
+	if secure && utils.CheckEmbeddedCookie(r) {
+		sessionCookie.SameSite = http.SameSiteNoneMode
 	}
 
 	http.SetCookie(w, sessionCookie)
