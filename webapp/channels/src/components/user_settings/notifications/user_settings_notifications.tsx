@@ -250,7 +250,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             });
         }
 
-        const mentionKeys = [];
+        const mentionKeys: string[] = [];
         if (this.state.usernameKey) {
             mentionKeys.push(this.props.user.username);
         }
