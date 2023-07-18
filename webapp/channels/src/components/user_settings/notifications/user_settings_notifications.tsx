@@ -748,12 +748,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         isMulti={true}
                         styles={customKeywordsWithNotificationStyles}
                         className='multiInput'
-                        placeholder={this.props.intl.formatMessage({
-                            id: 'user.settings.notifications.sensitiveCustomWords.placeholder',
-                            defaultMessage: 'Write and press TAB to seperate keywords',
-                        })}
                         components={{
-                            DropdownIndicator: null,
+                            DropdownIndicator: () => null,
                             Menu: () => null,
                             MenuList: () => null,
                         }}
@@ -1109,6 +1105,13 @@ const customKeywordsWithNotificationStyles: ReactSelectStyles = {
     indicatorSeparator: ((indicatorSeperatorStyles) => ({
         ...indicatorSeperatorStyles,
         display: 'none',
+    })),
+    multiValueRemove: ((multiValueRemoveStyles) => ({
+        ...multiValueRemoveStyles,
+        cursor: 'pointer',
+        ':hover': {
+            backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.16)',
+        },
     })),
 };
 
