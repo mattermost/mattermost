@@ -110,17 +110,7 @@ class AxeBuilderExtended {
 
     constructor(page: Page) {
         this.loginPage = () => {
-            return (
-                new AxeBuilder({page})
-                    .withTags(this.tags)
-                    .disableRules(this.disabledRules)
-
-                    // MM-52645
-                    .exclude('meta[name="viewport"]')
-                    .exclude('.header-logo-link')
-                    .exclude('#input_loginId')
-                    .exclude('#password_toggle')
-            );
+            return new AxeBuilder({page}).withTags(this.tags).disableRules(this.disabledRules);
         };
     }
 
