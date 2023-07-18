@@ -251,7 +251,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
 
         const mentionKeys = [];
-        let highlightKeys = '';
         if (this.state.usernameKey) {
             mentionKeys.push(this.props.user.username);
         }
@@ -262,12 +261,13 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
         data.mention_keys = mentionKeys.join(',');
 
+        const highlightKeys: string[] = [];
         if (this.state.customKeysWithHighlight.length > 0) {
             this.state.customKeysWithHighlight.forEach((key) => {
-                highlightKeys = `${highlightKeys},${key.value}`;
+                highlightKeys.push(key.value);
             });
         }
-        data.highlight_keys = highlightKeys;
+        data.highlight_keys = highlightKeys.join(',');
 
         this.setState({isSaving: true});
         stopTryNotificationRing();
