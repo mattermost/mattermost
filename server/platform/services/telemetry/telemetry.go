@@ -606,6 +606,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_file_attachments":       *cfg.FileSettings.EnableFileAttachments,
 		"enable_mobile_upload":          *cfg.FileSettings.EnableMobileUpload,
 		"enable_mobile_download":        *cfg.FileSettings.EnableMobileDownload,
+		"show_channel_file_count":       *cfg.FileSettings.ShowChannelFileCount,
 	})
 
 	ts.SendTelemetry(TrackConfigEmail, map[string]any{

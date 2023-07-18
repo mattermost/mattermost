@@ -45,6 +45,7 @@ export type ClientConfig = {
     EmailLoginButtonTextColor: string;
     EmailNotificationContentsType: string;
     EnableAskCommunityLink: string;
+    ShowChannelFileCount: string;
     EnableBanner: string;
     EnableBotAccountCreation: string;
     EnableChannelViewedMessages: string;
@@ -507,6 +508,7 @@ export type FileSettings = {
     AmazonS3SSE: boolean;
     AmazonS3Trace: boolean;
     AmazonS3RequestTimeoutMilliseconds: number;
+    ShowChannelFileCount: boolean;
 };
 
 export type EmailSettings = {

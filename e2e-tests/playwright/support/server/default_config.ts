@@ -293,6 +293,7 @@ const defaultServerConfig: AdminConfig = {
         AmazonS3SSE: false,
         AmazonS3Trace: false,
         AmazonS3RequestTimeoutMilliseconds: 30000,
+        ShowChannelFileCount: true,
     },
     EmailSettings: {
         EnableSignUpWithEmail: true,

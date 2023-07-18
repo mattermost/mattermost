@@ -82,6 +82,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["GfycatApiSecret"] = *c.ServiceSettings.GfycatAPISecret
 	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
 
+	props["ShowChannelFileCount"] = strconv.FormatBool(*c.FileSettings.ShowChannelFileCount)
+
 	props["MaxNotificationsPerChannel"] = strconv.FormatInt(*c.TeamSettings.MaxNotificationsPerChannel, 10)
 	props["EnableConfirmNotificationsToChannel"] = strconv.FormatBool(*c.TeamSettings.EnableConfirmNotificationsToChannel)
 	props["TimeBetweenUserTypingUpdatesMilliseconds"] = strconv.FormatInt(*c.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds, 10)

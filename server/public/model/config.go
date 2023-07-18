@@ -1546,6 +1546,7 @@ type FileSettings struct {
 	AmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ShowChannelFileCount               *bool   `access:"site_public_links,cloud_restrictable"`
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1652,6 +1653,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.AmazonS3RequestTimeoutMilliseconds == nil {
 		s.AmazonS3RequestTimeoutMilliseconds = NewInt64(30000)
+	}
+
+	if s.ShowChannelFileCount == nil {
+		s.ShowChannelFileCount = NewBool(true)
 	}
 }
 

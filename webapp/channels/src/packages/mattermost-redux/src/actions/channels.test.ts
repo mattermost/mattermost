@@ -1940,7 +1940,7 @@ describe('Actions.Channels', () => {
             get(`/channels/${TestHelper.basicChannel!.id}/stats`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1});
 
-        await store.dispatch(Actions.getChannelStats(TestHelper.basicChannel!.id));
+        await store.dispatch(Actions.getChannelStats(TestHelper.basicChannel!.id, false));
 
         const {stats} = store.getState().entities.channels;
         const stat = stats[TestHelper.basicChannel!.id];
@@ -1973,7 +1973,7 @@ describe('Actions.Channels', () => {
             get(`/channels/${TestHelper.basicChannel!.id}/stats`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1});
 
-        await store.dispatch(Actions.getChannelStats(channelId));
+        await store.dispatch(Actions.getChannelStats(channelId, false));
 
         let state = store.getState();
         let {stats} = state.entities.channels;
@@ -2044,7 +2044,7 @@ describe('Actions.Channels', () => {
             get(`/channels/${TestHelper.basicChannel!.id}/stats`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1});
 
-        await store.dispatch(Actions.getChannelStats(channelId));
+        await store.dispatch(Actions.getChannelStats(channelId, false));
 
         nock(Client4.getBaseRoute()).
             post(`/channels/${TestHelper.basicChannel!.id}/members`).

@@ -1013,6 +1013,8 @@
   "admin.file.enableMobileDownloadTitle": "Allow File Downloads on Mobile:",
   "admin.file.enableMobileUploadDesc": "When false, disables file uploads on mobile apps. If Allow File Sharing is set to true, users can still upload files from a mobile web browser.",
   "admin.file.enableMobileUploadTitle": "Allow File Uploads on Mobile:",
+  "admin.file.showChannelFileCount": "Show Channel File Count:",
+  "admin.file.showChannelFileCountDesc": "When true, show the file count in the RHS channel info panel.",
   "admin.filter.all_teams": "All Teams",
   "admin.filter.apply": "Apply",
   "admin.filter.count_more": "+{count, number} more",

@@ -1121,7 +1121,7 @@ describe('Actions.Posts', () => {
             get(`/channels/${TestHelper.basicChannel!.id}/stats`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
 
-        await dispatch(getChannelStats(TestHelper.basicChannel!.id));
+        await dispatch(getChannelStats(TestHelper.basicChannel!.id, false));
 
         nock(Client4.getBaseRoute()).
             post('/posts').
@@ -1160,7 +1160,7 @@ describe('Actions.Posts', () => {
             get(`/channels/${TestHelper.basicChannel!.id}/stats`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
 
-        await dispatch(getChannelStats(TestHelper.basicChannel!.id));
+        await dispatch(getChannelStats(TestHelper.basicChannel!.id, false));
 
         nock(Client4.getBaseRoute()).
             post('/posts').
