@@ -144,10 +144,7 @@ function getNotificationsStateFromProps(props: Props): State {
 
     if (props.user.notify_props) {
         if (props.user.notify_props.mention_keys) {
-            const mentionKeys = props.user.notify_props.mention_keys.split(',');
-
-            usernameKey = mentionKeys.includes(props.user.username);
-
+            const mentionKeys = props.user.notify_props.mention_keys.split(',').filter((key) => key.length > 0);
             mentionKeys.forEach((mentionKey) => {
                 // Remove username(s) from list of keys
                 if (mentionKey !== props.user.username && mentionKey !== `@${props.user.username}`) {
@@ -158,6 +155,10 @@ function getNotificationsStateFromProps(props: Props): State {
                 }
             });
 
+            // Check if username is in list of keys, if so, set the checkbox to true
+            usernameKey = mentionKeys.includes(props.user.username);
+
+            // Check if there are any keys in the list, if so, set the checkbox of custom keys to true
             isCustomKeysWithNotificationInputChecked = customKeysWithNotification.length > 0;
         }
 
@@ -787,6 +788,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         isMulti={true}
                         styles={customKeywordsWithNotificationStyles}
                         className='multiInput'
+                        placeholder=''
                         components={{
                             DropdownIndicator: () => null,
                             Menu: () => null,
@@ -800,15 +802,13 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             );
 
             const extraInfo = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.notifications.keywordsWithNotification.extraInfo'
-                        defaultMessage='Notifications get triggered when someone sends a message that includes your username ("@{username}") or any of the options selected above.'
-                        values={{
-                            username: user.username,
-                        }}
-                    />
-                </span>
+                <FormattedMessage
+                    id='user.settings.notifications.keywordsWithNotification.extraInfo'
+                    defaultMessage='Notifications get triggered when someone sends a message that includes your username ("@{username}") or any of the options selected above.'
+                    values={{
+                        username: user.username,
+                    }}
+                />
             );
 
             expandedSection = (
