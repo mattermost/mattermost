@@ -119,11 +119,6 @@ func (ch *Channels) removePluginFromData(data model.PluginEventData) {
 	}
 }
 
-// InstallPluginWithSignature verifies and installs plugin.
-func (ch *Channels) installPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
-	return ch.installPlugin(pluginFile, signature, installPluginLocallyAlways)
-}
-
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
 func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	installationStrategy := installPluginLocallyOnlyIfNew
@@ -131,11 +126,7 @@ func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 		installationStrategy = installPluginLocallyAlways
 	}
 
-	return a.installPlugin(pluginFile, nil, installationStrategy)
-}
-
-func (a *App) installPlugin(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
-	return a.ch.installPlugin(pluginFile, signature, installationStrategy)
+	return a.ch.installPlugin(pluginFile, nil, installationStrategy)
 }
 
 func (ch *Channels) installPlugin(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
@@ -244,7 +235,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	manifest, appErr := ch.installPluginWithSignature(pluginFile, signatureFile)
+	manifest, appErr := ch.installPlugin(pluginFile, signatureFile, installPluginLocallyAlways)
 	if appErr != nil {
 		return nil, appErr
 	}
