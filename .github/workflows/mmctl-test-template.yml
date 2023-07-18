@@ -34,7 +34,6 @@ jobs:
         run: |
           cd server
           make setup-go-work
-      - name: Checkout mattermost-api-reference
       - name: Run docker compose
         run: |
           cd server/build
