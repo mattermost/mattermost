@@ -221,6 +221,15 @@ export const getCurrentUserMentionKeys: (state: GlobalState) => UserMentionKey[]
             keys.push({key: usernameKey});
         }
 
+        if (user.notify_props.highlight_keys) {
+            keys = keys.concat(user.notify_props.highlight_keys.split(',').map((key) => {
+                return {
+                    key,
+                    caseSensitive: true,
+                };
+            }));
+        }
+
         return keys;
     },
 );
