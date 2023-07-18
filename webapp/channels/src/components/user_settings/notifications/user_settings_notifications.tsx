@@ -1086,6 +1086,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     <div className='divider-light'/>
                     {keywordsWithNotificationSection}
                     <div className='divider-light'/>
+                    {/* without Notifiation mention */}
+                    <div className='divider-light'/>
                     {!this.props.isCollapsedThreadsEnabled && (
                         <>
                             {commentsSection}
