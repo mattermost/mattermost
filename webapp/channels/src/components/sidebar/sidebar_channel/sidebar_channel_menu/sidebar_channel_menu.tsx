@@ -26,6 +26,7 @@ import Constants, {ModalIdentifiers} from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
 
 import type {PropsFromRedux, OwnProps} from './index';
+import ConvertGmToChannelModal from "components/convert_gm_to_channel_modal";
 
 type Props = PropsFromRedux & OwnProps;
 
@@ -275,10 +276,20 @@ const SidebarChannelMenu = (props: Props) => {
             />
         );
 
+        function handleConvertGmToChannel() {
+            props.openModal({
+                modalId: ModalIdentifiers.CONVERT_GM_TO_CHANNEL,
+                dialogType: ConvertGmToChannelModal,
+            });
+            trackEvent('ui', 'ui_sidebar_channel_menu_convertGmToChannel');
+        }
+
         convertToChannelMenuItem = (
             <Menu.Item
                 id={`sidebar_left.sidebar_channel_menu_convert_to_channel`}
+                aria-haspopup='true'
                 labels={convertToChannelText}
+                onClick={handleConvertGmToChannel}
             />
         )
     }
