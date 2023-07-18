@@ -15,8 +15,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/client"
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/client"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 )
 
 type Clients struct {
@@ -3379,7 +3379,7 @@ func TestPermissionsGetFile(t *testing.T) {
 		clients := setupClients(th)
 		testData := setupData(t, th)
 
-		newFileID, err := th.Server.App().SaveFile(bytes.NewBuffer([]byte("test")), "test-team", testData.privateBoard.ID, "test.png")
+		newFileID, err := th.Server.App().SaveFile(bytes.NewBuffer([]byte("test")), "test-team", testData.privateBoard.ID, "test.png", false)
 		require.NoError(t, err)
 
 		ttCases := ttCasesF()
@@ -3394,7 +3394,7 @@ func TestPermissionsGetFile(t *testing.T) {
 		clients := setupLocalClients(th)
 		testData := setupData(t, th)
 
-		newFileID, err := th.Server.App().SaveFile(bytes.NewBuffer([]byte("test")), "test-team", testData.privateBoard.ID, "test.png")
+		newFileID, err := th.Server.App().SaveFile(bytes.NewBuffer([]byte("test")), "test-team", testData.privateBoard.ID, "test.png", false)
 		require.NoError(t, err)
 
 		ttCases := ttCasesF()

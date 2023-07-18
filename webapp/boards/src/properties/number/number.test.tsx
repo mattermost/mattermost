@@ -24,8 +24,8 @@ describe('properties/number', () => {
     let board: Board
     let card: Card
     let propertyTemplate: IPropertyTemplate
-    let baseProps: ComponentProps<typeof NumberEditor> 
-    
+    let baseProps: ComponentProps<typeof NumberEditor>
+
     beforeEach(() => {
         board = TestBlockFactory.createBoard()
         card = TestBlockFactory.createCard()

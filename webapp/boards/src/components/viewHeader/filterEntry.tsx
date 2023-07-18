@@ -38,6 +38,7 @@ const FilterEntry = (props: Props): JSX.Element => {
         propertyName = 'Title'
     }
     const key = `${filter.propertyId}-${filter.condition}}`
+
     return (
         <div
             className='FilterEntry'

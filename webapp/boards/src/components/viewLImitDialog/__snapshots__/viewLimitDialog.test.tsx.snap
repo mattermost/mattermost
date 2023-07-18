@@ -137,7 +137,7 @@ exports[`components/viewLimitDialog/ViewLiimitDialog show upgrade button for sys
           >
             Upgrade to our Professional or Enterprise plan.
             <a
-              href="https://mattermost.com/pricing/"
+              href="https://mattermost.com/pl/pricing/"
               rel="noreferrer"
               target="_blank"
             >

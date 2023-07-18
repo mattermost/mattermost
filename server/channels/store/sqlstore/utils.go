@@ -14,8 +14,8 @@ import (
 
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
 	"github.com/go-sql-driver/mysql"
 )
@@ -232,4 +232,15 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 	default:
 		return "", errors.New("invalid drivername. Not postgres or mysql.")
 	}
+}
+
+const maxTokenSize = 50
+
+// trimInput limits the string to a max size to prevent clogging up disk space
+// while logging
+func trimInput(input string) string {
+	if len(input) > maxTokenSize {
+		input = input[:maxTokenSize] + "..."
+	}
+	return input
 }

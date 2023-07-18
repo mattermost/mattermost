@@ -44,11 +44,12 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
 <div
   className="wrapper--fixed "
 >
-  <FormattedAdminHeader
-    defaultMessage="Configuration"
-    id="config"
-    values={Object {}}
-  />
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Configuration"
+      id="config"
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -62,7 +63,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
       >
         <SettingsGroup
           container={false}
-          show={true}
         >
           <AdminTextSetting
             disabled={false}

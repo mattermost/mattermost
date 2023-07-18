@@ -16,7 +16,7 @@ import AtMentionProvider from 'components/suggestion/at_mention_provider';
 import ChannelMentionProvider from 'components/suggestion/channel_mention_provider';
 import AppCommandProvider from 'components/suggestion/command_provider/app_provider';
 import CommandProvider from 'components/suggestion/command_provider/command_provider';
-import EmoticonProvider from 'components/suggestion/emoticon_provider.jsx';
+import EmoticonProvider from 'components/suggestion/emoticon_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list.jsx';
@@ -40,7 +40,6 @@ export type Props = {
     onWidthChange?: (width: number) => void;
     createMessage: string;
     onKeyDown?: (e: KeyboardEvent<TextboxElement>) => void;
-    onSelect?: (e: React.SyntheticEvent<TextboxElement>) => void;
     onMouseUp?: (e: React.MouseEvent<TextboxElement>) => void;
     onKeyUp?: (e: React.KeyboardEvent<TextboxElement>) => void;
     onBlur?: (e: FocusEvent<TextboxElement>) => void;
@@ -61,6 +60,7 @@ export type Props = {
     currentTeamId: string;
     preview?: boolean;
     autocompleteGroups: Array<{ id: string }> | null;
+    delayChannelAutocomplete: boolean;
     actions: {
         autocompleteUsersInChannel: (prefix: string, channelId: string) => Promise<ActionResult>;
         autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>;
@@ -113,7 +113,7 @@ export default class Textbox extends React.PureComponent<Props> {
                 searchAssociatedGroupsForReference: (prefix: string) => this.props.actions.searchAssociatedGroupsForReference(prefix, this.props.currentTeamId, this.props.channelId),
                 priorityProfiles: this.props.priorityProfiles,
             }),
-            new ChannelMentionProvider(props.actions.autocompleteChannels),
+            new ChannelMentionProvider(props.actions.autocompleteChannels, props.delayChannelAutocomplete),
             new EmoticonProvider(),
         );
 
@@ -180,6 +180,16 @@ export default class Textbox extends React.PureComponent<Props> {
             }
         }
 
+        if (this.props.delayChannelAutocomplete !== prevProps.delayChannelAutocomplete) {
+            for (const provider of this.suggestionProviders) {
+                if (provider instanceof ChannelMentionProvider) {
+                    provider.setProps({
+                        delayChannelAutocomplete: this.props.delayChannelAutocomplete,
+                    });
+                }
+            }
+        }
+
         if (prevProps.value !== this.props.value) {
             this.checkMessageLength(this.props.value);
         }
@@ -217,8 +227,6 @@ export default class Textbox extends React.PureComponent<Props> {
         // since we do only handle the sending when in preview mode this is fine to be casted
         this.props.onKeyDown?.(e as KeyboardEvent<TextboxElement>);
     };
-
-    handleSelect = (e: React.SyntheticEvent<TextboxElement>) => this.props.onSelect?.(e);
 
     handleMouseUp = (e: MouseEvent<TextboxElement>) => this.props.onMouseUp?.(e);
 
@@ -307,7 +315,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     placeholder={this.props.createMessage}
                     onChange={this.handleChange}
                     onKeyPress={this.props.onKeyPress}
-                    onSelect={this.handleSelect}
                     onKeyDown={this.handleKeyDown}
                     onMouseUp={this.handleMouseUp}
                     onKeyUp={this.handleKeyUp}

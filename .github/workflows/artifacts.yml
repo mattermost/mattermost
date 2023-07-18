@@ -1,18 +1,15 @@
 name: Artifacts generation and upload
 on:
   workflow_run:
-    workflows: ["Mattermost Build"]
+    workflows: ["Server CI Master", "Server CI PR"]
     types:
       - completed
+
 jobs:
   upload-s3:
     name: cd/Upload artifacts to S3
     runs-on: ubuntu-22.04
-    env:
-      REPO_NAME: ${{ github.event.repository.name }}
-    if: >
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success'
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
     steps:
       - name: cd/Configure AWS
         uses: aws-actions/configure-aws-credentials@07c2f971bac433df982ccc261983ae443861db49 # v1-node16
@@ -28,96 +25,57 @@ jobs:
           workflow_conclusion: success
           name: server-dist-artifact
           path: server/dist
-      # Get Branch name from calling workflow
-      # Search for the string "pull" and replace it with "PR" in branch-name
-      - name: cd/Get branch name
-        run: echo "BRANCH_NAME=$(echo ${{ github.event.workflow_run.head_branch }} | sed 's/^pull\//PR-/g')" >> $GITHUB_ENV
       - name: cd/Upload artifacts to S3
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+          COMMIT_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          aws s3 cp server/dist/ s3://pr-builds.mattermost.com/$REPO_NAME/$BRANCH_NAME/ --acl public-read --cache-control "no-cache" --recursive --no-progress
-          aws s3 cp server/dist/ s3://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.sha }}/ --acl public-read --cache-control "no-cache" --recursive --no-progress
+          aws s3 cp server/dist/ s3://pr-builds.mattermost.com/$REPO_NAME/commit/$COMMIT_SHA/ --acl public-read --cache-control "no-cache" --recursive --no-progress
+
   build-docker:
     name: cd/Build and push docker image
     needs: upload-s3
-    env:
-      REPO_NAME: ${{ github.event.repository.name }}
     runs-on: ubuntu-22.04
-    if: >
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success'
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
     steps:
-    - name: cd/Login to Docker Hub
-      uses: docker/login-action@3da7dc6e2b31f99ef2cb9fb4c50fb0971e0d0139 # v2.1.0
-      with:
-        username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
-    - name: cd/Download artifacts
-      uses: dawidd6/action-download-artifact@0c49384d39ceb023b8040f480a25596fd6cf441b # v2.26.0
-      with:
-        workflow: ${{ github.event.workflow_run.workflow_id }}
-        run_id: ${{ github.event.workflow_run.id }}
-        workflow_conclusion: success
-        name: server-build-artifact
-        path: server/build/
-    - name: cd/Setup Docker Buildx
-      uses: docker/setup-buildx-action@11e8a2e2910826a92412015c515187a2d6750279 # v2.4
-    - name: cd/Docker build and push
-      env:
-        DOCKER_CLI_EXPERIMENTAL: enabled
-      run: |
-        export TAG=$(echo "${{ github.event.pull_request.head.sha || github.sha }}" | cut -c1-7)
-        cd server/build
-        export DOCKER_CLI_EXPERIMENTAL=enabled
-        export MM_PACKAGE=https://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.sha }}/mattermost-team-linux-amd64.tar.gz
-        docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermostdevelopment/mm-te-test:${TAG} .
-  # Temporary uploading also to mattermost/mm-te-test:${TAG} except mattermostdevelopment/mm-te-test:${TAG}
-  # Context: https://community.mattermost.com/private-core/pl/3jzzxzfiji8hx833ewyuthzkjh
-  build-docker-temp:
-    name: cd/Build and push docker image
-    needs: upload-s3
-    env:
-      REPO_NAME: ${{ github.event.repository.name }}
-    runs-on: ubuntu-22.04
-    if: >
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success'
-    steps:
-    - name: cd/Login to Docker Hub
-      uses: docker/login-action@3da7dc6e2b31f99ef2cb9fb4c50fb0971e0d0139 # v2.1.0
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: cd/Download artifacts
-      uses: dawidd6/action-download-artifact@0c49384d39ceb023b8040f480a25596fd6cf441b # v2.26.0
-      with:
-        workflow: ${{ github.event.workflow_run.workflow_id }}
-        run_id: ${{ github.event.workflow_run.id }}
-        workflow_conclusion: success
-        name: server-build-artifact
-        path: server/build/
-    - name: cd/Setup Docker Buildx
-      uses: docker/setup-buildx-action@11e8a2e2910826a92412015c515187a2d6750279 # v2.4
-    - name: cd/Docker build and push
-      env:
-        DOCKER_CLI_EXPERIMENTAL: enabled
-      run: |
-        export TAG=$(echo "${{ github.event.pull_request.head.sha || github.sha }}" | cut -c1-7)
-        cd server/build
-        export DOCKER_CLI_EXPERIMENTAL=enabled
-        export MM_PACKAGE=https://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.sha }}/mattermost-team-linux-amd64.tar.gz
-        docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mm-te-test:${TAG} .
+      - name: cd/Login to Docker Hub
+        uses: docker/login-action@3da7dc6e2b31f99ef2cb9fb4c50fb0971e0d0139 # v2.1.0
+        with:
+          username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+      - name: cd/Download artifacts
+        uses: dawidd6/action-download-artifact@0c49384d39ceb023b8040f480a25596fd6cf441b # v2.26.0
+        with:
+          workflow: ${{ github.event.workflow_run.workflow_id }}
+          run_id: ${{ github.event.workflow_run.id }}
+          workflow_conclusion: success
+          name: server-build-artifact
+          path: server/build/
+      - name: cd/Setup Docker Buildx
+        uses: docker/setup-buildx-action@11e8a2e2910826a92412015c515187a2d6750279 # v2.4
+      - name: cd/Docker build and push
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
+          REPO_NAME: ${{ github.event.repository.name }}
+          COMMIT_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          export TAG=$(echo "${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha }}" | cut -c1-7)
+          cd server/build
+          export DOCKER_CLI_EXPERIMENTAL=enabled
+          export MM_PACKAGE=https://pr-builds.mattermost.com/$REPO_NAME/commit/$COMMIT_SHA/mattermost-team-linux-amd64.tar.gz
+          docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermostdevelopment/mm-te-test:${TAG} .
+
   sentry:
     name: Send build info to sentry
     if: >
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success'
+      github.event.workflow_run.event == 'push'
     runs-on: ubuntu-22.04
     env:
       SENTRY_AUTH_TOKEN: ${{ secrets.MM_SERVER_SENTRY_AUTH_TOKEN }}
       SENTRY_ORG: ${{ secrets.MM_SERVER_SENTRY_ORG }}
       SENTRY_PROJECT: ${{ secrets.MM_SERVER_SENTRY_PROJECT }}
     steps:
-      - name: cd/Checkout mattermost-server
+      - name: cd/Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: cd/Create Sentry release
         uses: getsentry/action-release@85e0095193a153d57c458995f99d0afd81b9e5ea # v1.3.0

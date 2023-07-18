@@ -36,7 +36,7 @@ import {
 import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 
 import PaymentDetails from 'components/admin_console/billing/payment_details';
-import {STRIPE_CSS_SRC, STRIPE_PUBLIC_KEY} from 'components/payment_form/stripe';
+import {STRIPE_CSS_SRC} from 'components/payment_form/stripe';
 import RootPortal from 'components/root_portal';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -111,7 +111,7 @@ type CardProps = {
 type Props = {
     customer: CloudCustomer | undefined;
     show: boolean;
-    isDevMode: boolean;
+    cwsMockMode: boolean;
     products: Record<string, Product> | undefined;
     yearlyProducts: Record<string, Product>;
     contactSalesLink: string;
@@ -130,6 +130,8 @@ type Props = {
     // callerCTA is information about the cta that opened this modal. This helps us provide a telemetry path
     // showing information about how the modal was opened all the way to more CTAs within the modal itself
     callerCTA?: string;
+
+    stripePublicKey: string;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: () => void;
@@ -137,7 +139,7 @@ type Props = {
         completeStripeAddPaymentMethod: (
             stripe: Stripe,
             billingDetails: BillingDetails,
-            isDevMode: boolean
+            cwsMockMode: boolean
         ) => Promise<boolean | null>;
         subscribeCloudSubscription: (
             productId: string,
@@ -940,9 +942,6 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                                 title={t(
                                     'admin.billing.subscription.complianceScreenFailed.title',
                                 )}
-                                subtitle={t(
-                                    'admin.billing.subscription.complianceScreenFailed.subtitle',
-                                )}
                                 icon={
                                     <ComplianceScreenFailedSvg
                                         width={321}
@@ -967,7 +966,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             );
         }
         if (!stripePromise) {
-            stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
+            stripePromise = loadStripe(this.props.stripePublicKey);
         }
 
         return (
@@ -1009,7 +1008,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                                             this.props.actions.
                                                 subscribeCloudSubscription
                                         }
-                                        isDevMode={this.props.isDevMode}
+                                        cwsMockMode={this.props.cwsMockMode}
                                         onClose={() => {
                                             this.props.actions.getCloudSubscription();
                                             this.props.actions.closeModal();

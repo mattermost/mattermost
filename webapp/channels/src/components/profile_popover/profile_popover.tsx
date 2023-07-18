@@ -50,7 +50,7 @@ import BotTag from '../widgets/tag/bot_tag';
 import GuestTag from '../widgets/tag/guest_tag';
 import Tag from '../widgets/tag/tag';
 
-interface ProfilePopoverProps extends Omit<React.ComponentProps<typeof Popover>, 'id'> {
+export interface ProfilePopoverProps extends Omit<React.ComponentProps<typeof Popover>, 'id'> {
 
     /**
      * Source URL from the image to display in the popover
@@ -524,23 +524,6 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                 {userName}
             </div>,
         );
-        const email = this.props.user.email || '';
-        if (email && !this.props.user.is_bot && !haveOverrideProp) {
-            dataContent.push(
-                <div
-                    data-toggle='tooltip'
-                    title={email}
-                    key='user-popover-email'
-                >
-                    <a
-                        href={'mailto:' + email}
-                        className='text-nowrap text-lowercase user-popover__email pb-1'
-                    >
-                        {email}
-                    </a>
-                </div>,
-            );
-        }
         if (this.props.user.position && !haveOverrideProp) {
             const position = (this.props.user?.position || '').substring(
                 0,
@@ -561,6 +544,23 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                 className='divider divider--expanded'
             />,
         );
+        const email = this.props.user.email || '';
+        if (email && !this.props.user.is_bot && !haveOverrideProp) {
+            dataContent.push(
+                <div
+                    data-toggle='tooltip'
+                    title={email}
+                    key='user-popover-email'
+                >
+                    <a
+                        href={'mailto:' + email}
+                        className='text-nowrap text-lowercase user-popover__email pb-1'
+                    >
+                        {email}
+                    </a>
+                </div>,
+            );
+        }
         dataContent.push(
             <Pluggable
                 key='profilePopoverPluggable2'
@@ -892,7 +892,15 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                 {tabCatcher}
                 <div
                     role='dialog'
-                    aria-label={Utils.localizeAndFormatMessage('profile_popover.profileLabel', 'Profile for {name}', {name: displayName})}
+                    aria-label={formatMessage(
+                        {
+                            id: 'profile_popover.profileLabel',
+                            defaultMessage: 'Profile for {name}',
+                        },
+                        {
+                            name: displayName,
+                        },
+                    )}
                     onKeyDown={this.handleKeyDown}
                     className={A11yClassNames.POPUP}
                     aria-modal={true}

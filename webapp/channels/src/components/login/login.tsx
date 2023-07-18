@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useRef, useCallback, FormEvent} from 'react';
 import {useIntl} from 'react-intl';
 import {Link, useLocation, useHistory} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
@@ -13,7 +13,7 @@ import {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsOnboardingFlowEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeamByName, getMyTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
@@ -59,6 +59,7 @@ import {setCSRFFromCookie} from 'utils/utils';
 import LoginMfa from './login_mfa';
 
 import './login.scss';
+import ExternalLink from 'components/external_link';
 
 const MOBILE_SCREEN_WIDTH = 1200;
 
@@ -98,12 +99,15 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         CustomDescriptionText,
         SiteName,
         ExperimentalPrimaryTeam,
+        ForgotPasswordLink,
+        PasswordEnableForgotLink,
     } = useSelector(getConfig);
     const {IsLicensed} = useSelector(getLicense);
     const initializing = useSelector((state: GlobalState) => state.requests.users.logout.status === RequestStatus.SUCCESS || !state.storage.initialized);
     const currentUser = useSelector(getCurrentUser);
     const experimentalPrimaryTeam = useSelector((state: GlobalState) => (ExperimentalPrimaryTeam ? getTeamByName(state, ExperimentalPrimaryTeam) : undefined));
     const experimentalPrimaryTeamMember = useSelector((state: GlobalState) => getMyTeamMember(state, experimentalPrimaryTeam?.id ?? ''));
+    const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
     const isCloud = useSelector(isCurrentLicenseCloud);
     const graphQLEnabled = useSelector(isGraphQLEnabled);
 
@@ -634,12 +638,14 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         } else if (experimentalPrimaryTeamMember.team_id) {
             // Only set experimental team if user is on that team
             history.push(`/${ExperimentalPrimaryTeam}`);
-        } else {
+        } else if (onboardingFlowEnabled) {
             // need info about whether admin or not,
             // and whether admin has already completed
             // first time onboarding. Instead of fetching and orchestrating that here,
             // let the default root component handle it.
             history.push('/');
+        } else {
+            redirectUserToDefaultTeam();
         }
     };
 
@@ -667,12 +673,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const handleBrandImageError = () => {
         setBrandImageError(true);
-    };
-
-    const onEnterKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === Constants.KeyCodes.ENTER[0]) {
-            preSubmit(e);
-        }
     };
 
     const getCardTitle = () => {
@@ -704,6 +704,34 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 {formatMessage({id: 'login.subtitle', defaultMessage: 'Collaborate with your team in real-time'})}
             </p>
         );
+    };
+
+    const getResetPasswordLink = () => {
+        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false') {
+            return null;
+        }
+
+        if (ForgotPasswordLink) {
+            return (
+                <div className='login-body-card-form-link'>
+                    <ExternalLink href={ForgotPasswordLink}>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                    </ExternalLink>
+                </div>
+            );
+        }
+
+        if (enableSignInWithUsername || enableSignInWithEmail) {
+            return (
+                <div className='login-body-card-form-link'>
+                    <Link to='/reset_password'>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                    </Link>
+                </div>
+            );
+        }
+
+        return null;
     };
 
     const getContent = () => {
@@ -762,7 +790,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             className='login-body-card-content'
-                            onKeyDown={onEnterKeyDown}
                             tabIndex={0}
                         >
                             <p className='login-body-card-title'>
@@ -778,44 +805,44 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                 />
                             )}
                             {enableBaseLogin && (
-                                <div className='login-body-card-form'>
-                                    <Input
-                                        ref={loginIdInput}
-                                        name='loginId'
-                                        containerClassName='login-body-card-form-input'
-                                        type='text'
-                                        inputSize={SIZE.LARGE}
-                                        value={loginId}
-                                        onChange={handleInputOnChange}
-                                        hasError={hasError}
-                                        placeholder={getInputPlaceholder()}
-                                        disabled={isWaiting}
-                                        autoFocus={true}
-                                    />
-                                    <PasswordInput
-                                        ref={passwordInput}
-                                        className='login-body-card-form-password-input'
-                                        value={password}
-                                        inputSize={SIZE.LARGE}
-                                        onChange={handlePasswordInputOnChange}
-                                        hasError={hasError}
-                                        disabled={isWaiting}
-                                    />
-                                    {(enableSignInWithUsername || enableSignInWithEmail) && (
-                                        <div className='login-body-card-form-link'>
-                                            <Link to='/reset_password'>
-                                                {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
-                                            </Link>
-                                        </div>
-                                    )}
-                                    <SaveButton
-                                        extraClasses='login-body-card-form-button-submit large'
-                                        saving={isWaiting}
-                                        onClick={preSubmit}
-                                        defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
-                                        savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
-                                    />
-                                </div>
+                                <form
+                                    onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                                        preSubmit(event as unknown as React.MouseEvent);
+                                    }}
+                                >
+                                    <div className='login-body-card-form'>
+                                        <Input
+                                            ref={loginIdInput}
+                                            name='loginId'
+                                            containerClassName='login-body-card-form-input'
+                                            type='text'
+                                            inputSize={SIZE.LARGE}
+                                            value={loginId}
+                                            onChange={handleInputOnChange}
+                                            hasError={hasError}
+                                            placeholder={getInputPlaceholder()}
+                                            disabled={isWaiting}
+                                            autoFocus={true}
+                                        />
+                                        <PasswordInput
+                                            ref={passwordInput}
+                                            className='login-body-card-form-password-input'
+                                            value={password}
+                                            inputSize={SIZE.LARGE}
+                                            onChange={handlePasswordInputOnChange}
+                                            hasError={hasError}
+                                            disabled={isWaiting}
+                                        />
+                                        {getResetPasswordLink()}
+                                        <SaveButton
+                                            extraClasses='login-body-card-form-button-submit large'
+                                            saving={isWaiting}
+                                            onClick={preSubmit}
+                                            defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
+                                            savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
+                                        />
+                                    </div>
+                                </form>
                             )}
                             {enableBaseLogin && enableExternalSignup && (
                                 <div className='login-body-card-form-divider'>

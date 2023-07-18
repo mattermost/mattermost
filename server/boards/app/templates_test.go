@@ -9,10 +9,10 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/utils"
 
-	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 )
 
 func TestApp_initializeTemplates(t *testing.T) {
@@ -53,6 +53,7 @@ func TestApp_initializeTemplates(t *testing.T) {
 		th.Store.EXPECT().GetMembersForBoard(board.ID).AnyTimes().Return([]*model.BoardMember{}, nil)
 		th.Store.EXPECT().GetBoard(board.ID).AnyTimes().Return(board, nil)
 		th.Store.EXPECT().GetMemberForBoard(gomock.Any(), gomock.Any()).AnyTimes().Return(boardMember, nil)
+		th.Store.EXPECT().SaveFileInfo(gomock.Any()).Return(nil).AnyTimes()
 
 		th.FilesBackend.On("WriteFile", mock.Anything, mock.Anything).Return(int64(1), nil)
 

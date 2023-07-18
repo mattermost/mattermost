@@ -7,11 +7,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/notify"
-	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/services/notify"
+	"github.com/mattermost/mattermost/server/v8/boards/utils"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 var (
@@ -184,8 +184,13 @@ func (a *App) DuplicateBoard(boardID, userID, toTeam string, asTemplate bool) (*
 	}
 
 	// copy any file attachments from the duplicated blocks.
-	if err = a.CopyCardFiles(boardID, bab.Blocks); err != nil {
-		a.logger.Error("Could not copy files while duplicating board", mlog.String("BoardID", boardID), mlog.Err(err))
+	err = a.CopyAndUpdateCardFiles(boardID, userID, bab.Blocks, asTemplate)
+	if err != nil {
+		dbab := model.NewDeleteBoardsAndBlocksFromBabs(bab)
+		if err = a.store.DeleteBoardsAndBlocks(dbab, userID); err != nil {
+			a.logger.Error("Cannot delete board after duplication error when updating block's file info", mlog.String("boardID", bab.Boards[0].ID), mlog.Err(err))
+		}
+		return nil, nil, fmt.Errorf("could not patch file IDs while duplicating board %s: %w", boardID, err)
 	}
 
 	if !asTemplate {
@@ -193,44 +198,6 @@ func (a *App) DuplicateBoard(boardID, userID, toTeam string, asTemplate bool) (*
 			if categoryErr := a.setBoardCategoryFromSource(boardID, board.ID, userID, toTeam, asTemplate); categoryErr != nil {
 				return nil, nil, categoryErr
 			}
-		}
-	}
-
-	// bab.Blocks now has updated file ids for any blocks containing files.  We need to store them.
-	blockIDs := make([]string, 0)
-	blockPatches := make([]model.BlockPatch, 0)
-
-	for _, block := range bab.Blocks {
-		fieldName := ""
-		if block.Type == model.TypeImage {
-			fieldName = "fileId"
-		} else if block.Type == model.TypeAttachment {
-			fieldName = "attachmentId"
-		}
-		if fieldName != "" {
-			if fieldID, ok := block.Fields[fieldName]; ok {
-				blockIDs = append(blockIDs, block.ID)
-				blockPatches = append(blockPatches, model.BlockPatch{
-					UpdatedFields: map[string]interface{}{
-						fieldName: fieldID,
-					},
-				})
-			}
-		}
-	}
-	a.logger.Debug("Duplicate boards patching file IDs", mlog.Int("count", len(blockIDs)))
-
-	if len(blockIDs) != 0 {
-		patches := &model.BlockPatchBatch{
-			BlockIDs:     blockIDs,
-			BlockPatches: blockPatches,
-		}
-		if err = a.store.PatchBlocks(patches, userID); err != nil {
-			dbab := model.NewDeleteBoardsAndBlocksFromBabs(bab)
-			if err = a.store.DeleteBoardsAndBlocks(dbab, userID); err != nil {
-				a.logger.Error("Cannot delete board after duplication error when updating block's file info", mlog.String("boardID", bab.Boards[0].ID), mlog.Err(err))
-			}
-			return nil, nil, fmt.Errorf("could not patch file IDs while duplicating board %s: %w", boardID, err)
 		}
 	}
 

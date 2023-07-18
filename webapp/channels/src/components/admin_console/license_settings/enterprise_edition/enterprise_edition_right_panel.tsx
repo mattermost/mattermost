@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as React from 'react';
+import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {ClientLicense} from '@mattermost/types/config';
@@ -160,4 +160,4 @@ const EnterpriseEditionRightPanel = ({
     );
 };
 
-export default React.memo(EnterpriseEditionRightPanel);
+export default memo(EnterpriseEditionRightPanel);

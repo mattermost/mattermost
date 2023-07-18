@@ -2,13 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {ComponentProps} from 'react';
-import {render, screen, fireEvent} from '@testing-library/react';
+
+import {fireEvent, render, screen} from 'tests/react_testing_utils';
 import {withIntl} from 'tests/helpers/intl-test-helper';
 
 import InviteMembers from './invite_members';
 
 describe('InviteMembers component', () => {
     let defaultProps: ComponentProps<any>;
+    const setEmailsFn = jest.fn();
 
     beforeEach(() => {
         defaultProps = {
@@ -21,13 +23,28 @@ describe('InviteMembers component', () => {
             onPageView: jest.fn(),
             previous: <div>{'Previous step'}</div>,
             next: jest.fn(),
+            setEmails: setEmailsFn,
             show: true,
             transitionDirection: 'forward',
+            inferredProtocol: null,
+            isSelfHosted: true,
+            emails: [],
         };
     });
 
     it('should match snapshot', () => {
         const component = withIntl(<InviteMembers {...defaultProps}/>);
+        const {container} = render(component);
+        expect(container).toMatchSnapshot();
+    });
+
+    it('should match snapshot when it is cloud', () => {
+        const component = withIntl(
+            <InviteMembers
+                {...defaultProps}
+                isSelfHosted={false}
+            />,
+        );
         const {container} = render(component);
         expect(container).toMatchSnapshot();
     });
@@ -67,5 +84,17 @@ describe('InviteMembers component', () => {
         const button = screen.getByRole('button', {name: 'Finish setup'});
         fireEvent.click(button);
         expect(defaultProps.next).toHaveBeenCalled();
+    });
+
+    it('shows send invites button when in cloud', () => {
+        const component = withIntl(
+            <InviteMembers
+                {...defaultProps}
+                isSelfHosted={false}
+            />,
+        );
+        render(component);
+        const button = screen.getByRole('button', {name: 'Send invites'});
+        expect(button).toBeInTheDocument();
     });
 });

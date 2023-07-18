@@ -8,9 +8,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
+	"github.com/mattermost/mattermost/server/v8/boards/services/config"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
 )
 
 const defaultS3Timeout = 60 * 1000 // 60 seconds
@@ -58,11 +58,6 @@ func CreateBoardsConfig(mmconfig mm_model.Config, baseURL string, serverID strin
 		enableTelemetry = *mmconfig.LogSettings.EnableDiagnostics
 	}
 
-	enablePublicSharedBoards := false
-	if mmconfig.ProductSettings.EnablePublicSharedBoards != nil {
-		enablePublicSharedBoards = *mmconfig.ProductSettings.EnablePublicSharedBoards
-	}
-
 	enableBoardsDeletion := false
 	if mmconfig.DataRetentionSettings.EnableBoardsDeletion != nil {
 		enableBoardsDeletion = true
@@ -81,36 +76,35 @@ func CreateBoardsConfig(mmconfig mm_model.Config, baseURL string, serverID strin
 	}
 
 	return &config.Configuration{
-		ServerRoot:               baseURL + "/boards",
-		Port:                     -1,
-		DBType:                   *mmconfig.SqlSettings.DriverName,
-		DBConfigString:           *mmconfig.SqlSettings.DataSource,
-		DBTablePrefix:            "focalboard_",
-		UseSSL:                   false,
-		SecureCookie:             true,
-		WebPath:                  path.Join(*mmconfig.PluginSettings.Directory, "focalboard", "pack"),
-		FilesDriver:              *mmconfig.FileSettings.DriverName,
-		FilesPath:                *mmconfig.FileSettings.Directory,
-		FilesS3Config:            filesS3Config,
-		MaxFileSize:              *mmconfig.FileSettings.MaxFileSize,
-		Telemetry:                enableTelemetry,
-		TelemetryID:              serverID,
-		WebhookUpdate:            []string{},
-		SessionExpireTime:        2592000,
-		SessionRefreshTime:       18000,
-		LocalOnly:                false,
-		EnableLocalMode:          false,
-		LocalModeSocketLocation:  "",
-		AuthMode:                 "mattermost",
-		EnablePublicSharedBoards: enablePublicSharedBoards,
-		FeatureFlags:             featureFlags,
-		NotifyFreqCardSeconds:    getPluginSettingInt(mmconfig, notifyFreqCardSecondsKey, 120),
-		NotifyFreqBoardSeconds:   getPluginSettingInt(mmconfig, notifyFreqBoardSecondsKey, 86400),
-		EnableDataRetention:      enableBoardsDeletion,
-		DataRetentionDays:        *mmconfig.DataRetentionSettings.BoardsRetentionDays,
-		TeammateNameDisplay:      *mmconfig.TeamSettings.TeammateNameDisplay,
-		ShowEmailAddress:         showEmailAddress,
-		ShowFullName:             showFullName,
+		ServerRoot:              baseURL + "/boards",
+		Port:                    -1,
+		DBType:                  *mmconfig.SqlSettings.DriverName,
+		DBConfigString:          *mmconfig.SqlSettings.DataSource,
+		DBTablePrefix:           "focalboard_",
+		UseSSL:                  false,
+		SecureCookie:            true,
+		WebPath:                 path.Join(*mmconfig.PluginSettings.Directory, "focalboard", "pack"),
+		FilesDriver:             *mmconfig.FileSettings.DriverName,
+		FilesPath:               *mmconfig.FileSettings.Directory,
+		FilesS3Config:           filesS3Config,
+		MaxFileSize:             *mmconfig.FileSettings.MaxFileSize,
+		Telemetry:               enableTelemetry,
+		TelemetryID:             serverID,
+		WebhookUpdate:           []string{},
+		SessionExpireTime:       2592000,
+		SessionRefreshTime:      18000,
+		LocalOnly:               false,
+		EnableLocalMode:         false,
+		LocalModeSocketLocation: "",
+		AuthMode:                "mattermost",
+		FeatureFlags:            featureFlags,
+		NotifyFreqCardSeconds:   getPluginSettingInt(mmconfig, notifyFreqCardSecondsKey, 120),
+		NotifyFreqBoardSeconds:  getPluginSettingInt(mmconfig, notifyFreqBoardSecondsKey, 86400),
+		EnableDataRetention:     enableBoardsDeletion,
+		DataRetentionDays:       *mmconfig.DataRetentionSettings.BoardsRetentionDays,
+		TeammateNameDisplay:     *mmconfig.TeamSettings.TeammateNameDisplay,
+		ShowEmailAddress:        showEmailAddress,
+		ShowFullName:            showFullName,
 	}
 }
 

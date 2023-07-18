@@ -7,8 +7,8 @@ import {Provider as ReduxProvider} from 'react-redux'
 import {
     act,
     render,
+    screen,
     waitFor,
-    screen
 } from '@testing-library/react'
 
 import configureStore from 'redux-mock-store'
@@ -16,7 +16,7 @@ import configureStore from 'redux-mock-store'
 import userEvent from '@testing-library/user-event'
 
 import {setup, wrapIntl} from 'src/testUtils'
-import {IPropertyTemplate, Board} from 'src/blocks/board'
+import {Board, IPropertyTemplate} from 'src/blocks/board'
 import {Card} from 'src/blocks/card'
 
 import MultiPersonProperty from './property'
@@ -91,6 +91,7 @@ describe('properties/multiperson', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -122,6 +123,7 @@ describe('properties/multiperson', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -153,6 +155,7 @@ describe('properties/multiperson', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()

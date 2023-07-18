@@ -63,3 +63,8 @@ declare module 'highlight.js/lib/languages/verilog.js';
 declare module 'highlight.js/lib/languages/vhdl.js';
 declare module 'highlight.js/lib/languages/xml.js';
 declare module 'highlight.js/lib/languages/yaml.js';
+
+declare module 'highlight.js/styles/*.css' {
+    const url: string;
+    export default url;
+}

@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
 )
 
 type PluginAdapterClient struct {

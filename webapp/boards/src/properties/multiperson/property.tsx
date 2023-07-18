@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 import {IntlShape} from 'react-intl'
 
-import {PropertyType, PropertyTypeEnum, FilterValueType} from 'src/properties/types'
+import {FilterValueType, PropertyType, PropertyTypeEnum} from 'src/properties/types'
 
 import MultiPerson from './multiperson'
 

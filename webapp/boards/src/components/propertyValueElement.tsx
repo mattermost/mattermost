@@ -25,6 +25,7 @@ const PropertyValueElement = (props: Props): JSX.Element => {
     }
     const property = propsRegistry.get(propertyTemplate.type)
     const Editor = property.Editor
+
     return (
         <Editor
             property={property}

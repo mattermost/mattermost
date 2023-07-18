@@ -471,6 +471,7 @@ class WSClient {
     authenticate(token: string): void {
         if (!token) {
             Utils.assertFailure('WSClient trying to authenticate without a token')
+
             return
         }
 
@@ -494,6 +495,7 @@ class WSClient {
 
             this.teamId = teamId
             this.subscriptions.Teams[teamId] = 1
+
             return
         }
 
@@ -503,6 +505,7 @@ class WSClient {
     unsubscribeToTeam(teamId: string): void {
         if (!this.subscriptions.Teams[teamId]) {
             Utils.logError('Component trying to unsubscribe to a team when no subscriptions are registered. Doing nothing')
+
             return
         }
 
@@ -523,6 +526,7 @@ class WSClient {
     subscribeToBlocks(teamId: string, blockIds: string[], readToken = ''): void {
         if (!this.hasConn()) {
             Utils.assertFailure('WSClient.subscribeToBlocks: ws is not open')
+
             return
         }
 
@@ -539,6 +543,7 @@ class WSClient {
     unsubscribeFromBlocks(teamId: string, blockIds: string[], readToken = ''): void {
         if (!this.hasConn()) {
             Utils.assertFailure('WSClient.removeBlocks: ws is not open')
+
             return
         }
 

@@ -6,11 +6,13 @@ import React from 'react'
 import './logo.scss'
 import CompassIcon from './compassIcon'
 
-export default function LogoIcon(): JSX.Element {
+export default React.forwardRef<HTMLElement>((_, ref) => {
     return (
         <CompassIcon
+            ref={ref}
+            data-testid='boardsIcon'
             icon='product-boards'
             className='boards-rhs-icon'
         />
     )
-}
+})

@@ -266,7 +266,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                 ...state.invite,
                 inviteChannels: {
                     ...state.invite.inviteChannels,
-                    channels,
+                    channels: channels ?? [],
                 },
             },
         }));

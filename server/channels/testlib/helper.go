@@ -13,13 +13,13 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/searchlayer"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
 type MainHelper struct {
@@ -171,7 +171,12 @@ func (h *MainHelper) PreloadMigrations() {
 
 	basePath := os.Getenv("MM_SERVER_PATH")
 	if basePath == "" {
-		basePath = "mattermost-server/server"
+		_, errFile := os.Stat("mattermost-server/server")
+		if os.IsNotExist(errFile) {
+			basePath = "mattermost/server"
+		} else {
+			basePath = "mattermost-server/server"
+		}
 	}
 	relPath := "channels/testlib/testdata"
 	switch *h.Settings.DriverName {
@@ -213,7 +218,12 @@ func (h *MainHelper) PreloadBoardsMigrationsIfNeeded() {
 
 	basePath := os.Getenv("MM_SERVER_PATH")
 	if basePath == "" {
-		basePath = "mattermost-server/server"
+		_, errFile := os.Stat("mattermost-server/server")
+		if os.IsNotExist(errFile) {
+			basePath = "mattermost/server"
+		} else {
+			basePath = "mattermost-server/server"
+		}
 	}
 	relPath := "channels/testlib/testdata"
 

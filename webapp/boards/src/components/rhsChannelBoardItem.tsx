@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React  from 'react'
+import React from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
 
 import {SuiteWindow} from 'src/types/index'
@@ -8,7 +8,7 @@ import {SuiteWindow} from 'src/types/index'
 import mutator from 'src/mutator'
 import {Utils} from 'src/utils'
 import {getCurrentTeam} from 'src/store/teams'
-import {createBoard, Board} from 'src/blocks/board'
+import {Board, createBoard} from 'src/blocks/board'
 import {useAppSelector} from 'src/store/hooks'
 import IconButton from 'src/widgets/buttons/iconButton'
 import OptionsIcon from 'src/widgets/icons/options'
@@ -55,6 +55,7 @@ const RHSChannelBoardItem = (props: Props) => {
     const untitledBoardTitle = intl.formatMessage({id: 'ViewTitle.untitled-board', defaultMessage: 'Untitled board'})
 
     const markdownHtml = Utils.htmlFromMarkdown(description)
+
     return (
         <div
             onClick={() => handleBoardClicked(id)}
@@ -104,7 +105,8 @@ const RHSChannelBoardItem = (props: Props) => {
                     </Menu>
                 </MenuWrapper>
             </div>
-            <div className='description'
+            <div
+                className='description'
                 dangerouslySetInnerHTML={{__html: markdownHtml}}
             />
             <div className='date'>

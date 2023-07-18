@@ -13,7 +13,7 @@ import {TestBlockFactory} from 'src/test/testBlockFactory'
 
 import mutator from 'src/mutator'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 import {IPropertyOption} from 'src/blocks/board'
 
 import ViewHeaderGroupByMenu from './viewHeaderGroupByMenu'

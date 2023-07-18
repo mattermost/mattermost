@@ -55,6 +55,7 @@ exports[`components/UserList should match default snapshot when there are users 
         "mfa_active": false,
         "nickname": "",
         "notify_props": Object {
+          "calls_desktop_sound": "true",
           "channel": "false",
           "comments": "never",
           "desktop": "default",
@@ -114,6 +115,7 @@ exports[`components/UserList should match default snapshot when there are users 
         "mfa_active": false,
         "nickname": "",
         "notify_props": Object {
+          "calls_desktop_sound": "true",
           "channel": "false",
           "comments": "never",
           "desktop": "default",

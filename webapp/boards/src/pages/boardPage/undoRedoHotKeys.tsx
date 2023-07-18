@@ -58,6 +58,7 @@ const UndoRedoHotKeys = (): null => {
             })
         }
     })
+
     return null
 }
 

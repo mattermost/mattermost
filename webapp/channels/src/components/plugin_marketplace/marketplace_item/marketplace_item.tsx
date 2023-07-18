@@ -75,7 +75,33 @@ export type MarketplaceItemProps = {
     versionLabel: JSX.Element| null;
 };
 
-export default class MarketplaceItem extends React.PureComponent <MarketplaceItemProps> {
+type MarketplaceItemState = {
+    showTooltip: boolean;
+};
+
+export default class MarketplaceItem extends React.PureComponent <MarketplaceItemProps, MarketplaceItemState> {
+    descriptionRef: React.RefObject<HTMLParagraphElement>;
+
+    constructor(props: MarketplaceItemProps) {
+        super(props);
+
+        this.descriptionRef = React.createRef();
+
+        this.state = {
+            showTooltip: false,
+        };
+    }
+
+    componentDidMount(): void {
+        this.enableToolTipIfNeeded();
+    }
+
+    enableToolTipIfNeeded = (): void => {
+        const element = this.descriptionRef.current;
+        const showTooltip = element && element.offsetWidth < element.scrollWidth;
+        this.setState({showTooltip: Boolean(showTooltip)});
+    };
+
     render(): JSX.Element {
         const {labels = null} = this.props;
         let icon;
@@ -105,11 +131,36 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
             </>
         );
 
-        const description = (
-            <p className={classNames('more-modal__description', {error_text: this.props.error})}>
-                {this.props.error || this.props.description}
+        const descriptionText = this.props.error || this.props.description;
+        let description = (
+            <p
+                className={classNames('more-modal__description', {error_text: this.props.error})}
+                ref={this.descriptionRef}
+            >
+                {descriptionText}
             </p>
         );
+
+        if (this.state.showTooltip) {
+            const displayNameToolTip = (
+                <Tooltip
+                    id='marketplace-item-description__tooltip'
+                    className='more-modal__description-tooltip'
+                >
+                    {descriptionText}
+                </Tooltip>
+            );
+
+            description = (
+                <OverlayTrigger
+                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                    placement='top'
+                    overlay={displayNameToolTip}
+                >
+                    {description}
+                </OverlayTrigger>
+            );
+        }
 
         let pluginDetails;
         if (this.props.homepageUrl) {

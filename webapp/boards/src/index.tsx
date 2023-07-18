@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useEffect} from 'react'
-import {createIntl, createIntlCache} from 'react-intl'
-import {Store, Action} from 'redux'
+import {FormattedMessage} from 'react-intl'
+import {Action, Store} from 'redux'
 import {Provider as ReduxProvider} from 'react-redux'
-import {createBrowserHistory, History} from 'history'
+import {History, createBrowserHistory} from 'history'
 
 import {GlobalState} from '@mattermost/types/store'
 
@@ -12,7 +12,9 @@ import {SuiteWindow} from 'src/types/index'
 
 import {PluginRegistry} from 'src/types/mattermost-webapp'
 
-import {rudderAnalytics, RudderTelemetryHandler} from 'src/rudder'
+import {ServiceEnvironment} from '@mattermost/types/config'
+
+import {RudderTelemetryHandler, rudderAnalytics} from 'src/rudder'
 
 import appBarIcon from 'static/app-bar-icon.png'
 
@@ -21,7 +23,7 @@ import {Constants} from 'src/constants'
 import {setTeam} from 'src/store/teams'
 
 import {UserSettings} from 'src/userSettings'
-import {getMessages, getCurrentLanguage} from 'src/i18n'
+import {getMessages} from 'src/i18n'
 
 const windowAny = (window as SuiteWindow)
 windowAny.baseURL = '/plugins/boards'
@@ -39,28 +41,27 @@ import GlobalHeader from 'src/components/globalHeader/globalHeader'
 import FocalboardIcon from 'src/widgets/icons/logo'
 import {setMattermostTheme} from 'src/theme'
 
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from 'src/telemetry/telemetryClient'
+import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
 
 import 'styles/focalboard-variables.scss'
 import 'styles/main.scss'
 import 'styles/labels.scss'
 import octoClient from 'src/octoClient'
 
-
 import {Board} from 'src/blocks/board'
 
 import BoardsUnfurl from 'src/components/boardsUnfurl/boardsUnfurl'
 
 import wsClient, {
-    MMWebSocketClient,
+    ACTION_REORDER_CATEGORIES,
     ACTION_UPDATE_BLOCK,
-    ACTION_UPDATE_CLIENT_CONFIG,
-    ACTION_UPDATE_SUBSCRIPTION,
+    ACTION_UPDATE_BOARD,
+    ACTION_UPDATE_BOARD_CATEGORY,
     ACTION_UPDATE_CARD_LIMIT_TIMESTAMP,
     ACTION_UPDATE_CATEGORY,
-    ACTION_UPDATE_BOARD_CATEGORY,
-    ACTION_UPDATE_BOARD,
-    ACTION_REORDER_CATEGORIES,
+    ACTION_UPDATE_CLIENT_CONFIG,
+    ACTION_UPDATE_SUBSCRIPTION,
+    MMWebSocketClient,
 } from 'src/wsclient'
 
 import ErrorBoundary from 'src/components/error_boundary'
@@ -71,11 +72,11 @@ import BoardSelector from 'src/./components/boardSelector'
 
 import manifest from 'src/manifest'
 
-
 import './plugin.scss'
 import CreateBoardFromTemplate from 'src/components/createBoardFromTemplate'
 
-import CloudUpgradeNudge from "./components/cloudUpgradeNudge/cloudUpgradeNudge"
+import CloudUpgradeNudge from './components/cloudUpgradeNudge/cloudUpgradeNudge'
+import RhsChannelBoardsToggle from './components/rhsChannelBoardsToggleIcon'
 
 function getSubpath(siteURL: string): string {
     const url = new URL(siteURL)
@@ -84,8 +85,19 @@ function getSubpath(siteURL: string): string {
     return url.pathname.replace(/\/+$/, '')
 }
 
-const TELEMETRY_RUDDER_KEY = 'placeholder_boards_rudder_key'
-const TELEMETRY_RUDDER_DATAPLANE_URL = 'placeholder_rudder_dataplane_url'
+const TELEMETRY_RUDDER_URL = 'https://pdat.matterlytics.com'
+const TELEMETRY_RUDDER_KEY_PROD = '1myWcDbTkIThnpPYyms7DKlmQWl'
+const TELEMETRY_RUDDER_KEY_TEST = '1myWYwHRDFdLDTpznQ7qFlOPQaa'
+
+// TO_BE_DEPRECATED_* are placeholders to allow the existing release pipelines to run without
+// failing to insert the values that are now hard-coded above. Remove this once we converge
+// on the unified delivery pipeline in GitHub.
+//
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const TO_BE_DEPRECATED_TELEMETRY_RUDDER_URL = 'placeholder_rudder_dataplane_url'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const TO_BE_DEPRECATAED_TELEMETRY_RUDDER_KEY = 'placeholder_boards_rudder_key'
+
 const TELEMETRY_OPTIONS = {
     context: {
         ip: '0.0.0.0',
@@ -122,6 +134,7 @@ function customHistory() {
             history.replace(pathName.replace('/boards', ''))
         })
     }
+
     return {
         ...history,
         push: (path: string, state?: unknown) => {
@@ -165,7 +178,10 @@ const MainApp = (props: Props) => {
     return (
         <ErrorBoundary>
             <ReduxProvider store={store}>
-                <WithWebSockets manifest={manifest} webSocketClient={props.webSocketClient}>
+                <WithWebSockets
+                    manifest={manifest}
+                    webSocketClient={props.webSocketClient}
+                >
                     <div id='focalboard-app'>
                         <App history={browserHistory}/>
                     </div>
@@ -182,7 +198,7 @@ const PublicMainApp = () => {
         const root = document.getElementById('root')
         if (root) {
             while (root.firstElementChild) {
-                if( root.firstElementChild.id === 'focalboard-app'){
+                if (root.firstElementChild.id === 'focalboard-app') {
                     break
                 }
                 root.removeChild(root.firstElementChild)
@@ -202,9 +218,9 @@ const PublicMainApp = () => {
         <ErrorBoundary>
             <ReduxProvider store={store}>
                 <div id='focalboard-app'>
-                    <PublicApp />
+                    <PublicApp/>
                 </div>
-                <div id='focalboard-root-portal' />
+                <div id='focalboard-root-portal'/>
             </ReduxProvider>
         </ErrorBoundary>
     )
@@ -213,7 +229,7 @@ const PublicMainApp = () => {
 const HeaderComponent = () => {
     return (
         <ErrorBoundary>
-            <GlobalHeader history={browserHistory} />
+            <GlobalHeader history={browserHistory}/>
         </ErrorBoundary>
     )
 }
@@ -224,20 +240,12 @@ export default class Plugin {
     boardSelectorId?: string
     registry?: PluginRegistry
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
     async initialize(registry: PluginRegistry, mmStore: Store<GlobalState, Action<Record<string, unknown>>>): Promise<void> {
         const siteURL = mmStore.getState().entities.general.config.SiteURL
         const subpath = siteURL ? getSubpath(siteURL) : ''
         windowAny.frontendBaseURL = subpath + windowAny.frontendBaseURL
         windowAny.baseURL = subpath + windowAny.baseURL
         browserHistory = customHistory()
-        const cache = createIntlCache()
-        const intl = createIntl({
-            // modeled after <IntlProvider> in app.tsx
-            locale: getCurrentLanguage(),
-            messages: getMessages(getCurrentLanguage())
-        }, cache)
-
 
         this.registry = registry
 
@@ -246,6 +254,16 @@ export default class Plugin {
         setMattermostTheme(theme)
 
         const productID = 'boards'
+
+        registry.registerTranslations((locale: string) => {
+            try {
+                const messages = getMessages(locale)
+
+                return messages
+            } catch {
+                return {}
+            }
+        })
 
         // register websocket handlers
         this.registry?.registerWebSocketEventHandler(`custom_${productID}_${ACTION_UPDATE_BOARD}`, (e: any) => wsClient.updateHandler(e.data))
@@ -271,7 +289,7 @@ export default class Plugin {
                         setMattermostTheme(JSON.parse(preference.value))
                         theme = preference.value
                     }
-                    if(preference.category === 'display_settings' && preference.name === 'name_format'){
+                    if (preference.category === 'display_settings' && preference.name === 'name_format') {
                         UserSettings.nameFormat = preference.value
                     }
                 }
@@ -301,13 +319,14 @@ export default class Plugin {
             if (currentTeamId && currentTeamId !== prevTeamId) {
                 if (prevTeamId && window.location.pathname.startsWith(windowAny.frontendBaseURL || '')) {
                     // Don't re-push the URL if we're already on a URL for the current team
-                    if (!window.location.pathname.startsWith(`${(windowAny.frontendBaseURL || '')}/team/${currentTeamId}`))
+                    if (!window.location.pathname.startsWith(`${(windowAny.frontendBaseURL || '')}/team/${currentTeamId}`)) {
                         browserHistory.push(`/team/${currentTeamId}`)
+                    }
                 }
                 prevTeamId = currentTeamId
                 store.dispatch(setTeam(currentTeamId))
                 octoClient.teamId = currentTeamId
-                if(!window.location.pathname.includes(publicBaseURL())){
+                if (!window.location.pathname.includes(publicBaseURL())) {
                     store.dispatch(initialLoad())
                 }
             }
@@ -343,7 +362,10 @@ export default class Plugin {
 
             const component = (props: {webSocketClient: MMWebSocketClient}) => (
                 <ReduxProvider store={store}>
-                    <WithWebSockets manifest={manifest} webSocketClient={props.webSocketClient}>
+                    <WithWebSockets
+                        manifest={manifest}
+                        webSocketClient={props.webSocketClient}
+                    >
                         <RHSChannelBoards/>
                     </WithWebSockets>
                 </ReduxProvider>
@@ -357,10 +379,15 @@ export default class Plugin {
                 </ErrorBoundary>
             )
 
-            const {rhsId, toggleRHSPlugin} = this.registry.registerRightHandSidebarComponent(component, title)
-            this.rhsId = rhsId
+            const {id, toggleRHSPlugin} = this.registry.registerRightHandSidebarComponent(component, title)
+            this.rhsId = id
 
-            this.channelHeaderButtonId = registry.registerChannelHeaderButtonAction(<FocalboardIcon/>, () => mmStore.dispatch(toggleRHSPlugin), 'Boards', 'Boards')
+            this.channelHeaderButtonId = registry.registerChannelHeaderButtonAction(
+                () => <RhsChannelBoardsToggle boardsRhsId={id}/>,
+                () => mmStore.dispatch(toggleRHSPlugin),
+                'Boards',
+                'Boards'
+            )
 
             this.registry.registerProduct(
                 '/boards',
@@ -384,11 +411,25 @@ export default class Plugin {
             }
 
             if (registry.registerChannelIntroButtonAction) {
-                this.channelHeaderButtonId = registry.registerChannelIntroButtonAction(<FocalboardIcon/>, goToFocalboardTemplate, intl.formatMessage({id: 'ChannelIntro.CreateBoard', defaultMessage: 'Create a board'}))
+                this.channelHeaderButtonId = registry.registerChannelIntroButtonAction(
+                    <FocalboardIcon/>,
+                    goToFocalboardTemplate,
+                    <FormattedMessage
+                        id='ChannelIntro.CreateBoard'
+                        defaultMessage='Create a board'
+                    />
+                )
             }
 
             if (this.registry.registerAppBarComponent) {
-                this.registry.registerAppBarComponent(appBarIcon, () => mmStore.dispatch(toggleRHSPlugin), intl.formatMessage({id: 'AppBar.Tooltip', defaultMessage: 'Toggle linked boards'}))
+                this.registry.registerAppBarComponent(
+                    appBarIcon,
+                    () => mmStore.dispatch(toggleRHSPlugin),
+                    <FormattedMessage
+                        id='AppBar.Tooltip'
+                        defaultMessage='Toggle linked boards'
+                    />
+                )
             }
 
             if (this.registry.registerActionAfterChannelCreation) {
@@ -439,22 +480,33 @@ export default class Plugin {
             if (registry.registerSiteStatisticsHandler) {
                 registry.registerSiteStatisticsHandler(async () => {
                     const siteStats = await octoClient.getSiteStatistics()
-                    if(siteStats){
+                    if (siteStats) {
                         return {
                             boards_count: {
-                                name: intl.formatMessage({id: 'SiteStats.total_boards', defaultMessage: 'Total boards'}),
+                                name: (
+                                    <FormattedMessage
+                                        id='SiteStats.total_boards'
+                                        defaultMessage='Total boards'
+                                    />
+                                ),
                                 id: 'total_boards',
                                 icon: 'icon-product-boards',
                                 value: siteStats.board_count,
                             },
                             cards_count: {
-                                name: intl.formatMessage({id: 'SiteStats.total_cards', defaultMessage: 'Total cards'}),
+                                name: (
+                                    <FormattedMessage
+                                        id='SiteStats.total_cards'
+                                        defaultMessage='Total cards'
+                                    />
+                                ),
                                 id: 'total_cards',
                                 icon: 'icon-products',
                                 value: siteStats.card_count,
                             },
                         }
                     }
+
                     return {}
                 })
             }
@@ -462,7 +514,10 @@ export default class Plugin {
 
         this.boardSelectorId = this.registry.registerRootComponent((props: {webSocketClient: MMWebSocketClient}) => (
             <ReduxProvider store={store}>
-                <WithWebSockets manifest={manifest} webSocketClient={props.webSocketClient}>
+                <WithWebSockets
+                    manifest={manifest}
+                    webSocketClient={props.webSocketClient}
+                >
                     <BoardSelector/>
                 </WithWebSockets>
             </ReduxProvider>
@@ -470,12 +525,17 @@ export default class Plugin {
 
         const config = await octoClient.getClientConfig()
         if (config?.telemetry) {
-            let rudderKey = TELEMETRY_RUDDER_KEY
-            let rudderUrl = TELEMETRY_RUDDER_DATAPLANE_URL
-
-            if (rudderKey.startsWith('placeholder') && rudderUrl.startsWith('placeholder')) {
-                rudderKey = process.env.RUDDER_KEY as string //eslint-disable-line no-process-env
-                rudderUrl = process.env.RUDDER_DATAPLANE_URL as string //eslint-disable-line no-process-env
+            const rudderUrl = TELEMETRY_RUDDER_URL
+            let rudderKey = ''
+            switch (mmStore.getState().entities.general.config.ServiceEnvironment) {
+            case ServiceEnvironment.PRODUCTION:
+                rudderKey = TELEMETRY_RUDDER_KEY_PROD
+                break
+            case ServiceEnvironment.TEST:
+                rudderKey = TELEMETRY_RUDDER_KEY_TEST
+                break
+            case ServiceEnvironment.DEV:
+                break
             }
 
             if (rudderKey !== '') {

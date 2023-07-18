@@ -2,10 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {render, screen, fireEvent} from '@testing-library/react';
+
 import {trackEvent} from 'actions/telemetry_actions';
-import InviteMembersLink from './invite_members_link';
+
+import {fireEvent, render, screen} from 'tests/react_testing_utils';
 import {withIntl} from 'tests/helpers/intl-test-helper';
+
+import InviteMembersLink from './invite_members_link';
 
 jest.mock('actions/telemetry_actions', () => ({
     trackEvent: jest.fn(),
@@ -21,8 +24,39 @@ describe('components/preparing-workspace/invite_members_link', () => {
         expect(container).toMatchSnapshot();
     });
 
+    it('should match snapshot when displayed including the input field', () => {
+        const component = withIntl(
+            <InviteMembersLink
+                inviteURL={inviteURL}
+                inputAndButtonStyle={true}
+            />,
+        );
+
+        const {container} = render(component);
+        expect(container).toMatchSnapshot();
+    });
+
+    it('renders only with the button if the inputAndButton option is false', () => {
+        const component = withIntl(
+            <InviteMembersLink
+                inviteURL={inviteURL}
+                inputAndButtonStyle={false}
+            />,
+        );
+        render(component);
+        const input = screen.queryByText(inviteURL);
+        expect(input).not.toBeInTheDocument();
+        const button = screen.getByRole('button', {name: /copy link/i});
+        expect(button).toBeInTheDocument();
+    });
+
     it('renders an input field with the invite URL', () => {
-        const component = withIntl(<InviteMembersLink inviteURL={inviteURL}/>);
+        const component = withIntl(
+            <InviteMembersLink
+                inviteURL={inviteURL}
+                inputAndButtonStyle={true}
+            />,
+        );
         render(component);
         const input = screen.getByDisplayValue(inviteURL);
         expect(input).toBeInTheDocument();

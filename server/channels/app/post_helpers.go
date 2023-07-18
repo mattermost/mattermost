@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 type filterPostOptions struct {
@@ -124,7 +124,7 @@ func linearFilterPostList(postList *model.PostList, earliestAccessibleTime int64
 // this is the slower fallback that is still safe if we can not
 // assume posts are ordered by CreatedAt
 func linearFilterPostsSlice(posts []*model.Post, earliestAccessibleTime int64) ([]*model.Post, int64) {
-	var firstInaccessiblePostTime int64 = 0
+	var firstInaccessiblePostTime int64
 	n := 0
 	for i := range posts {
 		if createAt := posts[i].CreateAt; createAt >= earliestAccessibleTime {
@@ -243,7 +243,7 @@ func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPost
 			return posts, 0, nil
 		}
 		if bounds.noAccessible() {
-			var firstInaccessiblePostTime int64 = 0
+			var firstInaccessiblePostTime int64
 			if lenPosts > 0 {
 				firstPostCreatedAt := posts[0].CreateAt
 				lastPostCreatedAt := posts[len(posts)-1].CreateAt

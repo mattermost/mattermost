@@ -20,7 +20,6 @@ import {Board} from 'src/blocks/board'
 
 import client from 'src/octoClient'
 
-
 import {ViewLimitModal} from './viewLimitDialog'
 
 jest.mock('src/octoClient')

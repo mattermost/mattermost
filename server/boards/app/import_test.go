@@ -7,12 +7,12 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost/server/v8/boards/utils"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 )
 
 func TestApp_ImportArchive(t *testing.T) {
@@ -138,9 +138,76 @@ func TestApp_ImportArchive(t *testing.T) {
 		th.Store.EXPECT().GetUserByID("hxxzooc3ff8cubsgtcmpn8733e").AnyTimes().Return(user2, nil)
 		th.Store.EXPECT().GetUserByID("nto73edn5ir6ifimo5a53y1dwa").AnyTimes().Return(user3, nil)
 
-		boardID, err := th.App.ImportBoardJSONL(r, opts)
-		require.Equal(t, board.ID, boardID, "Board ID should be same")
+		newBoard, err := th.App.ImportBoardJSONL(r, opts)
 		require.NoError(t, err, "import archive should not fail")
+		require.Equal(t, board.ID, newBoard.ID, "Board ID should be same")
+	})
+
+	t.Run("fix image and attachment", func(t *testing.T) {
+		boardMap := map[string]*model.Board{
+			"test": board,
+		}
+
+		fileMap := map[string]string{
+			"oldFileName1.jpg": "newFileName1.jpg",
+			"oldFileName2.jpg": "newFileName2.jpg",
+		}
+
+		imageBlock := &model.Block{
+			ID:         "blockID-1",
+			ParentID:   "c3zqnh6fsu3f4mr6hzq9hizwske",
+			CreatedBy:  "6k6ynxdp47dujjhhojw9nqhmyh",
+			ModifiedBy: "6k6ynxdp47dujjhhojw9nqhmyh",
+			Schema:     1,
+			Type:       "image",
+			Title:      "",
+			Fields:     map[string]interface{}{"fileId": "oldFileName1.jpg"},
+			CreateAt:   1680725585250,
+			UpdateAt:   1680725585250,
+			DeleteAt:   0,
+			BoardID:    "board-id",
+		}
+
+		attachmentBlock := &model.Block{
+			ID:         "blockID-2",
+			ParentID:   "c3zqnh6fsu3f4mr6hzq9hizwske",
+			CreatedBy:  "6k6ynxdp47dujjhhojw9nqhmyh",
+			ModifiedBy: "6k6ynxdp47dujjhhojw9nqhmyh",
+			Schema:     1,
+			Type:       "attachment",
+			Title:      "",
+			Fields:     map[string]interface{}{"fileId": "oldFileName2.jpg"},
+			CreateAt:   1680725585250,
+			UpdateAt:   1680725585250,
+			DeleteAt:   0,
+			BoardID:    "board-id",
+		}
+
+		blockIDs := []string{"blockID-1", "blockID-2"}
+
+		blockPatch := model.BlockPatch{
+			UpdatedFields: map[string]interface{}{"fileId": "newFileName1.jpg"},
+		}
+
+		blockPatch2 := model.BlockPatch{
+			UpdatedFields: map[string]interface{}{"fileId": "newFileName2.jpg"},
+		}
+
+		blockPatches := []model.BlockPatch{blockPatch, blockPatch2}
+
+		blockPatchesBatch := model.BlockPatchBatch{BlockIDs: blockIDs, BlockPatches: blockPatches}
+
+		opts := model.QueryBlocksOptions{
+			BoardID: board.ID,
+		}
+		th.Store.EXPECT().GetBlocks(opts).Return([]*model.Block{imageBlock, attachmentBlock}, nil)
+		th.Store.EXPECT().GetBlocksByIDs(blockIDs).Return([]*model.Block{imageBlock, attachmentBlock}, nil)
+		th.Store.EXPECT().GetBlock(blockIDs[0]).Return(imageBlock, nil)
+		th.Store.EXPECT().GetBlock(blockIDs[1]).Return(attachmentBlock, nil)
+		th.Store.EXPECT().GetMembersForBoard("board-id").AnyTimes().Return([]*model.BoardMember{}, nil)
+
+		th.Store.EXPECT().PatchBlocks(&blockPatchesBatch, "my-userid")
+		th.App.fixImagesAttachments(boardMap, fileMap, "test-team", "my-userid")
 	})
 }
 

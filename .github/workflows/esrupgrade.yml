@@ -1,0 +1,34 @@
+name: ESR Upgrade
+on:
+  # Uncomment after https://mattermost.atlassian.net/browse/MM-53275 is fixed
+  # pull_request:
+  #   paths:
+  #     - 'server/scripts/esrupgrades/*'
+  #     - '.github/workflows/esr*'
+  push:
+    branches:
+      # - master
+      - cloud
+      - release-*
+jobs:
+  esr-upgrade-5_37-7_8:
+    name: Run ESR upgrade script from 5.37 to 7.8
+    uses: ./.github/workflows/esrupgrade-common.yml
+    with:
+      db-dump-url: https://lt-public-data.s3.amazonaws.com/47K_537_mysql_collationfixed.sql.gz
+      initial-version: 5.37
+      final-version: 7.8
+  esr-upgrade-5_37-6_3:
+    name: Run ESR upgrade script from 5.37 to 6.3
+    uses: ./.github/workflows/esrupgrade-common.yml
+    with:
+      db-dump-url: https://lt-public-data.s3.amazonaws.com/47K_537_mysql_collationfixed.sql.gz
+      initial-version: 5.37
+      final-version: 6.3
+  esr-upgrade-6_3-7_8:
+    name: Run ESR upgrade script from 6.3 to 7.8
+    uses: ./.github/workflows/esrupgrade-common.yml
+    with:
+      db-dump-url: https://lt-public-data.s3.amazonaws.com/47K_63_mysql.sql.gz
+      initial-version: 6.3
+      final-version: 7.8

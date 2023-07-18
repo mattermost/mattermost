@@ -14,7 +14,7 @@ import {IPropertyTemplate} from 'src/blocks/board'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 
 import mutator from 'src/mutator'
 import propsRegistry from 'src/properties'

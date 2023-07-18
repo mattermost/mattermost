@@ -20,10 +20,10 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/vmihailenco/msgpack/v5"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -108,7 +108,7 @@ type WebConn struct {
 	// leave that as an edge-case.
 	reuseCount   int
 	sessionToken atomic.Value
-	session      atomic.Value
+	session      atomic.Pointer[model.Session]
 	connectionID atomic.Value
 	endWritePump chan struct{}
 	pumpFinished chan struct{}
@@ -171,10 +171,12 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 
 // NewWebConn returns a new WebConn instance.
 func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runner HookRunner) *WebConn {
+	userID := cfg.Session.UserId
+	session := cfg.Session
 	if cfg.Session.UserId != "" {
 		ps.Go(func() {
-			ps.SetStatusOnline(cfg.Session.UserId, false)
-			ps.UpdateLastActivityAtIfNeeded(cfg.Session)
+			ps.SetStatusOnline(userID, false)
+			ps.UpdateLastActivityAtIfNeeded(session)
 		})
 	}
 
@@ -232,9 +234,9 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
 	wc.SetConnectionID(cfg.ConnectionID)
 
-	wc.Platform.Go(func() {
-		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks) bool {
-			hooks.OnWebSocketConnect(wc.GetConnectionID(), wc.UserId)
+	ps.Go(func() {
+		runner.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.OnWebSocketConnect(wc.GetConnectionID(), userID)
 			return true
 		}, plugin.OnWebSocketConnectID)
 	})
@@ -302,7 +304,7 @@ func areAllInactive(conns []*WebConn) bool {
 
 // GetSession returns the session of the connection.
 func (wc *WebConn) GetSession() *model.Session {
-	return wc.session.Load().(*model.Session)
+	return wc.session.Load()
 }
 
 // SetSession sets the session of the connection.
@@ -334,9 +336,10 @@ func (wc *WebConn) Pump() {
 	wc.Platform.HubUnregister(wc)
 	close(wc.pumpFinished)
 
+	userID := wc.UserId
 	wc.Platform.Go(func() {
 		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks) bool {
-			hooks.OnWebSocketDisconnect(wc.GetConnectionID(), wc.UserId)
+			hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
 			return true
 		}, plugin.OnWebSocketDisconnectID)
 	})
@@ -353,8 +356,9 @@ func (wc *WebConn) readPump() {
 			return err
 		}
 		if wc.IsAuthenticated() {
+			userID := wc.UserId
 			wc.Platform.Go(func() {
-				wc.Platform.SetStatusAwayIfNeeded(wc.UserId, false)
+				wc.Platform.SetStatusAwayIfNeeded(userID, false)
 			})
 		}
 		return nil
@@ -757,6 +761,17 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 	}
 
+	// The priority checks in order of specificity are:
+	// ConnectionId
+	// OmitConnectionId
+	//
+	// UserId
+	// OmitUserId
+	//
+	// ChannelId - is member of channel
+	// TeamId - is member of team
+	// Guest - does guest have access
+
 	// If the event is destined to a specific connection
 	if msg.GetBroadcast().ConnectionId != "" {
 		return wc.GetConnectionID() == msg.GetBroadcast().ConnectionId
@@ -783,6 +798,16 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
 			wc.allChannelMembers = nil
 			wc.lastAllChannelMembersTime = 0
+		}
+
+		// Execute channel hook
+		if msg.GetBroadcast().ChannelHook != nil {
+			hasChange := msg.GetBroadcast().ChannelHook(wc.UserId, msg)
+			if hasChange {
+				// If hook returns true, that means message has been modified. We need
+				// to wipe off the pre-computed JSON
+				msg.RemovePrecomputedJSON()
+			}
 		}
 
 		if wc.allChannelMembers == nil {

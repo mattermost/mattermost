@@ -17,6 +17,7 @@ function addContentMenu(intl: IntlShape, type: BlockTypes): JSX.Element {
     const handler = contentRegistry.getHandler(type)
     if (!handler) {
         Utils.logError(`addContentMenu, unknown content type: ${type}`)
+
         return <></>
     }
     const cardDetail = useCardDetailContext()
@@ -39,6 +40,7 @@ function addContentMenu(intl: IntlShape, type: BlockTypes): JSX.Element {
 
 const CardDetailContentsMenu = () => {
     const intl = useIntl()
+
     return (
         <div className='CardDetailContentsMenu content add-content'>
             <MenuWrapper>

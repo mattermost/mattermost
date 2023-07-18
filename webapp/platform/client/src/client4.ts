@@ -140,8 +140,6 @@ import {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import {UserThreadList, UserThread, UserThreadWithPost} from '@mattermost/types/threads';
 import {LeastActiveChannelsResponse, TopChannelResponse, TopReactionResponse, TopThreadResponse, TopDMsResponse} from '@mattermost/types/insights';
 
-import {Category, ExecuteWorkTemplateRequest, ExecuteWorkTemplateResponse, WorkTemplate} from '@mattermost/types/work_templates';
-
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
 import {TelemetryHandler} from './telemetry';
@@ -154,7 +152,7 @@ const HEADER_USER_AGENT = 'User-Agent';
 export const HEADER_X_CLUSTER_ID = 'X-Cluster-Id';
 const HEADER_X_CSRF_TOKEN = 'X-CSRF-Token';
 export const HEADER_X_VERSION_ID = 'X-Version-Id';
-
+const LOGS_PER_PAGE_DEFAULT = 10000;
 const AUTOCOMPLETE_LIMIT_DEFAULT = 25;
 const PER_PAGE_DEFAULT = 60;
 export const DEFAULT_LIMIT_BEFORE = 30;
@@ -183,8 +181,6 @@ export default class Client4 {
     };
     userRoles = '';
     telemetryHandler?: TelemetryHandler;
-
-    useBoardsProduct = false;
 
     getUrl() {
         return this.url;
@@ -247,10 +243,6 @@ export default class Client4 {
 
     setTelemetryHandler(telemetryHandler?: TelemetryHandler) {
         this.telemetryHandler = telemetryHandler;
-    }
-
-    setUseBoardsProduct(useBoardsProduct: boolean) {
-        this.useBoardsProduct = useBoardsProduct;
     }
 
     getServerVersion() {
@@ -339,31 +331,6 @@ export default class Client4 {
 
     getCommandsRoute() {
         return `${this.getBaseRoute()}/commands`;
-    }
-
-    getBaseWorkTemplate() {
-        return `${this.getBaseRoute()}/worktemplates`;
-    }
-
-    getWorkTemplateCategories = () => {
-        return this.doFetch<Category[]>(
-            `${this.getBaseWorkTemplate()}/categories`,
-            {method: 'get'},
-        );
-    }
-
-    getWorkTemplates = (categoryId: string) => {
-        return this.doFetch<WorkTemplate[]>(
-            `${this.getBaseWorkTemplate()}/categories/${categoryId}/templates`,
-            {method: 'get'},
-        );
-    }
-
-    executeWorkTemplate = (req: ExecuteWorkTemplateRequest) => {
-        return this.doFetch<ExecuteWorkTemplateResponse>(
-            `${this.getBaseWorkTemplate()}/execute`,
-            {method: 'post', body: JSON.stringify(req)},
-        );
     }
 
     getFilesRoute() {
@@ -504,10 +471,6 @@ export default class Client4 {
 
     getDraftsRoute() {
         return `${this.getBaseRoute()}/drafts`;
-    }
-
-    getBoardsRoute() {
-        return `${this.url}/plugins/${this.useBoardsProduct ? 'boards' : 'focalboard'}/api/v2`;
     }
 
     getCSRFFromCookie() {
@@ -3023,6 +2986,13 @@ export default class Client4 {
         );
     };
 
+    getPlainLogs = (page = 0, perPage = LOGS_PER_PAGE_DEFAULT) => {
+        return this.doFetch<string[]>(
+            `${this.getBaseRoute()}/logs${buildQueryString({page, logs_per_page: perPage})}`,
+            {method: 'get'},
+        );
+    };
+
     getAudits = (page = 0, perPage = PER_PAGE_DEFAULT) => {
         return this.doFetch<Audit[]>(
             `${this.getBaseRoute()}/audits${buildQueryString({page, per_page: perPage})}`,
@@ -4168,7 +4138,7 @@ export default class Client4 {
             throw new ClientError(this.getUrl(), {
                 message: 'Received invalid response from the server.',
                 url,
-            });
+            }, err);
         }
 
         if (headers.has(HEADER_X_VERSION_ID) && !headers.get('Cache-Control')) {
@@ -4311,8 +4281,8 @@ export class ClientError extends Error implements ServerError {
     server_error_id?: string;
     status_code?: number;
 
-    constructor(baseUrl: string, data: ServerError) {
-        super(data.message + ': ' + cleanUrlForLogging(baseUrl, data.url || ''));
+    constructor(baseUrl: string, data: ServerError, cause?: any) {
+        super(data.message + ': ' + cleanUrlForLogging(baseUrl, data.url || ''), {cause});
 
         this.message = data.message;
         this.url = data.url;

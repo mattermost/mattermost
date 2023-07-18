@@ -34,7 +34,6 @@ type Props = {
     onCardClick: (post: Post) => void;
     replyListIds: string[];
     selected: Post | FakePost;
-    teamId: string;
     useRelativeTimestamp: boolean;
     isThreadView: boolean;
 }
@@ -63,8 +62,6 @@ const virtListStyles = {
 const innerStyles = {
     paddingTop: '28px',
 };
-
-const CREATE_COMMENT_BUTTON_HEIGHT = 81;
 
 const THREADING_TIME: typeof BASE_THREADING_TIME = {
     ...BASE_THREADING_TIME,
@@ -335,18 +332,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         }
     };
 
-    handleCreateCommentHeightChange = (height: number, maxHeight: number) => {
-        let createCommentHeight = height > maxHeight ? maxHeight : height;
-        createCommentHeight += CREATE_COMMENT_BUTTON_HEIGHT;
-
-        if (createCommentHeight !== this.state.createCommentHeight) {
-            this.setState({createCommentHeight});
-            if (this.state.userScrolledToBottom) {
-                this.scrollToBottom();
-            }
-        }
-    };
-
     renderRow = ({data, itemId, style}: {data: any; itemId: any; style: any}) => {
         const index = data.indexOf(itemId);
         let className = '';
@@ -380,7 +365,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     focusOnMount={!this.props.isThreadView && (this.state.userScrolledToBottom || (!this.state.userScrolled && this.getInitialPostIndex() === 0))}
                     isThreadView={this.props.isThreadView}
                     latestPostId={this.props.lastPost.id}
-                    onHeightChange={this.handleCreateCommentHeightChange}
                     ref={this.postCreateContainerRef}
                     teammate={this.props.directTeammate}
                     threadId={this.props.selected.id}
@@ -401,7 +385,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     listId={itemId}
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}
-                    teamId={this.props.teamId}
                     timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
                 />
             </div>

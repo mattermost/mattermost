@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useCallback} from 'react'
+import {useCallback, useEffect} from 'react'
 import {useIntl} from 'react-intl'
 
 import {ImageBlock, createImageBlock} from 'src/blocks/imageBlock'
@@ -77,6 +77,7 @@ export default function useImagePaste(boardId: string, cardId: string, contentOr
     useEffect(() => {
         document.addEventListener('paste', onPaste)
         document.addEventListener('drop', onDrop)
+
         return () => {
             document.removeEventListener('paste', onPaste)
             document.removeEventListener('drop', onDrop)
