@@ -34,8 +34,8 @@ export default class SearchDateSuggestion extends React.PureComponent<Props> {
             Date.UTC(
                 day.getFullYear(),
                 day.getMonth(),
-                day.getDate()
-            )
+                day.getDate(),
+            ),
         ).toISOString().slice(0, 10);
         this.props.onClick(dayString, this.props.matchedPretext);
     };
