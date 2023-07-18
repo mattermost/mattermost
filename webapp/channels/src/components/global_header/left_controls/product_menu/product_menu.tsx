@@ -109,7 +109,7 @@ const ProductMenu = (): JSX.Element => {
 
         // focalboard
         if (boardsPlugin && showBoardsTour) {
-            tourTip = (<BoardsTourTip singleTip={!playbooksPlugin} />);
+            tourTip = (<BoardsTourTip singleTip={!playbooksPlugin}/>);
         }
 
         // playbooks
