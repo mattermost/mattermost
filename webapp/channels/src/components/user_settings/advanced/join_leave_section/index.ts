@@ -6,6 +6,7 @@ import {connect} from 'react-redux';
 
 import {GlobalState} from 'types/store/index.js';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {GenericAction} from 'mattermost-redux/types/actions.js';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -16,11 +17,14 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import JoinLeaveSection from './join_leave_section';
 
 function mapStateToProps(state: GlobalState) {
+    const config = getConfig(state);
+    const enableJoinLeaveMessage = config.EnableJoinLeaveMessageByDefault === 'true';
+
     const joinLeave = getPreference(
         state,
         Preferences.CATEGORY_ADVANCED_SETTINGS,
         Preferences.ADVANCED_FILTER_JOIN_LEAVE,
-        'true',
+        enableJoinLeaveMessage.toString(),
     );
 
     return {
