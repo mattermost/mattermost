@@ -59,6 +59,7 @@ type State = {
     usernameKey: boolean;
     isCustomKeysWithNotificationInputChecked: boolean;
     customKeysWithNotification: MultiInputValue[];
+    customKeysWithHighlight: MultiInputValue[];
     firstNameKey: boolean;
     channelKey: boolean;
     autoResponderActive: boolean;
@@ -139,6 +140,7 @@ function getNotificationsStateFromProps(props: Props): State {
     let channelKey = false;
     let isCustomKeysWithNotificationInputChecked = false;
     const customKeysWithNotification: MultiInputValue[] = [];
+    const customKeysWithHighlight: MultiInputValue[] = [];
 
     if (props.user.notify_props) {
         if (props.user.notify_props.mention_keys) {
@@ -157,6 +159,17 @@ function getNotificationsStateFromProps(props: Props): State {
             });
 
             isCustomKeysWithNotificationInputChecked = customKeysWithNotification.length > 0;
+        }
+
+        if (props.user.notify_props.highlight_keys) {
+            const highlightKeys = props.user.notify_props.highlight_keys.split(',').filter((key) => key.length > 0);
+
+            highlightKeys.forEach((highlightKey) => {
+                customKeysWithHighlight.push({
+                    label: highlightKey,
+                    value: highlightKey,
+                });
+            });
         }
 
         if (props.user.notify_props.first_name) {
@@ -182,6 +195,7 @@ function getNotificationsStateFromProps(props: Props): State {
         callsNotificationSound,
         usernameKey,
         customKeysWithNotification,
+        customKeysWithHighlight,
         isCustomKeysWithNotificationInputChecked,
         firstNameKey,
         channelKey,
@@ -234,6 +248,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
 
         const mentionKeys = [];
+        let highlightKeys = '';
         if (this.state.usernameKey) {
             mentionKeys.push(this.props.user.username);
         }
@@ -242,6 +257,13 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 mentionKeys.push(key.value);
             });
         }
+
+        if (this.state.customKeysWithHighlight.length > 0) {
+            this.state.customKeysWithHighlight.forEach((key) => {
+                highlightKeys = `${highlightKeys},${key.value}`;
+            });
+        }
+        data.highlight_keys = highlightKeys;
 
         data.mention_keys = mentionKeys.join(',');
         data.first_name = this.state.firstNameKey.toString() as UserNotifyProps['first_name'];
@@ -343,6 +365,23 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             this.setState({
                 isCustomKeysWithNotificationInputChecked: false,
                 customKeysWithNotification: [],
+            });
+        }
+    };
+
+    handleChangeForCustomKeysWithHightlightInput = (values: ValueType<{ value: string }>) => {
+        if (values && Array.isArray(values) && values.length > 0) {
+            const customKeysWithHighlight = values.
+                map((value: MultiInputValue) => {
+                    // Remove all spaces from the value
+                    const formattedValue = value.value.trim().replace(/ /g, '');
+                    return {value: formattedValue, label: formattedValue};
+                }).
+                filter((value) => value.value.length > 0);
+            this.setState({customKeysWithHighlight});
+        } else {
+            this.setState({
+                customKeysWithHighlight: [],
             });
         }
     };
@@ -815,6 +854,81 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             />);
     };
 
+    createKeywordsWithHighlightSection = () => {
+        const isSectionExpanded = this.props.activeSection === 'keysWithHighlight';
+
+        let expandedSection = null;
+        if (isSectionExpanded) {
+            const inputs = [(
+                <div
+                    key='userNotificationHighlightOption'
+                    className='customKeywordsWithNotificationSubsection'
+                >
+                    <label htmlFor='mentionKeysWithHighlightInput'>
+                        <FormattedMessage
+                            id='user.settings.notifications.keywordsWithHighlight.inputTitle'
+                            defaultMessage='Enter keywords, press TAB to seperate them:'
+                        />
+                    </label>
+                    <CreatableReactSelect
+                        inputId='mentionKeysWithHighlightInput'
+                        autoFocus={true}
+                        isClearable={false}
+                        isMulti={true}
+                        styles={customKeywordsWithNotificationStyles}
+                        className='multiInput'
+                        components={{
+                            DropdownIndicator: () => null,
+                            Menu: () => null,
+                            MenuList: () => null,
+                        }}
+                        aria-labelledby='mentionKeysWithHighlightInput'
+                        onChange={this.handleChangeForCustomKeysWithHightlightInput}
+                        value={this.state.customKeysWithHighlight}
+                    />
+                </div>
+            )];
+
+            const extraInfo = (
+                <FormattedMessage
+                    id='user.settings.notifications.keywordsWithHighlight.extraInfo'
+                    defaultMessage='These keywords will get be shown to you with a highlight when anyone sends a message that includes them.'
+                />
+            );
+
+            expandedSection = (
+                <SettingItemMax
+                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords That Get Highlighted (without notifications)'})}
+                    inputs={inputs}
+                    submit={this.handleSubmit}
+                    saving={this.state.isSaving}
+                    serverError={this.state.serverError}
+                    extraInfo={extraInfo}
+                    updateSection={this.handleUpdateSection}
+                />
+            );
+        }
+
+        let collapsedDescription = '';
+        if (this.state.customKeysWithHighlight.length > 0) {
+            const customKeysWithHighlightStringArray = this.state.customKeysWithHighlight.map((key) => key.value);
+            collapsedDescription = customKeysWithHighlightStringArray.map((key) => `"${key}"`).join(', ');
+        } else {
+            collapsedDescription = this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.none', defaultMessage: 'None'});
+        }
+
+        return (
+            <SettingItem
+                title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords That Get Highlighted (without notifications)'})}
+                section='keysWithHighlight'
+                active={isSectionExpanded}
+                areAllSectionsInactive={this.props.activeSection === ''}
+                describe={collapsedDescription}
+                updateSection={this.handleUpdateSection}
+                max={expandedSection}
+            />);
+    };
+
     createCommentsSection = () => {
         const serverError = this.state.serverError;
 
@@ -996,6 +1110,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     render() {
         const pushNotificationSection = this.createPushNotificationSection();
         const keywordsWithNotificationSection = this.createKeywordsWithNotificationSection();
+        const keywordsWithHighlightSection = this.createKeywordsWithHighlightSection();
         const commentsSection = this.createCommentsSection();
         const autoResponderSection = this.createAutoResponderSection();
 
@@ -1082,7 +1197,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     <div className='divider-light'/>
                     {keywordsWithNotificationSection}
                     <div className='divider-light'/>
-                    {/* without Notifiation mention */}
+                    {keywordsWithHighlightSection}
                     <div className='divider-light'/>
                     {!this.props.isCollapsedThreadsEnabled && (
                         <>
