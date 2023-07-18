@@ -130,6 +130,7 @@ export default class ClusterTable extends PureComponent<Props> {
                     <td style={style.clusterCell}>{versionMismatch} {clusterInfo.version}</td>
                     <td style={style.clusterCell}><div className='config-hash'>{configMismatch} {clusterInfo.config_hash}</div></td>
                     <td style={style.clusterCell}>{clusterInfo.ipaddress}</td>
+                    <td style={style.clusterCell}>{clusterInfo.schema_version}</td>
                 </tr>
             );
         });
@@ -183,6 +184,12 @@ export default class ClusterTable extends PureComponent<Props> {
                                 <FormattedMessage
                                     id='admin.cluster.status_table.url'
                                     defaultMessage='Gossip Address'
+                                />
+                            </th>
+                            <th>
+                                <FormattedMessage
+                                    id='admin.cluster.status_table.schema_version'
+                                    defaultMessage='DB Schema Version'
                                 />
                             </th>
                         </tr>
