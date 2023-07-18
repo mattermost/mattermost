@@ -221,7 +221,7 @@ func TestOpenDialog(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("Should fail if trigger timeout is exceeded", func(t *testing.T) {
+	t.Run("Should fail if trigger timeout is extended", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
 		})
