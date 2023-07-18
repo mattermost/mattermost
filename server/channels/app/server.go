@@ -413,7 +413,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if _, err = url.ParseRequestURI(*s.platform.Config().ServiceSettings.SiteURL); err != nil {
-		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://docs.mattermost.com/configure/configuration-settings.html#site-url")
+		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
 	}
 
 	// Start email batching because it's not like the other jobs
@@ -462,12 +462,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// if enabled - perform initial product notices fetch
 	if *s.platform.Config().AnnouncementSettings.AdminNoticesEnabled || *s.platform.Config().AnnouncementSettings.UserNoticesEnabled {
-		go func() {
+		s.platform.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			if err := appInstance.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failed to perform initial product notices fetch", mlog.Err(err))
 			}
-		}()
+		})
 	}
 
 	if s.skipPostInit {

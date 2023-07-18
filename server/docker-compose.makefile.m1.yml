@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   elasticsearch:
-    image: "elasticsearch:7.17.3"
+    image: "mattermostdevelopment/mattermost-elasticsearch:7.17.10"
     platform: linux/arm64/v8
     restart: 'no'
     container_name: mattermost-elasticsearch

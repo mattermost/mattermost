@@ -9,6 +9,7 @@
     "build": "rollup -c",
     "run": "rollup -c --watch",
     "test": "cross-env TZ=Etc/UTC jest",
+    "test-ci": "cross-env TZ=Etc/UTC jest",
     "clean": "rm -rf dist node_modules tsconfig.tsbuildinfo .rollup.cache"
   },
   "devDependencies": {

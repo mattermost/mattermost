@@ -28,7 +28,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
     onKeyPress={[Function]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
-    onSelect={[Function]}
     openWhenEmpty={true}
     placeholder="placeholder text"
     providers={
@@ -142,7 +141,6 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
     onKeyPress={[Function]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
-    onSelect={[Function]}
     placeholder="placeholder text"
     providers={
       Array [
@@ -236,7 +234,6 @@ exports[`components/TextBox should throw error when new property is too long 1`]
     onKeyPress={[Function]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
-    onSelect={[Function]}
     placeholder="placeholder text"
     providers={
       Array [
@@ -330,7 +327,6 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
     onKeyPress={[Function]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
-    onSelect={[Function]}
     placeholder="placeholder text"
     providers={
       Array [
