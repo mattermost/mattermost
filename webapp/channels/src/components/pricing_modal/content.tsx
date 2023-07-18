@@ -59,7 +59,6 @@ type ContentProps = {
 function Content(props: ContentProps) {
     const {formatMessage, formatNumber} = useIntl();
     const dispatch = useDispatch<DispatchFunc>();
-    const usage = useGetUsage();
     const [limits] = useGetLimits();
     const openPricingModalBackAction = useOpenPricingModal();
 
