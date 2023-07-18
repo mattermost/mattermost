@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -1916,10 +1917,15 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 	}
 	defer finalizeTransactionX(tx, &err)
 
+	jsonNotifyProps := model.MapToJSON(props)
+	if utf8.RuneCountInString(jsonNotifyProps) > model.ChannelMemberNotifyPropsMaxRunes {
+		return nil, store.NewErrInvalidInput("ChannelMember", "NotifyProps", props)
+	}
+
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		sql, args, err2 := s.getQueryBuilder().
 			Update("channelmembers").
-			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", model.MapToJSON(props))).
+			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
 			Where(sq.Eq{
 				"userid":    userID,
 				"channelid": channelID,
