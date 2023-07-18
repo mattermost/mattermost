@@ -15,15 +15,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 const (
@@ -100,9 +100,10 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 	// the post is NOT a reply post with CRT enabled
 	_, fromWebhook := post.GetProps()["from_webhook"]
 	_, fromBot := post.GetProps()["from_bot"]
-	isCRTReply := post.RootId != "" && a.IsCRTEnabledForUser(c, post.UserId)
+	isCRTEnabled := a.IsCRTEnabledForUser(c, post.UserId)
+	isCRTReply := post.RootId != "" && isCRTEnabled
 	if !fromWebhook && !fromBot && !isCRTReply {
-		if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
+		if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true, isCRTEnabled); err != nil {
 			c.Logger().Warn(
 				"Encountered error updating last viewed",
 				mlog.String("channel_id", post.ChannelId),
@@ -196,6 +197,21 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PendingPostIDsCacheTTL)
 	}()
 
+	// Validate recipients counts in case it's not DM
+	if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification && channel.Type != model.ChannelTypeDirect {
+		err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+			if maxRecipients := *a.Config().ServiceSettings.PersistentNotificationMaxRecipients; len(mentions.Mentions) > maxRecipients {
+				return model.NewAppError("CreatePost", "api.post.post_priority.max_recipients_persistent_notification_post.request_error", map[string]any{"MaxRecipients": maxRecipients}, "", http.StatusBadRequest)
+			} else if len(mentions.Mentions) == 0 {
+				return model.NewAppError("CreatePost", "api.post.post_priority.min_recipients_persistent_notification_post.request_error", nil, "", http.StatusBadRequest)
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, model.NewAppError("CreatePost", "api.post.post_priority.persistent_notification_validation_error.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
 	post.SanitizeProps()
 
 	var pchan chan store.StoreResult
@@ -277,10 +293,6 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		if err != nil {
 			c.Logger().Warn("Could not convert post attachments to map interface.", mlog.Err(err))
 		}
-	}
-
-	if !a.isPostPriorityEnabled() && post.GetPriority() != nil {
-		post.Metadata.Priority = nil
 	}
 
 	var metadata *model.PostMetadata
@@ -373,6 +385,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// PS: we don't want to include PostPriority from the db to avoid the replica lag,
 	// so we just return the one that was passed with post
 	rpost = a.PreparePostForClient(c, rpost, true, false, false)
+
+	if rpost.RootId != "" {
+		if appErr := a.ResolvePersistentNotification(c, parentPostList.Posts[post.RootId], rpost.UserId); appErr != nil {
+			return nil, appErr
+		}
+	}
 
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
@@ -579,12 +597,11 @@ func (a *App) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil, "")
 	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
-	postJSON, jsonErr := post.ToJSON()
-	if jsonErr != nil {
-		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+
+	appErr := a.publishWebsocketEventForPost(c, post, message)
+	if appErr != nil {
+		mlog.Warn("Failed to send websocket event for ephemeral post", mlog.Err(appErr))
 	}
-	message.Add("post", postJSON)
-	a.Publish(message)
 
 	return post
 }
@@ -724,18 +741,10 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
-	postJSON, jsonErr := rpost.ToJSON()
-	if jsonErr != nil {
-		return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-	}
-	message.Add("post", postJSON)
 
-	published, err := a.publishWebsocketEventForPermalinkPost(c, rpost, message)
+	err = a.publishWebsocketEventForPost(c, rpost, message)
 	if err != nil {
 		return nil, err
-	}
-	if !published {
-		a.Publish(message)
 	}
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
@@ -743,66 +752,84 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	return rpost, nil
 }
 
-func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.Post, message *model.WebSocketEvent) (published bool, err *model.AppError) {
-	var previewedPostID string
-	if val, ok := post.GetProp(model.PostPropsPreviewedPost).(string); ok {
-		previewedPostID = val
-	} else {
-		return false, nil
+// publishWebsocketEventForPost publishes the websocket event only for post create/edit.
+// The cases of post delete/unread does not need special handling as they don't bother
+// with the post content.
+//
+// This method assumes that if there's a permalink, it's already attached to the post.
+// If the user doesn't have access then this method will wipe that off.
+func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, message *model.WebSocketEvent) (appErr *model.AppError) {
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
+	message.Add("post", postJSON)
 
-	if !model.IsValidId(previewedPostID) {
-		mlog.Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewedPostID))
-		return false, nil
-	}
-
-	previewedPost, err := a.GetSinglePost(previewedPostID, false)
-	if err != nil {
-		if err.StatusCode == http.StatusNotFound {
-			mlog.Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))
-			return false, nil
+	defer func() {
+		if appErr == nil {
+			a.Publish(message)
 		}
-		return false, err
-	}
-
-	channelMembers, err := a.GetChannelMembersPage(c, post.ChannelId, 0, 10000000)
-	if err != nil {
-		return false, err
-	}
-
-	permalinkPreviewedChannel, err := a.GetChannel(c, previewedPost.ChannelId)
-	if err != nil {
-		if err.StatusCode == http.StatusNotFound {
-			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
-			return false, nil
-		}
-		return false, err
-	}
+	}()
 
 	permalinkPreviewedPost := post.GetPreviewPost()
-	for _, cm := range channelMembers {
-		if permalinkPreviewedPost != nil {
-			post.Metadata.Embeds[0].Data = permalinkPreviewedPost
-		}
-
-		postForUser := a.sanitizePostMetadataForUserAndChannel(c, post, permalinkPreviewedPost, permalinkPreviewedChannel, cm.UserId)
-
-		// Using DeepCopy here to avoid a race condition
-		// between publishing the event and setting the "post" data value below.
-		messageCopy := message.DeepCopy()
-		broadcastCopy := messageCopy.GetBroadcast()
-		broadcastCopy.UserId = cm.UserId
-		messageCopy.SetBroadcast(broadcastCopy)
-
-		postJSON, jsonErr := postForUser.ToJSON()
-		if jsonErr != nil {
-			mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
-		}
-		messageCopy.Add("post", postJSON)
-		a.Publish(messageCopy)
+	if permalinkPreviewedPost == nil {
+		return nil
 	}
 
-	return true, nil
+	if !model.IsValidId(permalinkPreviewedPost.PostID) {
+		mlog.Warn("invalid preview post ID", mlog.String("prop_value", permalinkPreviewedPost.PostID))
+		return nil
+	}
+
+	// To remain secure by default, we wipe out the metadata unconditionally.
+	post.Metadata.Embeds[0].Data = nil
+	postWithoutPermalinkPreviewJSON, err := post.ToJSON()
+	if err != nil {
+		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	var previewedPost *model.Post
+	previewedPost, appErr = a.GetSinglePost(permalinkPreviewedPost.PostID, false)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			mlog.Warn("permalinked post not found", mlog.String("referenced_post_id", permalinkPreviewedPost.PostID))
+			return nil
+		}
+		return appErr
+	}
+
+	var permalinkPreviewedChannel *model.Channel
+	permalinkPreviewedChannel, appErr = a.GetChannel(c, previewedPost.ChannelId)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
+			return nil
+		}
+		return appErr
+	}
+
+	// In case the user does have permission to read, we set the metadata back.
+	// Note that this is the return value to the post creator, and has nothing to do
+	// with the content of the websocket broadcast to that user or any other.
+	if a.HasPermissionToReadChannel(c, post.UserId, permalinkPreviewedChannel) {
+		post.Metadata.Embeds[0].Data = permalinkPreviewedPost
+	}
+
+	broadcastCopy := message.GetBroadcast()
+	broadcastCopy.ChannelHook = func(userID string, ev *model.WebSocketEvent) bool {
+		if a.HasPermissionToReadChannel(c, userID, permalinkPreviewedChannel) {
+			// If there is no change, then the original post which was attached
+			// (at the start of the method) will get sent.
+			return false
+		}
+
+		ev.AddWithCopy("post", postWithoutPermalinkPreviewJSON)
+		return true
+
+	}
+	message.SetBroadcast(broadcastCopy)
+
+	return nil
 }
 
 func (a *App) PatchPost(c *request.Context, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
@@ -1288,6 +1315,12 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		}
 	}
 
+	if post.RootId == "" {
+		if appErr := a.DeletePersistentNotification(c, post); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	postJSON, err := json.Marshal(post)
 	if err != nil {
 		return nil, model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1313,6 +1346,12 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 	}
 	a.Srv().Go(func() {
 		a.deleteFlaggedPosts(post.Id)
+	})
+
+	a.Srv().Go(func() {
+		if err = a.RemoveNotifications(c, post, channel); err != nil {
+			a.Log().Error("DeletePost failed to delete notification", mlog.Err(err))
+		}
 	})
 
 	a.invalidateCacheForChannelPosts(post.ChannelId)
@@ -1792,7 +1831,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		}
 
 		var urgentCount int
-		if a.isPostPriorityEnabled() {
+		if a.IsPostPriorityEnabled() {
 			urgentCount, nErr = a.Srv().Store().Channel().CountUrgentPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
 			if nErr != nil {
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_urgent_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -1832,7 +1871,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		count += 1
 		if post.RootId == "" {
 			countRoot += 1
-			if a.isPostPriorityEnabled() {
+			if a.IsPostPriorityEnabled() {
 				priority, err := a.GetPriorityForPost(post.Id)
 				if err != nil {
 					return 0, 0, 0, err
@@ -1868,7 +1907,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 			}
 		}
 
-		if a.isPostPriorityEnabled() {
+		if a.IsPostPriorityEnabled() {
 			priorityList, nErr := a.Srv().Store().PostPriority().GetForPosts(mentionPostIds)
 			if nErr != nil {
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.get_priority_for_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -1899,6 +1938,12 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 	if mentioned, ok := mentionedByThread[post.RootId]; ok {
 		// We've already figured out if the user was mentioned by this thread
 		return mentioned
+	}
+
+	if _, ok := otherPosts[post.RootId]; !ok {
+		mlog.Warn("Can't determine the comment mentions as the rootPost is past the cloud plan's limit", mlog.String("rootPostID", post.RootId), mlog.String("commentID", post.Id))
+
+		return false
 	}
 
 	// Whether or not the user was mentioned because they started the thread
@@ -2270,8 +2315,4 @@ func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThrea
 		topThread.Post = sanitizedPost
 	}
 	return topThreadList, nil
-}
-
-func (a *App) isPostPriorityEnabled() bool {
-	return a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority
 }

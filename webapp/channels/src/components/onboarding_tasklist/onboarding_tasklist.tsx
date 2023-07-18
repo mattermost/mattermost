@@ -5,16 +5,14 @@ import React, {useRef, useCallback, useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import styled, {css} from 'styled-components';
 
-import Icon from '@mattermost/compass-components/foundations/icon/Icon'; // eslint-disable-line no-restricted-imports
-
 import {FormattedMessage} from 'react-intl';
 
 import {getShowTaskListBool} from 'selectors/onboarding';
-import {shouldShowAutoLinkedBoard} from 'selectors/plugins';
 
 import {
     getBool,
     getMyPreferences as getMyPreferencesSelector,
+    getTheme,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getMyPreferences, savePreferences} from 'mattermost-redux/actions/preferences';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
@@ -29,19 +27,20 @@ import {
 import {useFirstAdminUser, useIsCurrentUserSystemAdmin} from 'components/global_header/hooks';
 import {useHandleOnBoardingTaskTrigger} from 'components/onboarding_tasks/onboarding_tasks_manager';
 import OnBoardingVideoModal from 'components/onboarding_tasks/onboarding_video_modal/onboarding_video_modal';
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
 import {openModal} from 'actions/views/modals';
 import {GlobalState} from 'types/store';
-import {showRHSPlugin} from 'actions/views/rhs';
 import {trackEvent} from 'actions/telemetry_actions';
 import checklistImg from 'images/onboarding-checklist.svg';
 
-import {Preferences, RecommendedNextStepsLegacy, suitePluginIds} from 'utils/constants';
+import {Preferences, RecommendedNextStepsLegacy} from 'utils/constants';
 
 import {TaskListPopover} from './onboarding_tasklist_popover';
 import {Task} from './onboarding_tasklist_task';
 import Completed from './onboarding_tasklist_completed';
 import {CompletedAnimation} from './onboarding_tasklist_animations';
+import {CloseIcon, PlayIcon, PlaylistCheckIcon} from '@mattermost/compass-icons/components';
 
 const TaskItems = styled.div`
     border-radius: 4px;
@@ -102,18 +101,12 @@ const Button = styled.button<{open: boolean}>(({open}) => {
         background: var(--center-channel-bg);
         border: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
         box-shadow: var(--elevation-3);
-
-        i {
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-        }
+        color: rgba(var(--center-channel-color-rgb), 0.56);
 
         &:hover {
             border-color: rgba(var(--center-channel-color-rgb), 0.24);
             box-shadow: var(--elevation-4);
-
-            i {
-                color: rgba(var(--center-channel-color-rgb), 0.72)
-            }
+            color: rgba(var(--center-channel-color-rgb), 0.72)
         }
 
         span {
@@ -154,8 +147,8 @@ const PlayButton = styled.button`
         box-shadow: var(--elevation-4);
     }
 
-    i {
-        margin-right: 10px;
+    svg {
+        margin-right: 6px;
         vertical-align: middle;
     }
 `;
@@ -190,23 +183,11 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     const isFirstAdmin = useFirstAdminUser();
     const isEnableOnboardingFlow = useSelector((state: GlobalState) => getConfig(state).EnableOnboardingFlow === 'true');
     const [showTaskList, firstTimeOnboarding] = useSelector(getShowTaskListBool);
-
-    // a/b test auto show linked boards
-    const autoShowLinkedBoard = useSelector((state: GlobalState) => shouldShowAutoLinkedBoard(state));
-    const pluginsComponentsList = useSelector((state: GlobalState) => state.plugins.components);
+    const theme = useSelector(getTheme);
 
     const startTask = (taskName: string) => {
         toggleTaskList();
         handleTaskTrigger(taskName);
-    };
-
-    const findRhsPluginId = (pluginId: string) => {
-        const rhsPlugins = pluginsComponentsList.RightHandSidebarComponent;
-
-        if (rhsPlugins.length) {
-            return rhsPlugins.find((plugin) => plugin.pluginId === pluginId)?.id;
-        }
-        return null;
     };
 
     const initOnboardingPrefs = async () => {
@@ -292,16 +273,6 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         }];
         dispatch(savePreferences(currentUserId, preferences));
         trackEvent(OnboardingTaskCategory, open ? OnboardingTaskList.ONBOARDING_TASK_LIST_CLOSE : OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN);
-
-        // check if the AB test FF is set and also check that the linkedBoard has only been shown once, then open the RHS
-        if (autoShowLinkedBoard && open) {
-            const boardsId = findRhsPluginId(suitePluginIds.boards);
-            if (!boardsId) {
-                return;
-            }
-
-            dispatch(showRHSPlugin(boardsId));
-        }
     }, [open, currentUserId]);
 
     const openVideoModal = useCallback(() => {
@@ -318,7 +289,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     }
 
     return (
-        <>
+        <CompassThemeProvider theme={theme}>
             <CompletedAnimation completed={showAnimation}/>
             <Button
                 onClick={toggleTaskList}
@@ -326,7 +297,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                 open={open}
                 data-cy='onboarding-task-list-action-button'
             >
-                <Icon glyph={open ? 'close' : 'playlist-check'}/>
+                {open ? <CloseIcon size={20}/> : <PlaylistCheckIcon size={20}/>}
                 {itemsLeft !== 0 && (<span>{itemsLeft}</span>)}
             </Button>
             <TaskListPopover
@@ -363,10 +334,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                                     <PlayButton
                                         onClick={openVideoModal}
                                     >
-                                        <Icon
-                                            glyph={'play'}
-                                            size={16}
-                                        />
+                                        <PlayIcon size={18}/>
                                         <FormattedMessage
                                             id='onboardingTask.checklist.video_title'
                                             defaultMessage='Watch overview'
@@ -396,7 +364,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                         )}
                 </TaskItems>
             </TaskListPopover>
-        </>
+        </CompassThemeProvider>
     );
 };
 

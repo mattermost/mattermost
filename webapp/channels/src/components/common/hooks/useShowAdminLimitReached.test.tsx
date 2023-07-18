@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {ReactPortal} from 'react';
-import {screen} from '@testing-library/react';
 import {Provider} from 'react-redux';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
 
 import {TestHelper} from 'utils/test_helper';
 import {Preferences} from 'utils/constants';

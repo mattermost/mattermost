@@ -10,7 +10,7 @@ import {shallow} from 'enzyme';
 
 import * as cloudActions from 'actions/cloud';
 
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';

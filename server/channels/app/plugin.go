@@ -20,14 +20,14 @@ import (
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/marketplace"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 const prepackagedPluginsDir = "prepackaged_plugins"
@@ -231,7 +231,6 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		NewDriverImpl(ch.srv),
 		pluginDir,
 		webappPluginDir,
-		*ch.cfgSvc.Config().ExperimentalSettings.PatchPluginsReactDOM,
 		ch.srv.Log(),
 		ch.srv.GetMetrics(),
 	)
@@ -463,20 +462,6 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 }
 
 func (ch *Channels) disablePlugin(id string) *model.AppError {
-	// find all collectionTypes registered by plugin
-	for collectionTypeToRemove, existingPluginId := range ch.collectionTypes {
-		if existingPluginId != id {
-			continue
-		}
-		// find all topicTypes for existing collectionType
-		for topicTypeToRemove, existingCollectionType := range ch.topicTypes {
-			if existingCollectionType == collectionTypeToRemove {
-				delete(ch.topicTypes, topicTypeToRemove)
-			}
-		}
-		delete(ch.collectionTypes, collectionTypeToRemove)
-	}
-
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)

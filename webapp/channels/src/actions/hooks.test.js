@@ -1,9 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {General} from 'mattermost-redux/constants';
 import mockStore from 'tests/test_store';
 
-import {runMessageWillBePostedHooks, runMessageWillBeUpdatedHooks, runSlashCommandWillBePostedHooks} from './hooks';
+import {
+    runDesktopNotificationHooks,
+    runMessageWillBePostedHooks,
+    runMessageWillBeUpdatedHooks,
+    runSlashCommandWillBePostedHooks,
+} from './hooks';
 
 describe('runMessageWillBePostedHooks', () => {
     test('should do nothing when no hooks are registered', async () => {
@@ -491,5 +497,269 @@ describe('runMessageWillBeUpdatedHooks', () => {
         expect(hook1).toHaveBeenCalledWith(newPost, oldPost);
         expect(hook2).toHaveBeenCalled();
         expect(hook2).toHaveBeenCalledWith(newPost, oldPost);
+    });
+});
+
+describe('runDesktopNotificationHooks', () => {
+    test('should do nothing when no hooks are registered', async () => {
+        const store = mockStore({
+            plugins: {
+                components: {},
+            },
+        });
+        const post = {id: 'postid01234567890123456789'};
+        const teamId = 'teamid01234567890123456789';
+        const msgProps = {mentions: ['userid1'], team_id: teamId};
+        const channel = {type: General.DM_CHANNEL};
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
+
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
+
+        expect(result.args).toEqual(args);
+    });
+
+    test('should pass the args through every hook', async () => {
+        const hook1 = jest.fn((post, msgProps, channel, teamId, args) => ({args}));
+        const hook2 = jest.fn((post, msgProps, channel, teamId, args) => ({args}));
+        const hook3 = jest.fn((post, msgProps, channel, teamId, args) => ({args}));
+
+        const store = mockStore({
+            plugins: {
+                components: {
+                    DesktopNotificationHooks: [
+                        {hook: hook1},
+                        {hook: hook2},
+                        {hook: hook3},
+                    ],
+                },
+            },
+        });
+        const post = {id: 'postid01234567890123456789'};
+        const teamId = 'teamid01234567890123456789';
+        const msgProps = {mentions: ['userid1'], team_id: teamId};
+        const channel = {type: General.DM_CHANNEL};
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
+
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
+
+        expect(result.args).toEqual(args);
+        expect(hook1).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
+        expect(hook2).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
+        expect(hook3).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
+    });
+
+    test('should return an error when a hook returns an error', async () => {
+        const hook1 = jest.fn((post, msgProps, channel, teamId, args) => ({args}));
+        const hook2 = jest.fn(() => ({error: 'an error occurred'}));
+        const hook3 = jest.fn((post, msgProps, channel, teamId, args) => ({args}));
+
+        const store = mockStore({
+            plugins: {
+                components: {
+                    DesktopNotificationHooks: [
+                        {hook: hook1},
+                        {hook: hook2},
+                        {hook: hook3},
+                    ],
+                },
+            },
+        });
+        const post = {id: 'postid01234567890123456789'};
+        const teamId = 'teamid01234567890123456789';
+        const msgProps = {mentions: ['userid1'], team_id: teamId};
+        const channel = {type: General.DM_CHANNEL};
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
+
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
+
+        expect(result).toEqual({error: 'an error occurred'});
+        expect(hook1).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
+        expect(hook2).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
+        expect(hook3).not.toHaveBeenCalled();
+    });
+
+    test('should return an error when a hook returns an empty result', async () => {
+        const hook1 = jest.fn((post, msgProps, channel, teamId, args) => ({args}));
+        const hook2 = jest.fn(() => ({}));
+        const hook3 = jest.fn((post, msgProps, channel, teamId, args) => ({args}));
+
+        const store = mockStore({
+            plugins: {
+                components: {
+                    DesktopNotificationHooks: [
+                        {hook: hook1},
+                        {hook: hook2},
+                        {hook: hook3},
+                    ],
+                },
+            },
+        });
+        const post = {id: 'postid01234567890123456789'};
+        const teamId = 'teamid01234567890123456789';
+        const msgProps = {mentions: ['userid1'], team_id: teamId};
+        const channel = {type: General.DM_CHANNEL};
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
+
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
+
+        expect(result).toEqual({error: 'returned empty args'});
+        expect(hook1).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
+        expect(hook2).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
+        expect(hook3).not.toHaveBeenCalled();
+    });
+
+    test('should continue to call next hooks when a hook returns null or undefined', async () => {
+        const hook1 = jest.fn(() => (null));
+        const hook2 = jest.fn(() => (undefined));
+        const hook3 = jest.fn((post, msgProps, channel, teamId, args) => ({args}));
+
+        const store = mockStore({
+            plugins: {
+                components: {
+                    DesktopNotificationHooks: [
+                        {hook: hook1},
+                        {hook: hook2},
+                        {hook: hook3},
+                    ],
+                },
+            },
+        });
+        const post = {id: 'postid01234567890123456789'};
+        const teamId = 'teamid01234567890123456789';
+        const msgProps = {mentions: ['userid1'], team_id: teamId};
+        const channel = {type: General.DM_CHANNEL};
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
+
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
+
+        expect(result.args).toEqual(args);
+        expect(hook1).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
+        expect(hook2).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
+        expect(hook3).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
+    });
+
+    test('should pass the result of each hook to the next', async () => {
+        const hook1 = jest.fn((post, msgProps, channel, teamId, args) => ({args: {...args, title: args.title + 'a'}}));
+        const hook2 = jest.fn((post, msgProps, channel, teamId, args) => ({
+            args: {
+                ...args,
+                title: args.title + 'b',
+                notify: false,
+            },
+        }));
+        const hook3 = jest.fn((post, msgProps, channel, teamId, args) => ({
+            args: {
+                ...args,
+                title: args.title + 'c',
+                notify: true,
+            },
+        }));
+
+        const store = mockStore({
+            plugins: {
+                components: {
+                    DesktopNotificationHooks: [
+                        {hook: hook1},
+                        {hook: hook2},
+                        {hook: hook3},
+                    ],
+                },
+            },
+        });
+        const post = {id: 'postid01234567890123456789'};
+        const teamId = 'teamid01234567890123456789';
+        const msgProps = {mentions: ['userid1'], team_id: teamId};
+        const channel = {type: General.DM_CHANNEL};
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
+
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
+
+        expect(result.args).toEqual({...args, title: 'Notification titleabc', notify: true});
+        expect(hook1).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
+        expect(hook2).toHaveBeenCalledWith(post, msgProps, channel, teamId, {...args, title: 'Notification titlea'});
+        expect(hook3).toHaveBeenCalledWith(post, msgProps, channel, teamId, {...args, title: 'Notification titleab', notify: false});
+    });
+
+    test('should wait for async hooks', async () => {
+        jest.useFakeTimers();
+
+        const hook = jest.fn((post, msgProps, channel, teamId, args) => {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve({args: {...args, title: args.title + ' async'}});
+                }, 100);
+
+                jest.runOnlyPendingTimers();
+            });
+        });
+
+        const store = mockStore({
+            plugins: {
+                components: {
+                    DesktopNotificationHooks: [
+                        {hook},
+                    ],
+                },
+            },
+        });
+        const post = {id: 'postid01234567890123456789'};
+        const teamId = 'teamid01234567890123456789';
+        const msgProps = {mentions: ['userid1'], team_id: teamId};
+        const channel = {type: General.DM_CHANNEL};
+        const args = {
+            title: 'Notification title',
+            body: 'Notification body',
+            silent: false,
+            soundName: 'Bing',
+            url: 'http://localhost:8065/ad-1/channels/test',
+            notify: true,
+        };
+
+        const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
+
+        expect(result.args).toEqual({...args, title: 'Notification title async'});
+        expect(hook).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
     });
 });

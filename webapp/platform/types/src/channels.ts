@@ -21,10 +21,13 @@ export type ChannelStats = {
 
 export type ChannelNotifyProps = {
     desktop: 'default' | 'all' | 'mention' | 'none';
+    desktop_sound: 'on' | 'off';
+    desktop_notification_sound?: 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
     email: 'default' | 'all' | 'mention' | 'none';
     mark_unread: 'all' | 'mention';
     push: 'default' | 'all' | 'mention' | 'none';
     ignore_channel_mentions: 'default' | 'off' | 'on';
+    channel_auto_follow_threads: 'off' | 'on';
 };
 
 export type Channel = {

@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 func (a *App) MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError {
@@ -258,14 +258,16 @@ func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userID stri
 	if session.IsUnrestricted() {
 		return true
 	}
-	if a.SessionHasPermissionToUser(session, userID) {
+
+	err := a.SessionHasPermissionToManageBot(session, userID)
+	if err == nil {
 		return true
 	}
-
-	if err := a.SessionHasPermissionToManageBot(session, userID); err == nil {
-		return true
+	if err.Id == "store.sql_bot.get.missing.app_error" && err.Unwrap() != nil {
+		if a.SessionHasPermissionToUser(session, userID) {
+			return true
+		}
 	}
-
 	return false
 }
 

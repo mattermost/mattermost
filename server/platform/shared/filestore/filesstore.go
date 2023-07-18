@@ -8,6 +8,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 )
 
@@ -55,6 +56,30 @@ type FileBackendSettings struct {
 	AmazonS3Trace                      bool
 	SkipVerify                         bool
 	AmazonS3RequestTimeoutMilliseconds int64
+}
+
+func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
+	if *fileSettings.DriverName == model.ImageDriverLocal {
+		return FileBackendSettings{
+			DriverName: *fileSettings.DriverName,
+			Directory:  *fileSettings.Directory,
+		}
+	}
+	return FileBackendSettings{
+		DriverName:                         *fileSettings.DriverName,
+		AmazonS3AccessKeyId:                *fileSettings.AmazonS3AccessKeyId,
+		AmazonS3SecretAccessKey:            *fileSettings.AmazonS3SecretAccessKey,
+		AmazonS3Bucket:                     *fileSettings.AmazonS3Bucket,
+		AmazonS3PathPrefix:                 *fileSettings.AmazonS3PathPrefix,
+		AmazonS3Region:                     *fileSettings.AmazonS3Region,
+		AmazonS3Endpoint:                   *fileSettings.AmazonS3Endpoint,
+		AmazonS3SSL:                        fileSettings.AmazonS3SSL == nil || *fileSettings.AmazonS3SSL,
+		AmazonS3SignV2:                     fileSettings.AmazonS3SignV2 != nil && *fileSettings.AmazonS3SignV2,
+		AmazonS3SSE:                        fileSettings.AmazonS3SSE != nil && *fileSettings.AmazonS3SSE && enableComplianceFeature,
+		AmazonS3Trace:                      fileSettings.AmazonS3Trace != nil && *fileSettings.AmazonS3Trace,
+		AmazonS3RequestTimeoutMilliseconds: *fileSettings.AmazonS3RequestTimeoutMilliseconds,
+		SkipVerify:                         skipVerify,
+	}
 }
 
 func (settings *FileBackendSettings) CheckMandatoryS3Fields() error {

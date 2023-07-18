@@ -1,19 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-export type ProviderResult = {
+import {RequireOnlyOne} from '@mattermost/types/utilities';
+
+export type ProviderResult<Item> = {
     matchedPretext: string;
     terms: string[];
-    items: Array<Record<string, any>>;
-    component?: React.ReactNode;
-}
+    items: Array<Item | Loading>;
+} & RequireOnlyOne<{
+    component: React.ReactNode;
+    components: React.ReactNode[];
+}>;
 
-export default class Provider {
+export type Loading = {
+    type: string;
+    loading: boolean;
+};
+
+export type ResultsCallback<Item> = (result: ProviderResult<Item>) => void;
+
+export default abstract class Provider {
     latestPrefix: string;
     latestComplete: boolean;
     disableDispatches: boolean;
     requestStarted: boolean;
     forceDispatch: boolean;
+
+    triggerCharacter?: string;
 
     constructor() {
         this.latestPrefix = '';
@@ -23,9 +36,7 @@ export default class Provider {
         this.forceDispatch = false;
     }
 
-    handlePretextChanged(pretext: string, callback: (res: ProviderResult) => void) {// eslint-disable-line @typescript-eslint/no-unused-vars
-        // NO-OP for inherited classes to override
-    }
+    abstract handlePretextChanged(pretext: string, callback: (res: ProviderResult<unknown>) => void): boolean;
 
     resetRequest() {
         this.requestStarted = false;

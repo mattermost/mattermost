@@ -4,12 +4,13 @@
 package api4
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestGetAncillaryPermissions(t *testing.T) {
@@ -21,7 +22,7 @@ func TestGetAncillaryPermissions(t *testing.T) {
 	t.Run("Valid Case, Passing in SubSection Permissions", func(t *testing.T) {
 		subsectionPermissions = []string{model.PermissionSysconsoleReadReportingSiteStatistics.Id}
 		expectedAncillaryPermissions = []string{model.PermissionGetAnalytics.Id}
-		actualAncillaryPermissions, _, err := th.Client.GetAncillaryPermissions(subsectionPermissions)
+		actualAncillaryPermissions, _, err := th.Client.GetAncillaryPermissions(context.Background(), subsectionPermissions)
 		require.NoError(t, err)
 		assert.Equal(t, append(subsectionPermissions, expectedAncillaryPermissions...), actualAncillaryPermissions)
 	})
@@ -29,7 +30,7 @@ func TestGetAncillaryPermissions(t *testing.T) {
 	t.Run("Invalid Case, Passing in SubSection Permissions That Don't Exist", func(t *testing.T) {
 		subsectionPermissions = []string{"All", "The", "Things", "She", "Said", "Running", "Through", "My", "Head"}
 		expectedAncillaryPermissions = []string{}
-		actualAncillaryPermissions, _, err := th.Client.GetAncillaryPermissions(subsectionPermissions)
+		actualAncillaryPermissions, _, err := th.Client.GetAncillaryPermissions(context.Background(), subsectionPermissions)
 		require.NoError(t, err)
 		assert.Equal(t, append(subsectionPermissions, expectedAncillaryPermissions...), actualAncillaryPermissions)
 	})
@@ -37,7 +38,7 @@ func TestGetAncillaryPermissions(t *testing.T) {
 	t.Run("Invalid Case, Passing in nothing", func(t *testing.T) {
 		subsectionPermissions = []string{}
 		expectedAncillaryPermissions = []string{}
-		_, resp, err := th.Client.GetAncillaryPermissions(subsectionPermissions)
+		_, resp, err := th.Client.GetAncillaryPermissions(context.Background(), subsectionPermissions)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})

@@ -7,7 +7,7 @@ package mocks
 import (
 	context "context"
 
-	model "github.com/mattermost/mattermost-server/server/v8/model"
+	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -549,32 +549,32 @@ func (_m *TeamStore) GetMembersByIds(teamID string, userIds []string, restrictio
 	return r0, r1
 }
 
-// GetNewTeamMembersSince provides a mock function with given fields: teamID, since, offset, limit
-func (_m *TeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int) (*model.NewTeamMembersList, int64, error) {
-	ret := _m.Called(teamID, since, offset, limit)
+// GetNewTeamMembersSince provides a mock function with given fields: teamID, since, offset, limit, showFullName
+func (_m *TeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int, showFullName bool) (*model.NewTeamMembersList, int64, error) {
+	ret := _m.Called(teamID, since, offset, limit, showFullName)
 
 	var r0 *model.NewTeamMembersList
 	var r1 int64
 	var r2 error
-	if rf, ok := ret.Get(0).(func(string, int64, int, int) (*model.NewTeamMembersList, int64, error)); ok {
-		return rf(teamID, since, offset, limit)
+	if rf, ok := ret.Get(0).(func(string, int64, int, int, bool) (*model.NewTeamMembersList, int64, error)); ok {
+		return rf(teamID, since, offset, limit, showFullName)
 	}
-	if rf, ok := ret.Get(0).(func(string, int64, int, int) *model.NewTeamMembersList); ok {
-		r0 = rf(teamID, since, offset, limit)
+	if rf, ok := ret.Get(0).(func(string, int64, int, int, bool) *model.NewTeamMembersList); ok {
+		r0 = rf(teamID, since, offset, limit, showFullName)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.NewTeamMembersList)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, int64, int, int) int64); ok {
-		r1 = rf(teamID, since, offset, limit)
+	if rf, ok := ret.Get(1).(func(string, int64, int, int, bool) int64); ok {
+		r1 = rf(teamID, since, offset, limit, showFullName)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
 
-	if rf, ok := ret.Get(2).(func(string, int64, int, int) error); ok {
-		r2 = rf(teamID, since, offset, limit)
+	if rf, ok := ret.Get(2).(func(string, int64, int, int, bool) error); ok {
+		r2 = rf(teamID, since, offset, limit, showFullName)
 	} else {
 		r2 = ret.Error(2)
 	}

@@ -12,9 +12,9 @@ import (
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 const (
@@ -1653,7 +1653,7 @@ func (s SqlTeamStore) GroupSyncedTeamCount() (int64, error) {
 	return count, nil
 }
 
-func (s SqlTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int) (*model.NewTeamMembersList, int64, error) {
+func (s SqlTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int, showFullName bool) (*model.NewTeamMembersList, int64, error) {
 	builderF := func(selectClause string) sq.SelectBuilder {
 		return s.getQueryBuilder().
 			Select(selectClause).
@@ -1675,7 +1675,12 @@ func (s SqlTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset 
 		return nil, 0, errors.Wrap(err, "failed to count team members since")
 	}
 
-	newTeamMembersBuilder := builderF("Users.Id, Users.Username, Users.FirstName, Users.LastName, Users.Position, Users.LastPictureUpdate, TeamMembers.CreateAt, Users.Nickname").
+	selectClause := "Users.Id, Users.Username, Users.Position, Users.LastPictureUpdate, TeamMembers.CreateAt, Users.Nickname"
+	if showFullName {
+		selectClause += ", Users.FirstName, Users.LastName"
+	}
+
+	newTeamMembersBuilder := builderF(selectClause).
 		Limit(uint64(limit + 1)).
 		Offset(uint64(offset))
 	query, args, err = newTeamMembersBuilder.ToSql()

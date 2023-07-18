@@ -10,8 +10,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
 type StoreResult struct {
@@ -84,6 +84,7 @@ type Store interface {
 	NotifyAdmin() NotifyAdminStore
 	PostPriority() PostPriorityStore
 	PostAcknowledgement() PostAcknowledgementStore
+	PostPersistentNotification() PostPersistentNotificationStore
 	TrueUpReview() TrueUpReviewStore
 }
 
@@ -170,7 +171,7 @@ type TeamStore interface {
 	// users belong.
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
 
-	GetNewTeamMembersSince(teamID string, since int64, offset int, limit int) (*model.NewTeamMembersList, int64, error)
+	GetNewTeamMembersSince(teamID string, since int64, offset int, limit int, showFullName bool) (*model.NewTeamMembersList, int64, error)
 }
 
 type ChannelStore interface {
@@ -197,7 +198,6 @@ type ChannelStore interface {
 	GetChannels(teamID, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, error)
 	GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error)
 	GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error)
-	GetBotChannelsByUser(userID string, opts ChannelSearchOpts) (model.ChannelList, error)
 	GetAllChannelMembersById(id string) ([]string, error)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
@@ -272,13 +272,13 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() error
 	ClearAllCustomRoleAssignments() error
 	CreateInitialSidebarCategories(userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
-	GetSidebarCategoriesForTeamForUser(userID, teamID string, options ...*SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
+	GetSidebarCategoriesForTeamForUser(userID, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategories(userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
-	GetSidebarCategory(categoryID string, options ...*SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error)
+	GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error)
 	GetSidebarCategoryOrder(userID, teamID string) ([]string, error)
-	CreateSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels, options ...*SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error)
+	CreateSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarCategoryOrder(userID, teamID string, categoryOrder []string) error
-	UpdateSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels, options ...*SidebarCategorySearchOpts) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error)
+	UpdateSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarChannelsByPreferences(preferences model.Preferences) error
 	DeleteSidebarChannelsByPreferences(preferences model.Preferences) error
 	DeleteSidebarCategory(categoryID string) error
@@ -487,7 +487,6 @@ type UserStore interface {
 	IsEmpty(excludeBots bool) (bool, error)
 	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
 	InsertUsers(users []*model.User) error
-	GetFirstSystemAdminID() (string, error)
 }
 
 type BotStore interface {
@@ -670,7 +669,7 @@ type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, error)
 	Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error)
 	GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error)
-	GetMultipleByName(names []string) ([]*model.Emoji, error)
+	GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, timestamp int64) error
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
@@ -999,6 +998,16 @@ type PostAcknowledgementStore interface {
 	Delete(acknowledgement *model.PostAcknowledgement) error
 }
 
+type PostPersistentNotificationStore interface {
+	Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error)
+	GetSingle(postID string) (*model.PostPersistentNotifications, error)
+	UpdateLastActivity(postIds []string) error
+	Delete(postIds []string) error
+	DeleteExpired(maxSentCount int16) error
+	DeleteByChannel(channelIds []string) error
+	DeleteByTeam(teamIds []string) error
+}
+
 type TrueUpReviewStore interface {
 	GetTrueUpReviewStatus(dueDate int64) (*model.TrueUpReviewStatus, error)
 	CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
@@ -1092,9 +1101,8 @@ type PostReminderMetadata struct {
 // SidebarCategorySearchOpts contains the options for a graphQL query
 // to get the sidebar categories.
 type SidebarCategorySearchOpts struct {
-	TeamID              string
-	ExcludeTeam         bool
-	AppsCategoryEnabled bool
+	TeamID      string
+	ExcludeTeam bool
 }
 
 // Ensure store service adapter implements `product.StoreService`
