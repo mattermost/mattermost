@@ -30,40 +30,6 @@ describe('Actions.General', () => {
         TestHelper.tearDown();
     });
 
-    it('getPing - Invalid URL', async () => {
-        const serverUrl = Client4.getUrl();
-        Client4.setUrl('notarealurl');
-
-        const pingError = new FormattedError(
-            'mobile.server_ping_failed',
-            'Cannot connect to the server. Please check your server URL and internet connection.',
-        );
-
-        nock(Client4.getBaseRoute()).
-            get('/system/ping').
-            query(true).
-            reply(401, {error: 'ping error', code: 401});
-
-        const {error} = await Actions.getPing()(store.dispatch, store.getState) as ActionResult;
-        Client4.setUrl(serverUrl);
-        expect(error).toEqual(pingError);
-    });
-
-    it('getPing', async () => {
-        const response = {
-            status: 'OK',
-            version: '4.0.0',
-        };
-
-        nock(Client4.getBaseRoute()).
-            get('/system/ping').
-            query(true).
-            reply(200, response);
-
-        const {data} = await Actions.getPing()(store.dispatch, store.getState) as ActionResult;
-        expect(data).toEqual(response);
-    });
-
     it('getClientConfig', async () => {
         nock(Client4.getBaseRoute()).
             get('/config/client').
