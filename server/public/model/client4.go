@@ -3047,6 +3047,21 @@ func (c *Client4) GetChannelStats(ctx context.Context, channelId string, etag st
 	return &stats, BuildResponse(r), nil
 }
 
+// GetChannelsMemberCount get channel member count for a given array of channel ids
+func (c *Client4) GetChannelsMemberCount(ctx context.Context, channelIDs []string) (map[string]int64, *Response, error) {
+	route := c.channelsRoute() + "/stats/member_count"
+	r, err := c.DoAPIPost(ctx, route, ArrayToJSON(channelIDs))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var counts map[string]int64
+	if err := json.NewDecoder(r.Body).Decode(&counts); err != nil {
+		return nil, nil, NewAppError("GetChannelsMemberCount", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return counts, BuildResponse(r), nil
+}
+
 // GetChannelMembersTimezones gets a list of timezones for a channel.
 func (c *Client4) GetChannelMembersTimezones(ctx context.Context, channelId string) ([]string, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/timezones", "")
