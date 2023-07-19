@@ -86,7 +86,6 @@ type Store interface {
 	PostAcknowledgement() PostAcknowledgementStore
 	PostPersistentNotification() PostPersistentNotificationStore
 	TrueUpReview() TrueUpReviewStore
-	DesktopTokens() DesktopTokensStore
 }
 
 type RetentionPolicyStore interface {
@@ -172,7 +171,7 @@ type TeamStore interface {
 	// users belong.
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
 
-	GetNewTeamMembersSince(teamID string, since int64, offset int, limit int) (*model.NewTeamMembersList, int64, error)
+	GetNewTeamMembersSince(teamID string, since int64, offset int, limit int, showFullName bool) (*model.NewTeamMembersList, int64, error)
 }
 
 type ChannelStore interface {
@@ -223,6 +222,7 @@ type ChannelStore interface {
 	GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
+	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
 	InvalidateAllChannelMembersForUser(userID string)
 	IsUserInChannelUseCache(userID string, channelID string) bool
 	GetAllChannelMembersNotifyPropsForChannel(channelID string, allowFromCache bool) (map[string]model.StringMap, error)
@@ -666,20 +666,11 @@ type TokenStore interface {
 	RemoveAllTokensByType(tokenType string) error
 }
 
-type DesktopTokensStore interface {
-	GetUserId(desktopToken string, minCreatedAt int64) (string, error)
-	Insert(desktopToken string, createdAt int64, userId *string) error
-	SetUserId(desktopToken string, minCreatedAt int64, userId string) error
-	Delete(desktopToken string) error
-	DeleteByUserId(userId string) error
-	DeleteOlderThan(minCreatedAt int64) error
-}
-
 type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, error)
 	Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error)
 	GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error)
-	GetMultipleByName(names []string) ([]*model.Emoji, error)
+	GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, timestamp int64) error
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
