@@ -59,7 +59,7 @@ const ItpTimeRecorder = ({ board, card }: Props) => {
         };
         
         try {
-            const response = await fetch('http://mattermost_to_kimai.test/timerecord', {
+            const response = await fetch('http://mm2kimai-staging.itplace.io/timerecord', {
             method: 'POST',
             body: JSON.stringify(obj),
             headers: {
@@ -132,7 +132,7 @@ const ItpTimeRecorder = ({ board, card }: Props) => {
 
     const handleStartOrRestart = (obj: taskObject) => {
         
-          fetch('http://mattermost_to_kimai.test/timerecord', {
+          fetch('http://mm2kimai-staging.itplace.io/timerecord', {
             method: 'POST',
             body: JSON.stringify(obj),
             headers: {
@@ -210,7 +210,7 @@ const ItpTimeRecorder = ({ board, card }: Props) => {
             action: 'stop',
         };
 
-        fetch('http://mattermost_to_kimai.test/timerecord',{
+        fetch('http://mm2kimai-staging.itplace.io/timerecord',{
                 method: 'POST',
                 body: JSON.stringify(obj),
                 headers: {
