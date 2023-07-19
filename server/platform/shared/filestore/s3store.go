@@ -619,18 +619,26 @@ func (b *S3FileBackend) prefixedPathFast(s string) string {
 	return filepath.Join(b.pathPrefix, s)
 }
 
+func (b *S3FileBackend) lookupOriginalPath(s string) (bool, error) {
+	exists, err := b._fileExists(filepath.Join(b.pathPrefix, s))
+	if err != nil {
+		var s3Err s3.ErrorResponse
+		// Sometimes S3 will not allow to access other paths.
+		// In that case, we consider them as not exists.
+		if errors.As(err, &s3Err); s3Err.Code == "AccessDenied" {
+			return false, nil
+		}
+		return false, errors.Wrapf(err, "unable to check for file path %s", s)
+	}
+	return exists, nil
+}
+
 func (b *S3FileBackend) prefixedPath(s string) (string, error) {
 	if b.isCloud {
 		// We do a lookup of the original path for compatibility purposes.
-		exists, err := b._fileExists(filepath.Join(b.pathPrefix, s))
+		exists, err := b.lookupOriginalPath(s)
 		if err != nil {
-			var s3Err s3.ErrorResponse
-			if errors.As(err, &s3Err) {
-				// Sometimes S3 will not allow to access other paths.
-				if s3Err.Code != "AccessDenied" {
-					return "", errors.Wrapf(err, "unable to check for file path %s", s)
-				}
-			}
+			return "", err
 		}
 
 		// If it exists, then we don't want to encode it
