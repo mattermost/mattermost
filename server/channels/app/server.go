@@ -54,6 +54,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/product_notices"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -1567,6 +1568,11 @@ func (s *Server) initJobs() {
 		import_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store()),
 		import_delete.MakeScheduler(s.Jobs),
 	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeS3PathMigration,
+		s3_path_migration.MakeWorker(s.Jobs, s.Store(), s.FileBackend()),
+		nil)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeExportDelete,
