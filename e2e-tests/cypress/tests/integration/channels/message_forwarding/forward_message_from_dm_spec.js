@@ -25,7 +25,6 @@ describe('Forward Message', () => {
     const commentMessage = 'Comment for the forwarded message';
 
     before(() => {
-
         cy.apiUpdateConfig({
             ServiceSettings: {
                 ThreadAutoFollow: true,
