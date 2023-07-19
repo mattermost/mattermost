@@ -99,6 +99,15 @@ jobs:
       - name: ci/e2e-smoketests
         run: |
           make
+      - name: ci/e2e-smoketests-store-results
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: e2e-smoketests-results
+          path: |
+            cypress/logs/
+            cypress/results/
+      - name: ci/e2e-smoketests-assert-results
+        run: |
           # Assert that the run contained 0 failures
           CYPRESS_FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
           echo "Cypress run completed with $CYPRESS_FAILURES failures"
