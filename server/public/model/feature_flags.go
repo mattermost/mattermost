@@ -41,8 +41,6 @@ type FeatureFlags struct {
 	// Enable GraphQL feature
 	GraphQL bool
 
-	InsightsEnabled bool
-
 	CommandPalette bool
 
 	PostPriority bool
@@ -71,7 +69,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.GraphQL = false
-	f.InsightsEnabled = false
 	f.CommandPalette = false
 	f.CallsEnabled = true
 	f.PeopleProduct = false

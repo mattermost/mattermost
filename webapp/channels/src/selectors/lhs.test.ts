@@ -11,7 +11,6 @@ jest.mock('selectors/drafts', () => ({
 }));
 
 jest.mock('mattermost-redux/selectors/entities/preferences', () => ({
-    insightsAreEnabled: jest.fn(),
     isCollapsedThreadsEnabled: jest.fn(),
 }));
 

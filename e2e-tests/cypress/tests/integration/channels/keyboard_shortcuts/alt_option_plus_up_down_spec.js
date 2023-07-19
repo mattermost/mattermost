@@ -98,21 +98,16 @@ describe('Keyboard Shortcuts', () => {
         });
 
         function verifyClass(channel, assertion) {
-            if (channel.type) {
-                let label;
-                if (channel.type === 'O') {
-                    label = channel.display_name.toLowerCase() + ' public channel';
-                } else if (channel.type === 'P') {
-                    label = channel.display_name.toLowerCase() + ' private channel';
-                } else if (channel.type === 'D') {
-                    label = channel.display_name.toLowerCase();
-                }
-
-                cy.findByLabelText(label).parent().should(assertion, 'active');
-            } else {
-                // For Insights
-                cy.findByText(channel.name).parent().parent().parent().should(assertion, 'active');
+            let label;
+            if (channel.type === 'O') {
+                label = channel.display_name.toLowerCase() + ' public channel';
+            } else if (channel.type === 'P') {
+                label = channel.display_name.toLowerCase() + ' private channel';
+            } else if (channel.type === 'D') {
+                label = channel.display_name.toLowerCase();
             }
+
+            cy.findByLabelText(label).parent().should(assertion, 'active');
         }
     }
 });
