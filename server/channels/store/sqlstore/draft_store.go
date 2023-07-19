@@ -159,11 +159,8 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 }
 
 func (s *SqlDraftStore) Delete(userID, channelID, rootID string) error {
-	time := model.GetMillis()
 	query := s.getQueryBuilder().
-		Update("Drafts").
-		Set("UpdateAt", time).
-		Set("DeleteAt", time).
+		Delete("Drafts").
 		Where(sq.Eq{
 			"UserId":    userID,
 			"ChannelId": channelID,

@@ -1,2 +1,2 @@
-UPDATE Drafts
-SET DeleteAt = UpdateAt WHERE Message = ''
+DELETE FROM Drafts
+WHERE Message = ''

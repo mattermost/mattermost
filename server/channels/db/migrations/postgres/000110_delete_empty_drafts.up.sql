@@ -1,2 +1,2 @@
-UPDATE drafts
-SET deleteat = updateat WHERE message = ''
+DELETE FROM drafts
+WHERE message = ''

@@ -56,14 +56,20 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 		return nil, model.NewAppError("CreateDraft", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
+	// If the draft is empty, just delete it
+	if draft.Message == "" {
+		deleteErr := a.Srv().Store().Draft().Delete(draft.UserId, draft.ChannelId, draft.RootId)
+		if deleteErr != nil {
+			return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+		return nil, nil
+	}
+
 	dt, nErr := a.Srv().Store().Draft().Upsert(draft)
 	if nErr != nil {
 		return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	if draft.Message == "" {
-		a.Srv().Store().Draft().Delete(draft.UserId, draft.ChannelId, draft.RootId)
-	}
 
 	dt = a.prepareDraftWithFileInfos(draft.UserId, dt)
 
