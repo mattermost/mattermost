@@ -1096,7 +1096,6 @@ type AppIface interface {
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError
 	SlackImport(c *request.Context, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer)
-	SoftDeleteAllTeamsExcept(teamID string) *model.AppError
 	SoftDeleteTeam(teamID string) *model.AppError
 	Srv() *Server
 	SubmitInteractiveDialog(c *request.Context, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError)
