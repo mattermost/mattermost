@@ -1,0 +1,3090 @@
+  /api/v4/teams:
+    post:
+      tags:
+        - teams
+      summary: Create a team
+      description: |
+        Create a new team on the system.
+        ##### Permissions
+        Must be authenticated and have the `create_team` permission.
+      operationId: CreateTeam
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - display_name
+                - type
+              properties:
+                name:
+                  type: string
+                  description: Unique handler for a team, will be present in the team URL
+                display_name:
+                  type: string
+                  description: Non-unique UI name for the team
+                type:
+                  type: string
+                  description: "`'O'` for open, `'I'` for invite only"
+        description: Team that is to be created
+        required: true
+      responses:
+        "201":
+          description: Team creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            newTeam, err := Client.CreateTeam(&model.Team{
+              Name:        "teamName",
+              DisplayName: "TeamDisplayName",
+              Type:        "O",
+            })
+        - lang: PHP
+          source: |
+              require 'vendor/autoload.php';
+
+              use \Gnello\Mattermost\Driver;
+
+              $container = new \Pimple\Container([
+                  "driver" => [
+                      "url" => "https://your-mattermost-url.com",
+                      "login_id" => "email@domain.com",
+                      "password" => "Password1",
+                  ]
+              ]);
+
+              $driver = new Driver($container);
+              $driver->authenticate();
+
+              $resp = $driver->getTeamModel()->createTeam([
+                  "name" => "teamName",
+                  "display_name" => "TeamDisplayName",
+                  "type" => "O",
+              ]);
+
+              if ($resp->getStatusCode() == 200) {
+                  $newTeam = json_decode($resp->getBody());
+              }
+    get:
+      tags:
+        - teams
+      summary: Get teams
+      description: >
+        For regular users only returns open teams. Users with the
+        "manage_system" permission will return teams regardless of type. The
+        result is based on query string parameters - page and per_page.
+
+        ##### Permissions
+
+        Must be authenticated. "manage_system" permission is required to show all teams.
+      operationId: GetAllTeams
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of teams per page.
+          schema:
+            type: integer
+            default: 60
+        - name: include_total_count
+          description: >-
+            Appends a total count of returned teams inside the response object - ex: `{ "teams": [], "total_count" : 0 }`.      
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: exclude_policy_constrained
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: >-
+            If set to true, teams which are part of a data retention policy will be excluded.
+            The `sysconsole_read_compliance` permission is required to use this parameter.
+
+            __Minimum server version__: 5.35
+      responses:
+        "200":
+          description: Team list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teams, resp := Client.GetAllTeams("", 0, 100)
+        - lang: PHP
+          source: |
+              require 'vendor/autoload.php';
+
+              use \Gnello\Mattermost\Driver;
+
+              $container = new \Pimple\Container([
+                  "driver" => [
+                      "url" => "https://your-mattermost-url.com",
+                      "login_id" => "email@domain.com",
+                      "password" => "Password1",
+                  ]
+              ]);
+
+              $driver = new Driver($container);
+              $driver->authenticate();
+
+              $resp = $driver->getTeamModel()->getTeams([
+                  "page" => 0,
+                  "per_page" => 100,
+                  "include_total_count" => false,
+              ]);
+
+              if ($resp->getStatusCode() == 200) {
+                  $teams = json_decode($resp->getBody());
+              }
+  "/api/v4/teams/{team_id}":
+    get:
+      tags:
+        - teams
+      summary: Get a team
+      description: |
+        Get a team on the system.
+        ##### Permissions
+        Must be authenticated and have the `view_team` permission.
+      operationId: GetTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teamID := "4xp9fdt77pncbef59f4k1qe83o"
+
+            t, err := Client.GetTeam(teamID, "")
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
+
+            $resp = $driver->getTeamModel()->getTeam($teamID);
+
+            if ($resp->getStatusCode() == 200) {
+                $t = json_decode($resp->getBody());
+            }
+    put:
+      tags:
+        - teams
+      summary: Update a team
+      description: >
+        Update a team by providing the team object. The fields that can be
+        updated are defined in the request body, all other provided fields will
+        be ignored.
+
+        ##### Permissions
+
+        Must have the `manage_team` permission.
+      operationId: UpdateTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - display_name
+                - description
+                - company_name
+                - allowed_domains
+                - invite_id
+                - allow_open_invite
+              properties:
+                id:
+                  type: string
+                display_name:
+                  type: string
+                description:
+                  type: string
+                company_name:
+                  type: string
+                allowed_domains:
+                  type: string
+                invite_id:
+                  type: string
+                allow_open_invite:
+                  type: string
+        description: Team to update
+        required: true
+      responses:
+        "200":
+          description: Team update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teamID := "4xp9fdt77pncbef59f4k1qe83o"
+            inviteID := "qjda3stwafbgpqjaxej3k76sga"
+
+            uteam, resp := Client.UpdateTeam(&model.Team{
+              Id:              teamID,
+              DisplayName:     "displayName",
+              Description:     "description",
+              CompanyName:     "companyName",
+              AllowedDomains:  "allowedDomains",
+              InviteId:        inviteID,
+              AllowOpenInvite: false,
+            })
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
+            $inviteID = "qjda3stwafbgpqjaxej3k76sga";
+
+            $resp = $driver->getTeamModel()->updateTeam($teamID, [
+              "id" => $teamID,
+              "display_name" => "displayName",
+              "description" => "description",
+              "company_name" => "companyName",
+              "allowed_domains" => "allowedDomains",
+              "invite_id" => $inviteID,
+              "allow_open_invite" => false,
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $uteam = json_decode($resp->getBody());
+            }
+    delete:
+      tags:
+        - teams
+      summary: Delete a team
+      description: >
+        Soft deletes a team, by marking the team as deleted in the database.
+        Soft deleted teams will not be accessible in the user interface.
+
+
+        Optionally use the permanent query parameter to hard delete the team for compliance reasons. As of server version 5.0, to use this feature `ServiceSettings.EnableAPITeamDeletion` must be set to `true` in the server's configuration.
+
+        ##### Permissions
+
+        Must have the `manage_team` permission.
+      operationId: SoftDeleteTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: permanent
+          in: query
+          description: Permanently delete the team, to be used for compliance reasons only.
+            As of server version 5.0, `ServiceSettings.EnableAPITeamDeletion`
+            must be set to `true` in the server's configuration.
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Team deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teamID := "4xp9fdt77pncbef59f4k1qe83o"
+
+            // Non-permanent deletion
+            ok, resp := Client.SoftDeleteTeam(&model.Team{Id: teamID})
+
+            // Permanent deletion
+            ok, resp := Client.PermanentDeleteTeam(&model.Team{Id: teamID})
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
+
+            // Non-permanent deletion
+            $resp = $driver->getTeamModel()->deleteTeam($teamID, [
+              "permanent" => false,
+            ]);
+
+            // Permanent deletion
+            $resp = $driver->getTeamModel()->deleteTeam($teamID, [
+              "permanent" => true,
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $ok = json_decode($resp->getBody())->status;
+            }
+  "/api/v4/teams/{team_id}/patch":
+    put:
+      tags:
+        - teams
+      summary: Patch a team
+      description: >
+        Partially update a team by providing only the fields you want to update.
+        Omitted fields will not be updated. The fields that can be updated are
+        defined in the request body, all other provided fields will be ignored.
+
+        ##### Permissions
+
+        Must have the `manage_team` permission.
+      operationId: PatchTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                display_name:
+                  type: string
+                description:
+                  type: string
+                company_name:
+                  type: string
+                invite_id:
+                  type: string
+                allow_open_invite:
+                  type: boolean
+        description: Team object that is to be updated
+        required: true
+      responses:
+        "200":
+          description: team patch successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            patch := &model.TeamPatch{}
+            patch.DisplayName = model.NewString("Other name")
+            patch.Description = model.NewString("Other description")
+            patch.CompanyName = model.NewString("Other company name")
+            patch.AllowOpenInvite = model.NewBool(true)
+
+            teamID := "4xp9fdt77pncbef59f4k1qe83o"
+
+            team, resp := Client.PatchTeam(teamID, patch)
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
+
+            $resp = $driver->getTeamModel()->patchTeam($teamID, [
+              "display_name" => "Other name",
+              "description" => "Other description",
+              "company_name" => "Other company name",
+              "allow_open_invite" => true,
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $team = json_decode($resp->getBody());
+            }
+  "/api/v4/teams/{team_id}/privacy":
+    put:
+      tags:
+        - teams
+      summary: Update teams's privacy
+      description: >
+        Updates team's privacy allowing changing a team from Public (open) to
+        Private (invitation only) and back.
+
+
+        __Minimum server version__: 5.24
+
+
+        ##### Permissions
+
+        `manage_team` permission for the team of the team.
+      operationId: UpdateTeamPrivacy
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - privacy
+              properties:
+                privacy:
+                  type: string
+                  description: "Team privacy setting: 'O' for a public (open) team, 'I' for
+                    a private (invitation only) team"
+        required: true
+      responses:
+        "200":
+          description: Team conversion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: >
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+
+            Client.Login("email@domain.com", "Password1")
+
+
+            // Update team's privacy to Public
+
+            updatedTeam, resp := Client.UpdateTeamPrivacy(<TEAMID>, model.TEAM_OPEN)
+
+
+            // Update team's privacy to Private
+
+            updatedTeam, resp := Client.UpdateTeamPrivacy(<TEAMID>, model.TEAM_INVITE)
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            // Update team's privacy to Public
+            $resp = $driver->getTeamModel()->updateTeamPrivacy(<TEAMID>, [
+              "privacy" => "0",
+            ]);
+
+            // Update team's privacy to Private
+            $resp = $driver->getTeamModel()->updateTeamPrivacy(<TEAMID>, [
+              "privacy" => "1",
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $updatedTeam = json_decode($resp->getBody());
+            }
+  "/api/v4/teams/{team_id}/restore":
+    post:
+      tags:
+        - teams
+      summary: Restore a team
+      description: |
+        Restore a team that was previously soft deleted.
+
+        __Minimum server version__: 5.24
+
+        ##### Permissions
+        Must have the `manage_team` permission.
+      operationId: RestoreTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team restore successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+            teamID := "4xp9fdt77pncbef59f4k1qe83o"
+            team, resp := Client.RestoreTeam(teamID)
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
+
+            $resp = $driver->getTeamModel()->restoreTeam($teamID);
+
+            if ($resp->getStatusCode() == 200) {
+                $team = json_decode($resp->getBody());
+            }
+  "/api/v4/teams/name/{name}":
+    get:
+      tags:
+        - teams
+      summary: Get a team by name
+      description: >
+        Get a team based on provided name string
+
+        ##### Permissions
+
+        Must be authenticated, team type is open and have the `view_team` permission.
+      operationId: GetTeamByName
+      parameters:
+        - name: name
+          in: path
+          description: Team Name
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            team, resp := Client.GetTeamByName("teamName", "")
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $resp = $driver->getTeamModel()->getTeamByName("teamName");
+
+            if ($resp->getStatusCode() == 200) {
+                $team = json_decode($resp->getBody());
+            }
+  /api/v4/teams/search:
+    post:
+      tags:
+        - teams
+      summary: Search teams
+      description: |
+        Search teams based on search term and options provided in the request body.
+
+        ##### Permissions
+        Logged in user only shows open teams
+        Logged in user with "manage_system" permission shows all teams
+      operationId: SearchTeams
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                term:
+                  description: The search term to match against the name or display name of
+                    teams
+                  type: string
+                page:
+                  type: string
+                  description: The page number to return, if paginated. If this parameter
+                    is not present with the `per_page` parameter then the
+                    results will be returned un-paged.
+                per_page:
+                  type: string
+                  description: The number of entries to return per page, if paginated. If
+                    this parameter is not present with the `page` parameter then
+                    the results will be returned un-paged.
+                allow_open_invite:
+                  type: boolean
+                  description: >
+                    Filters results to teams where `allow_open_invite` is set to true or false,
+                    excludes group constrained channels if this filter option is passed.
+
+                    If this filter option is not passed then the query will remain unchanged.
+
+                    __Minimum server version__: 5.28
+                group_constrained:
+                  type: boolean
+                  description: >
+                    Filters results to teams where `group_constrained` is set to true or false, returns the union of results when used with `allow_open_invite`
+
+                    If the filter option is not passed then the query will remain unchanged.
+
+                    __Minimum server version__: 5.28
+                exclude_policy_constrained:
+                  type: boolean
+                  default: false
+                  description: >
+                    If set to true, only teams which do not have a granular retention policy assigned to
+                    them will be returned. The `sysconsole_read_compliance_data_retention` permission is
+                    required to use this parameter.
+
+                    __Minimum server version__: 5.35
+        description: Search criteria
+        required: true
+      responses:
+        "200":
+          description: Paginated teams response. (Note that the non-paginated
+            response—returned if the request body does not contain both `page`
+            and `per_page` fields—is a simple array of teams.)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  teams:
+                    type: array
+                    description: The teams that matched the query.
+                    items:
+                      $ref: "#/components/schemas/Team"
+                  total_count:
+                    type: number
+                    description: The total number of results, regardless of page and
+                      per_page requested.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: >
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+
+            Client.Login("email@domain.com", "Password1")
+
+
+            teams, resp := Client.SearchTeams(&model.TeamSearch{Term: "searchTerm"})
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $resp = $driver->getTeamModel()->searchTeams([
+              "term" => "searchTerm"
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $teams = json_decode($resp->getBody())->teams;
+            }
+  "/api/v4/teams/name/{name}/exists":
+    get:
+      tags:
+        - teams
+      summary: Check if team exists
+      description: |
+        Check if the team exists based on a team name.
+        ##### Permissions
+        Must be authenticated.
+      operationId: TeamExists
+      parameters:
+        - name: name
+          in: path
+          description: Team Name
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamExists"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            exists, resp := Client.TeamExists("teamName", "")
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $resp = $driver->getTeamModel()->checkTeamExists("teamName");
+
+            if ($resp->getStatusCode() == 200) {
+                $exists = json_decode($resp->getBody())->exists;
+            }
+  "/api/v4/users/{user_id}/teams":
+    get:
+      tags:
+        - teams
+      summary: Get a user's teams
+      description: >
+        Get a list of teams that a user is on.
+
+        ##### Permissions
+
+        Must be authenticated as the user or have the `manage_system` permission.
+      operationId: GetTeamsForUser
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            userID := "4xp9fdt77pncbef59f4k1qe83o"
+
+            teams, resp := Client.GetTeamsForUser(userID, "")
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $userID = "4xp9fdt77pncbef59f4k1qe83o";
+
+            $resp = $driver->getTeamModel()->getUserTeams($userID);
+
+            if ($resp->getStatusCode() == 200) {
+                $teams = json_decode($resp->getBody());
+            }
+  "/api/v4/teams/{team_id}/members":
+    get:
+      tags:
+        - teams
+      summary: Get team members
+      description: >
+        Get a page team members list based on query string parameters - team id,
+        page and per page.
+
+        ##### Permissions
+
+        Must be authenticated and have the `view_team` permission.
+      operationId: GetTeamMembers
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of users per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Team members retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamMember"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teamID := "4xp9fdt77pncbef59f4k1qe83o"
+
+            members, resp := Client.GetTeamMembers(teamID, 0, 100, "")
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
+
+            $resp = $driver->getTeamModel()->getTeamMembers($teamID, [
+              "page" => 0,
+              "per_page" => 100,
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $members = json_decode($resp->getBody());
+            }
+    post:
+      tags:
+        - teams
+      summary: Add user to team
+      description: >
+        Add user to the team by user_id.
+
+        ##### Permissions
+
+        Must be authenticated and team be open to add self. For adding another user, authenticated user must have the `add_user_to_team` permission.
+      operationId: AddTeamMember
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                team_id:
+                  type: string
+                user_id:
+                  type: string
+        required: true
+      responses:
+        "201":
+          description: Team member creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamMember"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teamID := "4xp9fdt77pncbef59f4k1qe83o"
+            userID := "qjda3stwafbgpqjaxej3k76sga"
+
+            teamMember, resp := Client.AddTeamMember(teamID, userID)
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
+            $userID = "qjda3stwafbgpqjaxej3k76sga";
+
+            $resp = $driver->getTeamModel()->addUser($teamID, [
+              "user_id" => $userID,
+              "team_id" => $teamID,
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $teamMember = json_decode($resp->getBody());
+            }
+  /api/v4/teams/members/invite:
+    post:
+      tags:
+        - teams
+      summary: Add user to team from invite
+      description: >
+        Using either an invite id or hash/data pair from an email invite link,
+        add a user to a team.
+
+        ##### Permissions
+
+        Must be authenticated.
+      operationId: AddTeamMemberFromInvite
+      parameters:
+        - name: token
+          in: query
+          description: Token id from the invitation
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Team member creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamMember"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            tokenID := "qjda3stwafbgpqjaxej3k76sga"
+
+            tm, resp = Client.AddTeamMemberFromInvite(tokenID, "")
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $tokenID = "qjda3stwafbgpqjaxej3k76sga";
+
+            $resp = $driver->getTeamModel()->addUserFromInvite([
+              "token" => $tokenID
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $tm = json_decode($resp->getBody());
+            }
+  "/api/v4/teams/{team_id}/members/batch":
+    post:
+      tags:
+        - teams
+      summary: Add multiple users to team
+      description: >
+        Add a number of users to the team by user_id.
+
+        ##### Permissions
+
+        Must be authenticated. Authenticated user must have the `add_user_to_team` permission.
+      operationId: AddTeamMembers
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: graceful
+          in: query
+          description: 'Instead of aborting the operation if a user cannot be added, return
+            an arrray that will contain both the success and added members and
+            the ones with error, in form of `[{"member": {...}, "user_id",
+            "...", "error": {...}}]`'
+          required: false
+          schema:
+            type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/TeamMember"
+        required: true
+      responses:
+        "201":
+          description: Team members created successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamMember"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teamID := "IJyUQLwh1CO9ahbzaQwWwc0ZnV"
+
+            userID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+            userID2 := "NqCSr5HMDZjrWS74IEmedvlOYf"
+
+            tm, resp := Client.AddTeamMembers(teamID, []string{userID, userID2})
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "IJyUQLwh1CO9ahbzaQwWwc0ZnV";
+
+            $userID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+            $userID2 = "NqCSr5HMDZjrWS74IEmedvlOYf";
+
+            $resp = $driver->getTeamModel()->addMultipleUsers($teamID, [
+              [
+                "user_id" => $userID,
+              ],
+              [
+                "user_id" => $userID2,
+              ],
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $tm = json_decode($resp->getBody());
+            }
+  "/api/v4/users/{user_id}/teams/members":
+    get:
+      tags:
+        - teams
+      summary: Get team members for a user
+      description: >
+        Get a list of team members for a user. Useful for getting the ids of
+        teams the user is on and the roles they have in those teams.
+
+        ##### Permissions
+
+        Must be logged in as the user or have the `edit_other_users` permission.
+      operationId: GetTeamMembersForUser
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team members retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamMember"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            userID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+            teamMembers, resp = Client.GetTeamMembersForUser(userID, "")
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $userID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+
+            $resp = $driver->getTeamModel()->getTeamMembersForUser($userID);
+
+            if ($resp->getStatusCode() == 200) {
+                $teamMembers = json_decode($resp->getBody());
+            }
+  "/api/v4/teams/{team_id}/members/{user_id}":
+    get:
+      tags:
+        - teams
+      summary: Get a team member
+      description: |
+        Get a team member on the system.
+        ##### Permissions
+        Must be authenticated and have the `view_team` permission.
+      operationId: GetTeamMember
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team member retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamMember"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
+
+            teamMember, resp = Client.GetTeamMember(teamID, userID, "")
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
+
+            $resp = $driver->getTeamModel()->getTeamMember($teamID, $userID);
+
+            if ($resp->getStatusCode() == 200) {
+                $teamMember = json_decode($resp->getBody());
+            }
+    delete:
+      tags:
+        - teams
+      summary: Remove user from team
+      description: >
+        Delete the team member object for a user, effectively removing them from
+        a team.
+
+        ##### Permissions
+
+        Must be logged in as the user or have the `remove_user_from_team` permission.
+      operationId: RemoveTeamMember
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team member deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
+
+            ok, resp = Client.RemoveTeamMember(teamID, userID)
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
+
+            $resp = $driver->getTeamModel()->removeUser($teamID, $userID);
+
+            if ($resp->getStatusCode() == 200) {
+                $ok = json_decode($resp->getBody())->status;
+            }
+  "/api/v4/teams/{team_id}/members/ids":
+    post:
+      tags:
+        - teams
+      summary: Get team members by ids
+      description: |
+        Get a list of team members based on a provided array of user ids.
+        ##### Permissions
+        Must have `view_team` permission for the team.
+      operationId: GetTeamMembersByIds
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: List of user ids
+        required: true
+      responses:
+        "200":
+          description: Team members retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamMember"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: Go
+          source: >
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+
+            Client.Login("email@domain.com", "Password1")
+
+
+            teamID := zWEyrTZ7GZ22aBSfoX60iWryTY
+
+
+            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
+
+            userID2 := "UAFalLvtKwNKABAnmwR7uGB5md"
+
+
+            tm, resp := Client.GetTeamMembersByIds(teamID, []string{userID, userID2})
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+
+            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
+            $userID2 = "UAFalLvtKwNKABAnmwR7uGB5md";
+
+            $resp = $driver->getTeamModel()->getTeamMembersByIds($teamID, [
+              $userID,
+              $userID2,
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $tm = json_decode($resp->getBody());
+            }
+  "/api/v4/teams/{team_id}/stats":
+    get:
+      tags:
+        - teams
+      summary: Get a team stats
+      description: |
+        Get a team stats on the system.
+        ##### Permissions
+        Must be authenticated and have the `view_team` permission.
+      operationId: GetTeamStats
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team stats retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamStats"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+            stats, resp := Client.GetTeamStats(teamID, "")
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+
+            $resp = $driver->getTeamModel()->getTeamStats($teamID);
+
+            if ($resp->getStatusCode() == 200) {
+                $stats = json_decode($resp->getBody());
+            }
+  "/api/v4/teams/{team_id}/regenerate_invite_id":
+    post:
+      tags:
+        - teams
+      summary: Regenerate the Invite ID from a Team
+      description: |
+        Regenerates the invite ID used in invite links of a team
+        ##### Permissions
+        Must be authenticated and have the `manage_team` permission.
+      operationId: RegenerateTeamInviteId
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team Invite ID regenerated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+            team, resp := Client.RegenerateTeamInviteId(teamID)
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+
+            $resp = $driver->getTeamModel()->regenerateInviteID($teamID);
+
+            if ($resp->getStatusCode() == 200) {
+                $team = json_decode($resp->getBody());
+            }
+  "/api/v4/teams/{team_id}/image":
+    get:
+      tags:
+        - teams
+      summary: Get the team icon
+      description: >
+        Get the team icon of the team.
+
+
+        __Minimum server version__: 4.9
+
+
+        ##### Permissions
+
+        User must be authenticated. In addition, team must be open or the user must have the `view_team` permission.
+      operationId: GetTeamIcon
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team icon retrieval successful
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+            icon, resp = Client.GetTeamIcon(teamID, "")
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+
+            $resp = $driver->getTeamModel()->getTeamIcon($teamID);
+
+            if ($resp->getStatusCode() == 200) {
+                $icon = json_decode($resp->getBody());
+            }
+    post:
+      tags:
+        - teams
+      summary: Sets the team icon
+      description: |
+        Sets the team icon for the team.
+
+        __Minimum server version__: 4.9
+
+        ##### Permissions
+        Must be authenticated and have the `manage_team` permission.
+      operationId: SetTeamIcon
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  description: The image to be uploaded
+                  type: string
+                  format: binary
+              required:
+                - image
+      responses:
+        "200":
+          description: Team icon successfully set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import (
+              "io/ioutil"
+              "log"
+
+              "github.com/mattermost/mattermost-server/v5/model"
+            )
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            data, err := ioutil.ReadFile("icon.png")
+            if err != nil {
+              log.Fatal(err)
+            }
+
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+            ok, resp := Client.SetTeamIcon(teamID, data)
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+            $resource = fopen("icon.png", 'rb');
+
+            if ($resource === false) {
+              throw new \Exeption("Failure.");
+            }
+
+            $data = new \GuzzleHttp\Psr7\Stream($resource);
+
+            $resp = $driver->getTeamModel()->setTeamIcon($teamID, [
+              "image" => $data,
+            ]);
+
+            fclose($resource);
+
+            if ($resp->getStatusCode() == 200) {
+                $ok = json_decode($resp->getBody())->status;
+            }
+    delete:
+      tags:
+        - teams
+      summary: Remove the team icon
+      description: |
+        Remove the team icon for the team.
+
+        __Minimum server version__: 4.10
+
+        ##### Permissions
+        Must be authenticated and have the `manage_team` permission.
+      operationId: RemoveTeamIcon
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team icon successfully remove
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+            ok, resp = Client.RemoveTeamIcon(teamID)
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+
+            $resp = $driver->getTeamModel()->removeTeamIcon($teamID);
+
+            if ($resp->getStatusCode() == 200) {
+                $ok = json_decode($resp->getBody())->status;
+            }
+  "/api/v4/teams/{team_id}/members/{user_id}/roles":
+    put:
+      tags:
+        - teams
+      summary: Update a team member roles
+      description: >
+        Update a team member roles. Valid team roles are "team_user",
+        "team_admin" or both of them. Overwrites any previously assigned team
+        roles.
+
+        ##### Permissions
+
+        Must be authenticated and have the `manage_team_roles` permission.
+      operationId: UpdateTeamMemberRoles
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - roles
+              properties:
+                roles:
+                  type: string
+        description: Space-delimited team roles to assign to the user
+        required: true
+      responses:
+        "200":
+          description: Team member roles update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: >
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+
+            Client.Login("email@domain.com", "Password1")
+
+
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
+
+
+            ok, resp := Client.UpdateTeamMemberRoles(teamID, userID, "team_user team_admin")
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
+
+            $resp = $driver->getTeamModel()->updateTeamMemberRoles($teamID, $userID, [
+              "roles" => "team_user team_admin",
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $ok = json_decode($resp->getBody())->status;
+            }
+  "/api/v4/teams/{team_id}/members/{user_id}/schemeRoles":
+    put:
+      tags:
+        - teams
+      summary: Update the scheme-derived roles of a team member.
+      description: >
+        Update a team member's scheme_admin/scheme_user properties. Typically
+        this should either be `scheme_admin=false, scheme_user=true` for
+        ordinary team member, or `scheme_admin=true, scheme_user=true` for a
+        team admin.
+
+
+        __Minimum server version__: 5.0
+
+
+        ##### Permissions
+
+        Must be authenticated and have the `manage_team_roles` permission.
+      operationId: UpdateTeamMemberSchemeRoles
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - scheme_admin
+                - scheme_user
+              properties:
+                scheme_admin:
+                  type: boolean
+                scheme_user:
+                  type: boolean
+        description: Scheme properties.
+        required: true
+      responses:
+        "200":
+          description: Team member's scheme-derived roles updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: >
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+
+            Client.Login("email@domain.com", "Password1")
+
+
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
+
+
+            ok, resp := Client.UpdateTeamMemberSchemeRoles(teamID, userID, &model.SchemeRoles{
+              SchemeAdmin: true,
+              SchemeUser:  true,
+            })
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
+
+            $resp = $driver->getTeamModel()->updateSchemeDerivedRolesOfMember($teamID, $userID, [
+              "scheme_admin" => true,
+              "scheme_user" => true,
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $ok = json_decode($resp->getBody())->status;
+            }
+  "/api/v4/users/{user_id}/teams/unread":
+    get:
+      tags:
+        - teams
+      summary: Get team unreads for a user
+      description: >
+        Get the count for unread messages and mentions in the teams the user is
+        a member of.
+
+        ##### Permissions
+
+        Must be logged in.
+      operationId: GetTeamsUnreadForUser
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+        - name: exclude_team
+          in: query
+          description: Optional team id to be excluded from the results
+          required: true
+          schema:
+            type: string
+        - name: include_collapsed_threads
+          in: query
+          description: Boolean to determine whether the collapsed threads should be included or not
+          required: false
+          schema:
+            type: boolean
+            default: false          
+      responses:
+        "200":
+          description: Team unreads retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamUnread"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+            teams, resp := Client.GetTeamsUnreadForUser(userID, teamID)
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+
+            $resp = $driver->getTeamModel()->getUserTotalUnreadMessagesFromTeams($userID, [
+              "exclude_team" => $teamID,
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $teams = json_decode($resp->getBody());
+            }
+  "/api/v4/users/{user_id}/teams/{team_id}/unread":
+    get:
+      tags:
+        - teams
+      summary: Get unreads for a team
+      description: >
+        Get the unread mention and message counts for a team for the specified
+        user.
+
+        ##### Permissions
+
+        Must be the user or have `edit_other_users` permission and have `view_team` permission for the team.
+      operationId: GetTeamUnread
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team unread count retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamUnread"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+            teamUnread, resp := Client.GetTeamUnread(userID, teamID)
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+
+            $resp = $driver->getTeamModel()->getUserTotalUnreadMessagesFromTeam($userID, $teamID);
+
+            if ($resp->getStatusCode() == 200) {
+                $teamUnread = json_decode($resp->getBody());
+            }
+  "/api/v4/teams/{team_id}/invite/email":
+    post:
+      tags:
+        - teams
+      summary: Invite users to the team by email
+      description: |
+        Invite users to the existing team using the user's email.
+
+        The number of emails that can be sent is rate limited to 20 per hour with a burst of 20 emails. If the rate limit exceeds, the error message contains details on when to retry and when the timer will be reset.
+        ##### Permissions
+        Must have `invite_user` and `add_user_to_team` permissions for the team.
+      operationId: InviteUsersToTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: List of user's email
+        required: true
+      responses:
+        "200":
+          description: Users invite successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+      x-code-samples:
+        - lang: Go
+          source: >
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+
+            Client.Login("email@domain.com", "Password1")
+
+
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+
+            ok, resp := Client.InviteUsersToTeam(teamID, []string{"test@domain.com", "test2@domain.com"})
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+
+            $resp = $driver->getTeamModel()->inviteUsersByEmail($teamID, [
+              "test@domain.com",
+              "test2@domain.com",
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $ok = json_decode($resp->getBody())->status;
+            }
+  "/api/v4/teams/{team_id}/invite-guests/email":
+    post:
+      tags:
+        - teams
+      summary: Invite guests to the team by email
+      description: |
+        Invite guests to existing team channels usign the user's email.
+
+        The number of emails that can be sent is rate limited to 20 per hour with a burst of 20 emails. If the rate limit exceeds, the error message contains details on when to retry and when the timer will be reset.
+
+        __Minimum server version__: 5.16
+
+        ##### Permissions
+        Must have `invite_guest` permission for the team.
+      operationId: InviteGuestsToTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - emails
+                - channels
+              properties:
+                emails:
+                  type: array
+                  items:
+                    type: string
+                  description: List of emails
+                channels:
+                  type: array
+                  items:
+                    type: string
+                  description: List of channel ids
+                message:
+                  type: string
+                  description: Message to include in the invite
+        description: Guests invite information
+        required: true
+      responses:
+        "200":
+          description: Guests invite successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+      x-code-samples:
+        - lang: Go
+          source: >
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+
+            Client.Login("email@domain.com", "Password1")
+
+
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+            channel1ID := "wu6wyxm9spgwtjaycjrcihnqtr"
+
+            channel2ID := "ymzsgjw1tprniqtzyb7g3cmuuc"
+
+
+            ok, resp := Client.InviteGuestsToTeam(teamID, []string{"test@domain.com", "test2@domain.com"}, []string{channel1ID, channel2ID}, "Please join to our mattermost team to keep working in the project")
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+
+            $channel1ID = "wu6wyxm9spgwtjaycjrcihnqtr";
+            $channel2ID = "ymzsgjw1tprniqtzyb7g3cmuuc";
+
+            $resp = $driver->getTeamModel()->inviteGuestsByEmail($teamID, [
+              "emails" => ["test@domain.com", "test2@domain.com"],
+              "channels" => [$channel1ID, $channel2ID],
+              "message" => "Please join to our mattermost team to keep working in the project",
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $ok = json_decode($resp->getBody())->status;
+            }
+  /api/v4/teams/invites/email:
+    delete:
+      tags:
+        - teams
+      summary: Invalidate active email invitations
+      description: >
+        Invalidate active email invitations that have not been accepted by the
+        user.
+
+        ##### Permissions
+
+        Must have `sysconsole_write_authentication` permission.
+      operationId: InvalidateEmailInvites
+      responses:
+        "200":
+          description: Email invites successfully revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            ok, resp := Client.InvalidateEmailInvites()
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $resp = $driver->getTeamModel()->invalidateActiveEmailInvitations();
+
+            if ($resp->getStatusCode() == 200) {
+                $ok = json_decode($resp->getBody())->status;
+            }
+  "/api/v4/teams/{team_id}/import":
+    post:
+      tags:
+        - teams
+      summary: Import a Team from other application
+      description: >
+        Import a team into a existing team. Import users, channels, posts,
+        hooks.
+
+        ##### Permissions
+
+        Must have `permission_import_team` permission.
+      operationId: ImportTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  description: A file to be uploaded in zip format.
+                  type: string
+                  format: binary
+                filesize:
+                  description: The size of the zip file to be imported.
+                  type: integer
+                importFrom:
+                  description: String that defines from which application the team was
+                    exported to be imported into Mattermost.
+                  type: string
+              required:
+                - file
+                - filesize
+                - importFrom
+      responses:
+        "200":
+          description: JSON object containing a base64 encoded text file of the import logs
+            in its `results` property.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: Go
+          source: >
+            import (
+              "encoding/binary"
+              "io/ioutil"
+              "log"
+
+              "github.com/mattermost/mattermost-server/v5/model"
+            )
+
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+
+            Client.Login("email@domain.com", "Password1")
+
+
+            data, err = ioutil.ReadFile("to_import.zip")
+
+            if err != nil && len(data) == 0 {
+              log.Fatal("Error while reading file.")
+            }
+
+
+            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+
+            fileResp, resp := Client.ImportTeam(data, binary.Size(data), "slack", "to_import.zip", teamID)
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+            $resource = fopen("to_import.zip", 'rb');
+
+            if ($resource === false) {
+              throw new \Exeption("Error while reading file.");
+            }
+
+            $data = new \GuzzleHttp\Psr7\Stream($resource);
+
+            $resp = $driver->getTeamModel()->importTeamFromOtherApplication($teamID, [
+              "file" => $data,
+              "filesize" => $data->getSize(),
+              "importFrom" => "slack",
+            ]);
+
+            fclose($resource);
+
+            if ($resp->getStatusCode() == 200) {
+                $fileResp = json_decode($resp->getBody())->results;
+            }
+  "/api/v4/teams/invite/{invite_id}":
+    get:
+      tags:
+        - teams
+      summary: Get invite info for a team
+      description: >
+        Get the `name`, `display_name`, `description` and `id` for a team from
+        the invite id.
+
+
+        __Minimum server version__: 4.0
+
+
+        ##### Permissions
+
+        No authentication required.
+      operationId: GetTeamInviteInfo
+      parameters:
+        - name: invite_id
+          in: path
+          description: Invite id for a team
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team invite info retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  display_name:
+                    type: string
+                  description:
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+
+            inviteID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
+
+            team, resp = Client.GetTeamInviteInfo(inviteID)
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $inviteID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
+
+            $resp = $driver->getTeamModel()->getInviteInfoForTeam($inviteID);
+
+            if ($resp->getStatusCode() == 200) {
+                $team = json_decode($resp->getBody());
+            }
+  "/api/v4/teams/{team_id}/scheme":
+    put:
+      tags:
+        - teams
+      summary: Set a team's scheme
+      description: >
+        Set a team's scheme, more specifically sets the scheme_id value of a
+        team record.
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+
+        __Minimum server version__: 5.0
+      operationId: UpdateTeamScheme
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - scheme_id
+              properties:
+                scheme_id:
+                  type: string
+                  description: The ID of the scheme.
+        description: Scheme GUID
+        required: true
+      responses:
+        "200":
+          description: Update team scheme successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            teamID := "4xp9fdt77pncbef59f4k1qe83o"
+            schemeID := "qjda3stwafbgpqjaxej3k76sga"
+
+            ok, resp := UpdateTeamScheme(teamID, schemeID)
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
+            $schemeID = "qjda3stwafbgpqjaxej3k76sga";
+
+            $resp = $driver->getTeamModel()->setTeamScheme($teamID, [
+              "scheme_id" => $schemeID,
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $ok = json_decode($resp->getBody())->status;
+            }
+        - lang: curl
+          source: >
+            curl -X PUT \
+              https://your-mattermost-url.com/api/v4/teams/4xp9fdt77pncbef59f4k1qe83o/scheme \
+              -H 'Authorization: Bearer frn8fu5rtpyc5m4xy6q3oj4yur' \
+              -H 'Content-Type: application/json' \
+              -d '{"scheme_id": "qjda3stwafbgpqjaxej3k76sga"}'
+  "/api/v4/teams/{team_id}/members_minus_group_members":
+    get:
+      tags:
+        - teams
+      summary: Team members minus group members.
+      description: >
+        Get the set of users who are members of the team minus the set of users
+        who are members of the given groups.
+
+        Each user object contains an array of group objects representing the group memberships for that user.
+
+        Each user object contains the boolean fields `scheme_guest`, `scheme_user`, and `scheme_admin` representing the roles that user has for the given team.
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+
+        __Minimum server version__: 5.14
+      operationId: TeamMembersMinusGroupMembers
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: group_ids
+          in: query
+          description: A comma-separated list of group ids.
+          required: true
+          schema:
+            type: string
+            default: ""
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of users per page.
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Successfully returns users specified by the pagination, and the
+            total_count.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: PHP
+          source: |
+            require 'vendor/autoload.php';
+
+            use \Gnello\Mattermost\Driver;
+
+            $container = new \Pimple\Container([
+                "driver" => [
+                    "url" => "https://your-mattermost-url.com",
+                    "login_id" => "email@domain.com",
+                    "password" => "Password1",
+                ]
+            ]);
+
+            $driver = new Driver($container);
+            $driver->authenticate();
+
+            $teamID = "fcnst115y3y7xmzzp5uq34u8ce";
+
+            $groupID = "eoezijg8zffgjmch8icy5bjd1e";
+            $groupID2 = "ugaw6wjc3tfxpcr1eq5u5k8dhe";
+
+            $resp = $driver->getTeamModel()->getTeamMembersMinusGroupMembers($teamID, [
+              "group_ids" => [$groupID, $groupID2],
+              "page" => 0,
+              "per_page" => 100,
+            ]);
+
+            if ($resp->getStatusCode() == 200) {
+                $members = json_decode($resp->getBody());
+            }
+        - lang: curl
+          source: >
+            curl
+            'http://your-mattermost-url.com/api/v4/teams/fcnst115y3y7xmzzp5uq34u8ce/members_minus_group_members?group_ids=eoezijg8zffgjmch8icy5bjd1e,ugaw6wjc3tfxpcr1eq5u5k8dhe&page=0&per_page=100'
+            \
+                -H 'Authorization: Bearer mq8rrfxpdfyafbnw3qfmhwkx6c' \
+                -H 'Content-Type: application/json' \
+                -H 'X-Requested-With: XMLHttpRequest'

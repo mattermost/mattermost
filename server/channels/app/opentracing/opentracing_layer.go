@@ -5612,6 +5612,28 @@ func (a *OpenTracingAppLayer) GetChannelsForUser(c request.CTX, userID string, i
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetChannelsMemberCount(c request.CTX, channelIDs []string) (map[string]int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsMemberCount")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetChannelsMemberCount(c, channelIDs)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetChannelsUserNotIn(c request.CTX, teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsUserNotIn")
@@ -11492,28 +11514,6 @@ func (a *OpenTracingAppLayer) HandleMessageExportConfig(cfg *model.Config, appCf
 	a.app.HandleMessageExportConfig(cfg, appCfg)
 }
 
-func (a *OpenTracingAppLayer) HasBoardProduct() (bool, error) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasBoardProduct")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.HasBoardProduct()
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) HasPermissionTo(askingUserId string, permission *model.Permission) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionTo")
@@ -12594,7 +12594,7 @@ func (a *OpenTracingAppLayer) MarkChannelAsUnreadFromPost(c request.CTX, postID 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
+func (a *OpenTracingAppLayer) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool, isCRTEnabled bool) (map[string]int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MarkChannelsAsViewed")
 
@@ -12606,7 +12606,7 @@ func (a *OpenTracingAppLayer) MarkChannelsAsViewed(c request.CTX, channelIDs []s
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.MarkChannelsAsViewed(c, channelIDs, userID, currentSessionId, collapsedThreadsSupported)
+	resultVar0, resultVar1 := a.app.MarkChannelsAsViewed(c, channelIDs, userID, currentSessionId, collapsedThreadsSupported, isCRTEnabled)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13780,28 +13780,6 @@ func (a *OpenTracingAppLayer) RegenerateTeamInviteId(teamID string) (*model.Team
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) RegisterCollectionAndTopic(pluginID string, collectionType string, topicType string) error {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RegisterCollectionAndTopic")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.RegisterCollectionAndTopic(pluginID, collectionType, topicType)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) RegisterPluginCommand(pluginID string, command *model.Command) error {
@@ -16672,28 +16650,6 @@ func (a *OpenTracingAppLayer) SlackImport(c *request.Context, fileData multipart
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) SoftDeleteAllTeamsExcept(teamID string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SoftDeleteAllTeamsExcept")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SoftDeleteAllTeamsExcept(teamID)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) SoftDeleteTeam(teamID string) *model.AppError {

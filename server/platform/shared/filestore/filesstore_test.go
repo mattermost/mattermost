@@ -124,6 +124,34 @@ func (s *FileBackendTestSuite) TestReadWriteFile() {
 	s.EqualValues(readString, "test")
 }
 
+func (s *FileBackendTestSuite) TestEncode() {
+	s3Backend, ok := s.backend.(*S3FileBackend)
+	// This test is only for S3backend.
+	if !ok {
+		return
+	}
+	s3Backend.isCloud = true
+	defer func() {
+		s3Backend.isCloud = false
+	}()
+
+	originalPath := "dir1/test+.png"
+	encodedPath, err := s3Backend.prefixedPath(originalPath)
+	s.NoError(err)
+	b := []byte("test")
+	written, err := s3Backend.WriteFile(bytes.NewReader(b), encodedPath)
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
+	defer s3Backend.RemoveFile(encodedPath)
+
+	files, err := s3Backend.ListDirectory("dir1")
+	s.Nil(err)
+	s.Require().Len(files, 1)
+	// There's another layer of encoding since the backend is Minio
+	// and it doesn't store the path unescaped.
+	s.Equal("dir1/test%252B.png", files[0])
+}
+
 func (s *FileBackendTestSuite) TestReadWriteFileContext() {
 	type ContextWriter interface {
 		WriteFileContext(context.Context, io.Reader, string) (int64, error)

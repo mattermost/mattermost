@@ -4740,6 +4740,14 @@
     "translation": "No channel found."
   },
   {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Unable to find member count for given channels."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Unable to find member count."
+  },
+  {
     "id": "app.channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel."
   },
@@ -4888,6 +4896,14 @@
     "translation": "Unable to mark channel as unread."
   },
   {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Unable to update the channel member."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Unable to update the channel member, notify props size limit exceeded."
+  },
+  {
     "id": "app.channel.user_belongs_to_channels.app_error",
     "translation": "Unable to determine if the user belongs to a list of channels."
   },
@@ -4930,14 +4946,6 @@
   {
     "id": "app.cloud.upgrade_plan_bot_message_single",
     "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested a workspace upgrade for: "
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Collection type already exists."
-  },
-  {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Topic type already exists."
   },
   {
     "id": "app.command.createcommand.internal_error",
@@ -6522,30 +6530,6 @@
   {
     "id": "app.team.clear_cache.app_error",
     "translation": "Error clearing team member cache"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "error duplicating board"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "error getting boards templates"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "error no board created"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "error while patching board"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "interface not of expected type"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "product key not found"
   },
   {
     "id": "app.team.get.find.app_error",
@@ -8254,6 +8238,10 @@
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Invalid notify level."
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Notify props size limit exceeded."
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",

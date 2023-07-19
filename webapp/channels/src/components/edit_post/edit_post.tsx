@@ -14,7 +14,7 @@ import * as Keyboard from 'utils/keyboard';
 import {
     formatGithubCodePaste,
     formatMarkdownMessage,
-    getTable,
+    getHtmlTable,
     hasHtmlLink,
     isGitHubCodeBlock,
 } from 'utils/paste';
@@ -162,7 +162,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
 
         const hasLinks = hasHtmlLink(clipboardData);
-        const table = getTable(clipboardData);
+        const table = getHtmlTable(clipboardData);
         if (!table && !hasLinks) {
             return;
         }
@@ -177,7 +177,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             message = formattedMessage;
             newCaretPosition = selectionRange.start + formattedCodeBlock.length;
         } else {
-            message = formatMarkdownMessage(clipboardData, editText.trim(), newCaretPosition);
+            message = formatMarkdownMessage(clipboardData, editText.trim(), newCaretPosition).formattedMessage;
             newCaretPosition = message.length - (editText.length - newCaretPosition);
         }
 
@@ -345,12 +345,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
     };
 
-    const handleSelect = (e: React.SyntheticEvent<TextboxElement>) => {
-        if (textboxRef.current) {
-            Utils.adjustSelection(textboxRef.current.getInputBox(), e);
-        }
-    };
-
     const handleChange = (e: React.ChangeEvent<TextboxElement>) => {
         const message = e.target.value;
 
@@ -486,7 +480,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 onChange={handleChange}
                 onKeyPress={handleEditKeyPress}
                 onKeyDown={handleKeyDown}
-                onSelect={handleSelect}
                 onHeightChange={handleHeightChange}
                 handlePostError={handlePostError}
                 onPaste={handlePaste}
