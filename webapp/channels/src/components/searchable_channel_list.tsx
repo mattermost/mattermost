@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, MagnifyIcon} from '@mattermost/compass-icons/components';
+import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, MagnifyIcon, AccountOutlineIcon} from '@mattermost/compass-icons/components';
 import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {RelationOneToOne} from '@mattermost/types/utilities';
 import {isPrivateChannel} from 'mattermost-redux/utils/channel_utils';
@@ -47,6 +47,7 @@ type Props = {
     rememberHideJoinedChannelsChecked: boolean;
     canShowArchivedChannels?: boolean;
     loading?: boolean;
+    channelsMemberCount?: Record<string, number>;
 }
 
 type State = {
@@ -134,6 +135,10 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
         } else {
             channelTypeIcon = <GlobeIcon size={18}/>;
         }
+        let memberCount = 0;
+        if (this.props.channelsMemberCount?.[channel.id]) {
+            memberCount = this.props.channelsMemberCount[channel.id];
+        }
 
         const membershipIndicator = this.isMemberOfChannel(channel.id) ? (
             <div
@@ -150,8 +155,8 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
 
         const channelPurposeContainerAriaLabel = localizeAndFormatMessage(
             t('more_channels.channel_purpose'),
-            'Channel Information: Membership Indicator: Joined, Purpose: {channelPurpose}',
-            {channelPurpose: channel.purpose || ''},
+            'Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
+            {memberCount, channelPurpose: channel.purpose || ''},
         );
 
         const channelPurposeContainer = (
@@ -160,7 +165,10 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                 aria-label={channelPurposeContainerAriaLabel}
             >
                 {membershipIndicator}
-                {(channel.purpose.length > 0 && membershipIndicator) ? <span className='dot'/> : null}
+                {membershipIndicator ? <span className='dot'/> : null}
+                <AccountOutlineIcon size={14}/>
+                <span data-testid={`channelMemberCount-${channel.name}`} >{memberCount}</span>
+                {channel.purpose.length > 0 ? <span className='dot'/> : null}
                 <span className='more-modal__description'>{channel.purpose}</span>
             </div>
         );
@@ -196,6 +204,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                 className='more-modal__row'
                 key={channel.id}
                 id={`ChannelRow-${channel.name}`}
+                data-testid={`ChannelRow-${channel.name}`}
                 aria-label={ariaLabel}
                 onClick={(e) => this.handleJoin(channel, e)}
                 tabIndex={0}

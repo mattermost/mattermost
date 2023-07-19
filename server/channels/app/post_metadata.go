@@ -438,7 +438,6 @@ func (a *App) getCustomEmojisForPost(c request.CTX, post *model.Post, reactions 
 	}
 
 	names := getEmojiNamesForPost(post, reactions)
-
 	if len(names) == 0 {
 		return []*model.Emoji{}, nil
 	}
