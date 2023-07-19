@@ -65,11 +65,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = true
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
-<<<<<<< HEAD
-	f.BoardsFeatureFlags = ""
-=======
-	f.BoardsDataRetention = false
->>>>>>> origin
 	f.NormalizeLdapDNs = false
 	f.GraphQL = false
 	f.InsightsEnabled = false
