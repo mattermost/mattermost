@@ -2,23 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useEffect, useRef, useState} from 'react';
+import {useDispatch} from 'react-redux';
 import {useIntl} from 'react-intl';
 import Scrollbars from 'react-custom-scrollbars';
 
+import {Post} from '@mattermost/types/posts';
+
+import {DispatchFunc} from 'mattermost-redux/types/actions';
+import {getPostEditHistory} from 'mattermost-redux/actions/posts';
+
 import SearchResultsHeader from 'components/search_results_header';
-
 import LoadingScreen from 'components/loading_screen';
-
-import EditedPostItem from './edited_post_item';
-
-import type {PropsFromRedux} from './index';
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
 
+import type {PropsFromRedux} from './index';
+import EditedPostItem from './edited_post_item';
 import './post_edit_history.scss';
-import {Post} from '@mattermost/types/posts';
-import {getPostEditHistory} from 'mattermost-redux/actions/posts';
-import {useDispatch} from 'react-redux';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (
     <div
