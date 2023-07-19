@@ -60,7 +60,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 	if draft.Message == "" {
 		deleteErr := a.Srv().Store().Draft().Delete(draft.UserId, draft.ChannelId, draft.RootId)
 		if deleteErr != nil {
-			return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, deleteErr.Error(), http.StatusInternalServerError)
 		}
 		return nil, nil
 	}
@@ -69,7 +69,6 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 	if nErr != nil {
 		return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-
 
 	dt = a.prepareDraftWithFileInfos(draft.UserId, dt)
 
