@@ -4,6 +4,13 @@ include config.mk
 # The CI environment variable is set automatically in CircleCI and GitLab CI
 CI ?= false
 
+# Detect Linux/ARM64 and set a flag to fix the issue with optipng-bin on it:
+# please see optipng-bin Linux arm64 support issue (https://github.com/imagemin/optipng-bin/issues/118) for details:
+ifeq ($(shell uname)/$(shell uname -m),Linux/aarch64)
+  LINUX_ARM64 = true
+  CPPFLAGS = "-DPNG_ARM_NEON_OPT=0"
+endif
+
 .PHONY: run
 run: node_modules ## Runs app
 	@echo Running Mattermost Web App for development
@@ -61,7 +68,7 @@ node_modules: package.json $(wildcard package-lock.json)
 	@echo Getting dependencies using npm
 
 ifeq ($(CI),false)
-	npm install
+	CPPFLAGS=$(CPPFLAGS) npm install
 else
 	# This runs in CI with NODE_ENV=production which skips devDependencies without this flag
 	npm ci --include=dev
@@ -75,6 +82,14 @@ clean: ## Clears cached; deletes node_modules and dist directories
 
 	npm run clean --workspaces --if-present
 	rm -rf node_modules
+
+.PHONY: package
+package: node_modules dist ## Generates ./mattermost-webapp.tar.gz for use by someone customizing the web app
+	mkdir tmp
+	mv channels/dist tmp/client
+	tar -C tmp -czf mattermost-webapp.tar.gz client
+	mv tmp/client channels/dist
+	rmdir tmp
 
 ## Help documentation à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help

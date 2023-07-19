@@ -187,6 +187,7 @@ const initialComponents: PluginsState['components'] = {
     FilesWillUploadHook: [],
     NeedsTeamComponent: [],
     CreateBoardFromTemplate: [],
+    DesktopNotificationHooks: [],
 };
 
 function components(state: PluginsState['components'] = initialComponents, action: GenericAction) {
