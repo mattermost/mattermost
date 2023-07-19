@@ -89,7 +89,7 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
         );
     }
 
-    const boardsEnabled = component.pluginId === suitePluginIds.focalboard || component.pluginId === suitePluginIds.boards;
+    const boardsEnabled = component.pluginId === suitePluginIds.focalboard;
 
     return (
         <OverlayTrigger

@@ -1755,6 +1755,13 @@ export default class Client4 {
         );
     };
 
+    getChannelsMemberCount = (channelIds: string[]) => {
+        return this.doFetch<Record<string, number>>(
+            `${this.getChannelsRoute()}/stats/member_count`,
+            {method: 'post', body: JSON.stringify(channelIds)}
+        )
+    }
+
     getChannelModerations = (channelId: string) => {
         return this.doFetch<ChannelModeration[]>(
             `${this.getChannelRoute(channelId)}/moderations`,

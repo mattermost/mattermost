@@ -4740,6 +4740,14 @@
     "translation": "No channel found."
   },
   {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Unable to find member count for given channels."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Unable to find member count."
+  },
+  {
     "id": "app.channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel."
   },
@@ -4886,6 +4894,14 @@
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
     "translation": "Unable to mark channel as unread."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Unable to update the channel member."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Unable to update the channel member, notify props size limit exceeded."
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -8222,6 +8238,10 @@
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Invalid notify level."
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Notify props size limit exceeded."
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",
