@@ -1359,15 +1359,17 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ?", time)
 
 	if !options.IncludeBotAccounts {
-		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+		if us.DriverName() == model.DatabaseDriverPostgres {
+			query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+		} else {
+			query = query.Where(sq.Expr("UserId NOT IN (SELECT UserId FROM Bots)"))
+		}
 	}
-
 	if !options.IncludeDeleted {
 		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
 	}
 
 	queryStr, args, err := query.ToSql()
-
 	if err != nil {
 		return 0, errors.Wrap(err, "analytics_active_count_tosql")
 	}
@@ -1384,7 +1386,11 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ? AND LastActivityAt <= ?", startTime, endTime)
 
 	if !options.IncludeBotAccounts {
-		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+		if us.DriverName() == model.DatabaseDriverPostgres {
+			query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+		} else {
+			query = query.Where(sq.Expr("UserId NOT IN (SELECT UserId FROM Bots)"))
+		}
 	}
 
 	if !options.IncludeDeleted {
@@ -1392,7 +1398,6 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 	}
 
 	queryStr, args, err := query.ToSql()
-
 	if err != nil {
 		return 0, errors.Wrap(err, "Failed to build query.")
 	}
@@ -2023,19 +2028,9 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err erro
 		return nil, err
 	}
 
-	roles := user.GetRoles()
-
-	newRoles := []string{}
-	for _, role := range roles {
-		if role == model.SystemUserRoleId {
-			newRoles = append(newRoles, model.SystemGuestRoleId)
-		} else if role != model.SystemAdminRoleId {
-			newRoles = append(newRoles, role)
-		}
-	}
-
 	curTime := model.GetMillis()
-	newRolesDBStr := strings.Join(newRoles, " ")
+	newRolesDBStr := model.SystemGuestRoleId
+
 	query := us.getQueryBuilder().Update("Users").
 		Set("Roles", newRolesDBStr).
 		Set("UpdateAt", curTime).

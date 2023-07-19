@@ -597,12 +597,11 @@ func (a *App) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil, "")
 	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
-	postJSON, jsonErr := post.ToJSON()
-	if jsonErr != nil {
-		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+
+	appErr := a.publishWebsocketEventForPost(c, post, message)
+	if appErr != nil {
+		mlog.Warn("Failed to send websocket event for ephemeral post", mlog.Err(appErr))
 	}
-	message.Add("post", postJSON)
-	a.Publish(message)
 
 	return post
 }
@@ -742,18 +741,10 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
-	postJSON, jsonErr := rpost.ToJSON()
-	if jsonErr != nil {
-		return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-	}
-	message.Add("post", postJSON)
 
-	published, err := a.publishWebsocketEventForPermalinkPost(c, rpost, message)
+	err = a.publishWebsocketEventForPost(c, rpost, message)
 	if err != nil {
 		return nil, err
-	}
-	if !published {
-		a.Publish(message)
 	}
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
@@ -761,66 +752,84 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	return rpost, nil
 }
 
-func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.Post, message *model.WebSocketEvent) (published bool, err *model.AppError) {
-	var previewedPostID string
-	if val, ok := post.GetProp(model.PostPropsPreviewedPost).(string); ok {
-		previewedPostID = val
-	} else {
-		return false, nil
+// publishWebsocketEventForPost publishes the websocket event only for post create/edit.
+// The cases of post delete/unread does not need special handling as they don't bother
+// with the post content.
+//
+// This method assumes that if there's a permalink, it's already attached to the post.
+// If the user doesn't have access then this method will wipe that off.
+func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, message *model.WebSocketEvent) (appErr *model.AppError) {
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
+	message.Add("post", postJSON)
 
-	if !model.IsValidId(previewedPostID) {
-		mlog.Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewedPostID))
-		return false, nil
-	}
-
-	previewedPost, err := a.GetSinglePost(previewedPostID, false)
-	if err != nil {
-		if err.StatusCode == http.StatusNotFound {
-			mlog.Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))
-			return false, nil
+	defer func() {
+		if appErr == nil {
+			a.Publish(message)
 		}
-		return false, err
-	}
-
-	channelMembers, err := a.GetChannelMembersPage(c, post.ChannelId, 0, 10000000)
-	if err != nil {
-		return false, err
-	}
-
-	permalinkPreviewedChannel, err := a.GetChannel(c, previewedPost.ChannelId)
-	if err != nil {
-		if err.StatusCode == http.StatusNotFound {
-			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
-			return false, nil
-		}
-		return false, err
-	}
+	}()
 
 	permalinkPreviewedPost := post.GetPreviewPost()
-	for _, cm := range channelMembers {
-		if permalinkPreviewedPost != nil {
-			post.Metadata.Embeds[0].Data = permalinkPreviewedPost
-		}
-
-		postForUser := a.sanitizePostMetadataForUserAndChannel(c, post, permalinkPreviewedPost, permalinkPreviewedChannel, cm.UserId)
-
-		// Using DeepCopy here to avoid a race condition
-		// between publishing the event and setting the "post" data value below.
-		messageCopy := message.DeepCopy()
-		broadcastCopy := messageCopy.GetBroadcast()
-		broadcastCopy.UserId = cm.UserId
-		messageCopy.SetBroadcast(broadcastCopy)
-
-		postJSON, jsonErr := postForUser.ToJSON()
-		if jsonErr != nil {
-			mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
-		}
-		messageCopy.Add("post", postJSON)
-		a.Publish(messageCopy)
+	if permalinkPreviewedPost == nil {
+		return nil
 	}
 
-	return true, nil
+	if !model.IsValidId(permalinkPreviewedPost.PostID) {
+		mlog.Warn("invalid preview post ID", mlog.String("prop_value", permalinkPreviewedPost.PostID))
+		return nil
+	}
+
+	// To remain secure by default, we wipe out the metadata unconditionally.
+	post.Metadata.Embeds[0].Data = nil
+	postWithoutPermalinkPreviewJSON, err := post.ToJSON()
+	if err != nil {
+		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	var previewedPost *model.Post
+	previewedPost, appErr = a.GetSinglePost(permalinkPreviewedPost.PostID, false)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			mlog.Warn("permalinked post not found", mlog.String("referenced_post_id", permalinkPreviewedPost.PostID))
+			return nil
+		}
+		return appErr
+	}
+
+	var permalinkPreviewedChannel *model.Channel
+	permalinkPreviewedChannel, appErr = a.GetChannel(c, previewedPost.ChannelId)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
+			return nil
+		}
+		return appErr
+	}
+
+	// In case the user does have permission to read, we set the metadata back.
+	// Note that this is the return value to the post creator, and has nothing to do
+	// with the content of the websocket broadcast to that user or any other.
+	if a.HasPermissionToReadChannel(c, post.UserId, permalinkPreviewedChannel) {
+		post.Metadata.Embeds[0].Data = permalinkPreviewedPost
+	}
+
+	broadcastCopy := message.GetBroadcast()
+	broadcastCopy.ChannelHook = func(userID string, ev *model.WebSocketEvent) bool {
+		if a.HasPermissionToReadChannel(c, userID, permalinkPreviewedChannel) {
+			// If there is no change, then the original post which was attached
+			// (at the start of the method) will get sent.
+			return false
+		}
+
+		ev.AddWithCopy("post", postWithoutPermalinkPreviewJSON)
+		return true
+
+	}
+	message.SetBroadcast(broadcastCopy)
+
+	return nil
 }
 
 func (a *App) PatchPost(c *request.Context, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {

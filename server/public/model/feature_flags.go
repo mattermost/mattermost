@@ -33,9 +33,6 @@ type FeatureFlags struct {
 	// CallsEnabled controls whether or not the Calls plugin should be enabled
 	CallsEnabled bool
 
-	// A dash separated list for feature flags to turn on for Boards
-	BoardsFeatureFlags string
-
 	// Enable DataRetention for Boards
 	BoardsDataRetention bool
 
@@ -73,7 +70,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = true
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
-	f.BoardsFeatureFlags = ""
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.GraphQL = false

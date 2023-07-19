@@ -177,17 +177,6 @@ export const TrialPeriodDays = {
 
 export const suitePluginIds = {
     playbooks: 'playbooks',
-
-    /**
-     * @warning This only applies to the Boards product and will not work with the Boards plugin. Both cases need to
-     * be supported until we enable the Boards product permanently.
-     */
-    boards: 'boards',
-
-    /**
-     * @deprecated This only applies to the Boards plugin and will not work with the Boards product. Both cases need
-     * to be supported until we enable the Boards product permanently.
-     */
     focalboard: 'focalboard',
 
     apps: 'com.mattermost.apps',
@@ -803,6 +792,8 @@ export const PostTypes = {
     REMOVE_LINK_PREVIEW: 'remove_link_preview',
     ME: 'me',
     REMINDER: 'reminder',
+    CUSTOM_CALLS: 'custom_calls',
+    CUSTOM_CALLS_RECORDING: 'custom_calls_recording',
 };
 
 export const StatTypes = keyMirror({
