@@ -18,6 +18,7 @@ import ptBR from './pt-BR.json';
 import ro from './ro.json';
 import ru from './ru.json';
 import sv from './sv.json';
+import vi from './vi.json';
 import tr from './tr.json';
 import uk from './uk.json';
 import zhTW from './zh-TW.json';
@@ -101,58 +102,64 @@ const languages = {
         order: 11,
         url: sv,
     },
+    vi: {
+        value: 'vi',
+        name: 'Tiếng Việt (Beta)',
+        order: 12,
+        url: tr,
+    },
     tr: {
         value: 'tr',
         name: 'Türkçe',
-        order: 12,
+        order: 13,
         url: tr,
     },
     bg: {
         value: 'bg',
         name: 'Български (Alpha)',
-        order: 13,
+        order: 14,
         url: bg,
     },
     ru: {
         value: 'ru',
         name: 'Pусский',
-        order: 14,
+        order: 15,
         url: ru,
     },
     uk: {
         value: 'uk',
         name: 'Yкраїнська (Alpha)',
-        order: 15,
+        order: 16,
         url: uk,
     },
     fa: {
         value: 'fa',
         name: 'فارسی (Alpha)',
-        order: 16,
+        order: 17,
         url: fa,
     },
     ko: {
         value: 'ko',
         name: '한국어 (Alpha)',
-        order: 17,
+        order: 18,
         url: ko,
     },
     'zh-CN': {
         value: 'zh-CN',
         name: '中文 (简体) (Alpha)',
-        order: 18,
+        order: 19,
         url: zhCN,
     },
     'zh-TW': {
         value: 'zh-TW',
         name: '中文 (繁體)',
-        order: 19,
+        order: 20,
         url: zhTW,
     },
     ja: {
         value: 'ja',
         name: '日本語',
-        order: 20,
+        order: 21,
         url: ja,
     },
 };
