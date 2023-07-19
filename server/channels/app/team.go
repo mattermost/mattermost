@@ -133,33 +133,6 @@ func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model
 	return nil
 }
 
-func (a *App) SoftDeleteAllTeamsExcept(teamID string) *model.AppError {
-	teams, appErr := a.GetAllTeams()
-	if appErr != nil {
-		return appErr
-	}
-
-	if teams == nil {
-		return nil
-	}
-	cloudLimitsArchived := true
-	patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-	for _, team := range teams {
-		if team.Id != teamID {
-			_, err := a.PatchTeam(team.Id, patch)
-			if err != nil {
-				return err
-			}
-
-			err = a.SoftDeleteTeam(team.Id)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.AppError) {
 	rteam, err := a.ch.srv.teamService.CreateTeam(team)
 	if err != nil {
@@ -2149,7 +2122,8 @@ func (a *App) GetNewTeamMembersSince(c request.CTX, teamID string, opts *model.I
 		return nil, 0, model.NewAppError("GetNewTeamMembersSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	ntms, count, err := a.Srv().Store().Team().GetNewTeamMembersSince(teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	showFullName := *a.Config().PrivacySettings.ShowFullName || a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem)
+	ntms, count, err := a.Srv().Store().Team().GetNewTeamMembersSince(teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage, showFullName)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetNewTeamMembersSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}

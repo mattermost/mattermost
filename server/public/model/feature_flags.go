@@ -33,9 +33,6 @@ type FeatureFlags struct {
 	// CallsEnabled controls whether or not the Calls plugin should be enabled
 	CallsEnabled bool
 
-	// A dash separated list for feature flags to turn on for Boards
-	BoardsFeatureFlags string
-
 	NormalizeLdapDNs bool
 
 	// Enable GraphQL feature
@@ -68,7 +65,11 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = true
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
+<<<<<<< HEAD
 	f.BoardsFeatureFlags = ""
+=======
+	f.BoardsDataRetention = false
+>>>>>>> origin
 	f.NormalizeLdapDNs = false
 	f.GraphQL = false
 	f.InsightsEnabled = false
