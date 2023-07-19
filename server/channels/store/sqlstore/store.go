@@ -105,7 +105,6 @@ type SqlStoreStores struct {
 	postAcknowledgement        store.PostAcknowledgementStore
 	postPersistentNotification store.PostPersistentNotificationStore
 	trueUpReview               store.TrueUpReviewStore
-	desktopTokens              store.DesktopTokensStore
 }
 
 type SqlStore struct {
@@ -227,7 +226,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
 	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
-	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -1079,12 +1077,7 @@ func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
 	return ss.stores.trueUpReview
 }
 
-func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
-	return ss.stores.desktopTokens
-}
-
 func (ss *SqlStore) DropAllTables() {
-	var tableSchemaFn string
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		ss.masterX.Exec(`DO
 			$func$
@@ -1094,56 +1087,18 @@ func (ss *SqlStore) DropAllTables() {
 			    FROM   pg_class
 			    WHERE  relkind = 'r'  -- only tables
 			    AND    relnamespace = 'public'::regnamespace
-				AND NOT (
-                  relname = 'db_migrations' OR
-                  relname = 'focalboard_schema_migrations' OR
-                  relname = 'focalboard_boards' OR
-                  relname = 'focalboard_blocks'
-                )
+				AND NOT relname = 'db_migrations'
 			   );
 			END
 			$func$;`)
-		tableSchemaFn = "current_schema()"
 	} else {
 		tables := []string{}
 		ss.masterX.Select(&tables, `show tables`)
 		for _, t := range tables {
-			if t != "db_migrations" &&
-				t != "focalboard_schema_migrations" &&
-				t != "focalboard_boards" &&
-				t != "focalboard_blocks" {
+			if t != "db_migrations" {
 				ss.masterX.Exec(`TRUNCATE TABLE ` + t)
 
 			}
-		}
-		tableSchemaFn = "DATABASE()"
-	}
-
-	var boardsTableCount int
-	err := ss.masterX.Get(&boardsTableCount, `
-      SELECT COUNT(*)
-        FROM INFORMATION_SCHEMA.TABLES
-       WHERE TABLE_SCHEMA = `+tableSchemaFn+`
-         AND TABLE_NAME = 'focalboard_schema_migrations'`)
-	if err != nil {
-		panic(errors.Wrap(err, "Error dropping all tables. Cannot query INFORMATION_SCHEMA table to check for focalboard_schema_migrations table"))
-	}
-
-	if boardsTableCount != 0 {
-		_, blErr := ss.masterX.Exec(`
-          DELETE FROM focalboard_blocks
-          WHERE board_id IN (
-            SELECT id
-            FROM focalboard_boards
-            WHERE NOT is_template
-          )`)
-		if blErr != nil {
-			panic(errors.Wrap(blErr, "Error deleting all non-template blocks"))
-		}
-
-		_, boErr := ss.masterX.Exec(`DELETE FROM focalboard_boards WHERE NOT is_template`)
-		if boErr != nil {
-			panic(errors.Wrap(boErr, "Error delegint all non-template boards"))
 		}
 	}
 }

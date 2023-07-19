@@ -31,17 +31,17 @@ type Props = {
     /**
     * The header text to render, has id and defaultMessage
     */
-    header: MessageDescriptor;
+    header: MessageDescriptor | string;
 
     /**
     * The footer text to render, has id and defaultMessage
     */
-    footer: MessageDescriptor;
+    footer: MessageDescriptor | string;
 
     /**
     * The spinner loading text to render, has id and defaultMessage
     */
-    loading: MessageDescriptor;
+    loading: MessageDescriptor | string;
 
     /**
     * Any extra component/node to render
@@ -101,6 +101,32 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
             saving: false,
             clientError: null,
         };
+    };
+
+    getBackstageHeader = () => {
+        if (typeof this.props.header === 'string') {
+            return <span>{this.props.header}</span>;
+        }
+
+        return (
+            <FormattedMessage
+                id={this.props.header.id}
+                defaultMessage={this.props.header.defaultMessage}
+            />
+        );
+    };
+
+    getBackstageFooter = () => {
+        if (typeof this.props.footer === 'string') {
+            return <span>{this.props.footer}</span>;
+        }
+
+        return (
+            <FormattedMessage
+                id={this.props.footer.id}
+                defaultMessage={this.props.footer.defaultMessage}
+            />
+        );
     };
 
     handleSubmit = (e: React.FormEvent) => {
@@ -362,10 +388,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                             defaultMessage='Slash Commands'
                         />
                     </Link>
-                    <FormattedMessage
-                        id={this.props.header.id}
-                        defaultMessage={this.props.header.defaultMessage}
-                    />
+                    {this.getBackstageHeader()}
                 </BackstageHeader>
                 <div className='backstage-form'>
                     <form
@@ -640,14 +663,11 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={Utils.localizeMessage(this.props.loading?.id ?? '', this.props.loading?.defaultMessage as string)}
+                                spinningText={typeof this.props.loading === 'string' ? this.props.loading : Utils.localizeMessage(this.props.loading?.id ?? '', this.props.loading?.defaultMessage as string)}
                                 onClick={this.handleSubmit}
                                 id='saveCommand'
                             >
-                                <FormattedMessage
-                                    id={this.props.footer.id}
-                                    defaultMessage={this.props.footer.defaultMessage}
-                                />
+                                {this.getBackstageFooter()}
                             </SpinnerButton>
                             {this.props.renderExtra}
                         </div>
