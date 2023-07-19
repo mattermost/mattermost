@@ -338,10 +338,7 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	if err != nil {
 		return errors.Wrapf(err, "unable to prefix path %s", oldPath)
 	}
-	newPath, err = b.prefixedPath(newPath)
-	if err != nil {
-		return errors.Wrapf(err, "unable to prefix path %s", newPath)
-	}
+	newPath = b.prefixedPathFast(newPath)
 	srcOpts := s3.CopySrcOptions{
 		Bucket: b.bucket,
 		Object: oldPath,
@@ -372,10 +369,7 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 	if err != nil {
 		return errors.Wrapf(err, "unable to prefix path %s", oldPath)
 	}
-	newPath, err = b.prefixedPath(newPath)
-	if err != nil {
-		return errors.Wrapf(err, "unable to prefix path %s", newPath)
-	}
+	newPath = b.prefixedPathFast(newPath)
 	srcOpts := s3.CopySrcOptions{
 		Bucket: b.bucket,
 		Object: oldPath,
@@ -416,10 +410,7 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 
 func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, error) {
 	var contentType string
-	path, err := b.prefixedPath(path)
-	if err != nil {
-		return 0, errors.Wrapf(err, "unable to prefix path %s", path)
-	}
+	path = b.prefixedPathFast(path)
 	if ext := filepath.Ext(path); isFileExtImage(ext) {
 		contentType = getImageMimeType(ext)
 	} else {
@@ -438,7 +429,7 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 		case *bytes.Buffer:
 			objSize = int64(t.Len())
 		case *os.File:
-			if s, err := t.Stat(); err == nil {
+			if s, err2 := t.Stat(); err2 == nil {
 				objSize = s.Size()
 			}
 		}
@@ -459,8 +450,8 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
-	if _, err := b.client.StatObject(ctx, b.bucket, fp, s3.StatObjectOptions{}); err != nil {
-		return 0, errors.Wrapf(err, "unable to find the file %s to append the data", path)
+	if _, err2 := b.client.StatObject(ctx, b.bucket, fp, s3.StatObjectOptions{}); err2 != nil {
+		return 0, errors.Wrapf(err2, "unable to find the file %s to append the data", path)
 	}
 
 	var contentType string
@@ -616,6 +607,16 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 	}
 
 	return nil
+}
+
+// prefixedPathFast is a variation of prefixedPath
+// where we don't check for the file path. This is for cases
+// where we know the file won't exist - like while writing a new file.
+func (b *S3FileBackend) prefixedPathFast(s string) string {
+	if b.isCloud {
+		s = s3utils.EncodePath(s)
+	}
+	return filepath.Join(b.pathPrefix, s)
 }
 
 func (b *S3FileBackend) prefixedPath(s string) (string, error) {
