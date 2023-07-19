@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -u -o pipefail
+set -e -u -o pipefail -x
 cd $(dirname $0)
 . .e2erc
 
