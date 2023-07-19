@@ -9,6 +9,7 @@ import (
 	"crypto/tls"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,20 +27,21 @@ import (
 // S3FileBackend contains all necessary information to communicate with
 // an AWS S3 compatible API backend.
 type S3FileBackend struct {
-	endpoint   string
-	accessKey  string
-	secretKey  string
-	secure     bool
-	signV2     bool
-	region     string
-	bucket     string
-	pathPrefix string
-	encrypt    bool
-	trace      bool
-	client     *s3.Client
-	skipVerify bool
-	timeout    time.Duration
-	isCloud    bool // field to indicate whether this is running under Mattermost cloud or not.
+	endpoint       string
+	accessKey      string
+	secretKey      string
+	secure         bool
+	signV2         bool
+	region         string
+	bucket         string
+	pathPrefix     string
+	encrypt        bool
+	trace          bool
+	client         *s3.Client
+	skipVerify     bool
+	timeout        time.Duration
+	presignExpires time.Duration
+	isCloud        bool // field to indicate whether this is running under Mattermost cloud or not.
 }
 
 type S3FileBackendAuthError struct {
@@ -61,7 +63,8 @@ var (
 
 var (
 	// Ensure that the ReaderAt interface is implemented.
-	_ io.ReaderAt = (*s3WithCancel)(nil)
+	_ io.ReaderAt                  = (*s3WithCancel)(nil)
+	_ FileBackendWithLinkGenerator = (*S3FileBackend)(nil)
 )
 
 func isFileExtImage(ext string) bool {
@@ -89,18 +92,19 @@ func (s *S3FileBackendNoBucketError) Error() string {
 func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 	timeout := time.Duration(settings.AmazonS3RequestTimeoutMilliseconds) * time.Millisecond
 	backend := &S3FileBackend{
-		endpoint:   settings.AmazonS3Endpoint,
-		accessKey:  settings.AmazonS3AccessKeyId,
-		secretKey:  settings.AmazonS3SecretAccessKey,
-		secure:     settings.AmazonS3SSL,
-		signV2:     settings.AmazonS3SignV2,
-		region:     settings.AmazonS3Region,
-		bucket:     settings.AmazonS3Bucket,
-		pathPrefix: settings.AmazonS3PathPrefix,
-		encrypt:    settings.AmazonS3SSE,
-		trace:      settings.AmazonS3Trace,
-		skipVerify: settings.SkipVerify,
-		timeout:    timeout,
+		endpoint:       settings.AmazonS3Endpoint,
+		accessKey:      settings.AmazonS3AccessKeyId,
+		secretKey:      settings.AmazonS3SecretAccessKey,
+		secure:         settings.AmazonS3SSL,
+		signV2:         settings.AmazonS3SignV2,
+		region:         settings.AmazonS3Region,
+		bucket:         settings.AmazonS3Bucket,
+		pathPrefix:     settings.AmazonS3PathPrefix,
+		encrypt:        settings.AmazonS3SSE,
+		trace:          settings.AmazonS3Trace,
+		skipVerify:     settings.SkipVerify,
+		timeout:        timeout,
+		presignExpires: time.Duration(settings.AmazonS3PresignExpiresSeconds) * time.Second,
 	}
 	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
 	cli, err := backend.s3New(isCloud)
@@ -607,6 +611,25 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 	}
 
 	return nil
+}
+
+func (b *S3FileBackend) GeneratePublicLink(path string) (string, time.Duration, error) {
+	path, err := b.prefixedPath(path)
+	if err != nil {
+		return "", 0, errors.Wrapf(err, "unable to prefix path %s", path)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+
+	reqParams := make(url.Values)
+	reqParams.Set("response-content-disposition", "attachment")
+
+	req, err := b.client.PresignedGetObject(ctx, b.bucket, path, b.presignExpires, reqParams)
+	if err != nil {
+		return "", 0, errors.Wrapf(err, "unable to generate public link for %s", path)
+	}
+
+	return req.String(), b.presignExpires, nil
 }
 
 // prefixedPathFast is a variation of prefixedPath
