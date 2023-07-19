@@ -24,15 +24,15 @@ import classNames from 'classnames';
 import {localizeMessage} from 'utils/utils';
 import LoadingScreen from 'components/loading_screen';
 
-import './more_channels.scss';
+import './browse_channels.scss';
 
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
 const SEARCH_TIMEOUT_MILLISECONDS = 100;
 
 type Actions = {
-    getChannels: (teamId: string, page: number, perPage: number) => void;
-    getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => void;
+    getChannels: (teamId: string, page: number, perPage: number) => Promise<ActionResult<Channel[], Error>>;
+    getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => Promise<ActionResult<Channel[], Error>>;
     joinChannel: (currentUserId: string, teamId: string, channelId: string) => Promise<ActionResult>;
     searchMoreChannels: (term: string, shouldShowArchivedChannels: boolean, shouldHideJoinedChannels: boolean) => Promise<ActionResult>;
     openModal: <P>(modalData: ModalData<P>) => void;
@@ -43,6 +43,7 @@ type Actions = {
      */
     setGlobalItem: (name: string, value: string) => void;
     closeRightHandSide: () => void;
+    getChannelsMemberCount: (channelIds: string[]) => Promise<ActionResult>;
 }
 
 export type Props = {
@@ -58,6 +59,7 @@ export type Props = {
     shouldHideJoinedChannels: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
+    channelsMemberCount?: Record<string, number>;
     actions: Actions;
 }
 
@@ -71,7 +73,7 @@ type State = {
     searchTerm: string;
 }
 
-export default class MoreChannels extends React.PureComponent<Props, State> {
+export default class BrowseChannels extends React.PureComponent<Props, State> {
     public searchTimeoutId: number;
     activeChannels: Channel[] = [];
 
@@ -92,10 +94,23 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        this.props.actions.getChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
+        const promises = [
+            this.props.actions.getChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2),
+        ];
+
         if (this.props.canShowArchivedChannels) {
-            this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
+            promises.push(this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2));
         }
+
+        Promise.all(promises).then((results) => {
+            const channelIDsForMemberCount = results.flatMap((result) => {
+                return result.data ? result.data.map((channel) => channel.id) : [];
+            },
+            );
+            if (channelIDsForMemberCount.length > 0) {
+                this.props.actions.getChannelsMemberCount(channelIDsForMemberCount);
+            }
+        });
         this.loadComplete();
     }
 
@@ -134,7 +149,11 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
     };
 
     nextPage = (page: number) => {
-        this.props.actions.getChannels(this.props.teamId, page + 1, CHANNELS_PER_PAGE);
+        this.props.actions.getChannels(this.props.teamId, page + 1, CHANNELS_PER_PAGE).then((result) => {
+            if (result.data && result.data.length > 0) {
+                this.props.actions.getChannelsMemberCount(result.data.map((channel) => channel.id));
+            }
+        });
     };
 
     handleJoin = async (channel: Channel, done: () => void) => {
@@ -148,6 +167,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         if (result?.error) {
             this.setState({serverError: result.error.message});
         } else {
+            this.props.actions.getChannelsMemberCount([channel.id]);
             getHistory().push(getRelativeChannelURL(teamName, channel.name));
             this.closeEditRHS();
         }
@@ -210,9 +230,6 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         this.search(this.state.searchTerm);
         this.props.actions.setGlobalItem(StoragePrefixes.HIDE_JOINED_CHANNELS, shouldHideJoinedChannels.toString());
     };
-
-    otherChannelsWithoutJoined = this.props.channels.filter((channel) => !this.isMemberOfChannel(channel.id));
-    archivedChannelsWithoutJoined = this.props.archivedChannels.filter((channel) => !this.isMemberOfChannel(channel.id));
 
     render() {
         const {
@@ -304,6 +321,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
                     closeModal={this.props.actions.closeModal}
                     hideJoinedChannelsPreference={this.handleShowJoinedChannelsPreference}
                     rememberHideJoinedChannelsChecked={shouldHideJoinedChannels}
+                    channelsMemberCount={this.props.channelsMemberCount}
                 />
                 {serverError}
             </React.Fragment>
@@ -319,8 +337,8 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         return (
             <GenericModal
                 onExited={this.handleExit}
-                id='moreChannelsModal'
-                aria-labelledby='moreChannelsModalLabel'
+                id='browseChannelsModal'
+                aria-labelledby='browseChannelsModalLabel'
                 compassDesign={true}
                 modalHeaderText={title}
                 headerButton={createNewChannelButton('outlineButton')}

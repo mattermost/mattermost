@@ -1,8 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/MoreChannels should match snapshot and state 1`] = `
+exports[`components/BrowseChannels should match snapshot and state 1`] = `
 <GenericModal
-  aria-labelledby="moreChannelsModalLabel"
+  aria-labelledby="browseChannelsModalLabel"
   aria-modal={true}
   autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={false}
@@ -32,7 +32,7 @@ exports[`components/MoreChannels should match snapshot and state 1`] = `
       </button>
     </Memo(Connect(TeamPermissionGate))>
   }
-  id="moreChannelsModal"
+  id="browseChannelsModal"
   keyboardEscape={true}
   modalHeaderText={
     <Memo(MemoizedFormattedMessage)
