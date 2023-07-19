@@ -136,7 +136,8 @@ func (s *FileBackendTestSuite) TestEncode() {
 	}()
 
 	originalPath := "dir1/test+.png"
-	encodedPath := s3Backend.prefixedPath(originalPath)
+	encodedPath, err := s3Backend.prefixedPath(originalPath)
+	s.NoError(err)
 	b := []byte("test")
 	written, err := s3Backend.WriteFile(bytes.NewReader(b), encodedPath)
 	s.Nil(err)

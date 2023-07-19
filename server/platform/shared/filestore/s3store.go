@@ -240,7 +240,10 @@ func (sc *s3WithCancel) CancelTimeout() bool {
 
 // Caller must close the first return value
 func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
-	path = b.prefixedPath(path)
+	path, err := b.prefixedPath(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to prefix path %s", path)
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	minioObject, err := b.client.GetObject(ctx, b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
@@ -258,25 +261,35 @@ func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
 }
 
 func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
-	path = b.prefixedPath(path)
+	encodedPath, err := b.prefixedPath(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to prefix path %s", path)
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
-	minioObject, err := b.client.GetObject(ctx, b.bucket, path, s3.GetObjectOptions{})
+	minioObject, err := b.client.GetObject(ctx, b.bucket, encodedPath, s3.GetObjectOptions{})
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to open file %s", path)
+		return nil, errors.Wrapf(err, "unable to open file %s", encodedPath)
 	}
 
 	defer minioObject.Close()
 	f, err := io.ReadAll(minioObject)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to read file %s", path)
+		return nil, errors.Wrapf(err, "unable to read file %s", encodedPath)
 	}
 	return f, nil
 }
 
 func (b *S3FileBackend) FileExists(path string) (bool, error) {
-	path = b.prefixedPath(path)
+	path, err := b.prefixedPath(path)
+	if err != nil {
+		return false, errors.Wrapf(err, "unable to prefix path %s", path)
+	}
 
+	return b._fileExists(path)
+}
+
+func (b *S3FileBackend) _fileExists(path string) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	_, err := b.client.StatObject(ctx, b.bucket, path, s3.StatObjectOptions{})
@@ -293,7 +306,10 @@ func (b *S3FileBackend) FileExists(path string) (bool, error) {
 }
 
 func (b *S3FileBackend) FileSize(path string) (int64, error) {
-	path = b.prefixedPath(path)
+	path, err := b.prefixedPath(path)
+	if err != nil {
+		return 0, errors.Wrapf(err, "unable to prefix path %s", path)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
@@ -306,7 +322,10 @@ func (b *S3FileBackend) FileSize(path string) (int64, error) {
 }
 
 func (b *S3FileBackend) FileModTime(path string) (time.Time, error) {
-	path = b.prefixedPath(path)
+	path, err := b.prefixedPath(path)
+	if err != nil {
+		return time.Time{}, errors.Wrapf(err, "unable to prefix path %s", path)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
@@ -319,8 +338,11 @@ func (b *S3FileBackend) FileModTime(path string) (time.Time, error) {
 }
 
 func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
-	oldPath = b.prefixedPath(oldPath)
-	newPath = b.prefixedPath(newPath)
+	oldPath, err := b.prefixedPath(oldPath)
+	if err != nil {
+		return errors.Wrapf(err, "unable to prefix path %s", oldPath)
+	}
+	newPath = b.prefixedPathFast(newPath)
 	srcOpts := s3.CopySrcOptions{
 		Bucket: b.bucket,
 		Object: oldPath,
@@ -347,8 +369,11 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 }
 
 func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
-	oldPath = b.prefixedPath(oldPath)
-	newPath = b.prefixedPath(newPath)
+	oldPath, err := b.prefixedPath(oldPath)
+	if err != nil {
+		return errors.Wrapf(err, "unable to prefix path %s", oldPath)
+	}
+	newPath = b.prefixedPathFast(newPath)
 	srcOpts := s3.CopySrcOptions{
 		Bucket: b.bucket,
 		Object: oldPath,
@@ -389,7 +414,7 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 
 func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, error) {
 	var contentType string
-	path = b.prefixedPath(path)
+	path = b.prefixedPathFast(path)
 	if ext := filepath.Ext(path); isFileExtImage(ext) {
 		contentType = getImageMimeType(ext)
 	} else {
@@ -408,7 +433,7 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 		case *bytes.Buffer:
 			objSize = int64(t.Len())
 		case *os.File:
-			if s, err := t.Stat(); err == nil {
+			if s, err2 := t.Stat(); err2 == nil {
 				objSize = s.Size()
 			}
 		}
@@ -423,11 +448,14 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 }
 
 func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
-	fp := b.prefixedPath(path)
+	fp, err := b.prefixedPath(path)
+	if err != nil {
+		return 0, errors.Wrapf(err, "unable to prefix path %s", path)
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
-	if _, err := b.client.StatObject(ctx, b.bucket, fp, s3.StatObjectOptions{}); err != nil {
-		return 0, errors.Wrapf(err, "unable to find the file %s to append the data", path)
+	if _, err2 := b.client.StatObject(ctx, b.bucket, fp, s3.StatObjectOptions{}); err2 != nil {
+		return 0, errors.Wrapf(err2, "unable to find the file %s to append the data", path)
 	}
 
 	var contentType string
@@ -485,7 +513,10 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 }
 
 func (b *S3FileBackend) RemoveFile(path string) error {
-	path = b.prefixedPath(path)
+	path, err := b.prefixedPath(path)
+	if err != nil {
+		return errors.Wrapf(err, "unable to prefix path %s", path)
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	if err := b.client.RemoveObject(ctx, b.bucket, path, s3.RemoveObjectOptions{}); err != nil {
@@ -516,7 +547,10 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
 }
 
 func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, error) {
-	path = b.prefixedPath(path)
+	path, err := b.prefixedPath(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to prefix path %s", path)
+	}
 	if !strings.HasSuffix(path, "/") && path != "" {
 		// s3Clnt returns only the path itself when "/" is not present
 		// appending "/" to make it consistent across all filestores
@@ -555,8 +589,12 @@ func (b *S3FileBackend) ListDirectoryRecursively(path string) ([]string, error) 
 }
 
 func (b *S3FileBackend) RemoveDirectory(path string) error {
+	path, err := b.prefixedPath(path)
+	if err != nil {
+		return errors.Wrapf(err, "unable to prefix path %s", path)
+	}
 	opts := s3.ListObjectsOptions{
-		Prefix:    b.prefixedPath(path),
+		Prefix:    path,
 		Recursive: true,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
@@ -576,7 +614,10 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 }
 
 func (b *S3FileBackend) GeneratePublicLink(path string) (string, time.Duration, error) {
-	path = b.prefixedPath(path)
+	path, err := b.prefixedPath(path)
+	if err != nil {
+		return "", 0, errors.Wrapf(err, "unable to prefix path %s", path)
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
@@ -591,18 +632,53 @@ func (b *S3FileBackend) GeneratePublicLink(path string) (string, time.Duration, 
 	return req.String(), b.presignExpires, nil
 }
 
-func (b *S3FileBackend) prefixedPath(s string) string {
+// prefixedPathFast is a variation of prefixedPath
+// where we don't check for the file path. This is for cases
+// where we know the file won't exist - like while writing a new file.
+func (b *S3FileBackend) prefixedPathFast(s string) string {
 	if b.isCloud {
-		// If the request is routed via bifrost, then we need to encode the path
-		// to avoid signature validation errors.
-		// This happens because in bifrost, we are signing the URL outside the SDK
-		// and therefore the signature sent from the bifrost client
-		// will contain the encoded path, whereas the original path is sent
-		// un-encoded.
-		// More info at: https://github.com/aws/aws-sdk-go/blob/a57c4d92784a43b716645a57b6fa5fb94fb6e419/aws/signer/v4/v4.go#L8
 		s = s3utils.EncodePath(s)
 	}
 	return filepath.Join(b.pathPrefix, s)
+}
+
+func (b *S3FileBackend) lookupOriginalPath(s string) (bool, error) {
+	exists, err := b._fileExists(filepath.Join(b.pathPrefix, s))
+	if err != nil {
+		var s3Err s3.ErrorResponse
+		// Sometimes S3 will not allow to access other paths.
+		// In that case, we consider them as not exists.
+		if errors.As(err, &s3Err); s3Err.Code == "AccessDenied" {
+			return false, nil
+		}
+		return false, errors.Wrapf(err, "unable to check for file path %s", s)
+	}
+	return exists, nil
+}
+
+func (b *S3FileBackend) prefixedPath(s string) (string, error) {
+	if b.isCloud {
+		// We do a lookup of the original path for compatibility purposes.
+		exists, err := b.lookupOriginalPath(s)
+		if err != nil {
+			return "", err
+		}
+
+		// If it exists, then we don't want to encode it
+		// because it's an old path.
+		if !exists {
+			// If the request is routed via bifrost, then we need to encode the path
+			// to avoid signature validation errors.
+			// This happens because in bifrost, we are signing the URL outside the SDK
+			// and therefore the signature sent from the bifrost client
+			// will contain the encoded path, whereas the original path is sent
+			// un-encoded.
+			// More info at: https://github.com/aws/aws-sdk-go/blob/a57c4d92784a43b716645a57b6fa5fb94fb6e419/aws/signer/v4/v4.go#L8
+			s = s3utils.EncodePath(s)
+		}
+
+	}
+	return filepath.Join(b.pathPrefix, s), nil
 }
 
 func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {

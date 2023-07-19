@@ -3,14 +3,14 @@
 
 import React from 'react';
 
-import SuggestionList from 'components/suggestion/suggestion_list.jsx';
+import SuggestionList from 'components/suggestion/suggestion_list';
 import {getClosestParent} from 'utils/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface SuggestionItem {}
 
 type SuggestionListProps = {
-    ariaLiveRef?: React.Ref<HTMLDivElement>;
+    ariaLiveRef?: React.RefObject<HTMLDivElement>;
     renderDividers?: string[];
     renderNoResults?: boolean;
     preventClose?: () => void;
