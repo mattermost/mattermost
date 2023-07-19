@@ -56,6 +56,8 @@ type AppIface interface {
 	// AddUserToChannel adds a user to a given channel.
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
 	// Caller must close the first return value
+	ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
+	// Caller must close the first return value
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
 	// groups.
@@ -565,6 +567,9 @@ type AppIface interface {
 	DownloadFromURL(downloadURL string) ([]byte, error)
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any
+	ExportFileBackend() filestore.FileBackend
+	ExportFileExists(path string) (bool, *model.AppError)
+	ExportFileModTime(path string) (time.Time, *model.AppError)
 	ExportPermissions(w io.Writer) error
 	ExtractContentFromFileInfo(fileInfo *model.FileInfo) error
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
@@ -578,6 +583,7 @@ type AppIface interface {
 	FindTeamByName(name string) bool
 	FinishSendAdminNotifyPost(trial bool, now int64, pluginBasedData map[string][]*model.NotifyAdminData)
 	GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError)
+	GeneratePresignURLForExport(name string) (*model.PresignURLResponse, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
 	GenerateSupportPacket() []model.FileData
 	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
@@ -914,6 +920,7 @@ type AppIface interface {
 	ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
 	ListDirectory(path string) ([]string, *model.AppError)
 	ListDirectoryRecursively(path string) ([]string, *model.AppError)
+	ListExportDirectory(path string) ([]string, *model.AppError)
 	ListExports() ([]string, *model.AppError)
 	ListImports() ([]string, *model.AppError)
 	ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError)
@@ -978,6 +985,7 @@ type AppIface interface {
 	RemoveChannelsFromRetentionPolicy(policyID string, channelIDs []string) *model.AppError
 	RemoveCustomStatus(c request.CTX, userID string) *model.AppError
 	RemoveDirectory(path string) *model.AppError
+	RemoveExportFile(path string) *model.AppError
 	RemoveFile(path string) *model.AppError
 	RemoveLdapPrivateCertificate() *model.AppError
 	RemoveLdapPublicCertificate() *model.AppError
@@ -1178,6 +1186,8 @@ type AppIface interface {
 	VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError
 	VerifyUserEmail(userID, email string) *model.AppError
 	ViewChannel(c request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
+	WriteExportFile(fr io.Reader, path string) (int64, *model.AppError)
+	WriteExportFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
 	WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
 }

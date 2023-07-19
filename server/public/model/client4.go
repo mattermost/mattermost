@@ -8403,6 +8403,22 @@ func (c *Client4) DownloadExport(ctx context.Context, name string, wr io.Writer,
 	return n, BuildResponse(r), nil
 }
 
+func (c *Client4) GeneratePresignedURL(ctx context.Context, name string) (*PresignURLResponse, *Response, error) {
+	r, err := c.DoAPIRequest(ctx, http.MethodPost, c.APIURL+c.exportRoute(name)+"/presign-url", "", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	res := &PresignURLResponse{}
+	err = json.NewDecoder(r.Body).Decode(res)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GeneratePresignedURL", "model.client.json_decode.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return res, BuildResponse(r), nil
+}
+
 func (c *Client4) GetUserThreads(ctx context.Context, userId, teamId string, options GetUserThreadsOpts) (*Threads, *Response, error) {
 	v := url.Values{}
 	if options.Since != 0 {
