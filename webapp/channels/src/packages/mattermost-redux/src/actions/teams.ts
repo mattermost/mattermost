@@ -297,18 +297,6 @@ export function unarchiveTeam(teamId: string): ActionFunc {
     };
 }
 
-export function archiveAllTeamsExcept(teamId: string) {
-    return async () => {
-        try {
-            await Client4.archiveAllTeamsExcept(teamId);
-        } catch (error) {
-            return {error};
-        }
-
-        return {data: true};
-    };
-}
-
 export function updateTeam(team: Team): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.updateTeam,
