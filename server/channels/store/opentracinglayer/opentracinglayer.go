@@ -1269,6 +1269,24 @@ func (s *OpenTracingLayerChannelStore) GetChannelsByUser(userID string, includeD
 	return result, err
 }
 
+func (s *OpenTracingLayerChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelsMemberCount")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetChannelsMemberCount(channelIDs)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelsWithCursor")
@@ -3415,7 +3433,7 @@ func (s *OpenTracingLayerEmojiStore) GetList(offset int, limit int, sort string)
 	return result, err
 }
 
-func (s *OpenTracingLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
+func (s *OpenTracingLayerEmojiStore) GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "EmojiStore.GetMultipleByName")
 	s.Root.Store.SetContext(newCtx)
@@ -3424,7 +3442,7 @@ func (s *OpenTracingLayerEmojiStore) GetMultipleByName(names []string) ([]*model
 	}()
 
 	defer span.Finish()
-	result, err := s.EmojiStore.GetMultipleByName(names)
+	result, err := s.EmojiStore.GetMultipleByName(ctx, names)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -9652,7 +9670,7 @@ func (s *OpenTracingLayerTeamStore) GetMembersByIds(teamID string, userIds []str
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int) (*model.NewTeamMembersList, int64, error) {
+func (s *OpenTracingLayerTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int, showFullName bool) (*model.NewTeamMembersList, int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetNewTeamMembersSince")
 	s.Root.Store.SetContext(newCtx)
@@ -9661,7 +9679,7 @@ func (s *OpenTracingLayerTeamStore) GetNewTeamMembersSince(teamID string, since 
 	}()
 
 	defer span.Finish()
-	result, resultVar1, err := s.TeamStore.GetNewTeamMembersSince(teamID, since, offset, limit)
+	result, resultVar1, err := s.TeamStore.GetNewTeamMembersSince(teamID, since, offset, limit, showFullName)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
