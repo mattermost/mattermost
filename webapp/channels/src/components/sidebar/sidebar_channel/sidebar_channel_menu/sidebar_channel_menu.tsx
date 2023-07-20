@@ -272,7 +272,7 @@ const SidebarChannelMenu = (props: Props) => {
         let convertToChannelText = (
             <FormattedMessage
                 id='sidebar_left.sidebar_channel_menu_convert_to_channel'
-                defaultMessage='Convert to a Channel'
+                defaultMessage='Convert to Private Channel'
             />
         );
 

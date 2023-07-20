@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
@@ -40,6 +40,7 @@ import {ChannelType, Channel} from '@mattermost/types/channels';
 import {ServerError} from '@mattermost/types/errors';
 
 import './new_channel_modal.scss';
+import ChannelNameFormField from "components/channel_name_form_field/chanenl_name_form_field";
 
 export function getChannelTypeFromPermissions(canCreatePublicChannel: boolean, canCreatePrivateChannel: boolean) {
     let channelType = Constants.OPEN_CHANNEL;
@@ -90,8 +91,8 @@ const NewChannelModal = () => {
     const [displayName, setDisplayName] = useState('');
     const [url, setURL] = useState('');
     const [purpose, setPurpose] = useState('');
-    const [displayNameModified, setDisplayNameModified] = useState(false);
-    const [urlModified, setURLModified] = useState(false);
+    // const [displayNameModified, setDisplayNameModified] = useState(false);
+    // const [urlModified, setURLModified] = useState(false);
     const [displayNameError, setDisplayNameError] = useState('');
     const [urlError, setURLError] = useState('');
     const [purposeError, setPurposeError] = useState('');
@@ -217,43 +218,43 @@ const NewChannelModal = () => {
         }
     };
 
-    const handleOnDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        e.preventDefault();
-        const {target: {value: displayName}} = e;
+    // const handleOnDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     e.preventDefault();
+    //     const {target: {value: displayName}} = e;
+    //
+    //     const displayNameErrors = validateDisplayName(displayName);
+    //
+    //     setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
+    //     setDisplayName(displayName);
+    //     setServerError('');
+    //
+    //     if (!urlModified) {
+    //         setURL(cleanUpUrlable(displayName));
+    //         setURLError('');
+    //     }
+    // };
 
-        const displayNameErrors = validateDisplayName(displayName);
+    // const handleOnDisplayNameBlur = () => {
+    //     if (displayName && !url) {
+    //         setURL(crypto.randomBytes(16).toString('hex'));
+    //     }
+    //     if (!displayNameModified) {
+    //         setDisplayNameModified(true);
+    //     }
+    // };
 
-        setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
-        setDisplayName(displayName);
-        setServerError('');
-
-        if (!urlModified) {
-            setURL(cleanUpUrlable(displayName));
-            setURLError('');
-        }
-    };
-
-    const handleOnDisplayNameBlur = () => {
-        if (displayName && !url) {
-            setURL(crypto.randomBytes(16).toString('hex'));
-        }
-        if (!displayNameModified) {
-            setDisplayNameModified(true);
-        }
-    };
-
-    const handleOnURLChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        e.preventDefault();
-        const {target: {value: url}} = e;
-
-        const cleanURL = url.toLowerCase().replace(/\s/g, '-');
-        const urlErrors = validateChannelUrl(cleanURL, intl) as string[];
-
-        setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
-        setURL(cleanURL);
-        setURLModified(true);
-        setServerError('');
-    };
+    // const handleOnURLChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     e.preventDefault();
+    //     const {target: {value: url}} = e;
+    //
+    //     const cleanURL = url.toLowerCase().replace(/\s/g, '-');
+    //     const urlErrors = validateChannelUrl(cleanURL, intl) as string[];
+    //
+    //     setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
+    //     setURL(cleanURL);
+    //     setURLModified(true);
+    //     setServerError('');
+    // };
 
     const handleOnTypeChange = (channelType: ChannelType) => {
         setType(channelType);
@@ -303,6 +304,10 @@ const NewChannelModal = () => {
         </OverlayTrigger>
     );
 
+    const onChannelDisplayNameChanged = useCallback((newName: string) => {
+        setDisplayName(newName)
+    }, [])
+
     return (
         <GenericModal
             id='new-channel-modal'
@@ -320,31 +325,38 @@ const NewChannelModal = () => {
             onExited={handleOnModalCancel}
         >
             <div className='new-channel-modal-body'>
-                <Input
-                    type='text'
-                    autoComplete='off'
-                    autoFocus={true}
-                    required={true}
-                    name='new-channel-modal-name'
-                    containerClassName='new-channel-modal-name-container'
-                    inputClassName='new-channel-modal-name-input'
-                    label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}
-                    placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
-                    limit={Constants.MAX_CHANNELNAME_LENGTH}
+                {/*<Input*/}
+                {/*    type='text'*/}
+                {/*    autoComplete='off'*/}
+                {/*    autoFocus={true}*/}
+                {/*    required={true}*/}
+                {/*    name='new-channel-modal-name'*/}
+                {/*    containerClassName='new-channel-modal-name-container'*/}
+                {/*    inputClassName='new-channel-modal-name-input'*/}
+                {/*    label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}*/}
+                {/*    placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}*/}
+                {/*    limit={Constants.MAX_CHANNELNAME_LENGTH}*/}
+                {/*    value={displayName}*/}
+                {/*    customMessage={displayNameModified ? {type: ItemStatus.ERROR, value: displayNameError} : null}*/}
+                {/*    onChange={handleOnDisplayNameChange}*/}
+                {/*    onBlur={handleOnDisplayNameBlur}*/}
+                {/*/>*/}
+                {/*<URLInput*/}
+                {/*    className='new-channel-modal__url'*/}
+                {/*    base={getSiteURL()}*/}
+                {/*    path={`${currentTeamName}/channels`}*/}
+                {/*    pathInfo={url}*/}
+                {/*    limit={Constants.MAX_CHANNELNAME_LENGTH}*/}
+                {/*    shortenLength={Constants.DEFAULT_CHANNELURL_SHORTEN_LENGTH}*/}
+                {/*    error={urlError}*/}
+                {/*    onChange={handleOnURLChange}*/}
+                {/*/>*/}
+
+                <ChannelNameFormField
                     value={displayName}
-                    customMessage={displayNameModified ? {type: ItemStatus.ERROR, value: displayNameError} : null}
-                    onChange={handleOnDisplayNameChange}
-                    onBlur={handleOnDisplayNameBlur}
-                />
-                <URLInput
-                    className='new-channel-modal__url'
-                    base={getSiteURL()}
-                    path={`${currentTeamName}/channels`}
-                    pathInfo={url}
-                    limit={Constants.MAX_CHANNELNAME_LENGTH}
-                    shortenLength={Constants.DEFAULT_CHANNELURL_SHORTEN_LENGTH}
-                    error={urlError}
-                    onChange={handleOnURLChange}
+                    name='new-channel-modal-name'
+                    placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
+                    onDisplayNameChange={onChannelDisplayNameChanged}
                 />
                 <PublicPrivateSelector
                     className='new-channel-modal-type-selector'
