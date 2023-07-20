@@ -1576,13 +1576,17 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 		return nil, err
 	}
 
-	if user.IsSystemAdmin() {
+	if user.IsSystemAdmin() && !strings.Contains(newRoles, model.SystemAdminRoleId) {
 		// if user being updated is SysAdmin, make sure its not the last one.
-		count, err := a.Srv().Store().User().AnalyticsGetSystemAdminCount()
+		options := model.UserCountOptions{
+			IncludeBotAccounts: false,
+			Roles:              []string{model.SystemAdminRoleId},
+		}
+		count, err := a.Srv().Store().User().Count(options)
 		if err != nil {
 			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.countAdmins.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
-		if count <= 1 {
+		if count == 1 {
 			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.lastAdmin.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
