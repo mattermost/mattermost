@@ -31,6 +31,7 @@ import {FILTER, FilterType} from './browse_channels/browse_channels';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 
+// todo sinan test with canShowArchivedChannels
 type Props = {
     channels: Channel[];
     channelsPerPage: number;
@@ -403,68 +404,80 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
             </div>
         );
 
-        let channelDropdown;
-        let checkIcon;
+        const checkIcon = (
+            <CheckIcon
+                size={18}
+                color={'var(--button-bg)'}
+            />
+        );
+        const channelDropdownItems = [
 
-        // todo sinan why there is a specific prop for canShowArchivedChannels. maybe only admin can see. test with normal user or there is a setting in admin panel
-        if (this.props.canShowArchivedChannels) {
-            checkIcon = (
-                <CheckIcon
-                    size={18}
-                    color={'var(--button-bg)'}
+            // todo sinan why div only for all channel types
+            <div
+                key='channelsMoreDropdownAll'
+                id='modalPreferenceContainer'
+            >
+                <Menu.ItemAction
+                    key='channelsMoreDropdownAll'
+                    id='channelsMoreDropdownAll'
+                    onClick={() => this.props.changeFilter(FILTER.all)}
+                    icon={<GlobeIcon size={16}/>} //  todo sinan find correct icon
+                    text={localizeMessage('suggestion.all', 'All channel types')}
+                    rightDecorator={this.props.filter === FILTER.all ? checkIcon : null}
+                    ariaLabel={localizeMessage('suggestion.all', 'All channel types')}
                 />
-            );
-            channelDropdown = (
-                <MenuWrapper id='channelsMoreDropdown'>
-                    <button id='menuWrapper'>
-                        {this.getFilterLabel()}
-                        <ChevronDownIcon
-                            color={'rgba(var(--center-channel-color-rgb), 0.64)'}
-                            size={16}
-                        />
-                    </button>
-                    <Menu
-                        openLeft={false}
-                        ariaLabel={localizeMessage('more_channels.title', 'Browse channels')}
-                    >
-                        <div id='modalPreferenceContainer'>
-                            <Menu.ItemAction
-                                id='channelsMoreDropdownAll'
-                                onClick={() => this.props.changeFilter(FILTER.all)}
-                                icon={<GlobeIcon size={16}/>} //  todo sinan find correct icon
-                                text={localizeMessage('suggestion.all', 'All channel types')}
-                                rightDecorator={this.props.filter === FILTER.all ? checkIcon : null}
-                                ariaLabel={localizeMessage('suggestion.all', 'All channel types')}
-                            />
-                        </div>
-                        <Menu.ItemAction
-                            id='channelsMoreDropdownPublic'
-                            onClick={() => this.props.changeFilter(FILTER.public)}
-                            icon={<GlobeIcon size={16}/>}
-                            text={localizeMessage('suggestion.public', 'Public channels')}
-                            rightDecorator={this.props.filter === FILTER.public ? checkIcon : null}
-                            ariaLabel={localizeMessage('suggestion.public', 'Public channels')}
-                        />
-                        <Menu.ItemAction
-                            id='channelsMoreDropdownArchived'
-                            onClick={() => this.props.changeFilter(FILTER.archived)}
-                            icon={<ArchiveOutlineIcon size={16}/>}
-                            text={localizeMessage('suggestion.archive', 'Archived channels')}
-                            rightDecorator={this.props.filter === FILTER.archived ? checkIcon : null}
-                            ariaLabel={localizeMessage('suggestion.archive', 'Archived channels')}
-                        />
-                        <Menu.ItemAction
-                            id='channelsMoreDropdownPrivate'
-                            onClick={() => this.props.changeFilter(FILTER.private)}
-                            icon={<LockOutlineIcon size={16}/>}
-                            text={localizeMessage('suggestion.private', 'Private channels')}
-                            rightDecorator={this.props.filter === FILTER.private ? checkIcon : null}
-                            ariaLabel={localizeMessage('suggestion.private', 'Private channels')}
-                        />
-                    </Menu>
-                </MenuWrapper>
+            </div>,
+            <Menu.ItemAction
+                key='channelsMoreDropdownPublic'
+                id='channelsMoreDropdownPublic'
+                onClick={() => this.props.changeFilter(FILTER.public)}
+                icon={<GlobeIcon size={16}/>}
+                text={localizeMessage('suggestion.public', 'Public channels')}
+                rightDecorator={this.props.filter === FILTER.public ? checkIcon : null}
+                ariaLabel={localizeMessage('suggestion.public', 'Public channels')}
+            />,
+            <Menu.ItemAction
+                key='channelsMoreDropdownPrivate'
+                id='channelsMoreDropdownPrivate'
+                onClick={() => this.props.changeFilter(FILTER.private)}
+                icon={<LockOutlineIcon size={16}/>}
+                text={localizeMessage('suggestion.private', 'Private channels')}
+                rightDecorator={this.props.filter === FILTER.private ? checkIcon : null}
+                ariaLabel={localizeMessage('suggestion.private', 'Private channels')}
+            />,
+        ];
+
+        if (this.props.canShowArchivedChannels) {
+            channelDropdownItems.push(
+                <Menu.ItemAction
+                    id='channelsMoreDropdownArchived'
+                    onClick={() => this.props.changeFilter(FILTER.archived)}
+                    icon={<ArchiveOutlineIcon size={16}/>}
+                    text={localizeMessage('suggestion.archive', 'Archived channels')}
+                    rightDecorator={this.props.filter === FILTER.archived ? checkIcon : null}
+                    ariaLabel={localizeMessage('suggestion.archive', 'Archived channels')}
+                />,
             );
         }
+
+        // this is only applicable for archived channels
+        const channelDropdown = (
+            <MenuWrapper id='channelsMoreDropdown'>
+                <button id='menuWrapper'>
+                    {this.getFilterLabel()}
+                    <ChevronDownIcon
+                        color={'rgba(var(--center-channel-color-rgb), 0.64)'}
+                        size={16}
+                    />
+                </button>
+                <Menu
+                    openLeft={false}
+                    ariaLabel={localizeMessage('more_channels.title', 'Browse channels')}
+                >
+                    {channelDropdownItems.map((item) => item)}
+                </Menu>
+            </MenuWrapper>
+        );
 
         const hideJoinedButtonClass = classNames('get-app__checkbox', {checked: this.props.rememberHideJoinedChannelsChecked});
         const hideJoinedPreferenceCheckbox = (

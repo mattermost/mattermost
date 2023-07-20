@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {ActionResult} from 'mattermost-redux/types/actions';
 import {RelationOneToOne} from '@mattermost/types/utilities';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import {Channel, ChannelMembership, ChannelSearchOpts} from '@mattermost/types/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
@@ -41,7 +41,7 @@ type Actions = {
     getChannels: (teamId: string, page: number, perPage: number) => Promise<ActionResult<Channel[], Error>>;
     getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => Promise<ActionResult<Channel[], Error>>;
     joinChannel: (currentUserId: string, teamId: string, channelId: string) => Promise<ActionResult>;
-    searchMoreChannels: (term: string, shouldShowArchivedChannels: boolean, shouldHideJoinedChannels: boolean) => Promise<ActionResult>;
+    searchAllChannels: (term: string, opts?: ChannelSearchOpts) => Promise<ActionResult<Channel[], Error>>;
     openModal: <P>(modalData: ModalData<P>) => void;
     closeModal: (modalId: string) => void;
 
@@ -62,7 +62,6 @@ export type Props = {
     teamName: string;
     channelsRequestStarted?: boolean;
     canShowArchivedChannels?: boolean;
-    morePublicChannelsModalType?: string;
     myChannelMemberships: RelationOneToOne<Channel, ChannelMembership>;
     shouldHideJoinedChannels: boolean;
     rhsState?: RhsState;
@@ -200,8 +199,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         const searchTimeoutId = window.setTimeout(
             async () => {
                 try {
-                    // todo sinan fix
-                    const {data} = await this.props.actions.searchMoreChannels(term, this.state.shouldShowArchivedChannels, this.props.shouldHideJoinedChannels);
+                    // todo sinan - integrate page and per page similar to similar to getChannels
+                    const {data} = await this.props.actions.searchAllChannels(term, {team_ids: [this.props.teamId], nonAdminSearch: false});
                     if (searchTimeoutId !== this.searchTimeoutId) {
                         return;
                     }
@@ -221,7 +220,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         this.searchTimeoutId = searchTimeoutId;
     };
 
-    //todo sinan fix
+    //todo sinan fix. filter based on the filter
     setSearchResults = (channels: Channel[]) => {
         this.setState({searchedChannels: this.state.shouldShowArchivedChannels ? channels.filter((c) => c.delete_at !== 0) : channels.filter((c) => c.delete_at === 0), searching: false});
     };
