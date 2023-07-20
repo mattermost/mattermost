@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent} from 'react';
+import React, {PureComponent, MouseEvent} from 'react';
 
 import {Post, PostImage} from '@mattermost/types/posts';
 
@@ -85,7 +85,7 @@ export default class MarkdownImage extends PureComponent<Props, State> {
         return index > 0 ? url.substring(index + 1) : null;
     };
 
-    showModal = (e: React.MouseEvent<HTMLImageElement>, link: string) => {
+    showModal = (e: MouseEvent<HTMLImageElement>, link: string) => {
         const extension = this.getFileExtensionFromUrl(link);
 
         if (!this.props.imageIsLink && extension) {
