@@ -780,10 +780,7 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
 			dupChannel := model.Channel{}
 			s.GetReplicaX().Get(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]any{"TeamId": channel.TeamId, "Name": channel.Name})
-			if dupChannel.DeleteAt > 0 {
-				return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
-			}
-			return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
+			return nil, store.NewErrInvalidInput("Channel", "Name", channel.Name)
 		}
 		return nil, errors.Wrapf(err, "failed to update channel with id=%s", channel.Id)
 	}
