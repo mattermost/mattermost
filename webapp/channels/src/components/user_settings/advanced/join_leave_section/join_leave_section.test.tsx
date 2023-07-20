@@ -3,6 +3,11 @@
 
 import React from 'react';
 import {shallow} from 'enzyme';
+import {GlobalState} from 'types/store';
+
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {Preferences} from 'mattermost-redux/constants';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import {AdvancedSections} from 'utils/constants';
 
@@ -112,5 +117,94 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         instance.handleUpdateSection(AdvancedSections.JOIN_LEAVE);
         expect(onUpdateSection).toHaveBeenCalledTimes(2);
         expect(onUpdateSection).toBeCalledWith(AdvancedSections.JOIN_LEAVE);
+    });
+});
+
+import {mapStateToProps} from './index';
+
+describe('mapStateToProps', () => {
+    const currentUserId = 'user-id';
+
+    const initialState = {
+        currentUserId,
+        entities: {
+            general: {
+                config: {
+                    EnableJoinDefault: 'true',
+                },
+            },
+            preferences: {
+                myPreferences: {},
+            },
+            users: {
+                currentUserId,
+                profiles: {
+                    [currentUserId]: {
+                        id: currentUserId,
+                    },
+                },
+            },
+
+        },
+    } as unknown as GlobalState;
+
+    test('configuration default to true', () => {
+        const props = mapStateToProps(initialState);
+        expect(props.joinLeave).toEqual('true');
+    });
+
+    test('configuration default to false', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableJoinDefault: 'true',
+                    },
+                },
+            },
+        });
+        const props = mapStateToProps(testState);
+        expect(props.joinLeave).toEqual('true');
+    });
+
+    test('user setting takes presidence', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableJoinDefault: 'false',
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)]: {
+                            category: Preferences.CATEGORY_ADVANCED_SETTINGS,
+                            name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
+                            value: 'true',
+                        },
+                    },
+                },
+            },
+        });
+        const props = mapStateToProps(testState);
+        expect(props.joinLeave).toEqual('true');
+    });
+
+    test('user setting takes presidence opposite', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)]: {
+                            category: Preferences.CATEGORY_ADVANCED_SETTINGS,
+                            name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
+                            value: 'false',
+                        },
+                    },
+                },
+            },
+        });
+        const props = mapStateToProps(testState);
+        expect(props.joinLeave).toEqual('false');
     });
 });

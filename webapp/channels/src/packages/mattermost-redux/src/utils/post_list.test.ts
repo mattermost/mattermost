@@ -1494,24 +1494,6 @@ describe('shouldShowJoinLeaveMessages', () => {
         // Defaults to show post
         const show = shouldShowJoinLeaveMessages(state);
         expect(show).toEqual(true);
-
-        // state = {
-        //     ...state,
-        //     entities: {
-        //         ...state.entities,
-        //         preferences: {
-        //             ...state.entities.preferences,
-        //             myPreferences: {
-        //                 ...state.entities.preferences.myPreferences,
-        //                 [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)]: {
-        //                     category: Preferences.CATEGORY_ADVANCED_SETTINGS,
-        //                     name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
-        //                     value: 'true',
-        //                 },
-        //             } as GlobalState['entities']['preferences']['myPreferences'],
-        //         },
-        //     },
-        // };
     });
 
     it('set config to false, return false', () => {

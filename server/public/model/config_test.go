@@ -360,6 +360,14 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	require.Nil(t, c1.TeamSettings.isValid())
 }
 
+func TestTeamSettingsDefaultJoinLeaveMessage(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	// should default to true
+	require.Equal(t, true, c1.TeamSettings.EnableJoinLeaveMessageByDefault)
+}
+
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
 	mes := &MessageExportSettings{}
 
