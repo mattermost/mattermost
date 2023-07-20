@@ -3630,6 +3630,6 @@ func testGetNewTeamMembersSince(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	_, _, err = ss.Team().GetNewTeamMembersSince(team.Id, 0, 0, 1000)
+	_, _, err = ss.Team().GetNewTeamMembersSince(team.Id, 0, 0, 1000, false)
 	require.NoError(t, err)
 }

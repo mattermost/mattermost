@@ -51,6 +51,10 @@ const PasswordInput = React.forwardRef((
     const customMessageInfo: CustomMessageInputType | null = info ? {type: ItemStatus.INFO, value: info} : null;
     const customMessage = error ? customMessageError : customMessageInfo;
 
+    const placeHolder = createMode ?
+        formatMessage({id: 'widget.passwordInput.createPassword', defaultMessage: 'Choose a Password'}) :
+        formatMessage({id: 'widget.passwordInput.password', defaultMessage: 'Password'});
+
     return (
         <Input
             className={classNames('password-input', className)}
@@ -62,6 +66,7 @@ const PasswordInput = React.forwardRef((
                 <button
                     id='password_toggle'
                     type='button'
+                    aria-label={placeHolder}
                     className='password-input-toggle'
                     onClick={toggleShowPassword}
                     disabled={disabled}
@@ -73,11 +78,7 @@ const PasswordInput = React.forwardRef((
             onChange={onChange}
             onBlur={onBlur}
             onFocus={onFocus}
-            placeholder={createMode ? (
-                formatMessage({id: 'widget.passwordInput.createPassword', defaultMessage: 'Choose a Password'})
-            ) : (
-                formatMessage({id: 'widget.passwordInput.password', defaultMessage: 'Password'})
-            )}
+            placeholder={placeHolder}
             hasError={hasError}
             customMessage={error || info ? customMessage : undefined}
             disabled={disabled}
