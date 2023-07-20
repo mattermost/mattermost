@@ -117,7 +117,7 @@ exports[`components/audit_table/audit_row/AuditRow should match snapshot with ch
                         value={1971-08-11T17:01:52.674Z}
                       >
                         <span>
-                          05:01 PM
+                          05:01 PM
                         </span>
                       </FormattedTime>
                     </div>
@@ -246,7 +246,7 @@ exports[`components/audit_table/audit_row/AuditRow should match snapshot with us
                       value={1971-08-14T21:32:02.355Z}
                     >
                       <span>
-                        09:32 PM
+                        09:32 PM
                       </span>
                     </FormattedTime>
                   </div>
@@ -355,7 +355,7 @@ exports[`components/audit_table/audit_row/AuditRow should match snapshot with us
                     value={1971-08-14T21:32:02.355Z}
                   >
                     <span>
-                      09:32 PM
+                      09:32 PM
                     </span>
                   </FormattedTime>
                 </div>

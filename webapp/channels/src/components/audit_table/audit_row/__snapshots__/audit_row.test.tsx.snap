@@ -59,7 +59,7 @@ exports[`components/audit_table/audit_row/AuditRow should match snapshot with de
                   value={1971-08-11T17:01:52.674Z}
                 >
                   <span>
-                    05:01 PM
+                    05:01 PM
                   </span>
                 </FormattedTime>
               </div>
@@ -150,7 +150,7 @@ exports[`components/audit_table/audit_row/AuditRow should match snapshot with no
                   value={1971-08-11T17:01:52.674Z}
                 >
                   <span>
-                    05:01 PM
+                    05:01 PM
                   </span>
                 </FormattedTime>
               </div>
