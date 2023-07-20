@@ -43,6 +43,9 @@ describe('Selectors.Posts', () => {
 
     const testState = deepFreezeAndThrowOnMutation({
         entities: {
+            config: {
+                EnableJoinLeaveMessageByDefault: 'true',
+            },
             users: {
                 currentUserId: user1.id,
                 profiles,

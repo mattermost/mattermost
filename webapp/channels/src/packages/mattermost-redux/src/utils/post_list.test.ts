@@ -37,7 +37,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
             entities: {
                 general: {
                     config: {
-                        EnableJoinLeaveMessageByDefault: true,
+                        EnableJoinLeaveMessageByDefault: 'true',
                     },
                 },
                 posts: {
@@ -1482,7 +1482,7 @@ describe('shouldShowJoinLeaveMessages', () => {
             entities: {
                 general: {
                     config: {
-                        EnableJoinLeaveMessageByDefault: true,
+                        EnableJoinLeaveMessageByDefault: 'true',
                     },
                 },
                 preferences: {
@@ -1519,7 +1519,7 @@ describe('shouldShowJoinLeaveMessages', () => {
             entities: {
                 general: {
                     config: {
-                        EnableJoinLeaveMessageByDefault: false,
+                        EnableJoinLeaveMessageByDefault: 'false',
                     },
                 },
                 preferences: {
@@ -1538,7 +1538,7 @@ describe('shouldShowJoinLeaveMessages', () => {
             entities: {
                 general: {
                     config: {
-                        EnableJoinLeaveMessageByDefault: false,
+                        EnableJoinLeaveMessageByDefault: 'false',
                     },
                 },
                 preferences: {
@@ -1564,7 +1564,7 @@ describe('shouldShowJoinLeaveMessages', () => {
             entities: {
                 general: {
                     config: {
-                        EnableJoinLeaveMessageByDefault: true,
+                        EnableJoinLeaveMessageByDefault: 'true',
                     },
                 },
                 preferences: {
