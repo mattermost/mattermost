@@ -31,7 +31,6 @@ import {FILTER, FilterType} from './browse_channels/browse_channels';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 
-// todo sinan test with canShowArchivedChannels
 type Props = {
     channels: Channel[];
     channelsPerPage: number;
@@ -411,22 +410,15 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
             />
         );
         const channelDropdownItems = [
-
-            // todo sinan why div only for all channel types
-            <div
+            <Menu.ItemAction
                 key='channelsMoreDropdownAll'
-                id='modalPreferenceContainer'
-            >
-                <Menu.ItemAction
-                    key='channelsMoreDropdownAll'
-                    id='channelsMoreDropdownAll'
-                    onClick={() => this.props.changeFilter(FILTER.all)}
-                    icon={<GlobeIcon size={16}/>} //  todo sinan find correct icon
-                    text={localizeMessage('suggestion.all', 'All channel types')}
-                    rightDecorator={this.props.filter === FILTER.all ? checkIcon : null}
-                    ariaLabel={localizeMessage('suggestion.all', 'All channel types')}
-                />
-            </div>,
+                id='channelsMoreDropdownAll'
+                onClick={() => this.props.changeFilter(FILTER.all)}
+                icon={<GlobeIcon size={16}/>} //  todo sinan find correct icon
+                text={localizeMessage('suggestion.all', 'All channel types')}
+                rightDecorator={this.props.filter === FILTER.all ? checkIcon : null}
+                ariaLabel={localizeMessage('suggestion.all', 'All channel types')}
+            />,
             <Menu.ItemAction
                 key='channelsMoreDropdownPublic'
                 id='channelsMoreDropdownPublic'
