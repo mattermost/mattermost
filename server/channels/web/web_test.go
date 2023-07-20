@@ -68,7 +68,6 @@ func Setup(tb testing.TB) *TestHelper {
 	}
 	store := mainHelper.GetStore()
 	store.DropAllTables()
-	mainHelper.PreloadBoardsMigrationsIfNeeded()
 	return setupTestHelper(tb, true, nil)
 }
 

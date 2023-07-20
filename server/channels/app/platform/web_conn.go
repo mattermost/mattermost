@@ -761,6 +761,17 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 	}
 
+	// The priority checks in order of specificity are:
+	// ConnectionId
+	// OmitConnectionId
+	//
+	// UserId
+	// OmitUserId
+	//
+	// ChannelId - is member of channel
+	// TeamId - is member of team
+	// Guest - does guest have access
+
 	// If the event is destined to a specific connection
 	if msg.GetBroadcast().ConnectionId != "" {
 		return wc.GetConnectionID() == msg.GetBroadcast().ConnectionId
@@ -787,6 +798,16 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
 			wc.allChannelMembers = nil
 			wc.lastAllChannelMembersTime = 0
+		}
+
+		// Execute channel hook
+		if msg.GetBroadcast().ChannelHook != nil {
+			hasChange := msg.GetBroadcast().ChannelHook(wc.UserId, msg)
+			if hasChange {
+				// If hook returns true, that means message has been modified. We need
+				// to wipe off the pre-computed JSON
+				msg.RemovePrecomputedJSON()
+			}
 		}
 
 		if wc.allChannelMembers == nil {

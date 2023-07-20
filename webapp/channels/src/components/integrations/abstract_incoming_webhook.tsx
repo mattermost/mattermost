@@ -55,7 +55,7 @@ interface Props {
     /**
     * The hook used to set the initial state
     */
-    initialHook?: IncomingWebhook | Record<string, never>;
+    initialHook?: IncomingWebhook;
 
     /**
     * Whether to allow configuration of the default post username.
@@ -77,10 +77,10 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
     constructor(props: Props | Readonly<Props>) {
         super(props);
 
-        this.state = this.getStateFromHook(this.props.initialHook || {});
+        this.state = this.getStateFromHook(this.props.initialHook);
     }
 
-    getStateFromHook = (hook: IncomingWebhook | Record<string, never>) => {
+    getStateFromHook = (hook?: IncomingWebhook) => {
         return {
             displayName: hook?.display_name || '',
             description: hook?.description || '',

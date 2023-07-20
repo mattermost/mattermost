@@ -98,6 +98,10 @@ export function getAllChannelStats(state: GlobalState): RelationOneToOne<Channel
     return state.entities.channels.stats;
 }
 
+export function getChannelsMemberCount(state: GlobalState): Record<string, number> {
+    return state.entities.channels.channelsMemberCount;
+}
+
 export function getChannelsInTeam(state: GlobalState): RelationOneToMany<Team, Channel> {
     return state.entities.channels.channelsInTeam;
 }

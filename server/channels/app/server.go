@@ -39,7 +39,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
@@ -251,21 +250,22 @@ func NewServer(options ...Option) (*Server, error) {
 
 	app := New(ServerConnector(s.Channels()))
 	serviceMap := map[product.ServiceKey]any{
-		ServerKey:                s,
-		product.ConfigKey:        s.platform,
-		product.LicenseKey:       s.licenseWrapper,
-		product.FilestoreKey:     s.platform.FileBackend(),
-		product.FileInfoStoreKey: &fileInfoWrapper{srv: s},
-		product.ClusterKey:       s.platform,
-		product.UserKey:          app,
-		product.LogKey:           s.platform.Log(),
-		product.CloudKey:         &cloudWrapper{cloud: s.Cloud},
-		product.KVStoreKey:       s.platform,
-		product.StoreKey:         store.NewStoreServiceAdapter(s.Store()),
-		product.SystemKey:        &systemServiceAdapter{server: s},
-		product.SessionKey:       app,
-		product.FrontendKey:      app,
-		product.CommandKey:       app,
+		ServerKey:                  s,
+		product.ConfigKey:          s.platform,
+		product.LicenseKey:         s.licenseWrapper,
+		product.FilestoreKey:       s.platform.FileBackend(),
+		product.ExportFilestoreKey: s.platform.ExportFileBackend(),
+		product.FileInfoStoreKey:   &fileInfoWrapper{srv: s},
+		product.ClusterKey:         s.platform,
+		product.UserKey:            app,
+		product.LogKey:             s.platform.Log(),
+		product.CloudKey:           &cloudWrapper{cloud: s.Cloud},
+		product.KVStoreKey:         s.platform,
+		product.StoreKey:           store.NewStoreServiceAdapter(s.Store()),
+		product.SystemKey:          &systemServiceAdapter{server: s},
+		product.SessionKey:         app,
+		product.FrontendKey:        app,
+		product.CommandKey:         app,
 	}
 
 	// It is important to initialize the hub only after the global logger is set
@@ -1477,6 +1477,10 @@ func (s *Server) FileBackend() filestore.FileBackend {
 	return s.platform.FileBackend()
 }
 
+func (s *Server) ExportFileBackend() filestore.FileBackend {
+	return s.platform.ExportFileBackend()
+}
+
 func (s *Server) TotalWebsocketConnections() int {
 	return s.Platform().TotalWebsocketConnections()
 }
@@ -1634,12 +1638,6 @@ func (s *Server) initJobs() {
 		model.JobTypeHostedPurchaseScreening,
 		hosted_purchase_screening.MakeWorker(s.Jobs, s.License(), s.Store().System()),
 		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
-	)
-
-	s.Jobs.RegisterJobType(
-		model.JobTypeCleanupDesktopTokens,
-		cleanup_desktop_tokens.MakeWorker(s.Jobs, s.Store()),
-		cleanup_desktop_tokens.MakeScheduler(s.Jobs),
 	)
 
 	s.platform.Jobs = s.Jobs
