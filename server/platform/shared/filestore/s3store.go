@@ -342,7 +342,7 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	if err != nil {
 		return errors.Wrapf(err, "unable to prefix path %s", oldPath)
 	}
-	newPath = b.prefixedPathFast(newPath)
+	newPath = filepath.Join(b.pathPrefix, newPath)
 	srcOpts := s3.CopySrcOptions{
 		Bucket: b.bucket,
 		Object: oldPath,
@@ -373,7 +373,7 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 	if err != nil {
 		return errors.Wrapf(err, "unable to prefix path %s", oldPath)
 	}
-	newPath = b.prefixedPathFast(newPath)
+	newPath = filepath.Join(b.pathPrefix, newPath)
 	srcOpts := s3.CopySrcOptions{
 		Bucket: b.bucket,
 		Object: oldPath,
@@ -414,7 +414,7 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 
 func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, error) {
 	var contentType string
-	path = b.prefixedPathFast(path)
+	path = filepath.Join(b.pathPrefix, path)
 	if ext := filepath.Ext(path); isFileExtImage(ext) {
 		contentType = getImageMimeType(ext)
 	} else {
@@ -630,16 +630,6 @@ func (b *S3FileBackend) GeneratePublicLink(path string) (string, time.Duration, 
 	}
 
 	return req.String(), b.presignExpires, nil
-}
-
-// prefixedPathFast is a variation of prefixedPath
-// where we don't check for the file path. This is for cases
-// where we know the file won't exist - like while writing a new file.
-func (b *S3FileBackend) prefixedPathFast(s string) string {
-	if b.isCloud {
-		s = s3utils.EncodePath(s)
-	}
-	return filepath.Join(b.pathPrefix, s)
 }
 
 func (b *S3FileBackend) lookupOriginalPath(s string) (bool, error) {
