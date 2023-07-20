@@ -339,6 +339,28 @@ func TestGetClientConfig(t *testing.T) {
 				"DisableAppBar": "true",
 			},
 		},
+		{
+			"default EnableJoinLeaveMessage",
+			&model.Config{},
+			"tag1",
+			nil,
+			map[string]string{
+				"EnableJoinLeaveMessageByDefault": "true",
+			},
+		},
+		{
+			"disable EnableJoinLeaveMessage",
+			&model.Config{
+				TeamSettings: model.TeamSettings{
+					EnableJoinLeaveMessageByDefault: model.NewBool(false),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"EnableJoinLeaveMessageByDefault": "true",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
