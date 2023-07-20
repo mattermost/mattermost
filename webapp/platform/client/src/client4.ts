@@ -756,18 +756,6 @@ export default class Client4 {
         return profile;
     };
 
-    loginWithDesktopToken = async (token: string) => {
-        const body: any = {
-            token,
-            deviceId: '',
-        };
-
-        return await this.doFetch<UserProfile>(
-            `${this.getUsersRoute()}/login/desktop_token`,
-            {method: 'post', body: JSON.stringify(body)},
-        );
-    };
-
     loginById = (id: string, password: string, token = '') => {
         this.trackEvent('api', 'api_users_login');
         const body: any = {
@@ -1181,13 +1169,6 @@ export default class Client4 {
         return this.doFetch<Team>(
             `${this.getTeamRoute(teamId)}/restore`,
             {method: 'post'},
-        );
-    }
-
-    archiveAllTeamsExcept = (teamId: string) => {
-        return this.doFetch<StatusOK>(
-            `${this.getTeamRoute(teamId)}/except`,
-            {method: 'delete'},
         );
     }
 
@@ -1766,6 +1747,13 @@ export default class Client4 {
             {method: 'get'},
         );
     };
+
+    getChannelsMemberCount = (channelIds: string[]) => {
+        return this.doFetch<Record<string, number>>(
+            `${this.getChannelsRoute()}/stats/member_count`,
+            {method: 'post', body: JSON.stringify(channelIds)}
+        )
+    }
 
     getChannelModerations = (channelId: string) => {
         return this.doFetch<ChannelModeration[]>(
