@@ -6980,12 +6980,20 @@
     "translation": "Failed to check if user store is empty."
   },
   {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Error determining number of System Admin accounts."
+  },
+  {
     "id": "app.user.update.find.app_error",
     "translation": "Unable to find the existing account to update."
   },
   {
     "id": "app.user.update.finding.app_error",
     "translation": "We encountered an error finding the account."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Cannot demote last System Admin."
   },
   {
     "id": "app.user.update_active_for_multiple_users.updating.app_error",

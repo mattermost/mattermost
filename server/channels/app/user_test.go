@@ -1719,7 +1719,7 @@ func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
 		require.Nil(t, user)
 	})
 
-	t.Run("Cannot remove if only non-Bot admin", func(t *testing.T) {
+	t.Run("Can remove if not only non-Bot admin", func(t *testing.T) {
 		systemAdminUser2 := th.CreateUser()
 		th.App.UpdateUserRoles(th.Context, systemAdminUser2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 
