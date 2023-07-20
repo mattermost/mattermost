@@ -1722,7 +1722,6 @@ func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
 	t.Run("Cannot remove if only non-Bot admin", func(t *testing.T) {
 		systemAdminUser2 := th.CreateUser()
 		th.App.UpdateUserRoles(th.Context, systemAdminUser2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		systemAdminUser2, _ = th.App.GetUser(th.SystemAdminUser.Id)
 
 		// Attempt to downgrade sysadmin.
 		user, err := th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
