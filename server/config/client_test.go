@@ -358,7 +358,7 @@ func TestGetClientConfig(t *testing.T) {
 			"tag1",
 			nil,
 			map[string]string{
-				"EnableJoinLeaveMessageByDefault": "true",
+				"EnableJoinLeaveMessageByDefault": "false",
 			},
 		},
 	}

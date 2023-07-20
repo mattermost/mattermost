@@ -33,12 +33,12 @@ describe('Actions.Posts', () => {
                 general: {
                     config: {
                         CollapsedThreads: 'always_on',
+                        EnableJoinLeaveMessageByDefault: true,
                     },
                 },
             },
         });
     });
-
     afterAll(() => {
         TestHelper.tearDown();
     });
