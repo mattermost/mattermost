@@ -27,7 +27,7 @@ import {t} from 'utils/i18n';
 import MenuWrapper from './widgets/menu/menu_wrapper';
 import Menu from './widgets/menu/menu';
 import {isKeyPressed} from 'utils/keyboard';
-import {FILTER, FilterType} from './more_channels/more_channels';
+import {FILTER, FilterType} from './browse_channels/browse_channels';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 
@@ -282,15 +282,23 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
         case 'private':
             return (
                 <FormattedMessage
+                    id={t('more_channels.noPrivate')}
+                    tagName='strong'
+                    defaultMessage={'No private channels'}
+                />
+            );
+        case 'public':
+            return (
+                <FormattedMessage
                     id={t('more_channels.noPublic')}
                     tagName='strong'
-                    defaultMessage={'No Public channels'}
+                    defaultMessage={'No public channels'}
                 />
             );
         default:
             return (
                 <FormattedMessage
-                    id={t('more_channels.noChannels')} // todo sinan add localization
+                    id={t('more_channels.noChannels')}
                     tagName='strong'
                     defaultMessage={'No channels'}
                 />
@@ -304,10 +312,8 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
         case 'public':
             return <span>{localizeMessage('more_channels.show_public_channels', 'Channel Type: Public')}</span>;
         case 'private':
-            // todo sinan add localization
             return <span>{localizeMessage('more_channels.show_private_channels', 'Channel Type: Private')}</span>;
         default:
-            // todo sinan add localization
             return <span>{localizeMessage('more_channels.show_all_channels', 'Channel Type: All')}</span>;
         }
     };
@@ -426,34 +432,34 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                                 id='channelsMoreDropdownAll'
                                 onClick={() => this.props.changeFilter(FILTER.all)}
                                 icon={<GlobeIcon size={16}/>} //  todo sinan find correct icon
-                                text={localizeMessage('suggestion.search.all', 'All channel types')} // todo sinan add to localization
+                                text={localizeMessage('suggestion.all', 'All channel types')}
                                 rightDecorator={this.props.filter === FILTER.all ? checkIcon : null}
-                                ariaLabel={localizeMessage('suggestion.search.all', 'All channel types')}
+                                ariaLabel={localizeMessage('suggestion.all', 'All channel types')}
                             />
                         </div>
                         <Menu.ItemAction
                             id='channelsMoreDropdownPublic'
                             onClick={() => this.props.changeFilter(FILTER.public)}
                             icon={<GlobeIcon size={16}/>}
-                            text={localizeMessage('suggestion.search.public', 'Public Channels')}
+                            text={localizeMessage('suggestion.public', 'Public channels')}
                             rightDecorator={this.props.filter === FILTER.public ? checkIcon : null}
-                            ariaLabel={localizeMessage('suggestion.search.public', 'Public Channels')}
+                            ariaLabel={localizeMessage('suggestion.public', 'Public channels')}
                         />
                         <Menu.ItemAction
                             id='channelsMoreDropdownArchived'
                             onClick={() => this.props.changeFilter(FILTER.archived)}
                             icon={<ArchiveOutlineIcon size={16}/>}
-                            text={localizeMessage('suggestion.archive', 'Archived Channels')}
+                            text={localizeMessage('suggestion.archive', 'Archived channels')}
                             rightDecorator={this.props.filter === FILTER.archived ? checkIcon : null}
-                            ariaLabel={localizeMessage('suggestion.archive', 'Archived Channels')}
+                            ariaLabel={localizeMessage('suggestion.archive', 'Archived channels')}
                         />
                         <Menu.ItemAction
                             id='channelsMoreDropdownPrivate'
                             onClick={() => this.props.changeFilter(FILTER.private)}
                             icon={<LockOutlineIcon size={16}/>}
-                            text={localizeMessage('suggestion.private', 'Private Channels')} // todo sinan add this to localization
+                            text={localizeMessage('suggestion.private', 'Private channels')}
                             rightDecorator={this.props.filter === FILTER.private ? checkIcon : null}
-                            ariaLabel={localizeMessage('suggestion.private', 'Private Channels')}
+                            ariaLabel={localizeMessage('suggestion.private', 'Private channels')}
                         />
                     </Menu>
                 </MenuWrapper>
