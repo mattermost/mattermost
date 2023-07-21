@@ -1,0 +1,34 @@
+.scrollbar--view {
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-post-history {
+    &__error_container {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__error_item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 56px;
+        text-align: center;
+    }
+
+    &__error_heading {
+        color: var(--center-channel-color);
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 28px;
+    }
+
+    &__error_subheading {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-weight: 400;
+    }
+}
