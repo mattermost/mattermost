@@ -43,7 +43,8 @@ type PlatformService struct {
 
 	configStore *config.Store
 
-	filestore filestore.FileBackend
+	filestore       filestore.FileBackend
+	exportFilestore filestore.FileBackend
 
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
@@ -193,20 +194,20 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Depends on Step 0 (config), 1 (cacheProvider), 3 (search engine), 5 (metrics) and cluster.
 	if ps.newStore == nil {
 		ps.newStore = func() (store.Store, error) {
+			// The layer cake is as follows: (From bottom to top)
+			// SQL layer
+			// |
+			// Retry layer
+			// |
+			// Search layer
+			// |
+			// Timer layer
+			// |
+			// Cache layer
 			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
 
-			lcl, err2 := localcachelayer.NewLocalCacheLayer(
-				retrylayer.New(ps.sqlStore),
-				ps.metricsIFace,
-				ps.clusterIFace,
-				ps.cacheProvider,
-			)
-			if err2 != nil {
-				return nil, fmt.Errorf("cannot create local cache layer: %w", err2)
-			}
-
 			searchStore := searchlayer.NewSearchLayer(
-				lcl,
+				retrylayer.New(ps.sqlStore),
 				ps.SearchEngine,
 				ps.Config(),
 			)
@@ -215,16 +216,23 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				searchStore.UpdateConfig(cfg)
 			})
 
+			lcl, err2 := localcachelayer.NewLocalCacheLayer(
+				timerlayer.New(searchStore, ps.metricsIFace),
+				ps.metricsIFace,
+				ps.clusterIFace,
+				ps.cacheProvider,
+			)
+			if err2 != nil {
+				return nil, fmt.Errorf("cannot create local cache layer: %w", err2)
+			}
+
 			license := ps.License()
 			ps.sqlStore.UpdateLicense(license)
 			ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 				ps.sqlStore.UpdateLicense(newLicense)
 			})
 
-			return timerlayer.New(
-				searchStore,
-				ps.metricsIFace,
-			), nil
+			return lcl, nil
 		}
 	}
 
@@ -238,6 +246,18 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		}
 
 		ps.filestore = backend
+	}
+
+	if ps.exportFilestore == nil {
+		ps.exportFilestore = ps.filestore
+		if *ps.Config().FileSettings.DedicatedExportStore {
+			backend, errFileBack := filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, false))
+			if errFileBack != nil {
+				return nil, fmt.Errorf("failed to initialize export filebackend: %w", errFileBack)
+			}
+
+			ps.exportFilestore = backend
+		}
 	}
 
 	var err error
@@ -374,6 +394,13 @@ func (ps *PlatformService) ShutdownConfig() error {
 
 func (ps *PlatformService) SetTelemetryId(id string) {
 	ps.telemetryId = id
+
+	ps.PostTelemetryIdHook()
+}
+
+// PostTelemetryIdHook triggers necessary events to propagate telemtery ID
+func (ps *PlatformService) PostTelemetryIdHook() {
+	ps.regenerateClientConfig()
 }
 
 func (ps *PlatformService) SetLogger(logger *mlog.Logger) {
@@ -475,4 +502,8 @@ func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.App
 
 func (ps *PlatformService) FileBackend() filestore.FileBackend {
 	return ps.filestore
+}
+
+func (ps *PlatformService) ExportFileBackend() filestore.FileBackend {
+	return ps.exportFilestore
 }

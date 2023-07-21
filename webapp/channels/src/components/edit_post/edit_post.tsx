@@ -14,7 +14,7 @@ import * as Keyboard from 'utils/keyboard';
 import {
     formatGithubCodePaste,
     formatMarkdownMessage,
-    getTable,
+    getHtmlTable,
     hasHtmlLink,
     isGitHubCodeBlock,
 } from 'utils/paste';
@@ -42,7 +42,6 @@ export type Actions = {
     unsetEditingPost: () => void;
     openModal: (input: ModalData<DialogProps>) => void;
     scrollPostListToBottom: () => void;
-    getPostEditHistory: (postId: string) => void;
 }
 
 export type Props = {
@@ -163,7 +162,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
 
         const hasLinks = hasHtmlLink(clipboardData);
-        const table = getTable(clipboardData);
+        const table = getHtmlTable(clipboardData);
         if (!table && !hasLinks) {
             return;
         }
@@ -178,7 +177,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             message = formattedMessage;
             newCaretPosition = selectionRange.start + formattedCodeBlock.length;
         } else {
-            message = formatMarkdownMessage(clipboardData, editText.trim(), newCaretPosition);
+            message = formatMarkdownMessage(clipboardData, editText.trim(), newCaretPosition).formattedMessage;
             newCaretPosition = message.length - (editText.length - newCaretPosition);
         }
 
@@ -271,9 +270,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
 
         await actions.editPost(updatedPost as Post);
-        if (rest.isRHSOpened && rest.isEditHistoryShowing) {
-            actions.getPostEditHistory(editingPost.postId || '');
-        }
 
         handleAutomatedRefocusAndExit();
     };
@@ -346,12 +342,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 selectionEnd: e.currentTarget.selectionEnd,
                 message: e.currentTarget.value,
             });
-        }
-    };
-
-    const handleSelect = (e: React.SyntheticEvent<TextboxElement>) => {
-        if (textboxRef.current) {
-            Utils.adjustSelection(textboxRef.current.getInputBox(), e);
         }
     };
 
@@ -490,7 +480,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 onChange={handleChange}
                 onKeyPress={handleEditKeyPress}
                 onKeyDown={handleKeyDown}
-                onSelect={handleSelect}
                 onHeightChange={handleHeightChange}
                 handlePostError={handlePostError}
                 onPaste={handlePaste}

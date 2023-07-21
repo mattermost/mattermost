@@ -23,7 +23,6 @@ import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 
 import {Feedback} from '@mattermost/types/cloud';
-import useGetUsage from 'components/common/hooks/useGetUsage';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import SuccessModal from 'components/cloud_subscribe_result_modal/success';
 import ErrorModal from 'components/cloud_subscribe_result_modal/error';
@@ -41,7 +40,6 @@ import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
 import ExternalLink from 'components/external_link';
 
-import DowngradeTeamRemovalModal from './downgrade_team_removal_modal';
 import ContactSalesCTA from './contact_sales_cta';
 import StarterDisclaimerCTA from './starter_disclaimer_cta';
 import StartTrialCaution from './start_trial_caution';
@@ -60,7 +58,6 @@ type ContentProps = {
 function Content(props: ContentProps) {
     const {formatMessage, formatNumber} = useIntl();
     const dispatch = useDispatch<DispatchFunc>();
-    const usage = useGetUsage();
     const [limits] = useGetLimits();
     const openPricingModalBackAction = useOpenPricingModal();
 
@@ -379,29 +376,15 @@ function Content(props: ContentProps) {
                                     if (!starterProduct) {
                                         return;
                                     }
-
-                                    if (usage.teams.active > 1) {
-                                        dispatch(
-                                            openModal({
-                                                modalId: ModalIdentifiers.CLOUD_DOWNGRADE_CHOOSE_TEAM,
-                                                dialogType: DowngradeTeamRemovalModal,
-                                                dialogProps: {
-                                                    product_id: starterProduct?.id,
-                                                    starterProduct,
-                                                },
-                                            }),
-                                        );
-                                    } else {
-                                        dispatch(
-                                            openModal({
-                                                modalId: ModalIdentifiers.FEEDBACK,
-                                                dialogType: DowngradeFeedbackModal,
-                                                dialogProps: {
-                                                    onSubmit: handleClickDowngrade,
-                                                },
-                                            }),
-                                        );
-                                    }
+                                    dispatch(
+                                        openModal({
+                                            modalId: ModalIdentifiers.FEEDBACK,
+                                            dialogType: DowngradeFeedbackModal,
+                                            dialogProps: {
+                                                onSubmit: handleClickDowngrade,
+                                            },
+                                        }),
+                                    );
                                 },
                                 text: freeTierText,
                                 disabled: isStarter || isEnterprise || !isAdmin,

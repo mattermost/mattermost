@@ -2,7 +2,8 @@ name: Web App CI PR
 on:
   pull_request:
     paths:
-      - 'webapp/**'
+      - "webapp/**"
+      - "e2e-tests/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

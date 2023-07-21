@@ -28,7 +28,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-var hookNameToId map[string]int = make(map[string]int)
+var hookNameToId = make(map[string]int)
 
 type hooksRPCClient struct {
 	client      *rpc.Client

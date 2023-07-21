@@ -784,10 +784,10 @@ func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(userID string, o
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
+func (s *TimerLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory, options...)
+	result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -992,22 +992,6 @@ func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, a
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetBotChannelsByUser(userID string, opts store.ChannelSearchOpts) (model.ChannelList, error) {
-	start := time.Now()
-
-	result, err := s.ChannelStore.GetBotChannelsByUser(userID, opts)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetBotChannelsByUser", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerChannelStore) GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, error) {
 	start := time.Now()
 
@@ -1196,6 +1180,22 @@ func (s *TimerLayerChannelStore) GetChannelsByUser(userID string, includeDeleted
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelsByUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]int64, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetChannelsMemberCount(channelIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelsMemberCount", success, elapsed)
 	}
 	return result, err
 }
@@ -1632,10 +1632,10 @@ func (s *TimerLayerChannelStore) GetSidebarCategories(userID string, opts *store
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string, options ...*store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+func (s *TimerLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID, options...)
+	result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1648,10 +1648,10 @@ func (s *TimerLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID strin
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSidebarCategory(categoryID string, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
+func (s *TimerLayerChannelStore) GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetSidebarCategory(categoryID, options...)
+	result, err := s.ChannelStore.GetSidebarCategory(categoryID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2425,10 +2425,10 @@ func (s *TimerLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelM
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
+func (s *TimerLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 	start := time.Now()
 
-	result, resultVar1, err := s.ChannelStore.UpdateSidebarCategories(userID, teamID, categories, options...)
+	result, resultVar1, err := s.ChannelStore.UpdateSidebarCategories(userID, teamID, categories)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3144,10 +3144,10 @@ func (s *TimerLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 	return result, err
 }
 
-func (s *TimerLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
+func (s *TimerLayerEmojiStore) GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error) {
 	start := time.Now()
 
-	result, err := s.EmojiStore.GetMultipleByName(names)
+	result, err := s.EmojiStore.GetMultipleByName(ctx, names)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -8707,10 +8707,10 @@ func (s *TimerLayerTeamStore) GetMembersByIds(teamID string, userIds []string, r
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int) (*model.NewTeamMembersList, int64, error) {
+func (s *TimerLayerTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int, showFullName bool) (*model.NewTeamMembersList, int64, error) {
 	start := time.Now()
 
-	result, resultVar1, err := s.TeamStore.GetNewTeamMembersSince(teamID, since, offset, limit)
+	result, resultVar1, err := s.TeamStore.GetNewTeamMembersSince(teamID, since, offset, limit, showFullName)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10286,22 +10286,6 @@ func (s *TimerLayerUserStore) GetEtagForProfilesNotInTeam(teamID string) string 
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetEtagForProfilesNotInTeam", success, elapsed)
 	}
 	return result
-}
-
-func (s *TimerLayerUserStore) GetFirstSystemAdminID() (string, error) {
-	start := time.Now()
-
-	result, err := s.UserStore.GetFirstSystemAdminID()
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetFirstSystemAdminID", success, elapsed)
-	}
-	return result, err
 }
 
 func (s *TimerLayerUserStore) GetForLogin(loginID string, allowSignInWithUsername bool, allowSignInWithEmail bool) (*model.User, error) {

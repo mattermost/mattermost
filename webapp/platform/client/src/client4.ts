@@ -182,8 +182,6 @@ export default class Client4 {
     userRoles = '';
     telemetryHandler?: TelemetryHandler;
 
-    useBoardsProduct = false;
-
     getUrl() {
         return this.url;
     }
@@ -245,10 +243,6 @@ export default class Client4 {
 
     setTelemetryHandler(telemetryHandler?: TelemetryHandler) {
         this.telemetryHandler = telemetryHandler;
-    }
-
-    setUseBoardsProduct(useBoardsProduct: boolean) {
-        this.useBoardsProduct = useBoardsProduct;
     }
 
     getServerVersion() {
@@ -477,10 +471,6 @@ export default class Client4 {
 
     getDraftsRoute() {
         return `${this.getBaseRoute()}/drafts`;
-    }
-
-    getBoardsRoute() {
-        return `${this.url}/plugins/${this.useBoardsProduct ? 'boards' : 'focalboard'}/api/v2`;
     }
 
     getCSRFFromCookie() {
@@ -1182,13 +1172,6 @@ export default class Client4 {
         );
     }
 
-    archiveAllTeamsExcept = (teamId: string) => {
-        return this.doFetch<StatusOK>(
-            `${this.getTeamRoute(teamId)}/except`,
-            {method: 'delete'},
-        );
-    }
-
     updateTeam = (team: Team) => {
         this.trackEvent('api', 'api_teams_update_name', {team_id: team.id});
 
@@ -1764,6 +1747,13 @@ export default class Client4 {
             {method: 'get'},
         );
     };
+
+    getChannelsMemberCount = (channelIds: string[]) => {
+        return this.doFetch<Record<string, number>>(
+            `${this.getChannelsRoute()}/stats/member_count`,
+            {method: 'post', body: JSON.stringify(channelIds)}
+        )
+    }
 
     getChannelModerations = (channelId: string) => {
         return this.doFetch<ChannelModeration[]>(

@@ -1,0 +1,132 @@
+---
+# Image hashes in this file are for amd64 systems
+# NB: paths relative to the `server/build` directory, which contains the original compose file that this yaml is overriding
+version: '2.4'
+services:
+
+  server:
+    image: "${SERVER_IMAGE}"
+    restart: always
+    env_file:
+      - "../../e2e-tests/.ci/.env.server"
+    environment:
+      MM_SERVICESETTINGS_SITEURL: "http://server:8065"
+      MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
+      MM_SERVICESETTINGS_ALLOWCORSFROM: "http://localhost:8065"
+      MM_PLUGINSETTINGS_ENABLED: "true"
+      MM_PLUGINSETTINGS_ENABLEUPLOADS: "true"
+      MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS: "true"
+      MM_TEAMSETTINGS_ENABLEOPENSERVER: "true"
+      MM_ELASTICSEARCHSETTINGS_CONNECTIONURL: "true"
+      MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
+      MM_SQLSETTINGS_DRIVERNAME: "postgres"
+      MM_LDAPSETTINGS_LDAPSERVER: "openldap"
+      MM_EMAILSETTINGS_SMTPSERVER: "inbucket"
+      MM_CLUSTERSETTINGS_READONLYCONFIG: "false"
+      MM_FEATUREFLAGS_USECASEONBOARDING: "false"
+      MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: "false"
+      MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
+      MM_SERVICEENVIRONMENT: "test"
+      MM_FEATUREFLAGS_INSIGHTSENABLED: "true"
+    volumes:
+    - "server-config:/mattermost/config"
+    ports:
+      - "8065:8065"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      inbucket:
+        condition: service_healthy
+      openldap:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      dejavu:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
+      grafana:
+        condition: service_healthy
+      webhook-interactions:
+        condition: service_healthy
+
+  webhook-interactions:
+    image:  mattermostdevelopment/mirrored-node:16.10.0
+    command: sh -c "npm install -g axios express client-oauth2@larkox/js-client-oauth2#e24e2eb5dfcbbbb3a59d095e831dbe0012b0ac49 && exec node webhook_serve.js"
+    environment:
+      NODE_PATH: /usr/local/lib/node_modules/
+    healthcheck:
+      test: [ "CMD", "curl", "-s", "-o/dev/null", "127.0.0.1:3000" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12
+    working_dir: /cypress
+    volumes:
+      - "../../e2e-tests/cypress/:/cypress:ro"
+    networks:
+      default:
+        aliases:
+          - webhook-interactions
+
+  cypress:
+    image: "mattermostdevelopment/mirrored-cypress-browsers-public:node16.14.2-slim-chrome100-ff99-edge"
+    entrypoint: [ "/bin/bash", "-c" ]
+    command: [ "until [ -f /var/run/mm_terminate ]; do sleep 5; done" ]
+    env_file:
+      - "../../e2e-tests/.ci/.env.dashboard"
+      - "../../e2e-tests/.ci/.env.cypress"
+    environment:
+      REPO: "mattermost-server"
+      # Cypress configuration
+      BROWSER: "chrome"
+      HEADLESS: "true"
+      CYPRESS_baseUrl: "http://server:8065"
+      CYPRESS_dbConnection: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+      CYPRESS_elasticsearchConnectionURL: "http://elasticsearch:9200"
+      CYPRESS_keycloakBaseUrl: "http://keycloak:8484"
+      CYPRESS_ldapServer: "openldap"
+      CYPRESS_minioS3Endpoint: "minio:9000"
+      CYPRESS_smtpUrl: "http://inbucket:9001"
+      CYPRESS_webhookBaseUrl: "http://webhook-interactions:3000"
+      CYPRESS_chromeWebSecurity: "false"
+      CYPRESS_firstTest: "true"
+      CYPRESS_resetBeforeTest: "true"
+      CYPRESS_runLDAPSync: "true"
+      CYPRESS_allowedUntrustedInternalConnections: "localhost webhook-interactions"
+      CYPRESS_serverEdition: E20
+      TM4J_ENABLE: "false"
+      # disable shared memory X11 affecting Cypress v4 and Chrome
+      # https://github.com/cypress-io/cypress-docker-images/issues/270
+      QT_X11_NO_MITSHM: "1"
+      _X11_NO_MITSHM: "1"
+      _MITSHM: "0"
+      # avoid too many progress messages
+      # https://github.com/cypress-io/cypress/issues/1243
+      CI: "1"
+      # Ensure we're independent from the global node environment
+      PATH: /app/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    ulimits:
+      nofile:
+        soft: 8096
+        hard: 1048576
+    working_dir: /app
+    volumes:
+      - "../../e2e-tests/cypress/:/app"
+
+  utils:
+    image: "mattermostdevelopment/mirrored-golang:1.19.5"
+    entrypoint: [ "/bin/bash", "-c" ]
+    command: [ "until [ -f /var/run/mm_terminate ]; do sleep 5; done" ]
+    environment:
+      MM_SERVICEENVIRONMENT: "test" # Currently required for running the config_generator with the right environment
+    working_dir: "/opt/mattermost-server"
+    volumes:
+    - "../../:/opt/mattermost-server"
+    - "server-config:/opt/server-config"
+
+volumes:
+  server-config:

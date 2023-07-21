@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -1190,38 +1191,6 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetBotChannelsByUser(userId string, opts store.ChannelSearchOpts) (model.ChannelList, error) {
-	query := s.getQueryBuilder().
-		Select("C.*").
-		From("Channels as C, ChannelMembers as CM1, ChannelMembers as CM2, Bots as B").
-		Where(sq.And{
-			sq.Expr("C.Id = CM1.ChannelId"),
-			sq.Eq{"CM1.UserId": userId},
-			sq.Eq{"C.Type": model.ChannelTypeDirect},
-			sq.Expr("C.Id = CM2.ChannelId"),
-			sq.Expr("CM2.UserId = B.UserId"),
-			sq.Eq{"B.DeleteAt": 0},
-		}).
-		OrderBy("C.Id ASC")
-
-	if !opts.IncludeDeleted {
-		query = query.Where(sq.Eq{"C.DeleteAt": int(0)})
-	}
-
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "GetBotChannelsByUser_ToSql")
-	}
-
-	channels := model.ChannelList{}
-	err = s.GetReplicaX().Select(&channels, sql, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get bot channels with UserId=%s", userId)
-	}
-
-	return channels, nil
-}
-
 func (s SqlChannelStore) GetAllChannelMembersById(channelID string) ([]string, error) {
 	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.Where(sq.Eq{
 		"ChannelId": channelID,
@@ -1948,10 +1917,15 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 	}
 	defer finalizeTransactionX(tx, &err)
 
+	jsonNotifyProps := model.MapToJSON(props)
+	if utf8.RuneCountInString(jsonNotifyProps) > model.ChannelMemberNotifyPropsMaxRunes {
+		return nil, store.NewErrInvalidInput("ChannelMember", "NotifyProps", props)
+	}
+
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		sql, args, err2 := s.getQueryBuilder().
 			Update("channelmembers").
-			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", model.MapToJSON(props))).
+			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
 			Where(sq.Eq{
 				"userid":    userID,
 				"channelid": channelID,
@@ -2231,6 +2205,47 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 		allChannelMembersForUserCache.SetWithExpiry(cache_key, ids, AllChannelMembersForUserCacheDuration)
 	}
 	return ids, nil
+}
+
+func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[string]int64, err error) {
+	query := s.getQueryBuilder().
+		Select("ChannelMembers.ChannelId,COUNT(*) AS Count").
+		From("ChannelMembers").
+		InnerJoin("Users ON ChannelMembers.UserId = Users.Id").
+		Where(sq.And{
+			sq.Eq{"ChannelMembers.ChannelId": channelIDs},
+			sq.Eq{"Users.DeleteAt": 0},
+		}).
+		GroupBy("ChannelMembers.ChannelId")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channels_member_count_tosql")
+	}
+
+	rows, err := s.GetReplicaX().DB.Query(queryString, args...)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch member counts")
+	}
+	defer rows.Close()
+
+	memberCounts := make(map[string]int64)
+	for rows.Next() {
+		var channelID string
+		var count int64
+		errScan := rows.Scan(&channelID, &count)
+		if errScan != nil {
+			return nil, errors.Wrap(err, "failed to scan row")
+		}
+		memberCounts[channelID] = count
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error while iterating rows")
+	}
+
+	return memberCounts, nil
 }
 
 func (s SqlChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
@@ -3593,7 +3608,7 @@ func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) 
 	return searchFields
 }
 
-const spaceFulltextSearchChars = "<>+-()~:*\"!@"
+const spaceFulltextSearchChars = "<>+-()~:*\"!@&"
 
 func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) (fulltextClause, fulltextTerm string) {
 	// Copy the terms as we will need to prepare them differently for each search type.

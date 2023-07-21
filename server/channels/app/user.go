@@ -217,19 +217,6 @@ func (a *App) IsFirstUserAccount() bool {
 	return a.ch.srv.platform.IsFirstUserAccount()
 }
 
-func (a *App) IsFirstAdmin(user *model.User) bool {
-	if !user.IsSystemAdmin() {
-		return false
-	}
-
-	adminID, err := a.Srv().Store().User().GetFirstSystemAdminID()
-	if err != nil {
-		return false
-	}
-
-	return adminID == user.Id
-}
-
 // CreateUser creates a user and sets several fields of the returned User struct to
 // their zero values.
 func (a *App) CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError) {
@@ -1513,7 +1500,7 @@ func (a *App) InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppE
 		return model.NewAppError("InvalidatePasswordRecoveryTokensForUser", "api.user.invalidate_password_recovery_tokens.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	var appErr *model.AppError = nil
+	var appErr *model.AppError
 	for _, token := range tokens {
 		tokenExtra := struct {
 			UserId string

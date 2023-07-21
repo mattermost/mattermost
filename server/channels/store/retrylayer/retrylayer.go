@@ -881,11 +881,11 @@ func (s *RetryLayerChannelStore) CreateInitialSidebarCategories(userID string, o
 
 }
 
-func (s *RetryLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
+func (s *RetryLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory, options...)
+		result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory)
 		if err == nil {
 			return result, nil
 		}
@@ -1154,27 +1154,6 @@ func (s *RetryLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, a
 
 }
 
-func (s *RetryLayerChannelStore) GetBotChannelsByUser(userID string, opts store.ChannelSearchOpts) (model.ChannelList, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelStore.GetBotChannelsByUser(userID, opts)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerChannelStore) GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, error) {
 
 	tries := 0
@@ -1411,6 +1390,27 @@ func (s *RetryLayerChannelStore) GetChannelsByUser(userID string, includeDeleted
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetChannelsByUser(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetChannelsMemberCount(channelIDs)
 		if err == nil {
 			return result, nil
 		}
@@ -1979,11 +1979,11 @@ func (s *RetryLayerChannelStore) GetSidebarCategories(userID string, opts *store
 
 }
 
-func (s *RetryLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string, options ...*store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+func (s *RetryLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID, options...)
+		result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID)
 		if err == nil {
 			return result, nil
 		}
@@ -2000,11 +2000,11 @@ func (s *RetryLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID strin
 
 }
 
-func (s *RetryLayerChannelStore) GetSidebarCategory(categoryID string, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
+func (s *RetryLayerChannelStore) GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetSidebarCategory(categoryID, options...)
+		result, err := s.ChannelStore.GetSidebarCategory(categoryID)
 		if err == nil {
 			return result, nil
 		}
@@ -2909,11 +2909,11 @@ func (s *RetryLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelM
 
 }
 
-func (s *RetryLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
+func (s *RetryLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.ChannelStore.UpdateSidebarCategories(userID, teamID, categories, options...)
+		result, resultVar1, err := s.ChannelStore.UpdateSidebarCategories(userID, teamID, categories)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -3839,11 +3839,11 @@ func (s *RetryLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 
 }
 
-func (s *RetryLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
+func (s *RetryLayerEmojiStore) GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error) {
 
 	tries := 0
 	for {
-		result, err := s.EmojiStore.GetMultipleByName(names)
+		result, err := s.EmojiStore.GetMultipleByName(ctx, names)
 		if err == nil {
 			return result, nil
 		}
@@ -11042,11 +11042,11 @@ func (s *RetryLayerTeamStore) GetMembersByIds(teamID string, userIds []string, r
 
 }
 
-func (s *RetryLayerTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int) (*model.NewTeamMembersList, int64, error) {
+func (s *RetryLayerTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int, showFullName bool) (*model.NewTeamMembersList, int64, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.TeamStore.GetNewTeamMembersSince(teamID, since, offset, limit)
+		result, resultVar1, err := s.TeamStore.GetNewTeamMembersSince(teamID, since, offset, limit, showFullName)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -13028,27 +13028,6 @@ func (s *RetryLayerUserStore) GetEtagForProfiles(teamID string) string {
 func (s *RetryLayerUserStore) GetEtagForProfilesNotInTeam(teamID string) string {
 
 	return s.UserStore.GetEtagForProfilesNotInTeam(teamID)
-
-}
-
-func (s *RetryLayerUserStore) GetFirstSystemAdminID() (string, error) {
-
-	tries := 0
-	for {
-		result, err := s.UserStore.GetFirstSystemAdminID()
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
 
 }
 

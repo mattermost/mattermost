@@ -1082,6 +1082,15 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 		require.IsType(t, &store.ErrConflict{}, nErr)
 	})
 
+	t.Run("should fail if notify props are too big", func(t *testing.T) {
+		channelID := model.NewId()
+		props := model.GetDefaultChannelNotifyProps()
+		props["property"] = strings.Repeat("Z", model.ChannelMemberNotifyPropsMaxRunes)
+		member := &model.ChannelMember{ChannelId: channelID, UserId: u1.Id, NotifyProps: props}
+		_, nErr := ss.Channel().SaveMember(member)
+		require.ErrorContains(t, nErr, "channel_member.is_valid.notify_props")
+	})
+
 	t.Run("insert member correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
 		team := &model.Team{
 			DisplayName: "Name",
@@ -1579,6 +1588,15 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
 		require.Error(t, nErr)
 		require.IsType(t, &store.ErrConflict{}, nErr)
+	})
+
+	t.Run("should fail if notify props are too big", func(t *testing.T) {
+		channelID := model.NewId()
+		props := model.GetDefaultChannelNotifyProps()
+		props["property"] = strings.Repeat("Z", model.ChannelMemberNotifyPropsMaxRunes)
+		member := &model.ChannelMember{ChannelId: channelID, UserId: u1.Id, NotifyProps: props}
+		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member})
+		require.ErrorContains(t, nErr, "channel_member.is_valid.notify_props")
 	})
 
 	t.Run("insert members correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
@@ -2109,6 +2127,18 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
 	})
 
+	t.Run("should fail with invalid error if notify props are too big", func(t *testing.T) {
+		props := model.GetDefaultChannelNotifyProps()
+		props["property"] = strings.Repeat("Z", model.ChannelMemberNotifyPropsMaxRunes)
+
+		member := &model.ChannelMember{ChannelId: model.NewId(), UserId: u1.Id, NotifyProps: props}
+		_, nErr := ss.Channel().UpdateMember(member)
+		require.Error(t, nErr)
+		var appErr *model.AppError
+		require.ErrorAs(t, nErr, &appErr)
+		require.Equal(t, "model.channel_member.is_valid.notify_props.app_error", appErr.Id)
+	})
+
 	t.Run("insert member correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
 		team := &model.Team{
 			DisplayName: "Name",
@@ -2612,6 +2642,18 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
 		require.Error(t, nErr)
 		require.IsType(t, &store.ErrConflict{}, nErr)
+	})
+
+	t.Run("should fail with invalid error if notify props are too big", func(t *testing.T) {
+		props := model.GetDefaultChannelNotifyProps()
+		props["property"] = strings.Repeat("Z", model.ChannelMemberNotifyPropsMaxRunes)
+
+		member := &model.ChannelMember{ChannelId: model.NewId(), UserId: u1.Id, NotifyProps: props}
+		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member})
+		require.Error(t, nErr)
+		var appErr *model.AppError
+		require.ErrorAs(t, nErr, &appErr)
+		require.Equal(t, "model.channel_member.is_valid.notify_props.app_error", appErr.Id)
 	})
 
 	t.Run("insert members correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
@@ -3152,6 +3194,14 @@ func testChannelUpdateMemberNotifyProps(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 	// Verify props.
 	assert.Equal(t, props, member.NotifyProps)
+
+	t.Run("should fail with invalid input if the notify props are too big", func(t *testing.T) {
+		props["property"] = strings.Repeat("Z", model.ChannelMemberNotifyPropsMaxRunes)
+		member, err = ss.Channel().UpdateMemberNotifyProps(member.ChannelId, member.UserId, props)
+		var invErr *store.ErrInvalidInput
+		require.ErrorAs(t, err, &invErr)
+		require.Nil(t, member)
+	})
 }
 
 func testChannelRemoveMember(t *testing.T, ss store.Store) {

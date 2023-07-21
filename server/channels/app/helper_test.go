@@ -41,6 +41,7 @@ type TestHelper struct {
 	LogBuffer         *mlog.Buffer
 	TestLogger        *mlog.Logger
 	IncludeCacheLayer bool
+	ConfigStore       *config.Store
 
 	tempWorkspace string
 }
@@ -96,6 +97,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
+		ConfigStore:       configStore,
 	}
 	th.Context.SetLogger(testLogger)
 
@@ -157,8 +159,6 @@ func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	// Only boards migrations are applied
-	mainHelper.PreloadBoardsMigrationsIfNeeded()
 
 	return setupTestHelper(dbStore, false, true, nil, tb)
 }
@@ -251,12 +251,6 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicChannel = th.CreateChannel(th.Context, th.BasicTeam)
 	th.BasicPost = th.CreatePost(th.BasicChannel)
 	return th
-}
-
-func (th *TestHelper) InitBasicWithAppsSidebarEnabled() *TestHelper {
-	th.App.Config().FeatureFlags.AppsSidebarCategory = true
-
-	return th.InitBasic()
 }
 
 func (th *TestHelper) DeleteBots() *TestHelper {
