@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import PropTypes from 'prop-types';
 import {FormattedMessage} from 'react-intl';
 import {Overlay} from 'react-bootstrap';
 import {Link} from 'react-router-dom';
@@ -38,23 +37,31 @@ import Setting from './setting';
 
 import './schema_admin_settings.scss';
 
-export default class SchemaAdminSettings extends React.PureComponent {
-    static propTypes = {
-        config: PropTypes.object,
-        environmentConfig: PropTypes.object,
-        setNavigationBlocked: PropTypes.func,
-        schema: PropTypes.object,
-        roles: PropTypes.object,
-        license: PropTypes.object,
-        editRole: PropTypes.func,
-        updateConfig: PropTypes.func.isRequired,
-        isDisabled: PropTypes.bool,
-        consoleAccess: PropTypes.object,
-        cloud: PropTypes.object,
-        isCurrentUserSystemAdmin: PropTypes.bool,
-    };
+type Props = {
+    config?: any;
+    environmentConfig?: any;
+    setNavigationBlocked?: any;
+    schema?: any;
+    roles?: any;
+    license?: any;
+    editRole?: any;
+    updateConfig?: any;
+    isDisabled?: boolean;
+    consoleAccess?: any;
+    cloud?: any;
+    isCurrentUserSystemAdmin?: any;
+}
 
-    constructor(props) {
+type State = any;
+
+export default class SchemaAdminSettings extends React.PureComponent<Props, State> {
+    buildSettingFunctions: any;
+    errorMessageRef: any;
+    handleSaved: any;
+    isPlugin: any;
+    saveActions: any;
+
+    constructor(props: Props) {
         super(props);
         this.isPlugin = false;
 
@@ -91,7 +98,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         this.errorMessageRef = React.createRef();
     }
 
-    static getDerivedStateFromProps(props, state) {
+    static getDerivedStateFromProps(props: Props, state: State) {
         if (props.schema && props.schema.id !== state.prevSchemaId) {
             return {
                 prevSchemaId: props.schema.id,
@@ -105,7 +112,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         return null;
     }
 
-    handleSubmit = async (e) => {
+    handleSubmit = async (e: any) => {
         e.preventDefault();
 
         if (this.state.confirmNeededId) {
@@ -122,7 +129,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
 
         if (this.state.saveNeeded === 'both' || this.state.saveNeeded === 'permissions') {
             const settings = (this.props.schema && this.props.schema.settings) || [];
-            const rolesBinding = settings.reduce((acc, val) => {
+            const rolesBinding = settings.reduce((acc: any, val: any) => {
                 if (val.type === Constants.SettingsTypes.TYPE_PERMISSION) {
                     acc[val.permissions_mapping_name] = this.state[val.key].toString();
                 }
@@ -161,7 +168,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         }
     };
 
-    getConfigFromState(config) {
+    getConfigFromState(config: any) {
         const schema = this.props.schema;
 
         if (schema) {
@@ -170,10 +177,10 @@ export default class SchemaAdminSettings extends React.PureComponent {
             if (schema.settings) {
                 settings = schema.settings;
             } else if (schema.sections) {
-                schema.sections.map((section) => section.settings).forEach((sectionSettings) => settings.push(...sectionSettings));
+                schema.sections.map((section: any) => section.settings).forEach((sectionSettings: any) => settings.push(...sectionSettings));
             }
 
-            settings.forEach((setting) => {
+            settings.forEach((setting: any) => {
                 if (!setting.key) {
                     return;
                 }
@@ -201,8 +208,8 @@ export default class SchemaAdminSettings extends React.PureComponent {
         return config;
     }
 
-    static getStateFromConfig(config, schema, roles) {
-        let state = {};
+    static getStateFromConfig(config: any, schema: any, roles: any) {
+        let state: any = {};
 
         if (schema) {
             let settings = [];
@@ -210,10 +217,10 @@ export default class SchemaAdminSettings extends React.PureComponent {
             if (schema.settings) {
                 settings = schema.settings;
             } else if (schema.sections) {
-                schema.sections.map((section) => section.settings).forEach((sectionSettings) => settings.push(...sectionSettings));
+                schema.sections.map((section: any) => section.settings).forEach((sectionSettings: any) => settings.push(...sectionSettings));
             }
 
-            settings.forEach((setting) => {
+            settings.forEach((setting: any) => {
                 if (!setting.key) {
                     return;
                 }
@@ -244,7 +251,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         return state;
     }
 
-    getSetting(key) {
+    getSetting(key: any) {
         for (const setting of this.props.schema.settings) {
             if (setting.key === key) {
                 return setting;
@@ -254,7 +261,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         return null;
     }
 
-    getSettingValue(setting) {
+    getSettingValue(setting: any) {
         // Force boolean values to false when disabled.
         if (setting.type === Constants.SettingsTypes.TYPE_BOOL) {
             if (this.isDisabled(setting)) {
@@ -289,7 +296,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    renderBanner = (setting) => {
+    renderBanner = (setting: any) => {
         if (!this.props.schema) {
             return <span>{''}</span>;
         }
@@ -319,13 +326,13 @@ export default class SchemaAdminSettings extends React.PureComponent {
         return setting.label;
     };
 
-    renderHelpText = (setting) => {
+    renderHelpText = (setting: any) => {
         if (!this.props.schema) {
             return <span>{''}</span>;
         }
 
         if (!setting.help_text) {
-            return null;
+            return <span>{''}</span>;
         }
 
         let helpText;
@@ -355,7 +362,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    renderLabel = (setting) => {
+    renderLabel = (setting: any) => {
         if (!this.props.schema) {
             return '';
         }
@@ -366,7 +373,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         return Utils.localizeMessage(setting.label, setting.label_default);
     };
 
-    isDisabled = (setting) => {
+    isDisabled = (setting: any) => {
         const enterpriseReady = this.props.config.BuildEnterpriseReady === 'true';
         if (typeof setting.isDisabled === 'function') {
             return setting.isDisabled(this.props.config, this.state, this.props.license, enterpriseReady, this.props.consoleAccess, this.props.cloud, this.props.isCurrentUserSystemAdmin);
@@ -374,23 +381,23 @@ export default class SchemaAdminSettings extends React.PureComponent {
         return Boolean(setting.isDisabled);
     };
 
-    isHidden = (setting) => {
+    isHidden = (setting: any) => {
         if (typeof setting.isHidden === 'function') {
             return setting.isHidden(this.props.config, this.state, this.props.license);
         }
         return Boolean(setting.isHidden);
     };
 
-    buildButtonSetting = (setting) => {
-        const handleRequestAction = (success, error) => {
+    buildButtonSetting = (setting: any) => {
+        const handleRequestAction = (success: any, error: any) => {
             if (this.state.saveNeeded !== false) {
                 error({message: Utils.localizeMessage('admin_settings.save_unsaved_changes', 'Please save unsaved changes first')});
                 return;
             }
-            const successCallback = (data) => {
+            const successCallback = (data: any) => {
                 const metadata = new Map(Object.entries(data));
                 const settings = (this.props.schema && this.props.schema.settings) || [];
-                settings.forEach((tsetting) => {
+                settings.forEach((tsetting: any) => {
                     if (tsetting.key && tsetting.setFromMetadataField) {
                         const inputData = metadata.get(tsetting.setFromMetadataField);
 
@@ -409,7 +416,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
                 }
             };
 
-            var sourceUrlKey = 'ServiceSettings.SiteURL';
+            let sourceUrlKey = 'ServiceSettings.SiteURL';
             if (setting.sourceUrlKey) {
                 sourceUrlKey = setting.sourceUrlKey;
             }
@@ -439,8 +446,8 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    buildTextSetting = (setting) => {
-        let inputType = 'input';
+    buildTextSetting = (setting: any) => {
+        let inputType: any = 'input';
         if (setting.type === Constants.SettingsTypes.TYPE_NUMBER) {
             inputType = 'number';
         } else if (setting.type === Constants.SettingsTypes.TYPE_LONG_TEXT) {
@@ -481,7 +488,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    buildColorSetting = (setting) => {
+    buildColorSetting = (setting: any) => {
         return (
             <ColorSetting
                 key={this.props.schema.id + '_text_' + setting.key}
@@ -496,7 +503,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    buildBoolSetting = (setting) => {
+    buildBoolSetting = (setting: any) => {
         return (
             <BooleanSetting
                 key={this.props.schema.id + '_bool_' + setting.key}
@@ -511,7 +518,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    buildPermissionSetting = (setting) => {
+    buildPermissionSetting = (setting: any) => {
         return (
             <BooleanSetting
                 key={this.props.schema.id + '_bool_' + setting.key}
@@ -526,16 +533,16 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    buildDropdownSetting = (setting) => {
+    buildDropdownSetting = (setting: any) => {
         const enterpriseReady = this.props.config.BuildEnterpriseReady === 'true';
-        const options = [];
-        setting.options.forEach((option) => {
+        const options: any = [];
+        setting.options.forEach((option: any) => {
             if (!option.isHidden || !option.isHidden(this.props.config, this.state, this.props.license, enterpriseReady)) {
                 options.push(option);
             }
         });
 
-        const values = options.map((o) => ({value: o.value, text: Utils.localizeMessage(o.display_name, o.display_name_default)}));
+        const values = options.map((o: any) => ({value: o.value, text: Utils.localizeMessage(o.display_name, o.display_name_default)}));
         const selectedValue = this.state[setting.key] || values[0].value;
 
         let selectedOptionForHelpText = null;
@@ -571,8 +578,8 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    buildLanguageSetting = (setting) => {
-        const locales = I18n.getAllLanguages();
+    buildLanguageSetting = (setting: any) => {
+        const locales: any = I18n.getAllLanguages();
         const values = Object.keys(locales).map((l) => {
             return {value: locales[l].value, text: locales[l].name, order: locales[l].order};
         }).sort((a, b) => a.order - b.order);
@@ -615,9 +622,9 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    buildRadioSetting = (setting) => {
+    buildRadioSetting = (setting: any) => {
         const options = setting.options || [];
-        const values = options.map((o) => ({value: o.value, text: o.display_name}));
+        const values = options.map((o: any) => ({value: o.value, text: o.display_name}));
 
         return (
             <RadioSetting
@@ -634,7 +641,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    buildBannerSetting = (setting) => {
+    buildBannerSetting = (setting: any) => {
         if (this.isDisabled(setting)) {
             return null;
         }
@@ -653,7 +660,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    buildGeneratedSetting = (setting) => {
+    buildGeneratedSetting = (setting: any) => {
         return (
             <GeneratedSetting
                 key={this.props.schema.id + '_generated_' + setting.key}
@@ -670,12 +677,12 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    handleGeneratedChange = (id, s) => {
+    handleGeneratedChange = (id: any, s: any) => {
         this.handleChange(id, s.replace(/\+/g, '-').replace(/\//g, '_'));
     };
 
-    handleChange = (id, value, confirm = false, doSubmit = false, warning = false) => {
-        let saveNeeded = this.state.saveNeeded === 'permissions' ? 'both' : 'config';
+    handleChange = (id: any, value: any, confirm = false, doSubmit = false, warning = false) => {
+        let saveNeeded: any = this.state.saveNeeded === 'permissions' ? 'both' : 'config';
 
         // Exception: Since OpenId-Custom is treated as feature discovery for Cloud Starter licenses, save button is disabled.
         const isCloudStarter = this.props.license.Cloud === 'true' && this.props.license.SkuShortName === 'starter';
@@ -704,7 +711,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         this.props.setNavigationBlocked(true);
     };
 
-    handlePermissionChange = (id, value) => {
+    handlePermissionChange = (id: any, value: any) => {
         let saveNeeded = 'permissions';
         if (this.state.saveNeeded === 'config') {
             saveNeeded = 'both';
@@ -717,7 +724,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         this.props.setNavigationBlocked(true);
     };
 
-    buildUsernameSetting = (setting) => {
+    buildUsernameSetting = (setting: any) => {
         return (
             <UserAutocompleteSetting
                 key={this.props.schema.id + '_userautocomplete_' + setting.key}
@@ -732,7 +739,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    buildJobsTableSetting = (setting) => {
+    buildJobsTableSetting = (setting: any) => {
         return (
             <JobsTable
                 key={this.props.schema.id + '_jobstable_' + setting.key}
@@ -755,25 +762,14 @@ export default class SchemaAdminSettings extends React.PureComponent {
         );
     };
 
-    buildFileUploadSetting = (setting) => {
-        const setData = (id, data) => {
-            const successCallback = (filename) => {
-                this.handleChange(id, filename);
-                this.setState({[setting.key]: filename, [`${setting.key}Error`]: null});
-            };
-            const errorCallback = (error) => {
-                this.setState({[setting.key]: null, [`${setting.key}Error`]: error.message});
-            };
-            setting.set_action(successCallback, errorCallback, data);
-        };
-
+    buildFileUploadSetting = (setting: any) => {
         if (this.state[setting.key]) {
-            const removeFile = (id, callback) => {
+            const removeFile = (id: any, callback: any) => {
                 const successCallback = () => {
                     this.handleChange(setting.key, '');
                     this.setState({[setting.key]: null, [`${setting.key}Error`]: null});
                 };
-                const errorCallback = (error) => {
+                const errorCallback = (error: any) => {
                     callback();
                     this.setState({[setting.key]: null, [`${setting.key}Error`]: error.message});
                 };
@@ -794,21 +790,20 @@ export default class SchemaAdminSettings extends React.PureComponent {
                     removingText={Utils.localizeMessage(setting.removing_text, setting.removing_text_default)}
                     fileName={this.state[setting.key]}
                     onSubmit={removeFile}
-                    onSetData={setData}
                     disabled={this.isDisabled(setting)}
                     setByEnv={this.isSetByEnv(setting.key)}
                 />
             );
         }
-        const uploadFile = (id, file, callback) => {
-            const successCallback = (filename) => {
+        const uploadFile = (id: any, file: any, callback: any) => {
+            const successCallback = (filename: any) => {
                 this.handleChange(id, filename);
                 this.setState({[setting.key]: filename, [`${setting.key}Error`]: null});
                 if (callback && typeof callback === 'function') {
                     callback();
                 }
             };
-            const errorCallback = (error) => {
+            const errorCallback = (error: any) => {
                 if (callback && typeof callback === 'function') {
                     callback(error.message);
                 }
@@ -826,14 +821,13 @@ export default class SchemaAdminSettings extends React.PureComponent {
                 disabled={this.isDisabled(setting)}
                 fileType={setting.fileType}
                 onSubmit={uploadFile}
-                onSetData={setData}
                 error={this.state.idpCertificateFileError}
                 setByEnv={this.isSetByEnv(setting.key)}
             />
         );
     };
 
-    buildCustomSetting = (setting) => {
+    buildCustomSetting = (setting: any) => {
         const CustomComponent = setting.component;
 
         const componentInstance = (
@@ -871,12 +865,12 @@ export default class SchemaAdminSettings extends React.PureComponent {
         return componentInstance;
     };
 
-    unRegisterSaveAction = (saveAction) => {
+    unRegisterSaveAction = (saveAction: any) => {
         const indexOfSaveAction = this.saveActions.indexOf(saveAction);
         this.saveActions.splice(indexOfSaveAction, 1);
     };
 
-    registerSaveAction = (saveAction) => {
+    registerSaveAction = (saveAction: any) => {
         this.saveActions.push(saveAction);
     };
 
@@ -889,9 +883,9 @@ export default class SchemaAdminSettings extends React.PureComponent {
         const schema = this.props.schema;
 
         if (schema.settings) {
-            const settingsList = [];
+            const settingsList: any = [];
             if (schema.settings) {
-                schema.settings.forEach((setting) => {
+                schema.settings.forEach((setting: any) => {
                     if (this.buildSettingFunctions[setting.type] && !this.isHidden(setting)) {
                         settingsList.push(this.buildSettingFunctions[setting.type](setting));
                     }
@@ -932,12 +926,12 @@ export default class SchemaAdminSettings extends React.PureComponent {
                 </SettingsGroup>
             );
         } else if (schema.sections) {
-            const sections = [];
+            const sections: any = [];
 
-            schema.sections.forEach((section) => {
-                const settingsList = [];
+            schema.sections.forEach((section: any) => {
+                const settingsList: any = [];
                 if (section.settings) {
-                    section.settings.forEach((setting) => {
+                    section.settings.forEach((setting: any) => {
                         if (this.buildSettingFunctions[setting.type] && !this.isHidden(setting)) {
                             settingsList.push(this.buildSettingFunctions[setting.type](setting));
                         }
@@ -1001,13 +995,13 @@ export default class SchemaAdminSettings extends React.PureComponent {
         this.setState({errorTooltip: false});
     };
 
-    openTooltip = (e) => {
+    openTooltip = (e: any) => {
         const elm = e.currentTarget.querySelector('.control-label');
         const isElipsis = elm.offsetWidth < elm.scrollWidth;
         this.setState({errorTooltip: isElipsis});
     };
 
-    doSubmit = async (getStateFromConfig) => {
+    doSubmit = async (getStateFromConfig: any) => {
         // clone config so that we aren't modifying data in the stores
         let config = JSON.parse(JSON.stringify(this.props.config));
         config = this.getConfigFromState(config);
@@ -1052,18 +1046,18 @@ export default class SchemaAdminSettings extends React.PureComponent {
     // relies on splitting by periods. Use this pair of functions to allow such path parts.
     //
     // It is assumed that no path contains the symbol '+'.
-    static escapePathPart(pathPart) {
+    static escapePathPart(pathPart: any) {
         return pathPart.replace(/\./g, '+');
     }
 
-    static unescapePathPart(pathPart) {
+    static unescapePathPart(pathPart: any) {
         return pathPart.replace(/\+/g, '.');
     }
 
-    static getConfigValue(config, path) {
+    static getConfigValue(config: any, path: any) {
         const pathParts = path.split('.');
 
-        return pathParts.reduce((obj, pathPart) => {
+        return pathParts.reduce((obj: any, pathPart: any) => {
             if (!obj) {
                 return null;
             }
@@ -1072,8 +1066,8 @@ export default class SchemaAdminSettings extends React.PureComponent {
         }, config);
     }
 
-    setConfigValue(config, path, value) {
-        function setValue(obj, pathParts) {
+    setConfigValue(config: any, path: any, value: any) {
+        function setValue(obj: any, pathParts: any) {
             const part = SchemaAdminSettings.unescapePathPart(pathParts[0]);
 
             if (pathParts.length === 1) {
@@ -1090,7 +1084,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
         setValue(config, path.split('.'));
     }
 
-    isSetByEnv = (path) => {
+    isSetByEnv = (path: any) => {
         return Boolean(SchemaAdminSettings.getConfigValue(this.props.environmentConfig, path));
     };
 
