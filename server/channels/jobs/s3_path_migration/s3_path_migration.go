@@ -156,6 +156,12 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 		worker.setJobError(job, appErr)
 		return
 	}
+	if createAtOffset == 0 {
+		// Time of the commit because we know no files older than that are affected.
+		// Exact commit was done on 09:54AM June 27, IST.
+		// We take June 26 as an approximation.
+		createAtOffset = int(time.Date(2023, time.June, 26, 0, 0, 0, 0, time.UTC).UnixMilli())
+	}
 
 	const pageSize = 100
 
@@ -205,17 +211,17 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 			for _, f := range files {
 				// We do not fail the job if a single image failed to encode.
 				if f.Path != "" {
-					if err := worker.fileBackend.EncodeFilePathIfNeeded(f.Path); err != nil {
+					if err := worker.fileBackend.DecodeFilePathIfNeeded(f.Path); err != nil {
 						mlog.Warn("Failed to encode S3 file path", mlog.String("path", f.Path), mlog.Err(err))
 					}
 				}
 				if f.PreviewPath != "" {
-					if err := worker.fileBackend.EncodeFilePathIfNeeded(f.PreviewPath); err != nil {
+					if err := worker.fileBackend.DecodeFilePathIfNeeded(f.PreviewPath); err != nil {
 						mlog.Warn("Failed to encode S3 file path", mlog.String("path", f.PreviewPath), mlog.Err(err))
 					}
 				}
 				if f.ThumbnailPath != "" {
-					if err := worker.fileBackend.EncodeFilePathIfNeeded(f.ThumbnailPath); err != nil {
+					if err := worker.fileBackend.DecodeFilePathIfNeeded(f.ThumbnailPath); err != nil {
 						mlog.Warn("Failed to encode S3 file path", mlog.String("path", f.ThumbnailPath), mlog.Err(err))
 					}
 				}

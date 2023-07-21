@@ -368,18 +368,18 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	return nil
 }
 
-// EncodeFilePathIfNeeded is a special method to URL encode all older
+// DecodeFilePathIfNeeded is a special method to URL decode all older
 // file paths. It is only needed for the migration, and will be removed
 // as soon as the migration is complete.
-func (b *S3FileBackend) EncodeFilePathIfNeeded(path string) error {
+func (b *S3FileBackend) DecodeFilePathIfNeeded(path string) error {
 	// Encode and check if file path changes.
 	// If there is no change, then there is no need to do anything.
 	if path == s3utils.EncodePath(path) {
 		return nil
 	}
 
-	// Check if original path exists.
-	exists, err := b.lookupOriginalPath(path)
+	// Check if encoded path exists.
+	exists, err := b.lookupOriginalPath(s3utils.EncodePath(path))
 	if err != nil {
 		return err
 	}
@@ -388,7 +388,7 @@ func (b *S3FileBackend) EncodeFilePathIfNeeded(path string) error {
 	// This is basically a copy of MoveFile without the path encoding.
 	// We avoid any further refactoring because this method will be removed anyways.
 	if exists {
-		oldPath := filepath.Join(b.pathPrefix, path)
+		oldPath := filepath.Join(b.pathPrefix, s3utils.EncodePath(path))
 		newPath := filepath.Join(b.pathPrefix, path)
 		srcOpts := s3.CopySrcOptions{
 			Bucket: b.bucket,
