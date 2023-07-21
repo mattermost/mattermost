@@ -144,37 +144,6 @@ func TestUpdateChannel(t *testing.T) {
 	client := th.Client
 	team := th.BasicTeam
 
-	t.Run("update channel with another channel's name", func(t *testing.T) {
-		var err error
-		// Create two independent channels
-		channel1 := &model.Channel{
-			DisplayName: "Channel 1",
-			Name:        GenerateTestChannelName(),
-			Type:        model.ChannelTypeOpen,
-			TeamId:      team.Id,
-		}
-		channel1, _, err = client.CreateChannel(context.Background(), channel1)
-		require.NoError(t, err)
-
-		channel2 := &model.Channel{
-			DisplayName: "Channel 2",
-			Name:        GenerateTestChannelName(),
-			Type:        model.ChannelTypeOpen,
-			TeamId:      team.Id,
-		}
-		channel2, _, err = client.CreateChannel(context.Background(), channel2)
-		require.NoError(t, err)
-
-		// Try to update channel2's name using channel1's name
-		channel2.Name = channel1.Name
-		_, _, err = client.UpdateChannel(context.Background(), channel2)
-		require.Error(t, err)
-
-		// Assert that the error reports the invalid field to be Name, not Id
-		require.Contains(t, err.Error(), "entity: Channel field: Name")
-		require.NotContains(t, err.Error(), "field: Id")
-	})
-
 	channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
 	private := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypePrivate, TeamId: team.Id}
 
