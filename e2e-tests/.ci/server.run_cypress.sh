@@ -43,4 +43,4 @@ else
 fi
 
 # Collect server logs
-${MME2E_DC_SERVER} exec -T -- server cat /mattermost/logs/mattermost.log >../cypress/logs/mattermost.log
+${MME2E_DC_SERVER} logs --no-log-prefix -- server > 2>&1 cypress/logs/mattermost.log
