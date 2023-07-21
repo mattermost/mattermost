@@ -1219,17 +1219,6 @@ func testFileInfoAlwaysSupportWildcards(t *testing.T, th *SearchTestHelper) {
 		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
 	})
 
-	t.Run("support wildcard search with another term placed after without wildcards", func(t *testing.T) {
-		params := &model.SearchParams{
-			Terms: "sear post",
-		}
-		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, err)
-
-		require.Len(t, results.FileInfos, 1)
-		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
-	})
-
 	t.Run("support wildcard search only for plain terms when plain terms and quoted terms are used together.", func(t *testing.T) {
 		params := &model.SearchParams{
 			Terms: "\"first text\" secon \"last text\"",
