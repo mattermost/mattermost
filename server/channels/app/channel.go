@@ -1833,6 +1833,20 @@ func (a *App) GetChannels(c request.CTX, channelIDs []string) ([]*model.Channel,
 	return channels, nil
 }
 
+func (a *App) GetChannelsMemberCount(c request.CTX, channelIDs []string) (map[string]int64, *model.AppError) {
+	channelsCount, err := a.Srv().Store().Channel().GetChannelsMemberCount(channelIDs)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetChannelsMemberCount", "app.channel.get_channels_member_count.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetChannelsMemberCount", "app.channel.get_channels_member_count.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return channelsCount, nil
+}
+
 func (a *App) GetChannelByName(c request.CTX, channelName, teamID string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	var channel *model.Channel
 	var err error

@@ -2207,6 +2207,47 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 	return ids, nil
 }
 
+func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[string]int64, err error) {
+	query := s.getQueryBuilder().
+		Select("ChannelMembers.ChannelId,COUNT(*) AS Count").
+		From("ChannelMembers").
+		InnerJoin("Users ON ChannelMembers.UserId = Users.Id").
+		Where(sq.And{
+			sq.Eq{"ChannelMembers.ChannelId": channelIDs},
+			sq.Eq{"Users.DeleteAt": 0},
+		}).
+		GroupBy("ChannelMembers.ChannelId")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channels_member_count_tosql")
+	}
+
+	rows, err := s.GetReplicaX().DB.Query(queryString, args...)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch member counts")
+	}
+	defer rows.Close()
+
+	memberCounts := make(map[string]int64)
+	for rows.Next() {
+		var channelID string
+		var count int64
+		errScan := rows.Scan(&channelID, &count)
+		if errScan != nil {
+			return nil, errors.Wrap(err, "failed to scan row")
+		}
+		memberCounts[channelID] = count
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error while iterating rows")
+	}
+
+	return memberCounts, nil
+}
+
 func (s SqlChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
 	allChannelMembersNotifyPropsForChannelCache.Remove(channelId)
 	if s.metrics != nil {
