@@ -6,10 +6,10 @@ import {shallow} from 'enzyme';
 
 import {NotificationLevels, NotificationSections} from 'utils/constants';
 
-import NotificationSection, {NotificationSectionProps} from 'components/channel_notifications_modal/components/notification_section';
+import NotificationSection, {Props} from 'components/channel_notifications_modal/components/notification_section';
 
 describe('components/channel_notifications_modal/NotificationSection', () => {
-    const baseProps: NotificationSectionProps = {
+    const baseProps: Props = {
         section: NotificationSections.DESKTOP,
         expand: false,
         memberNotificationLevel: NotificationLevels.ALL,

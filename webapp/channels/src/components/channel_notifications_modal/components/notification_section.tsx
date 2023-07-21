@@ -17,7 +17,7 @@ type SelectedOption = {
     value: string;
 };
 
-export type NotificationSectionProps = {
+export type Props = {
 
     /**
      * Notification section
@@ -66,16 +66,16 @@ export type NotificationSectionProps = {
     /**
      * onChange handles update of desktop notification level
      */
-    onChange: (value?: string) => void;
+    onChange: (value: string | any) => void;
 
     /**
      * onChangeThreads handles update of desktop_threads notification level
      */
-    onChangeThreads?: (value?: string) => void;
+    onChangeThreads?: (value: string | any) => void;
 
-    onChangeDesktopSound?: (value?: string) => void;
+    onChangeDesktopSound?: (value: string | any) => void;
 
-    onChangeNotificationSound?: (value?: string) => void;
+    onChangeNotificationSound?: (value: string | any) => void;
 
     onReset?: () => void;
 
@@ -84,20 +84,20 @@ export type NotificationSectionProps = {
     /**
      * Submit function to save notification level
      */
-    onSubmit: (setting?: string) => void;
+    onSubmit: (value: string | any) => void;
 
     /**
      * Update function to to expand or collapse a section
      */
-    onUpdateSection: (setting?: string) => void;
+    onUpdateSection: (value: string | any) => void;
 
     /**
      * Error string from the server
      */
-    serverError?: string;
+    serverError?: string | null;
 }
 
-export default class NotificationSection extends PureComponent<NotificationSectionProps> {
+export default class NotificationSection extends PureComponent<Props> {
     handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
         this.props.onChange(e.currentTarget.value);
     };
@@ -162,7 +162,7 @@ export default class NotificationSection extends PureComponent<NotificationSecti
                     onChangeThreads={this.handleOnChangeThreads}
                     onChangeDesktopSound={this.handleOnChangeDesktopSound}
                     onChangeNotificationSound={this.handleOnChangeNotificationSound}
-                    onSubmit={onSubmit as (setting?: string) => void}
+                    onSubmit={onSubmit as (value: string | any) => void}
                     serverError={serverError}
                     onCollapseSection={this.handleCollapseSection}
                 />

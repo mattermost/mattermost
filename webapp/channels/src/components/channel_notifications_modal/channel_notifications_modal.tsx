@@ -432,10 +432,10 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                     section={NotificationSections.MARK_UNREAD}
                                     expand={activeSection === NotificationSections.MARK_UNREAD}
                                     memberNotificationLevel={markUnreadNotifyLevel}
-                                    onChange={this.handleUpdateMarkUnreadLevel as (value?: string) => void}
+                                    onChange={this.handleUpdateMarkUnreadLevel as (value: string | any) => void}
                                     onSubmit={this.handleSubmitMarkUnreadLevel}
                                     onUpdateSection={this.updateSection}
-                                    serverError={serverError as string}
+                                    serverError={serverError}
                                 />
                                 <div className='divider-light'/>
                                 <NotificationSection
@@ -443,10 +443,10 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                     expand={activeSection === NotificationSections.IGNORE_CHANNEL_MENTIONS}
                                     memberNotificationLevel={markUnreadNotifyLevel}
                                     ignoreChannelMentions={ignoreChannelMentions}
-                                    onChange={this.handleUpdateIgnoreChannelMentions as (value?: string) => void}
+                                    onChange={this.handleUpdateIgnoreChannelMentions as (value: string | any) => void}
                                     onSubmit={this.handleSubmitIgnoreChannelMentions}
                                     onUpdateSection={this.updateSection}
-                                    serverError={serverError as string}
+                                    serverError={serverError}
                                 />
                                 {!isChannelMuted(channelMember) &&
                                 <div>
@@ -461,14 +461,14 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                         globalNotificationLevel={currentUser.notify_props ? currentUser.notify_props.desktop : NotificationLevels.ALL}
                                         globalNotificationSound={(currentUser.notify_props && currentUser.notify_props.desktop_notification_sound) ? currentUser.notify_props.desktop_notification_sound : 'Bing'}
                                         isNotificationsSettingSameAsGlobal={isNotificationsSettingSameAsGlobal}
-                                        onChange={this.handleUpdateDesktopNotifyLevel as (value?: string) => void}
-                                        onChangeThreads={this.handleUpdateDesktopThreadsNotifyLevel as (value?: string) => void}
-                                        onChangeDesktopSound={this.handleUpdateDesktopSound as (value?: string) => void}
-                                        onChangeNotificationSound={this.handleUpdateDesktopNotifySound as (value?: string) => void}
+                                        onChange={this.handleUpdateDesktopNotifyLevel as (value: string | any) => void}
+                                        onChangeThreads={this.handleUpdateDesktopThreadsNotifyLevel as (value: string | any) => void}
+                                        onChangeDesktopSound={this.handleUpdateDesktopSound as (value: string | any) => void}
+                                        onChangeNotificationSound={this.handleUpdateDesktopNotifySound as (value: string | any) => void}
                                         onReset={this.handleResetDesktopNotification}
                                         onSubmit={this.handleSubmitDesktopNotification}
                                         onUpdateSection={this.updateSection}
-                                        serverError={serverError as string}
+                                        serverError={serverError}
                                     />
                                     <div className='divider-light'/>
                                     {sendPushNotifications &&
@@ -479,12 +479,12 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                         memberThreadsNotificationLevel={pushThreadsNotifyLevel}
                                         globalNotificationLevel={currentUser.notify_props ? currentUser.notify_props.push : NotificationLevels.ALL}
                                         isNotificationsSettingSameAsGlobal={isPushNotificationsSettingSameAsGlobal}
-                                        onChange={this.handleUpdatePushNotificationLevel as (value?: string) => void}
+                                        onChange={this.handleUpdatePushNotificationLevel as (value: string | any) => void}
                                         onReset={this.handleResetPushNotification}
-                                        onChangeThreads={this.handleUpdatePushThreadsNotificationLevel as (value?: string) => void}
+                                        onChangeThreads={this.handleUpdatePushThreadsNotificationLevel as (value: string | any) => void}
                                         onSubmit={this.handleSubmitPushNotificationLevel}
                                         onUpdateSection={this.updateSection}
-                                        serverError={serverError as string}
+                                        serverError={serverErrorTag as string | null}
                                     />
                                     }
                                 </div>
@@ -496,10 +496,10 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                     memberNotificationLevel={markUnreadNotifyLevel}
                                     ignoreChannelMentions={ignoreChannelMentions}
                                     channelAutoFollowThreads={channelAutoFollowThreads}
-                                    onChange={this.handleUpdateChannelAutoFollowThreads as (value?: string) => void}
+                                    onChange={this.handleUpdateChannelAutoFollowThreads as (value: string | any) => void}
                                     onSubmit={this.handleSubmitChannelAutoFollowThreads}
                                     onUpdateSection={this.updateSection}
-                                    serverError={serverError as string}
+                                    serverError={serverError}
                                 />
                                 <div className='divider-dark'/>
                             </div>

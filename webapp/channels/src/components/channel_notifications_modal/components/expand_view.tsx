@@ -44,7 +44,7 @@ type Props = {
     memberDesktopSound?: string;
     memberDesktopNotificationSound?: string;
     section: string;
-    serverError?: string;
+    serverError?: string | null;
 }
 
 const sounds = Array.from(notificationSounds.keys());
