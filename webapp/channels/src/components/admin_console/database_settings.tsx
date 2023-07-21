@@ -29,14 +29,14 @@ interface Props {
 
 interface ComponentState extends BaseState {
     searchBackend: string;
-    maxIdleConns: string;
-    maxOpenConns: string;
+    maxIdleConns: number;
+    maxOpenConns: number;
     trace: boolean;
     disableDatabaseSearch: boolean;
-    queryTimeout: string;
-    connMaxLifetimeMilliseconds: string;
-    connMaxIdleTimeMilliseconds: string;
-    minimumHashtagLength: string;
+    queryTimeout: number;
+    connMaxLifetimeMilliseconds: number;
+    connMaxIdleTimeMilliseconds: number;
+    minimumHashtagLength: number;
     dataSource: string;
     driverName: string;
 }
@@ -59,8 +59,8 @@ export default class DatabaseSettings extends AdminSettings<Props, ComponentStat
         config.SqlSettings.Trace = this.state.trace;
         config.SqlSettings.DisableDatabaseSearch = this.state.disableDatabaseSearch;
         config.SqlSettings.QueryTimeout = this.parseIntNonZero(this.state.queryTimeout);
-        config.SqlSettings.ConnMaxLifetimeMilliseconds = this.parseIntNonNegative(this.state.connMaxLifetimeMilliseconds);
-        config.SqlSettings.ConnMaxIdleTimeMilliseconds = this.parseIntNonNegative(this.state.connMaxIdleTimeMilliseconds);
+        config.SqlSettings.ConnMaxLifetimeMilliseconds = this.parseIntNonZero(this.state.connMaxLifetimeMilliseconds);
+        config.SqlSettings.ConnMaxIdleTimeMilliseconds = this.parseIntNonZero(this.state.connMaxIdleTimeMilliseconds);
         config.ServiceSettings.MinimumHashtagLength = this.parseIntNonZero(this.state.minimumHashtagLength, 3, 2);
 
         return config;
@@ -77,7 +77,7 @@ export default class DatabaseSettings extends AdminSettings<Props, ComponentStat
         return res.ActiveSearchBackend;
     }
 
-    getStateFromConfig(config: any) {
+    getStateFromConfig(config: AdminConfig) {
         return {
             driverName: config.SqlSettings.DriverName,
             dataSource: config.SqlSettings.DataSource,
