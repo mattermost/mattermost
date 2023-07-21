@@ -41,7 +41,7 @@ type Props = {
     config?: any;
     environmentConfig?: any;
     setNavigationBlocked?: any;
-    schema: any;
+    schema?: any;
     roles?: any;
     license?: any;
     editRole?: any;
@@ -331,7 +331,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         }
 
         if (!setting.help_text) {
-            return <span>{''}</span>;
+            return null;
         }
 
         let helpText;

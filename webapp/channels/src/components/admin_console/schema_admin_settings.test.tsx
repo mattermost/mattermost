@@ -11,9 +11,9 @@ import SchemaAdminSettings from './schema_admin_settings';
 import ValidationResult from './validation';
 
 describe('components/admin_console/SchemaAdminSettings', () => {
-    let schema = null;
-    let config = null;
-    let environmentConfig = null;
+    let schema: any = null;
+    let config: any = null;
+    let environmentConfig: any = null;
 
     afterEach(() => {
         schema = null;
@@ -117,8 +117,8 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                     help_text_default: 'This is some help text for the number field.',
                     placeholder: 'placeholder-h',
                     placeholder_default: 'e.g. some setting',
-                    onConfigLoad: (configVal) => configVal / 10,
-                    onConfigSave: (displayVal) => displayVal * 10,
+                    onConfigLoad: (configVal: number) => configVal / 10,
+                    onConfigSave: (displayVal: number) => displayVal * 10,
                 },
                 {
                     label: 'label-h',
@@ -341,7 +341,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             updateConfig: jest.fn(),
         };
 
-        const wrapper = shallow(<SchemaAdminSettings {...props}/>);
+        const wrapper: any = shallow(<SchemaAdminSettings {...props}/>);
 
         expect(wrapper.instance().canSave()).toBe(true);
         expect(mockValidate).not.toHaveBeenCalled();
@@ -370,8 +370,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             updateConfig: jest.fn(),
         };
 
-        const wrapper = shallow(<SchemaAdminSettings {...props}/>);
-
+        const wrapper: any = shallow(<SchemaAdminSettings {...props}/>);
         expect(wrapper.instance().canSave()).toBe(true);
         expect(mockValidate).toHaveBeenCalled();
     });
