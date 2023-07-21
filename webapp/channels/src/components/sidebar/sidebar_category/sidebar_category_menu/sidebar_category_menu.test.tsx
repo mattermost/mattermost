@@ -8,7 +8,7 @@ import {CategorySorting} from '@mattermost/types/channel_categories';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
-import SidebarCategoryMenu from './sidebar_category_menu';
+import SidebarCategoryMenu from '.';
 
 describe('components/sidebar/sidebar_category/sidebar_category_menu', () => {
     const categoryId = 'test_category_id';

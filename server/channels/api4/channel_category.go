@@ -346,12 +346,19 @@ func viewCategory(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("viewCategory", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	_, appErr := c.App.ViewCategory(c.AppContext, c.Params.UserId, c.Params.CategoryId)
+	times, appErr := c.App.ViewCategory(c.AppContext, c.Params.UserId, c.Params.CategoryId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	auditRec.Success()
-	ReturnStatusOK(w)
+	resp := &model.ChannelViewResponse{
+		Status:            "OK",
+		LastViewedAtTimes: times,
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

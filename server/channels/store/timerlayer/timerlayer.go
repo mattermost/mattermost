@@ -1216,6 +1216,22 @@ func (s *TimerLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []strin
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string) ([]string, []string, map[string]int64, error) {
+	start := time.Now()
+
+	result, resultVar1, resultVar2, err := s.ChannelStore.GetChannelsWithUnreadsAndWithMentions(ctx, channelIDs, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelsWithUnreadsAndWithMentions", success, elapsed)
+	}
+	return result, resultVar1, resultVar2, err
+}
+
 func (s *TimerLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userID string) (model.ChannelList, error) {
 	start := time.Now()
 

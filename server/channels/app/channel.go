@@ -2954,57 +2954,26 @@ func (a *App) SearchChannelsUserNotIn(c request.CTX, teamID string, userID strin
 }
 
 func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError) {
-	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
-	channelsToClearPushNotifications := []string{}
-	if a.canSendPushNotifications() {
-		for _, channelID := range channelIDs {
-			channel, errCh := a.Srv().Store().Channel().Get(channelID, true)
-			if errCh != nil {
-				c.Logger().Warn("Failed to get channel", mlog.Err(errCh))
-				continue
-			}
+	var err error
 
-			member, err := a.Srv().Store().Channel().GetMember(context.Background(), channelID, userID)
-			if err != nil {
-				c.Logger().Warn("Failed to get membership", mlog.Err(err))
-				continue
-			}
-
-			notify := member.NotifyProps[model.PushNotifyProp]
-			if notify == model.ChannelNotifyDefault {
-				user, err := a.GetUser(userID)
-				if err != nil {
-					c.Logger().Warn("Failed to get user", mlog.String("user_id", userID), mlog.Err(err))
-					continue
-				}
-				notify = user.NotifyProps[model.PushNotifyProp]
-			}
-			if notify == model.UserNotifyAll {
-				if count, err := a.Srv().Store().User().GetAnyUnreadPostCountForChannel(userID, channelID); err == nil {
-					if count > 0 {
-						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelID)
-					}
-				}
-			} else if notify == model.UserNotifyMention || channel.Type == model.ChannelTypeDirect {
-				if count, err := a.Srv().Store().User().GetUnreadCountForChannel(userID, channelID); err == nil {
-					if count > 0 {
-						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelID)
-					}
-				}
-			}
-		}
+	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetChannelsWithUnreadsAndWithMentions(c.Context(), channelIDs, userID)
+	if err != nil {
+		return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	var err error
+	if len(channelsToView) == 0 {
+		return times, nil
+	}
+
 	updateThreads := *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !isCRTEnabled)
 	if updateThreads {
-		err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, channelIDs)
+		err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, channelsToView)
 		if err != nil {
 			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	times, err := a.Srv().Store().Channel().UpdateLastViewedAt(channelIDs, userID)
+	_, err = a.Srv().Store().Channel().UpdateLastViewedAt(channelsToView, userID)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -3016,19 +2985,18 @@ func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID st
 	}
 
 	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
-		for _, channelID := range channelIDs {
-			message := model.NewWebSocketEvent(model.WebsocketEventChannelViewed, "", "", userID, nil, "")
-			message.Add("channel_id", channelID)
-			a.Publish(message)
-		}
+		message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")
+		message.Add("channel_times", times)
+		a.Publish(message)
 	}
+
 	for _, channelID := range channelsToClearPushNotifications {
 		a.clearPushNotification(currentSessionId, userID, channelID, "")
 	}
 
 	if updateThreads && isCRTEnabled {
 		timestamp := model.GetMillis()
-		for _, channelID := range channelIDs {
+		for _, channelID := range channelsToView {
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
 			message.Add("timestamp", timestamp)
 			a.Publish(message)

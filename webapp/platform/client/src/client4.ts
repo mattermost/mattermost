@@ -1776,11 +1776,18 @@ export default class Client4 {
         );
     };
 
-    viewMyChannel = (channelId: string, prevChannelId?: string) => {
-        const data = {channel_id: channelId, prev_channel_id: prevChannelId, collapsed_threads_supported: true};
+    viewMyChannel = (channelId: string) => {
+        const data = {channel_id: channelId, collapsed_threads_supported: true};
         return this.doFetch<ChannelViewResponse>(
             `${this.getChannelsRoute()}/members/me/view`,
             {method: 'post', body: JSON.stringify(data)},
+        );
+    };
+
+    viewMultipleChannels = (channelIds: string[]) => {
+        return this.doFetch<ChannelViewResponse>(
+            `${this.getChannelsRoute()}/members/me/view_many`,
+            {method: 'post', body: JSON.stringify(channelIds)},
         );
     };
 
@@ -1896,9 +1903,9 @@ export default class Client4 {
         );
     };
 
-    viewCategory = (userId: string, teamId: string, category: ChannelCategory) => {
-        return this.doFetch(
-            `${this.getChannelCategoriesRoute(userId, teamId)}/${category.id}/view`,
+    viewCategory = (userId: string, categoryId: string, teamId: string) => {
+        return this.doFetch<ChannelViewResponse>(
+            `${this.getChannelCategoriesRoute(userId, teamId)}/${categoryId}/view`,
             {method: 'post'},
         );
     }

@@ -2021,6 +2021,92 @@ func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) ([]model.S
 	return dbMembersTimezone, nil
 }
 
+func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string) ([]string, []string, map[string]int64, error) {
+	query := s.getQueryBuilder().Select(
+		"Channels.Id",
+		"Channels.Type",
+		"Channels.TotalMsgCount",
+		"Channels.LastPostAt",
+		"ChannelMembers.MsgCount",
+		"ChannelMembers.MentionCount",
+		"ChannelMembers.NotifyProps",
+		"ChannelMembers.LastViewedAt",
+		"Users.NotifyProps",
+	).
+		From("ChannelMembers").
+		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
+		InnerJoin("Users ON ChannelMembers.UserId = Users.Id").
+		Where(sq.Eq{
+			"ChannelMembers.ChannelId": channelIDs,
+			"ChannelMembers.UserId":    userID,
+		})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "channel_tosql")
+	}
+
+	rows, err := s.GetReplicaX().DB.Query(queryString, args...)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "failed to find ChannelMembers, TeamScheme and ChannelScheme data")
+	}
+	defer deferClose(rows, &err)
+
+	channelsWithUnreads := []string{}
+	channelsWithMentions := []string{}
+	readTimes := map[string]int64{}
+
+	for rows.Next() {
+		var id string
+		var channelType string
+		var totalMsgCount int
+		var lastPostAt int64
+		var msgCount int
+		var mentionCount int
+		var channelNotifyProps model.StringMap
+		var lastViewedAt int64
+		var userNotifyProps model.StringMap
+
+		err = rows.Scan(&id, &channelType, &totalMsgCount, &lastPostAt, &msgCount, &mentionCount, &channelNotifyProps, &lastViewedAt, &userNotifyProps)
+		if err != nil {
+			return nil, nil, nil, errors.Wrap(err, "unable to scan columns")
+		}
+
+		hasMentions := (mentionCount > 0)
+		hasUnreads := (totalMsgCount-msgCount > 0) || hasMentions
+
+		if hasUnreads {
+			channelsWithUnreads = append(channelsWithUnreads, id)
+		}
+
+		notify := channelNotifyProps[model.PushNotifyProp]
+		if notify == model.ChannelNotifyDefault {
+			notify = userNotifyProps[model.PushNotifyProp]
+		}
+		if notify == model.UserNotifyAll || channelType == string(model.ChannelTypeDirect) {
+			if hasUnreads {
+				channelsWithMentions = append(channelsWithMentions, id)
+			}
+		} else if notify == model.UserNotifyMention {
+			if hasMentions {
+				channelsWithMentions = append(channelsWithMentions, id)
+			}
+		}
+
+		if lastPostAt > lastViewedAt {
+			readTimes[id] = lastPostAt
+		} else {
+			readTimes[id] = lastViewedAt
+		}
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, nil, nil, errors.Wrap(err, "error while iterating over rows")
+	}
+
+	return channelsWithUnreads, channelsWithMentions, readTimes, nil
+}
+
 func (s SqlChannelStore) GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
 	selectSQL, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
 		Where(sq.Eq{
@@ -2471,6 +2557,10 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		TotalMsgCount     int64
 		TotalMsgCountRoot int64
 	}{}
+
+	if len(channelIds) == 0 {
+		return map[string]int64{}, nil
+	}
 
 	// We use the question placeholder format for both databases, because
 	// we replace that with the dollar format later on.

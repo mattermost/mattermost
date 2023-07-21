@@ -265,6 +265,7 @@ type ChannelStore interface {
 	GetMembersInfoByChannelIds(channelIDs []string) (map[string][]*model.User, error)
 	AnalyticsDeletedTypeCount(teamID string, channelType model.ChannelType) (int64, error)
 	GetChannelUnread(channelID, userID string) (*model.ChannelUnread, error)
+	GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string) ([]string, []string, map[string]int64, error)
 	ClearCaches()
 	ClearMembersForUserCache()
 	GetChannelsByScheme(schemeID string, offset int, limit int) (model.ChannelList, error)

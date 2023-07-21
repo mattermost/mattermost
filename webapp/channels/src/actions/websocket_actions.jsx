@@ -27,8 +27,7 @@ import {
     getChannelAndMyMember,
     getMyChannelMember,
     getChannelStats,
-    viewChannel,
-    markChannelAsRead,
+    markMultipleChannelsAsRead,
     getChannelMemberCountsByGroup,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
@@ -456,8 +455,8 @@ export function handleEvent(msg) {
         handleAddEmoji(msg);
         break;
 
-    case SocketEvents.CHANNEL_VIEWED:
-        handleChannelViewedEvent(msg);
+    case SocketEvents.MULTIPLE_CHANNELS_VIEWED:
+        handleMultipleChannelsViewedEvent(msg);
         break;
 
     case SocketEvents.PLUGIN_ENABLED:
@@ -741,15 +740,6 @@ export function handlePostEditEvent(msg) {
     dispatch(receivedPost(post, crtEnabled));
 
     getProfilesAndStatusesForPosts([post], dispatch, getState);
-    const currentChannelId = getCurrentChannelId(getState());
-
-    // Update channel state
-    if (currentChannelId === msg.broadcast.channel_id) {
-        dispatch(getChannelStats(currentChannelId));
-        if (window.isActive) {
-            dispatch(viewChannel(currentChannelId));
-        }
-    }
 }
 
 async function handlePostDeleteEvent(msg) {
@@ -1291,11 +1281,10 @@ function handleReactionRemovedEvent(msg) {
     });
 }
 
-function handleChannelViewedEvent(msg) {
+function handleMultipleChannelsViewedEvent(msg) {
     // Useful for when multiple devices have the app open to different channels
-    if ((!window.isActive || getCurrentChannelId(getState()) !== msg.data.channel_id) &&
-        getCurrentUserId(getState()) === msg.broadcast.user_id) {
-        dispatch(markChannelAsRead(msg.data.channel_id, '', false));
+    if (getCurrentUserId(getState()) === msg.broadcast.user_id) {
+        dispatch(markMultipleChannelsAsRead(msg.data.channel_times));
     }
 }
 

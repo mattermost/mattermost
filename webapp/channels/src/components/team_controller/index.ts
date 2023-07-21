@@ -4,7 +4,7 @@
 import {connect, ConnectedProps} from 'react-redux';
 import {RouteComponentProps} from 'react-router-dom';
 
-import {fetchAllMyTeamsChannelsAndChannelMembersREST, fetchMyChannelsAndMembersREST, viewChannel} from 'mattermost-redux/actions/channels';
+import {fetchAllMyTeamsChannelsAndChannelMembersREST, fetchMyChannelsAndMembersREST} from 'mattermost-redux/actions/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
@@ -39,7 +39,6 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const disableRefetchingOnBrowserFocus = config.DisableRefetchingOnBrowserFocus === 'true';
 
     return {
-        currentUser,
         currentTeamId: getCurrentTeamId(state),
         currentChannelId: getCurrentChannelId(state),
         teamsList: getMyTeams(state),
@@ -55,7 +54,6 @@ const mapDispatchToProps = {
     fetchChannelsAndMembers,
     fetchMyChannelsAndMembersREST,
     fetchAllMyTeamsChannelsAndChannelMembersREST,
-    viewChannel,
     markChannelAsReadOnFocus,
     initializeTeam,
     joinTeam,
