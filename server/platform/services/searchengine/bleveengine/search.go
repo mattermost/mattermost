@@ -5,7 +5,6 @@ package bleveengine
 
 import (
 	"net/http"
-	"regexp"
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
@@ -17,13 +16,6 @@ import (
 
 const DeletePostsBatchSize = 500
 const DeleteFilesBatchSize = 500
-
-// Find the end of the term and include the wildcard if it exists
-// because we will put a wildcard at the end of the term regardless of whether a wildcard exists or not
-var wildcardRegExpForFileSearch = regexp.MustCompile(`\*?$`)
-
-// In excludedTerms case, we don't put a wildcard after the term.
-var exactPhraseRegExpForFileSearch = regexp.MustCompile(`"[^"]+"`)
 
 func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
 	b.Mutex.RLock()
