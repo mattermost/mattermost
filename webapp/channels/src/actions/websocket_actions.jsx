@@ -1282,7 +1282,6 @@ function handleReactionRemovedEvent(msg) {
 }
 
 function handleMultipleChannelsViewedEvent(msg) {
-    // Useful for when multiple devices have the app open to different channels
     if (getCurrentUserId(getState()) === msg.broadcast.user_id) {
         dispatch(markMultipleChannelsAsRead(msg.data.channel_times));
     }
