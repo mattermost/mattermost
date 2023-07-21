@@ -41,7 +41,7 @@ type Props = {
     config?: any;
     environmentConfig?: any;
     setNavigationBlocked?: any;
-    schema?: any;
+    schema: any;
     roles?: any;
     license?: any;
     editRole?: any;
@@ -52,15 +52,14 @@ type Props = {
     isCurrentUserSystemAdmin?: any;
 }
 
-type State = any;
+type State = any
 
 export default class SchemaAdminSettings extends React.PureComponent<Props, State> {
     buildSettingFunctions: any;
     errorMessageRef: any;
     handleSaved: any;
-    isPlugin: any;
-    saveActions: any;
-
+    isPlugin: boolean;
+    saveActions: any[];
     constructor(props: Props) {
         super(props);
         this.isPlugin = false;
@@ -99,6 +98,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
     }
 
     static getDerivedStateFromProps(props: Props, state: State) {
+        console.log("PROPS",props)
         if (props.schema && props.schema.id !== state.prevSchemaId) {
             return {
                 prevSchemaId: props.schema.id,
@@ -129,7 +129,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
 
         if (this.state.saveNeeded === 'both' || this.state.saveNeeded === 'permissions') {
             const settings = (this.props.schema && this.props.schema.settings) || [];
-            const rolesBinding = settings.reduce((acc: any, val: any) => {
+            const rolesBinding: any = settings.reduce((acc: any, val: any) => {
                 if (val.type === Constants.SettingsTypes.TYPE_PERMISSION) {
                     acc[val.permissions_mapping_name] = this.state[val.key].toString();
                 }
@@ -172,7 +172,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         const schema = this.props.schema;
 
         if (schema) {
-            let settings = [];
+            let settings: any = [];
 
             if (schema.settings) {
                 settings = schema.settings;
@@ -213,7 +213,6 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
 
         if (schema) {
             let settings = [];
-
             if (schema.settings) {
                 settings = schema.settings;
             } else if (schema.sections) {
@@ -251,7 +250,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         return state;
     }
 
-    getSetting(key: any) {
+    getSetting(key: string) {
         for (const setting of this.props.schema.settings) {
             if (setting.key === key) {
                 return setting;
@@ -341,9 +340,9 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         let helpTextDefault;
         if (setting.disabled_help_text && this.isDisabled(setting)) {
             helpText = setting.disabled_help_text;
-            isMarkdown = setting.disabled_help_text_markdown;
-            helpTextValues = setting.disabled_help_text_values;
-            helpTextDefault = setting.disabled_help_text_default;
+            isMarkdown = setting.disabled_help_text;
+            helpTextValues = setting.disabled_help_text;
+            helpTextDefault = setting.disabled_help_text;
         } else {
             helpText = setting.help_text;
             isMarkdown = setting.help_text_markdown;
