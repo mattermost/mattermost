@@ -1,22 +1,26 @@
-.. _mmctl_export:
+.. _mmctl_export_generate-presigned-url:
 
-mmctl export
-------------
+mmctl export generate-presigned-url
+-----------------------------------
 
-Management of exports
+Generate a presigned url for an export file. This is helpful when an export is big and might have trouble downloading from the Mattermost server.
 
 Synopsis
 ~~~~~~~~
 
 
-Management of exports
+Generate a presigned url for an export file. This is helpful when an export is big and might have trouble downloading from the Mattermost server.
+
+::
+
+  mmctl export generate-presigned-url [exportname] [flags]
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for export
+  -h, --help   help for generate-presigned-url
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,11 +40,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl export create <mmctl_export_create.rst>`_ 	 - Create export file
-* `mmctl export delete <mmctl_export_delete.rst>`_ 	 - Delete export file
-* `mmctl export download <mmctl_export_download.rst>`_ 	 - Download export files
-* `mmctl export generate-presigned-url <mmctl_export_generate-presigned-url.rst>`_ 	 - Generate a presigned url for an export file. This is helpful when an export is big and might have trouble downloading from the Mattermost server.
-* `mmctl export job <mmctl_export_job.rst>`_ 	 - List, show and cancel export jobs
-* `mmctl export list <mmctl_export_list.rst>`_ 	 - List export files
+* `mmctl export <mmctl_export.rst>`_ 	 - Management of exports
 
