@@ -19,9 +19,9 @@ const jobName = "ExportDelete"
 
 type AppIface interface {
 	configservice.ConfigService
-	ListDirectory(path string) ([]string, *model.AppError)
-	FileModTime(path string) (time.Time, *model.AppError)
-	RemoveFile(path string) *model.AppError
+	ListExportDirectory(path string) ([]string, *model.AppError)
+	ExportFileModTime(path string) (time.Time, *model.AppError)
+	RemoveExportFile(path string) *model.AppError
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
@@ -33,7 +33,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 
 		exportPath := *app.Config().ExportSettings.Directory
 		retentionTime := time.Duration(*app.Config().ExportSettings.RetentionDays) * 24 * time.Hour
-		exports, appErr := app.ListDirectory(exportPath)
+		exports, appErr := app.ListExportDirectory(exportPath)
 		if appErr != nil {
 			return appErr
 		}
@@ -41,7 +41,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		errors := merror.New()
 		for i := range exports {
 			filename := filepath.Base(exports[i])
-			modTime, appErr := app.FileModTime(filepath.Join(exportPath, filename))
+			modTime, appErr := app.ExportFileModTime(filepath.Join(exportPath, filename))
 			if appErr != nil {
 				mlog.Debug("Worker: Failed to get file modification time",
 					mlog.Err(appErr), mlog.String("export", exports[i]))
@@ -51,7 +51,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 
 			if time.Now().After(modTime.Add(retentionTime)) {
 				// remove file data from storage.
-				if appErr := app.RemoveFile(exports[i]); appErr != nil {
+				if appErr := app.RemoveExportFile(exports[i]); appErr != nil {
 					mlog.Debug("Worker: Failed to remove file",
 						mlog.Err(appErr), mlog.String("export", exports[i]))
 					errors.Append(appErr)

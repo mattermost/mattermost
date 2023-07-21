@@ -11,7 +11,7 @@ export default class PostDotMenu {
     constructor(container: Locator) {
         this.container = container;
 
-        this.deleteMenuItem = this.container.getByText('Delete', {exact: true});   
+        this.deleteMenuItem = this.container.getByText('Delete', {exact: true});
     }
 
     async toBeVisible() {

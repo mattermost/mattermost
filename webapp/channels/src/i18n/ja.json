@@ -2618,7 +2618,7 @@
   "announcement_bar.error.purchase_a_license_now": "今すぐライセンスを購入する",
   "announcement_bar.error.site_url.full": "<linkConsole>システムコンソール</linkConsole>で<linkSite>サイトURL</linkSite>を設定してください。",
   "announcement_bar.error.site_url_gitlab.full": "<linkConsole>システムコンソール</linkConsole>かGitLab Mattermostを使用している場合はgitlab.rbで、<linkSite>サイトURL</linkSite>を設定してください。",
-  "announcement_bar.error.trial_license_expiring": "**無料トライアルは、あと{days} 日です。**",
+  "announcement_bar.error.trial_license_expiring": "無料トライアルは、あと{days} 日です。",
   "announcement_bar.error.trial_license_expiring_last_day": "本日が無料トライアルの最終日です。引き続きMattermost ProfessionalとEnterpriseの機能を利用するには、今すぐライセンスを購入してください。",
   "announcement_bar.error.trial_license_expiring_last_day.short": "無料トライアルは本日が最終日です。",
   "announcement_bar.error.warn_metric_status.link": "さらに詳しく",
