@@ -104,8 +104,8 @@ jobs:
         with:
           name: e2e-smoketests-results
           path: |
-            cypress/logs/
-            cypress/results/
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
       - name: ci/e2e-smoketests-assert-results
         run: |
           # Assert that the run contained 0 failures
