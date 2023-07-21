@@ -3,9 +3,8 @@
 
 import {EmojiCategory} from '@mattermost/types/emojis';
 
-import * as Emoji from 'utils/emoji';
-
 import {Category, Categories} from '../types';
+import * as Emoji from 'utils/emoji';
 
 export const RECENT = 'recent';
 export const SEARCH_RESULTS = 'searchResults';

@@ -5,6 +5,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import {logError} from 'mattermost-redux/actions/errors';
+import store from 'stores/redux_store.jsx';
+
+import App from 'components/app';
+
+import {AnnouncementBarTypes} from 'utils/constants';
+import {setCSRFFromCookie} from 'utils/utils';
 
 // Import our styles
 import './sass/styles.scss';
@@ -12,11 +18,6 @@ import 'katex/dist/katex.min.css';
 
 import '@mattermost/compass-icons/css/compass-icons.css';
 import '@mattermost/components/dist/index.esm.css';
-
-import {setCSRFFromCookie} from 'utils/utils';
-import {AnnouncementBarTypes} from 'utils/constants';
-import store from 'stores/redux_store.jsx';
-import App from 'components/app';
 
 declare global {
     interface Window {

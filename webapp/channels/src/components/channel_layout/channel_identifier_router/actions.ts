@@ -1,25 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {History} from 'history';
-
-import {Client4} from 'mattermost-redux/client';
-
-import {joinChannel, getChannelByNameAndTeamName, getChannelMember, markGroupChannelOpen, fetchMyChannelsAndMembersREST} from 'mattermost-redux/actions/channels';
-import {getUser, getUserByUsername, getUserByEmail} from 'mattermost-redux/actions/users';
-import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUser, getCurrentUserId, getUserByUsername as selectUserByUsername, getUser as selectUser, getUserByEmail as selectUserByEmail} from 'mattermost-redux/selectors/entities/users';
-import {getChannelByName, getOtherChannels, getChannel, getChannelsNameMapInTeam, getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
-import {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
-import {GlobalState} from '@mattermost/types/store';
 import {Channel} from '@mattermost/types/channels';
+import {GlobalState} from '@mattermost/types/store';
+import {History} from 'history';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import * as GlobalActions from 'actions/global_actions';
+import {joinChannel, getChannelByNameAndTeamName, getChannelMember, markGroupChannelOpen, fetchMyChannelsAndMembersREST} from 'mattermost-redux/actions/channels';
+import {getUser, getUserByUsername, getUserByEmail} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
+import {getChannelByName, getOtherChannels, getChannel, getChannelsNameMapInTeam, getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
+import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUser, getCurrentUserId, getUserByUsername as selectUserByUsername, getUser as selectUser, getUserByEmail as selectUserByEmail} from 'mattermost-redux/selectors/entities/users';
+import {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import * as UserUtils from 'mattermost-redux/utils/user_utils';
+
 import {joinPrivateChannelPrompt} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
-import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {Match, MatchAndHistory} from './channel_identifier_router';
 

@@ -4,15 +4,14 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
+import {dismissNotice} from 'actions/views/notice';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {GenericAction} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from 'types/store';
-
 import {AnnouncementBarMessages, ConfigurationBanners, Preferences} from 'utils/constants';
-import {dismissNotice} from 'actions/views/notice';
 import {getSiteURL} from 'utils/url';
 
 import ConfigurationBar from './configuration_bar';

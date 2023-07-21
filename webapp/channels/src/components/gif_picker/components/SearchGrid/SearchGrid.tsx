@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GfycatAPIItem, GifsAppState, GifsResult} from '@mattermost/types/gifs';
 import React, {PureComponent} from 'react';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
-import {NoResultsVariant} from 'components/no_results_indicator/types';
-
 import InfiniteScroll from 'components/gif_picker/components/InfiniteScroll';
 import SearchItem from 'components/gif_picker/components/SearchItem';
-
-import {GfycatAPIItem, GifsAppState, GifsResult} from '@mattermost/types/gifs';
+import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
+import {NoResultsVariant} from 'components/no_results_indicator/types';
 
 import './SearchGrid.scss';
 

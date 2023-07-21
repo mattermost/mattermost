@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CustomEmoji} from '@mattermost/types/emojis';
+import {ServerError} from '@mattermost/types/errors';
 import {connect, ConnectedProps} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {getCustomEmojisEnabled} from 'mattermost-redux/selectors/entities/emojis';
+import {incrementEmojiPickerPage, setUserSkinTone} from 'actions/emoji_actions';
 import {getCustomEmojis, searchCustomEmojis} from 'mattermost-redux/actions/emojis';
-import {CustomEmoji} from '@mattermost/types/emojis';
-import {ServerError} from '@mattermost/types/errors';
+import {getCustomEmojisEnabled} from 'mattermost-redux/selectors/entities/emojis';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import {getEmojiMap, getRecentEmojisNames, getUserSkinTone} from 'selectors/emojis';
 
 import {GlobalState} from 'types/store';
-
-import {incrementEmojiPickerPage, setUserSkinTone} from 'actions/emoji_actions';
-import {getEmojiMap, getRecentEmojisNames, getUserSkinTone} from 'selectors/emojis';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import EmojiPicker from './emoji_picker';
 

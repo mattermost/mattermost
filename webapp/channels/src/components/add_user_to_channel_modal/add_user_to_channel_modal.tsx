@@ -1,23 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
+import {RelationOneToOne} from '@mattermost/types/utilities';
 import React, {ChangeEvent, FormEvent} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {getFullName} from 'mattermost-redux/utils/user_utils';
 import {ActionResult} from 'mattermost-redux/types/actions';
+import {getFullName} from 'mattermost-redux/utils/user_utils';
 
+import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import SearchChannelWithPermissionsProvider from 'components/suggestion/search_channel_with_permissions_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
-import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 
 import {placeCaretAtEnd} from 'utils/utils';
-
-import {UserProfile} from '@mattermost/types/users';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {RelationOneToOne} from '@mattermost/types/utilities';
 
 export type Props = {
 

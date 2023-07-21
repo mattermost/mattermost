@@ -1,31 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {Post} from '@mattermost/types/posts';
 import {connect} from 'react-redux';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
     getMyGroupMentionKeysForChannel,
     getMyGroupMentionKeys,
 } from 'mattermost-redux/selectors/entities/groups';
-import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import {GlobalState} from 'types/store';
-import {canManageMembers} from 'utils/channel_utils';
-import {MentionKey} from 'utils/text_formatting';
-
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-
-import {Preferences} from 'utils/constants';
-
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
+import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
+import {GlobalState} from 'types/store';
+import {canManageMembers} from 'utils/channel_utils';
+import {Preferences} from 'utils/constants';
+import {MentionKey} from 'utils/text_formatting';
 
 import PostMarkdown from './post_markdown';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 export function makeGetMentionKeysForPost(): (
     state: GlobalState,

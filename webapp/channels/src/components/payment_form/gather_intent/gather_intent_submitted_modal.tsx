@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CheckCircleIcon} from '@mattermost/compass-icons/components';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 import './gather_intent.scss';
-import {CheckCircleIcon} from '@mattermost/compass-icons/components';
 
 export interface GatherIntentModalProps {
     onClose: () => void;

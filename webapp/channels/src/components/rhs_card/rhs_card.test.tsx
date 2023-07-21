@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
-
-import {TestHelper} from 'utils/test_helper';
+import React, {ComponentProps} from 'react';
 
 import {PostPluginComponent} from 'types/store/plugins';
 import {RhsState} from 'types/store/rhs';
+import {TestHelper} from 'utils/test_helper';
 
 import RhsCard from './rhs_card';
 

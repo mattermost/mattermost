@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import {MutableRefObject, useEffect, useRef} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getCurrentUser, isFirstAdmin, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {UserProfile} from '@mattermost/types/users';
 import {isModalOpen} from 'selectors/views/modals';
+
 import {GlobalState} from 'types/store';
 
 /**

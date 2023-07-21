@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
 
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {GlobalState} from '@mattermost/types/store';
 
 import ChannelPermissionGate from './channel_permission_gate';
 

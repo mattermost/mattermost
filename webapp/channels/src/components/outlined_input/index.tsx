@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {OutlinedInput as MUIOutlineInput, OutlinedInputProps} from '@mui/material';
+import React from 'react';
 
 /**
  * A horizontal separator for use in menus.

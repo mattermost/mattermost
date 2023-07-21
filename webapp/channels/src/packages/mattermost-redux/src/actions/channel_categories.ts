@@ -1,18 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CategorySorting, OrderedChannelCategories, ChannelCategory} from '@mattermost/types/channel_categories';
+import {Channel} from '@mattermost/types/channels';
 import {batchActions} from 'redux-batched-actions';
 
 import {ChannelCategoryTypes, ChannelTypes} from 'mattermost-redux/action_types';
-
-import {Client4} from 'mattermost-redux/client';
-
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
-
-import {General} from '../constants';
+import {Client4} from 'mattermost-redux/client';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-
 import {
     getAllCategoriesByIds,
     getCategory,
@@ -21,16 +18,14 @@ import {
     getCategoryInTeamWithChannel,
 } from 'mattermost-redux/selectors/entities/channel_categories';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
 import {
     ActionFunc,
     DispatchFunc,
     GetStateFunc,
 } from 'mattermost-redux/types/actions';
-import {CategorySorting, OrderedChannelCategories, ChannelCategory} from '@mattermost/types/channel_categories';
-import {Channel} from '@mattermost/types/channels';
-
 import {insertMultipleWithoutDuplicates, insertWithoutDuplicates, removeItem} from 'mattermost-redux/utils/array_utils';
+
+import {General} from '../constants';
 
 export function expandCategory(categoryId: string) {
     return setCategoryCollapsed(categoryId, false);

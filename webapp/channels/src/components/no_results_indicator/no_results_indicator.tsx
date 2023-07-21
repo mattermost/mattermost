@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {ReactNode, CSSProperties} from 'react';
 import {FormattedMessage, MessageDescriptor} from 'react-intl';
-import classNames from 'classnames';
-
-import {t} from 'utils/i18n';
 
 import FlagIcon from 'components/widgets/icons/flag_icon';
 import MentionsIcon from 'components/widgets/icons/mentions_icon';
 import PinIcon from 'components/widgets/icons/pin_icon';
 import SearchIcon from 'components/widgets/icons/search_icon';
+
+import {t} from 'utils/i18n';
 
 import {NoResultsVariant, NoResultsLayout} from './types';
 

@@ -1,27 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useCallback, useState, useRef} from 'react';
-import styled from 'styled-components';
-import {FormattedMessage, useIntl} from 'react-intl';
-import {debounce} from 'lodash';
-
 import {CloseIcon, MagnifyIcon} from '@mattermost/compass-icons/components';
-
-import {ModalData} from 'types/actions';
-import {UserProfile} from '@mattermost/types/users';
 import {Group} from '@mattermost/types/groups';
+import {UserProfile} from '@mattermost/types/users';
+import {debounce} from 'lodash';
+import React, {useEffect, useCallback, useState, useRef} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import styled from 'styled-components';
+
 import {ActionResult} from 'mattermost-redux/types/actions';
 
-import {shouldFocusMainTextbox} from 'utils/post_utils';
-import * as Keyboard from 'utils/keyboard';
-import Constants, {A11yClassNames, A11yCustomEventTypes, A11yFocusEventDetail, ModalIdentifiers} from 'utils/constants';
-
 import {QuickInput} from 'components/quick_input/quick_input';
-import Popover from 'components/widgets/popover';
-import ViewUserGroupModal from 'components/view_user_group_modal';
-import UserGroupsModal from 'components/user_groups_modal';
 import GroupMemberList from 'components/user_group_popover/group_member_list';
+import UserGroupsModal from 'components/user_groups_modal';
+import ViewUserGroupModal from 'components/view_user_group_modal';
+import Popover from 'components/widgets/popover';
+
+import {ModalData} from 'types/actions';
+import Constants, {A11yClassNames, A11yCustomEventTypes, A11yFocusEventDetail, ModalIdentifiers} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import {shouldFocusMainTextbox} from 'utils/post_utils';
 
 import useShouldClose from './useShouldClose';
 import './user_group_popover.scss';

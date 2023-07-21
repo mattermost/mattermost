@@ -1,24 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CustomEmoji} from '@mattermost/types/emojis';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import React, {ChangeEvent, FormEvent, SyntheticEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
-
-import {UserProfile} from '@mattermost/types/users';
-import {CustomEmoji} from '@mattermost/types/emojis';
-import {Team} from '@mattermost/types/teams';
 
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
-import {getHistory} from 'utils/browser_history';
-import {localizeMessage} from 'utils/utils';
-import {Constants} from 'utils/constants';
 
+import {getHistory} from 'utils/browser_history';
+import {Constants} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
+import {localizeMessage} from 'utils/utils';
 
 export interface AddEmojiProps {
     actions: {

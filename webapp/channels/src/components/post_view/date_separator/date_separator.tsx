@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import React, {FC, memo} from 'react';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
-
 import BasicSeparator from 'components/widgets/separator/basic-separator';
 
 const DATE_RANGES = [

@@ -1,21 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {ReactWrapper, shallow} from 'enzyme';
-
+import React from 'react';
+import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
 
-import {act} from 'react-dom/test-utils';
-
 import * as cloudActions from 'actions/cloud';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import {TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import CloudStartTrialButton from './cloud_start_trial_btn';

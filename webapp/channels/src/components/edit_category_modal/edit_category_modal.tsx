@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GenericModal} from '@mattermost/components';
+import {ChannelCategory} from '@mattermost/types/channel_categories';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {ChannelCategory} from '@mattermost/types/channel_categories';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
-import {GenericModal} from '@mattermost/components';
 
 import {localizeMessage} from 'utils/utils';
 

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentType} from 'react';
 import {mount} from 'enzyme';
+import React, {ComponentType} from 'react';
 
 import withGetCloudSubscription from './with_get_cloud_subscription';
 

@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
-
-import MenuActionProvider from 'components/suggestion/menu_action_provider';
-import GenericUserProvider from 'components/suggestion/generic_user_provider';
-import GenericChannelProvider from 'components/suggestion/generic_channel_provider';
 import AutocompleteSelector from 'components/autocomplete_selector';
 import PostContext from 'components/post_view/post_context';
+import GenericChannelProvider from 'components/suggestion/generic_channel_provider';
+import GenericUserProvider from 'components/suggestion/generic_user_provider';
+import MenuActionProvider from 'components/suggestion/menu_action_provider';
 
 import type {OwnProps, PropsFromRedux} from './index';
 

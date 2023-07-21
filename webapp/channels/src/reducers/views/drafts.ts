@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {combineReducers} from 'redux';
+
 import {GenericAction} from 'mattermost-redux/types/actions';
+
 import {ActionTypes} from 'utils/constants';
 
 function remotes(state: Record<string, boolean> = {}, action: GenericAction) {

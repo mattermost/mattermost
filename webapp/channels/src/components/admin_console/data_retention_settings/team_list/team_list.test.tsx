@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import {Team} from '@mattermost/types/teams';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import TeamList from 'components/admin_console/data_retention_settings/team_list/team_list';
+
 import {TestHelper} from 'utils/test_helper';
-import {Team} from '@mattermost/types/teams';
 
 describe('components/admin_console/data_retention_settings/team_list', () => {
     const team: Team = Object.assign(TestHelper.getTeamMock({id: 'team-1'}));

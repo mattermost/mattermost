@@ -7,16 +7,15 @@ import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannelNameToDisplayNameMap} from 'mattermost-redux/selectors/entities/channels';
 import {getAutolinkedUrlSchemes, getConfig, getManagedResourcePaths} from 'mattermost-redux/selectors/entities/general';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-
-import {GlobalState} from 'types/store';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getEmojiMap} from 'selectors/emojis';
 
-import {getSiteURL} from 'utils/url';
+import {GlobalState} from 'types/store';
 import {ChannelNamesMap, MentionKey} from 'utils/text_formatting';
+import {getSiteURL} from 'utils/url';
 
 import Markdown from './markdown';
 

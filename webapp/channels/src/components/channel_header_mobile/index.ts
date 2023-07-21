@@ -3,23 +3,21 @@
 
 import {Location} from 'history';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
 import {withRouter, matchPath} from 'react-router-dom';
+import {bindActionCreators, Dispatch} from 'redux';
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {
-    getCurrentChannel,
-    getMyCurrentChannelMembership,
-} from 'mattermost-redux/selectors/entities/channels';
-import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
-
+import {close as closeLhs} from 'actions/views/lhs';
 import {
     closeRightHandSide as closeRhs,
     closeMenu as closeRhsMenu,
 } from 'actions/views/rhs';
-import {close as closeLhs} from 'actions/views/lhs';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {
+    getCurrentChannel,
+    getMyCurrentChannelMembership,
+} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {GlobalState} from 'types/store';

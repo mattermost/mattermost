@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ServerError} from '@mattermost/types/errors';
+import {OutgoingWebhook} from '@mattermost/types/integrations';
+import {Team} from '@mattermost/types/teams';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Team} from '@mattermost/types/teams';
-import {OutgoingWebhook} from '@mattermost/types/integrations';
-import {ServerError} from '@mattermost/types/errors';
-
-import {getHistory} from 'utils/browser_history';
 import ConfirmModal from 'components/confirm_modal';
 import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook';
 import LoadingScreen from 'components/loading_screen';
+
+import {getHistory} from 'utils/browser_history';
 
 const HEADER = {id: 'integrations.edit', defaultMessage: 'Edit'};
 const FOOTER = {id: 'update_outgoing_webhook.update', defaultMessage: 'Update'};

@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GfycatAPIItem} from '@mattermost/types/gifs';
 import React, {PureComponent} from 'react';
 import {connect} from 'react-redux';
 
-import {GfycatAPIItem} from '@mattermost/types/gifs';
-
 import {GlobalState} from 'types/store';
-
 import {getImageSrc} from 'utils/post_utils';
 
 import './SearchItem.scss';

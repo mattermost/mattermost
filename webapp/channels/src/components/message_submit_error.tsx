@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ServerError} from '@mattermost/types/errors';
 import React, {MouseEventHandler} from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {ServerError} from '@mattermost/types/errors';
 
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
 

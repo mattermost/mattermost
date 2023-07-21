@@ -1,17 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Locale} from 'date-fns';
 import React from 'react';
-
 import {DayPicker} from 'react-day-picker';
 
-import type {Locale} from 'date-fns';
-
 import {SuggestionProps} from '../suggestion';
-
+import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
-import Constants from 'utils/constants';
 
 import 'react-day-picker/dist/style.css';
 

@@ -1,27 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import {Address, Feedback, Product} from '@mattermost/types/cloud';
+import {Team} from '@mattermost/types/teams';
 import {Stripe} from '@stripe/stripe-js';
+import React from 'react';
 import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import {RouteComponentProps, withRouter} from 'react-router-dom';
 
-import ComplianceScreenFailedSvg from 'components/common/svg_images_components/access_denied_happy_svg';
-
-import {Address, Feedback, Product} from '@mattermost/types/cloud';
+import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
-import {BillingDetails} from 'types/cloud/sku';
-import {pageVisited, trackEvent} from 'actions/telemetry_actions';
-import {RecurringIntervals, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {Team} from '@mattermost/types/teams';
+import ComplianceScreenFailedSvg from 'components/common/svg_images_components/access_denied_happy_svg';
+import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
+import PaymentFailedSvg from 'components/common/svg_images_components/payment_failed_svg';
+import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
 
+import {BillingDetails} from 'types/cloud/sku';
+import {RecurringIntervals, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getNextBillingDate} from 'utils/utils';
-
-import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
-import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
-import PaymentFailedSvg from 'components/common/svg_images_components/payment_failed_svg';
 
 import IconMessage from './icon_message';
 

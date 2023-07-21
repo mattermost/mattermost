@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Group} from '@mattermost/types/groups';
+import {UserProfile} from '@mattermost/types/users';
 import React, {useRef, useState} from 'react';
 import {Overlay} from 'react-bootstrap';
 
 import {Client4} from 'mattermost-redux/client';
-import {UserProfile} from '@mattermost/types/users';
-import {Group} from '@mattermost/types/groups';
 
 import ProfilePopover from 'components/profile_popover';
 import UserGroupPopover from 'components/user_group_popover';
+import {MAX_LIST_HEIGHT, getListHeight, VIEWPORT_SCALE_FACTOR} from 'components/user_group_popover/group_member_list/group_member_list';
 
 import Constants, {A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {popOverOverlayPosition} from 'utils/position_utils';
 import {getViewportSize} from 'utils/utils';
-
-import {MAX_LIST_HEIGHT, getListHeight, VIEWPORT_SCALE_FACTOR} from 'components/user_group_popover/group_member_list/group_member_list';
 
 const HEADER_HEIGHT_ESTIMATE = 130;
 

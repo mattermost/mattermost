@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {TeamsState} from '@mattermost/types/teams';
+
 import {TestHelper} from 'utils/test_helper';
 
 export const emptyTeams: () => TeamsState = () => ({

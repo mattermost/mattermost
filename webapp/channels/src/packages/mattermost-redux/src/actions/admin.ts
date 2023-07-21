@@ -1,32 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {batchActions} from 'redux-batched-actions';
-
-import {AdminTypes} from 'mattermost-redux/action_types';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {Client4} from 'mattermost-redux/client';
-
-import {General} from '../constants';
-
-import {Compliance} from '@mattermost/types/compliance';
-import {GroupSearchOpts} from '@mattermost/types/groups';
-import {
-    CreateDataRetentionCustomPolicy,
-} from '@mattermost/types/data_retention';
-import {
-    TeamSearchOpts,
-} from '@mattermost/types/teams';
+import {LogFilter} from '@mattermost/types/admin';
 import {
     ChannelSearchOpts,
 } from '@mattermost/types/channels';
-
-import {CompleteOnboardingRequest} from '@mattermost/types/setup';
-import {LogFilter} from '@mattermost/types/admin';
+import {Compliance} from '@mattermost/types/compliance';
+import {
+    CreateDataRetentionCustomPolicy,
+} from '@mattermost/types/data_retention';
 import {ServerError} from '@mattermost/types/errors';
+import {GroupSearchOpts} from '@mattermost/types/groups';
+import {CompleteOnboardingRequest} from '@mattermost/types/setup';
+import {
+    TeamSearchOpts,
+} from '@mattermost/types/teams';
+import {batchActions} from 'redux-batched-actions';
 
-import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
+import {AdminTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
+import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+
+import {General} from '../constants';
+
 import {logError} from './errors';
+import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo}: LogFilter): ActionFunc {
     const logFilter = {

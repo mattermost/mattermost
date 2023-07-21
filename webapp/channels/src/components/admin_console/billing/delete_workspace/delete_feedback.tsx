@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Feedback} from '@mattermost/types/cloud';
 import React from 'react';
-
 import {injectIntl, WrappedComponentProps} from 'react-intl';
 
-import {Feedback} from '@mattermost/types/cloud';
 import FeedbackModal, {FeedbackOption} from 'components/feedback_modal/feedback';
 
 type Props = {

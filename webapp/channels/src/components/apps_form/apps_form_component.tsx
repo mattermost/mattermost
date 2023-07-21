@@ -1,28 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AppCallResponse, AppField, AppForm, AppFormValues, AppSelectOption, FormResponseData, AppLookupResponse, AppFormValue} from '@mattermost/types/apps';
+import {DialogElement} from '@mattermost/types/integrations';
 import React from 'react';
 import {Modal, Fade} from 'react-bootstrap';
 import {FormattedMessage, injectIntl, WrappedComponentProps} from 'react-intl';
 
+import {AppCallResponseTypes, AppFieldTypes} from 'mattermost-redux/constants/apps';
 import {
     checkDialogElementForError, checkIfErrorsMatchElements,
 } from 'mattermost-redux/utils/integration_utils';
-import {AppCallResponse, AppField, AppForm, AppFormValues, AppSelectOption, FormResponseData, AppLookupResponse, AppFormValue} from '@mattermost/types/apps';
-import {DialogElement} from '@mattermost/types/integrations';
-import {AppCallResponseTypes, AppFieldTypes} from 'mattermost-redux/constants/apps';
+
+import Markdown from 'components/markdown';
+import SpinnerButton from 'components/spinner_button';
+import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
+import SuggestionList from 'components/suggestion/suggestion_list';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {DoAppCallResult} from 'types/apps';
-
-import SpinnerButton from 'components/spinner_button';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import SuggestionList from 'components/suggestion/suggestion_list';
-import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
-
-import {localizeMessage} from 'utils/utils';
-
 import {filterEmptyOptions} from 'utils/apps';
-import Markdown from 'components/markdown';
+import {localizeMessage} from 'utils/utils';
 
 import AppsFormField from './apps_form_field';
 import AppsFormHeader from './apps_form_header';

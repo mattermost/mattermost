@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
-
 import {closeRightHandSide, showFlaggedPosts} from 'actions/views/rhs';
+import {getRhsState} from 'selectors/rhs';
+
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import {getRhsState} from 'selectors/rhs';
+
 import {GlobalState} from 'types/store';
 import Constants, {RHSStates} from 'utils/constants';
 

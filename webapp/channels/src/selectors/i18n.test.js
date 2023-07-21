@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {General} from 'mattermost-redux/constants';
-
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 
 describe('selectors/i18n', () => {

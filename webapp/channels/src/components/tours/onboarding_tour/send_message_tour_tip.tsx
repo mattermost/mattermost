@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {useMeasurePunchouts} from '@mattermost/components';
+import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import PrewrittenChips from 'components/advanced_create_post/prewritten_chips';
-
-import {Channel} from '@mattermost/types/channels';
-
-import {useMeasurePunchouts} from '@mattermost/components';
 
 import OnboardingTourTip from './onboarding_tour_tip';
 

@@ -1,42 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelUnread} from '@mattermost/types/channels';
+import {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
+import {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
+import {Reaction} from '@mattermost/types/reactions';
+import {GlobalState} from '@mattermost/types/store';
+import {UserProfile} from '@mattermost/types/users';
 import {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Reaction} from '@mattermost/types/reactions';
-import {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
-import {GlobalState} from '@mattermost/types/store';
-import {Channel, ChannelUnread} from '@mattermost/types/channels';
-import {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
-
-import {Client4, DEFAULT_LIMIT_AFTER, DEFAULT_LIMIT_BEFORE} from 'mattermost-redux/client';
-
 import {PostTypes, ChannelTypes, FileTypes, IntegrationTypes} from 'mattermost-redux/action_types';
-
-import {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
-import {getCurrentChannelId, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
-import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
-import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
-import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
-
-import {General, Preferences, Posts} from 'mattermost-redux/constants';
-
-import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'mattermost-redux/actions/users';
+import {selectChannel} from 'mattermost-redux/actions/channels';
+import {systemEmojis, getCustomEmojiByName, getCustomEmojisByName} from 'mattermost-redux/actions/emojis';
+import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {
     deletePreferences,
     savePreferences,
 } from 'mattermost-redux/actions/preferences';
-import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
-import {logError} from './errors';
-import {systemEmojis, getCustomEmojiByName, getCustomEmojisByName} from 'mattermost-redux/actions/emojis';
-import {selectChannel} from 'mattermost-redux/actions/channels';
 import {decrementThreadCounts} from 'mattermost-redux/actions/threads';
+import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'mattermost-redux/actions/users';
+import {Client4, DEFAULT_LIMIT_AFTER, DEFAULT_LIMIT_BEFORE} from 'mattermost-redux/client';
+import {General, Preferences, Posts} from 'mattermost-redux/constants';
+import {getCurrentChannelId, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
+import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
+import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
+import {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
+
+import {logError} from './errors';
 
 // receivedPost should be dispatched after a single post from the server. This typically happens when an existing post
 // is updated.

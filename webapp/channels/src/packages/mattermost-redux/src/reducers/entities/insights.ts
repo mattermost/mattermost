@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TopReaction, TimeFrame} from '@mattermost/types/insights';
 import {combineReducers} from 'redux';
 
 import {InsightTypes} from 'mattermost-redux/action_types';
 import {GenericAction} from 'mattermost-redux/types/actions';
-import {TopReaction, TimeFrame} from '@mattermost/types/insights';
 
 const sortReactionsIntoState = (data: TopReaction[]) => {
     const newItems: Record<string, TopReaction> = {};

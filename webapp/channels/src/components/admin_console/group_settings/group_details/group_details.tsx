@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
 import {ChannelWithTeamData} from '@mattermost/types/channels';
 import {
     Group,
@@ -15,11 +12,12 @@ import {
 } from '@mattermost/types/groups';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
+
+import {ActionResult} from 'mattermost-redux/types/actions';
+
 import BlockableLink from 'components/admin_console/blockable_link';
-
-import {t} from 'utils/i18n';
-import {localizeMessage} from 'utils/utils';
-
 import {GroupProfileAndSettings} from 'components/admin_console/group_settings/group_details/group_profile_and_settings';
 import GroupTeamsAndChannels from 'components/admin_console/group_settings/group_details/group_teams_and_channels';
 import GroupUsers from 'components/admin_console/group_settings/group_details/group_users';
@@ -27,11 +25,13 @@ import SaveChangesPanel from 'components/admin_console/team_channel_settings/sav
 import ChannelSelectorModal from 'components/channel_selector_modal';
 import FormError from 'components/form_error';
 import TeamSelectorModal from 'components/team_selector_modal';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import AdminHeader from 'components/widgets/admin_console/admin_header';
+
+import {t} from 'utils/i18n';
+import {localizeMessage} from 'utils/utils';
 
 export type Props = {
     groupID: string;

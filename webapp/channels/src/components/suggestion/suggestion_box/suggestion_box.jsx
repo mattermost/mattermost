@@ -7,6 +7,7 @@ import React from 'react';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import QuickInput from 'components/quick_input';
+
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';

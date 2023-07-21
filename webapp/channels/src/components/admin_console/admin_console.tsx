@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CloudState, Product} from '@mattermost/types/cloud';
+import {AdminConfig, EnvironmentConfig, ClientLicense} from '@mattermost/types/config';
+import {Role} from '@mattermost/types/roles';
+import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {ActionFunc} from 'mattermost-redux/types/actions';
 
-import ModalController from 'components/modal_controller';
 import SchemaAdminSettings from 'components/admin_console/schema_admin_settings';
-import DiscardChangesModal from 'components/discard_changes_modal';
+import AnnouncementBarController from 'components/announcement_bar';
 import BackstageNavbar from 'components/backstage/components/backstage_navbar';
 import DelinquencyModal from 'components/delinquency_modal';
-import AnnouncementBarController from 'components/announcement_bar';
+import DiscardChangesModal from 'components/discard_changes_modal';
+import ModalController from 'components/modal_controller';
 import SystemNotice from 'components/system_notice';
+
 import {LhsItemType} from 'types/store/lhs';
 import {applyTheme, resetTheme} from 'utils/utils';
-
-import {Role} from '@mattermost/types/roles';
-import {CloudState, Product} from '@mattermost/types/cloud';
-import {DeepPartial} from '@mattermost/types/utilities';
-import {AdminConfig, EnvironmentConfig, ClientLicense} from '@mattermost/types/config';
 
 import AdminSidebar from './admin_sidebar';
 import Highlight from './highlight';

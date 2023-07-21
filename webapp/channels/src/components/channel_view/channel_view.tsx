@@ -5,12 +5,12 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {RouteComponentProps} from 'react-router-dom';
 
-import deferComponentRender from 'components/deferComponentRender';
-import ChannelHeader from 'components/channel_header';
-import FileUploadOverlay from 'components/file_upload_overlay';
-import PostView from 'components/post_view';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AdvancedCreatePost from 'components/advanced_create_post';
+import ChannelHeader from 'components/channel_header';
+import deferComponentRender from 'components/deferComponentRender';
+import FileUploadOverlay from 'components/file_upload_overlay';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import PostView from 'components/post_view';
 
 import type {PropsFromRedux} from './index';
 

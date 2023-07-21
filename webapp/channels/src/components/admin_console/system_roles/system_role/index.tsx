@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Role} from '@mattermost/types/roles';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-import {Role} from '@mattermost/types/roles';
-import {updateUserRoles} from 'mattermost-redux/actions/users';
+import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 import {editRole} from 'mattermost-redux/actions/roles';
-import {getRolesById} from 'mattermost-redux/selectors/entities/roles';
+import {updateUserRoles} from 'mattermost-redux/actions/users';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getRolesById} from 'mattermost-redux/selectors/entities/roles';
+import {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from 'types/store';
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
 import SystemRole from './system_role';
 

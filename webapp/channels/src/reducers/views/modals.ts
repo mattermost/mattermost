@@ -7,7 +7,6 @@ import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
 import {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ViewsState} from 'types/store/views';
-
 import {ActionTypes} from 'utils/constants';
 
 export function modalState(state: ViewsState['modals']['modalState'] = {}, action: GenericAction) {

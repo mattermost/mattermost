@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 import {useIntl} from 'react-intl';
-
-import {Channel} from '@mattermost/types/channels';
 
 import {SidebarCategoryHeaderStatic} from '../sidebar_category_header';
 import SidebarChannel from '../sidebar_channel';

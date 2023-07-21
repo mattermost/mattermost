@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTimezoneFull} from 'mattermost-redux/selectors/entities/timezone';
-
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {updateMe} from './users';

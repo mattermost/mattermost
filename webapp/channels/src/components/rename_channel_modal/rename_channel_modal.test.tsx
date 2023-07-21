@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
 import React from 'react';
 
 import {RequestStatus} from 'mattermost-redux/constants';
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-
 import {TestHelper} from 'utils/test_helper';
 
 import RenameChannelModal, {RenameChannelModal as RenameChannelModalClass} from './rename_channel_modal';

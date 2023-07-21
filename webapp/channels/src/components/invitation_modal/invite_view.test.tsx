@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Team} from '@mattermost/types/teams';
 import React from 'react';
-
+import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
 
-import store from 'stores/redux_store.jsx';
-import {mountWithThemedIntl} from 'tests/helpers/themed-intl-test-helper';
-
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
-import {Team} from '@mattermost/types/teams';
-import {generateId} from 'utils/utils';
+import store from 'stores/redux_store.jsx';
+
+import {mountWithThemedIntl} from 'tests/helpers/themed-intl-test-helper';
+import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper as TH} from 'utils/test_helper';
+import {generateId} from 'utils/utils';
 
 import InviteAs, {InviteType} from './invite_as';
 import InviteView, {Props} from './invite_view';
-import {SelfHostedProducts} from 'utils/constants';
-import {act} from 'react-dom/test-utils';
 
 const defaultProps: Props = deepFreeze({
     setInviteAs: jest.fn(),

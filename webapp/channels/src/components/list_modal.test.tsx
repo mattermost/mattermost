@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import {Group} from '@mattermost/types/groups';
 import {shallow} from 'enzyme';
+import React from 'react';
+
+import {TestHelper} from 'utils/test_helper';
 
 import ListModal, {DEFAULT_NUM_PER_PAGE} from './list_modal';
-import {Group} from '@mattermost/types/groups';
-import {TestHelper} from 'utils/test_helper';
 
 describe('components/ListModal', () => {
     const mockItem1 = TestHelper.getGroupMock({id: '123', name: 'bar31'});

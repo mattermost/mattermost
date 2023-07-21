@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Team} from '@mattermost/types/teams';
 import React, {ChangeEvent, MouseEvent, ReactNode} from 'react';
 import {FormattedMessage, FormattedDate} from 'react-intl';
 
-import Constants from 'utils/constants';
-import {imageURLForTeam, isMobile, localizeMessage, moveCursorToEnd} from 'utils/utils';
-import {t} from 'utils/i18n';
-
+import LocalizedInput from 'components/localized_input/localized_input';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import SettingPicture from 'components/setting_picture';
 import BackIcon from 'components/widgets/icons/fa_back_icon';
-import LocalizedInput from 'components/localized_input/localized_input';
 
-import {Team} from '@mattermost/types/teams';
+import Constants from 'utils/constants';
+import {t} from 'utils/i18n';
+import {imageURLForTeam, isMobile, localizeMessage, moveCursorToEnd} from 'utils/utils';
 
 import OpenInvite from './open_invite';
 

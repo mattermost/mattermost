@@ -1,21 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
+import {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 import deepEqual from 'fast-deep-equal';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import * as NotificationSounds from 'utils/notification_sounds';
-
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
-
-import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
 
 import NotificationSection from 'components/channel_notifications_modal/components/notification_section.jsx';
 
-import {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
-import {UserNotifyProps, UserProfile} from '@mattermost/types/users';
+import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
+import * as NotificationSounds from 'utils/notification_sounds';
 
 import type {PropsFromRedux} from './index';
 

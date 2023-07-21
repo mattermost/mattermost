@@ -6,7 +6,6 @@ import React, {useCallback, useEffect, useState} from 'react';
 import CopyButton from 'components/copy_button';
 
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
-
 import * as TextFormatting from 'utils/text_formatting';
 
 type Props = {

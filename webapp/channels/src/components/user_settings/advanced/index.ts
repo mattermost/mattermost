@@ -4,16 +4,15 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {get, getUnreadScrollPositionPreference, makeGetCategory, syncedDraftsAreAllowed} from 'mattermost-redux/selectors/entities/preferences';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {updateUserActive, revokeAllSessionsForUser} from 'mattermost-redux/actions/users';
-
-import {Preferences} from 'utils/constants';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {get, getUnreadScrollPositionPreference, makeGetCategory, syncedDraftsAreAllowed} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from 'types/store';
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import {Preferences} from 'utils/constants';
 
 import AdvancedSettingsDisplay, {Props} from './user_settings_advanced';
 

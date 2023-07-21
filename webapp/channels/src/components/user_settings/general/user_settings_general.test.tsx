@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {Provider} from 'react-redux';
 
-import {UserProfile} from '@mattermost/types/users';
-
 import configureStore from 'store';
-
 import {shallowWithIntl, mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 

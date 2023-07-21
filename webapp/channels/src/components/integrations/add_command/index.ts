@@ -4,8 +4,8 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
 import {addCommand} from 'mattermost-redux/actions/integrations';
+import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import AddCommand, {Props} from './add_command';
 

@@ -3,12 +3,11 @@
 
 import nock from 'nock';
 
+import {emitChannelClickEvent} from 'actions/global_actions';
 import {getChannelByNameAndTeamName, getChannelMember, joinChannel} from 'mattermost-redux/actions/channels';
 import {getUserByEmail} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import TestHelper from 'packages/mattermost-redux/test/test_helper';
 
-import {emitChannelClickEvent} from 'actions/global_actions';
 import {
     goToChannelByChannelName,
     goToDirectChannelByUserId,
@@ -17,6 +16,8 @@ import {
     goToDirectChannelByEmail,
     getPathFromIdentifier,
 } from 'components/channel_layout/channel_identifier_router/actions';
+
+import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import mockStore from 'tests/test_store';
 import {joinPrivateChannelPrompt} from 'utils/channel_utils';
 

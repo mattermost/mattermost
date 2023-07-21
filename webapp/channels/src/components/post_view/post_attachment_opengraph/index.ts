@@ -2,17 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-
 import {bindActionCreators, Dispatch} from 'redux';
 
+import {editPost} from 'actions/views/posts';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getOpenGraphMetadataForUrl} from 'mattermost-redux/selectors/entities/posts';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {arePreviewsCollapsed} from 'selectors/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {GenericAction} from 'mattermost-redux/types/actions';
+import {arePreviewsCollapsed} from 'selectors/preferences';
 
-import {editPost} from 'actions/views/posts';
 import {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
 

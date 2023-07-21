@@ -4,18 +4,16 @@
 import {connect, ConnectedProps} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-import {GlobalState} from 'types/store';
-
 import {toggleEmbedVisibility} from 'actions/post_actions';
 import {openModal} from 'actions/views/modals';
 import {getFilePublicLink} from 'mattermost-redux/actions/files';
-
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {GenericAction} from 'mattermost-redux/types/actions';
 import {getIsRhsOpen} from 'selectors/rhs';
 
 import SingleImageView from 'components/single_image_view/single_image_view';
+
+import {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const isRhsOpen = getIsRhsOpen(state);

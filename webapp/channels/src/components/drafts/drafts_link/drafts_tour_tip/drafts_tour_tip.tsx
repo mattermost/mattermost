@@ -1,19 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TourTip, useMeasurePunchouts} from '@mattermost/components';
 import React, {memo, useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useRouteMatch} from 'react-router-dom';
 
-import Tag from 'components/widgets/tag/tag';
-
-import {Preferences} from 'mattermost-redux/constants';
-
-import {showDraftsPulsatingDotAndTourTip} from 'selectors/drafts';
 import {setDraftsTourTipPreference} from 'actions/views/drafts';
+import {Preferences} from 'mattermost-redux/constants';
+import {showDraftsPulsatingDotAndTourTip} from 'selectors/drafts';
 
-import {TourTip, useMeasurePunchouts} from '@mattermost/components';
+import Tag from 'components/widgets/tag/tag';
 
 const title = (
     <span className='d-flex align-items-center'>

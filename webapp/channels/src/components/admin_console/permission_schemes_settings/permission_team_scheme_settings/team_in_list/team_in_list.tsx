@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Team} from '@mattermost/types/teams';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 
 import {imageURLForTeam} from 'utils/utils';
-import {Team} from '@mattermost/types/teams';
 
 type Props = {
     team: Team;

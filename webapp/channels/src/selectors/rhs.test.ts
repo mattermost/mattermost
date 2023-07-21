@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import * as Selectors from 'selectors/rhs';
+
 import {GlobalState} from 'types/store';
 
 describe('Selectors.Rhs', () => {

@@ -5,12 +5,11 @@ import React, {ReactNode} from 'react';
 import {IntlProvider as BaseIntlProvider, IntlConfig} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
+import {ActionFunc} from 'mattermost-redux/types/actions';
 import {setLocalizeFunction} from 'mattermost-redux/utils/i18n_utils';
 
 import * as I18n from 'i18n/i18n';
-
 import {localizeMessage} from 'utils/utils';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
 type Props = {
     children: ReactNode;

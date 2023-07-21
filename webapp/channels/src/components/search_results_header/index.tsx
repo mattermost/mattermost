@@ -3,7 +3,6 @@
 
 import {connect} from 'react-redux';
 import {AnyAction, bindActionCreators, Dispatch} from 'redux';
-
 import {GlobalState} from 'types/store/index.js';
 
 import {
@@ -11,8 +10,8 @@ import {
     toggleRhsExpanded,
     goBack,
 } from 'actions/views/rhs';
-import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
+import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
 
 import {RHSStates} from 'utils/constants';
 

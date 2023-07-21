@@ -4,13 +4,13 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-import {GlobalState} from 'types/store';
-
-import {getGroup as getGroupById} from 'mattermost-redux/selectors/entities/groups';
 import {removeUsersFromGroup} from 'mattermost-redux/actions/groups';
-import {haveIGroupPermission} from 'mattermost-redux/selectors/entities/roles';
 import {Permissions} from 'mattermost-redux/constants';
+import {getGroup as getGroupById} from 'mattermost-redux/selectors/entities/groups';
+import {haveIGroupPermission} from 'mattermost-redux/selectors/entities/roles';
+import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+
+import {GlobalState} from 'types/store';
 
 import ViewUserGroupListItem from './view_user_group_list_item';
 

@@ -6,8 +6,8 @@ import React, {ComponentProps} from 'react';
 
 import {TestHelper} from 'utils/test_helper';
 
-import BackstageSidebar from './backstage_sidebar';
 import BackstageCategory from './backstage_category';
+import BackstageSidebar from './backstage_sidebar';
 
 describe('components/backstage/components/BackstageSidebar', () => {
     const defaultProps: ComponentProps<typeof BackstageSidebar> = {

@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {ChannelMembership, Channel} from '@mattermost/types/channels';
-import {TeamMembership} from '@mattermost/types/teams';
 import {GlobalState} from '@mattermost/types/store';
+import {TeamMembership} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 import {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
 

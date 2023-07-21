@@ -3,8 +3,8 @@
 
 import {AppBinding} from '@mattermost/types/apps';
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {AppBindingLocations} from 'mattermost-redux/constants/apps';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeAppBindingsSelector, makeRHSAppBindingSelector} from 'mattermost-redux/selectors/entities/apps';
 
 import {GlobalState} from 'types/store';

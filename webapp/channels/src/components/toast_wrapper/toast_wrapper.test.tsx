@@ -4,13 +4,11 @@
 import React, {ComponentProps} from 'react';
 
 import Preferences from 'mattermost-redux/constants/preferences';
-
 import {DATE_LINE} from 'mattermost-redux/utils/post_list';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-
-import {PostListRowListIds} from 'utils/constants';
 import {getHistory} from 'utils/browser_history';
+import {PostListRowListIds} from 'utils/constants';
 
 import ToastWrapper, {Props, ToastWrapperClass} from './toast_wrapper';
 

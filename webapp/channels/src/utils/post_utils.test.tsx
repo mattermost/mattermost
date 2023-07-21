@@ -5,13 +5,12 @@ import {createIntl} from 'react-intl';
 
 import {Preferences} from 'mattermost-redux/constants';
 
-import * as PostUtils from 'utils/post_utils';
-import {PostListRowListIds, Constants} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
-import EmojiMap from 'utils/emoji_map';
-
 import enMessages from '../i18n/en.json';
 import {GlobalState} from 'types/store';
+import {PostListRowListIds, Constants} from 'utils/constants';
+import EmojiMap from 'utils/emoji_map';
+import * as PostUtils from 'utils/post_utils';
+import {TestHelper} from 'utils/test_helper';
 
 describe('PostUtils.containsAtChannel', () => {
     test('should return correct @all (same for @channel)', () => {

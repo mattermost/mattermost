@@ -1,24 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CircleSkeletonLoader, RectangleSkeletonLoader} from '@mattermost/components';
+import {TopReaction} from '@mattermost/types/insights';
+import {GlobalState} from '@mattermost/types/store';
 import React, {memo, useEffect, useState, useCallback, useMemo} from 'react';
 import {shallowEqual, useDispatch, useSelector} from 'react-redux';
 
-import {GlobalState} from '@mattermost/types/store';
-import {TopReaction} from '@mattermost/types/insights';
-
-import {CircleSkeletonLoader, RectangleSkeletonLoader} from '@mattermost/components';
-
+import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import {getTopReactionsForTeam, getMyTopReactions} from 'mattermost-redux/actions/insights';
 import {getTopReactionsForCurrentTeam, getMyTopReactionsForCurrentTeam} from 'mattermost-redux/selectors/entities/insights';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
-import {InsightsScopes} from 'utils/constants';
-
-import widgetHoc, {WidgetHocProps} from '../widget_hoc/widget_hoc';
-
 import WidgetEmptyState from '../widget_empty_state/widget_empty_state';
+import widgetHoc, {WidgetHocProps} from '../widget_hoc/widget_hoc';
+import {InsightsScopes} from 'utils/constants';
 
 import TopReactionsBarChart from './top_reactions_bar_chart/top_reactions_bar_chart';
 

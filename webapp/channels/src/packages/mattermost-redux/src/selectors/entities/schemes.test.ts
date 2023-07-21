@@ -5,10 +5,11 @@ import {Channel} from '@mattermost/types/channels';
 import {Scheme} from '@mattermost/types/schemes';
 import {Team} from '@mattermost/types/teams';
 
-import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
-import TestHelper from '../../../test/test_helper';
-import * as Selectors from 'mattermost-redux/selectors/entities/schemes';
 import {ScopeTypes} from 'mattermost-redux/constants/schemes';
+import * as Selectors from 'mattermost-redux/selectors/entities/schemes';
+import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
+
+import TestHelper from '../../../test/test_helper';
 
 describe('Selectors.Schemes', () => {
     const scheme1 = TestHelper.mockSchemeWithId();

@@ -1,22 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
-import {FormattedMessage} from 'react-intl';
-
-import classNames from 'classnames';
-
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
+import classNames from 'classnames';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
-import {t} from 'utils/i18n';
-
-import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import SharedChannelIndicator from 'components/shared_channel_indicator';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import UnarchiveIcon from 'components/widgets/icons/unarchive_icon';
-import SharedChannelIndicator from 'components/shared_channel_indicator';
+
+import {t} from 'utils/i18n';
 
 import './channel_profile.scss';
 interface ChannelProfileProps {

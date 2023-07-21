@@ -3,8 +3,8 @@
 
 import React from 'react';
 
-import * as Utils from 'utils/utils';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import * as Utils from 'utils/utils';
 
 import AtMentionSuggestion, {Item} from './at_mention_suggestion';
 

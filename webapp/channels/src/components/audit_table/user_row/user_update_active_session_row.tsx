@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
-import {useIntl} from 'react-intl';
-
-import {useSelector} from 'react-redux';
-
 import {Audit} from '@mattermost/types/audits';
 import {GlobalState} from '@mattermost/types/store';
+import React from 'react';
+import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
+
 import {getCurrentUser, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 

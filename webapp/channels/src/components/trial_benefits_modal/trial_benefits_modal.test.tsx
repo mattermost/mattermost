@@ -1,21 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
-import {Provider} from 'react-redux';
-
+import {GenericModal} from '@mattermost/components';
 import {shallow} from 'enzyme';
+import React from 'react';
+import {Provider} from 'react-redux';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import Carousel from 'components/common/carousel/carousel';
 import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
-import {GenericModal} from '@mattermost/components';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-
 import {TELEMETRY_CATEGORIES} from 'utils/constants';
 
 const mockLocation = {pathname: '', search: '', hash: ''};

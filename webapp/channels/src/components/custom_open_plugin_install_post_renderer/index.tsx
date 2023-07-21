@@ -1,27 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {MarketplacePlugin} from '@mattermost/types/marketplace';
+import {Post} from '@mattermost/types/posts';
+import {uniqWith} from 'lodash';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
-import {uniqWith} from 'lodash';
 
-import {Post} from '@mattermost/types/posts';
-import {MarketplacePlugin} from '@mattermost/types/marketplace';
-
-import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
-import Markdown from 'components/markdown';
-
-import {getUsers} from 'mattermost-redux/selectors/entities/users';
+import {fetchListing, installPlugin} from 'actions/marketplace';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
+import {getUsers} from 'mattermost-redux/selectors/entities/users';
+import {getError, getInstalledListing, getInstalling, getPlugins} from 'selectors/views/marketplace';
 
-import {ModalIdentifiers} from 'utils/constants';
+import Markdown from 'components/markdown';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
+import ToggleModalButton from 'components/toggle_modal_button';
 
 import {GlobalState} from 'types/store';
-import {fetchListing, installPlugin} from 'actions/marketplace';
-import ToggleModalButton from 'components/toggle_modal_button';
-import {getError, getInstalledListing, getInstalling, getPlugins} from 'selectors/views/marketplace';
+import {ModalIdentifiers} from 'utils/constants';
 
 type PluginRequest = {
     user_id: string;

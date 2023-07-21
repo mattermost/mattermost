@@ -2,12 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
-import {AnnouncementBarTypes} from 'utils/constants';
-
 import AnnouncementBar from '../default_announcement_bar';
+import {AnnouncementBarTypes} from 'utils/constants';
 
 interface Props {
     buildHash?: string;

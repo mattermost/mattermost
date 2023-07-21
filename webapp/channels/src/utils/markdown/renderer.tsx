@@ -3,10 +3,10 @@
 
 import marked, {MarkedOptions} from 'marked';
 
+import EmojiMap from 'utils/emoji_map';
 import * as PostUtils from 'utils/post_utils';
 import * as TextFormatting from 'utils/text_formatting';
 import {getScheme, isUrlSafe, shouldOpenInNewTab} from 'utils/url';
-import EmojiMap from 'utils/emoji_map';
 
 import {parseImageDimensions} from './helpers';
 

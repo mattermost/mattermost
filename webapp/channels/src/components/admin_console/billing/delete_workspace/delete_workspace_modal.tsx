@@ -1,38 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GenericModal} from '@mattermost/components';
+import {Feedback} from '@mattermost/types/cloud';
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
-
 import {useDispatch, useSelector} from 'react-redux';
 
-import {GenericModal} from '@mattermost/components';
-
-import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
-import {closeModal, openModal} from 'actions/views/modals';
-
-import './delete_workspace_modal.scss';
-import {CloudProducts, ModalIdentifiers, StatTypes} from 'utils/constants';
-import DeleteFeedbackModal from 'components/admin_console/billing/delete_workspace/delete_feedback';
-import DowngradeFeedbackModal from 'components/feedback_modal/downgrade_feedback';
-import {Feedback} from '@mattermost/types/cloud';
-import {GlobalState} from 'types/store';
-import useGetUsage from 'components/common/hooks/useGetUsage';
-import {fileSizeToString} from 'utils/utils';
-import useOpenDowngradeModal from 'components/common/hooks/useOpenDowngradeModal';
 import {subscribeCloudSubscription, deleteWorkspace as deleteWorkspaceRequest} from 'actions/cloud';
-import ErrorModal from 'components/cloud_subscribe_result_modal/error';
-import DeleteWorkspaceProgressModal from 'components/admin_console/billing/delete_workspace/progress_modal';
-import SuccessModal from 'components/cloud_subscribe_result_modal/success';
+import {closeModal, openModal} from 'actions/views/modals';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {isCloudLicense} from 'utils/license_utils';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
-import useGetSubscription from 'components/common/hooks/useGetSubscription';
 
-import DeleteWorkspaceSuccessModal from './success_modal';
+import DeleteFeedbackModal from 'components/admin_console/billing/delete_workspace/delete_feedback';
+import DeleteWorkspaceProgressModal from 'components/admin_console/billing/delete_workspace/progress_modal';
+import ErrorModal from 'components/cloud_subscribe_result_modal/error';
+import SuccessModal from 'components/cloud_subscribe_result_modal/success';
+import useGetSubscription from 'components/common/hooks/useGetSubscription';
+import useGetUsage from 'components/common/hooks/useGetUsage';
+import useOpenDowngradeModal from 'components/common/hooks/useOpenDowngradeModal';
+import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
+import DowngradeFeedbackModal from 'components/feedback_modal/downgrade_feedback';
+
+import {GlobalState} from 'types/store';
+import {CloudProducts, ModalIdentifiers, StatTypes} from 'utils/constants';
+import {isCloudLicense} from 'utils/license_utils';
+import {fileSizeToString} from 'utils/utils';
+
 import DeleteWorkspaceFailureModal from './failure_modal';
+import DeleteWorkspaceSuccessModal from './success_modal';
+
+import './delete_workspace_modal.scss';
 
 type Props = {
     callerCTA: string;

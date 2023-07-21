@@ -2,22 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {connect, ConnectedProps} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
 import {withRouter} from 'react-router-dom';
-
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-
-import {getUserGuideDropdownPluginMenuItems} from 'selectors/plugins';
-
-import {GlobalState} from 'types/store';
+import {bindActionCreators, Dispatch} from 'redux';
 
 import {openModal} from 'actions/views/modals';
-
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {GenericAction} from 'mattermost-redux/types/actions';
+import {getUserGuideDropdownPluginMenuItems} from 'selectors/plugins';
 import {getIsMobileView} from 'selectors/views/browser';
+
+import {GlobalState} from 'types/store';
 
 import UserGuideDropdown from './user_guide_dropdown';
 

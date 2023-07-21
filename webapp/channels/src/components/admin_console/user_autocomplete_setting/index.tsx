@@ -2,11 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
 import {autocompleteUsers} from 'actions/user_actions';
-
 import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import UserAutocompleteSetting, {Props} from './user_autocomplete_setting';

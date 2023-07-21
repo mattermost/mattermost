@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {Channel} from '@mattermost/types/channels';
+import React from 'react';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
-import SharedChannelIndicator from 'components/shared_channel_indicator';
 import LeaveChannelModal from 'components/leave_channel_modal';
-import {localizeMessage} from 'utils/utils';
+import SharedChannelIndicator from 'components/shared_channel_indicator';
+import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
+
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {localizeMessage} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
 

@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TeamSearchOpts} from '@mattermost/types/teams';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-import {TeamSearchOpts} from '@mattermost/types/teams';
 import {getTeams as fetchTeams, searchTeams} from 'mattermost-redux/actions/teams';
-import {getTeams} from 'mattermost-redux/selectors/entities/teams';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getTeams} from 'mattermost-redux/selectors/entities/teams';
+import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from 'types/store';
 

@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {StatusOK} from '@mattermost/types/client4';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {Provider} from 'react-redux';
 import ReactDOM from 'react-dom';
 import {
     defineMessages,
     injectIntl,
     IntlShape,
 } from 'react-intl';
-
-import {UserProfile} from '@mattermost/types/users';
-import {StatusOK} from '@mattermost/types/client4';
+import {Provider} from 'react-redux';
 
 import store from 'stores/redux_store.jsx';
-import Constants from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import * as Utils from 'utils/utils';
 
 import ConfirmModal from 'components/confirm_modal';
+
+import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as NotificationSounds from 'utils/notification_sounds';
+import * as Utils from 'utils/utils';
 
 const UserSettings = React.lazy(() => import(/* webpackPrefetch: true */ 'components/user_settings'));
 const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ '../../settings_sidebar'));

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {NotifyAdminRequest} from '@mattermost/types/cloud';
 import React from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
-import {NotifyAdminRequest} from '@mattermost/types/cloud';
 import {NotifyStatus, NotifyStatusValues, useGetNotifyAdmin} from 'components/common/hooks/useGetNotifyAdmin';
 
 const Span = styled.span`

@@ -1,27 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GroupCreateWithUserIds} from '@mattermost/types/groups';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
-
 import {Modal} from 'react-bootstrap';
-
 import {FormattedMessage} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
+import {ActionResult} from 'mattermost-redux/types/actions';
 
+import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect';
+import LocalizedIcon from 'components/localized_icon';
+import Input from 'components/widgets/inputs/input/input';
+
+import {ModalData} from 'types/actions';
+import Constants, {ItemStatus} from 'utils/constants';
+import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
-import {GroupCreateWithUserIds} from '@mattermost/types/groups';
+import {localizeMessage} from 'utils/utils';
 
 import 'components/user_groups_modal/user_groups_modal.scss';
 import './create_user_groups_modal.scss';
-import {ModalData} from 'types/actions';
-import Input from 'components/widgets/inputs/input/input';
-import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import LocalizedIcon from 'components/localized_icon';
-import {t} from 'utils/i18n';
-import {localizeMessage} from 'utils/utils';
-import Constants, {ItemStatus} from 'utils/constants';
 
 export type Props = {
     onExited: () => void;

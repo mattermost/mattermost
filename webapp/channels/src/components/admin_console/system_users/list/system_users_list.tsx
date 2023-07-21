@@ -1,26 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
 import {getUserAccessTokensForUser} from 'mattermost-redux/actions/users';
 
-import {Team} from '@mattermost/types/teams';
-
-import {Constants} from 'utils/constants';
-import * as Utils from 'utils/utils';
 import ManageRolesModal from 'components/admin_console/manage_roles_modal';
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal';
 import ManageTokensModal from 'components/admin_console/manage_tokens_modal';
-import ResetPasswordModal from 'components/admin_console/reset_password_modal';
 import ResetEmailModal from 'components/admin_console/reset_email_modal';
+import ResetPasswordModal from 'components/admin_console/reset_password_modal';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list';
 import UserListRowWithError from 'components/user_list_row_with_error';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import SystemUsersDropdown from '../system_users_dropdown';
+import {Constants} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 type Props = {
     users: UserProfile[];

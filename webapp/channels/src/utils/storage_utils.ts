@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {GlobalState} from '@mattermost/types/store';
+
 import {DraftInfo} from 'types/store/draft';
 
 import {StoragePrefixes} from './constants';

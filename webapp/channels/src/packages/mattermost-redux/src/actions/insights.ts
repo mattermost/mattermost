@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {InsightTypes} from 'mattermost-redux/action_types';
-import {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
-import {Client4} from 'mattermost-redux/client';
 import {LeastActiveChannelsActionResult, LeastActiveChannelsResponse, TimeFrame, TopChannelActionResult, TopChannelResponse, TopThreadActionResult, TopThreadResponse, TopDMsActionResult, TopDMsResponse} from '@mattermost/types/insights';
 
-import {forceLogoutIfNecessary} from './helpers';
+import {InsightTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
+import {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
+
 import {logError} from './errors';
+import {forceLogoutIfNecessary} from './helpers';
 
 export function getTopReactionsForTeam(teamId: string, page: number, perPage: number, timeFrame: TimeFrame): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {

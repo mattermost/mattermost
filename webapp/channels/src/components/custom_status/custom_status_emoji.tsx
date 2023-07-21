@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CustomStatusDuration} from '@mattermost/types/users';
 import React, {useMemo, memo} from 'react';
 import {useSelector} from 'react-redux';
 
-import {CustomStatusDuration} from '@mattermost/types/users';
-
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-
-import {GlobalState} from 'types/store';
 import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
 
-import Constants from 'utils/constants';
+import RenderEmoji from 'components/emoji/render_emoji';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import RenderEmoji from 'components/emoji/render_emoji';
+
+import {GlobalState} from 'types/store';
+import Constants from 'utils/constants';
 
 import ExpiryTime from './expiry_time';
 

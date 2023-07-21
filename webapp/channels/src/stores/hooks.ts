@@ -4,12 +4,11 @@
 import {useCallback} from 'react';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 
+import {setGlobalItem} from 'actions/storage';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
 import {makeGetGlobalItem} from 'selectors/storage';
-import {setGlobalItem} from 'actions/storage';
 
 export const currentUserAndTeamSuffix = createSelector('currentUserAndTeamSuffix', [
     getCurrentUserId,

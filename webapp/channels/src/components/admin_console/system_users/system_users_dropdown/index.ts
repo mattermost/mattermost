@@ -4,17 +4,14 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import {updateUserActive, revokeAllSessionsForUser, promoteGuestToUser, demoteUserToGuest} from 'mattermost-redux/actions/users';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
 import {loadBots} from 'mattermost-redux/actions/bots';
 import {createGroupTeamsAndChannels} from 'mattermost-redux/actions/groups';
-
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-
+import {updateUserActive, revokeAllSessionsForUser, promoteGuestToUser, demoteUserToGuest} from 'mattermost-redux/actions/users';
 import * as Selectors from 'mattermost-redux/selectors/entities/admin';
+import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from 'types/store';
 

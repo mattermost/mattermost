@@ -1,36 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Stripe} from '@stripe/stripe-js';
 import React from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
-import {Stripe} from '@stripe/stripe-js';
 
-import {getAdminAnalytics} from 'mattermost-redux/selectors/entities/admin';
-import {getClientConfig} from 'mattermost-redux/actions/general';
+import {completeStripeAddPaymentMethod, subscribeCloudSubscription} from 'actions/cloud';
+import {closeModal, openModal} from 'actions/views/modals';
 import {getCloudProducts, getCloudSubscription, getInvoices} from 'mattermost-redux/actions/cloud';
-import {Action} from 'mattermost-redux/types/actions';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getClientConfig} from 'mattermost-redux/actions/general';
+import {getAdminAnalytics} from 'mattermost-redux/selectors/entities/admin';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {Action} from 'mattermost-redux/types/actions';
+import {getCloudDelinquentInvoices, isCloudDelinquencyGreaterThan90Days, isCwsMockMode} from 'selectors/cloud';
+import {isModalOpen} from 'selectors/views/modals';
 
 import {makeAsyncComponent} from 'components/async_load';
-
-import {GlobalState} from 'types/store';
-import {BillingDetails} from 'types/cloud/sku';
-
-import {isModalOpen} from 'selectors/views/modals';
-import {getCloudDelinquentInvoices, isCloudDelinquencyGreaterThan90Days, isCwsMockMode} from 'selectors/cloud';
-
-import {ModalIdentifiers} from 'utils/constants';
-
-import {closeModal, openModal} from 'actions/views/modals';
-import {completeStripeAddPaymentMethod, subscribeCloudSubscription} from 'actions/cloud';
-import {ModalData} from 'types/actions';
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
-import {findOnlyYearlyProducts} from 'utils/products';
-import {getCloudContactSalesLink, getCloudSupportLink} from 'utils/contact_support_sales';
-
 import {getStripePublicKey} from 'components/payment_form/stripe';
+
+import {ModalData} from 'types/actions';
+import {BillingDetails} from 'types/cloud/sku';
+import {GlobalState} from 'types/store';
+import {ModalIdentifiers} from 'utils/constants';
+import {getCloudContactSalesLink, getCloudSupportLink} from 'utils/contact_support_sales';
+import {findOnlyYearlyProducts} from 'utils/products';
 
 const PurchaseModal = makeAsyncComponent('PurchaseModal', React.lazy(() => import('./purchase_modal')));
 

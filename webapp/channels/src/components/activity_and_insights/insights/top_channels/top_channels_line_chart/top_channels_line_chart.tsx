@@ -1,20 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useMemo} from 'react';
-import {useSelector} from 'react-redux';
-import moment from 'moment-timezone';
-
-import {FormattedMessage, useIntl} from 'react-intl';
-
 import {TimeFrame, TimeFrames, TopChannel, TopChannelGraphData} from '@mattermost/types/insights';
 import {GlobalState} from '@mattermost/types/store';
-
-import {getBool, getTheme} from 'mattermost-redux/selectors/entities/preferences';
-
-import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
+import moment from 'moment-timezone';
+import React, {memo, useMemo} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {Preferences} from 'mattermost-redux/constants';
+import {getBool, getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 import LineChart from 'components/analytics/line_chart';
 

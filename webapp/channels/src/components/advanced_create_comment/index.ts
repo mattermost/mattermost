@@ -1,37 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PreferenceType} from '@mattermost/types/preferences';
+import {ActionFunc, ActionResult, DispatchFunc} from 'mattermost-redux/types/actions.js';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-
+import {ModalData} from 'types/actions.js';
 import {GlobalState} from 'types/store/index.js';
 
-import {ModalData} from 'types/actions.js';
-
-import {ActionFunc, ActionResult, DispatchFunc} from 'mattermost-redux/types/actions.js';
-
-import {PostDraft} from 'types/store/draft';
-
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getAllChannelStats, getChannelMemberCountsByGroup as selectChannelMemberCountsByGroup} from 'mattermost-redux/selectors/entities/channels';
-import {makeGetMessageInHistoryItem} from 'mattermost-redux/selectors/entities/posts';
-import {resetCreatePostRequest, resetHistoryIndex} from 'mattermost-redux/actions/posts';
-import {getChannelTimezones, getChannelMemberCountsByGroup} from 'mattermost-redux/actions/channels';
-import {Permissions, Preferences, Posts} from 'mattermost-redux/constants';
-import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-
-import {connectionErrorCount} from 'selectors/views/system';
-
-import {AdvancedTextEditor, Constants, StoragePrefixes} from 'utils/constants';
-import {getCurrentLocale} from 'selectors/i18n';
-
+import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {
     clearCommentDraftUploads,
     updateCommentDraft,
@@ -39,13 +16,28 @@ import {
     makeOnSubmit,
     makeOnEditLatestPost,
 } from 'actions/views/create_comment';
-import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
-import {getPostDraft, getIsRhsExpanded, getSelectedPostFocussedAt} from 'selectors/rhs';
-import {showPreviewOnCreateComment} from 'selectors/views/textbox';
-import {setShowPreviewOnCreateComment} from 'actions/views/textbox';
-import {openModal} from 'actions/views/modals';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
+import {openModal} from 'actions/views/modals';
+import {setShowPreviewOnCreateComment} from 'actions/views/textbox';
+import {getChannelTimezones, getChannelMemberCountsByGroup} from 'mattermost-redux/actions/channels';
+import {resetCreatePostRequest, resetHistoryIndex} from 'mattermost-redux/actions/posts';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {Permissions, Preferences, Posts} from 'mattermost-redux/constants';
+import {getAllChannelStats, getChannelMemberCountsByGroup as selectChannelMemberCountsByGroup} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
+import {makeGetMessageInHistoryItem} from 'mattermost-redux/selectors/entities/posts';
+import {getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentLocale} from 'selectors/i18n';
+import {getPostDraft, getIsRhsExpanded, getSelectedPostFocussedAt} from 'selectors/rhs';
+import {connectionErrorCount} from 'selectors/views/system';
+import {showPreviewOnCreateComment} from 'selectors/views/textbox';
 
+import {PostDraft} from 'types/store/draft';
+import {AdvancedTextEditor, Constants, StoragePrefixes} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
 
 import AdvancedCreateComment from './advanced_create_comment';

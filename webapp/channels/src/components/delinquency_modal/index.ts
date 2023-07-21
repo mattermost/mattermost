@@ -4,15 +4,15 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
+import {closeModal, openModal} from 'actions/views/modals';
+import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {GenericAction} from 'mattermost-redux/types/actions';
 
-import {ModalIdentifiers, Preferences} from 'utils/constants';
 import {GlobalState} from 'types/store';
-import {closeModal, openModal} from 'actions/views/modals';
+import {ModalIdentifiers, Preferences} from 'utils/constants';
 
 import DeliquencyModalController from './delinquency_modal_controller';
 

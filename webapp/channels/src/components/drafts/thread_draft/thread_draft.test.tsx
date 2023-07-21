@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import type {Channel} from '@mattermost/types/channels';
+import {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
+import React from 'react';
 import {Provider} from 'react-redux';
 
 import mockStore from 'tests/test_store';
-
-import {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import {PostDraft} from 'types/store/draft';
 
 import ThreadDraft from './thread_draft';

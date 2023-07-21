@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {Group} from '@mattermost/types/groups';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
+import {setModalSearchTerm} from 'actions/views/search';
 import {getGroupsNotAssociatedToChannel, linkGroupSyncable, getAllGroupsAssociatedToChannel, getAllGroupsAssociatedToTeam} from 'mattermost-redux/actions/groups';
 import {getTeam} from 'mattermost-redux/actions/teams';
-import {getGroupsNotAssociatedToChannel as selectGroupsNotAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-
-import {Channel} from '@mattermost/types/channels';
+import {getGroupsNotAssociatedToChannel as selectGroupsNotAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
 import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {Group} from '@mattermost/types/groups';
 
 import {GlobalState} from 'types/store';
-import {setModalSearchTerm} from 'actions/views/search';
 
 import AddGroupsToChannelModal, {Props} from './add_groups_to_channel_modal';
 

@@ -1,21 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import {SyncIcon} from '@mattermost/compass-icons/components';
 import cn from 'classnames';
-
+import React, {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {SyncIcon} from '@mattermost/compass-icons/components';
-
+import OverlayTrigger from 'components/overlay_trigger';
 import Timestamp from 'components/timestamp';
+import Tooltip from 'components/tooltip';
 import Tag from 'components/widgets/tag/tag';
 
-import './panel_header.scss';
-
-import OverlayTrigger from 'components/overlay_trigger';
 import Constants from 'utils/constants';
-import Tooltip from 'components/tooltip';
+
+import './panel_header.scss';
 
 const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     day: 'numeric',

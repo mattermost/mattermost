@@ -3,6 +3,7 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+import {ServiceEnvironment} from '@mattermost/types/config';
 import {
     StripeError,
     ConfirmCardSetupData,
@@ -11,7 +12,6 @@ import {
 } from '@stripe/stripe-js';
 
 import {GlobalState} from 'types/store';
-import {ServiceEnvironment} from '@mattermost/types/config';
 
 type ConfirmCardSetupType = (clientSecret: string, data?: ConfirmCardSetupData | undefined, options?: ConfirmCardSetupOptions | undefined) => Promise<{ setupIntent?: SetupIntent | undefined; error?: StripeError | undefined }> | undefined;
 

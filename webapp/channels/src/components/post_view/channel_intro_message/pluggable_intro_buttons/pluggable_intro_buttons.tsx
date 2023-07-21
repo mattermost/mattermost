@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import React from 'react';
 
 import {PluginComponent} from 'types/store/plugins';
 

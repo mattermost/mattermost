@@ -6,9 +6,8 @@ import {connect} from 'react-redux';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {get, getBool} from 'mattermost-redux/selectors/entities/preferences';
 
-import {Preferences} from 'utils/constants';
-
 import {GlobalState} from 'types/store';
+import {Preferences} from 'utils/constants';
 
 import Reply from './reply';
 

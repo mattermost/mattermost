@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
-
 import {GifsAppState, GfycatAPIItem} from '@mattermost/types/gifs';
+import React, {useState} from 'react';
 
 import App from 'components/gif_picker/components/App';
 import Categories from 'components/gif_picker/components/Categories';

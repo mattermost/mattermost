@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {GlobalState} from '@mattermost/types/store';
-import {General} from 'mattermost-redux/constants';
 
+import {General} from 'mattermost-redux/constants';
 import * as Selectors from 'mattermost-redux/selectors/entities/general';
 
 describe('Selectors.General', () => {

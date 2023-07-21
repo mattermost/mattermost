@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
-import {connect} from 'react-redux';
-
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {patchChannel} from 'mattermost-redux/actions/channels';
-import {ActionFunc, GenericAction, ActionResult} from 'mattermost-redux/types/actions';
 import {Channel} from '@mattermost/types/channels';
+import {connect} from 'react-redux';
+import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import {patchChannel} from 'mattermost-redux/actions/channels';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {ActionFunc, GenericAction, ActionResult} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from 'types/store';
-
 import Constants from 'utils/constants';
 
 import EditChannelPurposeModal from './edit_channel_purpose_modal';

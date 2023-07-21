@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Group, GroupSearachParams} from '@mattermost/types/groups';
 import React, {createRef, RefObject} from 'react';
-
 import {Modal} from 'react-bootstrap';
 
-import Constants from 'utils/constants';
-
-import * as Utils from 'utils/utils';
-import {Group, GroupSearachParams} from '@mattermost/types/groups';
-
 import './user_groups_modal.scss';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
+
 import {debounce} from 'mattermost-redux/actions/helpers';
-import Input from 'components/widgets/inputs/input/input';
+
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
+import Input from 'components/widgets/inputs/input/input';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
+import Constants from 'utils/constants';
+import * as Utils from 'utils/utils';
+
+import ADLDAPUpsellBanner from './ad_ldap_upsell_banner';
 import UserGroupsList from './user_groups_list';
 import UserGroupsModalHeader from './user_groups_modal_header';
-import ADLDAPUpsellBanner from './ad_ldap_upsell_banner';
 
 const GROUPS_PER_PAGE = 60;
 

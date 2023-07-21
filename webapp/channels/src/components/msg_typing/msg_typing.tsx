@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {WebSocketMessage} from '@mattermost/client';
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {WebSocketMessage} from '@mattermost/client';
 
 import {SocketEvents} from 'utils/constants';
 import {useWebSocket} from 'utils/use_websocket';

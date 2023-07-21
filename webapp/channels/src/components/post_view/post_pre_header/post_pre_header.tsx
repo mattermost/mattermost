@@ -4,9 +4,9 @@
 import React from 'react';
 import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 
-import {t} from 'utils/i18n';
-
 import FlagIconFilled from 'components/widgets/icons/flag_icon_filled';
+
+import {t} from 'utils/i18n';
 
 export type Props = {
     intl: IntlShape;

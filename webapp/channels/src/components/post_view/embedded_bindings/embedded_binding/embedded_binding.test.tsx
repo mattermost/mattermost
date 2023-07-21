@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {shallow} from 'enzyme';
-
 import {AppBinding} from '@mattermost/types/apps';
-
 import {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
 import {Post} from '@mattermost/types/posts';
+import {shallow} from 'enzyme';
+import React from 'react';
 
 import EmbeddedBinding from './embedded_binding';
 

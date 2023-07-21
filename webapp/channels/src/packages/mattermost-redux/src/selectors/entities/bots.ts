@@ -4,8 +4,8 @@
 import {Bot} from '@mattermost/types/bots';
 import {GlobalState} from '@mattermost/types/store';
 
-import {getUsers} from 'mattermost-redux/selectors/entities/common';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getUsers} from 'mattermost-redux/selectors/entities/common';
 
 export const ExternalBotAccountNames: string[] = ['mattermost-advisor'];
 

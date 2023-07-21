@@ -4,10 +4,9 @@
 import React from 'react';
 import {Provider} from 'react-redux';
 
-import {LicenseSkus} from 'utils/constants';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
+import {LicenseSkus} from 'utils/constants';
 
 import EnterpriseEditionRightPanel, {EnterpriseEditionProps} from './enterprise_edition_right_panel';
 

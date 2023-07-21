@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {AdminConfig} from '@mattermost/types/config';
-import {ItemModel, ItemStatus, Options} from '../dashboard.type';
-import {elasticsearchTest} from 'actions/admin_actions';
 import {useIntl} from 'react-intl';
-import {ConsolePages, DocLinks} from 'utils/constants';
+
+import {elasticsearchTest} from 'actions/admin_actions';
+
 import {impactModifiers} from '../dashboard.data';
+import {ItemModel, ItemStatus, Options} from '../dashboard.type';
+import {ConsolePages, DocLinks} from 'utils/constants';
 
 const search = async (
     config: Partial<AdminConfig>,

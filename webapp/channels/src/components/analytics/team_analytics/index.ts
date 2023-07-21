@@ -4,18 +4,15 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {Action, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-
+import {setGlobalItem} from 'actions/storage';
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getProfilesInTeam} from 'mattermost-redux/actions/users';
 import {getTeamsList} from 'mattermost-redux/selectors/entities/teams';
+import {Action, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import {getCurrentLocale} from 'selectors/i18n';
+import {makeGetGlobalItem} from 'selectors/storage';
 
 import {GlobalState} from 'types/store';
-
-import {getCurrentLocale} from 'selectors/i18n';
-
-import {setGlobalItem} from 'actions/storage';
-import {makeGetGlobalItem} from 'selectors/storage';
 
 import TeamAnalytics from './team_analytics';
 

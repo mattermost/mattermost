@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import MultiSelect from 'components/multiselect/multiselect';
-import Constants from 'utils/constants';
-
-import {UserProfile} from '@mattermost/types/users';
 
 import ListItem from '../list_item';
 import {Option, optionValue, OptionValue} from '../types';
+import Constants from 'utils/constants';
 
 const MAX_SELECTABLE_VALUES = Constants.MAX_USERS_IN_GM - 1;
 export const USERS_PER_PAGE = 50;

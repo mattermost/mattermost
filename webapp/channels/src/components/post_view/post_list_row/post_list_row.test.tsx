@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ChannelType} from '@mattermost/types/channels';
+import {CloudUsage} from '@mattermost/types/cloud';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
-import {ChannelType} from '@mattermost/types/channels';
-import {CloudUsage} from '@mattermost/types/cloud';
-
-import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
 import Post from 'components/post';
+import ChannelIntroMessage from 'components/post_view/channel_intro_message/';
+import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
 import DateSeparator from 'components/post_view/date_separator';
 import NewMessageSeparator from 'components/post_view/new_message_separator/new_message_separator';
-import ChannelIntroMessage from 'components/post_view/channel_intro_message/';
 
 import {PostListRowListIds} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';

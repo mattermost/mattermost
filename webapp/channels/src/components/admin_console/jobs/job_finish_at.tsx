@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {JobStatus} from '@mattermost/types/jobs';
 import React from 'react';
 import {FormattedTime, FormattedDate} from 'react-intl';
-
-import {JobStatus} from '@mattermost/types/jobs';
 
 import {JobStatuses} from 'utils/constants';
 

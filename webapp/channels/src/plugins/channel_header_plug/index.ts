@@ -4,16 +4,14 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {handleBindingClick, openAppsModal, postEphemeralCallResponseForChannel} from 'actions/apps';
 import {appBarEnabled, appsEnabled, getChannelHeaderAppBindings} from 'mattermost-redux/selectors/entities/apps';
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {GenericAction} from 'mattermost-redux/types/actions';
+import {getChannelHeaderPluginComponents, shouldShowAppBar} from 'selectors/plugins';
 
 import {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForChannel} from 'types/apps';
-
-import {handleBindingClick, openAppsModal, postEphemeralCallResponseForChannel} from 'actions/apps';
 import {GlobalState} from 'types/store';
-
-import {getChannelHeaderPluginComponents, shouldShowAppBar} from 'selectors/plugins';
 
 import ChannelHeaderPlug from './channel_header_plug';
 

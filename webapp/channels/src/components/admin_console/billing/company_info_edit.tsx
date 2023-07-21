@@ -7,21 +7,19 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
+import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 import {getCloudCustomer, updateCloudCustomer, updateCloudCustomerAddress} from 'mattermost-redux/actions/cloud';
-
-import {GlobalState} from 'types/store';
-
-import {COUNTRIES} from 'utils/countries';
-import * as Utils from 'utils/utils';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import DropdownInput from 'components/dropdown_input';
 import StateSelector from 'components/payment_form/state_selector';
-import Input from 'components/widgets/inputs/input/input';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import Input from 'components/widgets/inputs/input/input';
 
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
+import {GlobalState} from 'types/store';
+import {COUNTRIES} from 'utils/countries';
+import * as Utils from 'utils/utils';
 
 import './company_info_edit.scss';
 

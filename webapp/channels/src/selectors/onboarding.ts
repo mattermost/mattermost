@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isMobile} from 'utils/utils';
-
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetCategory, getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
@@ -10,8 +8,8 @@ import {getCurrentUser, isFirstAdmin} from 'mattermost-redux/selectors/entities/
 import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
 
 import {GlobalState} from 'types/store';
-
 import {RecommendedNextStepsLegacy, Preferences} from 'utils/constants';
+import {isMobile} from 'utils/utils';
 
 const getCategory = makeGetCategory();
 export const getABTestPreferences = (() => {

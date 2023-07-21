@@ -1,24 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionCreatorsMapObject, Dispatch, bindActionCreators} from 'redux';
-import {RouteComponentProps} from 'react-router-dom';
 import {connect} from 'react-redux';
+import {RouteComponentProps} from 'react-router-dom';
+import {ActionCreatorsMapObject, Dispatch, bindActionCreators} from 'redux';
 
-import {GlobalState} from 'types/store';
-
-import {getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getTeam as fetchTeam, membersMinusGroupMembers, patchTeam, removeUserFromTeam, updateTeamMemberSchemeRoles, addUserToTeam, deleteTeam, unarchiveTeam} from 'mattermost-redux/actions/teams';
-import {getAllGroups, getGroupsAssociatedToTeam} from 'mattermost-redux/selectors/entities/groups';
+import {setNavigationBlocked} from 'actions/admin_actions';
 import {
     getGroupsAssociatedToTeam as fetchAssociatedGroups,
     linkGroupSyncable,
     unlinkGroupSyncable,
     patchGroupSyncable,
 } from 'mattermost-redux/actions/groups';
+import {getTeam as fetchTeam, membersMinusGroupMembers, patchTeam, removeUserFromTeam, updateTeamMemberSchemeRoles, addUserToTeam, deleteTeam, unarchiveTeam} from 'mattermost-redux/actions/teams';
+import {getAllGroups, getGroupsAssociatedToTeam} from 'mattermost-redux/selectors/entities/groups';
+import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
-import {setNavigationBlocked} from 'actions/admin_actions';
+import {GlobalState} from 'types/store';
 
 import TeamDetails, {Props} from './team_details';
 

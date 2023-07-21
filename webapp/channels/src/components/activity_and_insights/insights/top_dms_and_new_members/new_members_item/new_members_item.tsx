@@ -1,25 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback} from 'react';
-import {useSelector} from 'react-redux';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
-
-import {trackEvent} from 'actions/telemetry_actions';
-
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
-
-import {UserProfile} from '@mattermost/types/users';
 import {NewMember} from '@mattermost/types/insights';
 import {GlobalState} from '@mattermost/types/store';
 import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import React, {memo, useCallback} from 'react';
+import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
+import {Link} from 'react-router-dom';
 
+import {trackEvent} from 'actions/telemetry_actions';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import Avatar from 'components/widgets/users/avatar';
 import RenderEmoji from 'components/emoji/render_emoji';
+import Avatar from 'components/widgets/users/avatar';
 
 import {imageURLForUser} from 'utils/utils';
 

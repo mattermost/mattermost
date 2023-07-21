@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import glyphMap, {CheckIcon} from '@mattermost/compass-icons/components';
+import {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import React from 'react';
-
 import {Link} from 'react-router-dom';
-
 import styled from 'styled-components';
 
-import {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
-import glyphMap, {CheckIcon} from '@mattermost/compass-icons/components';
 export interface ProductMenuItemProps {
     destination: string;
     icon: IconGlyphTypes;

@@ -3,16 +3,17 @@
 
 import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {Group} from '@mattermost/types/groups';
-import {Team, TeamMembership} from '@mattermost/types/teams';
 import {PreferencesType} from '@mattermost/types/preferences';
-import {UserProfile} from '@mattermost/types/users';
 import {GlobalState} from '@mattermost/types/store';
+import {Team, TeamMembership} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 
 import {General, Preferences} from 'mattermost-redux/constants';
+import * as Selectors from 'mattermost-redux/selectors/entities/users';
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 import {sortByUsername} from 'mattermost-redux/utils/user_utils';
+
 import TestHelper from '../../../test/test_helper';
-import * as Selectors from 'mattermost-redux/selectors/entities/users';
 const searchProfilesMatchingWithTerm = Selectors.makeSearchProfilesMatchingWithTerm();
 const searchProfilesStartingWithTerm = Selectors.makeSearchProfilesStartingWithTerm();
 

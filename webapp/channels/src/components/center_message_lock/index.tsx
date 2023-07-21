@@ -1,26 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {EyeOffOutlineIcon} from '@mattermost/compass-icons/components';
+import {GlobalState} from '@mattermost/types/store';
 import React from 'react';
 import {useIntl, FormatDateOptions} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {EyeOffOutlineIcon} from '@mattermost/compass-icons/components';
-
-import {isAdmin} from 'mattermost-redux/utils/user_utils';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-
 import {getOldestPostTimeInChannel} from 'mattermost-redux/selectors/entities/posts';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import {NotifyStatus} from 'components/common/hooks/useGetNotifyAdmin';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 
 import {LicenseSkus, MattermostFeatures} from 'utils/constants';
-
-import {GlobalState} from '@mattermost/types/store';
 
 import './index.scss';
 

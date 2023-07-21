@@ -4,18 +4,15 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {GenericAction} from 'mattermost-redux/types/actions';
-
-import {getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {getCloudLimits, getCloudLimitsLoaded} from 'mattermost-redux/selectors/entities/cloud';
+import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getLimitedViews, getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getUsage} from 'mattermost-redux/selectors/entities/usage';
+import {GenericAction} from 'mattermost-redux/types/actions';
+import {getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
 
 import {GlobalState} from 'types/store';
-
-import {getUsage} from 'mattermost-redux/selectors/entities/usage';
-import {getCloudLimits, getCloudLimitsLoaded} from 'mattermost-redux/selectors/entities/cloud';
-import {getLimitedViews, getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-
 import {PostListRowListIds} from 'utils/constants';
 
 import PostListRow, {PostListRowProps} from './post_list_row';

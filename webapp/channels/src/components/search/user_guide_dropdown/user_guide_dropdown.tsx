@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, injectIntl, WrappedComponentProps} from 'react-intl';
-import classNames from 'classnames';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {ModalIdentifiers} from 'utils/constants';
-
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import UserGuideIcon from 'components/widgets/icons/user_guide_icon';
-import Menu from 'components/widgets/menu/menu';
+import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
+import UserGuideIcon from 'components/widgets/icons/user_guide_icon';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
 

@@ -5,19 +5,19 @@ import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getInvoices} from 'mattermost-redux/actions/cloud';
 import {getSelfHostedInvoices as getSelfHostedInvoicesAction} from 'actions/hosted_customer';
+import {pageVisited, trackEvent} from 'actions/telemetry_actions';
+import {getInvoices} from 'mattermost-redux/actions/cloud';
 import {getCloudErrors, getCloudInvoices, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getSelfHostedErrors, getSelfHostedInvoices} from 'mattermost-redux/selectors/entities/hosted_customer';
-import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 
 import CloudFetchError from 'components/cloud_fetch_error';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
+import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
-import ExternalLink from 'components/external_link';
 
 import BillingHistoryTable from './billing_history_table';
 

@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {ChangeEventHandler, FocusEventHandler, useState} from 'react';
 import {useIntl} from 'react-intl';
-import classNames from 'classnames';
-
-import {ItemStatus} from 'utils/constants';
 
 import Input, {CustomMessageInputType, SIZE} from '../input/input';
+import {ItemStatus} from 'utils/constants';
 
 import './password_input.scss';
 

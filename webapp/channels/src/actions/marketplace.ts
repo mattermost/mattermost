@@ -1,24 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mattermost-redux/client';
-
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {AppCall, AppExpand, AppFormValues} from '@mattermost/types/apps';
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 
-import {GlobalState} from 'types/store';
-
-import {getFilter, getPlugin} from 'selectors/views/marketplace';
-import {ActionTypes} from 'utils/constants';
-
+import {Client4} from 'mattermost-redux/client';
 import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {AppCall, AppExpand, AppFormValues} from '@mattermost/types/apps';
-import {createCallContext, createCallRequest} from 'utils/apps';
+import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {getFilter, getPlugin} from 'selectors/views/marketplace';
+
 import {DoAppCallResult, intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
+
+import {GlobalState} from 'types/store';
+import {createCallContext, createCallRequest} from 'utils/apps';
+import {ActionTypes} from 'utils/constants';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForContext} from './apps';
 

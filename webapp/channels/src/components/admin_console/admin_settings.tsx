@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
+import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 import {Overlay} from 'react-bootstrap';
 
-import {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
-import {DeepPartial} from '@mattermost/types/utilities';
-
-import {localizeMessage} from 'utils/utils';
-
+import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import Tooltip from 'components/tooltip';
-import FormError from 'components/form_error';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+
+import {localizeMessage} from 'utils/utils';
 
 export type BaseProps = {
     config?: DeepPartial<AdminConfig>;

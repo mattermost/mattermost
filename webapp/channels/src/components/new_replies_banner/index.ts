@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {bindActionCreators, Dispatch} from 'redux';
-import {connect} from 'react-redux';
-
 import {Post} from '@mattermost/types/posts';
+import {connect} from 'react-redux';
+import {bindActionCreators, Dispatch} from 'redux';
 
-import {GenericAction} from 'mattermost-redux/types/actions';
+import {updateThreadToastStatus} from 'actions/views/threads';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-
-import {updateThreadToastStatus} from 'actions/views/threads';
+import {GenericAction} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from 'types/store';
 

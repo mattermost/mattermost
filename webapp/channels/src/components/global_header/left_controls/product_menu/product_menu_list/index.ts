@@ -4,32 +4,34 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {Action} from 'mattermost-redux/types/actions';
+import {openModal} from 'actions/views/modals';
+import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
+import {Permissions} from 'mattermost-redux/constants';
 import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {
-    getInt,
-    isCustomGroupsEnabled,
-} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getConfig,
     getFirstAdminVisitMarketplaceStatus,
     getLicense,
     isMarketplaceEnabled,
 } from 'mattermost-redux/selectors/entities/general';
+import {
+    getInt,
+    isCustomGroupsEnabled,
+} from 'mattermost-redux/selectors/entities/preferences';
+import {haveICurrentTeamPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {haveICurrentTeamPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
-import {Permissions} from 'mattermost-redux/constants';
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
-import {GlobalState} from 'types/store';
+import {Action} from 'mattermost-redux/types/actions';
+import {getIsMobileView} from 'selectors/views/browser';
+
 import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps} from 'components/onboarding_tasks';
-import {openModal} from 'actions/views/modals';
+
 import {ModalData} from 'types/actions';
+import {GlobalState} from 'types/store';
 import {CloudProducts} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 
 import ProductMenuList from './product_menu_list';
-import {getIsMobileView} from 'selectors/views/browser';
 
 type Actions = {
     openModal: <P>(modalData: ModalData<P>) => void;

@@ -1,48 +1,45 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties, useCallback, useEffect, useRef, useState} from 'react';
-import classNames from 'classnames';
-import {FormattedMessage, useIntl} from 'react-intl';
 import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
-
-import {PostDraft} from 'types/store/draft';
+import {Channel} from '@mattermost/types/channels';
+import {Emoji} from '@mattermost/types/emojis';
+import {ServerError} from '@mattermost/types/errors';
+import {FileInfo} from '@mattermost/types/files';
+import classNames from 'classnames';
+import React, {CSSProperties, useCallback, useEffect, useRef, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import FilePreview from 'components/file_preview';
+import {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileUpload from 'components/file_upload';
+import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import MessageSubmitError from 'components/message_submit_error';
 import MsgTyping from 'components/msg_typing';
+import OverlayTrigger from 'components/overlay_trigger';
 import Textbox, {TextboxElement} from 'components/textbox';
 import TextboxClass from 'components/textbox/textbox';
-import MessageSubmitError from 'components/message_submit_error';
-import {FilePreviewInfo} from 'components/file_preview/file_preview';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
-import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
-import OverlayTrigger from 'components/overlay_trigger';
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 
-import * as Utils from 'utils/utils';
-import {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
-import Constants, {Locations} from 'utils/constants';
-
-import {Channel} from '@mattermost/types/channels';
-import {ServerError} from '@mattermost/types/errors';
-import {FileInfo} from '@mattermost/types/files';
-import {Emoji} from '@mattermost/types/emojis';
 import AutoHeightSwitcher from '../common/auto_height_switcher';
 import RhsSuggestionList from '../suggestion/rhs_suggestion_list';
 import Tooltip from '../tooltip';
+import {PostDraft} from 'types/store/draft';
+import Constants, {Locations} from 'utils/constants';
+import {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import * as Utils from 'utils/utils';
 
-import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
-
-import TexteditorActions from './texteditor_actions';
 import FormattingBar from './formatting_bar';
-import ShowFormat from './show_formatting';
-import SendButton from './send_button';
+import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
 import {IconContainer} from './formatting_bar/formatting_icon';
+import SendButton from './send_button';
+import ShowFormat from './show_formatting';
+import TexteditorActions from './texteditor_actions';
+import ToggleFormattingBar from './toggle_formatting_bar/toggle_formatting_bar';
 
 import './advanced_text_editor.scss';
-import ToggleFormattingBar from './toggle_formatting_bar/toggle_formatting_bar';
 
 type Props = {
 

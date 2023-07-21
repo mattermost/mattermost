@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {OAuthApp} from '@mattermost/types/integrations';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-import {OAuthApp} from '@mattermost/types/integrations';
-
 import {allowOAuth2, getOAuthAppInfo} from 'actions/admin_actions.jsx';
+import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import Authorize, {Params} from './authorize';
 

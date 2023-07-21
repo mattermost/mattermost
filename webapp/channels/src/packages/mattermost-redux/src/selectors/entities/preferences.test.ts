@@ -1,19 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {PreferencesType} from '@mattermost/types/preferences';
+import {GlobalState} from '@mattermost/types/store';
 
 import {General, Preferences} from 'mattermost-redux/constants';
-
 import * as Selectors from 'mattermost-redux/selectors/entities/preferences';
-
-import mergeObjects from '../../../test/merge_objects';
-
-import * as ThemeUtils from 'mattermost-redux/utils/theme_utils';
-
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+import * as ThemeUtils from 'mattermost-redux/utils/theme_utils';
+
+import mergeObjects from '../../../test/merge_objects';
 
 describe('Selectors.Preferences', () => {
     const category1 = 'testcategory1';

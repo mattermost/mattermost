@@ -7,9 +7,7 @@ import * as reactIntl from 'react-intl';
 
 import enMessages from 'i18n/en.json';
 import esMessages from 'i18n/es.json';
-
 import {mockStore} from 'tests/test_store';
-
 import {TestHelper} from 'utils/test_helper';
 
 import PostAriaLabelDiv, {Props} from './post_aria_label_div';

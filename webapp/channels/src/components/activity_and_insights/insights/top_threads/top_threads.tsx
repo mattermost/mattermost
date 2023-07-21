@@ -1,21 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect, useState, useCallback, useMemo} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-
+import {CircleSkeletonLoader, RectangleSkeletonLoader} from '@mattermost/components';
 import {TopThread} from '@mattermost/types/insights';
 import {GlobalState} from '@mattermost/types/store';
-
-import {CircleSkeletonLoader, RectangleSkeletonLoader} from '@mattermost/components';
+import React, {memo, useEffect, useState, useCallback, useMemo} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {getMyTopThreads, getTopThreadsForTeam} from 'mattermost-redux/actions/insights';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import {InsightsScopes} from 'utils/constants';
-
-import widgetHoc, {WidgetHocProps} from '../widget_hoc/widget_hoc';
 import WidgetEmptyState from '../widget_empty_state/widget_empty_state';
+import widgetHoc, {WidgetHocProps} from '../widget_hoc/widget_hoc';
+import {InsightsScopes} from 'utils/constants';
 
 import TopThreadsItem from './top_threads_item/top_threads_item';
 

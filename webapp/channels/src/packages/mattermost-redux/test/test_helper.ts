@@ -1,23 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import nock from 'nock';
-
-import {randomUUID} from 'crypto';
-
-import {Command, DialogElement, OAuthApp} from '@mattermost/types/integrations';
-import {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
-import {Bot} from '@mattermost/types/bots';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {Role} from '@mattermost/types/roles';
-import {Post, PostMetadata} from '@mattermost/types/posts';
-import {Channel, ChannelNotifyProps, ChannelMembership} from '@mattermost/types/channels';
-import {Group} from '@mattermost/types/groups';
-import {UserProfile, UserNotifyProps} from '@mattermost/types/users';
-import {Scheme} from '@mattermost/types/schemes';
-import {FileInfo} from '@mattermost/types/files';
-
 import {Client4} from '@mattermost/client';
+import {Bot} from '@mattermost/types/bots';
+import {Channel, ChannelNotifyProps, ChannelMembership} from '@mattermost/types/channels';
+import {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
+import {FileInfo} from '@mattermost/types/files';
+import {Group} from '@mattermost/types/groups';
+import {Command, DialogElement, OAuthApp} from '@mattermost/types/integrations';
+import {Post, PostMetadata} from '@mattermost/types/posts';
+import {Role} from '@mattermost/types/roles';
+import {Scheme} from '@mattermost/types/schemes';
+import {Team, TeamMembership} from '@mattermost/types/teams';
+import {UserProfile, UserNotifyProps} from '@mattermost/types/users';
+import {randomUUID} from 'crypto';
+import nock from 'nock';
 
 import General from 'mattermost-redux/constants/general';
 import {generateId} from 'mattermost-redux/utils/helpers';

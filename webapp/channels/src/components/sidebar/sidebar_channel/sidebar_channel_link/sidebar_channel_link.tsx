@@ -1,34 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import classNames from 'classnames';
 import React from 'react';
 import {Link} from 'react-router-dom';
-import classNames from 'classnames';
-
-import Pluggable from 'plugins/pluggable';
 
 import {mark, trackEvent} from 'actions/telemetry_actions';
 
 import CopyUrlContextMenu from 'components/copy_url_context_menu';
+import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-
-import Constants, {RHSStates} from 'utils/constants';
-import {wrapEmojis} from 'utils/emoji_utils';
-import {cmdOrCtrlPressed} from 'utils/keyboard';
-import {isDesktopApp} from 'utils/user_agent';
-import {localizeMessage} from 'utils/utils';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
-
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 
 import ChannelMentionBadge from '../channel_mention_badge';
 import ChannelPencilIcon from '../channel_pencil_icon';
 import SidebarChannelIcon from '../sidebar_channel_icon';
 import SidebarChannelMenu from '../sidebar_channel_menu';
-
-import {Channel} from '@mattermost/types/channels';
+import Pluggable from 'plugins/pluggable';
 import {RhsState} from 'types/store/rhs';
+import Constants, {RHSStates} from 'utils/constants';
+import {wrapEmojis} from 'utils/emoji_utils';
+import {cmdOrCtrlPressed} from 'utils/keyboard';
+import {isDesktopApp} from 'utils/user_agent';
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
     channel: Channel;

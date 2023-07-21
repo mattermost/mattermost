@@ -1,19 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
-import {ShallowWrapper} from 'enzyme';
-
 import {ChannelType} from '@mattermost/types/channels';
 import {TeamType} from '@mattermost/types/teams';
+import {ShallowWrapper} from 'enzyme';
+import React, {ComponentProps} from 'react';
+
+import FaviconTitleHandler, {FaviconTitleHandlerClass} from 'components/favicon_title_handler/favicon_title_handler';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-
 import {Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {isChrome, isFirefox} from 'utils/user_agent';
-
-import FaviconTitleHandler, {FaviconTitleHandlerClass} from 'components/favicon_title_handler/favicon_title_handler';
 
 type Props = ComponentProps<typeof FaviconTitleHandlerClass>;
 

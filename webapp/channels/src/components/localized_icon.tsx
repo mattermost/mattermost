@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 import React, {HTMLAttributes} from 'react';
 import {useIntl, MessageDescriptor} from 'react-intl';
-import {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 
 type Props = Omit<HTMLAttributes<HTMLSpanElement | HTMLElement>, 'title' | 'component'> & {
     component?: 'i' | 'span';

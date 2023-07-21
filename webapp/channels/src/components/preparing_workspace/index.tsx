@@ -4,9 +4,9 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {Action} from 'mattermost-redux/types/actions';
 import {checkIfTeamExists, createTeam, updateTeam} from 'mattermost-redux/actions/teams';
 import {getProfiles} from 'mattermost-redux/actions/users';
+import {Action} from 'mattermost-redux/types/actions';
 
 import PreparingWorkspace, {Actions} from './preparing_workspace';
 

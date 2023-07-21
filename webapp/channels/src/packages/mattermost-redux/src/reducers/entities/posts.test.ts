@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import expect from 'expect';
-
 import {Post, PostOrderBlock} from '@mattermost/types/posts';
+import expect from 'expect';
 
 import {
     ChannelTypes,
@@ -15,6 +14,7 @@ import {
 import {Posts} from 'mattermost-redux/constants';
 import * as reducers from 'mattermost-redux/reducers/entities/posts';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
+
 import {TestHelper} from 'utils/test_helper';
 
 function toPostsRecord(partials: Record<string, Partial<Post>>): Record<string, Post> {

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {GenericAction} from 'mattermost-redux/types/actions';
+
 import storageReducer from 'reducers/storage';
 import {StorageTypes} from 'utils/constants';
 

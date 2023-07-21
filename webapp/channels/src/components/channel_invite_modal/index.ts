@@ -1,31 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
+import {addUsersToChannel} from 'actions/channel_actions';
+import {loadStatusesForProfilesList} from 'actions/status_actions';
+import {closeModal} from 'actions/views/modals';
 import {getTeamStats} from 'mattermost-redux/actions/teams';
 import {getProfilesNotInChannel, getProfilesInChannel, searchProfiles} from 'mattermost-redux/actions/users';
-import {getProfilesNotInCurrentChannel, getProfilesInCurrentChannel, getProfilesNotInCurrentTeam, getProfilesNotInTeam, getUserStatuses, makeGetProfilesNotInChannel, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-
-import {Action, ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
+import {Permissions} from 'mattermost-redux/constants';
+import {getRecentProfilesFromDMs} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {Permissions} from 'mattermost-redux/constants';
+import {getProfilesNotInCurrentChannel, getProfilesInCurrentChannel, getProfilesNotInCurrentTeam, getProfilesNotInTeam, getUserStatuses, makeGetProfilesNotInChannel, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
+import {Action, ActionResult} from 'mattermost-redux/types/actions';
 
 import {Value} from 'components/multiselect/multiselect';
 
-import {addUsersToChannel} from 'actions/channel_actions';
-import {loadStatusesForProfilesList} from 'actions/status_actions';
-
-import {closeModal} from 'actions/views/modals';
-
 import {GlobalState} from 'types/store';
-
-import {getRecentProfilesFromDMs} from 'mattermost-redux/selectors/entities/channels';
 
 import ChannelInviteModal from './channel_invite_modal';
 

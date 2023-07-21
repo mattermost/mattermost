@@ -4,17 +4,16 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
+import {installPlugin} from 'actions/marketplace';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
+import {closeModal} from 'actions/views/modals';
 import {getPluginStatus} from 'mattermost-redux/selectors/entities/admin';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {GenericAction} from 'mattermost-redux/types/actions';
+import {getInstalling, getError} from 'selectors/views/marketplace';
 
 import {GlobalState} from 'types/store';
-
-import {installPlugin} from 'actions/marketplace';
-import {closeModal} from 'actions/views/modals';
 import {ModalIdentifiers} from 'utils/constants';
-import {getInstalling, getError} from 'selectors/views/marketplace';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import MarketplaceItemPlugin, {MarketplaceItemPluginProps} from './marketplace_item_plugin';
 

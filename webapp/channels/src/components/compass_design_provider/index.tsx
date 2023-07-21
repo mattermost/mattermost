@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {FC, memo, ReactNode, useMemo} from 'react';
 import {createTheme, ThemeProvider, Theme as MuiTheme, useTheme as useDefaultMuiTheme, alpha} from '@mui/material/styles';
+import React, {FC, memo, ReactNode, useMemo} from 'react';
 
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 

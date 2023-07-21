@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Bot} from '@mattermost/types/bots';
+import {Command, IncomingWebhook, OAuthApp, OutgoingWebhook} from '@mattermost/types/integrations';
+import {Team} from '@mattermost/types/teams';
+import {IDMappedObjects} from '@mattermost/types/utilities';
 import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link, useHistory} from 'react-router-dom';
 
+import BackstageHeader from 'components/backstage/components/backstage_header';
+import CopyText from 'components/copy_text';
+import ExternalLink from 'components/external_link';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+
 import {Constants, DeveloperLinks, ErrorPageTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
-
-import {Team} from '@mattermost/types/teams';
-import {Command, IncomingWebhook, OAuthApp, OutgoingWebhook} from '@mattermost/types/integrations';
-import {IDMappedObjects} from '@mattermost/types/utilities';
-
-import CopyText from 'components/copy_text';
-import BackstageHeader from 'components/backstage/components/backstage_header';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import {Bot} from '@mattermost/types/bots';
-import ExternalLink from 'components/external_link';
 
 type Props = {
     team: Team;

@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Post} from '@mattermost/types/posts';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Post} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
-
 import {sendAddToChannelEphemeralPost} from 'actions/global_actions';
+
+import AtMention from 'components/at_mention';
+
 import {Constants} from 'utils/constants';
 import {t} from 'utils/i18n';
-import AtMention from 'components/at_mention';
 
 interface Actions {
     addChannelMember: (channelId: string, userId: string, rootId: string) => void;

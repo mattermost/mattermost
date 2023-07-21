@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ChartLineIcon} from '@mattermost/compass-icons/components';
+import classNames from 'classnames';
 import React, {useCallback} from 'react';
-import {Link, useRouteMatch, useLocation, matchPath} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import classNames from 'classnames';
-import {ChartLineIcon} from '@mattermost/compass-icons/components';
-import {insightsAreEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
-
-import {t} from 'utils/i18n';
-import {RHSStates} from 'utils/constants';
+import {Link, useRouteMatch, useLocation, matchPath} from 'react-router-dom';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {closeRightHandSide} from 'actions/views/rhs';
+import {insightsAreEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
+
+import {RHSStates} from 'utils/constants';
+import {t} from 'utils/i18n';
 
 import InsightsTourTip from './insights_tour_tip/insights_tour_tip';
 

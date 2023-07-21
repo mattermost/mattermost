@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {stripMarkdown} from 'utils/markdown';
-
 import {PluginRedux, PluginSetting} from '@mattermost/types/plugins';
 
 import getEnablePluginSetting, {EnabledPluginSetting} from 'components/admin_console/custom_plugin_settings/enable_plugin_setting';
+
+import {stripMarkdown} from 'utils/markdown';
 
 function extractTextsFromPlugin(plugin: PluginRedux) {
     const texts = extractTextFromSetting(getEnablePluginSetting(plugin));

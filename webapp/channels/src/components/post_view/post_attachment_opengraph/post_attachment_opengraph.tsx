@@ -1,27 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useRef} from 'react';
-import classNames from 'classnames';
 import {CloseIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
-
-import {useIntl} from 'react-intl';
-
 import {
     OpenGraphMetadata,
     OpenGraphMetadataImage,
     Post,
     PostImage,
 } from '@mattermost/types/posts';
+import classNames from 'classnames';
+import React, {memo, useRef} from 'react';
+import {useIntl} from 'react-intl';
 
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import ExternalImage from 'components/external_image';
+import ExternalLink from 'components/external_link';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
+
 import Constants, {PostTypes} from 'utils/constants';
 import {isSystemMessage} from 'utils/post_utils';
 import {makeUrlSafe} from 'utils/url';
-import ExternalLink from 'components/external_link';
 
 import {getNearestPoint} from './get_nearest_point';
 

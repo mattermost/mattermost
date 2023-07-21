@@ -1,33 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AnalyticsRow} from '@mattermost/types/admin';
+import {CloudCustomer} from '@mattermost/types/cloud';
+import {ClientLicense} from '@mattermost/types/config';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import {trackEvent} from 'actions/telemetry_actions';
 
 import {EmbargoedEntityTrialError} from 'components/admin_console/license_settings/trial_banner/trial_banner';
 import AlertBanner from 'components/alert_banner';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
-import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import PurchaseModal from 'components/purchase_modal';
+import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import ExternalLink from 'components/external_link';
-
-import {ModalIdentifiers, TELEMETRY_CATEGORIES, AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
-import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
-import * as Utils from 'utils/utils';
-import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
-
-import {trackEvent} from 'actions/telemetry_actions';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
+import PurchaseModal from 'components/purchase_modal';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {ModalData} from 'types/actions';
-
-import {ClientLicense} from '@mattermost/types/config';
-import {AnalyticsRow} from '@mattermost/types/admin';
-import {CloudCustomer} from '@mattermost/types/cloud';
+import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
+import {ModalIdentifiers, TELEMETRY_CATEGORIES, AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
+import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
+import * as Utils from 'utils/utils';
 
 import './feature_discovery.scss';
 

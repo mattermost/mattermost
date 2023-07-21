@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {ServerError} from '@mattermost/types/errors';
 import {connect} from 'react-redux';
+import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {resetUserPassword} from 'mattermost-redux/actions/users';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from 'types/store';
-import {ServerError} from '@mattermost/types/errors';
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import PasswordResetForm from './password_reset_form';
 

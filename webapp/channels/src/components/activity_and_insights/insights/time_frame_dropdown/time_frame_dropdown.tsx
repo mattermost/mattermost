@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback} from 'react';
-
-import ReactSelect, {ValueType} from 'react-select';
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
+import {TimeFrames} from '@mattermost/types/insights';
+import React, {memo, useCallback} from 'react';
+import ReactSelect, {ValueType} from 'react-select';
 
 import {trackEvent} from 'actions/telemetry_actions';
-
-import {TimeFrames} from '@mattermost/types/insights';
 
 import {localizeMessage} from 'utils/utils';
 

@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import styled from 'styled-components';
-
-import {UserProfile} from '@mattermost/types/users';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusModal from 'components/custom_status/custom_status_modal';
@@ -12,7 +11,6 @@ import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
 import {ModalData} from 'types/actions';
-
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
 const HeaderLine = styled.div`

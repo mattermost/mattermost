@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
 import React, {memo, useEffect, useRef, useState} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {VariableSizeList, ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
-
-import Member from './member';
 import {ChannelMember, ListItem, ListItemType} from './channel_members_rhs';
+import Member from './member';
 
 export interface Props {
     channel: Channel;

@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserAutocomplete} from '@mattermost/types/autocomplete';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
+import SharedUserIndicator from 'components/shared_user_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
+import Avatar from 'components/widgets/users/avatar';
 
 import * as Utils from 'utils/utils';
-import Avatar from 'components/widgets/users/avatar';
-import SharedUserIndicator from 'components/shared_user_indicator';
-
-import {UserProfile} from '@mattermost/types/users';
-import {UserAutocomplete} from '@mattermost/types/autocomplete';
 
 import Provider, {ResultsCallback} from './provider';
 import {SuggestionContainer, SuggestionProps} from './suggestion';

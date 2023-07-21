@@ -1,28 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CircleSkeletonLoader, RectangleSkeletonLoader} from '@mattermost/components';
+import {TopChannel, TopChannelGraphData} from '@mattermost/types/insights';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
-import {FormattedMessage} from 'react-intl';
-
-import {TopChannel, TopChannelGraphData} from '@mattermost/types/insights';
-
-import {CircleSkeletonLoader, RectangleSkeletonLoader} from '@mattermost/components';
-
-import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {getMyTopChannels, getTopChannelsForTeam} from 'mattermost-redux/actions/insights';
-
-import Constants, {InsightsScopes} from 'utils/constants';
 
 import {trackEvent} from 'actions/telemetry_actions';
+import {getMyTopChannels, getTopChannelsForTeam} from 'mattermost-redux/actions/insights';
+import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
-import widgetHoc, {WidgetHocProps} from '../widget_hoc/widget_hoc';
 import WidgetEmptyState from '../widget_empty_state/widget_empty_state';
+import widgetHoc, {WidgetHocProps} from '../widget_hoc/widget_hoc';
+import Constants, {InsightsScopes} from 'utils/constants';
 
 import TopChannelsLineChart from './top_channels_line_chart/top_channels_line_chart';
 

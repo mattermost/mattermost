@@ -37,9 +37,9 @@
     "eol-last": ["error", "always"],
     "import/no-unresolved": 2,
     "import/order": [
-      0,
+      2,
       {
-        "newlines-between": "always-and-inside-groups",
+        "newlines-between": "always",
         "groups": [
           "builtin",
           "external",
@@ -49,7 +49,23 @@
           ],
           "sibling",
           "index"
-        ]
+        ],
+        "pathGroups": [
+          {
+            "pattern": "@(mattermost-redux|selectors|actions|stores)/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "components/**",
+            "group": "external",
+            "position": "after"
+          }
+        ],
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
       }
     ],
     "no-undefined": 0,

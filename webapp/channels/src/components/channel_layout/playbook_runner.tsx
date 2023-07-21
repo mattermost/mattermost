@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import {useEffect} from 'react';
-import {AnyAction, Dispatch} from 'redux';
 import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch} from 'react-router-dom';
-
-import {getChannelByTeamIdAndChannelName} from 'mattermost-redux/selectors/entities/channels';
-import {Client4} from 'mattermost-redux/client';
-import {IntegrationTypes} from 'mattermost-redux/action_types';
-import {Channel} from '@mattermost/types/channels';
-import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
-import {generateId} from 'mattermost-redux/utils/helpers';
+import {AnyAction, Dispatch} from 'redux';
 
 import {switchToChannel} from 'actions/views/channel';
+import {IntegrationTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
+import {getChannelByTeamIdAndChannelName} from 'mattermost-redux/selectors/entities/channels';
+import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
+import {generateId} from 'mattermost-redux/utils/helpers';
 import {getLastViewedChannelNameByTeamName} from 'selectors/local_storage';
+
 import {GlobalState} from 'types/store';
 
 interface MatchParams {

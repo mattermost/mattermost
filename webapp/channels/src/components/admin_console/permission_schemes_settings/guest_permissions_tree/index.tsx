@@ -3,11 +3,10 @@
 
 import {connect} from 'react-redux';
 
+import Permissions from 'mattermost-redux/constants/permissions';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {GlobalState} from 'types/store';
-
-import Permissions from 'mattermost-redux/constants/permissions';
 
 import GuestPermissionsTree from './guest_permissions_tree';
 

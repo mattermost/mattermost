@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import {Channel} from '@mattermost/types/channels';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import ChannelList from 'components/admin_console/data_retention_settings/channel_list/channel_list';
-import {Channel} from '@mattermost/types/channels';
+
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/admin_console/data_retention_settings/channel_list', () => {

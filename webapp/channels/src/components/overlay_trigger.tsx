@@ -2,11 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
-// eslint-disable-next-line no-restricted-imports
-import {OverlayTrigger as OriginalOverlayTrigger, OverlayTriggerProps} from 'react-bootstrap';
+import {OverlayTrigger as OriginalOverlayTrigger, OverlayTriggerProps} from 'react-bootstrap'; // eslint-disable-line no-restricted-imports
 import {IntlContext, IntlShape} from 'react-intl';
-
 import {Provider} from 'react-redux';
 
 import store from 'stores/redux_store.jsx';

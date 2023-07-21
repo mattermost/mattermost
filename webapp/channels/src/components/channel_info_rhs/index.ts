@@ -4,27 +4,23 @@
 import {connect} from 'react-redux';
 import {AnyAction, bindActionCreators, Dispatch} from 'redux';
 
-import {getCurrentChannel, isCurrentChannelFavorite, isCurrentChannelMuted, isCurrentChannelArchived, getCurrentChannelStats} from 'mattermost-redux/selectors/entities/channels';
-import {isModalOpen} from 'selectors/views/modals';
-
-import {closeRightHandSide, showChannelFiles, showChannelMembers, showPinnedPosts} from 'actions/views/rhs';
-
-import {GlobalState} from 'types/store';
-
-import {Constants, ModalIdentifiers} from 'utils/constants';
-
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
-import {getIsMobileView} from 'selectors/views/browser';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {unfavoriteChannel, favoriteChannel, getChannelStats} from 'mattermost-redux/actions/channels';
 import {muteChannel, unmuteChannel} from 'actions/channel_actions';
 import {openModal} from 'actions/views/modals';
-import {getDisplayNameByUser, getUserIdFromChannelId} from 'utils/utils';
+import {closeRightHandSide, showChannelFiles, showChannelMembers, showPinnedPosts} from 'actions/views/rhs';
+import {unfavoriteChannel, favoriteChannel, getChannelStats} from 'mattermost-redux/actions/channels';
+import {Permissions} from 'mattermost-redux/constants';
+import {getCurrentChannel, isCurrentChannelFavorite, isCurrentChannelMuted, isCurrentChannelArchived, getCurrentChannelStats} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getProfilesInCurrentChannel, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
+import {getIsMobileView} from 'selectors/views/browser';
+import {isModalOpen} from 'selectors/views/modals';
 
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {Permissions} from 'mattermost-redux/constants';
+import {GlobalState} from 'types/store';
+import {Constants, ModalIdentifiers} from 'utils/constants';
+import {getDisplayNameByUser, getUserIdFromChannelId} from 'utils/utils';
 
 import RHS, {Props} from './channel_info_rhs';
 

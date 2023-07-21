@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
-import {useIntl} from 'react-intl';
 import {
     AccountMultipleOutlineIcon,
     ApplicationCogIcon,
@@ -11,23 +9,26 @@ import {
     ViewGridPlusOutlineIcon,
     WebhookIncomingIcon,
 } from '@mattermost/compass-icons/components';
+import {UserProfile} from '@mattermost/types/users';
+import React, {useEffect} from 'react';
+import {useIntl} from 'react-intl';
 
 import {Permissions} from 'mattermost-redux/constants';
 
 import AboutBuildModal from 'components/about_build_modal';
+import {VisitSystemConsoleTour} from 'components/onboarding_tasks';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
+import UserGroupsModal from 'components/user_groups_modal';
 import Menu from 'components/widgets/menu/menu';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
-import {VisitSystemConsoleTour} from 'components/onboarding_tasks';
-import UserGroupsModal from 'components/user_groups_modal';
+
+import {ModalData} from 'types/actions';
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
 import {makeUrlSafe} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
-import {ModalData} from 'types/actions';
-import {UserProfile} from '@mattermost/types/users';
 
 import './product_menu_list.scss';
 

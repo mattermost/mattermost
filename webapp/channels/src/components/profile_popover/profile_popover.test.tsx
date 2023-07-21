@@ -1,22 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CustomStatusDuration} from '@mattermost/types/users';
 import React from 'react';
-
 import {Provider} from 'react-redux';
 
 import {General} from 'mattermost-redux/constants';
-import {CustomStatusDuration} from '@mattermost/types/users';
 
-import ProfilePopover from 'components/profile_popover/profile_popover';
 import {checkUserInCall} from 'components/profile_popover';
+import ProfilePopover from 'components/profile_popover/profile_popover';
 
 import Pluggable from 'plugins/pluggable';
-
 import {mountWithIntl, shallowWithIntl} from 'tests/helpers/intl-test-helper';
-
-import {TestHelper} from 'utils/test_helper';
 import {mockStore} from 'tests/test_store';
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/ProfilePopover', () => {
     const baseProps = {

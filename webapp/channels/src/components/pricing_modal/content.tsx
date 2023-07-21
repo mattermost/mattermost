@@ -1,49 +1,48 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Feedback} from '@mattermost/types/cloud';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {CloudLinks, CloudProducts, LicenseSkus, ModalIdentifiers, MattermostFeatures, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
-import {fallbackStarterLimits, asGBString, hasSomeLimits} from 'utils/limits';
-import {findOnlyYearlyProducts, findProductBySku} from 'utils/products';
-
+import {subscribeCloudSubscription} from 'actions/cloud';
 import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal, openModal} from 'actions/views/modals';
-import {subscribeCloudSubscription} from 'actions/cloud';
 import {
     getCloudSubscription as selectCloudSubscription,
     getSubscriptionProduct as selectSubscriptionProduct,
     getCloudProducts as selectCloudProducts,
 } from 'mattermost-redux/selectors/entities/cloud';
+import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 
-import {Feedback} from '@mattermost/types/cloud';
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import SuccessModal from 'components/cloud_subscribe_result_modal/success';
-import ErrorModal from 'components/cloud_subscribe_result_modal/error';
-import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
-import PlanLabel from 'components/common/plan_label';
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
-import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
+import ErrorModal from 'components/cloud_subscribe_result_modal/error';
+import SuccessModal from 'components/cloud_subscribe_result_modal/success';
+import useGetLimits from 'components/common/hooks/useGetLimits';
 import {NotifyStatus} from 'components/common/hooks/useGetNotifyAdmin';
-import DowngradeFeedbackModal from 'components/feedback_modal/downgrade_feedback';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
-
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import useOpenDowngradeModal from 'components/common/hooks/useOpenDowngradeModal';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
+import PlanLabel from 'components/common/plan_label';
 import ExternalLink from 'components/external_link';
+import DowngradeFeedbackModal from 'components/feedback_modal/downgrade_feedback';
+import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
+import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
 
-import ContactSalesCTA from './contact_sales_cta';
-import StarterDisclaimerCTA from './starter_disclaimer_cta';
-import StartTrialCaution from './start_trial_caution';
+import {CloudLinks, CloudProducts, LicenseSkus, ModalIdentifiers, MattermostFeatures, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
+import {fallbackStarterLimits, asGBString, hasSomeLimits} from 'utils/limits';
+import {findOnlyYearlyProducts, findProductBySku} from 'utils/products';
+
 import Card, {BlankCard, ButtonCustomiserClasses} from './card';
+import ContactSalesCTA from './contact_sales_cta';
+import StartTrialCaution from './start_trial_caution';
+import StarterDisclaimerCTA from './starter_disclaimer_cta';
 
 import './content.scss';
 

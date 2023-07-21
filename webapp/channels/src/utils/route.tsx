@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ErrorPageTypes} from 'utils/constants';
-
+import {ClientLicense} from '@mattermost/types/config';
 import {UserProfile} from '@mattermost/types/users';
 
-import {ClientLicense} from '@mattermost/types/config';
-
 import {isGuest} from 'mattermost-redux/utils/user_utils';
+
+import {ErrorPageTypes} from 'utils/constants';
 
 export const notFoundParams = {
     type: ErrorPageTypes.PAGE_NOT_FOUND,

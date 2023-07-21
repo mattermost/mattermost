@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
 import classNames from 'classnames';
+import React, {CSSProperties} from 'react';
 
-import * as Keyboard from 'utils/keyboard';
-import * as Utils from 'utils/utils';
 import {showMobileSubMenuModal} from 'actions/global_actions';
 
 import type {Menu} from 'types/store/plugins';
+import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import * as Utils from 'utils/utils';
 
 import './menu_item.scss';
-import Constants from 'utils/constants';
 
 // Requires an object conforming to a submenu structure passed to registerPostDropdownSubMenuAction
 // of the form:

@@ -4,17 +4,6 @@
 import {ComponentProps} from 'react';
 import {connect} from 'react-redux';
 
-import {getInt, isCollapsedThreadsEnabled, onboardingTourTipsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
-import {getCurrentTeamId, getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-
-import {setThreadFollow} from 'mattermost-redux/actions/threads';
-import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
-
-import {GlobalState} from 'types/store';
-
 import {
     setRhsExpanded,
     showMentions,
@@ -26,12 +15,19 @@ import {
     toggleRhsExpanded,
     goBack,
 } from 'actions/views/rhs';
+import {setThreadFollow} from 'mattermost-redux/actions/threads';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getInt, isCollapsedThreadsEnabled, onboardingTourTipsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeamId, getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
+import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 import {getIsRhsExpanded} from 'selectors/rhs';
-import {CrtThreadPaneSteps, Preferences} from 'utils/constants';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {allAtMentions} from 'utils/text_formatting';
+import {GlobalState} from 'types/store';
+import {CrtThreadPaneSteps, Preferences} from 'utils/constants';
 import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
+import {allAtMentions} from 'utils/text_formatting';
 
 import RhsHeaderPost from './rhs_header_post';
 

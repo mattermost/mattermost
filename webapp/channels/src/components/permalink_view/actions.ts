@@ -1,29 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getChannel, getChannelMember, selectChannel, joinChannel, getChannelStats} from 'mattermost-redux/actions/channels';
-import {getPostThread} from 'mattermost-redux/actions/posts';
-import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
-import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
-import {Post} from '@mattermost/types/posts';
 import {Channel} from '@mattermost/types/channels';
+import {Post} from '@mattermost/types/posts';
 
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions';
 import {selectPostAndHighlight} from 'actions/views/rhs';
+import {getChannel, getChannelMember, selectChannel, joinChannel, getChannelStats} from 'mattermost-redux/actions/channels';
+import {getPostThread} from 'mattermost-redux/actions/posts';
+import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
+import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
+import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
+import {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
 import {joinPrivateChannelPrompt} from 'utils/channel_utils';
 import {ActionTypes, Constants, ErrorPageTypes} from 'utils/constants';
-import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 import {isComment, getPostURL} from 'utils/post_utils';
-import {GlobalState} from 'types/store';
 
 let privateChannelJoinPromptVisible = false;
 

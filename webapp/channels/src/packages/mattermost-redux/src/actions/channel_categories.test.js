@@ -1,22 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CategorySorting} from '@mattermost/types/channel_categories';
 import nock from 'nock';
 
-import configureStore from 'mattermost-redux/test/test_store';
-
 import {Client4} from 'mattermost-redux/client';
+import {getAllCategoriesByIds, getCategory} from 'mattermost-redux/selectors/entities/channel_categories';
+import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
+import TestHelper, {DEFAULT_SERVER} from 'mattermost-redux/test/test_helper';
+import configureStore from 'mattermost-redux/test/test_store';
 
 import {General} from '../constants';
 import {CategoryTypes} from '../constants/channel_categories';
 import {MarkUnread} from '../constants/channels';
-
-import {getAllCategoriesByIds, getCategory} from 'mattermost-redux/selectors/entities/channel_categories';
-import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
-
-import TestHelper, {DEFAULT_SERVER} from 'mattermost-redux/test/test_helper';
-
-import {CategorySorting} from '@mattermost/types/channel_categories';
 
 import * as Actions from './channel_categories';
 

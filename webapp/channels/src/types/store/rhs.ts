@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post, PostType} from '@mattermost/types/posts';
 import {Channel} from '@mattermost/types/channels';
+import {Post, PostType} from '@mattermost/types/posts';
 import {UserProfile} from '@mattermost/types/users';
 
 import {RHSStates} from 'utils/constants';

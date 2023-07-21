@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
 import classNames from 'classnames';
+import React, {CSSProperties} from 'react';
 
 import {isMobile} from 'utils/utils';
 
-import SubMenuItem from './menu_items/submenu_item';
-
-import MenuHeader from './menu_header';
 import MenuGroup from './menu_group';
+import MenuHeader from './menu_header';
+import MenuCloudTrial from './menu_items/menu_cloud_trial';
 import MenuItemAction from './menu_items/menu_item_action';
+import MenuItemCloudLimit from './menu_items/menu_item_cloud_limit';
 import MenuItemExternalLink from './menu_items/menu_item_external_link';
 import MenuItemLink from './menu_items/menu_item_link';
-import MenuCloudTrial from './menu_items/menu_cloud_trial';
-import MenuStartTrial from './menu_items/menu_start_trial';
 import MenuItemToggleModalRedux from './menu_items/menu_item_toggle_modal_redux';
-import MenuItemCloudLimit from './menu_items/menu_item_cloud_limit';
+import MenuStartTrial from './menu_items/menu_start_trial';
+import SubMenuItem from './menu_items/submenu_item';
 
 import './menu.scss';
 

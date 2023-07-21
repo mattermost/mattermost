@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {shallow} from 'enzyme';
 
-import JobTable, {Props} from './table';
 import JobCancelButton from './job_cancel_button';
+import JobTable, {Props} from './table';
 
 describe('components/admin_console/jobs/table', () => {
     const createJobButtonText = (

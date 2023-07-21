@@ -1,19 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DataRetentionCustomPolicies} from '@mattermost/types/data_retention';
+import {JobTypeBase, JobType} from '@mattermost/types/jobs';
 import {connect} from 'react-redux';
-
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {getDataRetentionCustomPolicies as fetchDataRetentionCustomPolicies, deleteDataRetentionCustomPolicy, updateConfig} from 'mattermost-redux/actions/admin';
+import {createJob, getJobsByType} from 'mattermost-redux/actions/jobs';
 import {getDataRetentionCustomPolicies, getDataRetentionCustomPoliciesCount} from 'mattermost-redux/selectors/entities/admin';
 import {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-import {DataRetentionCustomPolicies} from '@mattermost/types/data_retention';
-import {createJob, getJobsByType} from 'mattermost-redux/actions/jobs';
 
 import {GlobalState} from 'types/store';
-
-import {JobTypeBase, JobType} from '@mattermost/types/jobs';
 
 import DataRetentionSettings from './data_retention_settings';
 

@@ -7,8 +7,8 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 type ExternalLinkQueryParams = {
     utm_source?: string;

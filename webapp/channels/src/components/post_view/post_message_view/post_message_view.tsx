@@ -1,21 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Post} from '@mattermost/types/posts';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Posts} from 'mattermost-redux/constants';
-import {Post} from '@mattermost/types/posts';
-
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
-import * as Utils from 'utils/utils';
-
 import PostMarkdown from 'components/post_markdown';
-import Pluggable from 'plugins/pluggable';
 import ShowMore from 'components/post_view/show_more';
-import {TextFormattingOptions} from 'utils/text_formatting';
 import {AttachmentTextOverflowType} from 'components/post_view/show_more/show_more';
+
+import Pluggable from 'plugins/pluggable';
+import {TextFormattingOptions} from 'utils/text_formatting';
+import * as Utils from 'utils/utils';
 
 type Props = {
     post: Post; /* The post to render the message for */

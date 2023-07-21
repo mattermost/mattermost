@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ClientConfig} from '@mattermost/types/config';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ClientConfig} from '@mattermost/types/config';
 import ExternalLink from 'components/external_link';
 
 type Props = {

@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 
-import {getHistory} from 'utils/browser_history';
-import {closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
+import {redirectUserToDefaultTeam, toggleSideBarRightMenuAction, getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
 import {close as closeLhs} from 'actions/views/lhs';
+import {closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
 import LocalStorageStore from 'stores/local_storage_store';
 import reduxStore from 'stores/redux_store';
-import {redirectUserToDefaultTeam, toggleSideBarRightMenuAction, getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
 
 import mockStore from 'tests/test_store';
+import {getHistory} from 'utils/browser_history';
 
 jest.mock('actions/views/rhs', () => ({
     closeMenu: jest.fn(),

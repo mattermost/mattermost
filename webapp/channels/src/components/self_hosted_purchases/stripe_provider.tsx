@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {Elements} from '@stripe/react-stripe-js';
 import {Stripe} from '@stripe/stripe-js';
+import React from 'react';
 
 import {STRIPE_CSS_SRC} from 'components/payment_form/stripe';
 interface Props {

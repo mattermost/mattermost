@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import MuiMenuItem from '@mui/material/MenuItem';
+import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
+import {styled} from '@mui/material/styles';
+import {cloneDeep} from 'lodash';
 import React, {
     ReactElement,
     ReactNode,
@@ -11,11 +15,7 @@ import React, {
     useRef,
     useEffect,
 } from 'react';
-import {styled} from '@mui/material/styles';
 import {useSelector} from 'react-redux';
-import MuiMenuItem from '@mui/material/MenuItem';
-import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
-import {cloneDeep} from 'lodash';
 
 import {getIsMobileView} from 'selectors/views/browser';
 

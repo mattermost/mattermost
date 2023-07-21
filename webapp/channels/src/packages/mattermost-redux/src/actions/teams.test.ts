@@ -3,17 +3,18 @@
 
 import fs from 'fs';
 
+import {Team} from '@mattermost/types/teams';
 import nock from 'nock';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/teams';
 import {loadMeREST} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
+import {General, RequestStatus} from 'mattermost-redux/constants';
+import {ActionResult} from 'mattermost-redux/types/actions';
+
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-import {General, RequestStatus} from 'mattermost-redux/constants';
-import {Team} from '@mattermost/types/teams';
 
 const OK_RESPONSE = {status: 'OK'};
 

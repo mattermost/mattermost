@@ -1,23 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {Emoji} from '@mattermost/types/emojis';
+import React from 'react';
 
 import {autocompleteCustomEmojis} from 'mattermost-redux/actions/emojis';
 import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
-
 import {getEmojiMap, getRecentEmojisNames} from 'selectors/emojis';
-
 import store from 'stores/redux_store.jsx';
 
 import {Preferences} from 'utils/constants';
-import * as Emoticons from 'utils/emoticons';
 import {compareEmojis, emojiMatchesSkin} from 'utils/emoji_utils';
+import * as Emoticons from 'utils/emoticons';
 
-import {SuggestionContainer, SuggestionProps} from './suggestion';
 import Provider, {ResultsCallback} from './provider';
+import {SuggestionContainer, SuggestionProps} from './suggestion';
 
 export const MIN_EMOTICON_LENGTH = 2;
 export const EMOJI_CATEGORY_SUGGESTION_BLOCKLIST = ['skintone'];

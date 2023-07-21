@@ -1,31 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {useIntl} from 'react-intl';
-
-import {trackEvent} from 'actions/telemetry_actions';
-
-import {openModal} from 'actions/views/modals';
-
-import {General} from 'mattermost-redux/constants';
-
-import {leaveChannel} from 'mattermost-redux/actions/channels';
-
-import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import {getMyChannelMembership} from 'mattermost-redux/selectors/entities/channels';
-
 import {LeastActiveChannel} from '@mattermost/types/insights';
 import {GlobalState} from '@mattermost/types/store';
+import React, {memo, useCallback} from 'react';
+import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
+
+import {trackEvent} from 'actions/telemetry_actions';
+import {openModal} from 'actions/views/modals';
+import {leaveChannel} from 'mattermost-redux/actions/channels';
+import {General} from 'mattermost-redux/constants';
+import {getMyChannelMembership} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+
+import LeaveChannelModal from 'components/leave_channel_modal';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
-import {copyToClipboard} from 'utils/utils';
 import {getSiteURL} from 'utils/url';
-
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-import LeaveChannelModal from 'components/leave_channel_modal';
+import {copyToClipboard} from 'utils/utils';
 
 import './channel_actions_menu.scss';
 

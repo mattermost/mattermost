@@ -4,11 +4,13 @@
 import React, {ComponentProps} from 'react';
 import * as reactRedux from 'react-redux';
 
-import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 import {trackEvent} from 'actions/telemetry_actions';
-import configureStore from 'store';
-import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+
 import useGetMultiplesExceededCloudLimit from 'components/common/hooks/useGetMultiplesExceededCloudLimit';
+
+import configureStore from 'store';
+import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
+import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {LimitTypes} from 'utils/limits';
 
 import {FreemiumModal} from './freemium_modal';

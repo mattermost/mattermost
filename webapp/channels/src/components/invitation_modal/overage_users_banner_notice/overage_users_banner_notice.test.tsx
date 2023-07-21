@@ -1,20 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 
-import {DeepPartial} from '@mattermost/types/utilities';
-import {GlobalState} from 'types/store';
+import {trackEvent} from 'actions/telemetry_actions';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General} from 'mattermost-redux/constants';
-import {LicenseLinks, OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
+
 import {
     act,
     fireEvent,
     renderWithIntlAndStore,
     screen,
 } from 'tests/react_testing_utils';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {trackEvent} from 'actions/telemetry_actions';
+import {GlobalState} from 'types/store';
+import {LicenseLinks, OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 

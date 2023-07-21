@@ -1,32 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, MagnifyIcon, AccountOutlineIcon} from '@mattermost/compass-icons/components';
 import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {RelationOneToOne} from '@mattermost/types/utilities';
+import classNames from 'classnames';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
+
 import {isPrivateChannel} from 'mattermost-redux/utils/channel_utils';
 
-import classNames from 'classnames';
-
+import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import LocalizedInput from 'components/localized_input/localized_input';
 import QuickInput from 'components/quick_input';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import LocalizedInput from 'components/localized_input/localized_input';
-import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
+import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import * as UserAgent from 'utils/user_agent';
-import Constants, {ModalIdentifiers} from 'utils/constants';
-import {localizeMessage, localizeAndFormatMessage} from 'utils/utils';
 import {isArchivedChannel} from 'utils/channel_utils';
-
+import Constants, {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
-import MenuWrapper from './widgets/menu/menu_wrapper';
-import Menu from './widgets/menu/menu';
 import {isKeyPressed} from 'utils/keyboard';
+import * as UserAgent from 'utils/user_agent';
+import {localizeMessage, localizeAndFormatMessage} from 'utils/utils';
+
+import Menu from './widgets/menu/menu';
+import MenuWrapper from './widgets/menu/menu_wrapper';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 

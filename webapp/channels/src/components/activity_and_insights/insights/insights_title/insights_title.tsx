@@ -6,16 +6,15 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import ExternalLink from 'components/external_link';
 import Menu from 'components/widgets/menu/menu';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
-
-import * as Utils from 'utils/utils';
-import {InsightsScopes, LicenseSkus, MattermostFeatures} from 'utils/constants';
-import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useLicenseChecks} from '../hooks';
-import ExternalLink from 'components/external_link';
+import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
+import {InsightsScopes, LicenseSkus, MattermostFeatures} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 type Props = {
     filterType: string;

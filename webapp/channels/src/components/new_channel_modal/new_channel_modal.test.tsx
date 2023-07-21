@@ -14,9 +14,7 @@ import {
     userEvent,
     waitFor,
 } from 'tests/react_testing_utils';
-
 import {GlobalState} from 'types/store';
-
 import {suitePluginIds} from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
 

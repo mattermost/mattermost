@@ -1,30 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TimeFrame, TopDM} from '@mattermost/types/insights';
+import {UserProfile} from '@mattermost/types/users';
+import classNames from 'classnames';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
-import classNames from 'classnames';
-
 import {trackEvent} from 'actions/telemetry_actions';
-
 import {getMyTopDMs} from 'mattermost-redux/actions/insights';
-
-import {TimeFrame, TopDM} from '@mattermost/types/insights';
-import {UserProfile} from '@mattermost/types/users';
-
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
+
+import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import Avatar from 'components/widgets/users/avatar';
 
 import {InsightsScopes} from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';
-
-import Avatar from 'components/widgets/users/avatar';
-import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
 
 import './../../../activity_and_insights.scss';
 

@@ -1,18 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {ClientConfig, ClientLicense} from '@mattermost/types/config';
-
-import MattermostLogo from 'components/widgets/icons/mattermost_logo';
+import ExternalLink from 'components/external_link';
 import Nbsp from 'components/html_entities/nbsp';
+import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 import {AboutLinks} from 'utils/constants';
-
-import ExternalLink from 'components/external_link';
 
 import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cloud';
 

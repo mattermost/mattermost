@@ -3,37 +3,36 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
-import {isNil} from 'lodash';
-
-import {PreferenceType} from '@mattermost/types/preferences';
-import {Group, GroupSource} from '@mattermost/types/groups';
 import {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
 import {Emoji} from '@mattermost/types/emojis';
 import {ServerError} from '@mattermost/types/errors';
 import {FileInfo} from '@mattermost/types/files';
+import {Group, GroupSource} from '@mattermost/types/groups';
+import {PreferenceType} from '@mattermost/types/preferences';
+import {isNil} from 'lodash';
+import React from 'react';
 
+import * as GlobalActions from 'actions/global_actions';
 import {ActionResult} from 'mattermost-redux/types/actions';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
-import * as GlobalActions from 'actions/global_actions';
+import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
+import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
+import {FilePreviewInfo} from 'components/file_preview/file_preview';
+import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import NotifyConfirmModal from 'components/notify_confirm_modal';
+import PostDeletedModal from 'components/post_deleted_modal';
+import {TextboxClass, TextboxElement} from 'components/textbox';
 
-import {PostDraft} from 'types/store/draft';
 import {ModalData} from 'types/actions';
-
+import {PostDraft} from 'types/store/draft';
 import Constants, {AdvancedTextEditor as AdvancedTextEditorConst, Locations, ModalIdentifiers, Preferences} from 'utils/constants';
+import {execCommandInsertText} from 'utils/exec_commands';
 import * as Keyboard from 'utils/keyboard';
-import * as UserAgent from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 import {
-    specialMentionsInText,
-    postMessageOnKeyPress,
-    shouldFocusMainTextbox,
-    isErrorInvalidSlashCommand,
-    splitMessageBasedOnCaretPosition,
-    groupsMentionedInText,
-    mentionsMinusSpecialMentionsInText,
-} from 'utils/post_utils';
+    applyMarkdown,
+    ApplyMarkdownOptions,
+} from 'utils/markdown/apply_markdown';
 import {
     getHtmlTable,
     hasHtmlLink,
@@ -44,18 +43,16 @@ import {
     formatMarkdownLinkMessage,
 } from 'utils/paste';
 import {
-    applyMarkdown,
-    ApplyMarkdownOptions,
-} from 'utils/markdown/apply_markdown';
-import {execCommandInsertText} from 'utils/exec_commands';
-
-import NotifyConfirmModal from 'components/notify_confirm_modal';
-import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
-import PostDeletedModal from 'components/post_deleted_modal';
-import {FilePreviewInfo} from 'components/file_preview/file_preview';
-import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
-import {TextboxClass, TextboxElement} from 'components/textbox';
-import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
+    specialMentionsInText,
+    postMessageOnKeyPress,
+    shouldFocusMainTextbox,
+    isErrorInvalidSlashCommand,
+    splitMessageBasedOnCaretPosition,
+    groupsMentionedInText,
+    mentionsMinusSpecialMentionsInText,
+} from 'utils/post_utils';
+import * as UserAgent from 'utils/user_agent';
+import * as Utils from 'utils/utils';
 
 const KeyCodes = Constants.KeyCodes;
 

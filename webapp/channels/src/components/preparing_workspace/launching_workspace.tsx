@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {CSSTransition} from 'react-transition-group';
-import {FormattedMessage} from 'react-intl';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 
@@ -12,9 +12,9 @@ import LogoSvg from 'components/common/svg_images_components/logo_dark_blue_svg'
 
 import loadingIcon from 'images/spinner-48x48-blue.apng';
 
-import Title from './title';
 import Description from './description';
 import {Animations, mapAnimationReasonToClass, PreparingWorkspacePageProps} from './steps';
+import Title from './title';
 
 import './launching_workspace.scss';
 

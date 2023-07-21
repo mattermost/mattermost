@@ -4,9 +4,8 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {Action} from 'mattermost-redux/types/actions';
-
 import {flagPost, unflagPost} from 'actions/post_actions';
+import {Action} from 'mattermost-redux/types/actions';
 
 import PostFlagIcon, {Actions} from './post_flag_icon';
 

@@ -1,27 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {batchActions} from 'redux-batched-actions';
-
-import {UserProfile} from '@mattermost/types/users';
 import {Channel, ChannelMembership, ServerChannel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
 import {ServerError} from '@mattermost/types/errors';
 import {Role} from '@mattermost/types/roles';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import {batchActions} from 'redux-batched-actions';
 
-import {Client4} from 'mattermost-redux/client';
-import {ChannelTypes, PreferenceTypes, RoleTypes} from 'mattermost-redux/action_types';
-import * as ChannelActions from 'mattermost-redux/actions/channels';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import {logError} from 'mattermost-redux/actions/errors';
-import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
-import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-import {loadNewDMIfNeeded, loadNewGMIfNeeded, loadProfilesForSidebar} from 'actions/user_actions';
 import {
     getChannelsAndChannelMembersQueryString,
     transformToReceivedChannelsReducerPayload,
@@ -31,6 +17,18 @@ import {
     GraphQLChannelMember,
     CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE,
 } from 'actions/channel_queries';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
+import {loadNewDMIfNeeded, loadNewGMIfNeeded, loadProfilesForSidebar} from 'actions/user_actions';
+import {ChannelTypes, PreferenceTypes, RoleTypes} from 'mattermost-redux/action_types';
+import * as ChannelActions from 'mattermost-redux/actions/channels';
+import {logError} from 'mattermost-redux/actions/errors';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {Client4} from 'mattermost-redux/client';
+import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
+import {getCurrentTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants, Preferences, NotificationLevels} from 'utils/constants';

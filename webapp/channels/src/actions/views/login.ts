@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ServerError} from '@mattermost/types/errors';
 import {batchActions} from 'redux-batched-actions';
 
-import {ServerError} from '@mattermost/types/errors';
-
-import {Client4} from 'mattermost-redux/client';
-import {ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
 import {UserTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
+import {Client4} from 'mattermost-redux/client';
+import {ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
 
 export function login(loginId: string, password: string, mfaToken = ''): ActionFunc {
     return async (dispatch: DispatchFunc) => {

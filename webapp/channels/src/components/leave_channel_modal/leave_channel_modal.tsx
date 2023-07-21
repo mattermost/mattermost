@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {LeastActiveChannel} from '@mattermost/types/insights';
 import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Channel} from '@mattermost/types/channels';
-import {LeastActiveChannel} from '@mattermost/types/insights';
+import ConfirmModal from 'components/confirm_modal';
 
 import Constants from 'utils/constants';
-
-import ConfirmModal from 'components/confirm_modal';
 
 type Props = {
     channel: Channel | LeastActiveChannel;

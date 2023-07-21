@@ -4,11 +4,10 @@
 import React from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
-import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 import {Theme, ThemeKey} from 'mattermost-redux/selectors/entities/preferences';
+import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 import ThemeThumbnail from '../theme_thumbnail';
-
 import {toTitleCase} from 'utils/utils';
 
 type Props = {

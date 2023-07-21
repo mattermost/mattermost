@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {deleteCommand, regenCommandToken} from 'mattermost-redux/actions/integrations';
-import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {Permissions} from 'mattermost-redux/constants';
+import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {GenericAction, ActionResult, ActionFunc} from 'mattermost-redux/types/actions';
-import {GlobalState} from '@mattermost/types/store';
 
 import InstalledCommands from './installed_commands';
 

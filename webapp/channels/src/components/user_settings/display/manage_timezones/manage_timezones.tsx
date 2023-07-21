@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect, {ValueType} from 'react-select';
 import {Timezone} from 'timezones.json';
 
-import SettingItemMax from 'components/setting_item_max';
-
 import {ActionResult} from 'mattermost-redux/types/actions';
-
-import {getBrowserTimezone} from 'utils/timezone';
 import {getTimezoneLabel} from 'mattermost-redux/utils/timezone_utils';
 
-import {UserProfile} from '@mattermost/types/users';
+import SettingItemMax from 'components/setting_item_max';
+
+import {getBrowserTimezone} from 'utils/timezone';
 
 type Actions = {
     updateMe: (user: UserProfile) => Promise<ActionResult>;

@@ -1,31 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
 import {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import {Role} from '@mattermost/types/roles';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import GeneralConstants from 'mattermost-redux/constants/general';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
-import {PermissionsScope, DefaultRolePermissions, DocLinks} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
-import {t} from 'utils/i18n';
-
-import ConfirmModal from 'components/confirm_modal';
-import SaveButton from 'components/save_button';
-import LoadingScreen from 'components/loading_screen';
-import FormError from 'components/form_error';
 import BlockableLink from 'components/admin_console/blockable_link';
-import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_togglable';
+import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
+import FormError from 'components/form_error';
+import LoadingScreen from 'components/loading_screen';
+import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_togglable';
 
-import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
 import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
+import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
 import PermissionsTreePlaybooks from '../permissions_tree_playbooks';
+import {PermissionsScope, DefaultRolePermissions, DocLinks} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
     config: Partial<ClientConfig>;

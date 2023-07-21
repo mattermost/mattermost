@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import IconMessage from 'components/purchase_modal/icon_message';
-import FullScreenModal from 'components/widgets/modals/full_screen_modal';
-import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
-
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
+
+import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
+import IconMessage from 'components/purchase_modal/icon_message';
+import FullScreenModal from 'components/widgets/modals/full_screen_modal';
+
 import {GlobalState} from 'types/store';
-import {Modal} from 'react-bootstrap';
 
 import './result_modal.scss';
 

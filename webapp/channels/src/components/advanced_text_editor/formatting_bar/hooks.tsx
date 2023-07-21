@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {Instance} from '@popperjs/core';
-
 import {debounce} from 'lodash';
+import React, {useEffect, useLayoutEffect, useState} from 'react';
 
 import {MarkdownMode} from 'utils/markdown/apply_markdown';
 

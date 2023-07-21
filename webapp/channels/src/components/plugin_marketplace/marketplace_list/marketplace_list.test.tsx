@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {shallow} from 'enzyme';
-
 import {AuthorType, MarketplacePlugin, ReleaseStage} from '@mattermost/types/marketplace';
+import {shallow} from 'enzyme';
+import React from 'react';
 
 import MarketplaceItem from '../marketplace_item/marketplace_item_plugin';
 

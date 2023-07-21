@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
-import {UserProfile} from '@mattermost/types/users';
-import {Team} from '@mattermost/types/teams';
 import {Channel} from '@mattermost/types/channels';
 import {PreferenceType} from '@mattermost/types/preferences';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import React from 'react';
 
-import {localizeMessage} from 'utils/utils';
-import {Constants} from 'utils/constants';
-import {getHistory} from 'utils/browser_history';
 import Menu from 'components/widgets/menu/menu';
+
+import {getHistory} from 'utils/browser_history';
+import {Constants} from 'utils/constants';
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
 

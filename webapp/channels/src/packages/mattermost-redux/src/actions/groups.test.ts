@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import nock from 'nock';
-
 import {SyncableType} from '@mattermost/types/groups';
+import nock from 'nock';
 
 import * as Actions from 'mattermost-redux/actions/groups';
 import {Client4} from 'mattermost-redux/client';

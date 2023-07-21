@@ -1,20 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {LogLevel} from '@mattermost/types/client4';
 import {batchActions} from 'redux-batched-actions';
 
-import {Client4} from 'mattermost-redux/client';
-
 import {GeneralTypes} from 'mattermost-redux/action_types';
-
+import {Client4} from 'mattermost-redux/client';
 import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
-import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
-import {LogLevel} from '@mattermost/types/client4';
 import {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
 
 import {logError} from './errors';
-import {loadRolesIfNeeded} from './roles';
 import {bindClientFunc, forceLogoutIfNecessary, FormattedError} from './helpers';
+import {loadRolesIfNeeded} from './roles';
 
 export function getPing(): ActionFunc {
     return async () => {

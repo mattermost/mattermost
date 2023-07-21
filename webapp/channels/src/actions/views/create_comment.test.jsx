@@ -1,13 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    removeReaction,
-    addMessageIntoHistory,
-    moveHistoryIndexBack,
-} from 'mattermost-redux/actions/posts';
-import {Posts} from 'mattermost-redux/constants';
-
+import {executeCommand} from 'actions/command';
+import * as HookActions from 'actions/hooks';
+import * as PostActions from 'actions/post_actions';
+import {setGlobalItem, actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {
     clearCommentDraftUploads,
     updateCommentDraft,
@@ -19,13 +16,15 @@ import {
     makeOnEditLatestPost,
 } from 'actions/views/create_comment';
 import {removeDraft, setGlobalDraftSource} from 'actions/views/drafts';
-import {setGlobalItem, actionOnGlobalItemsWithPrefix} from 'actions/storage';
-import * as PostActions from 'actions/post_actions';
-import {executeCommand} from 'actions/command';
-import * as HookActions from 'actions/hooks';
-import {StoragePrefixes} from 'utils/constants';
+import {
+    removeReaction,
+    addMessageIntoHistory,
+    moveHistoryIndexBack,
+} from 'mattermost-redux/actions/posts';
+import {Posts} from 'mattermost-redux/constants';
 
 import mockStore from 'tests/test_store';
+import {StoragePrefixes} from 'utils/constants';
 
 /* eslint-disable global-require */
 

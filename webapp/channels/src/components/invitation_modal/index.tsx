@@ -1,35 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {getCurrentTeam, getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentChannel, getChannelsInCurrentTeam, getChannelsNameMapInCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
-import {haveIChannelPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getProfiles, searchProfiles as reduxSearchProfiles} from 'mattermost-redux/actions/users';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {searchChannels as reduxSearchChannels} from 'mattermost-redux/actions/channels';
-import {regenerateTeamInviteId} from 'mattermost-redux/actions/teams';
-import {Permissions} from 'mattermost-redux/constants';
-
-import {CloseModalType} from 'actions/views/modals';
-import {Constants} from 'utils/constants';
-import {isAdmin} from 'mattermost-redux/utils/user_utils';
 import {
     sendMembersInvites,
     sendGuestsInvites,
     sendMembersInvitesToChannels,
 } from 'actions/invite_actions';
+import {CloseModalType} from 'actions/views/modals';
+import {searchChannels as reduxSearchChannels} from 'mattermost-redux/actions/channels';
+import {regenerateTeamInviteId} from 'mattermost-redux/actions/teams';
+import {getProfiles, searchProfiles as reduxSearchProfiles} from 'mattermost-redux/actions/users';
+import {Permissions} from 'mattermost-redux/constants';
+import {getCurrentChannel, getChannelsInCurrentTeam, getChannelsNameMapInCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {haveIChannelPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeam, getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import {isAdmin} from 'mattermost-redux/utils/user_utils';
+
 import {makeAsyncComponent} from 'components/async_load';
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-
 import {GlobalState} from 'types/store';
+import {Constants} from 'utils/constants';
 
 import type {InviteResults} from './result_view';
 const InvitationModal = makeAsyncComponent('InvitationModal', React.lazy(() => import('./invitation_modal')));

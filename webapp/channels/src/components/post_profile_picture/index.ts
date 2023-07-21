@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Post} from '@mattermost/types/posts';
 import {connect} from 'react-redux';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {Client4} from 'mattermost-redux/client';
-import {Post} from '@mattermost/types/posts';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {getUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {GlobalState} from '../../types/store';
-
 import {Preferences} from 'utils/constants';
 
 import PostProfilePicture from './post_profile_picture';

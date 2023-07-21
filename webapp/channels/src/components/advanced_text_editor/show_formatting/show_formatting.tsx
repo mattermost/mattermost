@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
-import classNames from 'classnames';
-import {useIntl} from 'react-intl';
 import {EyeOutlineIcon} from '@mattermost/compass-icons/components';
+import classNames from 'classnames';
+import React, {memo} from 'react';
+import {useIntl} from 'react-intl';
 
+import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import Constants from 'utils/constants';
 
 import {IconContainer} from '../formatting_bar/formatting_icon';
+import Constants from 'utils/constants';
 
 interface ShowFormatProps {
     onClick: (event: React.MouseEvent) => void;

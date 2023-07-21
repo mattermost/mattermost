@@ -1,21 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {Address} from '@mattermost/types/cloud';
+import {ClientConfig} from '@mattermost/types/config';
+import {FileInfo} from '@mattermost/types/files';
+import {Post} from '@mattermost/types/posts';
+import {GlobalState} from '@mattermost/types/store';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import {getName} from 'country-list';
+import cssVars from 'css-vars-ponyfill';
+import type {Locale} from 'date-fns';
+import {isNil} from 'lodash';
+import moment from 'moment';
 import React, {LinkHTMLAttributes} from 'react';
 import {FormattedMessage, IntlShape} from 'react-intl';
 
-import cssVars from 'css-vars-ponyfill';
-
-import moment from 'moment';
-
-import type {Locale} from 'date-fns';
-
-import {getName} from 'country-list';
-
-import {isNil} from 'lodash';
-
-import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
-
+import {searchForTerm} from 'actions/post_actions';
+import {addUserToTeam} from 'actions/team_actions';
 import {
     getChannel as getChannelAction,
     getChannelByNameAndTeamName,
@@ -33,42 +36,27 @@ import {
 } from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, getTeammateNameDisplaySetting, Theme, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
-import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 import {
     getTeamByName,
     getTeamMemberships,
     isTeamSameWithCurrentTeam,
 } from 'mattermost-redux/selectors/entities/teams';
-
-import {addUserToTeam} from 'actions/team_actions';
-import {searchForTerm} from 'actions/post_actions';
-import {getHistory} from 'utils/browser_history';
-import * as Keyboard from 'utils/keyboard';
-import * as UserAgent from 'utils/user_agent';
-import {isDesktopApp} from 'utils/user_agent';
-import {t} from 'utils/i18n';
-import store from 'stores/redux_store.jsx';
-
+import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
+import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 import {getIsMobileView} from 'selectors/views/browser';
-
-import {FileInfo} from '@mattermost/types/files';
-import {Team} from '@mattermost/types/teams';
-import {Post} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
-
-import {ClientConfig} from '@mattermost/types/config';
-
-import {GlobalState} from '@mattermost/types/store';
+import store from 'stores/redux_store.jsx';
 
 import {focusPost} from 'components/permalink_view/actions';
 
 import {TextboxElement} from '../components/textbox';
-
-import {Address} from '@mattermost/types/cloud';
+import {getHistory} from 'utils/browser_history';
+import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
+import {t} from 'utils/i18n';
+import * as Keyboard from 'utils/keyboard';
+import * as UserAgent from 'utils/user_agent';
+import {isDesktopApp} from 'utils/user_agent';
 
 import {joinPrivateChannelPrompt} from './channel_utils';
 

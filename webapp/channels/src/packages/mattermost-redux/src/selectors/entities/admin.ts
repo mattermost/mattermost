@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {LogObject} from '@mattermost/types/admin';
 import {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 import {PluginStatusRedux} from '@mattermost/types/plugins';
-
 import {GlobalState} from '@mattermost/types/store';
-import {LogObject} from '@mattermost/types/admin';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 

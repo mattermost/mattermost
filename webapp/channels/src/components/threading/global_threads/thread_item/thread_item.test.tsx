@@ -1,25 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import {Channel} from '@mattermost/types/channels';
+import {Post} from '@mattermost/types/posts';
+import {UserThread} from '@mattermost/types/threads';
 import {shallow} from 'enzyme';
+import React, {ComponentProps} from 'react';
+
+import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
+import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/actions/threads';
 
 import Tag from 'components/widgets/tag/tag';
 
-import {UserThread} from '@mattermost/types/threads';
-import {Post} from '@mattermost/types/posts';
-import {Channel} from '@mattermost/types/channels';
-
-import * as Utils from 'utils/utils';
 import ThreadMenu from '../thread_menu';
-
 import {WindowSizes} from 'utils/constants';
-
 import {TestHelper} from 'utils/test_helper';
-import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/actions/threads';
+import * as Utils from 'utils/utils';
+
 jest.mock('mattermost-redux/actions/threads');
 
-import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 jest.mock('actions/views/threads');
 
 import ThreadItem from './thread_item';

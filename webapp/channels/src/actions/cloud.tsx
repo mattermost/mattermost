@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Address, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
 import {Stripe} from '@stripe/stripe-js';
 import {getCode} from 'country-list';
 
+import {trackEvent} from 'actions/telemetry_actions.jsx';
+import {CloudTypes} from 'mattermost-redux/action_types';
 import {getCloudCustomer, getCloudProducts, getCloudSubscription, getInvoices} from 'mattermost-redux/actions/cloud';
 import {Client4} from 'mattermost-redux/client';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
@@ -11,12 +14,8 @@ import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/act
 
 import {getConfirmCardSetup} from 'components/payment_form/stripe';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
-import {CloudTypes} from 'mattermost-redux/action_types';
 import {getBlankAddressWithCountry} from 'utils/utils';
-import {Address, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
 
 // Returns true for success, and false for any error
 export function completeStripeAddPaymentMethod(

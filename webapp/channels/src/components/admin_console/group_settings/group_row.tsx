@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
-import {Link} from 'react-router-dom';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';

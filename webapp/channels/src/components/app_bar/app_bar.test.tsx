@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {mount, shallow} from 'enzyme';
-import 'jest-styled-components';
-
 import {AppBinding} from '@mattermost/types/apps';
-
-import {PluginComponent} from 'types/store/plugins';
-import {GlobalState} from 'types/store';
+import {mount, shallow} from 'enzyme';
+import React from 'react';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {AppBindingLocations} from 'mattermost-redux/constants/apps';
 
+import {GlobalState} from 'types/store';
+import {PluginComponent} from 'types/store/plugins';
+
 import AppBar from './app_bar';
+
+import 'jest-styled-components';
 
 const mockDispatch = jest.fn();
 let mockState: GlobalState;

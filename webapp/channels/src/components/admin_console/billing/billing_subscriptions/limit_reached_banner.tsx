@@ -1,23 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Product} from '@mattermost/types/cloud';
 import React from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {CloudProducts} from 'utils/constants';
-import {anyUsageDeltaExceededLimit} from 'utils/limits';
-
-import {getHasDismissedSystemConsoleLimitReached} from 'mattermost-redux/selectors/entities/preferences';
 import {Preferences} from 'mattermost-redux/constants';
+import {getHasDismissedSystemConsoleLimitReached} from 'mattermost-redux/selectors/entities/preferences';
 
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import AlertBanner from 'components/alert_banner';
 import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import {useSaveBool} from 'components/common/hooks/useSavePreferences';
-import AlertBanner from 'components/alert_banner';
 
-import {Product} from '@mattermost/types/cloud';
+import {CloudProducts} from 'utils/constants';
+import {anyUsageDeltaExceededLimit} from 'utils/limits';
 
 import './limit_reached_banner.scss';
 

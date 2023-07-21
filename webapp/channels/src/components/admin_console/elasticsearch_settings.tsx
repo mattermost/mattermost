@@ -1,15 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AdminConfig} from '@mattermost/types/config';
+import {Job, JobType} from '@mattermost/types/jobs';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {elasticsearchPurgeIndexes, elasticsearchTest} from 'actions/admin_actions.jsx';
-import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
-import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
 
 import ExternalLink from 'components/external_link';
+
+import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
+import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
 
 import AdminSettings, {BaseProps, BaseState} from './admin_settings';
 import BooleanSetting from './boolean_setting';
@@ -17,8 +20,6 @@ import JobsTable from './jobs';
 import RequestButton from './request_button/request_button';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
-import {AdminConfig} from '@mattermost/types/config';
-import {Job, JobType} from '@mattermost/types/jobs';
 
 interface State extends BaseState {
     connectionUrl: string;

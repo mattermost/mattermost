@@ -3,10 +3,9 @@
 
 import {useSelector} from 'react-redux';
 
-import {useProducts} from 'utils/products';
-
 import {GlobalState} from 'types/store';
 import {suitePluginIds} from 'utils/constants';
+import {useProducts} from 'utils/products';
 
 export const useGetPluginsActivationState = () => {
     const pluginsList = useSelector((state: GlobalState) => state.plugins.plugins);

@@ -1,31 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {UserThread} from '@mattermost/types/threads';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getPost, makeGetPostIdsForThread} from 'mattermost-redux/selectors/entities/posts';
-import {getThread} from 'mattermost-redux/selectors/entities/threads';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-
+import {selectPostCard} from 'actions/views/rhs';
+import {updateThreadLastOpened} from 'actions/views/threads';
+import {fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
 import {getNewestPostThread, getPostThread} from 'mattermost-redux/actions/posts';
 import {getThread as fetchThread, updateThreadRead} from 'mattermost-redux/actions/threads';
-
+import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getPost, makeGetPostIdsForThread} from 'mattermost-redux/selectors/entities/posts';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getThread} from 'mattermost-redux/selectors/entities/threads';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {GenericAction} from 'mattermost-redux/types/actions';
-import {UserThread} from '@mattermost/types/threads';
-import {Channel} from '@mattermost/types/channels';
-
-import {getSocketStatus} from 'selectors/views/websocket';
-import {selectPostCard} from 'actions/views/rhs';
 import {getHighlightedPostId, getSelectedPostFocussedAt} from 'selectors/rhs';
-import {updateThreadLastOpened} from 'actions/views/threads';
-import {GlobalState} from 'types/store';
+import {getSocketStatus} from 'selectors/views/websocket';
 
-import {fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
+import {GlobalState} from 'types/store';
 
 import ThreadViewer from './thread_viewer';
 

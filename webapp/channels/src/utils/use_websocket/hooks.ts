@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useContext, useEffect} from 'react';
-
 import {WebSocketClient, WebSocketMessage} from '@mattermost/client';
+import {useContext, useEffect} from 'react';
 
 import {WebSocketContext} from './context';
 

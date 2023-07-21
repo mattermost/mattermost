@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AppBinding} from '@mattermost/types/apps';
+import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import React from 'react';
-
 import {injectIntl, IntlShape} from 'react-intl';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {AppBinding} from '@mattermost/types/apps';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
+import {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForChannel} from 'types/apps';
 import {PluginComponent} from 'types/store/plugins';
 import {createCallContext} from 'utils/apps';
-import {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForChannel} from 'types/apps';
 
 type Props = {
 

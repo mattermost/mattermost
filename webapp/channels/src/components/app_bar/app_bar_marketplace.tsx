@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ViewGridPlusOutlineIcon} from '@mattermost/compass-icons/components';
 import React, {useCallback} from 'react';
-import {useDispatch} from 'react-redux';
-import {useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
+import {useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
+
 import {openModal} from 'actions/views/modals';
 
-import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import OverlayTrigger from 'components/overlay_trigger';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
-import {ViewGridPlusOutlineIcon} from '@mattermost/compass-icons/components';
 
 const AppBarMarketplace = () => {
     const {formatMessage} = useIntl();

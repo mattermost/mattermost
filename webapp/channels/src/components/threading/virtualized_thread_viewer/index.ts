@@ -1,21 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
 import {Channel} from '@mattermost/types/channels';
 import {Post} from '@mattermost/types/posts';
+import {connect} from 'react-redux';
 
-import {FakePost} from 'types/store/rhs';
-
+import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {makePrepareReplyIdsForThreadViewer, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
 import {GlobalState} from 'types/store';
+import {FakePost} from 'types/store/rhs';
 
 import ThreadViewerVirtualized from './virtualized_thread_viewer';
 

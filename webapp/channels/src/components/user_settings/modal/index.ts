@@ -7,8 +7,9 @@ import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 import {sendVerificationEmail} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {GlobalState} from 'types/store';
 import {Action} from 'mattermost-redux/types/actions';
+
+import {GlobalState} from 'types/store';
 
 import UserSettingsModal, {Props} from './user_settings_modal';
 

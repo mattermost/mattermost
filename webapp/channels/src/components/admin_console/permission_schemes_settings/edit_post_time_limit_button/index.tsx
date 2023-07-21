@@ -6,7 +6,6 @@ import {connect} from 'react-redux';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {GlobalState} from 'types/store';
-
 import {Constants} from 'utils/constants';
 
 import EditPostTimeLimitButton from './edit_post_time_limit_button';

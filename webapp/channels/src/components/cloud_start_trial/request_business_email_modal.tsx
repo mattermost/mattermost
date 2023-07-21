@@ -1,26 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GenericModal} from '@mattermost/components';
+import {debounce} from 'lodash';
 import React, {useCallback, useEffect, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {FormattedMessage, useIntl} from 'react-intl';
-
-import {debounce} from 'lodash';
-
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-
+import {validateBusinessEmail} from 'actions/cloud';
 import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal} from 'actions/views/modals';
-import {validateBusinessEmail} from 'actions/cloud';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
+import {isEmail} from 'mattermost-redux/utils/helpers';
+
+import ExternalLink from 'components/external_link';
+import {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
 import {ItemStatus, TELEMETRY_CATEGORIES, ModalIdentifiers, LicenseLinks, AboutLinks} from 'utils/constants';
-
-import {GenericModal} from '@mattermost/components';
-import {CustomMessageInputType} from 'components/widgets/inputs/input/input';
-import ExternalLink from 'components/external_link';
-
-import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import StartCloudTrialBtn from './cloud_start_trial_btn';
 import InputBusinessEmail from './input_business_email';

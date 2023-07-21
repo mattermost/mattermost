@@ -4,10 +4,9 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
-import MenuWrapper from '../../menu_wrapper';
 import Menu from '../../menu';
 import SubMenuItem from '../../menu_items/submenu_item';
-
+import MenuWrapper from '../../menu_wrapper';
 import * as Utils from 'utils/utils';
 
 import './submenu_modal.scss';

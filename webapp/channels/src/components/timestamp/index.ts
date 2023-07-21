@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserTimezone} from '@mattermost/types/users';
 import {connect} from 'react-redux';
 
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezoneFull, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {UserTimezone} from '@mattermost/types/users';
 
 import {GlobalState} from 'types/store';
-
 import {Preferences} from 'utils/constants';
 
+import * as RelativeRanges from './relative_ranges';
 import Timestamp, {Props as TimestampProps, supportsHourCycle} from './timestamp';
 
 type Props = {
@@ -44,5 +44,4 @@ export function mapStateToProps(state: GlobalState, ownProps: Props) {
 export default connect(mapStateToProps)(Timestamp);
 
 export {default as SemanticTime} from './semantic_time';
-import * as RelativeRanges from './relative_ranges';
 export {RelativeRanges};

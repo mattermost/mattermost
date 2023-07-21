@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GenericModal} from '@mattermost/components';
+import MuiMenuList from '@mui/material/MenuList';
 import React, {
     ReactNode,
     useState,
@@ -12,24 +14,20 @@ import React, {
     useCallback,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import MuiMenuList from '@mui/material/MenuList';
-
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-
-import {getIsMobileView} from 'selectors/views/browser';
 
 import {openModal, closeModal} from 'actions/views/modals';
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsMobileView} from 'selectors/views/browser';
+
+import CompassDesignProvider from 'components/compass_design_provider';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
 
 import Constants, {A11yClassNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
-import CompassDesignProvider from 'components/compass_design_provider';
-import Tooltip from 'components/tooltip';
-import OverlayTrigger from 'components/overlay_trigger';
-import {GenericModal} from '@mattermost/components';
-
-import {MuiMenuStyled} from './menu_styled';
 import {MenuContext} from './menu_context';
+import {MuiMenuStyled} from './menu_styled';
 
 const OVERLAY_TIME_DELAY = 500;
 const MENU_OPEN_ANIMATION_DURATION = 150;

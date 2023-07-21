@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GenericModal} from '@mattermost/components';
+import {Post} from '@mattermost/types/posts';
 import React, {memo} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
-import {Post} from '@mattermost/types/posts';
-
-import {GenericModal} from '@mattermost/components';
 import PostMessageView from 'components/post_view/post_message_view';
 
 const modalMessages = defineMessages({

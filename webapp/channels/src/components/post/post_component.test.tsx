@@ -1,16 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 
-import {DeepPartial} from '@mattermost/types/utilities';
-
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-
 import {renderWithFullContext, screen, userEvent} from 'tests/react_testing_utils';
-
 import {GlobalState} from 'types/store';
-
 import {getHistory} from 'utils/browser_history';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';

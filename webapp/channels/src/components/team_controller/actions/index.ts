@@ -1,26 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import {getTeamByName, selectTeam} from 'mattermost-redux/actions/teams';
-import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
-import {fetchMyChannelsAndMembersREST} from 'mattermost-redux/actions/channels';
-import {getGroups, getAllGroupsAssociatedToChannelsInTeam, getAllGroupsAssociatedToTeam, getGroupsByUserIdPaginated} from 'mattermost-redux/actions/groups';
-import {logError} from 'mattermost-redux/actions/errors';
-import {isCustomGroupsEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {ServerError} from '@mattermost/types/errors';
+import {Team} from '@mattermost/types/teams';
 
-import {isSuccess} from 'types/actions';
-
+import {fetchChannelsAndMembers} from 'actions/channel_actions';
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
 import {addUserToTeam} from 'actions/team_actions';
-import {fetchChannelsAndMembers} from 'actions/channel_actions';
-
+import {fetchMyChannelsAndMembersREST} from 'mattermost-redux/actions/channels';
+import {logError} from 'mattermost-redux/actions/errors';
+import {getGroups, getAllGroupsAssociatedToChannelsInTeam, getAllGroupsAssociatedToTeam, getGroupsByUserIdPaginated} from 'mattermost-redux/actions/groups';
+import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
+import {getTeamByName, selectTeam} from 'mattermost-redux/actions/teams';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {isCustomGroupsEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {ActionFunc} from 'mattermost-redux/types/actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
-import {Team} from '@mattermost/types/teams';
-import {ServerError} from '@mattermost/types/errors';
+import {isSuccess} from 'types/actions';
 
 export function initializeTeam(team: Team): ActionFunc<Team, ServerError> {
     return async (dispatch, getState) => {

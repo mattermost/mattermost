@@ -7,7 +7,6 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import type {ViewsState} from 'types/store/views';
-
 import {SearchTypes} from 'utils/constants';
 
 function modalSearch(state = '', action: GenericAction) {

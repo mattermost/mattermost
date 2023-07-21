@@ -2,14 +2,12 @@
 // See LICENSE.txt for license information.
 
 import * as EmojiActions from 'mattermost-redux/actions/emojis';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
 import {getEmojiMap, getRecentEmojisData, getRecentEmojisNames, isCustomEmojiEnabled} from 'selectors/emojis';
 import {isCustomStatusEnabled, makeGetCustomStatus} from 'selectors/views/custom_status';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-
 import LocalStorageStore from 'stores/local_storage_store';
 
 import Constants, {ActionTypes, Preferences} from 'utils/constants';

@@ -1,27 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {isEmpty} from 'lodash';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
-import {isEmpty} from 'lodash';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
     getCloudSubscription as selectCloudSubscription,
     getCloudCustomer as selectCloudCustomer,
     getSubscriptionProduct,
 } from 'mattermost-redux/selectors/entities/cloud';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
 
+import AnnouncementBar from '../default_announcement_bar';
 import {getHistory} from 'utils/browser_history';
 import {isCustomerCardExpired} from 'utils/cloud_utils';
 import {AnnouncementBarTypes, CloudProducts, ConsolePages} from 'utils/constants';
 import {t} from 'utils/i18n';
-
-import AnnouncementBar from '../default_announcement_bar';
 
 export default function PaymentAnnouncementBar() {
     const [requestedCustomer, setRequestedCustomer] = useState(false);

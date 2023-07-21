@@ -4,7 +4,6 @@
 import {Store} from 'redux';
 
 import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
 import store from 'stores/redux_store';
 
 import PluginRegistry from './registry';

@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GenericModal} from '@mattermost/components';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import {GenericModal} from '@mattermost/components';
 
 import './no_internet_connection.scss';
 import NoInternetConnectionSvg from './no-internet-connection-svg';

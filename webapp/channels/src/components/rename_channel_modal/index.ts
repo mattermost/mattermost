@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-import {connect} from 'react-redux';
-
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {patchChannel} from 'mattermost-redux/actions/channels';
-import {getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {GlobalState} from '@mattermost/types/store';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {Channel} from '@mattermost/types/channels';
+import {GlobalState} from '@mattermost/types/store';
+import {connect} from 'react-redux';
+import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+
+import {patchChannel} from 'mattermost-redux/actions/channels';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {getSiteURL} from 'utils/url';
 

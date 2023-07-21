@@ -5,16 +5,14 @@ import React, {useEffect, useState, ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-
-import useGetSubscription from 'components/common/hooks/useGetSubscription';
-
 import {requestCloudTrial, validateWorkspaceBusinessEmail, getCloudLimits} from 'actions/cloud';
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal, closeModal} from 'actions/views/modals';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
 
-import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
+import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import ExternalLink from 'components/external_link';
+import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
 
 import {ModalIdentifiers, TELEMETRY_CATEGORIES, LicenseLinks} from 'utils/constants';
 

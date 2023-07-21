@@ -4,13 +4,12 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {GlobalState} from 'types/store';
-
+import {openModal} from 'actions/views/modals';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {GenericAction} from 'mattermost-redux/types/actions';
 
-import {openModal} from 'actions/views/modals';
+import {GlobalState} from 'types/store';
 
 import Contents from './contents';
 

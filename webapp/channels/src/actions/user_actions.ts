@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {UserProfile, UserStatus} from '@mattermost/types/users';
 import PQueue from 'p-queue';
 
-import {UserProfile, UserStatus} from '@mattermost/types/users';
-
-import {Channel} from '@mattermost/types/channels';
-import {GlobalState} from 'types/store';
-
+import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
+import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions';
 import {getChannelAndMyMember, getChannelMembersByIds} from 'mattermost-redux/actions/channels';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getTeamMembersByIds} from 'mattermost-redux/actions/teams';
@@ -25,18 +24,13 @@ import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/ent
 import {getCurrentTeamId, getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
 import {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
-
-import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
-import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions';
-
 import {getDisplayedChannels} from 'selectors/views/channel_sidebar';
-
 import store from 'stores/redux_store.jsx';
 
-import * as Utils from 'utils/utils';
+import {GlobalState} from 'types/store';
 import {Constants, Preferences, UserStatuses} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 export const queue = new PQueue({concurrency: 4});
 const dispatch = store.dispatch;

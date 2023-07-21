@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PostImage, PostType} from '@mattermost/types/posts';
+import {Team} from '@mattermost/types/teams';
 import React from 'react';
 
-import {Team} from '@mattermost/types/teams';
-import {PostImage, PostType} from '@mattermost/types/posts';
-
-import messageHtmlToComponent from 'utils/message_html_to_component';
-import EmojiMap from 'utils/emoji_map';
-import {ChannelNamesMap, TextFormattingOptions, formatText, MentionKey} from 'utils/text_formatting';
 import PostEditedIndicator from '../post_view/post_edited_indicator';
+import EmojiMap from 'utils/emoji_map';
+import messageHtmlToComponent from 'utils/message_html_to_component';
+import {ChannelNamesMap, TextFormattingOptions, formatText, MentionKey} from 'utils/text_formatting';
 
 type Props = {
 

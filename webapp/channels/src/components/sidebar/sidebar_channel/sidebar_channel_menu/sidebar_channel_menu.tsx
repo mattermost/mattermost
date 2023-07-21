@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, memo} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
-
 import {
     MarkAsUnreadIcon,
     StarIcon,
@@ -15,12 +12,14 @@ import {
     DotsVerticalIcon,
     ExitToAppIcon,
 } from '@mattermost/compass-icons/components';
+import React, {useRef, memo} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
-import * as Menu from 'components/menu';
 import ChannelMoveToSubmenu from 'components/channel_move_to_sub_menu';
+import * as Menu from 'components/menu';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';

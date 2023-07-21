@@ -3,13 +3,12 @@
 
 import {connect} from 'react-redux';
 
-import {getCurrentUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
+import {makeGetDrafts} from 'selectors/drafts';
 
 import {GlobalState} from 'types/store';
-
-import {makeGetDrafts} from 'selectors/drafts';
 
 import Drafts from './drafts';
 

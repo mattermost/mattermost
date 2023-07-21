@@ -3,6 +3,7 @@
 
 import {setStatusDropdown} from 'actions/views/status_dropdown';
 import {isStatusDropdownOpen} from 'selectors/views/status_dropdown';
+
 import configureStore from 'store';
 
 describe('status_dropdown view actions', () => {

@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import {FileInfo} from '@mattermost/types/files';
 import React from 'react';
 import {useIntl} from 'react-intl';
-
-import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
-
-import {FileInfo} from '@mattermost/types/files';
 
 interface Props {
     fileInfo: FileInfo;

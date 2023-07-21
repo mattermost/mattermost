@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CustomEmoji} from '@mattermost/types/emojis';
+import {ServerError} from '@mattermost/types/errors';
 import React, {ChangeEvent, ChangeEventHandler} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Emoji} from 'mattermost-redux/constants';
-import {CustomEmoji} from '@mattermost/types/emojis';
-import {ServerError} from '@mattermost/types/errors';
 import {deleteCustomEmoji} from 'mattermost-redux/actions/emojis';
+import {Emoji} from 'mattermost-redux/constants';
 
-import LoadingScreen from 'components/loading_screen';
-import SaveButton from 'components/save_button';
 import EmojiListItem from 'components/emoji/emoji_list_item';
+import LoadingScreen from 'components/loading_screen';
+import LocalizedInput from 'components/localized_input/localized_input';
+import SaveButton from 'components/save_button';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/fa_search_icon';
-import LocalizedInput from 'components/localized_input/localized_input';
 
 import {t} from 'utils/i18n';
 

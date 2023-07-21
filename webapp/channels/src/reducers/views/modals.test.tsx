@@ -7,7 +7,6 @@ import {Modal} from 'react-bootstrap';
 import {GenericAction} from 'mattermost-redux/types/actions';
 
 import {modalState as modalStateReducer} from 'reducers/views/modals';
-
 import {ActionTypes, ModalIdentifiers} from 'utils/constants';
 
 class TestModal extends React.PureComponent {

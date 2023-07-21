@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 import {ProgressBar} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
+
 import {getFileTypeFromMime} from 'utils/file_utils';
 import * as Utils from 'utils/utils';
 

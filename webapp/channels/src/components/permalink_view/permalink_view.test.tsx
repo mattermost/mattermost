@@ -2,28 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {ReactWrapper, shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
 import nock from 'nock';
+import React, {ComponentProps} from 'react';
+import {act} from 'react-dom/test-utils';
 import {match} from 'react-router-dom';
 
-import {act} from 'react-dom/test-utils';
-
-import {Client4} from 'mattermost-redux/client';
 import {getPostThread} from 'mattermost-redux/actions/posts';
-
+import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
-import TestHelper from 'packages/mattermost-redux/test/test_helper';
-
-import mockStore from 'tests/test_store';
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-
-import {ErrorPageTypes} from 'utils/constants';
-import {getHistory} from 'utils/browser_history';
+import * as Channels from 'mattermost-redux/selectors/entities/channels';
 
 import {focusPost} from 'components/permalink_view/actions';
 import PermalinkView from 'components/permalink_view/permalink_view';
 
-import * as Channels from 'mattermost-redux/selectors/entities/channels';
+import TestHelper from 'packages/mattermost-redux/test/test_helper';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import mockStore from 'tests/test_store';
+import {getHistory} from 'utils/browser_history';
+import {ErrorPageTypes} from 'utils/constants';
 
 jest.mock('actions/channel_actions', () => ({
     loadChannelsForCurrentUser: jest.fn(() => {

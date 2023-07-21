@@ -4,14 +4,13 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
 import {uploadFile} from 'actions/file_actions';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentLocale} from 'selectors/i18n';
-import {canUploadFiles} from 'utils/file_utils';
 
-import {FilesWillUploadHook} from 'types/store/plugins';
 import {GlobalState} from 'types/store';
+import {FilesWillUploadHook} from 'types/store/plugins';
+import {canUploadFiles} from 'utils/file_utils';
 
 import FileUpload, {Props} from './file_upload';
 

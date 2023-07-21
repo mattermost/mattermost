@@ -3,9 +3,8 @@
 
 import React from 'react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-
 import Button from '../button';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import FollowButton from './follow_button';
 

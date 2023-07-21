@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
-
-import store from 'stores/redux_store.jsx';
 import {getBasePath} from 'selectors/general';
+import store from 'stores/redux_store.jsx';
+
 import {PreviousViewedTypes} from 'utils/constants';
 
 const getPreviousTeamIdKey = (userId: string) => ['user_prev_team', userId].join(':');

@@ -2,23 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {FormattedMessage} from 'react-intl';
+import {trackEvent} from 'actions/telemetry_actions';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
-import {t} from 'utils/i18n';
+import {useDelinquencySubscription} from 'components/common/hooks/useDelinquencySubscription';
+import useGetSubscription from 'components/common/hooks/useGetSubscription';
+import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
+
+import AnnouncementBar from '../default_announcement_bar';
+import {GlobalState} from 'types/store';
 import {
     AnnouncementBarTypes, TELEMETRY_CATEGORIES,
 } from 'utils/constants';
-
-import AnnouncementBar from '../default_announcement_bar';
-import useGetSubscription from 'components/common/hooks/useGetSubscription';
-import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
-import {trackEvent} from 'actions/telemetry_actions';
-import {useDelinquencySubscription} from 'components/common/hooks/useDelinquencySubscription';
-import {GlobalState} from 'types/store';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+import {t} from 'utils/i18n';
 
 const CloudDelinquencyAnnouncementBar = () => {
     const subscription = useGetSubscription();

@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelStats} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
 import {act, renderWithIntl} from 'tests/react_testing_utils';
-
-import {Channel, ChannelStats} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-import {Team} from '@mattermost/types/teams';
 
 import ChannelInfoRHS from './channel_info_rhs';
 

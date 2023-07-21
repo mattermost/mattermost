@@ -1,19 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
-import {useIntl} from 'react-intl';
-
-import {useSelector} from 'react-redux';
-
 import {Audit} from '@mattermost/types/audits';
 import {Channel} from '@mattermost/types/channels';
+import React from 'react';
+import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
+
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 
-import {GlobalState} from 'types/store';
 import AuditRow from '../audit_row/audit_row';
 import holders from '../holders';
+import {GlobalState} from 'types/store';
 
 type Props = {
     audit: Audit;

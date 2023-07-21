@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
-
+import {ClientPluginManifest} from '@mattermost/types/plugins';
+import {IDMappedObjects} from '@mattermost/types/utilities';
 import remove from 'lodash/remove';
+import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
-import {IDMappedObjects} from '@mattermost/types/utilities';
-import {ClientPluginManifest} from '@mattermost/types/plugins';
 
 import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
-
 import {ActionTypes} from 'utils/constants';
 
 function hasMenuId(menu: Menu|PluginComponent, menuId: string) {

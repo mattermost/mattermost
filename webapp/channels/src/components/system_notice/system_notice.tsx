@@ -1,20 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AnalyticsRow} from '@mattermost/types/admin';
+import {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import {PreferenceType} from '@mattermost/types/preferences';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ClientConfig, ClientLicense} from '@mattermost/types/config';
-
-import {AnalyticsRow} from '@mattermost/types/admin';
-
-import {PreferenceType} from '@mattermost/types/preferences';
+import LocalizedIcon from 'components/localized_icon';
+import {Notice} from 'components/system_notice/types';
+import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 import {Preferences} from 'utils/constants';
 import {t} from 'utils/i18n';
-import LocalizedIcon from 'components/localized_icon';
-import MattermostLogo from 'components/widgets/icons/mattermost_logo';
-import {Notice} from 'components/system_notice/types';
 
 type Props = {
     currentUserId: string;

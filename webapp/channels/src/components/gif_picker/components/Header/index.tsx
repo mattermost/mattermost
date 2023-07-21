@@ -8,13 +8,14 @@ import {saveSearchBarText, searchTextUpdate} from 'mattermost-redux/actions/gifs
 import {getTheme, Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity, makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
 
-import constants from 'components/gif_picker/utils/constants';
 import SearchBar from 'components/gif_picker/components/SearchBar';
-import GifTrendingIcon from 'components/widgets/icons/gif_trending_icon';
+import {appProps} from 'components/gif_picker/gif_picker';
+import constants from 'components/gif_picker/utils/constants';
 import GifReactionsIcon from 'components/widgets/icons/gif_reactions_icon';
+import GifTrendingIcon from 'components/widgets/icons/gif_trending_icon';
+
 import './Header.scss';
 import {GlobalState} from 'types/store';
-import {appProps} from 'components/gif_picker/gif_picker';
 
 function mapStateToProps(state: GlobalState) {
     return {

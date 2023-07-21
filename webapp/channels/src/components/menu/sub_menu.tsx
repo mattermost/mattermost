@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GenericModal} from '@mattermost/components';
+import MuiMenuList from '@mui/material/MenuList';
+import {PopoverOrigin} from '@mui/material/Popover';
 import React, {
     ReactNode,
     useState,
@@ -11,25 +14,20 @@ import React, {
     useCallback,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import MuiMenuList from '@mui/material/MenuList';
-import {PopoverOrigin} from '@mui/material/Popover';
 
+import {openModal, closeModal} from 'actions/views/modals';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-
 import {getIsMobileView} from 'selectors/views/browser';
 import {isAnyModalOpen} from 'selectors/views/modals';
 
-import {openModal, closeModal} from 'actions/views/modals';
+import CompassDesignProvider from 'components/compass_design_provider';
 
 import Constants, {A11yClassNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
-import CompassDesignProvider from 'components/compass_design_provider';
-import {GenericModal} from '@mattermost/components';
-
-import {MuiMenuStyled} from './menu_styled';
-import {MenuItem, Props as MenuItemProps} from './menu_item';
 import {SubMenuContext} from './menu_context';
+import {MenuItem, Props as MenuItemProps} from './menu_item';
+import {MuiMenuStyled} from './menu_styled';
 
 import './sub_menu.scss';
 

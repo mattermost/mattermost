@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PostType} from '@mattermost/types/posts';
 import React from 'react';
 
-import {PostType} from '@mattermost/types/posts';
-import {PluginComponent} from 'types/store/plugins';
-
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-
+import {PluginComponent} from 'types/store/plugins';
 import {TestHelper} from 'utils/test_helper';
 
 import ActionsMenu, {PLUGGABLE_COMPONENT, Props} from './actions_menu';

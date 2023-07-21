@@ -1,23 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import {TeamMembership} from '@mattermost/types/teams';
+import {UserProfile as UserProfileType} from '@mattermost/types/users';
 import React, {ReactNode} from 'react';
-
 import {ConnectedComponent} from 'react-redux';
-
 import styled from 'styled-components';
 
 import {Client4} from 'mattermost-redux/client';
 
-import ProfilePicture from 'components/profile_picture';
-import UserProfile from 'components/user_profile';
+import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import Nbsp from 'components/html_entities/nbsp';
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-
-import {UserProfile as UserProfileType} from '@mattermost/types/users';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {TeamMembership} from '@mattermost/types/teams';
+import ProfilePicture from 'components/profile_picture';
+import UserProfile from 'components/user_profile';
 
 import {createSafeId, displayFullAndNicknameForUser} from 'utils/utils';
 

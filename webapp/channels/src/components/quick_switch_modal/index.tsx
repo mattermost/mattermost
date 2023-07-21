@@ -4,13 +4,11 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-
 import {joinChannelById, switchToChannel} from 'actions/views/channel';
 import {closeRightHandSide} from 'actions/views/rhs';
-
-import {getIsMobileView} from 'selectors/views/browser';
+import {ActionFunc} from 'mattermost-redux/types/actions';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
+import {getIsMobileView} from 'selectors/views/browser';
 
 import {GlobalState} from 'types/store';
 

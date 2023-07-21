@@ -1,19 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PostPriority} from '@mattermost/types/posts';
+import {UserProfile, UserStatus} from '@mattermost/types/users';
 import React from 'react';
 import {Provider} from 'react-redux';
 
-import mockStore from 'tests/test_store';
-
-import {PostDraft} from 'types/store/draft';
-
-import * as utils from 'utils/utils';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-
-import {UserProfile, UserStatus} from '@mattermost/types/users';
-import {PostPriority} from '@mattermost/types/posts';
+import mockStore from 'tests/test_store';
+import {PostDraft} from 'types/store/draft';
+import * as utils from 'utils/utils';
 
 import PanelBody from './panel_body';
 

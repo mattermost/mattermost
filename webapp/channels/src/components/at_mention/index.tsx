@@ -3,9 +3,9 @@
 
 import {connect} from 'react-redux';
 
+import {getAllGroupsForReferenceByName} from 'mattermost-redux/selectors/entities/groups';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
-import {getAllGroupsForReferenceByName} from 'mattermost-redux/selectors/entities/groups';
 
 import {GlobalState} from 'types/store';
 

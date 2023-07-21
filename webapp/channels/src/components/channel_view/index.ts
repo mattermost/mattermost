@@ -4,12 +4,11 @@
 import {connect, ConnectedProps} from 'react-redux';
 import {withRouter} from 'react-router-dom';
 
+import {goToLastViewedChannel} from 'actions/views/channel';
 import {getCurrentChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-
-import {goToLastViewedChannel} from 'actions/views/channel';
 
 import {GlobalState} from 'types/store';
 

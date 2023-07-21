@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
+import {loadStatusesForProfilesList} from 'actions/status_actions';
 import {getProfilesNotInGroup, searchProfiles, getProfiles} from 'mattermost-redux/actions/users';
 import {getProfilesNotInCurrentGroup, getUserStatuses, getProfiles as getUsers} from 'mattermost-redux/selectors/entities/users';
 import {Action, ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
 
 import {Value} from 'components/multiselect/multiselect';
-
-import {loadStatusesForProfilesList} from 'actions/status_actions';
 
 import {GlobalState} from 'types/store';
 

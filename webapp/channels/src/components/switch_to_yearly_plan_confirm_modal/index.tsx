@@ -1,23 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GenericModal} from '@mattermost/components';
 import React from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {FormattedMessage, useIntl} from 'react-intl';
-
+import {trackEvent} from 'actions/telemetry_actions';
+import {closeModal} from 'actions/views/modals';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {GlobalState} from 'types/store';
-
 import {isModalOpen} from 'selectors/views/modals';
 
-import {GenericModal} from '@mattermost/components';
 import Svg from 'components/common/svg_images_components/woman_credit_card_and_laptop_svg';
 
+import {GlobalState} from 'types/store';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
-
-import {closeModal} from 'actions/views/modals';
-import {trackEvent} from 'actions/telemetry_actions';
 
 import './switch_to_yearly_plan_confirm_modal.scss';
 

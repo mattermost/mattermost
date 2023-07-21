@@ -1,38 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
-import {FormattedMessage} from 'react-intl';
-import Scrollbars from 'react-custom-scrollbars';
-import {DragDropContext, Droppable, DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
-import {Spring, SpringSystem} from 'rebound';
-import classNames from 'classnames';
-
-import debounce from 'lodash/debounce';
-
-import * as ChannelUtils from 'utils/channel_utils';
-
-import {General} from 'mattermost-redux/constants';
-
-import {trackEvent} from 'actions/telemetry_actions';
-import {DraggingState} from 'types/store';
-import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import * as Utils from 'utils/utils';
-import {StaticPage} from 'types/store/lhs';
-
-import GlobalThreadsLink from 'components/threading/global_threads_link';
-import DraftsLink from 'components/drafts/drafts_link/drafts_link';
-import ActivityAndInsightsLink
-    from 'components/activity_and_insights/activity_and_insights_link/activity_and_insights_link';
-
-import {Team} from '@mattermost/types/teams';
 import {ChannelCategory} from '@mattermost/types/channel_categories';
 import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import classNames from 'classnames';
+import debounce from 'lodash/debounce';
+import React, {CSSProperties} from 'react';
+import {DragDropContext, Droppable, DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
+import Scrollbars from 'react-custom-scrollbars';
+import {FormattedMessage} from 'react-intl';
+import {Spring, SpringSystem} from 'rebound';
+
+import {trackEvent} from 'actions/telemetry_actions';
+import {General} from 'mattermost-redux/constants';
+
+import ActivityAndInsightsLink
+    from 'components/activity_and_insights/activity_and_insights_link/activity_and_insights_link';
+import DraftsLink from 'components/drafts/drafts_link/drafts_link';
+import GlobalThreadsLink from 'components/threading/global_threads_link';
 
 import SidebarCategory from '../sidebar_category';
 import UnreadChannelIndicator from '../unread_channel_indicator';
 import UnreadChannels from '../unread_channels';
+import {DraggingState} from 'types/store';
+import {StaticPage} from 'types/store/lhs';
+import * as ChannelUtils from 'utils/channel_utils';
+import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import * as Utils from 'utils/utils';
 
 export function renderView(props: any) {
     return (

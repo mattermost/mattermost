@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CardSize, CardSizes} from '@mattermost/types/insights';
+import classNames from 'classnames';
 import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
-import classNames from 'classnames';
-
-import {CardSize, CardSizes} from '@mattermost/types/insights';
 
 import Card from 'components/card/card';
 import CardHeader from 'components/card/card_header';

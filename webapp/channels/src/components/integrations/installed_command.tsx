@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Command} from '@mattermost/types/integrations';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import CopyText from 'components/copy_text';
-
-import {Command} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
 
 import DeleteIntegrationLink from './delete_integration_link';
 

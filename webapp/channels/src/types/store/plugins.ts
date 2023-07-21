@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {ProductScope} from '@mattermost/types/products';
-
-import {ClientPluginManifest} from '@mattermost/types/plugins';
-import {PluginAnalyticsRow} from '@mattermost/types/admin';
-import {FileInfo} from '@mattermost/types/files';
-import {Post, PostEmbed} from '@mattermost/types/posts';
-import {IDMappedObjects} from '@mattermost/types/utilities';
-import {TopBoardResponse} from '@mattermost/types/insights';
-import {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
-
 import {WebSocketClient} from '@mattermost/client';
+import {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
+import {PluginAnalyticsRow} from '@mattermost/types/admin';
+import {Channel} from '@mattermost/types/channels';
+import {FileInfo} from '@mattermost/types/files';
+import {TopBoardResponse} from '@mattermost/types/insights';
+import {ClientPluginManifest} from '@mattermost/types/plugins';
+import {Post, PostEmbed} from '@mattermost/types/posts';
+import {ProductScope} from '@mattermost/types/products';
+import {IDMappedObjects} from '@mattermost/types/utilities';
+import React from 'react';
+
+import {NewPostMessageProps} from 'actions/new_post';
 
 import {GlobalState} from 'types/store';
-import {Channel} from '@mattermost/types/channels';
-import {NewPostMessageProps} from 'actions/new_post';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;
 

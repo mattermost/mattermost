@@ -1,18 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TourTip, useMeasurePunchouts} from '@mattermost/components';
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-
 import {Placement} from 'tippy.js';
 
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {Preferences} from 'mattermost-redux/constants';
-
 import {showNewChannelWithBoardPulsatingDot} from 'selectors/plugins';
-
-import {TourTip, useMeasurePunchouts} from '@mattermost/components';
 
 type Props = {
     pulsatingDotPlacement?: Omit<Placement, 'auto'| 'auto-end'>;

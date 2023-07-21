@@ -1,10 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useMemo, useState} from 'react';
-import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
-
 import {
     ChartLineIcon,
     ServerVariantIcon,
@@ -13,21 +9,25 @@ import {
     LockOutlineIcon,
     AccountMultipleOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {AdminConfig} from '@mattermost/types/config';
+import {GlobalState} from '@mattermost/types/store';
+import React, {useEffect, useMemo, useState} from 'react';
+import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {getLicense, getServerVersion} from 'mattermost-redux/selectors/entities/general';
 
-import {GlobalState} from '@mattermost/types/store';
-
-import {ConsolePages} from 'utils/constants';
-import {daysToLicenseExpire, isEnterpriseOrE20License, getIsStarterLicense} from '../../../utils/license_utils';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-import {AdminConfig} from '@mattermost/types/config';
-import {runConfigChecks} from './dashboard_checks/config';
+
+import {daysToLicenseExpire, isEnterpriseOrE20License, getIsStarterLicense} from '../../../utils/license_utils';
+import {ConsolePages} from 'utils/constants';
+
 import {DataModel, ItemStatus, Options} from './dashboard.type';
 import {runAccessChecks} from './dashboard_checks/access';
+import {runConfigChecks} from './dashboard_checks/config';
 import {runDataPrivacyChecks} from './dashboard_checks/data_privacy';
-import {runPerformanceChecks} from './dashboard_checks/performance';
 import {runEaseOfUseChecks} from './dashboard_checks/easy_management';
+import {runPerformanceChecks} from './dashboard_checks/performance';
 import {runUpdateChecks} from './dashboard_checks/updates';
 
 export const impactModifiers: Record<ItemStatus, number> = {

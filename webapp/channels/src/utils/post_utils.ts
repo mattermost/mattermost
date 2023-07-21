@@ -1,26 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {IntlShape, useIntl} from 'react-intl';
-import {useMemo} from 'react';
-import {useSelector} from 'react-redux';
-
-import {Client4} from 'mattermost-redux/client';
-
-import {Permissions, Posts} from 'mattermost-redux/constants';
-
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {makeGetReactionsForPost} from 'mattermost-redux/selectors/entities/posts';
-import {get, getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {makeGetDisplayName, getCurrentUserId, getUser, UserMentionKey, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
-import {getAllGroupsForReferenceByName} from 'mattermost-redux/selectors/entities/groups';
-
-import {memoizeResult} from 'mattermost-redux/utils/helpers';
-
 import {Channel} from '@mattermost/types/channels';
 import {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import {ServerError} from '@mattermost/types/errors';
@@ -28,17 +8,30 @@ import {Group} from '@mattermost/types/groups';
 import {Post, PostPriority, PostPriorityMetadata} from '@mattermost/types/posts';
 import {Reaction} from '@mattermost/types/reactions';
 import {UserProfile} from '@mattermost/types/users';
+import {useMemo} from 'react';
+import {IntlShape, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
+import {Client4} from 'mattermost-redux/client';
+import {Permissions, Posts} from 'mattermost-redux/constants';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getAllGroupsForReferenceByName} from 'mattermost-redux/selectors/entities/groups';
+import {makeGetReactionsForPost} from 'mattermost-redux/selectors/entities/posts';
+import {get, getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {makeGetDisplayName, getCurrentUserId, getUser, UserMentionKey, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
+import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 import {canEditPost as canEditPostRedux} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
-
 import {getEmojiMap} from 'selectors/emojis';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {GlobalState} from 'types/store';
-
 import Constants, {PostListRowListIds, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {formatWithRenderer} from 'utils/markdown';

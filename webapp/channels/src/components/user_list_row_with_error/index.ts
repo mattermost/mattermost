@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
 
 import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import {UserProfile} from '@mattermost/types/users';
 
 import {GlobalState} from 'types/store';
 

@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
-
-import type {ValueOf} from '@mattermost/types/utilities';
-import {HostedCustomerTypes} from 'mattermost-redux/action_types';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {Invoice, Product} from '@mattermost/types/cloud';
 import {SelfHostedSignupProgress, TrueUpReviewProfileReducer, TrueUpReviewStatusReducer} from '@mattermost/types/hosted_customer';
+import type {ValueOf} from '@mattermost/types/utilities';
+import {combineReducers} from 'redux';
+
+import {HostedCustomerTypes} from 'mattermost-redux/action_types';
+import {GenericAction} from 'mattermost-redux/types/actions';
 
 interface SelfHostedProducts {
     products: Record<string, Product>;

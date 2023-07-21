@@ -1,28 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
 import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
-
 import {useDispatch} from 'react-redux';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-
-import * as UserUtils from 'mattermost-redux/utils/user_utils';
 import {ActionResult} from 'mattermost-redux/types/actions';
+import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import * as Utils from 'utils/utils';
-
-import {ModalData} from 'types/actions';
-
+import LeaveChannelModal from 'components/leave_channel_modal';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import LeaveChannelModal from 'components/leave_channel_modal';
+
+import {ModalData} from 'types/actions';
+import {Constants, ModalIdentifiers} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 const ROWS_FROM_BOTTOM_TO_OPEN_UP = 2;
 

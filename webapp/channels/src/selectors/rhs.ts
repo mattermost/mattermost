@@ -1,18 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {Post, PostType} from '@mattermost/types/posts';
+
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
-import {Post, PostType} from '@mattermost/types/posts';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {Channel} from '@mattermost/types/channels';
-
 import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage';
+
+import {GlobalState} from 'types/store';
+import {PostDraft} from 'types/store/draft';
+import {RhsState, FakePost, SearchType} from 'types/store/rhs';
 import {PostTypes, StoragePrefixes} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
-import {GlobalState} from 'types/store';
-import {RhsState, FakePost, SearchType} from 'types/store/rhs';
-import {PostDraft} from 'types/store/draft';
 
 export function getSelectedPostId(state: GlobalState): Post['id'] {
     return state.views.rhs.selectedPostId;

@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
-
-import {LicenseSkus} from 'utils/constants';
+import React, {ComponentProps} from 'react';
 
 import PermissionGroup from 'components/admin_console/permission_schemes_settings/permission_group';
 import PermissionsTreePlaybooks from 'components/admin_console/permission_schemes_settings/permissions_tree_playbooks';
+
+import {LicenseSkus} from 'utils/constants';
 
 import {Group, Permission} from './permissions_tree/types';
 

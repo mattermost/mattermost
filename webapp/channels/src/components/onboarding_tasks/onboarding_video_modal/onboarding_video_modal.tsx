@@ -5,8 +5,8 @@ import React, {useCallback, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
 import {OnboardingTaskCategory, OnboardingTaskList} from '../constants';
 import './onboarding_video_modal.scss';

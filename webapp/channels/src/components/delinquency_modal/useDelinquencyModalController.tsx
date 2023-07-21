@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Subscription} from '@mattermost/types/cloud';
+import {PreferenceType} from '@mattermost/types/preferences';
 import {useEffect, useState} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {setItem} from 'actions/storage';
 import {getCloudProducts} from 'mattermost-redux/actions/cloud';
-import {Subscription} from '@mattermost/types/cloud';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
-import {ModalData} from 'types/actions';
-
 import {makeGetItem} from 'selectors/storage';
+
+import {ModalData} from 'types/actions';
+import {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
 
 import DelinquencyModal from './delinquency_modal';
 

@@ -3,9 +3,8 @@
 
 import {ProductIdentifier} from '@mattermost/types/products';
 
-import {GlobalState} from 'types/store';
 import type {ProductComponent} from '../types/store/plugins';
-
+import {GlobalState} from 'types/store';
 import {getCurrentProduct} from 'utils/products';
 
 export function selectCurrentProduct(state: GlobalState, pathname: string): ProductComponent | null {

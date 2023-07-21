@@ -2,8 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {GlobalState} from '@mattermost/types/store';
-import TestHelper from '../../../test/test_helper';
+
 import * as Selectors from 'mattermost-redux/selectors/entities/i18n';
+
+import TestHelper from '../../../test/test_helper';
 
 describe('Selectors.I18n', () => {
     describe('getCurrentUserLocale', () => {

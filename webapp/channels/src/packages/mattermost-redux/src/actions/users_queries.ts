@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import {PreferenceType} from '@mattermost/types/preferences';
 import {Role} from '@mattermost/types/roles';
 import {Team, TeamMembership} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 
 import {convertRolesNamesArrayToString} from 'mattermost-redux/actions/roles';
 

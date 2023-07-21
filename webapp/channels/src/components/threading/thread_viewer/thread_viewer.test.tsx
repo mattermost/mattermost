@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {shallow} from 'enzyme';
-
 import {Channel} from '@mattermost/types/channels';
 import {Post} from '@mattermost/types/posts';
 import {UserThread} from '@mattermost/types/threads';
+import {shallow} from 'enzyme';
+import React from 'react';
 
-import {TestHelper} from 'utils/test_helper';
 import {fakeDate} from 'tests/helpers/date';
-
 import {FakePost} from 'types/store/rhs';
+import {TestHelper} from 'utils/test_helper';
 
 import ThreadViewer, {Props} from './thread_viewer';
 

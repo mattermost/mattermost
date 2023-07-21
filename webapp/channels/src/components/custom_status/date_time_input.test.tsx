@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
+import moment from 'moment-timezone';
 import React from 'react';
 import {Provider} from 'react-redux';
-import moment from 'moment-timezone';
 
 import {General} from 'mattermost-redux/constants';
 import * as i18Selectors from 'selectors/i18n';

@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Group} from '@mattermost/types/groups';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {ModalData} from 'types/actions';
-import LocalizedIcon from 'components/localized_icon';
-import {t} from 'utils/i18n';
-import {Group} from '@mattermost/types/groups';
-import {ModalIdentifiers} from 'utils/constants';
-import AddUsersToGroupModal from 'components/add_users_to_group_modal';
-import ViewUserGroupHeaderSubMenu from '../view_user_group_header_sub_menu';
 import {ActionResult} from 'mattermost-redux/types/actions';
+
+import AddUsersToGroupModal from 'components/add_users_to_group_modal';
+import LocalizedIcon from 'components/localized_icon';
+
+import ViewUserGroupHeaderSubMenu from '../view_user_group_header_sub_menu';
+import {ModalData} from 'types/actions';
+import {ModalIdentifiers} from 'utils/constants';
+import {t} from 'utils/i18n';
 
 export type Props = {
     groupId: string;

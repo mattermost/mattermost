@@ -1,26 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React, {ComponentProps} from 'react';
 
-import {shallow} from 'enzyme';
-
+import {openModal} from 'actions/views/modals';
 import {getThreads} from 'mattermost-redux/actions/threads';
-import {TestHelper} from 'utils/test_helper';
-
-jest.mock('mattermost-redux/actions/threads');
-jest.mock('actions/views/modals');
 
 import Header from 'components/widgets/header';
 
-import {Constants, WindowSizes} from 'utils/constants';
-
 import Button from '../../common/button';
-
-import {openModal} from 'actions/views/modals';
+import {Constants, WindowSizes} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import ThreadList, {ThreadFilter} from './thread_list';
 import VirtualizedThreadList from './virtualized_thread_list';
+
+jest.mock('mattermost-redux/actions/threads');
+jest.mock('actions/views/modals');
 
 const mockRouting = {
     currentUserId: 'uid',

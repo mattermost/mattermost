@@ -9,8 +9,8 @@ import React, {
 } from 'react';
 import {useIntl} from 'react-intl';
 
-import {NavigationDirection} from 'components/emoji_picker/types';
 import {EMOJI_PER_ROW} from 'components/emoji_picker/constants';
+import {NavigationDirection} from 'components/emoji_picker/types';
 
 interface Props {
     value: string;

@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {OAuthApp} from '@mattermost/types/integrations';
+import {Team} from '@mattermost/types/teams';
+import {ActionResult} from 'mattermost-redux/types/actions.js';
 import React, {useState} from 'react';
 import {useHistory} from 'react-router-dom';
 
-import {OAuthApp} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
-
-import {ActionResult} from 'mattermost-redux/types/actions.js';
-
-import {t} from 'utils/i18n';
 import AbstractOAuthApp from '../abstract_oauth_app.jsx';
+import {t} from 'utils/i18n';
 
 const HEADER = {id: t('add_oauth_app.header'), defaultMessage: 'Add'};
 const FOOTER = {id: t('installed_oauth_apps.save'), defaultMessage: 'Save'};

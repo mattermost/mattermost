@@ -1,22 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Provider} from 'react-redux';
-
-import {createIntl} from 'react-intl';
-
 import {shallow} from 'enzyme';
-
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
-
-import {Constants} from 'utils/constants';
+import React from 'react';
+import {createIntl} from 'react-intl';
+import {Provider} from 'react-redux';
 
 import {Permissions} from 'mattermost-redux/constants';
 
 import Menu from 'components/widgets/menu/menu';
 
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import mockStore from 'tests/test_store';
+import {Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import {MainMenu, Props} from './main_menu';

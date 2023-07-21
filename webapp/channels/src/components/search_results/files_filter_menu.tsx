@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {FilterVariantIcon} from '@mattermost/compass-icons/components';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {FilterVariantIcon} from '@mattermost/compass-icons/components';
-
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Tooltip from 'components/tooltip';
-import OverlayTrigger from 'components/overlay_trigger';
 
-import {SearchFilterType} from '../search/types';
 import {IconContainer} from '../advanced_text_editor/formatting_bar/formatting_icon';
+import {SearchFilterType} from '../search/types';
 
 import './files_filter_menu.scss';
 

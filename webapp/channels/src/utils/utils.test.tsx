@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import store from 'stores/redux_store.jsx';
 
-import Constants, {ValidationErrors} from 'utils/constants';
-import * as Utils from 'utils/utils';
 import * as lineBreakHelpers from 'tests/helpers/line_break_helpers.js';
 import * as ua from 'tests/helpers/user_agent_mocks';
-import {UserProfile} from '@mattermost/types/users';
+import Constants, {ValidationErrors} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 describe('Utils.getDisplayNameByUser', () => {
     afterEach(() => {

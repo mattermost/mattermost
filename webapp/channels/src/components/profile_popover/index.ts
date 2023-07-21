@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ServerError} from '@mattermost/types/errors';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {displayLastActiveLabel, getCurrentUserId, getLastActiveTimestampUnits, getLastActivityForUserId, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import {
-    getCurrentTeam,
-    getCurrentRelativeTeamUrl,
-    getTeamMember,
-} from 'mattermost-redux/selectors/entities/teams';
+import {openDirectChannelToUserId} from 'actions/channel_actions';
+import {closeModal, openModal} from 'actions/views/modals';
+import {getMembershipForEntities} from 'actions/views/profile_popover';
 import {
     canManageAnyChannelMembersInCurrentTeam,
     getCurrentChannelId,
@@ -17,28 +15,26 @@ import {
     getChannelMember,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getCallsConfig, getCalls} from 'mattermost-redux/selectors/entities/common';
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getCurrentTeam,
+    getCurrentRelativeTeamUrl,
+    getTeamMember,
+} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
-
-import {openDirectChannelToUserId} from 'actions/channel_actions';
-import {getMembershipForEntities} from 'actions/views/profile_popover';
-import {closeModal, openModal} from 'actions/views/modals';
-
+import {displayLastActiveLabel, getCurrentUserId, getLastActiveTimestampUnits, getLastActivityForUserId, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
+import {GenericAction} from 'mattermost-redux/types/actions';
+import {isCallsEnabled} from 'selectors/calls';
 import {getRhsState, getSelectedPost} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
-import {isAnyModalOpen} from 'selectors/views/modals';
 import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
+import {isAnyModalOpen} from 'selectors/views/modals';
 
 import {ModalData} from 'types/actions';
 import {GlobalState} from 'types/store';
-
-import {ServerError} from '@mattermost/types/errors';
-
 import {getDirectChannelName} from 'utils/utils';
 
 import ProfilePopover from './profile_popover';
-import {isCallsEnabled} from 'selectors/calls';
 
 type OwnProps = {
     userId: string;

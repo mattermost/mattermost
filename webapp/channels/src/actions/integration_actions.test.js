@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as Actions from 'actions/integration_actions.jsx';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 
 import mockStore from 'tests/test_store';
-
-import * as Actions from 'actions/integration_actions.jsx';
 
 jest.mock('mattermost-redux/actions/users', () => ({
     getProfilesByIds: jest.fn(() => {

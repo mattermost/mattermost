@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PreferenceType} from '@mattermost/types/preferences';
 import React, {ReactNode, RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -11,8 +12,6 @@ import SettingItemMin from 'components/setting_item_min';
 import SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
 
 import {AdvancedSections} from 'utils/constants';
-
-import {PreferenceType} from '@mattermost/types/preferences';
 import {a11yFocus} from 'utils/utils';
 
 type Props = {

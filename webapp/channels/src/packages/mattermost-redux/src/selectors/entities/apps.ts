@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {AppBinding} from '@mattermost/types/apps';
 import {ClientConfig} from '@mattermost/types/config';
+import {GlobalState} from '@mattermost/types/store';
 
+import {AppBindingLocations} from 'mattermost-redux/constants/apps';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {AppBindingLocations} from 'mattermost-redux/constants/apps';
 
 export const appsPluginIsEnabled = (state: GlobalState) => state.entities.apps.pluginEnabled;
 

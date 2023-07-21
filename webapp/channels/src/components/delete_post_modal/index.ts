@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {Post} from '@mattermost/types/posts';
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
+import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import {Post} from '@mattermost/types/posts';
+import {deleteAndRemovePost} from 'actions/post_actions';
 import {makeGetCommentCountForPost} from 'mattermost-redux/selectors/entities/posts';
+import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from 'types/store';
-import {deleteAndRemovePost} from 'actions/post_actions';
 
 import DeletePostModal from './delete_post_modal';
 

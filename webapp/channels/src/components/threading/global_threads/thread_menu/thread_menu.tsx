@@ -1,32 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserThread} from '@mattermost/types/threads';
 import React, {memo, useCallback, ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector, shallowEqual} from 'react-redux';
-
-import {Preferences} from 'mattermost-redux/constants';
-import {UserThread} from '@mattermost/types/threads';
-import {get} from 'mattermost-redux/selectors/entities/preferences';
-
-import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
-import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
 import {
     flagPost as savePost,
     unflagPost as unsavePost,
 } from 'actions/post_actions';
-
-import {getSiteURL} from 'utils/url';
-import {t} from 'utils/i18n';
-import {copyToClipboard} from 'utils/utils';
+import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
+import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
+import {Preferences} from 'mattermost-redux/constants';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import {GlobalState} from 'types/store';
-
 import {useThreadRouting} from '../../hooks';
+import {GlobalState} from 'types/store';
+import {t} from 'utils/i18n';
+import {getSiteURL} from 'utils/url';
+import {copyToClipboard} from 'utils/utils';
 
 import './thread_menu.scss';
 

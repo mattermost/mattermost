@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {Role} from '@mattermost/types/roles';
+
 import {Permissions} from 'mattermost-redux/constants/index';
 
 const trueString = 'true';

@@ -1,31 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Post} from '@mattermost/types/posts';
+import {UserProfile} from '@mattermost/types/users';
+import classNames from 'classnames';
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
-import classNames from 'classnames';
-
-import UserProfileComponent from 'components/user_profile';
-import {UserProfile} from '@mattermost/types/users';
-import Avatar from 'components/widgets/users/avatar';
-import * as PostUtils from 'utils/post_utils';
-import * as Utils from 'utils/utils';
-import PostMessageView from 'components/post_view/post_message_view';
-import PriorityLabel from 'components/post_priority/post_priority_label';
-
-import Timestamp from 'components/timestamp';
-import PostAttachmentContainer from '../post_attachment_container/post_attachment_container';
-import FileAttachmentListContainer from 'components/file_attachment_list';
-import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
-
-import MattermostLogo from 'components/widgets/icons/mattermost_logo';
-import {Constants} from 'utils/constants';
 import {General} from 'mattermost-redux/constants';
 
+import FileAttachmentListContainer from 'components/file_attachment_list';
+import PriorityLabel from 'components/post_priority/post_priority_label';
+import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
+import PostMessageView from 'components/post_view/post_message_view';
+import Timestamp from 'components/timestamp';
+import UserProfileComponent from 'components/user_profile';
+import MattermostLogo from 'components/widgets/icons/mattermost_logo';
+import Avatar from 'components/widgets/users/avatar';
+
+import PostAttachmentContainer from '../post_attachment_container/post_attachment_container';
+import {Constants} from 'utils/constants';
+import * as PostUtils from 'utils/post_utils';
+import * as Utils from 'utils/utils';
+
 import {OwnProps} from './index';
-import {Post} from '@mattermost/types/posts';
 
 export type Props = OwnProps & {
     previewPost?: Post;

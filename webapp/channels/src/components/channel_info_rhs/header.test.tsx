@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 
-import {Channel} from '@mattermost/types/channels';
 import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 
 import Header from './header';

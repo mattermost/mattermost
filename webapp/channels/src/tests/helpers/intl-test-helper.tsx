@@ -1,6 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {
+    shallow,
+    mount,
+    ShallowRendererProps,
+    MountRendererProps,
+} from 'enzyme';
 import React, {
     ExoticComponent,
     ForwardRefExoticComponent,
@@ -12,12 +18,6 @@ import {
     IntlShape,
     IntlProvider,
 } from 'react-intl';
-import {
-    shallow,
-    mount,
-    ShallowRendererProps,
-    MountRendererProps,
-} from 'enzyme';
 
 import defaultMessages from 'i18n/en.json';
 

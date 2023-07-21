@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 
-import BotTag from 'components/widgets/tag/bot_tag';
-
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
-import {imageURLForUser} from 'utils/utils';
-import Constants from 'utils/constants';
+
+import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import {SuggestionContainer, SuggestionProps} from '../suggestion';
-
-import {Channel} from '@mattermost/types/channels';
+import Constants from 'utils/constants';
+import {imageURLForUser} from 'utils/utils';
 
 function itemToName(item: Channel, currentUserId: string): {icon: React.ReactElement; name: string; description: string} | null {
     if (item.type === Constants.DM_CHANNEL) {

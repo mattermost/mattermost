@@ -2,18 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
+import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import * as ServerVersion from 'utils/server_version';
-import * as UserAgent from 'utils/user_agent';
+import {Notice} from 'components/system_notice/types';
 
 import mattermostIcon from 'images/icon50x50.png';
-import {Notice} from 'components/system_notice/types';
-import ExternalLink from 'components/external_link';
 import {DocLinks} from 'utils/constants';
+import * as ServerVersion from 'utils/server_version';
+import * as UserAgent from 'utils/user_agent';
 
 // Notices are objects with the following fields:
 //  - name - string identifier

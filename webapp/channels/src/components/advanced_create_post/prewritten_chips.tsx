@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import React, {useMemo, memo} from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {Channel} from '@mattermost/types/channels';
-
-import {t} from 'utils/i18n';
-
 import Chip from '../common/chip/chip';
+import {t} from 'utils/i18n';
 
 type Props = {
     prefillMessage: (msg: string, shouldFocus: boolean) => void;

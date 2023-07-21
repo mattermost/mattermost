@@ -1,32 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {RequestStatus} from 'mattermost-redux/constants';
-import {Channel} from '@mattermost/types/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {Action, ActionResult} from 'mattermost-redux/types/actions';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getChannels, getArchivedChannels, joinChannel, getChannelsMemberCount} from 'mattermost-redux/actions/channels';
-import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector} from 'mattermost-redux/selectors/entities/channels';
-
 import {searchMoreChannels} from 'actions/channel_actions';
+import {setGlobalItem} from 'actions/storage';
 import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
-
+import {getChannels, getArchivedChannels, joinChannel, getChannelsMemberCount} from 'mattermost-redux/actions/channels';
+import {RequestStatus} from 'mattermost-redux/constants';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {Action, ActionResult} from 'mattermost-redux/types/actions';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
+import {makeGetGlobalItem} from 'selectors/storage';
 
 import {ModalData} from 'types/actions';
 import {GlobalState} from 'types/store';
+import Constants, {StoragePrefixes} from 'utils/constants';
 
 import BrowseChannels from './browse_channels';
-import {makeGetGlobalItem} from 'selectors/storage';
-import Constants, {StoragePrefixes} from 'utils/constants';
-import {setGlobalItem} from 'actions/storage';
 
 const getChannelsWithoutArchived = createSelector(
     'getChannelsWithoutArchived',

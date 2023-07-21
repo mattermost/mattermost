@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import {connect} from 'react-redux';
 
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-
 import {getPostDraft} from 'selectors/rhs';
-import {StoragePrefixes} from 'utils/constants';
+
 import {GlobalState} from 'types/store';
 import {PostDraft} from 'types/store/draft';
-import {Channel} from '@mattermost/types/channels';
+import {StoragePrefixes} from 'utils/constants';
 
 import ChannelPencilIcon from './channel_pencil_icon';
 

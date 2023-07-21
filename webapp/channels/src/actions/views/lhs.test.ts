@@ -3,13 +3,13 @@
 
 import {MockStoreEnhanced} from 'redux-mock-store';
 
+import {close, open, toggle} from 'actions/views/lhs';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 
-import {close, open, toggle} from 'actions/views/lhs';
-import {ActionTypes} from 'utils/constants';
-import mockStore from 'tests/test_store';
 import configureStore from 'store';
+import mockStore from 'tests/test_store';
 import {GlobalState} from 'types/store';
+import {ActionTypes} from 'utils/constants';
 
 import * as Actions from './lhs';
 

@@ -13,9 +13,8 @@ import {
     enablePlugin,
     disablePlugin,
 } from 'mattermost-redux/actions/admin';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {GenericAction} from 'mattermost-redux/types/actions';
 
 import PluginManagement from './plugin_management';
 

@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-
-import {GlobalState} from '@mattermost/types/store';
 import {TimeFrame, TimeFrames, TopReaction} from '@mattermost/types/insights';
+import {GlobalState} from '@mattermost/types/store';
+
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 import {getCurrentTeamId} from './teams';
 

@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {mount} from 'enzyme';
+import React from 'react';
 
 jest.mock('mattermost-redux/actions/users', () => {
     return {
@@ -17,11 +16,10 @@ jest.mock('mattermost-redux/actions/users', () => {
     };
 });
 
-import {mockStore} from 'tests/test_store';
-
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 
 import Avatar from '../avatar';
+import {mockStore} from 'tests/test_store';
 
 import Avatars from './avatars';
 

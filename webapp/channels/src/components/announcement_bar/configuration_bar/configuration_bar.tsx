@@ -1,34 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
+import {PreferenceType} from '@mattermost/types/preferences';
 import React, {ReactNode} from 'react';
 import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {daysToLicenseExpire, isLicenseExpired, isLicenseExpiring, isLicensePastGracePeriod, isTrialLicense} from 'utils/license_utils';
-import {AnnouncementBarTypes, AnnouncementBarMessages, WarnMetricTypes, Preferences, ConfigurationBanners, Constants, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {t} from 'utils/i18n';
-
-import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
-import {getSkuDisplayName} from 'utils/subscription';
-import {getViewportSize} from 'utils/utils';
-
-import ackIcon from 'images/icons/check-circle-outline.svg';
-import alertIcon from 'images/icons/round-white-info-icon.svg';
-
-import warningIcon from 'images/icons/warning-icon.svg';
-
 import {trackEvent} from 'actions/telemetry_actions';
-
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 
-import {ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
-import {PreferenceType} from '@mattermost/types/preferences';
+import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
+import ExternalLink from 'components/external_link';
 
 import AnnouncementBar from '../default_announcement_bar';
-import TextDismissableBar from '../text_dismissable_bar';
 import RenewalLink from '../renewal_link/';
-import ExternalLink from 'components/external_link';
+import TextDismissableBar from '../text_dismissable_bar';
+import ackIcon from 'images/icons/check-circle-outline.svg';
+import alertIcon from 'images/icons/round-white-info-icon.svg';
+import warningIcon from 'images/icons/warning-icon.svg';
+import {AnnouncementBarTypes, AnnouncementBarMessages, WarnMetricTypes, Preferences, ConfigurationBanners, Constants, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {daysToLicenseExpire, isLicenseExpired, isLicenseExpiring, isLicensePastGracePeriod, isTrialLicense} from 'utils/license_utils';
+import {getSkuDisplayName} from 'utils/subscription';
+import {getViewportSize} from 'utils/utils';
 
 type Props = {
     config?: Partial<ClientConfig>;

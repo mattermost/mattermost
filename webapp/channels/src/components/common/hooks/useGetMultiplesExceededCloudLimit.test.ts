@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {limitThresholds, LimitTypes} from 'utils/limits';
 import {FileSizes} from 'utils/file_utils';
+import {limitThresholds, LimitTypes} from 'utils/limits';
 
 import useGetMultiplesExceededCloudLimit, {LimitSummary} from './useGetMultiplesExceededCloudLimit';
 

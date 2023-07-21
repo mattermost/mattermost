@@ -1,30 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-
 import {injectIntl, IntlShape} from 'react-intl';
 
-import deepFreeze from 'mattermost-redux/utils/deep_freeze';
+import {trackEvent} from 'actions/telemetry_actions';
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import {Team} from '@mattermost/types/teams';
-
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-
-import {trackEvent} from 'actions/telemetry_actions';
-
+import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {getRoleForTrackFlow} from 'utils/utils';
 
-import ResultView, {ResultState, defaultResultState, InviteResults} from './result_view';
+import {InviteType} from './invite_as';
 import InviteView, {InviteState, initializeInviteState} from './invite_view';
 import NoPermissionsView from './no_permissions_view';
-import {InviteType} from './invite_as';
+import ResultView, {ResultState, defaultResultState, InviteResults} from './result_view';
 
 import './invitation_modal.scss';
 

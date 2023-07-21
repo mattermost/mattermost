@@ -1,21 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {InsightsWidgetTypes, TimeFrame} from '@mattermost/types/insights';
 import React, {memo, useState, useCallback} from 'react';
-
 import {Modal} from 'react-bootstrap';
 
-import {InsightsWidgetTypes, TimeFrame} from '@mattermost/types/insights';
-
-import TimeFrameDropdown from '../time_frame_dropdown/time_frame_dropdown';
-import TopReactionsTable from '../top_reactions/top_reactions_table/top_reactions_table';
-import TopChannelsTable from '../top_channels/top_channels_table/top_channels_table';
-import TopThreadsTable from '../top_threads/top_threads_table/top_threads_table';
-import TopBoardsTable from '../top_boards/top_boards_table/top_boards_table';
 import LeastActiveChannelsTable from '../least_active_channels/least_active_channels_table/least_active_channels_table';
-import TopPlaybooksTable from '../top_playbooks/top_playbooks_table/top_playbooks_table';
-import TopDMsTable from '../top_dms_and_new_members/top_dms_table/top_dms_table';
+import TimeFrameDropdown from '../time_frame_dropdown/time_frame_dropdown';
+import TopBoardsTable from '../top_boards/top_boards_table/top_boards_table';
+import TopChannelsTable from '../top_channels/top_channels_table/top_channels_table';
 import NewMembersTable from '../top_dms_and_new_members/new_members_table/new_members_table';
+import TopDMsTable from '../top_dms_and_new_members/top_dms_table/top_dms_table';
+import TopPlaybooksTable from '../top_playbooks/top_playbooks_table/top_playbooks_table';
+import TopReactionsTable from '../top_reactions/top_reactions_table/top_reactions_table';
+import TopThreadsTable from '../top_threads/top_threads_table/top_threads_table';
 
 import './../../activity_and_insights.scss';
 import './insights_modal.scss';

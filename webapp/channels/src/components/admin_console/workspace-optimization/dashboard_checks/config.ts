@@ -5,9 +5,10 @@
 
 import {AdminConfig} from '@mattermost/types/config';
 import {useIntl} from 'react-intl';
-import {ConsolePages, DocLinks} from 'utils/constants';
-import {ItemModel, ItemStatus, Options} from '../dashboard.type';
+
 import {impactModifiers} from '../dashboard.data';
+import {ItemModel, ItemStatus, Options} from '../dashboard.type';
+import {ConsolePages, DocLinks} from 'utils/constants';
 
 /**
  *

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import {TestHelper} from 'utils/test_helper';
 import Constants from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import SidebarCategorySortingMenu from './sidebar_category_sorting_menu';
 

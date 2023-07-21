@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {ReactNode, MouseEventHandler} from 'react';
-
-import {FormattedMessage} from 'react-intl';
 import {OverlayTriggerProps} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import UnreadBelowIcon from 'components/widgets/icons/unread_below_icon';
-import UnreadAboveIcon from 'components/widgets/icons/unread_above_icon';
 import CloseIcon from 'components/widgets/icons/close_icon';
+import UnreadAboveIcon from 'components/widgets/icons/unread_above_icon';
+import UnreadBelowIcon from 'components/widgets/icons/unread_below_icon';
+
 import Constants from 'utils/constants';
 
 import './toast.scss';

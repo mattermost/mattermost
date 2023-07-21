@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {Post} from '@mattermost/types/posts';
+import React from 'react';
 
 import PostComponent from 'components/post';
 

@@ -1,35 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {useIntl} from 'react-intl';
-import {useHistory} from 'react-router-dom';
-
-import styled from 'styled-components';
-
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-
-import {getUsers, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
-import {displayUsername} from 'mattermost-redux/utils/user_utils';
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import {openDirectChannelToUserId} from 'actions/channel_actions';
-import {isModalOpen} from 'selectors/views/modals';
-import {closeModal} from 'actions/views/modals';
-import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
-
-import {GlobalState} from 'types/store';
-
-import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
-import {ModalIdentifiers} from 'utils/constants';
-
-import {ListItemType} from 'components/channel_members_rhs/channel_members_rhs';
 import {GenericModal} from '@mattermost/components';
-
-import MemberList from '../channel_members_rhs/member_list';
 import {ChannelMembership} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
+import React, {useCallback, useEffect} from 'react';
+import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
+import {useHistory} from 'react-router-dom';
+import styled from 'styled-components';
+
+import {openDirectChannelToUserId} from 'actions/channel_actions';
+import {closeModal} from 'actions/views/modals';
+import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
+import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getUsers, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
+import {isModalOpen} from 'selectors/views/modals';
+
+import {ListItemType} from 'components/channel_members_rhs/channel_members_rhs';
+
+import MemberList from '../channel_members_rhs/member_list';
+import {GlobalState} from 'types/store';
+import {ModalIdentifiers} from 'utils/constants';
+import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
 
 import './notification_from_members_modal.scss';
 

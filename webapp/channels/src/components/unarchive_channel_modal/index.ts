@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 import {connect} from 'react-redux';
-
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
 import {unarchiveChannel} from 'mattermost-redux/actions/channels';
+import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import UnarchiveChannelModal, {ChannelDetailsActions} from './unarchive_channel_modal';
 

@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {injectIntl, IntlShape, MessageDescriptor} from 'react-intl';
 
 import {Posts} from 'mattermost-redux/constants';
-
-import {UserProfile} from '@mattermost/types/users';
-
 import {ActionFunc} from 'mattermost-redux/types/actions';
 
-import {t} from 'utils/i18n';
 import Markdown from 'components/markdown';
+
+import {t} from 'utils/i18n';
 
 import LastUsers from './last_users';
 

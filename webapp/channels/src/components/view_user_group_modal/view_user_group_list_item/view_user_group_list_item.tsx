@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
-
 import {Group, GroupSource} from '@mattermost/types/groups';
 import {UserProfile} from '@mattermost/types/users';
+import React, {useCallback} from 'react';
 
-import Avatar from 'components/widgets/users/avatar';
-import * as Utils from 'utils/utils';
-import LocalizedIcon from 'components/localized_icon';
-import {t} from 'utils/i18n';
 import {ActionResult} from 'mattermost-redux/types/actions';
+
+import LocalizedIcon from 'components/localized_icon';
+import Avatar from 'components/widgets/users/avatar';
+
+import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
 
 export type Props = {
     groupId: string;

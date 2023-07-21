@@ -8,16 +8,15 @@ import {useLocation, useHistory} from 'react-router-dom';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-
-import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
-import ColumnLayout from 'components/header_footer_route/content_layouts/column';
-import LoadingScreen from 'components/loading_screen';
-
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {verifyUserEmail, getMe} from 'mattermost-redux/actions/users';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
+import ColumnLayout from 'components/header_footer_route/content_layouts/column';
+import LoadingScreen from 'components/loading_screen';
 
 import {AnnouncementBarTypes, AnnouncementBarMessages, Constants} from 'utils/constants';
 import {getRoleFromTrackFlow} from 'utils/utils';

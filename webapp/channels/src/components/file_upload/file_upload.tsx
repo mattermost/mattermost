@@ -1,24 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PaperclipIcon} from '@mattermost/compass-icons/components';
+import {ServerError} from '@mattermost/types/errors';
+import {FileInfo, FileUploadResponse} from '@mattermost/types/files';
+import classNames from 'classnames';
 import React, {ChangeEvent, PureComponent, DragEvent, MouseEvent, TouchEvent, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl, IntlShape} from 'react-intl';
-import classNames from 'classnames';
 
-import {PaperclipIcon} from '@mattermost/compass-icons/components';
+import {UploadFile} from 'actions/file_actions';
 
-import {FileInfo, FileUploadResponse} from '@mattermost/types/files';
-import {ServerError} from '@mattermost/types/errors';
+import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import dragster from 'utils/dragster';
+import {FilePreviewInfo} from '../file_preview/file_preview';
+import {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
+import dragster from 'utils/dragster';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
+import {getHtmlTable} from 'utils/paste';
 import {
     isIosChrome,
     isMobileApp,
 } from 'utils/user_agent';
-import {getHtmlTable} from 'utils/paste';
 import {
     clearFileInput,
     generateId,
@@ -27,18 +35,6 @@ import {
     localizeMessage,
     isTextDroppableEvent,
 } from 'utils/utils';
-
-import {UploadFile} from 'actions/file_actions';
-
-import {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
-
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import {FilePreviewInfo} from '../file_preview/file_preview';
 
 const holders = defineMessages({
     limited: {

@@ -1,22 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {GlobalState} from '@mattermost/types/store';
 import {UserProfile, UsersState} from '@mattermost/types/users';
+import React from 'react';
 
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {Preferences} from 'mattermost-redux/constants';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import * as useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import * as useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import * as useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 import * as useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import * as useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import * as useSaveBool from 'components/common/hooks/useSavePreferences';
 
 import {fireEvent, renderWithFullContext, screen} from 'tests/react_testing_utils';
-
 import {CloudProducts} from 'utils/constants';
 
 import LimitReachedBanner from './limit_reached_banner';

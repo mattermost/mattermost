@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import textboxReducer from 'reducers/views/textbox';
-
 import {ActionTypes} from '../../utils/constants';
+import textboxReducer from 'reducers/views/textbox';
 
 describe('Reducers.RHS', () => {
     const initialState = {

@@ -3,8 +3,8 @@
 
 import {Invoice, Subscription} from '@mattermost/types/cloud';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {GlobalState} from 'types/store';
 

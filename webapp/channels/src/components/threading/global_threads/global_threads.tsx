@@ -1,46 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import {isEmpty} from 'lodash';
 import React, {ReactNode, memo, useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {isEmpty} from 'lodash';
-import {Link, useRouteMatch} from 'react-router-dom';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
-import classNames from 'classnames';
+import {Link, useRouteMatch} from 'react-router-dom';
 
+import {clearLastUnreadChannel} from 'actions/global_actions';
+import {loadProfilesForSidebar} from 'actions/user_actions';
+import {selectLhsItem} from 'actions/views/lhs';
+import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
+import {setSelectedThreadId} from 'actions/views/threads';
+import {getThreadCounts, getThreads} from 'mattermost-redux/actions/threads';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {
     getThreadOrderInCurrentTeam,
     getUnreadThreadOrderInCurrentTeam,
     getThreadCountsInCurrentTeam,
     getThread,
 } from 'mattermost-redux/selectors/entities/threads';
-
-import {getThreadCounts, getThreads} from 'mattermost-redux/actions/threads';
-
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
-
-import {GlobalState} from 'types/store/index';
-
+import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 import {useGlobalState} from 'stores/hooks';
 import LocalStorageStore from 'stores/local_storage_store';
-import {clearLastUnreadChannel} from 'actions/global_actions';
-import {setSelectedThreadId} from 'actions/views/threads';
-import {selectLhsItem} from 'actions/views/lhs';
-import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
-import {loadProfilesForSidebar} from 'actions/user_actions';
-import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
-import {LhsItemType, LhsPage} from 'types/store/lhs';
 
-import {Constants, PreviousViewedTypes} from 'utils/constants';
-
-import Header from 'components/widgets/header';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
+import Header from 'components/widgets/header';
 
-import {useThreadRouting} from '../hooks';
 import ChatIllustration from '../common/chat_illustration';
-
+import {useThreadRouting} from '../hooks';
 import ThreadViewer from '../thread_viewer';
+import {GlobalState} from 'types/store/index';
+import {LhsItemType, LhsPage} from 'types/store/lhs';
+import {Constants, PreviousViewedTypes} from 'utils/constants';
 
 import ThreadList, {ThreadFilter, FILTER_STORAGE_KEY} from './thread_list';
 import ThreadPane from './thread_pane';

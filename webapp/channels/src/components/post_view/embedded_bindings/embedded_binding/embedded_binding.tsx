@@ -1,24 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AppBinding} from '@mattermost/types/apps';
+import {Post} from '@mattermost/types/posts';
 import React, {CSSProperties} from 'react';
 
-import {AppBinding} from '@mattermost/types/apps';
-
-import {Post} from '@mattermost/types/posts';
-
-import * as Utils from 'utils/utils';
-import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
-import {TextFormattingOptions} from 'utils/text_formatting';
+import {AppBindingLocations} from 'mattermost-redux/constants/apps';
+import {cleanBinding} from 'mattermost-redux/utils/apps';
 
 import Markdown from 'components/markdown';
 import ShowMore from 'components/post_view/show_more';
 
 import ButtonBinding from '../button_binding';
 import SelectBinding from '../select_binding';
-
-import {cleanBinding} from 'mattermost-redux/utils/apps';
-import {AppBindingLocations} from 'mattermost-redux/constants/apps';
+import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
+import {TextFormattingOptions} from 'utils/text_formatting';
+import * as Utils from 'utils/utils';
 
 type Props = {
 

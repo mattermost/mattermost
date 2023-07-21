@@ -4,10 +4,10 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {DoAppSubmit, DoAppFetchForm, DoAppLookup, PostEphemeralCallResponseForContext} from 'types/apps';
-
 import {doAppSubmit, doAppFetchForm, doAppLookup, postEphemeralCallResponseForContext} from 'actions/apps';
+import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+
+import {DoAppSubmit, DoAppFetchForm, DoAppLookup, PostEphemeralCallResponseForContext} from 'types/apps';
 
 import AppsFormContainer from './apps_form_container';
 

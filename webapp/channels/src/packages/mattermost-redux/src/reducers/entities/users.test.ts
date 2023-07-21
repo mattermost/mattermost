@@ -5,8 +5,8 @@ import {UserProfile} from '@mattermost/types/users';
 import {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
 import reducer from 'mattermost-redux/reducers/entities/users';
+import {GenericAction} from 'mattermost-redux/types/actions';
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
 import {TestHelper} from 'utils/test_helper';

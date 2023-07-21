@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import {ChannelWithTeamData} from '@mattermost/types/channels';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import ChannelSelectorModal from 'components/channel_selector_modal/channel_selector_modal';
-import {ChannelWithTeamData} from '@mattermost/types/channels';
+
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/ChannelSelectorModal', () => {

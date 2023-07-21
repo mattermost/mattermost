@@ -3,10 +3,10 @@
 
 import {connect} from 'react-redux';
 
+import {getPluggableId} from 'selectors/rhs';
+
 import {GlobalState} from 'types/store';
 import {PluginComponent} from 'types/store/plugins';
-
-import {getPluggableId} from 'selectors/rhs';
 
 import RHSPlugin from './rhs_plugin';
 

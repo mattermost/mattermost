@@ -2,34 +2,30 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
 import {withRouter} from 'react-router-dom';
+import {bindActionCreators, Dispatch} from 'redux';
 
-import {GenericAction} from 'mattermost-redux/types/actions';
-
+import {openModal} from 'actions/views/modals';
+import {showMentions, showFlaggedPosts, closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
+import {Permissions} from 'mattermost-redux/constants';
+import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {
     getConfig,
     getLicense,
 } from 'mattermost-redux/selectors/entities/general';
+import {haveICurrentTeamPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {
     getJoinableTeamIds,
     getCurrentTeam,
     getCurrentRelativeTeamUrl,
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import {haveICurrentTeamPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-
-import {Permissions} from 'mattermost-redux/constants';
-
-import {RHSStates, CloudProducts} from 'utils/constants';
-
-import {showMentions, showFlaggedPosts, closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
-import {openModal} from 'actions/views/modals';
+import {GenericAction} from 'mattermost-redux/types/actions';
 import {getRhsState} from 'selectors/rhs';
-import {isCloudLicense} from 'utils/license_utils';
 
 import {GlobalState} from 'types/store';
+import {RHSStates, CloudProducts} from 'utils/constants';
+import {isCloudLicense} from 'utils/license_utils';
 
 import MainMenu from './main_menu';
 

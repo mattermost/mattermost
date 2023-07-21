@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import * as PreferencesSelectors from 'mattermost-redux/selectors/entities/preferences';
+
 import {GlobalState} from 'types/store';
 
 import * as Lhs from './lhs';

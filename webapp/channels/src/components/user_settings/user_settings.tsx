@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {UserProfile} from '@mattermost/types/users';
+import React from 'react';
 
 import AdvancedTab from './advanced';
 import DisplayTab from './display';

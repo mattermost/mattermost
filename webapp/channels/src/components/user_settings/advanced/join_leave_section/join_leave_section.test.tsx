@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-
-import {AdvancedSections} from 'utils/constants';
+import React from 'react';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
-
 import JoinLeaveSection from 'components/user_settings/advanced/join_leave_section/join_leave_section';
+
+import {AdvancedSections} from 'utils/constants';
 
 describe('components/user_settings/advanced/JoinLeaveSection', () => {
     const defaultProps = {

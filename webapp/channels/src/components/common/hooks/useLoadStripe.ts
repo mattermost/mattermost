@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Stripe} from '@stripe/stripe-js';
+import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
 import {useEffect, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
-import {Stripe} from '@stripe/stripe-js';
-
-import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
-
-import {GlobalState} from 'types/store';
 
 import {getStripePublicKey} from 'components/payment_form/stripe';
+
+import {GlobalState} from 'types/store';
 
 // reloadHint
 export default function useLoadStripe(reloadHint?: number) {

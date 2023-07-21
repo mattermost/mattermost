@@ -1,25 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {LeastActiveChannel} from '@mattermost/types/insights';
 import React, {memo, useCallback} from 'react';
-import {useSelector} from 'react-redux';
-
 import {FormattedMessage} from 'react-intl';
-
+import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import {trackEvent} from 'actions/telemetry_actions';
-
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
-import {LeastActiveChannel} from '@mattermost/types/insights';
-
-import Constants from 'utils/constants';
-
-import Avatars from 'components/widgets/users/avatars';
 import Timestamp from 'components/timestamp';
+import Avatars from 'components/widgets/users/avatars';
 
 import ChannelActionsMenu from '../channel_actions_menu/channel_actions_menu';
+import Constants from 'utils/constants';
 
 import './../../../activity_and_insights.scss';
 

@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 
-import {Channel} from '@mattermost/types/channels';
-import {localizeMessage} from 'utils/utils';
 import Menu from 'components/widgets/menu/menu';
+
+import {localizeMessage} from 'utils/utils';
 
 type Action = {
     closeRightHandSide: () => void;

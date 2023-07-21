@@ -1,18 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-
-import {InputActionMeta} from 'react-select/src/types';
 import {getOptionValue} from 'react-select/src/builtins';
-
-import classNames from 'classnames';
+import {InputActionMeta} from 'react-select/src/types';
 
 import LocalizedIcon from 'components/localized_icon';
-import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import SaveButton from 'components/save_button';
+import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import Avatar from 'components/widgets/users/avatar';
 
 import {Constants, A11yCustomEventTypes} from 'utils/constants';

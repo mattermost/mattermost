@@ -4,21 +4,19 @@
 import {connect, ConnectedProps} from 'react-redux';
 import {RouteComponentProps} from 'react-router-dom';
 
+import {fetchChannelsAndMembers} from 'actions/channel_actions';
+import {markChannelAsReadOnFocus} from 'actions/views/channel';
 import {fetchAllMyTeamsChannelsAndChannelMembersREST, fetchMyChannelsAndMembersREST, viewChannel} from 'mattermost-redux/actions/channels';
+import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
+import {isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import {isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
-import {GlobalState} from 'types/store';
-
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 
-import {markChannelAsReadOnFocus} from 'actions/views/channel';
 import {initializeTeam, joinTeam} from 'components/team_controller/actions';
-import {fetchChannelsAndMembers} from 'actions/channel_actions';
 
+import {GlobalState} from 'types/store';
 import {checkIfMFARequired} from 'utils/route';
 
 import TeamController from './team_controller';

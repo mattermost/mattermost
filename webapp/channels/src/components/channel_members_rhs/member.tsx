@@ -1,29 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import styled from 'styled-components';
-import classNames from 'classnames';
-import {FormattedMessage} from 'react-intl';
-
-import GuestTag from 'components/widgets/tag/guest_tag';
-import ProfilePopover from 'components/profile_popover';
-
-import ProfilePicture from 'components/profile_picture';
-import {Client4} from 'mattermost-redux/client';
-import ChannelMembersDropdown from 'components/channel_members_dropdown';
-
-import OverlayTrigger, {BaseOverlayTrigger} from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import Constants from 'utils/constants';
-
-import {isGuest} from 'mattermost-redux/utils/user_utils';
-
 import {Channel} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
+import classNames from 'classnames';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
+import styled from 'styled-components';
 
+import {Client4} from 'mattermost-redux/client';
+import {isGuest} from 'mattermost-redux/utils/user_utils';
+
+import ChannelMembersDropdown from 'components/channel_members_dropdown';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import OverlayTrigger, {BaseOverlayTrigger} from 'components/overlay_trigger';
+import ProfilePicture from 'components/profile_picture';
+import ProfilePopover from 'components/profile_popover';
+import Tooltip from 'components/tooltip';
+import GuestTag from 'components/widgets/tag/guest_tag';
+
+import Constants from 'utils/constants';
 
 import {ChannelMember} from './channel_members_rhs';
 

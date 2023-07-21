@@ -1,23 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent} from 'react';
-
-import GuestTag from 'components/widgets/tag/guest_tag';
-
-import BotTag from 'components/widgets/tag/bot_tag';
-
 import {UserProfile as UserProfileType} from '@mattermost/types/users';
+import React, {PureComponent} from 'react';
 
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import {imageURLForUser, isMobile} from 'utils/utils';
-
 import OverlayTrigger, {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ProfilePopover from 'components/profile_popover';
-
 import SharedUserIndicator from 'components/shared_user_indicator';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
+
+import {imageURLForUser, isMobile} from 'utils/utils';
 
 import {generateColor} from './utils';
 

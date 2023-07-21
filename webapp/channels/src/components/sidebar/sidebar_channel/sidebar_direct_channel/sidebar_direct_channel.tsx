@@ -1,21 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {PreferenceType} from '@mattermost/types/preferences';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {IntlShape, injectIntl} from 'react-intl';
 
+import {trackEvent} from 'actions/telemetry_actions';
 import {Client4} from 'mattermost-redux/client';
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-import {PreferenceType} from '@mattermost/types/preferences';
-
-import {trackEvent} from 'actions/telemetry_actions';
 import ProfilePicture from 'components/profile_picture';
-import {getHistory} from 'utils/browser_history';
-import {Constants} from 'utils/constants';
 
 import SidebarChannelLink from '../sidebar_channel_link';
+import {getHistory} from 'utils/browser_history';
+import {Constants} from 'utils/constants';
 
 type Props = {
     intl: IntlShape;

@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import React from 'react';
+
+import deepFreeze from 'mattermost-redux/utils/deep_freeze';
+
+import CloseCircleIcon from 'components/widgets/icons/close_circle_icon';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithIntl, screen} from 'tests/react_testing_utils';
-import deepFreeze from 'mattermost-redux/utils/deep_freeze';
-import {Channel} from '@mattermost/types/channels';
-import CloseCircleIcon from 'components/widgets/icons/close_circle_icon';
 
 import AddToChannels, {Props} from './add_to_channels';
 

@@ -1,22 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Emoji} from '@mattermost/types/emojis';
+import {Post} from '@mattermost/types/posts';
+import {Reaction as ReactionType} from '@mattermost/types/reactions';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import {Post} from '@mattermost/types/posts';
-import {Reaction as ReactionType} from '@mattermost/types/reactions';
-import {Emoji} from '@mattermost/types/emojis';
 import {isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
-import Constants from 'utils/constants';
-import Reaction from 'components/post_view/reaction';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
-import AddReactionIcon from 'components/widgets/icons/add_reaction_icon';
 import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
+import Reaction from 'components/post_view/reaction';
+import Tooltip from 'components/tooltip';
+import AddReactionIcon from 'components/widgets/icons/add_reaction_icon';
+
+import Constants from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
 const DEFAULT_EMOJI_PICKER_RIGHT_OFFSET = 15;

@@ -4,10 +4,10 @@
 import React from 'react';
 import {Provider} from 'react-redux';
 
-import mockStore from '../../tests/test_store';
 import {mountWithIntl} from '../../tests/helpers/intl-test-helper';
-import {FileSizes} from '../../utils/file_utils';
+import mockStore from '../../tests/test_store';
 import {CloudProducts} from '../../utils/constants';
+import {FileSizes} from '../../utils/file_utils';
 import {makeEmptyUsage} from '../../utils/limits_test';
 
 import SearchLimitsBanner from './search_limits_banner';

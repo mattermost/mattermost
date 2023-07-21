@@ -3,17 +3,15 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
 import {useDispatch, useSelector} from 'react-redux';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import {CloudProducts, ModalIdentifiers} from 'utils/constants';
 import {openModal} from 'actions/views/modals';
-
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {isCloudLicense} from 'utils/license_utils';
-
 import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+
+import {CloudProducts, ModalIdentifiers} from 'utils/constants';
+import {isCloudLicense} from 'utils/license_utils';
 
 import DeleteWorkspaceModal from './delete_workspace_modal';
 

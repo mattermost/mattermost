@@ -3,9 +3,9 @@
 
 import React, {RefObject} from 'react';
 
-import * as UserAgent from 'utils/user_agent';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+import * as UserAgent from 'utils/user_agent';
 import {a11yFocus} from 'utils/utils';
 
 export type Tab = {

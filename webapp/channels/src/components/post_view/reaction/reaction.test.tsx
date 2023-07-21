@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {shallow} from 'enzyme';
-
 import {Reaction as ReactionType} from '@mattermost/types/reactions';
+import {shallow} from 'enzyme';
+import React from 'react';
 
 import Reaction from 'components/post_view/reaction/reaction';
+
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/post_view/Reaction', () => {

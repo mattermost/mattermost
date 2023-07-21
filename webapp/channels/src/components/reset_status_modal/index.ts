@@ -1,24 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PreferenceType} from '@mattermost/types/preferences';
+import {UserStatus} from '@mattermost/types/users';
+import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions.js';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-
 import {GlobalState} from 'types/store/index.js';
 
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions.js';
-
-import {UserStatus} from '@mattermost/types/users';
-
-import {PreferenceType} from '@mattermost/types/preferences';
-
+import {autoResetStatus} from 'actions/user_actions';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {setStatus} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {autoResetStatus} from 'actions/user_actions';
 
 import ResetStatusModal from './reset_status_modal';
 

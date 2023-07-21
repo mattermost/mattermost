@@ -4,10 +4,10 @@
 import PropTypes from 'prop-types';
 import React, {ChangeEvent, PureComponent} from 'react';
 
-import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
-
 import LocalizedInput from 'components/localized_input/localized_input';
+
+import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
 
 import Setting from './setting';
 

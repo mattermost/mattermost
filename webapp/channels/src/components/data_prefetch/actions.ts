@@ -3,9 +3,8 @@
 
 import {Dispatch} from 'redux';
 
-import {getChannelIdsForCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
-
 import {trackEvent} from 'actions/telemetry_actions';
+import {getChannelIdsForCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
 
 import {GlobalState} from 'types/store';
 

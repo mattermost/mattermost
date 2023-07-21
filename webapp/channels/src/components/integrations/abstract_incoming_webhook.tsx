@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {IncomingWebhook} from '@mattermost/types/integrations';
+import {Team} from '@mattermost/types/teams';
 import React, {ChangeEventHandler, FormEvent, MouseEvent, PureComponent} from 'react';
 import {FormattedMessage, MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
@@ -9,9 +11,8 @@ import BackstageHeader from 'components/backstage/components/backstage_header';
 import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
-import {Team} from '@mattermost/types/teams';
+
 import {localizeMessage} from 'utils/utils';
-import {IncomingWebhook} from '@mattermost/types/integrations';
 
 interface State {
     displayName: string;

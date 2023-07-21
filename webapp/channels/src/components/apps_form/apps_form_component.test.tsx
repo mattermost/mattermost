@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Provider} from 'react-redux';
 import {shallow} from 'enzyme';
-
+import React from 'react';
 import {Modal} from 'react-bootstrap';
-
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {Provider} from 'react-redux';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
 import Markdown from 'components/markdown';
+
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import mockStore from 'tests/test_store';
 
 import {AppsForm, Props} from './apps_form_component';
 

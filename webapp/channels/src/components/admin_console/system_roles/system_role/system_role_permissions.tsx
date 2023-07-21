@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Role} from '@mattermost/types/roles';
 import React from 'react';
 
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
-import {Role} from '@mattermost/types/roles';
-
-import {t} from 'utils/i18n';
 
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import Constants from 'utils/constants';
+
 import FormattedMarkdownMessage from '../../../formatted_markdown_message';
+import Constants from 'utils/constants';
+import {t} from 'utils/i18n';
 
 import SystemRolePermission from './system_role_permission';
 import {PermissionsToUpdate, PermissionToUpdate, SystemSection} from './types';

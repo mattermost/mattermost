@@ -3,15 +3,15 @@
 
 import {UserProfile} from '@mattermost/types/users';
 
+import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {GlobalState} from 'types/store';
 
-import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
+import {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 
 export function loadStatusesForChannelAndSidebar(): ActionFunc {

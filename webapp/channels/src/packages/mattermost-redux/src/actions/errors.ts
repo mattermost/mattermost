@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {LogLevel} from '@mattermost/types/client4';
+import {ServerError} from '@mattermost/types/errors';
 import {serializeError, ErrorObject} from 'serialize-error';
 
 import {ErrorTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
-import {LogLevel} from '@mattermost/types/client4';
-import {ServerError} from '@mattermost/types/errors';
 
 export function dismissErrorObject(index: number) {
     return {

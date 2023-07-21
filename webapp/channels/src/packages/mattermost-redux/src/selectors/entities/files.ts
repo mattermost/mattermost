@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
-
 import {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
 import {GlobalState} from '@mattermost/types/store';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 function getAllFiles(state: GlobalState) {

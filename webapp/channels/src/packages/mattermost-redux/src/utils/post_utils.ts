@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Posts, Preferences, Permissions} from '../constants';
+import {Channel} from '@mattermost/types/channels';
+import {Post, PostType, PostMetadata, PostEmbed} from '@mattermost/types/posts';
+import {PreferenceType} from '@mattermost/types/preferences';
+import {GlobalState} from '@mattermost/types/store';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
-import {GlobalState} from '@mattermost/types/store';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {Post, PostType, PostMetadata, PostEmbed} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
-import {Team} from '@mattermost/types/teams';
-import {Channel} from '@mattermost/types/channels';
+import {Posts, Preferences, Permissions} from '../constants';
 
 import {getPreferenceKey} from './preference_utils';
 

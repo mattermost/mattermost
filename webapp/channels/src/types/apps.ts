@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {IntlShape} from 'react-intl';
-
 import {AppBinding, AppCallRequest, AppCallResponse, AppContext, AppForm} from '@mattermost/types/apps';
 import {Post} from '@mattermost/types/posts';
+import {IntlShape} from 'react-intl';
 
 export type DoAppCallResult<Res=unknown> = {
     data?: AppCallResponse<Res>;

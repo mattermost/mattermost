@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
+import {debounce} from 'lodash';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
-import {debounce} from 'lodash';
 
-import {UserProfile} from '@mattermost/types/users';
 import {GenericAction} from 'mattermost-redux/types/actions';
+
+import MultiSelect from 'components/multiselect/multiselect';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
-import MultiSelect from 'components/multiselect/multiselect';
 
 import List from './list';
 import {USERS_PER_PAGE} from './list/list';

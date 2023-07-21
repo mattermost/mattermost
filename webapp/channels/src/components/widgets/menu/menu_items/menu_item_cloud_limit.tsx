@@ -4,22 +4,20 @@
 import React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {isCloudLicense} from 'mattermost-redux/selectors/entities/general';
+import {openModal} from 'actions/views/modals';
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
+import {isCloudLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
-import {openModal} from 'actions/views/modals';
-
-import {ModalIdentifiers} from 'utils/constants';
-import {limitThresholds} from 'utils/limits';
-
+import LHSNearingLimitsModal from 'components/cloud_usage_modal/lhs_nearing_limit_modal';
 import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
 import UsagePercentBar from 'components/common/usage_percent_bar';
 
-import LHSNearingLimitsModal from 'components/cloud_usage_modal/lhs_nearing_limit_modal';
+import {ModalIdentifiers} from 'utils/constants';
+import {limitThresholds} from 'utils/limits';
 
 import useWords from './useWords';
 

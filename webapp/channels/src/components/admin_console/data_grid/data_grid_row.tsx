@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
 import classNames from 'classnames';
+import React, {CSSProperties} from 'react';
 
 import {Row, Column} from './data_grid';
 

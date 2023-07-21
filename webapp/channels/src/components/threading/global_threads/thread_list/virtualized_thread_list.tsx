@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserThread} from '@mattermost/types/threads';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import InfiniteLoader from 'react-window-infinite-loader';
 import {FixedSizeList} from 'react-window';
-
-import {UserThread} from '@mattermost/types/threads';
+import InfiniteLoader from 'react-window-infinite-loader';
 
 import {Constants} from 'utils/constants';
 

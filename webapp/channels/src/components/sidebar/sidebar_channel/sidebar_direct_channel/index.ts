@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {PreferenceType} from '@mattermost/types/preferences';
+import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
+import {leaveDirectChannel} from 'actions/views/channel';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {GlobalState} from '@mattermost/types/store';
-import {Channel} from '@mattermost/types/channels';
 import {getCurrentChannelId, getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getUser} from 'mattermost-redux/selectors/entities/users';
-
-import {leaveDirectChannel} from 'actions/views/channel';
+import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import SidebarDirectChannel from './sidebar_direct_channel';
 

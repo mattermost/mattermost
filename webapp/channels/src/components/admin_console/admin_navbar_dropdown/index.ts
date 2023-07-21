@@ -4,11 +4,10 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {GenericAction} from 'mattermost-redux/types/actions';
-
 import {deferNavigation} from 'actions/admin_actions.jsx';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
+import {GenericAction} from 'mattermost-redux/types/actions';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getNavigationBlocked} from 'selectors/views/admin';
 

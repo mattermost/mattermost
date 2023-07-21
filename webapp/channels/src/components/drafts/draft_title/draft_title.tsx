@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 import React, {memo, useEffect} from 'react';
-import {useDispatch} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
-
-import {imageURLForUser} from 'utils/utils';
-import {Constants} from 'utils/constants';
-
 import Avatar from 'components/widgets/users/avatar';
+
+import {Constants} from 'utils/constants';
+import {imageURLForUser} from 'utils/utils';
 
 import './draft_title.scss';
 

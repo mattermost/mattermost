@@ -1,19 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import React, {useCallback} from 'react';
-
 import {useDispatch, useSelector} from 'react-redux';
-
 import styled from 'styled-components';
 
-import {Channel} from '@mattermost/types/channels';
+import {closeRightHandSide, showChannelInfo} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 
-import {closeRightHandSide, showChannelInfo} from 'actions/views/rhs';
-
-import {RHSStates} from 'utils/constants';
 import {RhsState} from 'types/store/rhs';
+import {RHSStates} from 'utils/constants';
 
 import HeaderIconWrapper from './components/header_icon_wrapper';
 

@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {shallow} from 'enzyme';
-
 import {Channel} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
-
-import {Constants, NotificationLevels} from 'utils/constants';
+import {shallow} from 'enzyme';
+import React from 'react';
 
 import Menu from 'components/widgets/menu/menu';
 import MenuItemAction from 'components/widgets/menu/menu_items/menu_item_action';
+
+import {Constants, NotificationLevels} from 'utils/constants';
 
 import MenuItemToggleMuteChannel from './toggle_mute_channel';
 

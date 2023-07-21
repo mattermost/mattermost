@@ -3,26 +3,23 @@
 
 /* eslint-disable max-lines */
 
+import {PreferenceType} from '@mattermost/types/preferences';
+import {UserProfile} from '@mattermost/types/users';
 import React, {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
+import {ActionResult} from 'mattermost-redux/types/actions';
+
+import ConfirmModal from 'components/confirm_modal';
+import SettingItem from 'components/setting_item';
+import SettingItemMax from 'components/setting_item_max';
+import BackIcon from 'components/widgets/icons/fa_back_icon';
 
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isMac} from 'utils/user_agent';
 import {a11yFocus, localizeMessage} from 'utils/utils';
-
-import SettingItemMax from 'components/setting_item_max';
-import ConfirmModal from 'components/confirm_modal';
-import BackIcon from 'components/widgets/icons/fa_back_icon';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import {UserProfile} from '@mattermost/types/users';
-import {PreferenceType} from '@mattermost/types/preferences';
-
-import SettingItem from 'components/setting_item';
 
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';

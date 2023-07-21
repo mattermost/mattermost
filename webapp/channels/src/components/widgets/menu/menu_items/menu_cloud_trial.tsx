@@ -1,28 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import moment from 'moment';
-
-import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
-import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
-
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
-
 import {openModal} from 'actions/views/modals';
+import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
 
-import {ModalIdentifiers, CloudProducts} from 'utils/constants';
 import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
+import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
+
+import {ModalIdentifiers, CloudProducts} from 'utils/constants';
 
 import './menu_item.scss';
 

@@ -3,10 +3,9 @@
 
 import {connect} from 'react-redux';
 
+import Permissions from 'mattermost-redux/constants/permissions';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
-import Permissions from 'mattermost-redux/constants/permissions';
 
 import {GlobalState} from 'types/store';
 

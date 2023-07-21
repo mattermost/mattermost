@@ -2,38 +2,33 @@
 // See LICENSE.txt for license information.
 
 // Purpose of this file to exists is only required until channel header dropdown is migrated to new menus
-import React, {memo} from 'react';
-import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
-
 import {
     FolderOutlineIcon,
     StarOutlineIcon,
     FolderMoveOutlineIcon,
 } from '@mattermost/compass-icons/components';
-
-import {Channel} from '@mattermost/types/channels';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {ChannelCategory} from '@mattermost/types/channel_categories';
-
-import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
-
-import {GlobalState} from 'types/store';
-import type {Menu as MenuType} from 'types/store/plugins';
-
-import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
-
-import Constants, {ModalIdentifiers} from 'utils/constants';
+import {Channel} from '@mattermost/types/channels';
+import React, {memo} from 'react';
+import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {openModal} from 'actions/views/modals';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
+import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
+import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
+import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
 import EditCategoryModal from 'components/edit_category_modal';
 import Menu from 'components/widgets/menu/menu';
+
+import {GlobalState} from 'types/store';
+import type {Menu as MenuType} from 'types/store/plugins';
+import Constants, {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;

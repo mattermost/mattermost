@@ -1,20 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
+import {PostPriorityMetadata} from '@mattermost/types/posts';
 import React, {memo, CSSProperties} from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
-import {CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
-
 import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import PriorityLabel from 'components/post_priority/post_priority_label';
 import {HasNoMentions, HasSpecialMentions} from 'components/post_priority/error_messages';
+import PriorityLabel from 'components/post_priority/post_priority_label';
+import Tooltip from 'components/tooltip';
 
 import Constants from 'utils/constants';
-
-import {PostPriorityMetadata} from '@mattermost/types/posts';
 
 type Props = {
     canRemove: boolean;

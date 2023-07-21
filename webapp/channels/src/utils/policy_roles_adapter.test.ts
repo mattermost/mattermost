@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {Role} from '@mattermost/types/roles';
+
 import {Permissions} from 'mattermost-redux/constants/index';
 
 import {rolesFromMapping, mappingValueFromRoles} from 'utils/policy_roles_adapter';

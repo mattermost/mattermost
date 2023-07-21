@@ -6,12 +6,13 @@ import {FormattedMessage} from 'react-intl';
 import {Route, Switch, RouteComponentProps} from 'react-router-dom';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
-import logoImage from 'images/logo.png';
+
 import BackButton from 'components/common/back_button';
 import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 
-import Setup from '../setup';
 import Confirm from '../confirm';
+import Setup from '../setup';
+import logoImage from 'images/logo.png';
 
 type Location = {
     search: string;

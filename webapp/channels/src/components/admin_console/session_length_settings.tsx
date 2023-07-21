@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AdminConfig, ClientLicense, ServiceSettings} from '@mattermost/types/config';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {AdminConfig, ClientLicense, ServiceSettings} from '@mattermost/types/config';
-
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+
 import * as Utils from 'utils/utils';
 
 import AdminSettings, {BaseState, BaseProps} from './admin_settings';

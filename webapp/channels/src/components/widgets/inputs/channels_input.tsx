@@ -1,23 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import classNames from 'classnames';
 import React, {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {components, ValueType, ActionMeta, InputActionMeta} from 'react-select';
 import AsyncSelect, {Async} from 'react-select/async';
 
-import classNames from 'classnames';
-
-import {Constants} from 'utils/constants';
-
-import {Channel} from '@mattermost/types/channels';
-
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import PublicChannelIcon from 'components/widgets/icons/globe_icon';
 import PrivateChannelIcon from 'components/widgets/icons/lock_icon';
-import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import {Constants} from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import './channels_input.scss';

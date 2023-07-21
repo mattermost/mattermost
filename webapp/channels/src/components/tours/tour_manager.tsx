@@ -1,20 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GlobalState} from '@mattermost/types/store';
 import React, {useCallback, useEffect, useState} from 'react';
-
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getInt} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-
-import {savePreferences as storeSavePreferences} from 'mattermost-redux/actions/preferences';
-
 import {trackEvent as trackEventAction} from 'actions/telemetry_actions';
+import {savePreferences as storeSavePreferences} from 'mattermost-redux/actions/preferences';
+import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getInt} from 'mattermost-redux/selectors/entities/preferences';
+
 import {
     generateTelemetryTag,
 } from 'components/onboarding_tasks';
-
 import {
     ActionType,
     ChannelsTourTipManager,
@@ -24,8 +22,6 @@ import {
     useGetTourSteps,
     useHandleNavigationAndExtraActions,
 } from 'components/tours';
-
-import {GlobalState} from '@mattermost/types/store';
 
 import {
     AutoTourStatus,

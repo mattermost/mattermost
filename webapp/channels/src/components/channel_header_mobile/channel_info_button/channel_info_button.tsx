@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 
-import {localizeMessage} from 'utils/utils';
-
 import InfoIcon from 'components/widgets/icons/info_icon';
-import {Channel} from '@mattermost/types/channels';
+
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
     channel: Channel;

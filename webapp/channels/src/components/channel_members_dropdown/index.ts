@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, AnyAction, bindActionCreators, Dispatch} from 'redux';
 
-import {getChannelStats, updateChannelMemberSchemeRoles, removeChannelMember, getChannelMember} from 'mattermost-redux/actions/channels';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {Permissions} from 'mattermost-redux/constants';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {canManageMembers} from 'utils/channel_utils';
-import {GlobalState} from 'types/store';
-import {Channel} from '@mattermost/types/channels';
 import {openModal} from 'actions/views/modals';
-
+import {getChannelStats, updateChannelMemberSchemeRoles, removeChannelMember, getChannelMember} from 'mattermost-redux/actions/channels';
+import {Permissions} from 'mattermost-redux/constants';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {Action} from 'mattermost-redux/types/actions';
+
+import {GlobalState} from 'types/store';
+import {canManageMembers} from 'utils/channel_utils';
 
 import ChannelMembersDropdown from './channel_members_dropdown';
 

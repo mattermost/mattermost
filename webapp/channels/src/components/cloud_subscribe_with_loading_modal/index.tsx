@@ -1,26 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Feedback, Product} from '@mattermost/types/cloud';
+import {Team} from '@mattermost/types/teams';
 import React, {useState, useEffect, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {RouteComponentProps, withRouter} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
+import {RouteComponentProps, withRouter} from 'react-router-dom';
 
-import {ModalIdentifiers} from 'utils/constants';
-import {GlobalState} from 'types/store';
 import {subscribeCloudSubscription} from 'actions/cloud';
 import {closeModal} from 'actions/views/modals';
-import {Team} from '@mattermost/types/teams';
-import {Feedback, Product} from '@mattermost/types/cloud';
-import {t} from 'utils/i18n';
-import {isModalOpen} from 'selectors/views/modals';
-import FullScreenModal from 'components/widgets/modals/full_screen_modal';
-import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
-import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
-import PaymentFailedSvg from 'components/common/svg_images_components/payment_failed_svg';
-import IconMessage from 'components/purchase_modal/icon_message';
-import ProgressBar, {ProcessState} from 'components/icon_message_with_progress_bar';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
+import {isModalOpen} from 'selectors/views/modals';
+
+import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
+import PaymentFailedSvg from 'components/common/svg_images_components/payment_failed_svg';
+import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
+import ProgressBar, {ProcessState} from 'components/icon_message_with_progress_bar';
+import IconMessage from 'components/purchase_modal/icon_message';
+import FullScreenModal from 'components/widgets/modals/full_screen_modal';
+
+import {GlobalState} from 'types/store';
+import {ModalIdentifiers} from 'utils/constants';
+import {t} from 'utils/i18n';
 
 type Props = RouteComponentProps & {
     onBack: () => void;

@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Preferences} from 'mattermost-redux/constants';
 import {getState} from 'stores/redux_store';
 
 import mockStore from 'tests/test_store';
-
-import {Preferences} from 'mattermost-redux/constants';
 
 import SwitchChannelProvider from './switch_channel_provider';
 

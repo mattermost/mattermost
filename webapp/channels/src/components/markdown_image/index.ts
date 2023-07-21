@@ -3,9 +3,9 @@
 
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-import {Action, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
+import {Action, GenericAction} from 'mattermost-redux/types/actions';
 
 import MarkdownImage, {Props} from './markdown_image';
 

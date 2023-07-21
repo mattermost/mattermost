@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {Parser, ProcessNodeDefinitions} from 'html-to-react';
+import React from 'react';
 
 import AtMention from 'components/at_mention';
+import AtPlanMention from 'components/at_plan_mention';
 import AtSumOfMembersMention from 'components/at_sum_members_mention';
+import CodeBlock from 'components/code_block/code_block';
 import LatexBlock from 'components/latex_block';
 import LatexInline from 'components/latex_inline';
 import LinkTooltip from 'components/link_tooltip/link_tooltip';
 import MarkdownImage from 'components/markdown_image';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
-import CodeBlock from 'components/code_block/code_block';
-import AtPlanMention from 'components/at_plan_mention';
 
 /*
  * Converts HTML to React components using html-to-react.

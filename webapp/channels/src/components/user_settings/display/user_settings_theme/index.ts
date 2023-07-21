@@ -4,15 +4,13 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
+import {openModal} from 'actions/views/modals';
+import {saveTheme, deleteTeamSpecificThemes} from 'mattermost-redux/actions/preferences';
 import {getTheme, makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeamsCount} from 'mattermost-redux/selectors/entities/teams';
 
-import {saveTheme, deleteTeamSpecificThemes} from 'mattermost-redux/actions/preferences';
-import {openModal} from 'actions/views/modals';
-
-import {Preferences} from 'utils/constants';
-
 import {GlobalState} from 'types/store';
+import {Preferences} from 'utils/constants';
 
 import UserSettingsTheme from './user_settings_theme';
 

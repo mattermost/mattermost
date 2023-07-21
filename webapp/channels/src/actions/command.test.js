@@ -1,23 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as GlobalActions from 'actions/global_actions';
 import {Client4} from 'mattermost-redux/client';
-
+import {Permissions} from 'mattermost-redux/constants';
+import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import * as Channels from 'mattermost-redux/selectors/entities/channels';
 import * as Teams from 'mattermost-redux/selectors/entities/teams';
 
-import {Permissions} from 'mattermost-redux/constants';
-import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-
-import * as GlobalActions from 'actions/global_actions';
+import UserSettingsModal from 'components/user_settings/modal';
 
 import mockStore from 'tests/test_store';
-
 import {ActionTypes, Constants, ModalIdentifiers} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
-
-import UserSettingsModal from 'components/user_settings/modal';
 
 import {executeCommand} from './command';
 

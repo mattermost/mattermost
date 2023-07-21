@@ -1,10 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {MouseEvent, memo, useState, KeyboardEvent} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
-import classNames from 'classnames';
-
 import {
     SortAlphabeticalAscendingIcon,
     ClockOutlineIcon,
@@ -13,16 +9,17 @@ import {
     DotsVerticalIcon,
     ChevronRightIcon,
 } from '@mattermost/compass-icons/components';
-
 import {ChannelCategory, CategorySorting} from '@mattermost/types/channel_categories';
-
-import {Preferences} from 'mattermost-redux/constants';
-
-import Constants from 'utils/constants';
+import classNames from 'classnames';
+import React, {MouseEvent, memo, useState, KeyboardEvent} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
+import {Preferences} from 'mattermost-redux/constants';
 
 import * as Menu from 'components/menu';
+
+import Constants from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
 

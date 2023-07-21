@@ -1,10 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
+import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
+import {goToLastViewedChannel} from 'actions/views/channel';
+import {openModal, closeModal} from 'actions/views/modals';
+import {
+    showPinnedPosts,
+    showChannelFiles,
+    closeRightHandSide,
+    showChannelMembers,
+} from 'actions/views/rhs';
 import {
     favoriteChannel,
     unfavoriteChannel,
@@ -30,26 +38,16 @@ import {
     getUser,
     makeGetProfilesInChannel,
 } from 'mattermost-redux/selectors/entities/users';
+import {Action} from 'mattermost-redux/types/actions';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
-
-import {goToLastViewedChannel} from 'actions/views/channel';
-import {openModal, closeModal} from 'actions/views/modals';
-import {
-    showPinnedPosts,
-    showChannelFiles,
-    closeRightHandSide,
-    showChannelMembers,
-} from 'actions/views/rhs';
-import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
-import {isModalOpen} from 'selectors/views/modals';
 import {getAnnouncementBarCount} from 'selectors/views/announcement_bar';
-import {ModalIdentifiers} from 'utils/constants';
-import {isFileAttachmentsEnabled} from 'utils/file_utils';
+import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
+import {isModalOpen} from 'selectors/views/modals';
 
 import {GlobalState} from 'types/store';
-
-import {Action} from 'mattermost-redux/types/actions';
+import {ModalIdentifiers} from 'utils/constants';
+import {isFileAttachmentsEnabled} from 'utils/file_utils';
 
 import ChannelHeader, {Props} from './channel_header';
 

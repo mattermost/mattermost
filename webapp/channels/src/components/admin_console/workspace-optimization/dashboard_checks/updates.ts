@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mattermost-redux/client';
-import {ItemStatus, Options} from '../dashboard.type';
-import {useIntl} from 'react-intl';
 import {AdminConfig} from '@mattermost/types/config';
-import {CloudLinks, DocLinks} from 'utils/constants';
+import {useIntl} from 'react-intl';
+
+import {Client4} from 'mattermost-redux/client';
+
 import {impactModifiers} from '../dashboard.data';
+import {ItemStatus, Options} from '../dashboard.type';
+import {CloudLinks, DocLinks} from 'utils/constants';
 
 const testServerVersion = async (
     config: Partial<AdminConfig>,

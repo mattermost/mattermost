@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {Role} from '@mattermost/types/roles';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import nock from 'nock';
 
 import {
@@ -10,18 +14,13 @@ import {
     openGroupChannelToUserIds,
     loadChannelsForCurrentUser, fetchChannelsAndMembers,
 } from 'actions/channel_actions';
-import {loadProfilesForSidebar} from 'actions/user_actions';
 import {CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE} from 'actions/channel_queries';
-
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {Role} from '@mattermost/types/roles';
-
+import {loadProfilesForSidebar} from 'actions/user_actions';
 import {Client4} from 'mattermost-redux/client';
+
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
-import mockStore from 'tests/test_store';
 import configureStore from 'store';
+import mockStore from 'tests/test_store';
 
 const initialState = {
     entities: {

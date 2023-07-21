@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GlobalState} from '@mattermost/types/store';
+import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-
 import timezones from 'timezones.json';
 
 import {updateMe} from 'mattermost-redux/actions/users';
-import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
-import {GlobalState} from '@mattermost/types/store';
 import {getCurrentTimezoneLabel} from 'mattermost-redux/selectors/entities/timezone';
+import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
 import ManageTimezones from './manage_timezones';
 

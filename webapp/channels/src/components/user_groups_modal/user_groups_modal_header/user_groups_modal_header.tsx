@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-
 import {Modal} from 'react-bootstrap';
-
 import {FormattedMessage} from 'react-intl';
 
 import CreateUserGroupsModal from 'components/create_user_groups_modal';
+
 import {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
 

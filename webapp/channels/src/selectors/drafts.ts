@@ -1,19 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getMyActiveChannelIds} from 'mattermost-redux/selectors/entities/channels';
 import {get, onboardingTourTipsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
-import {Preferences} from 'mattermost-redux/constants';
+import {getIsMobileView} from 'selectors/views/browser';
 
 import {GlobalState} from 'types/store';
 import {DraftInfo, PostDraft} from 'types/store/draft';
-
 import {StoragePrefixes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
-
-import {getIsMobileView} from 'selectors/views/browser';
 
 export type Draft = DraftInfo & {
     key: keyof GlobalState['storage']['storage'];

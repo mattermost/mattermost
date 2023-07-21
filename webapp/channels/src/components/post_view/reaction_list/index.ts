@@ -1,19 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Post} from '@mattermost/types/posts';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
+import {addReaction} from 'actions/post_actions';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {canAddReactions} from 'mattermost-redux/selectors/entities/reactions';
-
 import {GenericAction} from 'mattermost-redux/types/actions';
-import {Post} from '@mattermost/types/posts';
 
 import {GlobalState} from 'types/store';
-
-import {addReaction} from 'actions/post_actions';
-
 import {makeGetUniqueReactionsToPost} from 'utils/post_utils';
 
 import ReactionList from './reaction_list';

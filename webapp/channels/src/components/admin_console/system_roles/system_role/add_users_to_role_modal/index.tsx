@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GlobalState} from '@mattermost/types/store';
+import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {UserProfile} from '@mattermost/types/users';
-import {GlobalState} from '@mattermost/types/store';
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-
 import {getProfiles, searchProfiles} from 'mattermost-redux/actions/users';
-
 import {getProfiles as selectProfiles} from 'mattermost-redux/selectors/entities/users';
+import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import AddUsersToRoleModal, {Props} from './add_users_to_role_modal';
 

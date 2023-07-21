@@ -1,26 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useMemo, useEffect} from 'react';
-import {CSSTransition} from 'react-transition-group';
-import {FormattedMessage, useIntl} from 'react-intl';
-
 import {UserProfile} from '@mattermost/types/users';
-
-import {t} from 'utils/i18n';
-import {Constants} from 'utils/constants';
+import React, {useState, useMemo, useEffect} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {CSSTransition} from 'react-transition-group';
 
 import UsersEmailsInput from 'components/widgets/inputs/users_emails_input';
 
-import {Animations, mapAnimationReasonToClass, Form, PreparingWorkspacePageProps} from './steps';
+import {Constants} from 'utils/constants';
+import {t} from 'utils/i18n';
 
-import Title from './title';
 import Description from './description';
-import PageBody from './page_body';
-import SingleColumnLayout from './single_column_layout';
-
-import PageLine from './page_line';
 import InviteMembersLink from './invite_members_link';
+import PageBody from './page_body';
+import PageLine from './page_line';
+import SingleColumnLayout from './single_column_layout';
+import {Animations, mapAnimationReasonToClass, Form, PreparingWorkspacePageProps} from './steps';
+import Title from './title';
 
 import './invite_members.scss';
 

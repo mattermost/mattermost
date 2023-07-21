@@ -1,18 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {General} from 'mattermost-redux/constants';
+import {UserProfile} from '@mattermost/types/users';
 
+import {General} from 'mattermost-redux/constants';
 import * as ChannelUtils from 'mattermost-redux/utils/channel_utils';
 
+import {OptionValue} from '../types';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
-
 import {GlobalState} from 'types/store';
-
-import {OptionValue} from '../types';
-
-import {UserProfile} from '@mattermost/types/users';
 
 import {makeGetOptions} from './index';
 

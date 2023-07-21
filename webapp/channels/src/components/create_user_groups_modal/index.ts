@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GroupCreateWithUserIds} from '@mattermost/types/groups';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
+import {openModal} from 'actions/views/modals';
+import {createGroupWithUserIds} from 'mattermost-redux/actions/groups';
 import {Action, ActionResult} from 'mattermost-redux/types/actions';
 
-import {GroupCreateWithUserIds} from '@mattermost/types/groups';
-import {createGroupWithUserIds} from 'mattermost-redux/actions/groups';
 import {ModalData} from 'types/actions';
-import {openModal} from 'actions/views/modals';
 
 import CreateUserGroupsModal from './create_user_groups_modal';
 

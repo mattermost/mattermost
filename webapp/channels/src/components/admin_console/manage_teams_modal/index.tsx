@@ -4,10 +4,10 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {getCurrentLocale} from 'selectors/i18n';
-
 import {updateTeamMemberSchemeRoles, getTeamMembersForUser, getTeamsForUser, removeUserFromTeam} from 'mattermost-redux/actions/teams';
 import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import {getCurrentLocale} from 'selectors/i18n';
+
 import {GlobalState} from 'types/store';
 
 import ManageTeamsModal, {Props} from './manage_teams_modal';

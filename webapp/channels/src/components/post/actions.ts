@@ -1,18 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {ExtendedPost, removePost} from 'mattermost-redux/actions/posts';
-
-import {isThreadOpen} from 'selectors/views/threads';
-import {getGlobalItem} from 'selectors/storage';
-
 import {removeDraft} from 'actions/views/drafts';
 import {closeRightHandSide} from 'actions/views/rhs';
-
-import {StoragePrefixes} from 'utils/constants';
+import {ExtendedPost, removePost} from 'mattermost-redux/actions/posts';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
+import {getGlobalItem} from 'selectors/storage';
+import {isThreadOpen} from 'selectors/views/threads';
 
 import {GlobalState} from 'types/store';
+import {StoragePrefixes} from 'utils/constants';
 
 /**
  * This action is called when the deleted post which is shown as 'deleted' in the RHS is then removed from the channel manually.

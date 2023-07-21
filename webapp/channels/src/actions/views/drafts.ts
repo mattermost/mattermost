@@ -1,29 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Draft as ServerDraft} from '@mattermost/types/drafts';
+import {FileInfo} from '@mattermost/types/files';
+import {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
+import {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
 import {batchActions} from 'redux-batched-actions';
 
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {Client4} from 'mattermost-redux/client';
-
 import {setGlobalItem} from 'actions/storage';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {Client4} from 'mattermost-redux/client';
+import Preferences from 'mattermost-redux/constants/preferences';
+import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {makeGetDrafts} from 'selectors/drafts';
 import {getConnectionId} from 'selectors/general';
+import {getGlobalItem} from 'selectors/storage';
+
 import type {GlobalState} from 'types/store';
 import {PostDraft} from 'types/store/draft';
-import {getGlobalItem} from 'selectors/storage';
-import {makeGetDrafts} from 'selectors/drafts';
-
 import {ActionTypes, StoragePrefixes} from 'utils/constants';
-
-import type {Draft as ServerDraft} from '@mattermost/types/drafts';
-import type {UserProfile} from '@mattermost/types/users';
-import {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
-import {FileInfo} from '@mattermost/types/files';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import Preferences from 'mattermost-redux/constants/preferences';
 
 type Draft = {
     key: keyof GlobalState['storage']['storage'];

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {JobType} from '@mattermost/types/jobs';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
@@ -8,7 +9,6 @@ import {getJobsByType, createJob, cancelJob} from 'mattermost-redux/actions/jobs
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {makeGetJobsByType} from 'mattermost-redux/selectors/entities/jobs';
 import {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-import {JobType} from '@mattermost/types/jobs';
 
 import {GlobalState} from 'types/store';
 

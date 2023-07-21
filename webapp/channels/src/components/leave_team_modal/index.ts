@@ -4,18 +4,14 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
+import {toggleSideBarRightMenuAction} from 'actions/global_actions';
 import {removeUserFromTeam as leaveTeam} from 'mattermost-redux/actions/teams';
-
 import {getMyChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-
 import {GenericAction} from 'mattermost-redux/types/actions';
 
-import {toggleSideBarRightMenuAction} from 'actions/global_actions';
-
 import {GlobalState} from 'types/store';
-
 import {Constants} from 'utils/constants';
 
 import LeaveTeamModal from './leave_team_modal';

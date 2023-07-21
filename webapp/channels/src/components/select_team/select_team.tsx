@@ -1,35 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CloudUsage} from '@mattermost/types/cloud';
+import {Team} from '@mattermost/types/teams';
 import React, {ReactNode, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {Permissions} from 'mattermost-redux/constants';
-
-import {CloudUsage} from '@mattermost/types/cloud';
-import {Team} from '@mattermost/types/teams';
-
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-
-import * as UserAgent from 'utils/user_agent';
-import Constants from 'utils/constants';
-
-import logoImage from 'images/logo.png';
+import {Permissions} from 'mattermost-redux/constants';
 
 import AnnouncementBar from 'components/announcement_bar';
-
 import BackButton from 'components/common/back_button';
-import LoadingScreen from 'components/loading_screen';
-
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import SiteNameAndDescription from 'components/common/site_name_and_description';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import LoadingScreen from 'components/loading_screen';
+import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import InfiniteScroll from '../common/infinite_scroll';
+import logoImage from 'images/logo.png';
+import Constants from 'utils/constants';
+import * as UserAgent from 'utils/user_agent';
 
 import SelectTeamItem from './components/select_team_item';
 

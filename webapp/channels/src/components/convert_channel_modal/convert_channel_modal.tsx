@@ -6,10 +6,11 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-import Constants from 'utils/constants';
 import {General} from 'mattermost-redux/constants';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+
+import Constants from 'utils/constants';
 
 type Props = {
     channelDisplayName: string;

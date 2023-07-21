@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelType} from '@mattermost/types/channels';
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {Channel, ChannelType} from '@mattermost/types/channels';
-
-import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
-
-import Constants from 'utils/constants';
 import EditChannelHeaderModal, {default as EditChannelHeaderModalClass} from 'components/edit_channel_header_modal/edit_channel_header_modal';
 import Textbox from 'components/textbox';
+
+import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
+import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 const KeyCodes = Constants.KeyCodes;

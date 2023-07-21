@@ -4,24 +4,24 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
+import {unsetEditingPost} from 'actions/post_actions';
+import {scrollPostListToBottom} from 'actions/views/channel';
+import {openModal} from 'actions/views/modals';
+import {editPost} from 'actions/views/posts';
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 import {Preferences, Permissions} from 'mattermost-redux/constants';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-
-import {unsetEditingPost} from 'actions/post_actions';
-import {openModal} from 'actions/views/modals';
-import {scrollPostListToBottom} from 'actions/views/channel';
-import {editPost} from 'actions/views/posts';
 import {getEditingPost} from 'selectors/posts';
-import {GlobalState} from 'types/store';
-import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
+
 import {setGlobalItem} from '../../actions/storage';
 import {getIsRhsOpen, getPostDraft, getRhsState} from '../../selectors/rhs';
+import {GlobalState} from 'types/store';
+import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
 
 import EditPost, {Actions} from './edit_post';
 

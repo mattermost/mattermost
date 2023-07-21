@@ -1,69 +1,59 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {FileInfo} from '@mattermost/types/files';
+import {CommandArgs} from '@mattermost/types/integrations';
+import {Post} from '@mattermost/types/posts';
+import {PreferenceType} from '@mattermost/types/preferences';
+import {ActionResult, GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions.js';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-
+import {ModalData} from 'types/actions.js';
 import {GlobalState} from 'types/store/index.js';
 
-import {Post} from '@mattermost/types/posts';
-
-import {FileInfo} from '@mattermost/types/files';
-
-import {ActionResult, GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions.js';
-
-import {CommandArgs} from '@mattermost/types/integrations';
-
-import {ModalData} from 'types/actions.js';
-
-import {PostDraft} from 'types/store/draft';
-
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
-import {getCurrentChannelId, getCurrentChannel, getCurrentChannelStats, getChannelMemberCountsByGroup as selectChannelMemberCountsByGroup} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentUserId, getStatusForUserId, getUser, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
-import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {executeCommand} from 'actions/command';
+import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
+import {addReaction, createPost, setEditingPost, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
+import {scrollPostListToBottom} from 'actions/views/channel';
+import {removeDraft, updateDraft} from 'actions/views/drafts';
+import {searchAssociatedGroupsForReference} from 'actions/views/group';
+import {openModal} from 'actions/views/modals';
+import {selectPostFromRightHandSideSearchByPostId} from 'actions/views/rhs';
+import {setShowPreviewOnCreatePost} from 'actions/views/textbox';
 import {getChannelTimezones, getChannelMemberCountsByGroup} from 'mattermost-redux/actions/channels';
-import {get, getInt, getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {
-    getCurrentUsersLatestPost,
-    getLatestReplyablePostId,
-    makeGetMessageInHistoryItem,
-    isPostPriorityEnabled,
-} from 'mattermost-redux/selectors/entities/posts';
-import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 import {
     addMessageIntoHistory,
     moveHistoryIndexBack,
     moveHistoryIndexForward,
     removeReaction,
 } from 'mattermost-redux/actions/posts';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions, Posts, Preferences as PreferencesRedux} from 'mattermost-redux/constants';
-
-import {connectionErrorCount} from 'selectors/views/system';
-
-import {addReaction, createPost, setEditingPost, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
-import {searchAssociatedGroupsForReference} from 'actions/views/group';
-import {scrollPostListToBottom} from 'actions/views/channel';
-import {selectPostFromRightHandSideSearchByPostId} from 'actions/views/rhs';
-import {setShowPreviewOnCreatePost} from 'actions/views/textbox';
-import {executeCommand} from 'actions/command';
-import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
-import {makeGetChannelDraft, getIsRhsExpanded, getIsRhsOpen} from 'selectors/rhs';
-import {showPreviewOnCreatePost} from 'selectors/views/textbox';
-import {getCurrentLocale} from 'selectors/i18n';
+import {getCurrentChannelId, getCurrentChannel, getCurrentChannelStats, getChannelMemberCountsByGroup as selectChannelMemberCountsByGroup} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
+import {
+    getCurrentUsersLatestPost,
+    getLatestReplyablePostId,
+    makeGetMessageInHistoryItem,
+    isPostPriorityEnabled,
+} from 'mattermost-redux/selectors/entities/posts';
+import {get, getInt, getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId, getStatusForUserId, getUser, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
 import {getEmojiMap, getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
-import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
-import {removeDraft, updateDraft} from 'actions/views/drafts';
-import {openModal} from 'actions/views/modals';
-import {AdvancedTextEditor, Constants, Preferences, StoragePrefixes, UserStatuses} from 'utils/constants';
-import {canUploadFiles} from 'utils/file_utils';
+import {getCurrentLocale} from 'selectors/i18n';
+import {makeGetChannelDraft, getIsRhsExpanded, getIsRhsOpen} from 'selectors/rhs';
+import {connectionErrorCount} from 'selectors/views/system';
+import {showPreviewOnCreatePost} from 'selectors/views/textbox';
+
 import {OnboardingTourSteps, TutorialTourName, OnboardingTourStepsForGuestUsers} from 'components/tours';
 
-import {PreferenceType} from '@mattermost/types/preferences';
+import {PostDraft} from 'types/store/draft';
+import {AdvancedTextEditor, Constants, Preferences, StoragePrefixes, UserStatuses} from 'utils/constants';
+import {canUploadFiles} from 'utils/file_utils';
 
 import AdvancedCreatePost from './advanced_create_post';
 

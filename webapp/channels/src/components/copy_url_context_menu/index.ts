@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-
 import {GlobalState} from 'types/store/index.js';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';

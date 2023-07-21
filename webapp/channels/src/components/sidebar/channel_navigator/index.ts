@@ -4,18 +4,17 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {Action} from 'mattermost-redux/types/actions';
+import {openModal, closeModal} from 'actions/views/modals';
+import Permissions from 'mattermost-redux/constants/permissions';
 import {shouldShowUnreadsCategory, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
-import Permissions from 'mattermost-redux/constants/permissions';
-
-import {openModal, closeModal} from 'actions/views/modals';
-import {getHistory} from 'utils/browser_history';
-import {ModalIdentifiers} from 'utils/constants';
+import {Action} from 'mattermost-redux/types/actions';
 import {isModalOpen} from 'selectors/views/modals';
 
 import {ModalData} from 'types/actions';
 import {GlobalState} from 'types/store';
+import {getHistory} from 'utils/browser_history';
+import {ModalIdentifiers} from 'utils/constants';
 
 import ChannelNavigator from './channel_navigator';
 

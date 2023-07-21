@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Audit} from '@mattermost/types/audits';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
 import {ActionFunc} from 'mattermost-redux/types/actions';
-import {Audit} from '@mattermost/types/audits';
 
 import FormatAudit from './format_audit';
 

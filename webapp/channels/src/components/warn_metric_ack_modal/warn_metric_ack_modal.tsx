@@ -1,26 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {WarnMetricStatus} from '@mattermost/types/config';
+import {ServerError} from '@mattermost/types/errors';
+import {GetFilteredUsersStatsOpts, UsersStats, UserProfile} from '@mattermost/types/users';
 import React, {CSSProperties} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {GetFilteredUsersStatsOpts, UsersStats, UserProfile} from '@mattermost/types/users';
-import {ServerError} from '@mattermost/types/errors';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {WarnMetricStatus} from '@mattermost/types/config';
-
-import {getSiteURL} from 'utils/url';
-import {t} from 'utils/i18n';
-import {ModalIdentifiers, WarnMetricTypes} from 'utils/constants';
-
 import {trackEvent} from 'actions/telemetry_actions';
+import {ActionResult} from 'mattermost-redux/types/actions';
 
-import * as Utils from 'utils/utils';
-
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import ErrorLink from 'components/error_page/error_link';
 import ExternalLink from 'components/external_link';
+import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+
+import {ModalIdentifiers, WarnMetricTypes} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {getSiteURL} from 'utils/url';
+import * as Utils from 'utils/utils';
 
 type Props = {
     user: UserProfile;

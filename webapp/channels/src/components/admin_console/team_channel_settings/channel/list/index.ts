@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
-
-import {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
 
 import {getAllChannelsWithCount as getData, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';

@@ -1,34 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
-import {useIntl, FormattedMessage} from 'react-intl';
-import classNames from 'classnames';
-
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
-
-import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
-import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import {GenericModal} from '@mattermost/components';
-import {NotifyStatus} from 'components/common/hooks/useGetNotifyAdmin';
-import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
+import classNames from 'classnames';
+import React, {useEffect} from 'react';
+import {useIntl, FormattedMessage} from 'react-intl';
+import {useSelector, useDispatch} from 'react-redux';
 
 import {closeModal} from 'actions/views/modals';
+import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
+import {checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {isModalOpen} from 'selectors/views/modals';
+
+import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
+import {NotifyStatus} from 'components/common/hooks/useGetNotifyAdmin';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import ExternalLink from 'components/external_link';
+import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
+import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
+
 import {GlobalState} from 'types/store';
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {ModalIdentifiers, AboutLinks, LicenseLinks} from 'utils/constants';
 
 import './feature_restricted_modal.scss';
-import ExternalLink from 'components/external_link';
 
 type FeatureRestrictedModalProps = {
     titleAdminPreTrial: string;

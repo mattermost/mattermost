@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
-import {connect} from 'react-redux';
-
-import {getGroupsAssociatedToChannel, unlinkGroupSyncable, patchGroupSyncable} from 'mattermost-redux/actions/groups';
-import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 import {GlobalState} from '@mattermost/types/store';
-import {Action} from 'mattermost-redux/types/actions';
+import {connect} from 'react-redux';
+import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {closeModal, openModal} from 'actions/views/modals';
+import {getMyChannelMember} from 'mattermost-redux/actions/channels';
+import {getGroupsAssociatedToChannel, unlinkGroupSyncable, patchGroupSyncable} from 'mattermost-redux/actions/groups';
+import {Action} from 'mattermost-redux/types/actions';
 
 import {ModalData} from 'types/actions';
 

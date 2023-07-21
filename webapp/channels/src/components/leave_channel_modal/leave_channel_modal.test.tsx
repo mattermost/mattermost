@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ChannelType} from '@mattermost/types/channels';
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {ChannelType} from '@mattermost/types/channels';
-
-import LeaveChannelModal from 'components/leave_channel_modal/leave_channel_modal';
 import ConfirmModal from 'components/confirm_modal';
+import LeaveChannelModal from 'components/leave_channel_modal/leave_channel_modal';
 
 describe('components/LeaveChannelModal', () => {
     const channels = {

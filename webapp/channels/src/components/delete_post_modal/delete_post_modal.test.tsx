@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import {PostType, PostMetadata} from '@mattermost/types/posts';
 import {shallow} from 'enzyme';
+import React from 'react';
 import {Modal} from 'react-bootstrap';
 
-import {PostType, PostMetadata} from '@mattermost/types/posts';
+import DeletePostModal from 'components/delete_post_modal/delete_post_modal';
 
 import {getHistory} from 'utils/browser_history';
-
-import DeletePostModal from 'components/delete_post_modal/delete_post_modal';
 
 describe('components/delete_post_modal', () => {
     const post = {

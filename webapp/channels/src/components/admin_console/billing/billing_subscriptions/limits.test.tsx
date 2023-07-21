@@ -1,23 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Subscription, Product} from '@mattermost/types/cloud';
+import {GlobalState} from '@mattermost/types/store';
+import {UserProfile, UsersState} from '@mattermost/types/users';
 import React from 'react';
-
 import * as redux from 'react-redux';
 import {Provider} from 'react-redux';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
-
 import * as cloudActions from 'actions/cloud';
 
-import {FileSizes} from 'utils/file_utils';
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import mockStore from 'tests/test_store';
 import {Constants, CloudProducts} from 'utils/constants';
-
-import {UserProfile, UsersState} from '@mattermost/types/users';
-import {GlobalState} from '@mattermost/types/store';
-
-import {Subscription, Product} from '@mattermost/types/cloud';
+import {FileSizes} from 'utils/file_utils';
 
 import Limits from './limits';
 

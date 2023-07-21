@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import styled from 'styled-components';
 
 import Constants from 'utils/constants';
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-
-import {DMUser} from './channel_info_rhs';
+import AboutAreaChannel from './about_area_channel';
 import AboutAreaDM from './about_area_dm';
 import AboutAreaGM from './about_area_gm';
-import AboutAreaChannel from './about_area_channel';
+import {DMUser} from './channel_info_rhs';
 
 const Container = styled.div`
     overflow-wrap: anywhere;

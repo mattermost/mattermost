@@ -1,21 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-import {connect} from 'react-redux';
-
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 import {Channel} from '@mattermost/types/channels';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {patchChannel} from 'mattermost-redux/actions/channels';
-import {Preferences} from 'mattermost-redux/constants';
-import {Constants} from 'utils/constants';
-import {isFeatureEnabled} from 'utils/utils';
-
-import {GlobalState} from 'types/store';
+import {connect} from 'react-redux';
+import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
 import {setShowPreviewOnEditChannelHeaderModal} from 'actions/views/textbox';
+import {patchChannel} from 'mattermost-redux/actions/channels';
+import {Preferences} from 'mattermost-redux/constants';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 import {showPreviewOnEditChannelHeaderModal} from 'selectors/views/textbox';
+
+import {GlobalState} from 'types/store';
+import {Constants} from 'utils/constants';
+import {isFeatureEnabled} from 'utils/utils';
 
 import EditChannelHeaderModal from './edit_channel_header_modal';
 

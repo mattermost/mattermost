@@ -6,12 +6,11 @@ import {Post} from '@mattermost/types/posts';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {getGlobalItem} from 'selectors/storage';
 import {arePreviewsCollapsed} from 'selectors/preferences';
-import {StoragePrefixes} from 'utils/constants';
+import {getGlobalItem} from 'selectors/storage';
 
 import type {GlobalState} from 'types/store';
+import {StoragePrefixes} from 'utils/constants';
 
 export function getIsPostBeingEdited(state: GlobalState, postId: string) {
     return state.views.posts.editingPost.postId === postId && state.views.posts.editingPost.show;

@@ -3,11 +3,11 @@
 
 import {connect, ConnectedProps} from 'react-redux';
 
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getChannel, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-import {GlobalState} from 'types/store';
-
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getSelectedPostId} from 'selectors/rhs';
+
+import {GlobalState} from 'types/store';
 
 import PostEditHistory from './post_edit_history';
 

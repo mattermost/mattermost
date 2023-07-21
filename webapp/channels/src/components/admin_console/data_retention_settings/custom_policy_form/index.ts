@@ -1,10 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {
+    DataRetentionCustomPolicy,
+    CreateDataRetentionCustomPolicy,
+    PatchDataRetentionCustomPolicy,
+} from '@mattermost/types/data_retention';
+import {Team} from '@mattermost/types/teams';
 import {connect} from 'react-redux';
-
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
+import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 import {
     getDataRetentionCustomPolicy as fetchPolicy,
     getDataRetentionCustomPolicyTeams as fetchPolicyTeams,
@@ -16,19 +22,10 @@ import {
     removeDataRetentionCustomPolicyChannels,
 } from 'mattermost-redux/actions/admin';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
+import {getTeamsInPolicy} from 'mattermost-redux/selectors/entities/teams';
 import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-import {
-    DataRetentionCustomPolicy,
-    CreateDataRetentionCustomPolicy,
-    PatchDataRetentionCustomPolicy,
-} from '@mattermost/types/data_retention';
-import {Team} from '@mattermost/types/teams';
 
 import {GlobalState} from 'types/store';
-
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
-
-import {getTeamsInPolicy} from 'mattermost-redux/selectors/entities/teams';
 
 import CustomPolicyForm from './custom_policy_form';
 

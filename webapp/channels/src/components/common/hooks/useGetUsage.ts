@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CloudUsage} from '@mattermost/types/cloud';
 import {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {CloudUsage} from '@mattermost/types/cloud';
-import {getUsage} from 'mattermost-redux/selectors/entities/usage';
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {
     getMessagesUsage,
     getFilesUsage,
     getTeamsUsage,
 } from 'actions/cloud';
+import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import {getUsage} from 'mattermost-redux/selectors/entities/usage';
+
 import {useIsLoggedIn} from 'components/global_header/hooks';
 
 export default function useGetUsage(): CloudUsage {

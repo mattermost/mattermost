@@ -4,10 +4,8 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {GenericAction} from 'mattermost-redux/types/actions';
-
 import {loadTranslations} from 'actions/views/root';
-
+import {GenericAction} from 'mattermost-redux/types/actions';
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 
 import {GlobalState} from 'types/store';

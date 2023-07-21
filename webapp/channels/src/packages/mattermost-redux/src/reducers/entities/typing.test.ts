@@ -2,11 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {WebsocketEvents} from 'mattermost-redux/constants';
-
 import typingReducer from 'mattermost-redux/reducers/entities/typing';
+import {GenericAction} from 'mattermost-redux/types/actions';
 
 import TestHelper from '../../../test/test_helper';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
 describe('Reducers.Typing', () => {
     it('initial state', async () => {

@@ -5,6 +5,23 @@
 
 import {batchActions} from 'redux-batched-actions';
 
+import {loadChannelsForCurrentUser} from 'actions/channel_actions';
+import {
+    getTeamsUsage,
+} from 'actions/cloud';
+import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
+import {redirectUserToDefaultTeam} from 'actions/global_actions';
+import {sendDesktopNotification} from 'actions/notification_actions.jsx';
+import {handleNewPost} from 'actions/post_actions';
+import * as StatusActions from 'actions/status_actions';
+import {setGlobalItem} from 'actions/storage';
+import {loadProfilesForSidebar} from 'actions/user_actions';
+import {syncPostsInChannel} from 'actions/views/channel';
+import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
+import {openModal} from 'actions/views/modals';
+import {closeRightHandSide} from 'actions/views/rhs';
+import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
+import {updateThreadLastOpened} from 'actions/views/threads';
 import {
     ChannelTypes,
     EmojiTypes,
@@ -21,7 +38,8 @@ import {
     CloudTypes,
     HostedCustomerTypes,
 } from 'mattermost-redux/action_types';
-import {General, Permissions} from 'mattermost-redux/constants';
+import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
+import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
 import {addChannelToInitialCategory, fetchMyCategories, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
@@ -32,22 +50,7 @@ import {
     getChannelMemberCountsByGroup,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
-import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
-
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
-import {
-    getThread as fetchThread,
-    getCountsAndThreadsSince,
-    handleAllMarkedRead,
-    handleReadChanged,
-    handleFollowChanged,
-    handleThreadArrived,
-    handleAllThreadsInChannelMarkedRead,
-    updateThreadRead,
-    decrementThreadCounts,
-} from 'mattermost-redux/actions/threads';
-
+import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig} from 'mattermost-redux/actions/general';
 import {
     getCustomEmojiForReaction,
@@ -59,21 +62,27 @@ import {
     receivedNewPost,
     receivedPost,
 } from 'mattermost-redux/actions/posts';
-import {clearErrors, logError} from 'mattermost-redux/actions/errors';
-
+import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import * as TeamActions from 'mattermost-redux/actions/teams';
+import {
+    getThread as fetchThread,
+    getCountsAndThreadsSince,
+    handleAllMarkedRead,
+    handleReadChanged,
+    handleFollowChanged,
+    handleThreadArrived,
+    handleAllThreadsInChannelMarkedRead,
+    updateThreadRead,
+    decrementThreadCounts,
+} from 'mattermost-redux/actions/threads';
 import {
     checkForModifiedUsers,
     getUser as loadUser,
 } from 'mattermost-redux/actions/users';
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
-import {setGlobalItem} from 'actions/storage';
-import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
-
 import {Client4} from 'mattermost-redux/client';
-import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getMyTeams, getCurrentRelativeTeamUrl, getCurrentTeamId, getCurrentTeamUrl, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {General, Permissions} from 'mattermost-redux/constants';
+import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {
     getChannel,
     getChannelMembersInChannels,
@@ -82,41 +91,26 @@ import {
     getCurrentChannelId,
     getRedirectChannelNameForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
-
-import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
-
+import {getMyTeams, getCurrentRelativeTeamUrl, getCurrentTeamId, getCurrentTeamUrl, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
+import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {isGuest} from 'mattermost-redux/utils/user_utils';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
-
-import {openModal} from 'actions/views/modals';
-import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
-import {closeRightHandSide} from 'actions/views/rhs';
-import {syncPostsInChannel} from 'actions/views/channel';
-import {updateThreadLastOpened} from 'actions/views/threads';
-
-import {getHistory} from 'utils/browser_history';
-import {loadChannelsForCurrentUser} from 'actions/channel_actions';
-import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
-import {redirectUserToDefaultTeam} from 'actions/global_actions';
-import {handleNewPost} from 'actions/post_actions';
-import * as StatusActions from 'actions/status_actions';
-import {loadProfilesForSidebar} from 'actions/user_actions';
-import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 import store from 'stores/redux_store.jsx';
+
+import InteractiveDialog from 'components/interactive_dialog';
+import RemovedFromChannelModal from 'components/removed_from_channel_modal';
+
 import WebSocketClient from 'client/web_websocket_client.jsx';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
+import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
-import RemovedFromChannelModal from 'components/removed_from_channel_modal';
-import InteractiveDialog from 'components/interactive_dialog';
-import {
-    getTeamsUsage,
-} from 'actions/cloud';
 
 const dispatch = store.dispatch;
 const getState = store.getState;

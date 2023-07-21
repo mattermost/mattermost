@@ -1,25 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import LocalizedIcon from 'components/localized_icon';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import FollowButton from 'components/threading/common/follow_button';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import LocalizedIcon from 'components/localized_icon';
+import OverlayTrigger from 'components/overlay_trigger';
+import FollowButton from 'components/threading/common/follow_button';
+import Tooltip from 'components/tooltip';
+import CRTThreadsPaneTutorialTip
+    from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
 
+import {RhsState} from 'types/store/rhs';
 import {getHistory} from 'utils/browser_history';
 import Constants, {RHSStates} from 'utils/constants';
 import {t} from 'utils/i18n';
-import CRTThreadsPaneTutorialTip
-    from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
-import {RhsState} from 'types/store/rhs';
-
-import {Channel} from '@mattermost/types/channels';
 
 interface RhsHeaderPostProps {
     isExpanded: boolean;

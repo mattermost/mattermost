@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {SystemEmoji} from '@mattermost/types/emojis';
 import emojiRegex from 'emoji-regex';
 import {Renderer} from 'marked';
 
-import {SystemEmoji} from '@mattermost/types/emojis';
-
 import {formatWithRenderer} from 'utils/markdown';
 
-import * as Emoticons from './emoticons';
-import * as Markdown from './markdown';
 import Constants from './constants';
 import EmojiMap from './emoji_map.js';
+import * as Emoticons from './emoticons';
+import * as Markdown from './markdown';
 
 const punctuationRegex = /[^\p{L}\d]/u;
 const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;

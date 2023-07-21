@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-
-import {Client4} from 'mattermost-redux/client';
+import React from 'react';
 
 import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
+import {Client4} from 'mattermost-redux/client';
 
 import BrandImageSetting from './brand_image_setting';
 

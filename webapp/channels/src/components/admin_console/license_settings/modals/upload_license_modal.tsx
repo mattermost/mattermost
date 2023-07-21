@@ -1,37 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GenericModal} from '@mattermost/components';
+import {ClientLicense} from '@mattermost/types/config';
+import marked from 'marked';
 import React, {useRef} from 'react';
+import {FormattedDate, FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {FormattedDate, FormattedMessage} from 'react-intl';
-
-import marked from 'marked';
-
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+import {closeModal} from 'actions/views/modals';
 import {uploadLicense} from 'mattermost-redux/actions/admin';
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {ClientLicense} from '@mattermost/types/config';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getCurrentLocale} from 'selectors/i18n';
-
-import {GlobalState} from 'types/store';
-
 import {isModalOpen} from 'selectors/views/modals';
 
-import {GenericModal} from '@mattermost/components';
-import WomanArmOnTable from 'components/common/svg_images_components/woman_arm_on_table_svg';
-import HandsSvg from 'components/common/svg_images_components/hands_svg';
 import FileSvg from 'components/common/svg_images_components/file_svg';
+import HandsSvg from 'components/common/svg_images_components/hands_svg';
+import WomanArmOnTable from 'components/common/svg_images_components/woman_arm_on_table_svg';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-import {getSkuDisplayName} from 'utils/subscription';
 
+import {GlobalState} from 'types/store';
 import {FileTypes, ModalIdentifiers} from 'utils/constants';
-
-import {closeModal} from 'actions/views/modals';
-
-import {fileSizeToString, localizeMessage} from 'utils/utils';
 import {getMonthLong} from 'utils/i18n';
+import {getSkuDisplayName} from 'utils/subscription';
+import {fileSizeToString, localizeMessage} from 'utils/utils';
 
 import './upload_license_modal.scss';
 

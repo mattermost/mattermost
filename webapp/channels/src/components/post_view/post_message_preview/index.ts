@@ -1,29 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PostPreviewMetadata} from '@mattermost/types/posts';
 import {connect} from 'react-redux';
-
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {GlobalState} from 'types/store';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {PostPreviewMetadata} from '@mattermost/types/posts';
-
+import {toggleEmbedVisibility} from 'actions/post_actions';
+import {General} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getPost, isPostPriorityEnabled} from 'mattermost-redux/selectors/entities/posts';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
-import {getPost, isPostPriorityEnabled} from 'mattermost-redux/selectors/entities/posts';
-
+import {GenericAction} from 'mattermost-redux/types/actions';
 import {isEmbedVisible} from 'selectors/posts';
 
-import {toggleEmbedVisibility} from 'actions/post_actions';
-
+import {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
-
-import {General} from 'mattermost-redux/constants';
 
 import PostMessagePreview from './post_message_preview';
 

@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {useMeasurePunchouts} from '@mattermost/components';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {GlobalState} from 'types/store';
 import {getIsMobileView} from 'selectors/views/browser';
+
 import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
 
-import {useMeasurePunchouts} from '@mattermost/components';
+import {GlobalState} from 'types/store';
 
 import CRTTourTip from './crt_tour_tip';
 

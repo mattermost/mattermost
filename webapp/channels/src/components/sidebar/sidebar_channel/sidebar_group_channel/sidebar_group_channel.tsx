@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {Channel} from '@mattermost/types/channels';
 import {PreferenceType} from '@mattermost/types/preferences';
+import React from 'react';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import {getHistory} from 'utils/browser_history';
-import Constants from 'utils/constants';
 
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
+
+import {getHistory} from 'utils/browser_history';
+import Constants from 'utils/constants';
 
 type Props = {
     channel: Channel;

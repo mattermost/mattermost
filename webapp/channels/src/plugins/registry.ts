@@ -1,42 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import {FileInfo} from '@mattermost/types/files';
+import {ProductScope} from '@mattermost/types/products';
 import React from 'react';
 import {isValidElementType} from 'react-is';
 import {Reducer} from 'redux';
-
-import {ProductScope} from '@mattermost/types/products';
-
-import reducerRegistry from 'mattermost-redux/store/reducer_registry';
-
-import {
-    registerPluginWebSocketEvent,
-    unregisterPluginWebSocketEvent,
-    registerPluginReconnectHandler,
-    unregisterPluginReconnectHandler,
-} from 'actions/websocket_actions.jsx';
-
-import {showRHSPlugin, hideRHSPlugin, toggleRHSPlugin} from 'actions/views/rhs';
-
-import {
-    registerPluginTranslationsSource,
-    TranslationPluginFunction,
-} from 'actions/views/root';
 
 import {
     registerAdminConsolePlugin,
     unregisterAdminConsolePlugin,
     registerAdminConsoleCustomSetting,
 } from 'actions/admin_actions';
-
+import {showRHSPlugin, hideRHSPlugin, toggleRHSPlugin} from 'actions/views/rhs';
+import {
+    registerPluginTranslationsSource,
+    TranslationPluginFunction,
+} from 'actions/views/root';
+import {
+    registerPluginWebSocketEvent,
+    unregisterPluginWebSocketEvent,
+    registerPluginReconnectHandler,
+    unregisterPluginReconnectHandler,
+} from 'actions/websocket_actions.jsx';
+import reducerRegistry from 'mattermost-redux/store/reducer_registry';
 import store from 'stores/redux_store.jsx';
-import {ActionTypes} from 'utils/constants';
-import {generateId} from 'utils/utils';
-import {PluginComponent, PluginsState, ProductComponent, NeedsTeamComponent} from 'types/store/plugins';
+
 import {GlobalState} from 'types/store';
-import {FileInfo} from '@mattermost/types/files';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import {PluginComponent, PluginsState, ProductComponent, NeedsTeamComponent} from 'types/store/plugins';
+import {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
+import {generateId} from 'utils/utils';
 
 const defaultShouldRender = () => true;
 

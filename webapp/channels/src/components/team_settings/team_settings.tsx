@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Team} from '@mattermost/types/teams';
 import React from 'react';
 
 import GeneralTab from 'components/team_general_tab';
-
-import {Team} from '@mattermost/types/teams';
 
 type Props = {
     activeTab: string;

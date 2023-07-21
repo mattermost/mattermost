@@ -3,18 +3,17 @@
 
 import React, {useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
-
 import {useSelector} from 'react-redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import Textbox, {TextboxClass, TextboxElement} from 'components/textbox';
 
-import Constants from 'utils/constants';
-import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
-import * as Keyboard from 'utils/keyboard';
-import * as Utils from 'utils/utils';
 import {GlobalState} from 'types/store';
+import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import * as Utils from 'utils/utils';
 
 const {KeyCodes} = Constants;
 

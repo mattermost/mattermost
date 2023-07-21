@@ -1,22 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
+import {loadOAuthAppsAndProfiles} from 'actions/integration_actions';
 import {regenOAuthAppSecret, deleteOAuthApp} from 'mattermost-redux/actions/integrations';
-import {getAppsOAuthAppIDs, getOAuthApps} from 'mattermost-redux/selectors/entities/integrations';
-import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {Permissions} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-import {GlobalState} from '@mattermost/types/store';
-
+import {getAppsOAuthAppIDs, getOAuthApps} from 'mattermost-redux/selectors/entities/integrations';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-
 import {GenericAction} from 'mattermost-redux/types/actions';
-
-import {loadOAuthAppsAndProfiles} from 'actions/integration_actions';
 
 import InstalledOAuthApps from './installed_oauth_apps';
 

@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {shallow, ShallowWrapper} from 'enzyme';
-
 import {ChannelType} from '@mattermost/types/channels';
+import {shallow, ShallowWrapper} from 'enzyme';
+import React from 'react';
 
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';

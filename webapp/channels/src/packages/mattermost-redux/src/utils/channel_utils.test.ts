@@ -3,8 +3,6 @@
 
 import {ChannelNotifyProps} from '@mattermost/types/channels';
 import {Post} from '@mattermost/types/posts';
-import TestHelper from '../../test/test_helper';
-import {General, Users} from '../constants';
 
 import {
     areChannelMentionsIgnored,
@@ -13,6 +11,9 @@ import {
     sortChannelsByDisplayName,
     sortChannelsByTypeListAndDisplayName,
 } from 'mattermost-redux/utils/channel_utils';
+
+import TestHelper from '../../test/test_helper';
+import {General, Users} from '../constants';
 
 describe('ChannelUtils', () => {
     it('areChannelMentionsIgnored', () => {

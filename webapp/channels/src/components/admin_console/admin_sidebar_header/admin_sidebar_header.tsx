@@ -1,20 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
-import {UserProfile} from '@mattermost/types/users';
 
-import * as Utils from 'utils/utils';
-
+import AdminNavbarDropdown from 'components/admin_console/admin_navbar_dropdown';
 import MenuIcon from 'components/widgets/icons/menu_icon';
-
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Avatar from 'components/widgets/users/avatar';
 
-import AdminNavbarDropdown from 'components/admin_console/admin_navbar_dropdown';
+import * as Utils from 'utils/utils';
 
 type Props = {
     currentUser: UserProfile;

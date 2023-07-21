@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AdminConfig} from '@mattermost/types/config';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {AdminConfig} from '@mattermost/types/config';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 

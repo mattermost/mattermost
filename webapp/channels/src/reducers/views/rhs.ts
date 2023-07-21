@@ -12,7 +12,6 @@ import {
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import type {RhsState} from 'types/store/rhs';
-
 import {ActionTypes, RHSStates} from 'utils/constants';
 
 function selectedPostId(state = '', action: GenericAction) {

@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {shallow} from 'enzyme';
-
-import {Group} from '@mattermost/types/groups';
 import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
+import {Group} from '@mattermost/types/groups';
 import {Scheme} from '@mattermost/types/schemes';
+import {Team} from '@mattermost/types/teams';
+import {shallow} from 'enzyme';
+import React from 'react';
 
 import ChannelDetails from './channel_details';
 

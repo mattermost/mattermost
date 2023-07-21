@@ -1,22 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
+import {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
+import {setChannelListSearch, setChannelListFilters} from 'actions/views/search';
 import {getDataRetentionCustomPolicyChannels, searchDataRetentionCustomPolicyChannels as searchChannels} from 'mattermost-redux/actions/admin';
-import {filterChannelList, getChannelsInPolicy, searchChannelsInPolicy} from 'mattermost-redux/selectors/entities/channels';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
+import {filterChannelList, getChannelsInPolicy, searchChannelsInPolicy} from 'mattermost-redux/selectors/entities/channels';
+import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 import {filterChannelsMatchingTerm, channelListToMap} from 'mattermost-redux/utils/channel_utils';
 
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-
-import {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
-
 import {GlobalState} from 'types/store';
-
-import {setChannelListSearch, setChannelListFilters} from 'actions/views/search';
-import {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 
 import ChannelList from './channel_list';
 

@@ -1,41 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TimeFrame, TopThread} from '@mattermost/types/insights';
+import {GlobalState} from '@mattermost/types/store';
+import {UserProfile} from '@mattermost/types/users';
+import classNames from 'classnames';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import classNames from 'classnames';
-
-import Tag from 'components/widgets/tag/tag';
-
-import {selectPostAndParentChannel} from 'actions/views/rhs';
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
-
+import {selectPostAndParentChannel} from 'actions/views/rhs';
 import {getMyTopThreads as fetchMyTopThreads, getTopThreadsForTeam} from 'mattermost-redux/actions/insights';
-
-import {TimeFrame, TopThread} from '@mattermost/types/insights';
-import {UserProfile} from '@mattermost/types/users';
-import {GlobalState} from '@mattermost/types/store';
-
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import {InsightsScopes, ModalIdentifiers} from 'utils/constants';
-import {imageURLForUser} from 'utils/utils';
-
-import Avatar from 'components/widgets/users/avatar';
-import Avatars from 'components/widgets/users/avatars';
+import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import Markdown from 'components/markdown';
 import Attachment from 'components/threading/global_threads/thread_item/attachments';
-import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import Tag from 'components/widgets/tag/tag';
+import Avatar from 'components/widgets/users/avatar';
+import Avatars from 'components/widgets/users/avatars';
 
 import JoinChannelModal from '../../join_channel_modal/join_channel_modal';
+import {InsightsScopes, ModalIdentifiers} from 'utils/constants';
+import {imageURLForUser} from 'utils/utils';
 
 import './../../../activity_and_insights.scss';
 import '../top_threads.scss';

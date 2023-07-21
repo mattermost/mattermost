@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
+import React, {ComponentProps} from 'react';
 
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {TestHelper} from 'utils/test_helper';
-import {ModalIdentifiers} from 'utils/constants';
 
 import RestorePostModal from '../restore_post_modal';
+import {ModalIdentifiers} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import EditedPostItem from './edited_post_item';
 

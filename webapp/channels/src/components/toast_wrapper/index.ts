@@ -2,20 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
 import {withRouter} from 'react-router-dom';
-
-import {GlobalState} from 'types/store/index';
-
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {Posts} from 'mattermost-redux/constants';
-import {getAllPosts, getPostIdsInChannel} from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {makePreparePostIdsForPostList} from 'mattermost-redux/utils/post_list';
-import {getCurrentChannel, countCurrentChannelUnreadMessages, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
-import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {bindActionCreators, Dispatch} from 'redux';
 
 import {updateToastStatus} from 'actions/views/channel';
+import {Posts} from 'mattermost-redux/constants';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getCurrentChannel, countCurrentChannelUnreadMessages, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
+import {getAllPosts, getPostIdsInChannel} from 'mattermost-redux/selectors/entities/posts';
+import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {makePreparePostIdsForPostList} from 'mattermost-redux/utils/post_list';
+
+import {GlobalState} from 'types/store/index';
 
 import ToastWrapper from './toast_wrapper';
 

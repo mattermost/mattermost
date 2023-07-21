@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
-import {injectIntl, IntlShape} from 'react-intl';
-
 import {AppBinding} from '@mattermost/types/apps';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import {Channel} from '@mattermost/types/channels';
 import {Post} from '@mattermost/types/posts';
+import React from 'react';
+import {injectIntl, IntlShape} from 'react-intl';
 
-import {PostEphemeralCallResponseForPost, HandleBindingClick, OpenAppsModal} from 'types/apps';
+import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
+import {ActionResult} from 'mattermost-redux/types/actions';
 
 import Markdown from 'components/markdown';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+
+import {PostEphemeralCallResponseForPost, HandleBindingClick, OpenAppsModal} from 'types/apps';
 import {createCallContext} from 'utils/apps';
 
 type Props = {

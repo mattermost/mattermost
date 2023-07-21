@@ -2,16 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {setGlobalItem} from 'actions/storage';
-import {PostDraft} from 'types/store/draft';
-import {StoragePrefixes} from 'utils/constants';
-
-import mockStore from 'tests/test_store';
-
+import {Client4} from 'mattermost-redux/client';
 import {Posts, Preferences} from 'mattermost-redux/constants';
-
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {Client4} from 'mattermost-redux/client';
+import mockStore from 'tests/test_store';
+import {PostDraft} from 'types/store/draft';
+import {StoragePrefixes} from 'utils/constants';
 
 import {removeDraft, setGlobalDraftSource, updateDraft} from './drafts';
 

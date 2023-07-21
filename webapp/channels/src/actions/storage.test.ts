@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import * as Actions from 'actions/storage';
+
 import configureStore from 'store';
 
 describe('Actions.Storage', () => {

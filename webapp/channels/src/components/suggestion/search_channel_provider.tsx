@@ -5,16 +5,14 @@ import {ServerError} from '@mattermost/types/errors';
 import {ActionFunc} from 'mattermost-redux/types/actions.js';
 
 import {isDirectChannel, isGroupChannel, sortChannelsByTypeListAndDisplayName} from 'mattermost-redux/utils/channel_utils';
-
+import {getCurrentLocale} from 'selectors/i18n';
 import store from 'stores/redux_store.jsx';
 
 import Constants from 'utils/constants';
-import {getCurrentLocale} from 'selectors/i18n';
-
-import Provider, {ResultsCallback} from './provider';
-import SearchChannelSuggestion from './search_channel_suggestion';
 
 import {Channel} from './command_provider/app_command_parser/app_command_parser_dependencies.js';
+import Provider, {ResultsCallback} from './provider';
+import SearchChannelSuggestion from './search_channel_suggestion';
 
 const getState = store.getState;
 

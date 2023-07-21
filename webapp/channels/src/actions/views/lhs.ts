@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {selectChannel} from 'mattermost-redux/actions/channels';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from 'types/store';
 import {LhsItemType} from 'types/store/lhs';
-import {ActionTypes} from 'utils/constants';
 import {getHistory} from 'utils/browser_history';
+import {ActionTypes} from 'utils/constants';
 
 export const toggle = () => ({
     type: ActionTypes.TOGGLE_LHS,

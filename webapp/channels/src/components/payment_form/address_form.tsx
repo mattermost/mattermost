@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Address} from '@mattermost/types/cloud';
 import React from 'react';
-
 import {FormattedMessage, MessageDescriptor, useIntl} from 'react-intl';
 
-import {Address} from '@mattermost/types/cloud';
 import DropdownInput from 'components/dropdown_input';
-import {COUNTRIES} from 'utils/countries';
 import Input from 'components/widgets/inputs/input/input';
+
+import {COUNTRIES} from 'utils/countries';
 
 import StateSelector from './state_selector';
 

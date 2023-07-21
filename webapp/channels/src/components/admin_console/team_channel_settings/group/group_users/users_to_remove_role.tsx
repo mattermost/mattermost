@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useIntl} from 'react-intl';
-
-import {UserProfile} from '@mattermost/types/users';
-import {TeamMembership} from '@mattermost/types/teams';
 import {ChannelMembership} from '@mattermost/types/channels';
 import {Group} from '@mattermost/types/groups';
+import {TeamMembership} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import React from 'react';
+import {useIntl} from 'react-intl';
 
 type ProfileWithGroups = Partial<UserProfile & {
     groups: Array<Partial<Group>>;

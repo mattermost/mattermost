@@ -1,19 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
-import * as reactRedux from 'react-redux';
-import {act} from 'react-dom/test-utils';
-
 import {shallow} from 'enzyme';
+import React from 'react';
+import {act} from 'react-dom/test-utils';
+import * as reactRedux from 'react-redux';
+
+import {General} from 'mattermost-redux/constants';
+import * as i18Selectors from 'selectors/i18n';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-
-import {General} from 'mattermost-redux/constants';
-
-import * as i18Selectors from 'selectors/i18n';
 
 import UploadLicenseModal from './upload_license_modal';
 

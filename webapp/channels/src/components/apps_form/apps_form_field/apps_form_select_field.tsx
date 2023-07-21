@@ -1,21 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AppField, AppSelectOption} from '@mattermost/types/apps';
+import {UserAutocomplete} from '@mattermost/types/autocomplete';
+import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 import ReactSelect from 'react-select';
 import AsyncSelect from 'react-select/async';
 
-import {AppField, AppSelectOption} from '@mattermost/types/apps';
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
-
-import {Channel} from '@mattermost/types/channels';
-import {UserAutocomplete} from '@mattermost/types/autocomplete';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {imageURLForUser} from 'utils/utils';
 
-import {SelectUserOption} from './select_user_option';
 import {SelectChannelOption} from './select_channel_option';
+import {SelectUserOption} from './select_user_option';
 
 export type Props = {
     field: AppField;

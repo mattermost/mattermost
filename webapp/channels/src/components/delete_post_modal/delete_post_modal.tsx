@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Post} from '@mattermost/types/posts';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {matchPath} from 'react-router-dom';
 
-import {Post} from '@mattermost/types/posts';
-
-import * as UserAgent from 'utils/user_agent';
 import {getHistory} from 'utils/browser_history';
+import * as UserAgent from 'utils/user_agent';
 
 const urlFormatForDMGMPermalink = '/:teamName/messages/:username/:postid';
 const urlFormatForChannelPermalink = '/:teamName/channels/:channelname/:postid';

@@ -1,28 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
-import {set} from 'lodash';
 import {shallow} from 'enzyme';
-
-import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
-jest.mock('mattermost-redux/actions/threads');
-
-import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
-jest.mock('actions/views/threads');
-
-import ThreadMenu from '../thread_menu';
-import Menu from 'components/widgets/menu/menu';
+import {set} from 'lodash';
+import React, {ComponentProps} from 'react';
 
 import {
     flagPost as savePost,
     unflagPost as unsavePost,
 } from 'actions/post_actions';
-jest.mock('actions/post_actions');
+import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
+import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
 
-import {copyToClipboard} from 'utils/utils';
+import Menu from 'components/widgets/menu/menu';
+
+import ThreadMenu from '../thread_menu';
 import {fakeDate} from 'tests/helpers/date';
 import {GlobalState} from 'types/store';
+import {copyToClipboard} from 'utils/utils';
+
+jest.mock('mattermost-redux/actions/threads');
+jest.mock('actions/views/threads');
+jest.mock('actions/post_actions');
 jest.mock('utils/utils');
 
 const mockRouting = {

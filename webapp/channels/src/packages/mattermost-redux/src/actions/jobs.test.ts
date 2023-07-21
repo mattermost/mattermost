@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Job} from '@mattermost/types/jobs';
 import nock from 'nock';
 
-import {Job} from '@mattermost/types/jobs';
 import * as Actions from 'mattermost-redux/actions/jobs';
 import {Client4} from 'mattermost-redux/client';
 

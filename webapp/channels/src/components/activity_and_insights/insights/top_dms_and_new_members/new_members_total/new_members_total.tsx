@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback} from 'react';
-
 import {TimeFrame, TimeFrames} from '@mattermost/types/insights';
+import React, {memo, useCallback} from 'react';
 
 import {localizeMessage} from 'utils/utils';
 

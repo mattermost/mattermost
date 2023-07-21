@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
-
-import {ChannelCategoryTypes, TeamTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {ChannelCategory} from '@mattermost/types/channel_categories';
 import {Team} from '@mattermost/types/teams';
 import {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
+import {combineReducers} from 'redux';
 
+import {ChannelCategoryTypes, TeamTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
+import {GenericAction} from 'mattermost-redux/types/actions';
 import {removeItem} from 'mattermost-redux/utils/array_utils';
 
 export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: GenericAction) {

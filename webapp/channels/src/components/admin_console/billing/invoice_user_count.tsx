@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Invoice, InvoiceLineItemType} from '@mattermost/types/cloud';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {Invoice, InvoiceLineItemType} from '@mattermost/types/cloud';
 
 import {numberToFixedDynamic} from 'utils/utils';
 

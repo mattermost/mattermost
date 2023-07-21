@@ -4,11 +4,10 @@
 import {connect} from 'react-redux';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-
-import {ModalIdentifiers} from 'utils/constants';
 import {isModalOpen} from 'selectors/views/modals';
 
 import {GlobalState} from 'types/store';
+import {ModalIdentifiers} from 'utils/constants';
 
 import TeamSettingsModal from './team_settings_modal';
 

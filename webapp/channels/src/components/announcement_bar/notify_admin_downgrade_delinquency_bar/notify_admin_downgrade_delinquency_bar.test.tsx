@@ -4,6 +4,10 @@
 import React, {ComponentProps} from 'react';
 import * as reactRedux from 'react-redux';
 
+import {trackEvent} from 'actions/telemetry_actions';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {Client4} from 'mattermost-redux/client';
+
 import configureStore from 'store';
 import {
     fireEvent,
@@ -12,9 +16,6 @@ import {
     waitFor,
 } from 'tests/react_testing_utils';
 import {CloudProducts, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {Client4} from 'mattermost-redux/client';
-import {trackEvent} from 'actions/telemetry_actions';
 import {TestHelper} from 'utils/test_helper';
 
 import NotifyAdminDowngradeDeliquencyBar, {BannerPreferenceName} from './index';

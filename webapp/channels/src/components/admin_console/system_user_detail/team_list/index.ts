@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Team, TeamMembership} from '@mattermost/types/teams';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
@@ -10,10 +11,7 @@ import {
     removeUserFromTeam,
     updateTeamMemberSchemeRoles,
 } from 'mattermost-redux/actions/teams';
-
 import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-
 import {getCurrentLocale} from 'selectors/i18n';
 
 import {GlobalState} from 'types/store';

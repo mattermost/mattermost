@@ -1,21 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AuthChangeResponse} from '@mattermost/types/users';
+import classNames from 'classnames';
 import React, {useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import classNames from 'classnames';
-
-import {AuthChangeResponse} from '@mattermost/types/users';
-
 import {emailToLdap} from 'actions/admin_actions.jsx';
 
-import {localizeMessage} from 'utils/utils';
-import {t} from 'utils/i18n';
-import {ClaimErrors} from 'utils/constants';
-
-import LoginMfa from 'components/login/login_mfa';
 import LocalizedInput from 'components/localized_input/localized_input';
+import LoginMfa from 'components/login/login_mfa';
+
+import {ClaimErrors} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {localizeMessage} from 'utils/utils';
 
 import ErrorLabel from './error_label';
 

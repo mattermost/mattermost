@@ -6,10 +6,11 @@ import {Modal} from 'react-bootstrap';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {closeModal} from 'actions/views/modals';
-import {ModalIdentifiers} from 'utils/constants';
-import {isModalOpen} from 'selectors/views/modals';
-import {GlobalState} from 'types/store';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import {isModalOpen} from 'selectors/views/modals';
+
+import {GlobalState} from 'types/store';
+import {ModalIdentifiers} from 'utils/constants';
 
 import Content from './content';
 import SelfHostedContent from './self_hosted_content';

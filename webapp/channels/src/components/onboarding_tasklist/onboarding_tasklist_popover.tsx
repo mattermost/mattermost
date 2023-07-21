@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Placement} from 'popper.js';
 import React, {RefObject} from 'react';
 import {usePopper} from 'react-popper';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
-import {Placement} from 'popper.js';
 
 const Overlay = styled.div`
     background-color: rgba(0, 0, 0, 0.5);

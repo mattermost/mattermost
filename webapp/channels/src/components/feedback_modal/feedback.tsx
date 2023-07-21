@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GenericModal} from '@mattermost/components';
+import {Feedback} from '@mattermost/types/cloud';
 import React, {useState} from 'react';
-
 import {injectIntl, WrappedComponentProps} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {GenericModal} from '@mattermost/components';
-import {Feedback} from '@mattermost/types/cloud';
 import {closeModal} from 'actions/views/modals';
+
 import RadioButtonGroup from 'components/common/radio_group';
 
 import {ModalIdentifiers} from 'utils/constants';

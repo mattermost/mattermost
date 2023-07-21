@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
 import {General, Posts} from 'mattermost-redux/constants';
-
-import {UserProfile} from '@mattermost/types/users';
-
 import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';

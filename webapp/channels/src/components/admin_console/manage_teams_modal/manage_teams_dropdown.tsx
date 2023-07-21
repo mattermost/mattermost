@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Team, TeamMembership} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
-import {isAdmin, isSystemAdmin, isGuest} from 'mattermost-redux/utils/user_utils';
-import {UserProfile} from '@mattermost/types/users';
-import {Team, TeamMembership} from '@mattermost/types/teams';
 import {ActionResult} from 'mattermost-redux/types/actions';
+import {isAdmin, isSystemAdmin, isGuest} from 'mattermost-redux/utils/user_utils';
+
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {localizeMessage} from 'utils/utils';
-
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
 
 type Props = {
     team: Team;

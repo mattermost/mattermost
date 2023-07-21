@@ -1,26 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CloudUsage, Limits} from '@mattermost/types/cloud';
+import {Post} from '@mattermost/types/posts';
+import {UserProfile} from '@mattermost/types/users';
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import classNames from 'classnames';
-
-import * as PostListUtils from 'mattermost-redux/utils/post_list';
-
-import {CloudUsage, Limits} from '@mattermost/types/cloud';
 
 import type {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
-import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
-import {Post} from '@mattermost/types/posts';
-import DateSeparator from 'components/post_view/date_separator';
-import NewMessageSeparator from 'components/post_view/new_message_separator/new_message_separator';
-import ChannelIntroMessage from 'components/post_view/channel_intro_message/';
-import {isIdNotPost} from 'utils/post_utils';
-import {PostListRowListIds, Locations} from 'utils/constants';
 import CenterMessageLock from 'components/center_message_lock';
 import PostComponent from 'components/post';
-import {UserProfile} from '@mattermost/types/users';
+import ChannelIntroMessage from 'components/post_view/channel_intro_message/';
+import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
+import DateSeparator from 'components/post_view/date_separator';
+import NewMessageSeparator from 'components/post_view/new_message_separator/new_message_separator';
+
+import {PostListRowListIds, Locations} from 'utils/constants';
+import {isIdNotPost} from 'utils/post_utils';
 
 export type PostListRowProps = {
     listId: string;

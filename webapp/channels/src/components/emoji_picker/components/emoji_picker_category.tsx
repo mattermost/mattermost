@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {EmojiCategory} from '@mattermost/types/emojis';
+import classNames from 'classnames';
 import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
-import classNames from 'classnames';
 
 import {Category, CategoryOrEmojiRow} from 'components/emoji_picker/types';
-import {EmojiCategory} from '@mattermost/types/emojis';
-
-import {Constants} from 'utils/constants';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
+
+import {Constants} from 'utils/constants';
 
 interface Props {
     category: Category;

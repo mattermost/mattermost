@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Group, GroupSearachParams} from '@mattermost/types/groups';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
+import {setModalSearchTerm} from 'actions/views/search';
+import {getGroups, getGroupsByUserIdPaginated, searchGroups} from 'mattermost-redux/actions/groups';
+import {getAllAssociatedGroupsForReference, getMyAllowReferencedGroups, searchAllowReferencedGroups, searchMyAllowReferencedGroups} from 'mattermost-redux/selectors/entities/groups';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import {isModalOpen} from 'selectors/views/modals';
 
 import {GlobalState} from 'types/store';
-
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getAllAssociatedGroupsForReference, getMyAllowReferencedGroups, searchAllowReferencedGroups, searchMyAllowReferencedGroups} from 'mattermost-redux/selectors/entities/groups';
-import {getGroups, getGroupsByUserIdPaginated, searchGroups} from 'mattermost-redux/actions/groups';
-import {Group, GroupSearachParams} from '@mattermost/types/groups';
 import {ModalIdentifiers} from 'utils/constants';
-import {isModalOpen} from 'selectors/views/modals';
-import {setModalSearchTerm} from 'actions/views/search';
 
 import UserGroupsModal from './user_groups_modal';
 

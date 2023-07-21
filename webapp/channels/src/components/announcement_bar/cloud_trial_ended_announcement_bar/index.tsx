@@ -2,32 +2,32 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {t} from 'utils/i18n';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {
+    getSubscriptionProduct,
+} from 'mattermost-redux/selectors/entities/cloud';
+import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getCurrentUser,
+} from 'mattermost-redux/selectors/entities/users';
+import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+
+import useGetLimits from 'components/common/hooks/useGetLimits';
+import useGetSubscription from 'components/common/hooks/useGetSubscription';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
 import AnnouncementBar from '../default_announcement_bar';
+import {GlobalState} from 'types/store';
 import {
     AnnouncementBarTypes,
     Preferences,
     CloudBanners,
     CloudProducts,
 } from 'utils/constants';
-import {GlobalState} from 'types/store';
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetSubscription from 'components/common/hooks/useGetSubscription';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
-import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {
-    getCurrentUser,
-} from 'mattermost-redux/selectors/entities/users';
-import {
-    getSubscriptionProduct,
-} from 'mattermost-redux/selectors/entities/cloud';
+import {t} from 'utils/i18n';
 
 const CloudTrialEndAnnouncementBar: React.FC = () => {
     const limits = useGetLimits();

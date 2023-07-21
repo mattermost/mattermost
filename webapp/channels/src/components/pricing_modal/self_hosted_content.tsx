@@ -1,42 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GlobalState} from '@mattermost/types/store';
 import React, {useEffect, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {CloudLinks, ModalIdentifiers, SelfHostedProducts, LicenseSkus, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
-import {findSelfHostedProductBySku} from 'utils/hosted_customer';
-
 import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal} from 'actions/views/modals';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getConfig} from 'mattermost-redux/selectors/entities/admin';
-import {GlobalState} from '@mattermost/types/store';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {Client4} from 'mattermost-redux/client';
-
-import useFetchAdminConfig from 'components/common/hooks/useFetchAdminConfig';
-import useGetSelfHostedProducts from 'components/common/hooks/useGetSelfHostedProducts';
-import useControlSelfHostedPurchaseModal from 'components/common/hooks/useControlSelfHostedPurchaseModal';
-import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
-import PlanLabel from 'components/common/plan_label';
-import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
-import ExternalLink from 'components/external_link';
+import {getConfig} from 'mattermost-redux/selectors/entities/admin';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import useCanSelfHostedSignup from 'components/common/hooks/useCanSelfHostedSignup';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-
 import {
     useControlAirGappedSelfHostedPurchaseModal,
     useControlScreeningInProgressModal,
 } from 'components/common/hooks/useControlModal';
+import useControlSelfHostedPurchaseModal from 'components/common/hooks/useControlSelfHostedPurchaseModal';
+import useFetchAdminConfig from 'components/common/hooks/useFetchAdminConfig';
+import useGetSelfHostedProducts from 'components/common/hooks/useGetSelfHostedProducts';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import PlanLabel from 'components/common/plan_label';
+import ExternalLink from 'components/external_link';
+import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
+import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
 
+import {CloudLinks, ModalIdentifiers, SelfHostedProducts, LicenseSkus, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
+import {findSelfHostedProductBySku} from 'utils/hosted_customer';
+
+import Card, {ButtonCustomiserClasses} from './card';
 import ContactSalesCTA from './contact_sales_cta';
 import StartTrialCaution from './start_trial_caution';
-import Card, {ButtonCustomiserClasses} from './card';
 
 import './content.scss';
 

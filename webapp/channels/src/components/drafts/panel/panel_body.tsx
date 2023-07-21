@@ -1,21 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PostPriorityMetadata} from '@mattermost/types/posts';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import React, {useCallback} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
-import Markdown from 'components/markdown';
-import FilePreview from 'components/file_preview';
-import ProfilePicture from 'components/profile_picture';
 import PriorityLabels from 'components/advanced_create_post/priority_labels';
-import {imageURLForUser, handleFormattedTextClick} from 'utils/utils';
+import FilePreview from 'components/file_preview';
+import Markdown from 'components/markdown';
+import ProfilePicture from 'components/profile_picture';
 
 import type {PostDraft} from 'types/store/draft';
-
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
-import {PostPriorityMetadata} from '@mattermost/types/posts';
+import {imageURLForUser, handleFormattedTextClick} from 'utils/utils';
 
 import './panel_body.scss';
 

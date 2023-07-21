@@ -6,17 +6,19 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {trackEvent} from 'actions/telemetry_actions';
+import {openModal, closeModal as closeModalAction} from 'actions/views/modals';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
-import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
-import {trackEvent} from 'actions/telemetry_actions';
 import {isModalOpen} from 'selectors/views/modals';
-import {ModalIdentifiers, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
+
+import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
+import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+
 import {GlobalState} from 'types/store';
-import {openModal, closeModal as closeModalAction} from 'actions/views/modals';
+import {ModalIdentifiers, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import './delinquency_modal.scss';
 import {FreemiumModal} from './freemium_modal';

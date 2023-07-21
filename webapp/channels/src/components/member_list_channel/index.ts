@@ -1,26 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {searchProfilesInCurrentChannel, getProfilesInCurrentChannel} from 'mattermost-redux/selectors/entities/users';
-import {getMembersInCurrentChannel, getCurrentChannelStats, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getMembersInCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getChannelStats, getChannelMembers} from 'mattermost-redux/actions/channels';
-import {searchProfiles} from 'mattermost-redux/actions/users';
-import {sortByUsername} from 'mattermost-redux/utils/user_utils';
-import {UserProfile} from '@mattermost/types/users';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-
+import {loadStatusesForProfilesList} from 'actions/status_actions';
 import {
     loadProfilesAndTeamMembersAndChannelMembers,
     loadTeamMembersAndChannelMembersForProfilesList,
 } from 'actions/user_actions';
-import {loadStatusesForProfilesList} from 'actions/status_actions';
 import {setModalSearchTerm} from 'actions/views/search';
+import {getChannelStats, getChannelMembers} from 'mattermost-redux/actions/channels';
+import {searchProfiles} from 'mattermost-redux/actions/users';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getMembersInCurrentChannel, getCurrentChannelStats, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getMembersInCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {searchProfilesInCurrentChannel, getProfilesInCurrentChannel} from 'mattermost-redux/selectors/entities/users';
+import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import {sortByUsername} from 'mattermost-redux/utils/user_utils';
 
 import {GlobalState} from 'types/store';
 

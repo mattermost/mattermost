@@ -4,20 +4,19 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
+import {trackEvent} from 'actions/telemetry_actions';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
-import {CloudLinks, SelfHostedProducts} from 'utils/constants';
-import {findSelfHostedProductBySku} from 'utils/hosted_customer';
-
-import useControlSelfHostedPurchaseModal from 'components/common/hooks/useControlSelfHostedPurchaseModal';
-import useGetSelfHostedProducts from 'components/common/hooks/useGetSelfHostedProducts';
 import useCanSelfHostedSignup from 'components/common/hooks/useCanSelfHostedSignup';
 import {
     useControlAirGappedSelfHostedPurchaseModal,
     useControlScreeningInProgressModal,
 } from 'components/common/hooks/useControlModal';
+import useControlSelfHostedPurchaseModal from 'components/common/hooks/useControlSelfHostedPurchaseModal';
+import useGetSelfHostedProducts from 'components/common/hooks/useGetSelfHostedProducts';
+
+import {CloudLinks, SelfHostedProducts} from 'utils/constants';
+import {findSelfHostedProductBySku} from 'utils/hosted_customer';
 
 import './purchase_link.scss';
 

@@ -1,24 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import {ClientConfig} from '@mattermost/types/config';
 import {shallow, ReactWrapper} from 'enzyme';
+import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {BrowserRouter} from 'react-router-dom';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {RequestStatus} from 'mattermost-redux/constants';
 
+import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
+import SaveButton from 'components/save_button';
 import Signup from 'components/signup/signup';
 import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
-import SaveButton from 'components/save_button';
-import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
 
-import {RequestStatus} from 'mattermost-redux/constants';
-import {ClientConfig} from '@mattermost/types/config';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {GlobalState} from 'types/store';
 import {WindowSizes} from 'utils/constants';
-import {act, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 
 let mockState: GlobalState;
 let mockLocation = {pathname: '', search: '', hash: ''};

@@ -1,20 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mattermost-redux/client';
-import {EmojiTypes} from 'mattermost-redux/action_types';
-import {General, Emoji} from '../constants';
+import {CustomEmoji} from '@mattermost/types/emojis';
 
+import {EmojiTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
 import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
+import {GetStateFunc, DispatchFunc, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 import {parseNeededCustomEmojisFromText} from 'mattermost-redux/utils/emoji_utils';
 
-import {GetStateFunc, DispatchFunc, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-
-import {CustomEmoji} from '@mattermost/types/emojis';
+import {General, Emoji} from '../constants';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
-
 import {getProfilesByIds} from './users';
 
 export let systemEmojis: Set<string> = new Set();

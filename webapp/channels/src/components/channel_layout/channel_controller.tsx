@@ -1,23 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {useDispatch} from 'react-redux';
-import classNames from 'classnames';
-
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
 
+import CenterChannel from 'components/channel_layout/center_channel';
+import FaviconTitleHandler from 'components/favicon_title_handler';
+import LoadingScreen from 'components/loading_screen';
+import ProductNoticesModal from 'components/product_notices_modal';
 import ResetStatusModal from 'components/reset_status_modal';
 import Sidebar from 'components/sidebar';
-import CenterChannel from 'components/channel_layout/center_channel';
-import LoadingScreen from 'components/loading_screen';
-import FaviconTitleHandler from 'components/favicon_title_handler';
-import ProductNoticesModal from 'components/product_notices_modal';
 
 import Pluggable from 'plugins/pluggable';
-
 import {Constants} from 'utils/constants';
 import {isInternetExplorer, isEdge} from 'utils/user_agent';
 

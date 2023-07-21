@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {JSXElementConstructor} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {Modal} from 'react-bootstrap';
-
 import {TypePurchases} from '@mattermost/types/cloud';
+import React, {JSXElementConstructor} from 'react';
+import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 import {GatherIntentModalProps} from './gather_intent_modal';
 import {GatherIntentSubmittedModal} from './gather_intent_submitted_modal';

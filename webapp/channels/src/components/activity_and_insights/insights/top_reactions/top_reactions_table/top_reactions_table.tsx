@@ -1,23 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TimeFrame} from '@mattermost/types/insights';
+import {GlobalState} from '@mattermost/types/store';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
-
 import {FormattedMessage} from 'react-intl';
-
 import {shallowEqual, useDispatch, useSelector} from 'react-redux';
 
-import {TimeFrame} from '@mattermost/types/insights';
-
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
+import {getTopReactionsForTeam, getMyTopReactions} from 'mattermost-redux/actions/insights';
+import {getMyTopReactionsForCurrentTeam, getTopReactionsForCurrentTeam} from 'mattermost-redux/selectors/entities/insights';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+
 import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import RenderEmoji from 'components/emoji/render_emoji';
 
 import {InsightsScopes} from 'utils/constants';
-import {GlobalState} from '@mattermost/types/store';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getMyTopReactionsForCurrentTeam, getTopReactionsForCurrentTeam} from 'mattermost-redux/selectors/entities/insights';
-import {getTopReactionsForTeam, getMyTopReactions} from 'mattermost-redux/actions/insights';
 
 import './../../../activity_and_insights.scss';
 

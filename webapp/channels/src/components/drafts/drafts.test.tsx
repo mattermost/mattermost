@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
+import React from 'react';
 import {Provider} from 'react-redux';
 
-import mockStore from 'tests/test_store';
-
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
-
 import {Draft} from 'selectors/drafts';
+
+import mockStore from 'tests/test_store';
 
 import Drafts from './drafts';
 

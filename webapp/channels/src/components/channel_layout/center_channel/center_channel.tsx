@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
-import classNames from 'classnames';
 
-import LoadingScreen from 'components/loading_screen';
-import PermalinkView from 'components/permalink_view';
+import {makeAsyncComponent} from 'components/async_load';
 import ChannelIdentifierRouter from 'components/channel_layout/channel_identifier_router';
 import PlaybookRunner from 'components/channel_layout/playbook_runner';
-import {makeAsyncComponent} from 'components/async_load';
+import LoadingScreen from 'components/loading_screen';
+import PermalinkView from 'components/permalink_view';
 
 import type {OwnProps, PropsFromRedux} from './index';
 

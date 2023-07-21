@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import {AnyAction} from 'redux';
-import thunk, {ThunkDispatch} from 'redux-thunk';
 import configureStore from 'redux-mock-store';
-
-import {IntlProvider} from 'react-intl';
+import thunk, {ThunkDispatch} from 'redux-thunk';
 
 import {GlobalState} from 'types/store';
 

@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Stripe} from '@stripe/stripe-js';
-
-import {getCode} from 'country-list';
-
 import {CreateSubscriptionRequest} from '@mattermost/types/cloud';
 import {SelfHostedExpansionRequest, SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
 import {ValueOf} from '@mattermost/types/utilities';
+import {Stripe} from '@stripe/stripe-js';
+import {getCode} from 'country-list';
 
-import {Client4} from 'mattermost-redux/client';
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {bindClientFunc} from 'mattermost-redux/actions/helpers';
+import {Client4} from 'mattermost-redux/client';
 import {getSelfHostedErrors} from 'mattermost-redux/selectors/entities/hosted_customer';
-import {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
+import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {getConfirmCardSetup} from 'components/payment_form/stripe';
-import {bindClientFunc} from 'mattermost-redux/actions/helpers';
+
+import {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
 
 function selfHostedNeedsConfirmation(progress: ValueOf<typeof SelfHostedSignupProgress>): boolean {
     switch (progress) {

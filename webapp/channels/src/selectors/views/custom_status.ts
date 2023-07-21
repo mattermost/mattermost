@@ -1,21 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CustomStatusDuration, UserCustomStatus} from '@mattermost/types/users';
 import moment from 'moment-timezone';
 
+import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getUser} from 'mattermost-redux/selectors/entities/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-import {get} from 'mattermost-redux/selectors/entities/preferences';
-import {Preferences} from 'mattermost-redux/constants';
-import {CustomStatusDuration, UserCustomStatus} from '@mattermost/types/users';
-
-import {isDateWithinDaysRange, TimeInformation} from 'utils/utils';
 
 import {GlobalState} from 'types/store';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
+import {isDateWithinDaysRange, TimeInformation} from 'utils/utils';
 
 export function makeGetCustomStatus(): (state: GlobalState, userID?: string) => UserCustomStatus {
     return createSelector(

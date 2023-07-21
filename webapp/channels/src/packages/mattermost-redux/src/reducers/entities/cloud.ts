@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Product, Subscription, CloudCustomer, Invoice, Limits, SelfHostedSignupProgress, LicenseSelfServeStatusReducer} from '@mattermost/types/cloud';
+import type {ValueOf} from '@mattermost/types/utilities';
 import {combineReducers} from 'redux';
 
-import type {ValueOf} from '@mattermost/types/utilities';
 import {CloudTypes} from 'mattermost-redux/action_types';
-
 import {GenericAction} from 'mattermost-redux/types/actions';
-import {Product, Subscription, CloudCustomer, Invoice, Limits, SelfHostedSignupProgress, LicenseSelfServeStatusReducer} from '@mattermost/types/cloud';
 
 export function subscription(state: Subscription | null = null, action: GenericAction) {
     switch (action.type) {

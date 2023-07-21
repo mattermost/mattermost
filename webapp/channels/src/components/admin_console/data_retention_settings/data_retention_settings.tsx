@@ -1,28 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AdminConfig} from '@mattermost/types/config';
+import {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+import {JobTypeBase, JobType} from '@mattermost/types/jobs';
+import {DeepPartial} from '@mattermost/types/utilities';
 import React, {createRef, RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 
-import {AdminConfig} from '@mattermost/types/config';
-import {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
-import {DeepPartial} from '@mattermost/types/utilities';
-import {JobTypeBase, JobType} from '@mattermost/types/jobs';
-
 import {ActionResult} from 'mattermost-redux/types/actions';
 
-import {JobTypes} from 'utils/constants';
-import * as Utils from 'utils/utils';
-import {getHistory} from 'utils/browser_history';
-
 import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import JobsTable from 'components/admin_console/jobs';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-import JobsTable from 'components/admin_console/jobs';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
+import {getHistory} from 'utils/browser_history';
+import {JobTypes} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 import './data_retention_settings.scss';
 

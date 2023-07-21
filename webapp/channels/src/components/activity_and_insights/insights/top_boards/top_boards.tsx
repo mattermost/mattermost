@@ -1,25 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CircleSkeletonLoader, RectangleSkeletonLoader} from '@mattermost/components';
+import {TopBoard} from '@mattermost/types/insights';
 import React, {memo, useState, useCallback, useEffect, useMemo} from 'react';
-import {useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
-import {TopBoard} from '@mattermost/types/insights';
-
-import {CircleSkeletonLoader, RectangleSkeletonLoader} from '@mattermost/components';
-
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
 import {trackEvent} from 'actions/telemetry_actions';
-
-import {GlobalState} from 'types/store';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import Avatars from 'components/widgets/users/avatars';
 
-import widgetHoc, {WidgetHocProps} from '../widget_hoc/widget_hoc';
 import WidgetEmptyState from '../widget_empty_state/widget_empty_state';
+import widgetHoc, {WidgetHocProps} from '../widget_hoc/widget_hoc';
+import {GlobalState} from 'types/store';
 
 import './../../activity_and_insights.scss';
 

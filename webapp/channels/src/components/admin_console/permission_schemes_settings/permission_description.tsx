@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Role} from '@mattermost/types/roles';
 import React, {useState, useRef, MouseEvent} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
 import {Overlay} from 'react-bootstrap';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import Tooltip from 'components/tooltip';
 
 import {generateId} from 'utils/utils';
-
-import {Role} from '@mattermost/types/roles';
 
 import {AdditionalValues} from './permissions_tree/types';
 

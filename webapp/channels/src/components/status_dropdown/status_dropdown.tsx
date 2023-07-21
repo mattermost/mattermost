@@ -1,45 +1,42 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
-import {IntlShape, injectIntl, FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
-import classNames from 'classnames';
-
 import StatusIcon from '@mattermost/compass-components/components/status-icon'; // eslint-disable-line no-restricted-imports
 import Text from '@mattermost/compass-components/components/text'; // eslint-disable-line no-restricted-imports
 import {TUserStatus} from '@mattermost/compass-components/shared'; // eslint-disable-line no-restricted-imports
-
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import {AccountOutlineIcon, CheckIcon, ExitToAppIcon} from '@mattermost/compass-icons/components';
+import {PulsatingDot} from '@mattermost/components';
+import {PreferenceType} from '@mattermost/types/preferences';
+import {CustomStatusDuration, UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
+import classNames from 'classnames';
+import React, {ReactNode} from 'react';
+import {IntlShape, injectIntl, FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 
 import * as GlobalActions from 'actions/global_actions';
+import {ActionFunc} from 'mattermost-redux/types/actions';
+
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusModal from 'components/custom_status/custom_status_modal';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import ExpiryTime from 'components/custom_status/expiry_time';
 import DndCustomTimePicker from 'components/dnd_custom_time_picker_modal';
+import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps, CompleteYourProfileTour} from 'components/onboarding_tasks';
 import OverlayTrigger from 'components/overlay_trigger';
 import ResetStatusModal from 'components/reset_status_modal';
+import Tooltip from 'components/tooltip';
 import UserSettingsModal from 'components/user_settings/modal';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Avatar, {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
-import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps, CompleteYourProfileTour} from 'components/onboarding_tasks';
-import Tooltip from 'components/tooltip';
 
 import {ModalData} from 'types/actions';
-
 import {Constants, ModalIdentifiers, UserStatuses} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
 import {localizeMessage} from 'utils/utils';
 
-import {CustomStatusDuration, UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
-import {PulsatingDot} from '@mattermost/components';
-import {PreferenceType} from '@mattermost/types/preferences';
-
 import './status_dropdown.scss';
-import {AccountOutlineIcon, CheckIcon, ExitToAppIcon} from '@mattermost/compass-icons/components';
 
 type Props = {
     intl: IntlShape;

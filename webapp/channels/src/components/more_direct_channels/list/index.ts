@@ -1,22 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getAllChannels, getChannelsWithUserProfiles} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {UserProfile} from '@mattermost/types/users';
-
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 import {filterProfilesStartingWithTerm} from 'mattermost-redux/utils/user_utils';
 
-import {GlobalState} from 'types/store';
-
-import Constants from 'utils/constants';
-
 import {Option, OptionValue} from '../types';
+import {GlobalState} from 'types/store';
+import Constants from 'utils/constants';
 
 import List from './list';
 

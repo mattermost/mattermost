@@ -1,26 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {handleNewPost} from 'actions/post_actions';
+import {syncPostsInChannel} from 'actions/views/channel';
+import {closeRightHandSide} from 'actions/views/rhs';
+import {ChannelTypes, UserTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {
     getProfilesAndStatusesForPosts,
     getThreadsForPosts,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
-import {ChannelTypes, UserTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {getUser} from 'mattermost-redux/actions/users';
-
-import {handleNewPost} from 'actions/post_actions';
-import {closeRightHandSide} from 'actions/views/rhs';
-import {syncPostsInChannel} from 'actions/views/channel';
-
 import store from 'stores/redux_store.jsx';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import configureStore from 'tests/test_store';
-
 import {getHistory} from 'utils/browser_history';
 import Constants, {SocketEvents, UserStatuses, ActionTypes} from 'utils/constants';
-
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 
 import {
     handleChannelUpdatedEvent,

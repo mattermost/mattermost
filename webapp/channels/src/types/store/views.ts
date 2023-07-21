@@ -3,9 +3,9 @@
 
 import {Channel} from '@mattermost/types/channels';
 import {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
-import {RelationOneToOne} from '@mattermost/types/utilities';
 import {Team} from '@mattermost/types/teams';
 import {UserThread} from '@mattermost/types/threads';
+import {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {I18nState} from './i18n';
 import {LhsViewState} from './lhs';

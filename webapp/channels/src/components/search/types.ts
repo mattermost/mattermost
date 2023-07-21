@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserAutocomplete} from '@mattermost/types/autocomplete';
+import {Channel} from '@mattermost/types/channels';
+import {ServerError} from '@mattermost/types/errors';
 import React from 'react';
 import {Action} from 'redux';
 
 import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import {Channel} from '@mattermost/types/channels';
-import {ServerError} from '@mattermost/types/errors';
-import {UserAutocomplete} from '@mattermost/types/autocomplete';
 
 import {SearchType} from 'types/store/rhs';
 

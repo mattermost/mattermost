@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 import React, {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
-import {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 
-import {limitThresholds, asGBString, inK, LimitTypes} from 'utils/limits';
-import {t} from 'utils/i18n';
-
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import NotifyAdminCTA from 'components/notify_admin_cta/notify_admin_cta';
+
 import {MattermostFeatures, LicenseSkus} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {limitThresholds, asGBString, inK, LimitTypes} from 'utils/limits';
 
 interface Words {
     title: React.ReactNode;

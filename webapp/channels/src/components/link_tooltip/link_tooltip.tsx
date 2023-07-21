@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {RefObject, CSSProperties} from 'react';
-import Popper from 'popper.js';
-import ReactDOM from 'react-dom';
 import classNames from 'classnames';
+import Popper from 'popper.js';
+import React, {RefObject, CSSProperties} from 'react';
+import ReactDOM from 'react-dom';
 
-import {Constants} from 'utils/constants';
 import Pluggable from 'plugins/pluggable';
+import {Constants} from 'utils/constants';
 
 import './link_tooltip.scss';
 

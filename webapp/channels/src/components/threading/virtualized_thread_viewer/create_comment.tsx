@@ -1,22 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import {Post} from '@mattermost/types/posts';
+import {UserProfile} from '@mattermost/types/users';
 import React, {memo, forwardRef, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
-import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
-
+import {Posts} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
-import {UserProfile} from '@mattermost/types/users';
-import {Post} from '@mattermost/types/posts';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import Constants from 'utils/constants';
-import {Posts} from 'mattermost-redux/constants';
-import {GlobalState} from 'types/store';
 import AdvancedCreateComment from 'components/advanced_create_comment';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import BasicSeparator from 'components/widgets/separator/basic-separator';
+
+import {GlobalState} from 'types/store';
+import Constants from 'utils/constants';
 
 type Props = {
     focusOnMount: boolean;

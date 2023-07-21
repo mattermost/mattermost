@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ChannelType} from '@mattermost/types/channels';
 import {shallow} from 'enzyme';
 import React from 'react';
-
-import {ChannelType} from '@mattermost/types/channels';
 
 import {loadProfilesForSidebar} from 'actions/user_actions';
 

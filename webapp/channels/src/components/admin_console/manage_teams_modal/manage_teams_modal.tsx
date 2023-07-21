@@ -1,24 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Team, TeamMembership} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import React, {useEffect} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
-import * as Utils from 'utils/utils';
+import {Client4} from 'mattermost-redux/client';
+import {ActionResult} from 'mattermost-redux/types/actions';
+import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
 import LoadingScreen from 'components/loading_screen';
 import Avatar from 'components/widgets/users/avatar';
 
-import {Client4} from 'mattermost-redux/client';
-import {isAdmin} from 'mattermost-redux/utils/user_utils';
-import {UserProfile} from '@mattermost/types/users';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {Team, TeamMembership} from '@mattermost/types/teams';
+import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
+import * as Utils from 'utils/utils';
 
-import RemoveFromTeamButton from './remove_from_team_button';
 import ManageTeamsDropdown from './manage_teams_dropdown';
+import RemoveFromTeamButton from './remove_from_team_button';
 
 export type Props = {
     locale: string;

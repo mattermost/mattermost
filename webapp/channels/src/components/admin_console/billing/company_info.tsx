@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
-
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
-import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {pageVisited} from 'actions/telemetry_actions';
+import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
+import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import CloudFetchError from 'components/cloud_fetch_error';
 import AdminHeader from 'components/widgets/admin_console/admin_header';

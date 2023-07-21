@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEventHandler} from 'react';
-
 import {Channel} from '@mattermost/types/channels';
+import React, {ChangeEventHandler} from 'react';
 
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';

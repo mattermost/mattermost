@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {WebSocketClient} from '@mattermost/client';
+import React from 'react';
 
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
-import {ProductComponent} from 'types/store/plugins';
-import {GlobalState} from 'types/store';
-
 import webSocketClient from 'client/web_websocket_client';
+import {GlobalState} from 'types/store';
+import {ProductComponent} from 'types/store/plugins';
 
 import PluggableErrorBoundary from './error_boundary';
 

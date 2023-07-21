@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
-
 import {findKey} from 'lodash';
+import {combineReducers} from 'redux';
 
 import {PostTypes, UserTypes} from 'mattermost-redux/action_types';
 import {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ViewsState} from 'types/store/views';
-
 import {Threads, ActionTypes} from 'utils/constants';
 
 export const selectedThreadIdInTeam = (state: ViewsState['threads']['selectedThreadIdInTeam'] = {}, action: GenericAction) => {

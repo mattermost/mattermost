@@ -4,7 +4,6 @@
 import {connect} from 'react-redux';
 
 import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
-
 import {getEmojiMap} from 'selectors/emojis';
 
 import {GlobalState} from 'types/store';

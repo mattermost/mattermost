@@ -1,28 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Group, SyncablePatch, SyncableType} from '@mattermost/types/groups';
+import {Team, TeamMembership} from '@mattermost/types/teams';
 import React from 'react';
 import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 
-import ConfirmModal from 'components/confirm_modal';
-
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
-
-import {ModalIdentifiers} from 'utils/constants';
-
+import ConfirmModal from 'components/confirm_modal';
 import ListModal, {DEFAULT_NUM_PER_PAGE} from 'components/list_modal';
-
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import groupsAvatar from 'images/groups-avatar.png';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-
 import {ModalData} from 'types/actions';
-
+import {ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {Group, SyncablePatch, SyncableType} from '@mattermost/types/groups';
 
 type Props = {
     intl: IntlShape;

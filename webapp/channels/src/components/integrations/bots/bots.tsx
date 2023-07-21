@@ -1,23 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Bot as BotType} from '@mattermost/types/bots';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile, UserAccessToken} from '@mattermost/types/users';
+import {RelationOneToOne} from '@mattermost/types/utilities';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Bot as BotType} from '@mattermost/types/bots';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-import {UserProfile, UserAccessToken} from '@mattermost/types/users';
 import {ActionResult} from 'mattermost-redux/types/actions';
-import {Team} from '@mattermost/types/teams';
-
-import {getSiteURL} from 'utils/url';
-import * as Utils from 'utils/utils';
-import Constants from 'utils/constants';
 
 import BackstageList from 'components/backstage/components/backstage_list';
+import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
-import ExternalLink from 'components/external_link';
+import Constants from 'utils/constants';
+import {getSiteURL} from 'utils/url';
+import * as Utils from 'utils/utils';
 
 import Bot, {matchesFilter} from './bot';
 

@@ -1,16 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
 import {bindActionCreators, ActionCreatorsMapObject, Dispatch} from 'redux';
 
+import {openDirectChannelToUserId, openGroupChannelToUserIds} from 'actions/channel_actions';
+import {loadStatusesForProfilesList, loadProfilesMissingStatus} from 'actions/status_actions';
+import {loadProfilesForGroupChannels} from 'actions/user_actions';
+import {setModalSearchTerm} from 'actions/views/search';
+import {searchGroupChannels} from 'mattermost-redux/actions/channels';
 import {
     getProfiles,
     getProfilesInTeam,
     getTotalUsersStats,
     searchProfiles,
 } from 'mattermost-redux/actions/users';
-import {searchGroupChannels} from 'mattermost-redux/actions/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
     getCurrentUserId,
     getProfiles as selectProfiles,
@@ -20,16 +27,7 @@ import {
     searchProfilesInCurrentTeam,
     getTotalUsersStats as getTotalUsersStatsSelector,
 } from 'mattermost-redux/selectors/entities/users';
-
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
-
-import {openDirectChannelToUserId, openGroupChannelToUserIds} from 'actions/channel_actions';
-import {loadStatusesForProfilesList, loadProfilesMissingStatus} from 'actions/status_actions';
-import {loadProfilesForGroupChannels} from 'actions/user_actions';
-import {setModalSearchTerm} from 'actions/views/search';
 
 import {GlobalState} from 'types/store';
 

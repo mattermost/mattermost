@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {General, Users} from '../constants';
-import {MarkUnread} from 'mattermost-redux/constants/channels';
-
 import {Channel, ChannelType, ChannelMembership, ChannelNotifyProps, ChannelMessageCount} from '@mattermost/types/channels';
 import {Post} from '@mattermost/types/posts';
-import {UsersState, UserProfile, UserNotifyProps} from '@mattermost/types/users';
 import {GlobalState} from '@mattermost/types/store';
+import {UsersState, UserProfile, UserNotifyProps} from '@mattermost/types/users';
 import {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from '@mattermost/types/utilities';
+
+import {MarkUnread} from 'mattermost-redux/constants/channels';
+
+import {General, Users} from '../constants';
 
 import {displayUsername} from './user_utils';
 

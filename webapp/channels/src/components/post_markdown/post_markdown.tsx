@@ -1,19 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import {Channel} from '@mattermost/types/channels';
+import {Post} from '@mattermost/types/posts';
+import {Team} from '@mattermost/types/teams';
 import memoize from 'memoize-one';
+import React from 'react';
+
+import {Posts} from 'mattermost-redux/constants';
 
 import Markdown from 'components/markdown';
 
 import {MentionKey, TextFormattingOptions} from 'utils/text_formatting';
-
-import {Posts} from 'mattermost-redux/constants';
-
-import {Post} from '@mattermost/types/posts';
-import {Channel} from '@mattermost/types/channels';
-
-import {Team} from '@mattermost/types/teams';
 
 import {renderReminderSystemBotMessage, renderSystemMessage} from './system_message_helpers';
 

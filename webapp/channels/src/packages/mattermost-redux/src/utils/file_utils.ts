@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Files, General} from '../constants';
-import {Client4} from 'mattermost-redux/client';
 import {FileInfo} from '@mattermost/types/files';
+
+import {Client4} from 'mattermost-redux/client';
+
+import {Files, General} from '../constants';
 
 export function getFormattedFileSize(file: FileInfo): string {
     const bytes = file.size;

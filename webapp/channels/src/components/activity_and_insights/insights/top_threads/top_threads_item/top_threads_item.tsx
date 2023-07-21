@@ -1,35 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TopThread} from '@mattermost/types/insights';
+import {GlobalState} from '@mattermost/types/store';
+import {UserProfile} from '@mattermost/types/users';
 import React, {memo, useCallback} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {FormattedMessage} from 'react-intl';
-
-import Tag from 'components/widgets/tag/tag';
-
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-import {displayUsername} from 'mattermost-redux/utils/user_utils';
-
-import {TopThread} from '@mattermost/types/insights';
-import {UserProfile} from '@mattermost/types/users';
-
-import {selectPostAndParentChannel} from 'actions/views/rhs';
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
+import {selectPostAndParentChannel} from 'actions/views/rhs';
+import {getMyChannelMembership} from 'mattermost-redux/selectors/entities/channels';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import Avatar from 'components/widgets/users/avatar';
 import Markdown from 'components/markdown';
 import Attachment from 'components/threading/global_threads/thread_item/attachments';
-
-import {ModalIdentifiers} from 'utils/constants';
-import {imageURLForUser} from 'utils/utils';
+import Tag from 'components/widgets/tag/tag';
+import Avatar from 'components/widgets/users/avatar';
 
 import JoinChannelModal from '../../join_channel_modal/join_channel_modal';
-import {getMyChannelMembership} from 'mattermost-redux/selectors/entities/channels';
-import {GlobalState} from '@mattermost/types/store';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {ModalIdentifiers} from 'utils/constants';
+import {imageURLForUser} from 'utils/utils';
 
 type Props = {
     thread: TopThread;

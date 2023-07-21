@@ -4,16 +4,15 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import * as Actions from 'mattermost-redux/actions/integrations';
-import {getOutgoingHooks} from 'mattermost-redux/selectors/entities/integrations';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
-import {getUsers} from 'mattermost-redux/selectors/entities/users';
-import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import {Permissions} from 'mattermost-redux/constants';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
 import {loadOutgoingHooksAndProfilesForTeam} from 'actions/integration_actions';
+import * as Actions from 'mattermost-redux/actions/integrations';
+import {Permissions} from 'mattermost-redux/constants';
+import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getOutgoingHooks} from 'mattermost-redux/selectors/entities/integrations';
+import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getUsers} from 'mattermost-redux/selectors/entities/users';
 
 import {GlobalState} from 'types/store';
 

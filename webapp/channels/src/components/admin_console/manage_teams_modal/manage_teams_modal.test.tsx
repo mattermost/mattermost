@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {mount, ReactWrapper, shallow} from 'enzyme';
-
-import {IntlProvider} from 'react-intl';
-
+import React from 'react';
 import {act} from 'react-dom/test-utils';
+import {IntlProvider} from 'react-intl';
 
 import {General} from 'mattermost-redux/constants';
 

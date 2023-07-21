@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-
-import {FormattedMessage} from 'react-intl';
-
 import {Channel} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
+import classNames from 'classnames';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import {MobileChannelHeaderDropdown} from 'components/channel_header_dropdown';
+
 import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
 
+import ChannelInfoButton from './channel_info_button';
 import CollapseLhsButton from './collapse_lhs_button';
 import CollapseRhsButton from './collapse_rhs_button';
-import ChannelInfoButton from './channel_info_button';
 import ShowSearchButton from './show_search_button';
 import UnmuteChannelButton from './unmute_channel_button';
 

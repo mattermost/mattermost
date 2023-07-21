@@ -4,10 +4,9 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
+import {createPost} from 'actions/post_actions';
 import {removePost} from 'mattermost-redux/actions/posts';
 import {GenericAction} from 'mattermost-redux/types/actions';
-
-import {createPost} from 'actions/post_actions';
 
 import FailedPostOptions from './failed_post_options';
 

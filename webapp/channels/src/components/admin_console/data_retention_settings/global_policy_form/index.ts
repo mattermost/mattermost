@@ -1,19 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AdminConfig} from '@mattermost/types/config';
+import {ServerError} from '@mattermost/types/errors';
 import {connect} from 'react-redux';
-
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
+import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 import {
     updateConfig,
 } from 'mattermost-redux/actions/admin';
 import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
-
-import {AdminConfig} from '@mattermost/types/config';
-import {ServerError} from '@mattermost/types/errors';
 
 import GlobalPolicyForm from './global_policy_form';
 

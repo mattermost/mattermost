@@ -4,14 +4,10 @@
 import {PreferenceType} from '@mattermost/types/preferences';
 
 import {PreferenceTypes} from 'mattermost-redux/action_types';
-
 import {Client4} from 'mattermost-redux/client';
-
 import {getMyPreferences as getMyPreferencesSelector, makeGetCategory, Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
 import {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
-
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import {Preferences} from '../constants';

@@ -4,9 +4,10 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {BadUrlReasons, UrlValidationCheck} from 'utils/url';
-import Constants, {DocLinks} from 'utils/constants';
 import ExternalLink from 'components/external_link';
+
+import Constants, {DocLinks} from 'utils/constants';
+import {BadUrlReasons, UrlValidationCheck} from 'utils/url';
 
 export const TeamApiError = 'team_api_error';
 

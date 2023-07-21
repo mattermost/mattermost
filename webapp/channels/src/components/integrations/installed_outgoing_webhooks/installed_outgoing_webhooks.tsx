@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {OutgoingWebhook} from '@mattermost/types/integrations';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import {IDMappedObjects} from '@mattermost/types/utilities';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {localizeMessage} from 'utils/utils';
-import {Constants, DeveloperLinks} from 'utils/constants';
-
 import BackstageList from 'components/backstage/components/backstage_list';
-import InstalledOutgoingWebhook, {matchesFilter} from 'components/integrations/installed_outgoing_webhook';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import {UserProfile} from '@mattermost/types/users';
-import {Team} from '@mattermost/types/teams';
-import {OutgoingWebhook} from '@mattermost/types/integrations';
-import {IDMappedObjects} from '@mattermost/types/utilities';
-import {Channel} from '@mattermost/types/channels';
 import ExternalLink from 'components/external_link';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import InstalledOutgoingWebhook, {matchesFilter} from 'components/integrations/installed_outgoing_webhook';
+
+import {Constants, DeveloperLinks} from 'utils/constants';
+import {localizeMessage} from 'utils/utils';
 
 export type Props = {
 

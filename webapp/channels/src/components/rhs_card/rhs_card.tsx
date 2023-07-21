@@ -1,25 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Post} from '@mattermost/types/posts';
 import React, {ReactNode} from 'react';
 import Scrollbars from 'react-custom-scrollbars';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import DelayedAction from 'utils/delayed_action';
-import Constants from 'utils/constants';
-
-import RhsCardHeader from 'components/rhs_card_header';
-import Markdown from 'components/markdown';
-import UserProfile from 'components/user_profile';
-import PostProfilePicture from 'components/post_profile_picture';
-
-import {Post} from '@mattermost/types/posts';
-
-import {RhsState} from 'types/store/rhs';
-import {PostPluginComponent} from 'types/store/plugins';
-
 import {emitCloseRightHandSide} from 'actions/global_actions';
+
+import Markdown from 'components/markdown';
+import PostProfilePicture from 'components/post_profile_picture';
+import RhsCardHeader from 'components/rhs_card_header';
+import UserProfile from 'components/user_profile';
+
+import {PostPluginComponent} from 'types/store/plugins';
+import {RhsState} from 'types/store/rhs';
+import Constants from 'utils/constants';
+import DelayedAction from 'utils/delayed_action';
 
 type Props = {
     isMobileView: boolean;

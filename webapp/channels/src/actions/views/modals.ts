@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {ModalData} from 'types/actions';
-
 import {ActionTypes} from 'utils/constants';
 
 export function openModal<P>(modalData: ModalData<P>) {

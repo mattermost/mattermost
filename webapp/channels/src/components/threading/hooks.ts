@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useMemo, useCallback} from 'react';
-import {useParams, useHistory} from 'react-router-dom';
-import {useSelector, shallowEqual} from 'react-redux';
-
-import {UserThread} from '@mattermost/types/threads';
 import {Team} from '@mattermost/types/teams';
+import {UserThread} from '@mattermost/types/threads';
+import {useMemo, useCallback} from 'react';
+import {useSelector, shallowEqual} from 'react-redux';
+import {useParams, useHistory} from 'react-router-dom';
 
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 /**
  * GlobalThreads-specific hook for nav/routing, selection, and common data needed for actions.

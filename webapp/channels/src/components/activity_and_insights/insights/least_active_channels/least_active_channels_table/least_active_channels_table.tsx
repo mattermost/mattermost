@@ -1,28 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {LeastActiveChannel, TimeFrame} from '@mattermost/types/insights';
+import classNames from 'classnames';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
-import classNames from 'classnames';
-
 import {trackEvent} from 'actions/telemetry_actions';
-
 import {getLeastActiveChannelsForTeam, getMyLeastActiveChannels} from 'mattermost-redux/actions/insights';
-
-import {LeastActiveChannel, TimeFrame} from '@mattermost/types/insights';
-
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import Constants, {InsightsScopes} from 'utils/constants';
-
-import Avatars from 'components/widgets/users/avatars';
 import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import Timestamp from 'components/timestamp';
+import Avatars from 'components/widgets/users/avatars';
 
 import ChannelActionsMenu from '../channel_actions_menu/channel_actions_menu';
+import Constants, {InsightsScopes} from 'utils/constants';
 
 import './../../../activity_and_insights.scss';
 import './least_active_channels_table.scss';

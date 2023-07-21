@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
-import styled from 'styled-components';
 import {useIntl} from 'react-intl';
+import styled from 'styled-components';
+
+import {Client4} from 'mattermost-redux/client';
 
 import Markdown from 'components/markdown';
 import ProfilePicture from 'components/profile_picture';
-import {Client4} from 'mattermost-redux/client';
 import UserProfileElement from 'components/user_profile';
-
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 
 import EditableArea from './components/editable_area';
 import LineLimiter from './components/linelimiter';

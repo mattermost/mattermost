@@ -4,7 +4,6 @@
 import React, {ComponentProps} from 'react';
 
 import {render, screen} from 'tests/react_testing_utils';
-
 import {TestHelper} from 'utils/test_helper';
 
 import PostProfilePicture from './post_profile_picture';

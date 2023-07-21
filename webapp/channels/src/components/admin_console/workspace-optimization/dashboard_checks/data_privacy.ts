@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useIntl} from 'react-intl';
-import {impactModifiers} from '../dashboard.data';
-import {ConsolePages, DocLinks} from 'utils/constants';
-import {Client4} from 'mattermost-redux/client';
-import {ItemStatus, Options} from '../dashboard.type';
 import {AdminConfig} from '@mattermost/types/config';
+import {useIntl} from 'react-intl';
+
+import {Client4} from 'mattermost-redux/client';
+
+import {impactModifiers} from '../dashboard.data';
+import {ItemStatus, Options} from '../dashboard.type';
+import {ConsolePages, DocLinks} from 'utils/constants';
 
 /**
  *

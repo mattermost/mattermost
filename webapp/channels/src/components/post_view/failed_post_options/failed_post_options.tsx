@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {FileInfo} from '@mattermost/types/files';
+import {Post} from '@mattermost/types/posts';
 import React, {MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Post} from '@mattermost/types/posts';
-import {FileInfo} from '@mattermost/types/files';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {ExtendedPost} from 'mattermost-redux/actions/posts';
+import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 type CreatePostAction =
     (post: Post, files: FileInfo[]) => (dispatch: DispatchFunc) => Promise<{data?: boolean}>;

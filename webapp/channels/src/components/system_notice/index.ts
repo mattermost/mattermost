@@ -1,26 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PreferenceType} from '@mattermost/types/preferences';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
+import {dismissNotice} from 'actions/views/notice';
+import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
-import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
-
-import {PreferenceType} from '@mattermost/types/preferences';
-
-import {Preferences} from 'utils/constants';
-
-import {dismissNotice} from 'actions/views/notice';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import Notices from 'components/system_notice/notices';
 import SystemNotice from 'components/system_notice/system_notice';
+
 import {GlobalState} from 'types/store';
+import {Preferences} from 'utils/constants';
 
 function makeMapStateToProps() {
     const getCategory = makeGetCategory();

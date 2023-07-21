@@ -1,26 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import {PostList} from '@mattermost/types/posts';
+import {RelationOneToOne} from '@mattermost/types/utilities';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {getCurrentChannelId, getUnreadChannels} from 'mattermost-redux/selectors/entities/channels';
-import {memoizeResult} from 'mattermost-redux/utils/helpers';
-import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
-import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
-
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {PostList} from '@mattermost/types/posts';
-
-import {RelationOneToOne} from '@mattermost/types/utilities';
-
 import {prefetchChannelPosts} from 'actions/views/channel';
-
+import {getCurrentChannelId, getUnreadChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
+import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
+import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
-import {GlobalState} from 'types/store';
-
 import {isCollapsedThreadsEnabled} from '../../packages/mattermost-redux/src/selectors/entities/preferences';
+import {GlobalState} from 'types/store';
 
 import {trackPreloadedChannels} from './actions';
 import DataPrefetch from './data_prefetch';

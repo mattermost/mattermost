@@ -1,20 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Group} from '@mattermost/types/groups';
+import {Team} from '@mattermost/types/teams';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {Team} from '@mattermost/types/teams';
-import {Group} from '@mattermost/types/groups';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 import ToggleModalButton from 'components/toggle_modal_button';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
+import GroupList from '../../group';
 import {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
-
-import GroupList from '../../group';
 
 type Props = {
     onGroupRemoved: (groupId: string) => void;

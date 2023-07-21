@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Post} from '@mattermost/types/posts';
+import {UserProfile} from '@mattermost/types/users';
 import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -10,13 +12,10 @@ import {
     getUser as selectUser,
     makeGetDisplayName,
 } from 'mattermost-redux/selectors/entities/users';
-import {Post} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
 
 import Avatar from 'components/widgets/users/avatar/avatar';
 
 import {GlobalState} from 'types/store';
-
 import {imageURLForUser} from 'utils/utils';
 
 import './file_preview_modal_info.scss';

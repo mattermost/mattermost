@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Group} from '@mattermost/types/groups';
+import {Team} from '@mattermost/types/teams';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
+import {setModalSearchTerm} from 'actions/views/search';
 import {getGroupsNotAssociatedToTeam, linkGroupSyncable, getAllGroupsAssociatedToTeam} from 'mattermost-redux/actions/groups';
 import {getGroupsNotAssociatedToTeam as selectGroupsNotAssociatedToTeam} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {Team} from '@mattermost/types/teams';
-import {Group} from '@mattermost/types/groups';
 import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
-import {setModalSearchTerm} from 'actions/views/search';
 import {GlobalState} from '../../types/store';
 
 import AddGroupsToTeamModal, {Actions} from './add_groups_to_team_modal';

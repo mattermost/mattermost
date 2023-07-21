@@ -1,23 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Group} from '@mattermost/types/groups';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {Overlay} from 'react-bootstrap';
 
 import {Client4} from 'mattermost-redux/client';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
-import {UserProfile} from '@mattermost/types/users';
-import {Group} from '@mattermost/types/groups';
-
-import ProfilePopover from 'components/profile_popover';
-
-import {popOverOverlayPosition} from 'utils/position_utils';
-import {isKeyPressed} from 'utils/keyboard';
-import {getUserOrGroupFromMentionName} from 'utils/post_utils';
-import Constants from 'utils/constants';
-import {getViewportSize} from 'utils/utils';
 
 import AtMentionGroup from 'components/at_mention/at_mention_group';
+import ProfilePopover from 'components/profile_popover';
+
+import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
+import {popOverOverlayPosition} from 'utils/position_utils';
+import {getUserOrGroupFromMentionName} from 'utils/post_utils';
+import {getViewportSize} from 'utils/utils';
 
 type Props = {
     currentUserId: string;

@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Product} from '@mattermost/types/cloud';
 import React from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
+import {openModal, closeModal} from 'actions/views/modals';
 import {getCloudProducts} from 'mattermost-redux/selectors/entities/cloud';
 
-import {openModal, closeModal} from 'actions/views/modals';
 import CloudUsageModal from 'components/cloud_usage_modal';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 
 import {CloudProducts, ModalIdentifiers} from 'utils/constants';
-import {fallbackStarterLimits, asGBString, hasSomeLimits} from 'utils/limits';
 import {t} from 'utils/i18n';
-
-import {Product} from '@mattermost/types/cloud';
+import {fallbackStarterLimits, asGBString, hasSomeLimits} from 'utils/limits';
 
 const Disclaimer = styled.div`
 margin-bottom: 8px;

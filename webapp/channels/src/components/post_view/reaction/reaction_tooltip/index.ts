@@ -1,18 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Reaction as ReactionType} from '@mattermost/types/reactions';
+import {GlobalState} from '@mattermost/types/store';
+import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCurrentUserId, makeGetProfilesForReactions} from 'mattermost-redux/selectors/entities/users';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-
-import {Reaction as ReactionType} from '@mattermost/types/reactions';
-import {UserProfile} from '@mattermost/types/users';
-
+import {getCurrentUserId, makeGetProfilesForReactions} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
-
-import {GlobalState} from '@mattermost/types/store';
 
 import * as Utils from 'utils/utils';
 

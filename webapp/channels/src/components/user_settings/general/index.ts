@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
+import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {
     updateMe,
     sendVerificationEmail,
     setDefaultProfileImage,
     uploadProfileImage,
 } from 'mattermost-redux/actions/users';
-import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-import {GlobalState} from '@mattermost/types/store';
 import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import UserSettingsGeneralTab, {Props} from './user_settings_general';

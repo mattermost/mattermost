@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TeamActions from 'mattermost-redux/actions/teams';
+import * as Actions from 'actions/team_actions';
 import * as channelActions from 'mattermost-redux/actions/channels';
+import * as TeamActions from 'mattermost-redux/actions/teams';
 import * as userActions from 'mattermost-redux/actions/users';
 
-import * as Actions from 'actions/team_actions';
-
 import configureStore from 'tests/test_store';
-
 import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
 

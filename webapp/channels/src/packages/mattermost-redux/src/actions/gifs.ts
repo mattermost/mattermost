@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GlobalState} from '@mattermost/types/store';
+
 import {GifTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import gfycatSdk from 'mattermost-redux/utils/gfycat_sdk';
 import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {GlobalState} from '@mattermost/types/store';
+import gfycatSdk from 'mattermost-redux/utils/gfycat_sdk';
 
 // APP PROPS
 

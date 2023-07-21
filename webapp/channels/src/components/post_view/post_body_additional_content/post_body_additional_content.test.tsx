@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-
-import React from 'react';
-
 import {
     Post,
     PostEmbed,
     PostImage,
     PostMetadata,
 } from '@mattermost/types/posts';
+import {shallow} from 'enzyme';
+import React from 'react';
 
 import {getEmbedFromMetadata} from 'mattermost-redux/utils/post_utils';
 

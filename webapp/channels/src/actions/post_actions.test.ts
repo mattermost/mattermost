@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
 import {FileInfo} from '@mattermost/types/files';
+import {Post} from '@mattermost/types/posts';
 
-import {GlobalState} from 'types/store';
+import * as Actions from 'actions/post_actions';
 import {ChannelTypes, SearchTypes} from 'mattermost-redux/action_types';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
 
-import * as Actions from 'actions/post_actions';
-import {Constants, ActionTypes, RHSStates} from 'utils/constants';
-
 import mockStore from 'tests/test_store';
+import {GlobalState} from 'types/store';
+import {Constants, ActionTypes, RHSStates} from 'utils/constants';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     addReaction: (...args: any[]) => ({type: 'MOCK_ADD_REACTION', args}),

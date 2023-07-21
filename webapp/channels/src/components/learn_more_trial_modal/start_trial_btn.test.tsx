@@ -1,18 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {ReactWrapper, shallow} from 'enzyme';
-
+import React from 'react';
+import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
 
-import {act} from 'react-dom/test-utils';
+import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-
-import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
 jest.mock('actions/telemetry_actions.jsx', () => {
     const original = jest.requireActual('actions/telemetry_actions.jsx');

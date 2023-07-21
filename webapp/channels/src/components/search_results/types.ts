@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {FileInfo} from '@mattermost/types/files';
+import {Post} from '@mattermost/types/posts';
 import React from 'react';
 import {IntlShape} from 'react-intl';
 
-import {Post} from '@mattermost/types/posts';
-import {FileInfo} from '@mattermost/types/files';
-
 import {SearchFilterType} from '../search/types';
-
 import {SearchType} from 'types/store/rhs';
 
 export type OwnProps = {

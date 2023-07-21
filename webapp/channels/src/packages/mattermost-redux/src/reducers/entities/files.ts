@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
+import {TopThread} from '@mattermost/types/insights';
+import {Post} from '@mattermost/types/posts';
 import {combineReducers} from 'redux';
 
 import {FileTypes, InsightTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
 import {GenericAction} from 'mattermost-redux/types/actions';
-import {Post} from '@mattermost/types/posts';
-import {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
-import {TopThread} from '@mattermost/types/insights';
 
 export function files(state: Record<string, FileInfo> = {}, action: GenericAction) {
     switch (action.type) {

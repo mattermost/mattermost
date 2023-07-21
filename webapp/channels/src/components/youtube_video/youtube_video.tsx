@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {OpenGraphMetadata} from '@mattermost/types/posts';
 import React from 'react';
 
-import {getVideoId, ytRegex, handleYoutubeTime} from 'utils/youtube';
-
 import ExternalImage from 'components/external_image';
-import {OpenGraphMetadata} from '@mattermost/types/posts';
 import ExternalLink from 'components/external_link';
+
+import {getVideoId, ytRegex, handleYoutubeTime} from 'utils/youtube';
 
 type Props = {
     postId: string;

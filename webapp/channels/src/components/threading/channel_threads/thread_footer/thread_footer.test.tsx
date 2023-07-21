@@ -1,20 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import {UserThread} from '@mattermost/types/threads';
 import {mount} from 'enzyme';
-
-import SimpleTooltip from 'components/widgets/simple_tooltip';
+import React, {ComponentProps} from 'react';
 
 import Timestamp from 'components/timestamp';
+import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Avatars from 'components/widgets/users/avatars';
+
 import FollowButton from '../../common/follow_button';
-
-import {mockStore} from 'tests/test_store';
-
-import {UserThread} from '@mattermost/types/threads';
-
 import {fakeDate} from 'tests/helpers/date';
+import {mockStore} from 'tests/test_store';
 
 import ThreadFooter from './thread_footer';
 

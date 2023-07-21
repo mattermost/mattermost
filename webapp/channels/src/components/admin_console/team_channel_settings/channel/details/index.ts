@@ -1,19 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GlobalState} from '@mattermost/types/store';
+import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {connect} from 'react-redux';
-
-import {GlobalState} from '@mattermost/types/store';
-
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getChannel, getChannelModerations} from 'mattermost-redux/selectors/entities/channels';
-import {getAllGroups, getGroupsAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
-import {getScheme} from 'mattermost-redux/selectors/entities/schemes';
-import {getTeam} from 'mattermost-redux/selectors/entities/teams';
-
-import {getScheme as loadScheme} from 'mattermost-redux/actions/schemes';
+import {setNavigationBlocked} from 'actions/admin_actions';
 import {
     addChannelMember,
     deleteChannel,
@@ -27,19 +19,22 @@ import {
     updateChannelMemberSchemeRoles,
     updateChannelPrivacy,
 } from 'mattermost-redux/actions/channels';
-import {getTeam as fetchTeam} from 'mattermost-redux/actions/teams';
 import {
     getGroupsAssociatedToChannel as fetchAssociatedGroups,
     linkGroupSyncable,
     patchGroupSyncable,
     unlinkGroupSyncable,
 } from 'mattermost-redux/actions/groups';
-
+import {getScheme as loadScheme} from 'mattermost-redux/actions/schemes';
+import {getTeam as fetchTeam} from 'mattermost-redux/actions/teams';
+import {getChannel, getChannelModerations} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getAllGroups, getGroupsAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
+import {getScheme} from 'mattermost-redux/selectors/entities/schemes';
+import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {LicenseSkus} from 'utils/constants';
-
-import {setNavigationBlocked} from 'actions/admin_actions';
 
 import ChannelDetails, {ChannelDetailsActions} from './channel_details';
 

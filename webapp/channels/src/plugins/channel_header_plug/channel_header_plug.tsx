@@ -3,24 +3,22 @@
 
 /* eslint-disable react/no-multi-comp */
 
+import {AppBinding} from '@mattermost/types/apps';
+import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import React from 'react';
 import {Dropdown, Tooltip} from 'react-bootstrap';
-import {RootCloseWrapper} from 'react-overlays';
 import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {RootCloseWrapper} from 'react-overlays';
 
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {AppBinding} from '@mattermost/types/apps';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-
-import {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForChannel} from 'types/apps';
+import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
-import PluginChannelHeaderIcon from 'components/widgets/icons/plugin_channel_header_icon';
 import OverlayTrigger from 'components/overlay_trigger';
+import PluginChannelHeaderIcon from 'components/widgets/icons/plugin_channel_header_icon';
 
+import {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForChannel} from 'types/apps';
 import {PluginComponent} from 'types/store/plugins';
-
 import {createCallContext} from 'utils/apps';
 import {Constants} from 'utils/constants';
 

@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo, memo} from 'react';
-import cn from 'classnames';
-
 import {FileInfo} from '@mattermost/types/files';
-import {fileSizeToString, getCompassIconClassName, getFileType} from 'utils/utils';
+import cn from 'classnames';
+import React, {useMemo, memo} from 'react';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
+
 import {FileTypes} from 'utils/constants';
+import {fileSizeToString, getCompassIconClassName, getFileType} from 'utils/utils';
 
 import './file_card.scss';
 

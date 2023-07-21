@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import {TeamMembership} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import React, {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import LoadingScreen from 'components/loading_screen';
-
-import {UserProfile} from '@mattermost/types/users';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {TeamMembership} from '@mattermost/types/teams';
 
 import UserListRow from './user_list_row';
 

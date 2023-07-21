@@ -4,14 +4,13 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
+import {openModal} from 'actions/views/modals';
+import {archiveGroup} from 'mattermost-redux/actions/groups';
+import {getGroupListPermissions} from 'mattermost-redux/selectors/entities/roles';
 import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
-
-import {archiveGroup} from 'mattermost-redux/actions/groups';
 import {ModalData} from 'types/actions';
-import {openModal} from 'actions/views/modals';
-import {getGroupListPermissions} from 'mattermost-redux/selectors/entities/roles';
+import {GlobalState} from 'types/store';
 
 import UserGroupsList from './user_groups_list';
 

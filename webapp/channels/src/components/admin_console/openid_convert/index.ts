@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AdminConfig} from '@mattermost/types/config';
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {updateConfig} from 'mattermost-redux/actions/admin';
 import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {AdminConfig} from '@mattermost/types/config';
 
 import OpenIdConvert from './openid_convert';
 

@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GenericModal} from '@mattermost/components';
+import {Channel} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
 import React, {memo, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -8,12 +11,8 @@ import {useSelector} from 'react-redux';
 import {getPersistentNotificationIntervalMinutes, getPersistentNotificationMaxRecipients} from 'mattermost-redux/selectors/entities/posts';
 
 import {GlobalState} from 'types/store';
-import {makeGetUserOrGroupMentionCountFromMessage} from 'utils/post_utils';
 import Constants from 'utils/constants';
-
-import {GenericModal} from '@mattermost/components';
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
+import {makeGetUserOrGroupMentionCountFromMessage} from 'utils/post_utils';
 
 import {HasNoMentions, HasSpecialMentions} from './post_priority/error_messages';
 

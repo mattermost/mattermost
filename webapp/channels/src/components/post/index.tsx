@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Emoji} from '@mattermost/types/emojis';
+import {Post} from '@mattermost/types/posts';
 import {connect, ConnectedProps} from 'react-redux';
 import {AnyAction, bindActionCreators, Dispatch} from 'redux';
 
-import {Emoji} from '@mattermost/types/emojis';
-import {Post} from '@mattermost/types/posts';
-
+import {markPostAsUnread, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPostFromRightHandSideSearch} from 'actions/views/rhs';
 import {setActionsMenuInitialisationState} from 'mattermost-redux/actions/preferences';
+import {General} from 'mattermost-redux/constants';
+import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {
@@ -17,26 +20,19 @@ import {
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
-import {General} from 'mattermost-redux/constants';
-
-import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPostFromRightHandSideSearch} from 'actions/views/rhs';
-import {markPostAsUnread, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
-
 import {getShortcutReactToLastPostEmittedFrom, getOneClickReactionEmojis} from 'selectors/emojis';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
 import {getHighlightedPostId, getRhsState, getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {GlobalState} from 'types/store';
-
 import {isArchivedChannel} from 'utils/channel_utils';
-import {areConsecutivePostsBySameUser, canDeletePost, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
+import {areConsecutivePostsBySameUser, canDeletePost, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
 import {getDisplayNameByUser} from 'utils/utils';
 
-import PostComponent from './post_component';
 import {removePostCloseRHSDeleteDraft} from './actions';
+import PostComponent from './post_component';
 
 interface OwnProps {
     post?: Post | UserActivityPost;

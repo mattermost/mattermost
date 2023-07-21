@@ -1,16 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {getAllChannels as loadChannels, searchAllChannels} from 'mattermost-redux/actions/channels';
-
-import {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
-
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-
 import {setModalSearchTerm} from 'actions/views/search';
+import {getAllChannels as loadChannels, searchAllChannels} from 'mattermost-redux/actions/channels';
+import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from '../../types/store';
 

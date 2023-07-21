@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ChannelType} from '@mattermost/types/channels';
+import {UserCustomStatus} from '@mattermost/types/users';
 import React, {ComponentProps} from 'react';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
-
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import ChannelHeader from 'components/channel_header/channel_header';
 import ChannelInfoButton from 'components/channel_header/channel_info_button';
 import Markdown from 'components/markdown';
-import Constants, {RHSStates} from 'utils/constants';
+import GuestTag from 'components/widgets/tag/guest_tag';
+
 import {TestHelper} from '../../utils/test_helper';
-import {ChannelType} from '@mattermost/types/channels';
-import {UserCustomStatus} from '@mattermost/types/users';
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import Constants, {RHSStates} from 'utils/constants';
 
 describe('components/ChannelHeader', () => {
     const baseProps: ComponentProps<typeof ChannelHeader> = {

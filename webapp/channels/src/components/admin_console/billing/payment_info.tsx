@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {FormattedMessage} from 'react-intl';
-
 import {GlobalState} from '@mattermost/types/store';
-
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
-import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
+import React, {useEffect, useState} from 'react';
+import {FormattedMessage} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {pageVisited} from 'actions/telemetry_actions';
+import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
+import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import AlertBanner from 'components/alert_banner';
 import CloudFetchError from 'components/cloud_fetch_error';

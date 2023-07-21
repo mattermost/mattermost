@@ -1,26 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-
-import {loadRolesIfNeeded, editRole} from 'mattermost-redux/actions/roles';
-
-import {getRoles} from 'mattermost-redux/selectors/entities/roles';
-import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getScheme, makeGetSchemeTeams} from 'mattermost-redux/selectors/entities/schemes';
-
-import {getScheme as loadScheme, patchScheme, createScheme, getSchemeTeams as loadSchemeTeams} from 'mattermost-redux/actions/schemes';
-
-import {updateTeamScheme} from 'mattermost-redux/actions/teams';
-
-import {setNavigationBlocked} from 'actions/admin_actions';
-
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import {ServerError} from '@mattermost/types/errors';
 import {Role} from '@mattermost/types/roles';
 import {Scheme, SchemePatch} from '@mattermost/types/schemes';
 import {GlobalState} from '@mattermost/types/store';
-import {ServerError} from '@mattermost/types/errors';
+import {connect} from 'react-redux';
+import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+
+import {setNavigationBlocked} from 'actions/admin_actions';
+import {loadRolesIfNeeded, editRole} from 'mattermost-redux/actions/roles';
+import {getScheme as loadScheme, patchScheme, createScheme, getSchemeTeams as loadSchemeTeams} from 'mattermost-redux/actions/schemes';
+import {updateTeamScheme} from 'mattermost-redux/actions/teams';
+import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getRoles} from 'mattermost-redux/selectors/entities/roles';
+import {getScheme, makeGetSchemeTeams} from 'mattermost-redux/selectors/entities/schemes';
+import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import PermissionTeamSchemeSettings, {Props} from './permission_team_scheme_settings';
 

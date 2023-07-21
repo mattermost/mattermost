@@ -1,27 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TopDM} from '@mattermost/types/insights';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import React, {memo, useCallback} from 'react';
-import {useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import {trackEvent} from 'actions/telemetry_actions';
-
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-
-import {UserProfile} from '@mattermost/types/users';
-import {TopDM} from '@mattermost/types/insights';
-import {Team} from '@mattermost/types/teams';
-
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import OverlayTrigger from 'components/overlay_trigger';
-import Avatar from 'components/widgets/users/avatar';
 import Tooltip from 'components/tooltip';
+import Avatar from 'components/widgets/users/avatar';
 
-import {imageURLForUser} from 'utils/utils';
 import Constants from 'utils/constants';
+import {imageURLForUser} from 'utils/utils';
 
 import './../../../activity_and_insights.scss';
 

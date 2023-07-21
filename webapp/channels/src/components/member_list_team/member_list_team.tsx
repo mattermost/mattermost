@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TeamMembership, TeamStats, GetTeamMembersOpts} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
-import {TeamMembership, TeamStats, GetTeamMembersOpts} from '@mattermost/types/teams';
 import {Teams} from 'mattermost-redux/constants';
-
-import Constants from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
+import {ActionResult} from 'mattermost-redux/types/actions';
 
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container';
 import TeamMembersDropdown from 'components/team_members_dropdown';
+
+import Constants from 'utils/constants';
+import * as UserAgent from 'utils/user_agent';
 
 const USERS_PER_PAGE = 50;
 

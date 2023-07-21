@@ -3,28 +3,26 @@
 
 /* eslint-disable max-lines */
 
+import {OAuthApp} from '@mattermost/types/integrations';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import SettingItemMax from 'components/setting_item_max';
-
 import {ActionResult} from 'mattermost-redux/types/actions';
 
+import AccessHistoryModal from 'components/access_history_modal';
+import ActivityLogModal from 'components/activity_log_modal';
+import ExternalLink from 'components/external_link';
+import LocalizedIcon from 'components/localized_icon';
+import SettingItem from 'components/setting_item';
+import SettingItemMax from 'components/setting_item_max';
+import ToggleModalButton from 'components/toggle_modal_button';
+
+import icon50 from 'images/icon50x50.png';
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
-import icon50 from 'images/icon50x50.png';
-import AccessHistoryModal from 'components/access_history_modal';
-import ActivityLogModal from 'components/activity_log_modal';
-import LocalizedIcon from 'components/localized_icon';
-import SettingItem from 'components/setting_item';
-import ToggleModalButton from 'components/toggle_modal_button';
-
-import {OAuthApp} from '@mattermost/types/integrations';
-import {UserProfile} from '@mattermost/types/users';
-
-import ExternalLink from 'components/external_link';
 
 import MfaSection from './mfa_section';
 import UserAccessTokenSection from './user_access_token_section';

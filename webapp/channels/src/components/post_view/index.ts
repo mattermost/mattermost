@@ -1,21 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {withRouter, RouteComponentProps} from 'react-router-dom';
-
 import {Channel} from '@mattermost/types/channels';
 import {Team, TeamMembership} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+import {connect} from 'react-redux';
+import {withRouter, RouteComponentProps} from 'react-router-dom';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getUnreadScrollPositionPreference} from 'mattermost-redux/selectors/entities/preferences';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {getTeamByName, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
-
-import {Constants} from 'utils/constants';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {GlobalState} from 'types/store';
+import {Constants} from 'utils/constants';
 
 import PostView from './post_view';
 

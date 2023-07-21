@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelType} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {Constants} from 'utils/constants';
-import {UserProfile} from '@mattermost/types/users';
-
-import {Channel, ChannelType} from '@mattermost/types/channels';
+import {TestHelper} from 'utils/test_helper';
 
 import ChannelIntroMessage from './channel_intro_message';
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import {TestHelper} from 'utils/test_helper';
 
 describe('components/post_view/ChannelIntroMessages', () => {
     const channel = {

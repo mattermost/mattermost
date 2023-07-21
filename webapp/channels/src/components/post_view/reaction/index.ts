@@ -1,26 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
-
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {removeReaction} from 'mattermost-redux/actions/posts';
-import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
-
-import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import {canAddReactions, canRemoveReactions} from 'mattermost-redux/selectors/entities/reactions';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {Emoji as EmojiType} from '@mattermost/types/emojis';
 import {Post} from '@mattermost/types/posts';
 import {Reaction as ReactionType} from '@mattermost/types/reactions';
 import {GlobalState} from '@mattermost/types/store';
-
-import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
+import {connect} from 'react-redux';
+import {bindActionCreators, Dispatch} from 'redux';
 
 import {addReaction} from 'actions/post_actions';
+import {removeReaction} from 'mattermost-redux/actions/posts';
+import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
+import {canAddReactions, canRemoveReactions} from 'mattermost-redux/selectors/entities/reactions';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {GenericAction} from 'mattermost-redux/types/actions';
+import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
 
 import * as Emoji from 'utils/emoji';
 

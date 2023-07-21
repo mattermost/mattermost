@@ -6,9 +6,9 @@ import {connect} from 'react-redux';
 import {getPost, makeGetCommentCountForPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {GlobalState} from 'types/store';
-
 import CommentIcon from 'components/common/comment_icon';
+
+import {GlobalState} from 'types/store';
 
 type OwnProps = {
     postId: string;

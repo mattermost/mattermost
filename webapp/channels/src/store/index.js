@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import Observable from 'zen-observable';
 import baseLocalForage from 'localforage';
 import {extendPrototype} from 'localforage-observable';
-
 import {persistStore, REHYDRATE} from 'redux-persist';
-
-import {General, RequestStatus} from 'mattermost-redux/constants';
-import configureServiceStore from 'mattermost-redux/store';
+import Observable from 'zen-observable';
 
 import {cleanLocalStorage} from 'actions/storage';
 import {clearUserCookie} from 'actions/views/cookie';
-import appReducers from 'reducers';
+import {General, RequestStatus} from 'mattermost-redux/constants';
+import configureServiceStore from 'mattermost-redux/store';
 import {getBasePath} from 'selectors/general';
+
+import appReducers from 'reducers';
 
 function getAppReducers() {
     return require('../reducers'); // eslint-disable-line global-require

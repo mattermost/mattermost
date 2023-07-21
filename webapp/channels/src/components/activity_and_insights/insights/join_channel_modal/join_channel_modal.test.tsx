@@ -1,19 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
-import {Provider} from 'react-redux';
-
+import {PostType} from '@mattermost/types/posts';
 import {ReactWrapper} from 'enzyme';
-
+import React from 'react';
+import {Provider} from 'react-redux';
 import {BrowserRouter} from 'react-router-dom';
 
-import {act} from 'tests/react_testing_utils';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-
-import {PostType} from '@mattermost/types/posts';
 
 import JoinChannelModal from './join_channel_modal';
 

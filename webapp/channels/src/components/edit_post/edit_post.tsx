@@ -1,16 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import classNames from 'classnames';
-import {useIntl} from 'react-intl';
 import {EmoticonPlusOutlineIcon} from '@mattermost/compass-icons/components';
-
-import {Post} from '@mattermost/types/posts';
 import {Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import {Post} from '@mattermost/types/posts';
+import classNames from 'classnames';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {useIntl} from 'react-intl';
 
+import DeletePostModal from 'components/delete_post_modal';
+import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
+import Textbox, {TextboxClass, TextboxElement} from 'components/textbox';
+
+import {PostDraft} from '../../types/store/draft';
+import {ModalData} from 'types/actions';
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {
     formatGithubCodePaste,
     formatMarkdownMessage,
@@ -19,14 +25,7 @@ import {
     isGitHubCodeBlock,
 } from 'utils/paste';
 import {postMessageOnKeyPress, splitMessageBasedOnCaretPosition} from 'utils/post_utils';
-import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import * as Utils from 'utils/utils';
-
-import DeletePostModal from 'components/delete_post_modal';
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
-import Textbox, {TextboxClass, TextboxElement} from 'components/textbox';
-import {ModalData} from 'types/actions';
-import {PostDraft} from '../../types/store/draft';
 
 import EditPostFooter from './edit_post_footer';
 

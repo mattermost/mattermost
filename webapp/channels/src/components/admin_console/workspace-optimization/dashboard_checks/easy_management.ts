@@ -3,13 +3,15 @@
 
 import {AdminConfig} from '@mattermost/types/config';
 import {useIntl} from 'react-intl';
+
+import {ldapTest} from 'actions/admin_actions';
+
+import {impactModifiers} from '../dashboard.data';
 import {ItemModel, ItemStatus, Options} from '../dashboard.type';
 import {ConsolePages, DocLinks} from 'utils/constants';
-import {impactModifiers} from '../dashboard.data';
 
 // import {Client4} from 'mattermost-redux/client';
 // import {AnalyticsRow} from '@mattermost/types/admin';
-import {ldapTest} from 'actions/admin_actions';
 
 const usesLDAP = async (
     config: Partial<AdminConfig>,

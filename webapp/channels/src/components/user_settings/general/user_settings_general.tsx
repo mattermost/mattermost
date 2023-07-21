@@ -3,24 +3,22 @@
 
 /* eslint-disable max-lines */
 
+import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {defineMessages, FormattedDate, FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
-
+import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
-import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
-import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
-
 import LocalizedIcon from 'components/localized_icon';
+import SettingItem from 'components/setting_item';
+import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-import SettingItemMax from 'components/setting_item_max';
-import SettingItem from 'components/setting_item';
+
+import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
+import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
 
 const holders = defineMessages({
     usernameReserved: {

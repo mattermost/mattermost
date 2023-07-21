@@ -8,8 +8,8 @@ import {getCategory, makeGetChannelIdsForCategory} from 'mattermost-redux/select
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {insertMultipleWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
-
 import {getCategoriesForCurrentTeam, getChannelsInCategoryOrder, getDisplayedChannels} from 'selectors/views/channel_sidebar';
+
 import {DraggingState, GlobalState} from 'types/store';
 import {ActionTypes} from 'utils/constants';
 

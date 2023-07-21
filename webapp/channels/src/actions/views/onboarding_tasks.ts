@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
 import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import LocalStorageStore from 'stores/local_storage_store';
+
+import InvitationModal from 'components/invitation_modal';
+
 import {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
-import InvitationModal from 'components/invitation_modal';
-import LocalStorageStore from 'stores/local_storage_store';
 import {ActionTypes, Constants, ModalIdentifiers} from 'utils/constants';
-
-import {getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
 
 import {openModal} from './modals';
 

@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as users from 'mattermost-redux/selectors/entities/users';
-
 import {GlobalState} from '@mattermost/types/store';
 import {UserProfile} from '@mattermost/types/users';
+
+import * as users from 'mattermost-redux/selectors/entities/users';
 
 import {getUsers} from 'components/admin_console/system_users/list/selectors';
 

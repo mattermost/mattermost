@@ -4,9 +4,9 @@
 import React, {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {a11yFocus} from 'utils/utils';
-
 import EditIcon from 'components/widgets/icons/fa_edit_icon';
+
+import {a11yFocus} from 'utils/utils';
 
 interface Props {
 

@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TourTip, useFollowElementDimensions, useMeasurePunchouts} from '@mattermost/components';
 import React, {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {Constants, Preferences} from 'utils/constants';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
-import {TourTip, useFollowElementDimensions, useMeasurePunchouts} from '@mattermost/components';
+import {Constants, Preferences} from 'utils/constants';
 
 const translate = {x: 2, y: 25};
 

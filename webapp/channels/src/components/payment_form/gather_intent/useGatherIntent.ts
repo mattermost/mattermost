@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {MetadataGatherWireTransferKeys, TypePurchases} from '@mattermost/types/cloud';
 import {useState, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {MetadataGatherWireTransferKeys, TypePurchases} from '@mattermost/types/cloud';
-import {updateCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {trackEvent} from 'actions/telemetry_actions';
+import {updateCloudCustomer} from 'mattermost-redux/actions/cloud';
+
 import {GlobalState} from 'types/store';
 
 interface UseGatherIntentArgs {

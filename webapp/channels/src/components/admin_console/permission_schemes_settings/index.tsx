@@ -5,9 +5,8 @@ import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
 import {getSchemeTeams as loadSchemeTeams, getSchemes as loadSchemes} from 'mattermost-redux/actions/schemes';
-import {getSchemes} from 'mattermost-redux/selectors/entities/schemes';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
+import {getSchemes} from 'mattermost-redux/selectors/entities/schemes';
 import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from 'types/store';

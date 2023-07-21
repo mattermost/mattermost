@@ -3,9 +3,8 @@
 
 import {ServerError} from '@mattermost/types/errors';
 
-import {Client4} from 'mattermost-redux/client';
 import {UserTypes} from 'mattermost-redux/action_types';
-
+import {Client4} from 'mattermost-redux/client';
 import {ActionFunc, GenericAction, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';

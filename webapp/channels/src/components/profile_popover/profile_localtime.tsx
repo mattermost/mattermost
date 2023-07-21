@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import {UserTimezone} from '@mattermost/types/users';
 import {DateTime, Duration} from 'luxon';
-
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {UserTimezone} from '@mattermost/types/users';
-import Timestamp from 'components/timestamp';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
+
+import Timestamp from 'components/timestamp';
 
 type ProfileTimezoneProps = {
     profileUserTimezone?: UserTimezone;

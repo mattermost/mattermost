@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Emoji, SystemEmoji} from '@mattermost/types/emojis';
 import emojiRegex from 'emoji-regex';
 import React from 'react';
-
-import {Emoji, SystemEmoji} from '@mattermost/types/emojis';
 
 import {EmojiIndicesByUnicode, Emojis} from 'utils/emoji';
 

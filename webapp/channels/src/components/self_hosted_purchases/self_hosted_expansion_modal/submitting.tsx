@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
+import {ValueOf} from '@mattermost/types/utilities';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getSelfHostedSignupProgress} from 'mattermost-redux/selectors/entities/hosted_customer';
-
-import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
-import {ValueOf} from '@mattermost/types/utilities';
 
 import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
 import IconMessage from 'components/purchase_modal/icon_message';

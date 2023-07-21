@@ -1,27 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GenericModal} from '@mattermost/components';
 import React, {useMemo} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
 import {useIntl} from 'react-intl';
-
-import {isModalOpen} from 'selectors/views/modals';
-import {GlobalState} from 'types/store';
+import {useSelector, useDispatch} from 'react-redux';
 
 import {closeModal} from 'actions/views/modals';
-
 import {DispatchFunc} from 'mattermost-redux/types/actions';
+import {isModalOpen} from 'selectors/views/modals';
 
-import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
-
-import {GenericModal} from '@mattermost/components';
+import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
+import WorkspaceLimitsPanel from 'components/cloud_usage_modal/workspace_limits_panel';
+import useGetLimits from 'components/common/hooks/useGetLimits';
+import useGetUsage from 'components/common/hooks/useGetUsage';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
-import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import WorkspaceLimitsPanel from 'components/cloud_usage_modal/workspace_limits_panel';
-import useGetUsage from 'components/common/hooks/useGetUsage';
-import useGetLimits from 'components/common/hooks/useGetLimits';
+
+import {GlobalState} from 'types/store';
+import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
 
 import ThreeDaysLeftTrialCard, {ThreeDaysLeftTrialCardProps} from './three_days_left_trial_modal_card';
 

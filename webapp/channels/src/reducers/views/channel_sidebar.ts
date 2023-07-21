@@ -1,17 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ChannelCategory} from '@mattermost/types/channel_categories';
 import {combineReducers} from 'redux';
 
 import {ChannelCategoryTypes, UserTypes} from 'mattermost-redux/action_types';
-
 import {GenericAction} from 'mattermost-redux/types/actions';
-import {ChannelCategory} from '@mattermost/types/channel_categories';
-
 import {removeItem} from 'mattermost-redux/utils/array_utils';
 
 import {DraggingState} from 'types/store';
-
 import {ActionTypes} from 'utils/constants';
 
 export function unreadFilterEnabled(state = false, action: GenericAction) {

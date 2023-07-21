@@ -3,15 +3,13 @@
 
 import {useSelector} from 'react-redux';
 
+import {setGlobalItem} from 'actions/storage';
 import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-
-import {isCloudLicense} from 'utils/license_utils';
-import {CloudProducts, InsightsScopes} from 'utils/constants';
-
-import {setGlobalItem} from 'actions/storage';
-
 import {useGlobalState} from 'stores/hooks';
+
+import {CloudProducts, InsightsScopes} from 'utils/constants';
+import {isCloudLicense} from 'utils/license_utils';
 
 /**
  * Returns some checks for free trial users or starter licenses

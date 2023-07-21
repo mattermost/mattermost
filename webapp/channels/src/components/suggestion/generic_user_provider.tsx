@@ -3,19 +3,18 @@
 
 import React from 'react';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
-import BotTag from 'components/widgets/tag/bot_tag';
-
 import {Client4} from 'mattermost-redux/client';
-
-import * as Utils from 'utils/utils';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
 import Avatar from 'components/widgets/users/avatar';
 
+import * as Utils from 'utils/utils';
+
+import {UserAutocomplete, UserProfile} from './command_provider/app_command_parser/app_command_parser_dependencies.js';
 import Provider, {ResultsCallback} from './provider';
 import {SuggestionContainer, SuggestionProps} from './suggestion';
-import {UserAutocomplete, UserProfile} from './command_provider/app_command_parser/app_command_parser_dependencies.js';
 
 const GenericUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<UserProfile>>((props, ref) => {
     const {item} = props;

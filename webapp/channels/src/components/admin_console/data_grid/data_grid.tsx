@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {CSSProperties} from 'react';
 import {FormattedMessage} from 'react-intl';
-import classNames from 'classnames';
 
+import {FilterOptions} from 'components/admin_console/filter/filter';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import {FilterOptions} from 'components/admin_console/filter/filter';
 
 import DataGridHeader from './data_grid_header';
 import DataGridRow from './data_grid_row';

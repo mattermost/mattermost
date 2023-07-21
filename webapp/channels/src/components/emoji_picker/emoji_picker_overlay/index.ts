@@ -3,9 +3,9 @@
 
 import {connect, ConnectedProps} from 'react-redux';
 
-import {GlobalState} from 'types/store';
-
 import {getIsMobileView} from 'selectors/views/browser';
+
+import {GlobalState} from 'types/store';
 
 import EmojiPickerOverlay from './emoji_picker_overlay';
 

@@ -1,26 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserProfile} from '@mattermost/types/users';
 import React, {memo, ComponentProps, CSSProperties, useMemo, useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
-import tinycolor from 'tinycolor2';
 import styled from 'styled-components';
+import tinycolor from 'tinycolor2';
 
-import {UserProfile} from '@mattermost/types/users';
-import {getUser as selectUser, makeDisplayNameGetter} from 'mattermost-redux/selectors/entities/users';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {getUser as selectUser, makeDisplayNameGetter} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
-
-import {t} from 'utils/i18n';
-import {imageURLForUser} from 'utils/utils';
-
+import OverlayTrigger, {BaseOverlayTrigger} from 'components/overlay_trigger';
+import ProfilePopover from 'components/profile_popover';
 import SimpleTooltip, {useSynchronizedImmediate} from 'components/widgets/simple_tooltip';
 import Avatar from 'components/widgets/users/avatar';
-import ProfilePopover from 'components/profile_popover';
-import OverlayTrigger, {BaseOverlayTrigger} from 'components/overlay_trigger';
+
+import {GlobalState} from 'types/store';
+import {t} from 'utils/i18n';
+import {imageURLForUser} from 'utils/utils';
 
 import './avatars.scss';
 

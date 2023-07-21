@@ -3,8 +3,9 @@
 
 import {UserProfile} from '@mattermost/types/users';
 
-import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 import * as Selectors from 'mattermost-redux/selectors/entities/groups';
+import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
+
 import TestHelper from '../../../test/test_helper';
 
 describe('Selectors.Groups', () => {

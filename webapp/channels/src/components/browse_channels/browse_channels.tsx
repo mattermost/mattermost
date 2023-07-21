@@ -1,28 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GenericModal} from '@mattermost/components';
+import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import {RelationOneToOne} from '@mattermost/types/utilities';
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
+import {ActionResult} from 'mattermost-redux/types/actions';
 
+import LoadingScreen from 'components/loading_screen';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
-import SearchableChannelList from 'components/searchable_channel_list';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
+import SearchableChannelList from 'components/searchable_channel_list';
 
 import {ModalData} from 'types/actions';
 import {RhsState} from 'types/store/rhs';
-
 import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getRelativeChannelURL} from 'utils/url';
-import {GenericModal} from '@mattermost/components';
-import classNames from 'classnames';
 import {localizeMessage} from 'utils/utils';
-import LoadingScreen from 'components/loading_screen';
 
 import './browse_channels.scss';
 

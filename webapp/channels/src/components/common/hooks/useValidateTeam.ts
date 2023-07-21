@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useState, useRef, useEffect} from 'react';
-
 import debounce from 'lodash/debounce';
+import {useState, useRef, useEffect} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {cleanUpUrlable, BadUrlReasons, teamNameToUrl} from 'utils/url';
 import Constants from 'utils/constants';
+import {cleanUpUrlable, BadUrlReasons, teamNameToUrl} from 'utils/url';
 
 function makeIdGetter() {
     let id = Number.MIN_SAFE_INTEGER;

@@ -1,30 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {MagnifyIcon} from '@mattermost/compass-icons/components';
+import {FooterPagination, GenericModal} from '@mattermost/components';
+import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useRef, useState, ReactNode} from 'react';
 import {Tabs, Tab, SelectCallback} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
-import debounce from 'lodash/debounce';
-
-import {MagnifyIcon} from '@mattermost/compass-icons/components';
-
-import {FooterPagination, GenericModal} from '@mattermost/components';
-import {getPluginStatuses} from 'mattermost-redux/actions/admin';
-import {setFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/actions/general';
-import {getFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/selectors/entities/general';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import {fetchListing, filterListing} from 'actions/marketplace';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {closeModal} from 'actions/views/modals';
+import {getPluginStatuses} from 'mattermost-redux/actions/admin';
+import {setFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/actions/general';
+import {getFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/selectors/entities/general';
+import {ActionResult} from 'mattermost-redux/types/actions';
+import {getListing, getInstalledListing} from 'selectors/views/marketplace';
+import {isModalOpen} from 'selectors/views/modals';
 
 import LoadingScreen from 'components/loading_screen';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
-import {getListing, getInstalledListing} from 'selectors/views/marketplace';
-import {isModalOpen} from 'selectors/views/modals';
 import {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 

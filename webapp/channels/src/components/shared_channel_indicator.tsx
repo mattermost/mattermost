@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ChannelType} from '@mattermost/types/channels';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ChannelType} from '@mattermost/types/channels';
-
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
+
 import {Constants} from 'utils/constants';
 
 type Props = {

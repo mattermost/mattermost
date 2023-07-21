@@ -1,30 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {createRef, RefObject} from 'react';
-
-import {Modal} from 'react-bootstrap';
-
-import {FormattedMessage} from 'react-intl';
-
-import {UserProfile} from '@mattermost/types/users';
-
-import Constants from 'utils/constants';
-
-import * as Utils from 'utils/utils';
-import LoadingScreen from 'components/loading_screen';
 import {Group, GroupSource} from '@mattermost/types/groups';
+import {UserProfile} from '@mattermost/types/users';
+import React, {createRef, RefObject} from 'react';
+import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 import './view_user_group_modal.scss';
 import {debounce} from 'mattermost-redux/actions/helpers';
-
 import {ActionResult} from 'mattermost-redux/types/actions';
-import Input from 'components/widgets/inputs/input/input';
+
+import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
+import Input from 'components/widgets/inputs/input/input';
 
-import ViewUserGroupModalHeader from './view_user_group_modal_header';
+import Constants from 'utils/constants';
+import * as Utils from 'utils/utils';
+
 import ViewUserGroupListItem from './view_user_group_list_item';
+import ViewUserGroupModalHeader from './view_user_group_modal_header';
 
 const USERS_PER_PAGE = 60;
 

@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {batchActions} from 'redux-batched-actions';
-
-import {FileInfo} from '@mattermost/types/files';
 import {ServerError} from '@mattermost/types/errors';
+import {FileInfo} from '@mattermost/types/files';
+import {batchActions} from 'redux-batched-actions';
 
 import {FileTypes} from 'mattermost-redux/action_types';
 import {getLogErrorAction} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {Client4} from 'mattermost-redux/client';
+import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+
 import {FilePreviewInfo} from 'components/file_preview/file_preview';
 
 import {localizeMessage} from 'utils/utils';

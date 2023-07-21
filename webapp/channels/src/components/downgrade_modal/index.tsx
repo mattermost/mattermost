@@ -4,20 +4,20 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {useDispatch} from 'react-redux';
 
+import {closeModal} from 'actions/views/modals';
+
+import BackgroundSvg from 'components/common/svg_images_components/background_svg';
+import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
 import RootPortal from 'components/root_portal';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
-import BackgroundSvg from 'components/common/svg_images_components/background_svg';
 
 import 'components/payment_form/payment_form.scss';
 
 import IconMessage from '../purchase_modal/icon_message';
+import {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import './index.scss';
-
-import {closeModal} from 'actions/views/modals';
-import {ModalIdentifiers} from 'utils/constants';
-import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
 
 const MIN_PROCESSING_MILLISECONDS = 5000;
 const MAX_FAKE_PROGRESS = 95;

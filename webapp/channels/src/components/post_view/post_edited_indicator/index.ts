@@ -1,26 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Post} from '@mattermost/types/posts';
 import {connect} from 'react-redux';
-
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {openShowEditHistory} from 'actions/views/rhs';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
-
-import {Preferences} from 'utils/constants';
-import {isPostOwner, canEditPost} from 'utils/post_utils';
 
 import {GlobalState} from '../../../types/store';
 import {Props as TimestampProps} from '../../timestamp/timestamp';
-
-import {openShowEditHistory} from 'actions/views/rhs';
-
-import {Post} from '@mattermost/types/posts';
+import {Preferences} from 'utils/constants';
+import {isPostOwner, canEditPost} from 'utils/post_utils';
 
 import PostEditedIndicator from './post_edited_indicator';
 

@@ -4,9 +4,8 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import {Action} from 'mattermost-redux/types/actions';
-
 import {addReaction} from 'actions/post_actions';
+import {Action} from 'mattermost-redux/types/actions';
 
 import PostReaction, {Props} from './post_reaction';
 

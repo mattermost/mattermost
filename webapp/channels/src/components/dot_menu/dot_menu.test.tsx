@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PostType} from '@mattermost/types/posts';
+import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {Locations} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
 import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {GlobalState} from 'types/store';
-
-import {DeepPartial} from '@mattermost/types/utilities';
-import {PostType} from '@mattermost/types/posts';
+import {Locations} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 jest.mock('./utils');
 

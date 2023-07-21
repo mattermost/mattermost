@@ -1,22 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {GfycatAPITag} from '@mattermost/types/gifs';
 import React, {ChangeEvent, Component, FormEvent, RefObject} from 'react';
 import {connect} from 'react-redux';
-
-import {GfycatAPITag} from '@mattermost/types/gifs';
 
 import {saveSearchScrollPosition, saveSearchBarText, searchTextUpdate} from 'mattermost-redux/actions/gifs';
 import {getTheme, Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity, makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
 
-import {GlobalState} from 'types/store';
-
-import {t} from 'utils/i18n';
-
-import GifSearchIcon from 'components/widgets/icons/gif_search_icon';
-import GifSearchClearIcon from 'components/widgets/icons/gif_search_clear_icon';
 import LocalizedInput from 'components/localized_input/localized_input';
+import GifSearchClearIcon from 'components/widgets/icons/gif_search_clear_icon';
+import GifSearchIcon from 'components/widgets/icons/gif_search_icon';
+
+import {GlobalState} from 'types/store';
+import {t} from 'utils/i18n';
 
 import './SearchBar.scss';
 

@@ -3,6 +3,7 @@
 
 import {Team} from '@mattermost/types/teams';
 import {IDMappedObjects} from '@mattermost/types/utilities';
+
 import {General} from '../constants';
 
 export function teamListToMap(teamList: Team[]): IDMappedObjects<Team> {

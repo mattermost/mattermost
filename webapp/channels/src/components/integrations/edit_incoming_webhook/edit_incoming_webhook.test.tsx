@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {shallow} from 'enzyme';
-
 import {IncomingWebhook} from '@mattermost/types/integrations';
+import {shallow} from 'enzyme';
+import React from 'react';
+
 import {ActionResult} from 'mattermost-redux/types/actions';
 
-import {getHistory} from 'utils/browser_history';
 import EditIncomingWebhook from 'components/integrations/edit_incoming_webhook/edit_incoming_webhook';
+
 import {TestHelper} from '../../../utils/test_helper';
+import {getHistory} from 'utils/browser_history';
 
 describe('components/integrations/EditIncomingWebhook', () => {
     const hook = {

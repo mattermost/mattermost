@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Bot} from '@mattermost/types/bots';
 import {combineReducers} from 'redux';
 
 import {BotTypes, UserTypes} from 'mattermost-redux/action_types';
 import {GenericAction} from 'mattermost-redux/types/actions';
-import {Bot} from '@mattermost/types/bots';
 
 function accounts(state: Record<string, Bot> = {}, action: GenericAction) {
     switch (action.type) {

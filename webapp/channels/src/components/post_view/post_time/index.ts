@@ -4,7 +4,6 @@
 import {connect} from 'react-redux';
 
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {GlobalState} from 'types/store';

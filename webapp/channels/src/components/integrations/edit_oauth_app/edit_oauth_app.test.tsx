@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {shallow} from 'enzyme';
-
 import {OAuthApp} from '@mattermost/types/integrations';
-
 import {Team} from '@mattermost/types/teams';
-
-import {getHistory} from 'utils/browser_history';
+import {shallow} from 'enzyme';
+import React from 'react';
 
 import EditOAuthApp from 'components/integrations/edit_oauth_app/edit_oauth_app';
+
+import {getHistory} from 'utils/browser_history';
 
 describe('components/integrations/EditOAuthApp', () => {
     const oauthApp: OAuthApp = {

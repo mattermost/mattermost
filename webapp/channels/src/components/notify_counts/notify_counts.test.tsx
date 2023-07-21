@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {mount} from 'enzyme';
-
-import {mockStore} from 'tests/test_store';
+import React from 'react';
 
 import * as ChannelSelectors from 'mattermost-redux/selectors/entities/channels';
 
 import NotifyCounts from '../notify_counts';
+import {mockStore} from 'tests/test_store';
 
 describe('components/notify_counts', () => {
     const getUnreadStatusInCurrentTeam = jest.spyOn(ChannelSelectors, 'getUnreadStatusInCurrentTeam');

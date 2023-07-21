@@ -1,35 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CardSizes, InsightsWidgetTypes, TimeFrame, TimeFrames} from '@mattermost/types/insights';
 import React, {memo, useEffect, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {trackEvent} from 'actions/telemetry_actions';
+import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
-import LocalStorageStore from 'stores/local_storage_store';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {useGlobalState} from 'stores/hooks';
+import LocalStorageStore from 'stores/local_storage_store';
 
+import {LhsItemType, LhsPage} from 'types/store/lhs';
 import {InsightsScopes, PreviousViewedTypes, suitePluginIds} from 'utils/constants';
 import {useProducts} from 'utils/products';
 
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
-import {selectLhsItem} from 'actions/views/lhs';
-import {LhsItemType, LhsPage} from 'types/store/lhs';
-
-import {CardSizes, InsightsWidgetTypes, TimeFrame, TimeFrames} from '@mattermost/types/insights';
-
+import {useGetFilterType} from './hooks';
 import InsightsHeader from './insights_header/insights_header';
+import LeastActiveChannels from './least_active_channels/least_active_channels';
+import TopBoards from './top_boards/top_boards';
 import TopChannels from './top_channels/top_channels';
+import TopDMsAndNewMembers from './top_dms_and_new_members/top_dms_and_new_members';
+import TopPlaybooks from './top_playbooks/top_playbooks';
 import TopReactions from './top_reactions/top_reactions';
 import TopThreads from './top_threads/top_threads';
-import TopBoards from './top_boards/top_boards';
-import LeastActiveChannels from './least_active_channels/least_active_channels';
-import TopPlaybooks from './top_playbooks/top_playbooks';
-import TopDMsAndNewMembers from './top_dms_and_new_members/top_dms_and_new_members';
-
-import {useGetFilterType} from './hooks';
 
 import './../activity_and_insights.scss';
 

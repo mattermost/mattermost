@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mattermost-redux/client';
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {loadMe, loadMeREST} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {GlobalState} from 'types/store';
-
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
+
+import en from 'i18n/en.json';
+import {GlobalState} from 'types/store';
 import {Translations} from 'types/store/i18n';
 import {ActionTypes} from 'utils/constants';
-import en from 'i18n/en.json';
 
 const pluginTranslationSources: Record<string, TranslationPluginFunction> = {};
 

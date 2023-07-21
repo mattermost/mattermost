@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {MarketplaceLabel} from '@mattermost/types/marketplace';
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
-import type {MarketplaceLabel} from '@mattermost/types/marketplace';
-
-import MarketplaceItem from '../marketplace_item';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
+import MarketplaceItem from '../marketplace_item';
 import {localizeMessage} from 'utils/utils';
 
 export type MarketplaceItemAppProps = {

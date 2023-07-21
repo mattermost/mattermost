@@ -6,7 +6,6 @@ import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsers} from 'actions/user_actions';
-
 import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import DialogElement, {Props} from './dialog_element';

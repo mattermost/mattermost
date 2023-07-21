@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as CSS from 'csstype';
 import {CSSProperties} from 'react';
 import {ControlProps} from 'react-select';
-import * as CSS from 'csstype';
 
 import {ChannelOption} from './forward_post_channel_select';
 

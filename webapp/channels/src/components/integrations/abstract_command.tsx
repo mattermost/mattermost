@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Command} from '@mattermost/types/integrations';
+import {Team} from '@mattermost/types/teams';
 import React, {ChangeEvent} from 'react';
 import {FormattedMessage, MessageDescriptor} from 'react-intl';
-
 import {Link} from 'react-router-dom';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
-import {Constants, DeveloperLinks} from 'utils/constants';
-import * as Utils from 'utils/utils';
-import FormError from 'components/form_error';
-import SpinnerButton from 'components/spinner_button';
-import LocalizedInput from 'components/localized_input/localized_input';
 import ExternalLink from 'components/external_link';
+import FormError from 'components/form_error';
+import LocalizedInput from 'components/localized_input/localized_input';
+import SpinnerButton from 'components/spinner_button';
 
+import {Constants, DeveloperLinks} from 'utils/constants';
 import {t} from 'utils/i18n';
-import {Command} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
+import * as Utils from 'utils/utils';
 
 const REQUEST_POST = 'P';
 const REQUEST_GET = 'G';

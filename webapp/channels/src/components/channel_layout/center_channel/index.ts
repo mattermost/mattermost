@@ -2,23 +2,21 @@
 // See LICENSE.txt for license information.
 
 import {connect, ConnectedProps} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 import {RouteComponentProps, withRouter} from 'react-router-dom';
+import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {getProfiles} from 'mattermost-redux/actions/users';
-import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {isCollapsedThreadsEnabled, insightsAreEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {getIsMobileView} from 'selectors/views/browser';
-import {getIsRhsOpen, getIsRhsMenuOpen} from 'selectors/rhs';
+import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {getIsLhsOpen} from 'selectors/lhs';
 import {getLastViewedChannelNameByTeamName, getLastViewedTypeByTeamName, getPreviousTeamId, getPreviousTeamLastViewedType} from 'selectors/local_storage';
+import {getIsRhsOpen, getIsRhsMenuOpen} from 'selectors/rhs';
+import {getIsMobileView} from 'selectors/views/browser';
 
 import {GlobalState} from 'types/store';
-
 import {PreviousViewedTypes} from 'utils/constants';
 
 import CenterChannel from './center_channel';

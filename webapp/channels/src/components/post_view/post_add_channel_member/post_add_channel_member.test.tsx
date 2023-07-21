@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {shallow} from 'enzyme';
-
 import {Post} from '@mattermost/types/posts';
 import {UserProfile} from '@mattermost/types/users';
+import {shallow} from 'enzyme';
+import React from 'react';
 
 import {sendAddToChannelEphemeralPost} from 'actions/global_actions';
-import {TestHelper} from 'utils/test_helper';
+
 import PostAddChannelMember, {Props} from 'components/post_view/post_add_channel_member/post_add_channel_member';
+
+import {TestHelper} from 'utils/test_helper';
 
 jest.mock('actions/global_actions', () => {
     return {

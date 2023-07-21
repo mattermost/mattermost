@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {useMeasurePunchouts} from '@mattermost/components';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import PlaybooksImg from 'images/playbooks_tour_tip.svg';
-
-import {useMeasurePunchouts} from '@mattermost/components';
 
 import OnboardingExploreToolsTourTip from './onboarding_explore_tools_tour_tip';
 

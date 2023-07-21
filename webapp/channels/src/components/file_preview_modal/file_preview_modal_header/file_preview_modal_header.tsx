@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {FileInfo} from '@mattermost/types/files';
+import {Post} from '@mattermost/types/posts';
 import React, {memo} from 'react';
 
-import {FileInfo} from '@mattermost/types/files';
-
-import {Post} from '@mattermost/types/posts';
-
 import FilePreviewModalInfo from '../file_preview_modal_info/file_preview_modal_info';
-import FilePreviewModalMainNav from '../file_preview_modal_main_nav/file_preview_modal_main_nav';
 import FilePreviewModalMainActions from '../file_preview_modal_main_actions/file_preview_modal_main_actions';
+import FilePreviewModalMainNav from '../file_preview_modal_main_nav/file_preview_modal_main_nav';
 import {LinkInfo} from '../types';
 
 import './file_preview_modal_header.scss';

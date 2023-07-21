@@ -1,27 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {FileInfo} from '@mattermost/types/files';
 import React, {memo, useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getFilePublicLink} from 'mattermost-redux/actions/files';
 import {getFilePublicLink as selectFilePublicLink} from 'mattermost-redux/selectors/entities/files';
-import {FileInfo} from '@mattermost/types/files';
 
+import CopyButton from 'components/copy_button';
+import ExternalLink from 'components/external_link';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
+import {isFileInfo, LinkInfo} from '../types';
 import {GlobalState} from 'types/store';
-
 import Constants, {FileTypes} from 'utils/constants';
 import {copyToClipboard, getFileType} from 'utils/utils';
 
-import {isFileInfo, LinkInfo} from '../types';
-
 import './file_preview_modal_main_actions.scss';
-import CopyButton from 'components/copy_button';
-import ExternalLink from 'components/external_link';
 
 interface DownloadLinkProps {
     download?: string;

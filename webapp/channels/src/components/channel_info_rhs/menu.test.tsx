@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Channel, ChannelStats} from '@mattermost/types/channels';
 import React from 'react';
 
 import {
@@ -10,8 +11,6 @@ import {
     screen,
 } from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
-
-import {Channel, ChannelStats} from '@mattermost/types/channels';
 
 import Menu from './menu';
 

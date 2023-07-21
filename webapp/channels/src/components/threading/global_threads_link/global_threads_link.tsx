@@ -1,24 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect} from 'react';
-import {Link, useRouteMatch, useLocation, matchPath} from 'react-router-dom';
+import {PulsatingDot} from '@mattermost/components';
 import classNames from 'classnames';
+import React, {useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
+import {Link, useRouteMatch, useLocation, matchPath} from 'react-router-dom';
 
+import {trackEvent} from 'actions/telemetry_actions';
+import {openModal} from 'actions/views/modals';
+import {closeRightHandSide} from 'actions/views/rhs';
+import {getThreadCounts} from 'mattermost-redux/actions/threads';
+import {getInt, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getThreadCountsInCurrentTeam, getThreadsInCurrentTeam,
 } from 'mattermost-redux/selectors/entities/threads';
-import {getInt, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getThreadCounts} from 'mattermost-redux/actions/threads';
-import {t} from 'utils/i18n';
-import {trackEvent} from 'actions/telemetry_actions';
-import {closeRightHandSide} from 'actions/views/rhs';
-import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
-import {GlobalState} from 'types/store';
-import {isAnyModalOpen} from 'selectors/views/modals';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
+import {isAnyModalOpen} from 'selectors/views/modals';
+
+import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
+import CollapsedReplyThreadsModal
+    from 'components/tours/crt_tour/collapsed_reply_threads_modal/collapsed_reply_threads_modal';
+
+import CRTWelcomeTutorialTip
+    from '../../tours/crt_tour/crt_welcome_tutorial_tip';
+import {useThreadRouting} from '../hooks';
+import {GlobalState} from 'types/store';
 import Constants, {
     CrtTutorialSteps,
     CrtTutorialTriggerSteps,
@@ -26,15 +34,7 @@ import Constants, {
     Preferences,
     RHSStates,
 } from 'utils/constants';
-import CollapsedReplyThreadsModal
-    from 'components/tours/crt_tour/collapsed_reply_threads_modal/collapsed_reply_threads_modal';
-
-import {openModal} from 'actions/views/modals';
-
-import {PulsatingDot} from '@mattermost/components';
-import CRTWelcomeTutorialTip
-    from '../../tours/crt_tour/crt_welcome_tutorial_tip';
-import {useThreadRouting} from '../hooks';
+import {t} from 'utils/i18n';
 
 import ThreadsIcon from './threads_icon';
 

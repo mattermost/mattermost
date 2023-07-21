@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {GlobalState} from '@mattermost/types/store';
+
 import {General} from 'mattermost-redux/constants';
+
 import {TestHelper} from 'utils/test_helper';
 
 const emptyOtherUsersState: Omit<GlobalState['entities']['users'], 'profiles' | 'currentUserId'> = {

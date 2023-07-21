@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as AdminActions from 'mattermost-redux/actions/admin';
-import * as UserActions from 'mattermost-redux/actions/users';
-import * as TeamActions from 'mattermost-redux/actions/teams';
-import {Client4} from 'mattermost-redux/client';
-import {bindClientFunc} from 'mattermost-redux/actions/helpers';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
+import * as AdminActions from 'mattermost-redux/actions/admin';
+import {bindClientFunc} from 'mattermost-redux/actions/helpers';
+import * as TeamActions from 'mattermost-redux/actions/teams';
+import * as UserActions from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 import {getOnNavigationConfirmed} from 'selectors/views/admin';
 import store from 'stores/redux_store.jsx';
+
 import {ActionTypes} from 'utils/constants';
 
 const dispatch = store.dispatch;

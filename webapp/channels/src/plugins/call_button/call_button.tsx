@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
+import PhoneOutlineIcon from '@mattermost/compass-icons/components/phone-outline';
+import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import classNames from 'classnames';
 import React, {CSSProperties, useState, useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
-import classNames from 'classnames';
 
-import PhoneOutlineIcon from '@mattermost/compass-icons/components/phone-outline';
-import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
-
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Menu from 'components/widgets/menu/menu';
-import {Constants} from 'utils/constants';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {PluginComponent} from 'types/store/plugins';
+import {Constants} from 'utils/constants';
 
 import './call_button.scss';
 

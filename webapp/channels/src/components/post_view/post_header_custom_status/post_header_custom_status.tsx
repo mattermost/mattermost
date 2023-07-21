@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {FormattedMessage} from 'react-intl';
-
 import {setStatusDropdown} from 'actions/views/status_dropdown';
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import {makeGetCustomStatus, showPostHeaderUpdateStatusButton, isCustomStatusEnabled} from 'selectors/views/custom_status';
-import {GlobalState} from 'types/store';
+
+import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
+
+import {GlobalState} from 'types/store';
 
 interface ComponentProps {
     userId: string;

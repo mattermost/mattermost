@@ -3,37 +3,30 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
-
+import {PreferenceType} from '@mattermost/types/preferences';
+import {UserProfile, UserTimezone} from '@mattermost/types/users';
 import deepEqual from 'fast-deep-equal';
-
-import {FormattedMessage} from 'react-intl';
 import {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
-
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import {Timezone} from 'timezones.json';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-
 import {trackEvent} from 'actions/telemetry_actions';
-
-import Constants from 'utils/constants';
-import {getBrowserTimezone} from 'utils/timezone';
-import {a11yFocus} from 'utils/utils';
-
-import * as I18n from 'i18n/i18n.jsx';
-import {t} from 'utils/i18n';
-
-import ThemeSetting from 'components/user_settings/display/user_settings_theme';
-import BackIcon from 'components/widgets/icons/fa_back_icon';
-
-import {UserProfile, UserTimezone} from '@mattermost/types/users';
-import {PreferenceType} from '@mattermost/types/preferences';
+import {ActionResult} from 'mattermost-redux/types/actions';
 
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
+import ThemeSetting from 'components/user_settings/display/user_settings_theme';
+import BackIcon from 'components/widgets/icons/fa_back_icon';
 
-import ManageTimezones from './manage_timezones';
+import * as I18n from 'i18n/i18n.jsx';
+import Constants from 'utils/constants';
+import {t} from 'utils/i18n';
+import {getBrowserTimezone} from 'utils/timezone';
+import {a11yFocus} from 'utils/utils';
+
 import ManageLanguages from './manage_languages';
+import ManageTimezones from './manage_timezones';
 
 const Preferences = Constants.Preferences;
 

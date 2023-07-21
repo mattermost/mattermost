@@ -4,13 +4,11 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
+import {postEphemeralCallResponseForPost, handleBindingClick, openAppsModal} from 'actions/apps';
+import {getChannel} from 'mattermost-redux/actions/channels';
 import {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
-import {getChannel} from 'mattermost-redux/actions/channels';
-
 import {PostEphemeralCallResponseForPost, HandleBindingClick, OpenAppsModal} from 'types/apps';
-
-import {postEphemeralCallResponseForPost, handleBindingClick, openAppsModal} from 'actions/apps';
 
 import SelectBinding from './select_binding';
 

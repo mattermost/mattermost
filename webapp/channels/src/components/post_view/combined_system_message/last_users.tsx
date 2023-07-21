@@ -6,8 +6,9 @@ import {injectIntl, IntlShape, MessageDescriptor} from 'react-intl';
 
 import {Posts} from 'mattermost-redux/constants';
 
-import {t} from 'utils/i18n';
 import Markdown from 'components/markdown';
+
+import {t} from 'utils/i18n';
 import {TextFormattingOptions} from 'utils/text_formatting';
 
 const typeMessage = {

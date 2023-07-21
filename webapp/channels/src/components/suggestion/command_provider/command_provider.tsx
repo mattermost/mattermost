@@ -1,27 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DockWindowIcon} from '@mattermost/compass-icons/components';
+import {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integrations';
 import React from 'react';
-
 import {Store} from 'redux';
 
 import {Client4} from 'mattermost-redux/client';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integrations';
-
 import globalStore from 'stores/redux_store';
 
-import * as UserAgent from 'utils/user_agent';
-import {Constants} from 'utils/constants';
-
-import {SuggestionContainer, SuggestionProps} from '../suggestion';
 import Provider, {ResultsCallback} from '../provider';
-
+import {SuggestionContainer, SuggestionProps} from '../suggestion';
 import {GlobalState} from 'types/store';
+import {Constants} from 'utils/constants';
+import * as UserAgent from 'utils/user_agent';
 
 import {AppCommandParser} from './app_command_parser/app_command_parser';
 import {intlShim} from './app_command_parser/app_command_parser_dependencies';
-import {DockWindowIcon} from '@mattermost/compass-icons/components';
 
 const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;

@@ -3,10 +3,9 @@
 
 import React from 'react';
 
-import {t} from 'utils/i18n';
-import {LicenseSkus} from 'utils/constants';
-
 import FeatureDiscovery from '../index';
+import {LicenseSkus} from 'utils/constants';
+import {t} from 'utils/i18n';
 
 import CustomTermsOfServiceSVG from './images/custom_terms_of_service_svg';
 

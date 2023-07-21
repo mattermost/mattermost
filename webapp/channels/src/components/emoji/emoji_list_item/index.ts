@@ -4,16 +4,13 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {getUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-
 import {deleteCustomEmoji} from 'mattermost-redux/actions/emojis';
-
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {GenericAction} from 'mattermost-redux/types/actions';
 
-import {getDisplayNameByUser} from 'utils/utils';
-
 import {GlobalState} from '../../../types/store';
+import {getDisplayNameByUser} from 'utils/utils';
 
 import EmojiListItem, {Props} from './emoji_list_item';
 
