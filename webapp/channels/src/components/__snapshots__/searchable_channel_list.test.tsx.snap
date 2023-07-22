@@ -48,6 +48,75 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
     <div
       id="modalPreferenceContainer"
     >
+      <MenuWrapper
+        animationComponent={[Function]}
+        className=""
+        id="channelsMoreDropdown"
+      >
+        <button
+          id="menuWrapper"
+        >
+          <span>
+            Channel Type: All
+          </span>
+          <ChevronDownIcon
+            color="rgba(var(--center-channel-color-rgb), 0.64)"
+            size={16}
+          />
+        </button>
+        <Menu
+          ariaLabel="Browse channels"
+          openLeft={false}
+        >
+          <MenuItemAction
+            ariaLabel="All channel types"
+            icon={
+              <GlobeIcon
+                size={16}
+              />
+            }
+            id="channelsMoreDropdownAll"
+            key="channelsMoreDropdownAll"
+            onClick={[Function]}
+            rightDecorator={
+              <CheckIcon
+                color="var(--button-bg)"
+                size={18}
+              />
+            }
+            show={true}
+            text="All channel types"
+          />
+          <MenuItemAction
+            ariaLabel="Public channels"
+            icon={
+              <GlobeIcon
+                size={16}
+              />
+            }
+            id="channelsMoreDropdownPublic"
+            key="channelsMoreDropdownPublic"
+            onClick={[Function]}
+            rightDecorator={null}
+            show={true}
+            text="Public channels"
+          />
+          <MenuItemAction
+            ariaLabel="Private channels"
+            icon={
+              <LockOutlineIcon
+                size={16}
+              />
+            }
+            id="channelsMoreDropdownPrivate"
+            key="channelsMoreDropdownPrivate"
+            onClick={[Function]}
+            rightDecorator={null}
+            show={true}
+            text="Private channels"
+          />
+        </Menu>
+      </MenuWrapper>
       <div
         id="hideJoinedPreferenceCheckbox"
         onClick={[Function]}

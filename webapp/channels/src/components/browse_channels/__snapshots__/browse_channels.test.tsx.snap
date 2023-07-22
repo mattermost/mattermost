@@ -45,6 +45,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
 >
   <SearchableChannelList
     canShowArchivedChannels={true}
+    changeFilter={[Function]}
     channels={
       Array [
         Object {
@@ -64,15 +65,75 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
           "type": "O",
           "update_at": 0,
         },
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "channel-2",
+          "group_constrained": false,
+          "header": "channel-2-header",
+          "id": "channel_id_2",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "channel-2",
+          "purpose": "channel-2-purpose",
+          "scheme_id": "id",
+          "team_id": "channel_team_2",
+          "type": "O",
+          "update_at": 0,
+        },
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "channel-3",
+          "group_constrained": false,
+          "header": "channel-3-header",
+          "id": "channel_id_3",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "channel-3",
+          "purpose": "channel-3-purpose",
+          "scheme_id": "id",
+          "team_id": "channel_team_3",
+          "type": "P",
+          "update_at": 0,
+        },
       ]
     }
     channelsPerPage={50}
     closeModal={[MockFunction]}
+    filter="all"
     handleJoin={[Function]}
     hideJoinedChannelsPreference={[Function]}
     isSearch={false}
     loading={false}
-    myChannelMemberships={Object {}}
+    myChannelMemberships={
+      Object {
+        "channel-id-3": Object {
+          "channel_id": "channel-id-3",
+          "last_update_at": 0,
+          "last_viewed_at": 0,
+          "mention_count": 0,
+          "mention_count_root": 0,
+          "msg_count": 0,
+          "msg_count_root": 0,
+          "notify_props": Object {
+            "channel_auto_follow_threads": "off",
+            "desktop": "default",
+            "email": "default",
+            "ignore_channel_mentions": "default",
+            "mark_unread": "all",
+            "push": "default",
+          },
+          "roles": "channel_user",
+          "scheme_admin": false,
+          "scheme_user": true,
+          "urgent_mention_count": 0,
+          "user_id": "user-1",
+        },
+      }
+    }
     nextPage={[Function]}
     noResultsText={
       <React.Fragment>
@@ -112,8 +173,6 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
     }
     rememberHideJoinedChannelsChecked={false}
     search={[Function]}
-    shouldShowArchivedChannels={false}
-    toggleArchivedChannels={[Function]}
   />
 </GenericModal>
 `;
