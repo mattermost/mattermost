@@ -414,7 +414,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                 key='channelsMoreDropdownAll'
                 id='channelsMoreDropdownAll'
                 onClick={() => this.props.changeFilter(FILTER.all)}
-                icon={<GlobeIcon size={16}/>} //  todo sinan find correct icon
+                icon={<GlobeIcon size={16}/>} //  todo use the correct icon from compass: PR opened: https://github.com/mattermost/compass-icons/pull/78/files
                 text={localizeMessage('suggestion.all', 'All channel types')}
                 rightDecorator={this.props.filter === FILTER.all ? checkIcon : null}
                 ariaLabel={localizeMessage('suggestion.all', 'All channel types')}

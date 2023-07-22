@@ -17,7 +17,7 @@ import {ModalData} from 'types/actions';
 import {RhsState} from 'types/store/rhs';
 
 import {getHistory} from 'utils/browser_history';
-import {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
+import Constants, {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getRelativeChannelURL} from 'utils/url';
 import {GenericModal} from '@mattermost/components';
 import classNames from 'classnames';
@@ -198,8 +198,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         const searchTimeoutId = window.setTimeout(
             async () => {
                 try {
-                    // todo sinan - integrate page and per page similar to similar to getChannels
-                    const {data} = await this.props.actions.searchAllChannels(term, {team_ids: [this.props.teamId], nonAdminSearch: false});
+                    const {data} = await this.props.actions.searchAllChannels(term, {team_ids: [this.props.teamId], nonAdminSearch: false, include_deleted: true});
                     if (searchTimeoutId !== this.searchTimeoutId) {
                         return;
                     }
@@ -219,9 +218,21 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         this.searchTimeoutId = searchTimeoutId;
     };
 
-    //todo sinan fix. filter based on the filter
     setSearchResults = (channels: Channel[]) => {
-        this.setState({searchedChannels: this.state.shouldShowArchivedChannels ? channels.filter((c) => c.delete_at !== 0) : channels.filter((c) => c.delete_at === 0), searching: false});
+        let searchedChannels = channels;
+        if (this.state.filter === FILTER.private) {
+            searchedChannels = channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL && this.isMemberOfChannel(c.id));
+        }
+        if (this.state.filter === FILTER.public) {
+            searchedChannels = channels.filter((c) => c.type === Constants.OPEN_CHANNEL && c.delete_at === 0);
+        }
+        if (this.state.filter === FILTER.archived) {
+            searchedChannels = channels.filter((c) => c.delete_at !== 0);
+        }
+        if (this.props.shouldHideJoinedChannels) {
+            searchedChannels = this.getChannelsWithoutJoined(searchedChannels);
+        }
+        this.setState({searchedChannels, searching: false});
     };
 
     changeFilter = (filter: FilterType) => {
@@ -240,54 +251,37 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         this.props.actions.setGlobalItem(StoragePrefixes.HIDE_JOINED_CHANNELS, shouldHideJoinedChannels.toString());
     };
 
-    getActiveChannels = (options: Pick<Props, 'channels' | 'archivedChannels' | 'privateChannels' | 'shouldHideJoinedChannels'> & Pick<State, 'search' | 'filter' | 'searchedChannels'>) => {
-        const {channels, archivedChannels, privateChannels, shouldHideJoinedChannels, search, filter, searchedChannels} = options;
+    getChannelsWithoutJoined = (channelList: Channel[]) => channelList.filter((channel) => !this.isMemberOfChannel(channel.id));
+
+    getActiveChannels = () => {
+        const {channels, archivedChannels, shouldHideJoinedChannels, privateChannels} = this.props;
+        const {search, searchedChannels, filter} = this.state;
 
         const allChannels = channels.concat(archivedChannels, privateChannels);
-        const filterChannelsWithoutJoined = (channelList: Channel[]) => channelList.filter((channel) => !this.isMemberOfChannel(channel.id));
-        const allChannelsWithoutJoined = filterChannelsWithoutJoined(allChannels);
-        const otherChannelsWithoutJoined = filterChannelsWithoutJoined(channels);
-        const archivedChannelsWithoutJoined = filterChannelsWithoutJoined(archivedChannels);
-        const privateChannelsWithoutJoined = filterChannelsWithoutJoined(privateChannels);
+        const allChannelsWithoutJoined = this.getChannelsWithoutJoined(allChannels);
+        const otherChannelsWithoutJoined = this.getChannelsWithoutJoined(channels);
+        const archivedChannelsWithoutJoined = this.getChannelsWithoutJoined(archivedChannels);
+        const privateChannelsWithoutJoined = this.getChannelsWithoutJoined(privateChannels);
 
         if (search) {
             return searchedChannels;
         }
-
         if (filter === FILTER.archived) {
             return shouldHideJoinedChannels ? archivedChannelsWithoutJoined : archivedChannels;
         }
-
         if (filter === FILTER.private) {
             return shouldHideJoinedChannels ? privateChannelsWithoutJoined : privateChannels;
         }
-
         if (filter === FILTER.public) {
             return shouldHideJoinedChannels ? otherChannelsWithoutJoined : channels;
         }
-
         return shouldHideJoinedChannels ? allChannelsWithoutJoined : allChannels;
     };
 
     render() {
-        const {
-            channels,
-            archivedChannels,
-            teamId,
-            channelsRequestStarted,
-            shouldHideJoinedChannels,
-            privateChannels,
-        } = this.props;
-
-        const {
-            search,
-            searchedChannels,
-            serverError: serverErrorState,
-            searching,
-            filter,
-        } = this.state;
-
-        this.activeChannels = this.getActiveChannels({channels, archivedChannels, privateChannels, shouldHideJoinedChannels, search, filter, searchedChannels});
+        const {teamId, channelsRequestStarted, shouldHideJoinedChannels} = this.props;
+        const {search, serverError: serverErrorState, searching} = this.state;
+        this.activeChannels = this.getActiveChannels();
 
         let serverError;
         if (serverErrorState) {
