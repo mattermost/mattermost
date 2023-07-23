@@ -451,8 +451,6 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                 />,
             );
         }
-
-        // this is only applicable for archived channels
         const channelDropdown = (
             <MenuWrapper id='channelsMoreDropdown'>
                 <button id='menuWrapper'>
