@@ -667,10 +667,13 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                     key='user-popover-settings'
                     className='popover__row first'
                 >
-                    {formatMessage({
-                        id: 'user_profile.account.post_was_created',
-                        defaultMessage: 'This post was created by an integration from',
-                    }).concat(` @${this.props.user.username}`)}
+                    <FormattedMessage
+                        id='user_profile.account.post_was_created'
+                        defaultMessage='This post was created by an integration from @{username}'
+                        values={{
+                            username: this.props.user.username,
+                        }}
+                    />
                 </div>,
             );
         }
