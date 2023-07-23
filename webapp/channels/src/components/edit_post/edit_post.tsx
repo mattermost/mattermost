@@ -42,7 +42,6 @@ export type Actions = {
     unsetEditingPost: () => void;
     openModal: (input: ModalData<DialogProps>) => void;
     scrollPostListToBottom: () => void;
-    getPostEditHistory: (postId: string) => void;
 }
 
 export type Props = {
@@ -271,9 +270,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
 
         await actions.editPost(updatedPost as Post);
-        if (rest.isRHSOpened && rest.isEditHistoryShowing) {
-            actions.getPostEditHistory(editingPost.postId || '');
-        }
 
         handleAutomatedRefocusAndExit();
     };
