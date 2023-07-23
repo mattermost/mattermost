@@ -35,6 +35,12 @@ describe('components/BrowseChannels', () => {
             display_name: 'Private',
             delete_at: 0,
             type: 'P',
+        }, {
+            id: 'channel-id-4',
+            name: 'private-channel-not-member',
+            display_name: 'Private Not Member',
+            delete_at: 0,
+            type: 'P',
         }],
     };
 
@@ -312,7 +318,7 @@ describe('components/BrowseChannels', () => {
         process.nextTick(() => {
             expect(wrapper.state('search')).toEqual(true);
             expect(wrapper.state('searching')).toEqual(false);
-            expect(wrapper.state('searchedChannels')).toEqual(searchResults.data);
+            expect(wrapper.state('searchedChannels')).toEqual([searchResults.data[0], searchResults.data[1], searchResults.data[2]]);
             done();
         });
     });
@@ -398,33 +404,6 @@ describe('components/BrowseChannels', () => {
         });
     });
 
-    test('should perform search on all channels and set the correct state', (done) => {
-        const wrapper = shallow<BrowseChannels>(
-            <BrowseChannels {...baseProps}/>,
-        );
-
-        wrapper.instance().onChange = jest.fn();
-        wrapper.instance().search('channel');
-        expect(clearTimeout).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().onChange).not.toHaveBeenCalled();
-        expect(wrapper.state('search')).toEqual(true);
-        expect(wrapper.state('searching')).toEqual(true);
-        expect(wrapper.instance().searchTimeoutId).not.toEqual('');
-        expect(setTimeout).toHaveBeenCalledTimes(1);
-        expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 100);
-        wrapper.instance().changeFilter(FILTER.all);
-
-        jest.runOnlyPendingTimers();
-        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('channel', {include_deleted: true, nonAdminSearch: false, team_ids: ['team_id']});
-        process.nextTick(() => {
-            expect(wrapper.state('search')).toEqual(true);
-            expect(wrapper.state('searching')).toEqual(false);
-            expect(wrapper.state('searchedChannels')).toEqual(searchResults.data);
-            done();
-        });
-    });
-
     test('should perform search on all channels and set the correct state when shouldHideJoinedChannels is true', (done) => {
         const props = {
             ...baseProps,
@@ -485,6 +464,22 @@ describe('components/BrowseChannels', () => {
             expect(wrapper.state('search')).toEqual(true);
             expect(wrapper.state('searching')).toEqual(false);
             expect(wrapper.state('searchedChannels')).toEqual([]);
+            done();
+        });
+    });
+
+    it('should perform search on all channels and should not show private channels that user is not a member of', (done) => {
+        const wrapper = shallow<BrowseChannels>(
+            <BrowseChannels {...baseProps}/>,
+        );
+
+        wrapper.setState({search: true, searching: true});
+        wrapper.instance().onChange = jest.fn();
+        wrapper.instance().search('channel');
+
+        jest.runOnlyPendingTimers();
+        process.nextTick(() => {
+            expect(wrapper.state('searchedChannels')).toEqual([searchResults.data[0], searchResults.data[1], searchResults.data[2]]);
             done();
         });
     });

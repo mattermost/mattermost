@@ -219,7 +219,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     };
 
     setSearchResults = (channels: Channel[]) => {
-        let searchedChannels = channels;
+        // filter out private channels that the user is not a member of
+        let searchedChannels = channels.filter((c) => c.type !== Constants.PRIVATE_CHANNEL || this.isMemberOfChannel(c.id));
         if (this.state.filter === FILTER.private) {
             searchedChannels = channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL && this.isMemberOfChannel(c.id));
         }
@@ -257,9 +258,9 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         const {channels, archivedChannels, shouldHideJoinedChannels, privateChannels} = this.props;
         const {search, searchedChannels, filter} = this.state;
 
-        const allChannels = channels.concat(archivedChannels, privateChannels);
+        const allChannels = channels.concat(archivedChannels, privateChannels).sort((a, b) => a.display_name.localeCompare(b.display_name));
         const allChannelsWithoutJoined = this.getChannelsWithoutJoined(allChannels);
-        const otherChannelsWithoutJoined = this.getChannelsWithoutJoined(channels);
+        const publicChannelsWithoutJoined = this.getChannelsWithoutJoined(channels);
         const archivedChannelsWithoutJoined = this.getChannelsWithoutJoined(archivedChannels);
         const privateChannelsWithoutJoined = this.getChannelsWithoutJoined(privateChannels);
 
@@ -273,7 +274,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
             return shouldHideJoinedChannels ? privateChannelsWithoutJoined : privateChannels;
         }
         if (filter === FILTER.public) {
-            return shouldHideJoinedChannels ? otherChannelsWithoutJoined : channels;
+            return shouldHideJoinedChannels ? publicChannelsWithoutJoined : channels;
         }
         return shouldHideJoinedChannels ? allChannelsWithoutJoined : allChannels;
     };
