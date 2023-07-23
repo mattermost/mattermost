@@ -58,6 +58,8 @@ type FeatureFlags struct {
 
 	CloudReverseTrial bool
 
+	EnableExportDirectDownload bool
+
 	DataRetentionConcurrencyEnabled bool
 }
 
@@ -79,6 +81,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
+	f.EnableExportDirectDownload = false
 	f.DataRetentionConcurrencyEnabled = true
 }
 

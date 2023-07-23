@@ -250,21 +250,22 @@ func NewServer(options ...Option) (*Server, error) {
 
 	app := New(ServerConnector(s.Channels()))
 	serviceMap := map[product.ServiceKey]any{
-		ServerKey:                s,
-		product.ConfigKey:        s.platform,
-		product.LicenseKey:       s.licenseWrapper,
-		product.FilestoreKey:     s.platform.FileBackend(),
-		product.FileInfoStoreKey: &fileInfoWrapper{srv: s},
-		product.ClusterKey:       s.platform,
-		product.UserKey:          app,
-		product.LogKey:           s.platform.Log(),
-		product.CloudKey:         &cloudWrapper{cloud: s.Cloud},
-		product.KVStoreKey:       s.platform,
-		product.StoreKey:         store.NewStoreServiceAdapter(s.Store()),
-		product.SystemKey:        &systemServiceAdapter{server: s},
-		product.SessionKey:       app,
-		product.FrontendKey:      app,
-		product.CommandKey:       app,
+		ServerKey:                  s,
+		product.ConfigKey:          s.platform,
+		product.LicenseKey:         s.licenseWrapper,
+		product.FilestoreKey:       s.platform.FileBackend(),
+		product.ExportFilestoreKey: s.platform.ExportFileBackend(),
+		product.FileInfoStoreKey:   &fileInfoWrapper{srv: s},
+		product.ClusterKey:         s.platform,
+		product.UserKey:            app,
+		product.LogKey:             s.platform.Log(),
+		product.CloudKey:           &cloudWrapper{cloud: s.Cloud},
+		product.KVStoreKey:         s.platform,
+		product.StoreKey:           store.NewStoreServiceAdapter(s.Store()),
+		product.SystemKey:          &systemServiceAdapter{server: s},
+		product.SessionKey:         app,
+		product.FrontendKey:        app,
+		product.CommandKey:         app,
 	}
 
 	// It is important to initialize the hub only after the global logger is set
@@ -1474,6 +1475,10 @@ func (s *Server) SendRemoveExpiredLicenseEmail(email, ctaText, ctaLink, locale, 
 
 func (s *Server) FileBackend() filestore.FileBackend {
 	return s.platform.FileBackend()
+}
+
+func (s *Server) ExportFileBackend() filestore.FileBackend {
+	return s.platform.ExportFileBackend()
 }
 
 func (s *Server) TotalWebsocketConnections() int {
