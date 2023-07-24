@@ -177,7 +177,6 @@ export function getFirstAdminSetupComplete(): ActionFunc {
 }
 
 export default {
-    getPing,
     getClientConfig,
     getDataRetentionPolicy,
     getLicenseConfig,
