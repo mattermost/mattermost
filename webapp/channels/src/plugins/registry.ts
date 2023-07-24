@@ -536,6 +536,7 @@ export default class PluginRegistry {
     // Accepts the following:
     // - text - A string to display in the name of the action on hover
     // - icon - A React element to display the icon
+    // - subComponents - A list of subcomponents to show in a menu
     // - action - A function to trigger when component is clicked on
     // - filter - A function whether to apply the plugin into the post actions
     // Returns a unique identifier.
