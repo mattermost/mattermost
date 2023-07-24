@@ -41,9 +41,12 @@ export type Props = {
     isSysAdmin: boolean;
     location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | 'SEARCH' | string;
     pluginMenuItems?: PluginComponent[];
+    customMenuItems?: PluginComponent[];
     post: Post;
     teamId: string;
     canOpenMarketplace: boolean;
+    tooltipText?: React.ReactNode;
+    icon?: React.ReactNode;
 
     /**
      * Components for overriding provided by plugins
@@ -110,10 +113,10 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
             id='actions-menu-icon-tooltip'
             className='hidden-xs'
         >
-            <FormattedMessage
+            {this.props.tooltipText || <FormattedMessage
                 id='post_info.tooltip.actions'
                 defaultMessage='Message actions'
-            />
+            />}
         </Tooltip>
     );
 
@@ -273,7 +276,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
 
         // const isMobile = this.props.isMobileView TODO;
 
-        const pluginItems = this.props.pluginMenuItems?.
+        const pluginItems = (this.props.customMenuItems || this.props.pluginMenuItems || []).
             filter((item) => {
                 return item.filter ? item.filter(this.props.post.id) : item;
             }).
@@ -330,7 +333,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         const {formatMessage} = this.props.intl;
 
         let marketPlace = null;
-        if (this.props.canOpenMarketplace) {
+        if (this.props.canOpenMarketplace && !this.props.customMenuItems) {
             marketPlace = (
                 <React.Fragment key={'marketplace'}>
                     {this.renderDivider('marketplace')}
@@ -400,7 +403,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         type='button'
                         aria-expanded='false'
                     >
-                        <i className={'icon icon-apps'}/>
+                        {this.props.icon || <i className={'icon icon-apps'}/>}
                     </button>
                 </OverlayTrigger>
                 <Menu

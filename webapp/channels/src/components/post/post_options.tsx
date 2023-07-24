@@ -16,6 +16,7 @@ import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostRecentReactions from 'components/post_view/post_recent_reactions';
 import PostReaction from 'components/post_view/post_reaction';
 import CommentIcon from 'components/common/comment_icon';
+import {PluginComponent} from 'types/store/plugins';
 
 import {Emoji} from '@mattermost/types/emojis';
 import {Post} from '@mattermost/types/posts';
@@ -49,6 +50,7 @@ type Props = {
     isPostHeaderVisible?: boolean | null;
     isPostBeingEdited?: boolean;
     canDelete?: boolean;
+    pluginActions: PluginComponent[];
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
     };
@@ -60,6 +62,7 @@ const PostOptions = (props: Props): JSX.Element => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showDotMenu, setShowDotMenu] = useState(false);
     const [showActionsMenu, setShowActionsMenu] = useState(false);
+    const [showPluginMenu, setShowPluginMenu] = useState('');
 
     useEffect(() => {
         if (props.isLastPost &&
@@ -100,6 +103,11 @@ const PostOptions = (props: Props): JSX.Element => {
     const handleActionsMenuOpened = (open: boolean) => {
         setShowActionsMenu(open);
         props.handleDropdownOpened!(open);
+    };
+
+    const handlePluginMenuOpened = (pluginId: string) => {
+        setShowPluginMenu(pluginId);
+        props.handleDropdownOpened!(pluginId == '');
     };
 
     const getDotMenuRef = () => dotMenuRef.current;
@@ -175,6 +183,28 @@ const PostOptions = (props: Props): JSX.Element => {
             isMenuOpen={showActionsMenu}
         />
     );
+
+    let pluginItems: ReactNode = null;
+    if ((!isEphemeral && !post.failed && !systemMessage) && hoverLocal) {
+        pluginItems = props.pluginActions?.
+            filter((item) => {
+                return item.filter ? item.filter(props.post.id) : item;
+            }).
+            map((item) => {
+                return (
+                    <ActionsMenu
+                        tooltipText={item.text}
+                        icon={item.icon}
+                        post={post}
+                        location={props.location}
+                        handleDropdownOpened={(open) => handlePluginMenuOpened(open ? item.id : '')}
+                        isMenuOpen={showPluginMenu == item.id}
+                        customMenuItems={item.subComponents}
+                    />
+                );
+            }) || [];
+    }
+
     const dotMenu = (
         <DotMenu
             post={props.post}
@@ -237,12 +267,14 @@ const PostOptions = (props: Props): JSX.Element => {
             <div
                 ref={dotMenuRef}
                 data-testid={`post-menu-${props.post.id}`}
+                data-postid={props.post.id}
                 className={classnames('col post-menu', {'post-menu--position': !hoverLocal && showCommentIcon})}
             >
                 {!collapsedThreadsEnabled && !showRecentlyUsedReactions && dotMenu}
                 {showRecentReactions}
                 {postReaction}
                 {flagIcon}
+                {pluginItems}
                 {actionsMenu}
                 {commentIcon}
                 {(collapsedThreadsEnabled || showRecentlyUsedReactions) && dotMenu}

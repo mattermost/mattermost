@@ -44,6 +44,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import CommentedOn from 'components/post_view/commented_on/commented_on';
 import PriorityLabel from 'components/post_priority/post_priority_label';
+import {PluginComponent} from 'types/store/plugins';
 
 import {UserProfile} from '@mattermost/types/users';
 import {Post} from '@mattermost/types/posts';
@@ -118,6 +119,7 @@ export type Props = {
     isPostPriorityEnabled: boolean;
     isCardOpen?: boolean;
     canDelete?: boolean;
+    pluginActions: PluginComponent[];
 };
 
 const PostComponent = (props: Props): JSX.Element => {

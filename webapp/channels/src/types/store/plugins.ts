@@ -28,6 +28,7 @@ export type PluginsState = {
         Product: ProductComponent[];
         CallButton: PluginComponent[];
         PostDropdownMenu: PluginComponent[];
+        PostAction: PluginComponent[];
         FilePreview: PluginComponent[];
         MainMenu: PluginComponent[];
         LinkTooltip: PluginComponent[];
@@ -98,6 +99,7 @@ export type PluginComponent = {
     filter?: (id: string) => boolean;
     action?: (...args: any) => void; // TODO Add more concrete types?
     shouldRender?: (state: GlobalState) => boolean;
+    subComponents?: PluginComponent[];
 };
 
 export type AppBarComponent = PluginComponent & {
