@@ -26,8 +26,4 @@ jobs:
     steps:
       - name: Test secret
         run: >
-          curl
-            --fail
-            -H "Content-Type: application/json"
-            -d "{\"text\":\"Test, please ignore.\"}"
-            ${{ secrets.MM_COMMUNITY_DEVELOPERS_INCOMING_WEBHOOK_FROM_GH_ACTIONS }}
+          curl --fail -H "Content-Type: application/json" -d "{\"text\":\"Test, please ignore.\"}" ${{ secrets.MM_COMMUNITY_DEVELOPERS_INCOMING_WEBHOOK_FROM_GH_ACTIONS }}
