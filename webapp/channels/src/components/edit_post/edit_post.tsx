@@ -243,7 +243,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         };
 
         const hookResult = await actions.runMessageWillBeUpdatedHooks(updatedPost, editingPost.post);
-        if (hookResult.error && !hookResult.error.message) {
+        if (hookResult.error && hookResult.error.message) {
             setPostError(<>{hookResult.error.message}</>);
             return;
         }
