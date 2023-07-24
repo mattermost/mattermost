@@ -28,7 +28,6 @@ jobs:
         run: >
           curl
             --fail
-            -X POST
             -H "Content-Type: application/json"
             -d "{\"text\":\"Test, please ignore.\"}"
             ${{ secrets.MM_COMMUNITY_DEVELOPERS_INCOMING_WEBHOOK_FROM_GH_ACTIONS }}
