@@ -351,6 +351,13 @@ func testChannelStoreUpdate(t *testing.T, ss store.Store) {
 	o2.Name = o1.Name
 	_, err = ss.Channel().Update(&o2)
 	require.Error(t, err, "update should have failed because of existing name")
+
+	// Make sure that the error correctly reports the wrong field to be Name
+	// See https://mattermost.atlassian.net/browse/MM-53756
+	var invalidInputErr *store.ErrInvalidInput
+	require.ErrorAs(t, err, &invalidInputErr)
+	require.Equal(t, invalidInputErr.Entity, "Channel")
+	require.Equal(t, invalidInputErr.Field, "Name")
 }
 
 func testGetChannelUnread(t *testing.T, ss store.Store) {

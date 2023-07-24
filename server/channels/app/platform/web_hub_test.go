@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"runtime"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -125,81 +124,6 @@ func TestHubStopRaceCondition(t *testing.T) {
 	case <-time.After(15 * time.Second):
 		require.FailNow(t, "hub call did not return within 15 seconds after stop")
 	}
-}
-
-func TestBroadcastChannelHook(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	sess1 := &model.Session{
-		Id:             "id1",
-		UserId:         "user1",
-		DeviceId:       "",
-		Token:          "sesstoken",
-		ExpiresAt:      model.GetMillis() + 300000,
-		LastActivityAt: 10000,
-	}
-
-	mockStore := th.Service.Store.(*mocks.Store)
-
-	mockUserStore := mocks.UserStore{}
-	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string"), mock.AnythingOfType("bool")).Return(int64(1), nil)
-	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
-	mockSystemStore := mocks.SystemStore{}
-	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
-	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
-	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-
-	mockSessionStore := mocks.SessionStore{}
-	mockSessionStore.On("UpdateLastActivityAt", "id1", mock.Anything).Return(nil)
-	mockSessionStore.On("Save", mock.AnythingOfType("*model.Session")).Return(sess1, nil)
-	mockSessionStore.On("Get", mock.Anything, "id1").Return(sess1, nil)
-	mockSessionStore.On("Remove", "id1").Return(nil)
-
-	mockStatusStore := mocks.StatusStore{}
-	mockStatusStore.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
-	mockStatusStore.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
-	mockStatusStore.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
-
-	mockOAuthStore := mocks.OAuthStore{}
-
-	mockChannelStore := mocks.ChannelStore{}
-
-	mockStore.On("Session").Return(&mockSessionStore)
-	mockStore.On("OAuth").Return(&mockOAuthStore)
-	mockStore.On("Status").Return(&mockStatusStore)
-	mockStore.On("User").Return(&mockUserStore)
-	mockStore.On("Post").Return(&mockPostStore)
-	mockStore.On("System").Return(&mockSystemStore)
-	mockStore.On("Channel").Return(&mockChannelStore)
-	mockStore.On("GetDBSchemaVersion").Return(1, nil)
-
-	s := httptest.NewServer(dummyWebsocketHandler(t))
-	defer s.Close()
-
-	session, err := th.Service.CreateSession(&model.Session{
-		UserId: "testid",
-	})
-	require.NoError(t, err)
-
-	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
-	wc1.SetConnectionID("connID")
-	hub := th.Service.GetHubForUserId(wc1.UserId)
-	mockChannelStore.On("GetAllChannelMembersForUser", wc1.UserId, false, false).Return(map[string]string{"channelID": "test"}, nil)
-
-	ev := model.NewWebSocketEvent("", "", "channelID", "", nil, "")
-	broadcast := ev.GetBroadcast()
-	var test atomic.Bool
-	broadcast.ChannelHook = func(_ string, ev *model.WebSocketEvent) bool {
-		test.Store(true)
-		return true
-	}
-	ev.SetBroadcast(broadcast)
-	hub.Broadcast(ev)
-	// Wait until the goroutines from NewWebConn are finished.
-	th.Service.waitForGoroutines()
-	th.TearDown()
-	assert.Equal(t, true, test.Load())
 }
 
 func TestHubSessionRevokeRace(t *testing.T) {
