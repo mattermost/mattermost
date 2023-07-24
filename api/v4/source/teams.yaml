@@ -55,32 +55,6 @@
               DisplayName: "TeamDisplayName",
               Type:        "O",
             })
-        - lang: PHP
-          source: |
-              require 'vendor/autoload.php';
-
-              use \Gnello\Mattermost\Driver;
-
-              $container = new \Pimple\Container([
-                  "driver" => [
-                      "url" => "https://your-mattermost-url.com",
-                      "login_id" => "email@domain.com",
-                      "password" => "Password1",
-                  ]
-              ]);
-
-              $driver = new Driver($container);
-              $driver->authenticate();
-
-              $resp = $driver->getTeamModel()->createTeam([
-                  "name" => "teamName",
-                  "display_name" => "TeamDisplayName",
-                  "type" => "O",
-              ]);
-
-              if ($resp->getStatusCode() == 200) {
-                  $newTeam = json_decode($resp->getBody());
-              }
     get:
       tags:
         - teams
@@ -146,32 +120,6 @@
             Client.Login("email@domain.com", "Password1")
 
             teams, resp := Client.GetAllTeams("", 0, 100)
-        - lang: PHP
-          source: |
-              require 'vendor/autoload.php';
-
-              use \Gnello\Mattermost\Driver;
-
-              $container = new \Pimple\Container([
-                  "driver" => [
-                      "url" => "https://your-mattermost-url.com",
-                      "login_id" => "email@domain.com",
-                      "password" => "Password1",
-                  ]
-              ]);
-
-              $driver = new Driver($container);
-              $driver->authenticate();
-
-              $resp = $driver->getTeamModel()->getTeams([
-                  "page" => 0,
-                  "per_page" => 100,
-                  "include_total_count" => false,
-              ]);
-
-              if ($resp->getStatusCode() == 200) {
-                  $teams = json_decode($resp->getBody());
-              }
   "/api/v4/teams/{team_id}":
     get:
       tags:
@@ -215,30 +163,6 @@
             teamID := "4xp9fdt77pncbef59f4k1qe83o"
 
             t, err := Client.GetTeam(teamID, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getTeamModel()->getTeam($teamID);
-
-            if ($resp->getStatusCode() == 200) {
-                $t = json_decode($resp->getBody());
-            }
     put:
       tags:
         - teams
@@ -324,39 +248,6 @@
               InviteId:        inviteID,
               AllowOpenInvite: false,
             })
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
-            $inviteID = "qjda3stwafbgpqjaxej3k76sga";
-
-            $resp = $driver->getTeamModel()->updateTeam($teamID, [
-              "id" => $teamID,
-              "display_name" => "displayName",
-              "description" => "description",
-              "company_name" => "companyName",
-              "allowed_domains" => "allowedDomains",
-              "invite_id" => $inviteID,
-              "allow_open_invite" => false,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $uteam = json_decode($resp->getBody());
-            }
     delete:
       tags:
         - teams
@@ -418,38 +309,6 @@
 
             // Permanent deletion
             ok, resp := Client.PermanentDeleteTeam(&model.Team{Id: teamID})
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            // Non-permanent deletion
-            $resp = $driver->getTeamModel()->deleteTeam($teamID, [
-              "permanent" => false,
-            ]);
-
-            // Permanent deletion
-            $resp = $driver->getTeamModel()->deleteTeam($teamID, [
-              "permanent" => true,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $ok = json_decode($resp->getBody())->status;
-            }
   "/api/v4/teams/{team_id}/patch":
     put:
       tags:
@@ -519,35 +378,6 @@
             teamID := "4xp9fdt77pncbef59f4k1qe83o"
 
             team, resp := Client.PatchTeam(teamID, patch)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getTeamModel()->patchTeam($teamID, [
-              "display_name" => "Other name",
-              "description" => "Other description",
-              "company_name" => "Other company name",
-              "allow_open_invite" => true,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $team = json_decode($resp->getBody());
-            }
   "/api/v4/teams/{team_id}/privacy":
     put:
       tags:
@@ -618,36 +448,6 @@
             // Update team's privacy to Private
 
             updatedTeam, resp := Client.UpdateTeamPrivacy(<TEAMID>, model.TEAM_INVITE)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            // Update team's privacy to Public
-            $resp = $driver->getTeamModel()->updateTeamPrivacy(<TEAMID>, [
-              "privacy" => "0",
-            ]);
-
-            // Update team's privacy to Private
-            $resp = $driver->getTeamModel()->updateTeamPrivacy(<TEAMID>, [
-              "privacy" => "1",
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $updatedTeam = json_decode($resp->getBody());
-            }
   "/api/v4/teams/{team_id}/restore":
     post:
       tags:
@@ -689,30 +489,6 @@
             Client.Login("email@domain.com", "Password1")
             teamID := "4xp9fdt77pncbef59f4k1qe83o"
             team, resp := Client.RestoreTeam(teamID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getTeamModel()->restoreTeam($teamID);
-
-            if ($resp->getStatusCode() == 200) {
-                $team = json_decode($resp->getBody());
-            }
   "/api/v4/teams/name/{name}":
     get:
       tags:
@@ -756,28 +532,6 @@
             Client.Login("email@domain.com", "Password1")
 
             team, resp := Client.GetTeamByName("teamName", "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $resp = $driver->getTeamModel()->getTeamByName("teamName");
-
-            if ($resp->getStatusCode() == 200) {
-                $team = json_decode($resp->getBody());
-            }
   /api/v4/teams/search:
     post:
       tags:
@@ -877,30 +631,6 @@
 
 
             teams, resp := Client.SearchTeams(&model.TeamSearch{Term: "searchTerm"})
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $resp = $driver->getTeamModel()->searchTeams([
-              "term" => "searchTerm"
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $teams = json_decode($resp->getBody())->teams;
-            }
   "/api/v4/teams/name/{name}/exists":
     get:
       tags:
@@ -940,28 +670,6 @@
             Client.Login("email@domain.com", "Password1")
 
             exists, resp := Client.TeamExists("teamName", "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $resp = $driver->getTeamModel()->checkTeamExists("teamName");
-
-            if ($resp->getStatusCode() == 200) {
-                $exists = json_decode($resp->getBody())->exists;
-            }
   "/api/v4/users/{user_id}/teams":
     get:
       tags:
@@ -1007,30 +715,6 @@
             userID := "4xp9fdt77pncbef59f4k1qe83o"
 
             teams, resp := Client.GetTeamsForUser(userID, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getTeamModel()->getUserTeams($userID);
-
-            if ($resp->getStatusCode() == 200) {
-                $teams = json_decode($resp->getBody());
-            }
   "/api/v4/teams/{team_id}/members":
     get:
       tags:
@@ -1091,33 +775,6 @@
             teamID := "4xp9fdt77pncbef59f4k1qe83o"
 
             members, resp := Client.GetTeamMembers(teamID, 0, 100, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getTeamModel()->getTeamMembers($teamID, [
-              "page" => 0,
-              "per_page" => 100,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $members = json_decode($resp->getBody());
-            }
     post:
       tags:
         - teams
@@ -1174,34 +831,6 @@
             userID := "qjda3stwafbgpqjaxej3k76sga"
 
             teamMember, resp := Client.AddTeamMember(teamID, userID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
-            $userID = "qjda3stwafbgpqjaxej3k76sga";
-
-            $resp = $driver->getTeamModel()->addUser($teamID, [
-              "user_id" => $userID,
-              "team_id" => $teamID,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $teamMember = json_decode($resp->getBody());
-            }
   /api/v4/teams/members/invite:
     post:
       tags:
@@ -1248,32 +877,6 @@
             tokenID := "qjda3stwafbgpqjaxej3k76sga"
 
             tm, resp = Client.AddTeamMemberFromInvite(tokenID, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $tokenID = "qjda3stwafbgpqjaxej3k76sga";
-
-            $resp = $driver->getTeamModel()->addUserFromInvite([
-              "token" => $tokenID
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $tm = json_decode($resp->getBody());
-            }
   "/api/v4/teams/{team_id}/members/batch":
     post:
       tags:
@@ -1341,40 +944,6 @@
             userID2 := "NqCSr5HMDZjrWS74IEmedvlOYf"
 
             tm, resp := Client.AddTeamMembers(teamID, []string{userID, userID2})
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "IJyUQLwh1CO9ahbzaQwWwc0ZnV";
-
-            $userID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-            $userID2 = "NqCSr5HMDZjrWS74IEmedvlOYf";
-
-            $resp = $driver->getTeamModel()->addMultipleUsers($teamID, [
-              [
-                "user_id" => $userID,
-              ],
-              [
-                "user_id" => $userID2,
-              ],
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $tm = json_decode($resp->getBody());
-            }
   "/api/v4/users/{user_id}/teams/members":
     get:
       tags:
@@ -1423,30 +992,6 @@
             userID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             teamMembers, resp = Client.GetTeamMembersForUser(userID, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getTeamModel()->getTeamMembersForUser($userID);
-
-            if ($resp->getStatusCode() == 200) {
-                $teamMembers = json_decode($resp->getBody());
-            }
   "/api/v4/teams/{team_id}/members/{user_id}":
     get:
       tags:
@@ -1497,31 +1042,6 @@
             userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
 
             teamMember, resp = Client.GetTeamMember(teamID, userID, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
-
-            $resp = $driver->getTeamModel()->getTeamMember($teamID, $userID);
-
-            if ($resp->getStatusCode() == 200) {
-                $teamMember = json_decode($resp->getBody());
-            }
     delete:
       tags:
         - teams
@@ -1574,31 +1094,6 @@
             userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
 
             ok, resp = Client.RemoveTeamMember(teamID, userID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
-
-            $resp = $driver->getTeamModel()->removeUser($teamID, $userID);
-
-            if ($resp->getStatusCode() == 200) {
-                $ok = json_decode($resp->getBody())->status;
-            }
   "/api/v4/teams/{team_id}/members/ids":
     post:
       tags:
@@ -1660,36 +1155,6 @@
 
 
             tm, resp := Client.GetTeamMembersByIds(teamID, []string{userID, userID2})
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
-            $userID2 = "UAFalLvtKwNKABAnmwR7uGB5md";
-
-            $resp = $driver->getTeamModel()->getTeamMembersByIds($teamID, [
-              $userID,
-              $userID2,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $tm = json_decode($resp->getBody());
-            }
   "/api/v4/teams/{team_id}/stats":
     get:
       tags:
@@ -1733,30 +1198,6 @@
             teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             stats, resp := Client.GetTeamStats(teamID, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getTeamModel()->getTeamStats($teamID);
-
-            if ($resp->getStatusCode() == 200) {
-                $stats = json_decode($resp->getBody());
-            }
   "/api/v4/teams/{team_id}/regenerate_invite_id":
     post:
       tags:
@@ -1800,30 +1241,6 @@
             teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             team, resp := Client.RegenerateTeamInviteId(teamID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getTeamModel()->regenerateInviteID($teamID);
-
-            if ($resp->getStatusCode() == 200) {
-                $team = json_decode($resp->getBody());
-            }
   "/api/v4/teams/{team_id}/image":
     get:
       tags:
@@ -1871,30 +1288,6 @@
             teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             icon, resp = Client.GetTeamIcon(teamID, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getTeamModel()->getTeamIcon($teamID);
-
-            if ($resp->getStatusCode() == 200) {
-                $icon = json_decode($resp->getBody());
-            }
     post:
       tags:
         - teams
@@ -1964,41 +1357,6 @@
             teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             ok, resp := Client.SetTeamIcon(teamID, data)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-            $resource = fopen("icon.png", 'rb');
-
-            if ($resource === false) {
-              throw new \Exeption("Failure.");
-            }
-
-            $data = new \GuzzleHttp\Psr7\Stream($resource);
-
-            $resp = $driver->getTeamModel()->setTeamIcon($teamID, [
-              "image" => $data,
-            ]);
-
-            fclose($resource);
-
-            if ($resp->getStatusCode() == 200) {
-                $ok = json_decode($resp->getBody())->status;
-            }
     delete:
       tags:
         - teams
@@ -2046,30 +1404,6 @@
             teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             ok, resp = Client.RemoveTeamIcon(teamID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getTeamModel()->removeTeamIcon($teamID);
-
-            if ($resp->getStatusCode() == 200) {
-                $ok = json_decode($resp->getBody())->status;
-            }
   "/api/v4/teams/{team_id}/members/{user_id}/roles":
     put:
       tags:
@@ -2141,33 +1475,6 @@
 
 
             ok, resp := Client.UpdateTeamMemberRoles(teamID, userID, "team_user team_admin")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
-
-            $resp = $driver->getTeamModel()->updateTeamMemberRoles($teamID, $userID, [
-              "roles" => "team_user team_admin",
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $ok = json_decode($resp->getBody())->status;
-            }
   "/api/v4/teams/{team_id}/members/{user_id}/schemeRoles":
     put:
       tags:
@@ -2250,34 +1557,6 @@
               SchemeAdmin: true,
               SchemeUser:  true,
             })
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
-
-            $resp = $driver->getTeamModel()->updateSchemeDerivedRolesOfMember($teamID, $userID, [
-              "scheme_admin" => true,
-              "scheme_user" => true,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $ok = json_decode($resp->getBody())->status;
-            }
   "/api/v4/users/{user_id}/teams/unread":
     get:
       tags:
@@ -2338,33 +1617,6 @@
             teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             teams, resp := Client.GetTeamsUnreadForUser(userID, teamID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getTeamModel()->getUserTotalUnreadMessagesFromTeams($userID, [
-              "exclude_team" => $teamID,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $teams = json_decode($resp->getBody());
-            }
   "/api/v4/users/{user_id}/teams/{team_id}/unread":
     get:
       tags:
@@ -2418,31 +1670,6 @@
             teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             teamUnread, resp := Client.GetTeamUnread(userID, teamID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "NqCSr5HMDZjrWS74IEmedvlOYf";
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getTeamModel()->getUserTotalUnreadMessagesFromTeam($userID, $teamID);
-
-            if ($resp->getStatusCode() == 200) {
-                $teamUnread = json_decode($resp->getBody());
-            }
   "/api/v4/teams/{team_id}/invite/email":
     post:
       tags:
@@ -2501,33 +1728,6 @@
 
 
             ok, resp := Client.InviteUsersToTeam(teamID, []string{"test@domain.com", "test2@domain.com"})
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getTeamModel()->inviteUsersByEmail($teamID, [
-              "test@domain.com",
-              "test2@domain.com",
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $ok = json_decode($resp->getBody())->status;
-            }
   "/api/v4/teams/{team_id}/invite-guests/email":
     post:
       tags:
@@ -2608,37 +1808,6 @@
 
 
             ok, resp := Client.InviteGuestsToTeam(teamID, []string{"test@domain.com", "test2@domain.com"}, []string{channel1ID, channel2ID}, "Please join to our mattermost team to keep working in the project")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $channel1ID = "wu6wyxm9spgwtjaycjrcihnqtr";
-            $channel2ID = "ymzsgjw1tprniqtzyb7g3cmuuc";
-
-            $resp = $driver->getTeamModel()->inviteGuestsByEmail($teamID, [
-              "emails" => ["test@domain.com", "test2@domain.com"],
-              "channels" => [$channel1ID, $channel2ID],
-              "message" => "Please join to our mattermost team to keep working in the project",
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $ok = json_decode($resp->getBody())->status;
-            }
   /api/v4/teams/invites/email:
     delete:
       tags:
@@ -2674,28 +1843,6 @@
             Client.Login("email@domain.com", "Password1")
 
             ok, resp := Client.InvalidateEmailInvites()
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $resp = $driver->getTeamModel()->invalidateActiveEmailInvitations();
-
-            if ($resp->getStatusCode() == 200) {
-                $ok = json_decode($resp->getBody())->status;
-            }
   "/api/v4/teams/{team_id}/import":
     post:
       tags:
@@ -2780,43 +1927,6 @@
 
 
             fileResp, resp := Client.ImportTeam(data, binary.Size(data), "slack", "to_import.zip", teamID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-            $resource = fopen("to_import.zip", 'rb');
-
-            if ($resource === false) {
-              throw new \Exeption("Error while reading file.");
-            }
-
-            $data = new \GuzzleHttp\Psr7\Stream($resource);
-
-            $resp = $driver->getTeamModel()->importTeamFromOtherApplication($teamID, [
-              "file" => $data,
-              "filesize" => $data->getSize(),
-              "importFrom" => "slack",
-            ]);
-
-            fclose($resource);
-
-            if ($resp->getStatusCode() == 200) {
-                $fileResp = json_decode($resp->getBody())->results;
-            }
   "/api/v4/teams/invite/{invite_id}":
     get:
       tags:
@@ -2869,30 +1979,6 @@
             inviteID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             team, resp = Client.GetTeamInviteInfo(inviteID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $inviteID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getTeamModel()->getInviteInfoForTeam($inviteID);
-
-            if ($resp->getStatusCode() == 200) {
-                $team = json_decode($resp->getBody());
-            }
   "/api/v4/teams/{team_id}/scheme":
     put:
       tags:
@@ -2957,33 +2043,6 @@
             schemeID := "qjda3stwafbgpqjaxej3k76sga"
 
             ok, resp := UpdateTeamScheme(teamID, schemeID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
-            $schemeID = "qjda3stwafbgpqjaxej3k76sga";
-
-            $resp = $driver->getTeamModel()->setTeamScheme($teamID, [
-              "scheme_id" => $schemeID,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $ok = json_decode($resp->getBody())->status;
-            }
         - lang: curl
           source: >
             curl -X PUT \
@@ -3049,37 +2108,6 @@
         "403":
           $ref: "#/components/responses/Forbidden"
       x-code-samples:
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "fcnst115y3y7xmzzp5uq34u8ce";
-
-            $groupID = "eoezijg8zffgjmch8icy5bjd1e";
-            $groupID2 = "ugaw6wjc3tfxpcr1eq5u5k8dhe";
-
-            $resp = $driver->getTeamModel()->getTeamMembersMinusGroupMembers($teamID, [
-              "group_ids" => [$groupID, $groupID2],
-              "page" => 0,
-              "per_page" => 100,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $members = json_decode($resp->getBody());
-            }
         - lang: curl
           source: >
             curl

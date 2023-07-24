@@ -185,32 +185,6 @@
             }
 
             createdUser, response := Client.CreateUser(user)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $resp = $driver->getUserModel()->createUser([
-                "username" => "username",
-                "email" => "email@domain.com",
-                "password" => "Password1"
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $createdUser = json_decode($resp->getBody());
-            }
     get:
       tags:
         - users
@@ -406,68 +380,6 @@
             users = Client.GetUsersNotInTeam("teamid", 0, 60, "")
 
             users = Client.GetUsersWithoutTeam(0, 60, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            //get users
-            $resp = $driver->getUserModel()->getUsers([
-                "page" => 0,
-                "per_page" => 60,
-            ]);
-
-            //get users in channel
-            $resp = $driver->getUserModel()->getUsers([
-                "in_channel" => "channelid",
-                "page" => 0,
-                "per_page" => 60,
-            ]);
-
-            //get users not in channel
-            $resp = $driver->getUserModel()->getUsers([
-                "in_team" => "teamid",
-                "not_in_channel" => "channelid",
-                "page" => 0,
-                "per_page" => 60,
-            ]);
-
-            //get users in team
-            $resp = $driver->getUserModel()->getUsers([
-                "in_team" => "teamid",
-                "page" => 0,
-                "per_page" => 60,
-            ]);
-
-            //get users not in team
-            $resp = $driver->getUserModel()->getUsers([
-                "not_in_team" => "teamid",
-                "page" => 0,
-                "per_page" => 60,
-            ]);
-
-            //get users without team
-            $resp = $driver->getUserModel()->getUsers([
-                "without_team" => true,
-                "page" => 0,
-                "per_page" => 60,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $users = json_decode($resp->getBody());
-            }
     delete:
       tags:
         - users
@@ -633,31 +545,6 @@
 
 
             users, resp := Client.GetUsersByUsernames([]string{"username1", "username2"})
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $resp = $driver->getUserModel()->getUsersByUsernames([
-                "username1",
-                "username2",
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $users = json_decode($resp->getBody());
-            }
   /api/v4/users/search:
     post:
       tags:
@@ -763,42 +650,6 @@
               Limit:          100,
               Role:           "admin",
             })
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
-            $teamID2 = "JhMjDX9rAlCdBf0l9oyq4eGhxw";
-            $channelID = "Ej3SKOHlWIKAblkUTK5Xvkj2cm";
-            $channelID2 = "dWdfrUSdjJ7kyBvyBCgCav67Kz";
-
-            $resp = $driver->getUserModel()->searchUsers([
-                "term" => "searchTerm",
-                "team_id" => $teamID,
-                "not_in_team_id" => $teamID2,
-                "in_channel_id" => $channelID,
-                "not_in_channel_id" => $channelID2,
-                "allow_inactive" => true,
-                "without_team" => true,
-                "limit" => 100,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $users = json_decode($resp->getBody());
-            }
   /api/v4/users/autocomplete:
     get:
       tags:
@@ -872,37 +723,6 @@
 
 
             users, resp := Client.AutocompleteUsersInChannel(teamID, channelID, username, 100, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                 ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $teamID = "4xp9fdt77pncbef59f4k1qe83o";
-            $channelID = "Ej3SKOHlWIKAblkUTK5Xvkj2cm";
-            $username = "testUsername";
-
-            $resp = $driver->getUserModel()->autocompleteUsers([
-                "team_id" => $teamID,
-                "channel_id" => $channelID,
-                "name" => $username,
-                "limit" => 100,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $users = json_decode($resp->getBody());
-            }
   /api/v4/users/known:
     get:
       tags:
@@ -971,28 +791,6 @@
             Client.Login("email@domain.com", "Password1")
 
             stats, resp := Client.GetTotalUsersStats("")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                 ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $resp = $driver->getUserModel()->getTotalCountOfUsersInTheSystem();
-
-            if ($resp->getStatusCode() == 200) {
-                $stats = json_decode($resp->getBody())->total_users_count;
-            }
   /api/v4/users/stats/filtered:
     get:
       tags:
@@ -1110,30 +908,6 @@
             userID := "4xp9fdt77pncbef59f4k1qe83o"
 
             user, resp := Client.GetUser(userID, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getUserModel()->getUser($userID);
-
-            if ($resp->getStatusCode() == 200) {
-                $user = json_decode($resp->getBody());
-            }
     put:
       tags:
         - users
@@ -1235,51 +1009,6 @@
               Props:       props,
               NotifyProps: notifyProps,
             })
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "4xp9fdt77pncbef59f4k1qe83o";
-            $email = "test@domain.com";
-            $username = "testUsername";
-            $firstName = "testFirstname";
-            $lastName = "testLastname";
-            $nickname = "testNickname";
-            $locale = "en";
-            $position = "testPosition";
-            $props = [];
-            $props["testPropKey"] = "testPropValue";
-            $notifyProps = [];
-            $notifyProps["comment"] = "somethingrandom";
-
-            $resp = $driver->getUserModel()->updateUser($userID, [
-                "email" => $email,
-                "username" => $username,
-                "first_name" => $firstName,
-                "last_name" => $lastName,
-                "nickname" => $nickname,
-                "locale" => $locale,
-                "position" => $position,
-                "props" => $props,
-                "notify_props" => $notifyProps,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $user = json_decode($resp->getBody());
-            }
     delete:
       tags:
         - users
@@ -1328,30 +1057,6 @@
             userID := "4xp9fdt77pncbef59f4k1qe83o"
 
             ok, resp := Client.DeleteUser(userID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getUserModel()->deactivateUserAccount($userID);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody())->status;
-            }
   "/api/v4/users/{user_id}/patch":
     put:
       tags:
@@ -1436,51 +1141,6 @@
             patch.NotifyProps["comment"] = "somethingrandom"
 
             user, resp := Client.PatchUser(userID, patch)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "4xp9fdt77pncbef59f4k1qe83o";
-            $email = "test@domain.com";
-            $username = "testUsername";
-            $firstName = "testFirstname";
-            $lastName = "testLastname";
-            $nickname = "testNickname";
-            $locale = "en";
-            $position = "testPosition";
-            $props = [];
-            $props["testPropKey"] = "testPropValue";
-            $notifyProps = [];
-            $notifyProps["comment"] = "somethingrandom";
-
-            $resp = $driver->getUserModel()->patchUser($userID, [
-              "email" => $email,
-              "username" => $username,
-              "first_name" => $firstName,
-              "last_name" => $lastName,
-              "nickname" => $nickname,
-              "locale" => $locale,
-              "position" => $position,
-              "props" => $props,
-              "notify_props" => $notifyProps,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $user = json_decode($resp->getBody());
-            }
   "/api/v4/users/{user_id}/roles":
     put:
       tags:
@@ -1539,33 +1199,6 @@
             roles := "team_user team_admin"
 
             ok, resp = Client.UpdateUserRoles(userID, roles)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "4xp9fdt77pncbef59f4k1qe83o";
-            $roles = "team_user team_admin";
-
-            $resp = $driver->getUserModel()->updateUserRoles($userID, [
-                "roles" => $roles,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody())->status;
-            }
   "/api/v4/users/{user_id}/active":
     put:
       tags:
@@ -1626,32 +1259,6 @@
             userID := "4xp9fdt77pncbef59f4k1qe83o"
 
             ok, resp := Client.UpdateUserActive(userID, true)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getUserModel()->updateUserActive($userID, [
-                "active" => true,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody())->status;
-            }
   "/api/v4/users/{user_id}/image":
     get:
       tags:
@@ -1699,30 +1306,6 @@
             userID := "4xp9fdt77pncbef59f4k1qe83o"
 
             data, resp := Client.GetProfileImage(userID, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getUserModel()->getUserProfileImage($userID);
-
-            if ($resp->getStatusCode() == 200) {
-               $data = json_decode($resp->getBody());
-            }
     post:
       tags:
         - users
@@ -1791,41 +1374,6 @@
             userID := "4xp9fdt77pncbef59f4k1qe83o"
 
             ok, resp := Client.SetProfileImage(userID, data)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "4xp9fdt77pncbef59f4k1qe83o";
-            $resource = fopen("profile_pic.png", 'rb');
-
-            if ($resource === false) {
-              throw new \Exeption("Failure.");
-            }
-
-            $data = new \GuzzleHttp\Psr7\Stream($resource);
-
-            $resp = $driver->getUserModel()->setUserProfileImage($userID, [
-                "image" => $data,
-            ]);
-
-            fclose($resource);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody()->status;
-            }
     delete:
       tags:
         - users
@@ -1881,30 +1429,6 @@
             // Deleting user's profile image consists on resetting it to default one
 
             ok, resp := Client.SetDefaultProfileImage(userID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getUserModel()->deleteUserProfileImage($userID);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody()->status;
-            }
   "/api/v4/users/{user_id}/image/default":
     get:
       tags:
@@ -1951,30 +1475,6 @@
             userID := "4xp9fdt77pncbef59f4k1qe83o"
 
             ok, resp := Client.SetDefaultProfileImage(userID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getUserModel()->returnUserDefaultProfileImage($userID);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody();
-            }
   "/api/v4/users/username/{username}":
     get:
       tags:
@@ -2019,30 +1519,6 @@
             userID := "4xp9fdt77pncbef59f4k1qe83o"
 
             user, resp := Client.GetUserByUsername(userID, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $username = "username";
-
-            $resp = $driver->getUserModel()->getUserByUsername($username);
-
-            if ($resp->getStatusCode() == 200) {
-               $user = json_decode($resp->getBody());
-            }
   /api/v4/users/password/reset:
     post:
       tags:
@@ -2097,34 +1573,6 @@
             newPassword := "awesomePassword"
 
             success, resp = Client.ResetPassword(code, newPassword)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $code = "4xp9fdt77pncbef59f4k1qe83o";
-            $newPassword = "awesomePassword";
-
-            $resp = $driver->getUserModel()->resetPassword([
-                "code" => $code,
-                "newPassword" => $newPassword,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $success = json_decode($resp->getBody())->status;
-            }
   "/api/v4/users/{user_id}/mfa":
     put:
       tags:
@@ -2189,34 +1637,6 @@
             code := "4xp9fdt77pncbef59f4k1qe83o"
 
             ok, resp := Client.UpdateUserMfa(userID, code, true)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "BbaYBYDV5IDOZFiJGBSzkw1k5u";
-            $code = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getUserModel()->updateUserMfa($userID, [
-                "activate" => true,
-                "code" => $code,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody()->status;
-            }
   "/api/v4/users/{user_id}/mfa/generate":
     post:
       tags:
@@ -2272,30 +1692,6 @@
             userID := "BbaYBYDV5IDOZFiJGBSzkw1k5u"
 
             mfaSecret, resp = Client.GenerateMfaSecret(userID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "BbaYBYDV5IDOZFiJGBSzkw1k5u";
-
-            $resp = $driver->getUserModel()->generateMfaSecret($userID);
-
-            if ($resp->getStatusCode() == 200) {
-               $mfaSecret = json_decode($resp->getBody());
-            }
   "/api/v4/users/{user_id}/demote":
     post:
       tags:
@@ -2346,30 +1742,6 @@
             userID := "BbaYBYDV5IDOZFiJGBSzkw1k5u"
 
             ok, resp = Client.demoteUserToGuest(userID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "BbaYBYDV5IDOZFiJGBSzkw1k5u";
-
-            $resp = $driver->getUserModel()->demoteUserToGuest($userID);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody()->status;
-            }
   "/api/v4/users/{user_id}/promote":
     post:
       tags:
@@ -2420,30 +1792,6 @@
             userID := "BbaYBYDV5IDOZFiJGBSzkw1k5u"
 
             ok, resp = Client.PromoteGuestToUser(userID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "BbaYBYDV5IDOZFiJGBSzkw1k5u";
-
-            $resp = $driver->getUserModel()->promoteGuestToUser($userID);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody()->status;
-            }
   "/api/v4/users/{user_id}/convert_to_bot":
     post:
       tags:
@@ -2539,32 +1887,6 @@
             loginID := "test@domain.com"
 
             required, resp := Client.CheckUserMfa(loginID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $loginID = "test@domain.com";
-
-            $resp = $driver->getUserModel()->checkMfa([
-                "login_id" => $loginID,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $required = json_decode($resp->getBody())->mfa_required;
-            }
   "/api/v4/users/{user_id}/password":
     put:
       tags:
@@ -2633,35 +1955,6 @@
 
 
             ok, resp := Client.UpdateUserPassword(userID, currentPassword, newPassword)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "BbaYBYDV5IDOZFiJGBSzkw1k5u";
-            $currentPassword = "badPassword";
-            $newPassword = "awesomePassword";
-
-            $resp = $driver->getUserModel()->updateUserPassword($userID, [
-                "current_password" => $currentPassword,
-                "new_password" => $newPassword,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody())->status;
-            }
   /api/v4/users/password/reset/send:
     post:
       tags:
@@ -2711,32 +2004,6 @@
             email := "test@domain.com"
 
             pass, resp := Client.SendVerificationEmail(email)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $email = "test@domain.com";
-
-            $resp = $driver->getUserModel()->sendPasswordResetEmail([
-                "email" => $email,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $pass = json_decode($resp->getBody())->status;
-            }
   "/api/v4/users/email/{email}":
     get:
       tags:
@@ -2783,30 +2050,6 @@
             email := "test@domain.com"
 
             user, resp := Client.GetUserByEmail(email, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $email = "test@domain.com";
-
-            $resp = $driver->getUserModel()->getUserByEmail($email);
-
-            if ($resp->getStatusCode() == 200) {
-               $user = json_decode($resp->getBody());
-            }
   "/api/v4/users/{user_id}/sessions":
     get:
       tags:
@@ -2853,30 +2096,6 @@
             userID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             sessions, resp := Client.GetSessions(userID, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getUserModel()->getUserSessions($userID);
-
-            if ($resp->getStatusCode() == 200) {
-               $sessions = json_decode($resp->getBody());
-            }
   "/api/v4/users/{user_id}/sessions/revoke":
     post:
       tags:
@@ -2933,33 +2152,6 @@
             sessionID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
 
             ok, resp = Client.RevokeSession(userID, sessionID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-            $sessionID = "adWv1qPZmHdtxk7Lmqh6RtxWxS";
-
-            $resp = $driver->getUserModel()->revokeUserSession($userID, [
-                "session_id" => $sessionID,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody())->status;
-            }
   "/api/v4/users/{user_id}/sessions/revoke/all":
     post:
       tags:
@@ -3006,30 +2198,6 @@
             userID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             ok, resp := Client.RevokeAllSessions(userID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getUserModel()->revokeAllUserSessions($userID);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody())->status;
-            }
   /api/v4/users/sessions/device:
     put:
       tags:
@@ -3078,32 +2246,6 @@
             deviceID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             pass, resp := Client.AttachDeviceId(deviceID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $deviceID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getUserModel()->attachMobileDevice([
-                "device_id" => $deviceID,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $pass = json_decode($resp->getBody())->status;
-            }
   "/api/v4/users/{user_id}/audits":
     get:
       tags:
@@ -3147,30 +2289,6 @@
             userID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             audits, resp := Client.GetUserAudits(userID, 0, 100, "")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getUserModel()->getUserAudits($userID);
-
-            if ($resp->getStatusCode() == 200) {
-               $audits = json_decode($resp->getBody());
-            }
   "/api/v4/users/{user_id}/email/verify/member":
     post:
       tags:
@@ -3257,32 +2375,6 @@
             token := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             ok, resp := Client.VerifyUserEmail(token)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $token = "zWEyrTZ7GZ22aBSfoX60iWryTY";
-
-            $resp = $driver->getUserModel()->verifyUserEmail([
-                "token" => $token,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody())->status;
-            }
   /api/v4/users/email/verify/send:
     post:
       tags:
@@ -3328,32 +2420,6 @@
             email := "test@domain.com"
 
             pass, resp := Client.SendVerificationEmail(email)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $email = "test@domain.com";
-
-            $resp = $driver->getUserModel()->sendVerificationEmail([
-                "email" => $email,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $pass = json_decode($resp->getBody())->status;
-            }
   /api/v4/users/login/switch:
     post:
       tags:
@@ -3459,42 +2525,6 @@
               MfaCode:        mfaCode,
               LdapLoginId:    ldapLoginID,
             })
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $currentService = "email";
-            $newService = "gitlab";
-            $email = "test@domain.com";
-            $password = "awesomePassword";
-            $mfaCode = "adWv1qPZmHdtxk7Lmqh6RtxWxS";
-            $ldapLoginID = "RdDjEDlkWgt7ndjyVLwWGvnX8c";
-
-            $resp = $driver->getUserModel()->switchLoginMethod([
-                "current_service" => $currentService,
-                "new_service" => $newService,
-                "email" => $email,
-                "password" => $password,
-                "mfa_code" => $mfaCode,
-                "ldap_id" => $ldapLoginID,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $link = json_decode($resp->getBody())->follow_link;
-            }
   "/api/v4/users/{user_id}/tokens":
     post:
       tags:
@@ -3559,32 +2589,6 @@
 
 
             userAccessToken, resp := Client.CreateUserAccessToken(userID, "test token")
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "adWv1qPZmHdtxk7Lmqh6RtxWxS";
-
-            $resp = $driver->getUserModel()->createToken($userID, [
-                "description" => "test token",
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $userAccessToken = json_decode($resp->getBody());
-            }
     get:
       tags:
         - users
@@ -3646,33 +2650,6 @@
             userID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
 
             tokens, resp := Client.GetUserAccessTokensForUser(userID, 0, 100)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "adWv1qPZmHdtxk7Lmqh6RtxWxS";
-
-            $resp = $driver->getUserModel()->getTokens($userID, [
-                "page" => 0,
-                "per_page" => 100,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $tokens = json_decode($resp->getBody());
-            }
   /api/v4/users/tokens:
     get:
       tags:
@@ -3780,32 +2757,6 @@
             tokenID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
 
             ok, resp := Client.RevokeUserAccessToken(tokenID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $tokenID = "adWv1qPZmHdtxk7Lmqh6RtxWxS";
-
-            $resp = $driver->getUserModel()->revokeToken([
-                "token_id" => $tokenID,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody())->status;
-            }
   "/api/v4/users/tokens/{token_id}":
     get:
       tags:
@@ -3856,30 +2807,6 @@
             tokenID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
 
             token, resp := Client.GetUserAccessToken(tokenID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $tokenID = "adWv1qPZmHdtxk7Lmqh6RtxWxS";
-
-            $resp = $driver->getUserModel()->getToken($tokenID);
-
-            if ($resp->getStatusCode() == 200) {
-               $token = json_decode($resp->getBody());
-            }
   /api/v4/users/tokens/disable:
     post:
       tags:
@@ -3933,32 +2860,6 @@
             tokenID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
 
             ok, resp := Client.DisableUserAccessToken(tokenID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $tokenID = "adWv1qPZmHdtxk7Lmqh6RtxWxS";
-
-            $resp = $driver->getUserModel()->disablePersonalAccessToken([
-                "token_id" => $tokenID
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody())->status;
-            }
   /api/v4/users/tokens/enable:
     post:
       tags:
@@ -4011,32 +2912,6 @@
             tokenID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
 
             ok, resp := Client.EnableUserAccessToken(tokenID)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $tokenID = "adWv1qPZmHdtxk7Lmqh6RtxWxS";
-
-            $resp = $driver->getUserModel()->enablePersonalAccessToken([
-                "token_id" => $tokenID
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $ok = json_decode($resp->getBody())->status;
-            }
   /api/v4/users/tokens/search:
     post:
       tags:
@@ -4092,32 +2967,6 @@
 
 
             userAccessTokens, resp = Client.SearchUserAccessTokens(&model.UserAccessTokenSearch{Term: tokenID})
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $tokenID = "adWv1qPZmHdtxk7Lmqh6RtxWxS";
-
-            $resp = $driver->getUserModel()->searchTokens([
-                "term" => $tokenID
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-               $userAccessTokens = json_decode($resp->getBody());
-            }
   "/api/v4/users/{user_id}/auth":
     put:
       tags:
@@ -4177,41 +3026,6 @@
             userAuth.AuthService = user.AuthService
 
             user, resp := Client.UpdateUserAuth(userID, userAuth)
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                  ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $userID = "adWv1qPZmHdtxk7Lmqh6RtxWxS";
-            $resp = $driver->getUserModel()->getUser($userID);
-
-            if ($resp->getStatusCode() == 200) {
-                $user = json_decode($resp->getBody());
-            } else {
-                throw new \Exception("User not found.");
-            }
-
-            $userAuth = [];
-            $userAuth["auth_data"] = $user->auth_data;
-            $userAuth["auth_service"] = $user->auth_service;
-
-            $resp = $driver->getUserModel()->updateUserAuthenticationMethod($userID, $userAuth);
-
-            if ($resp->getStatusCode() == 200) {
-               $user = json_decode($resp->getBody());
-            }
   "/api/v4/users/{user_id}/terms_of_service":
     post:
       tags:
