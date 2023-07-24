@@ -1243,56 +1243,6 @@ export function actionsToMarkChannelAsRead(getState: GetStateFunc, channelId: st
     return actions;
 }
 
-// Increments the number of posts in the channel by 1 and marks it as unread if necessary
-export function markChannelAsUnread(teamId: string, channelId: string, mentions: string[], fetchedChannelMember = false, isRoot = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState();
-        const {myMembers} = state.entities.channels;
-        const {currentUserId} = state.entities.users;
-
-        const actions: AnyAction[] = [{
-            type: ChannelTypes.INCREMENT_UNREAD_MSG_COUNT,
-            data: {
-                teamId,
-                channelId,
-                amount: 1,
-                amountRoot: isRoot ? 1 : 0,
-                onlyMentions: myMembers[channelId] && myMembers[channelId].notify_props &&
-                    myMembers[channelId].notify_props.mark_unread === MarkUnread.MENTION,
-                fetchedChannelMember,
-            },
-        }];
-
-        if (!fetchedChannelMember) {
-            actions.push({
-                type: ChannelTypes.INCREMENT_TOTAL_MSG_COUNT,
-                data: {
-                    channelId,
-                    amountRoot: isRoot ? 1 : 0,
-                    amount: 1,
-                },
-            });
-        }
-
-        if (mentions && mentions.indexOf(currentUserId) !== -1) {
-            actions.push({
-                type: ChannelTypes.INCREMENT_UNREAD_MENTION_COUNT,
-                data: {
-                    teamId,
-                    channelId,
-                    amountRoot: isRoot ? 1 : 0,
-                    amount: 1,
-                    fetchedChannelMember,
-                },
-            });
-        }
-
-        dispatch(batchActions(actions));
-
-        return {data: true};
-    };
-}
-
 export function actionsToMarkChannelAsUnread(getState: GetStateFunc, teamId: string, channelId: string, mentions: string[], fetchedChannelMember = false, isRoot = false, priority = '') {
     const state = getState();
     const {myMembers} = state.entities.channels;
@@ -1518,7 +1468,6 @@ export default {
     updateChannelHeader,
     updateChannelPurpose,
     markChannelAsRead,
-    markChannelAsUnread,
     favoriteChannel,
     unfavoriteChannel,
     membersMinusGroupMembers,
