@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {AdminConfig} from '@mattermost/types/config';
+
 import {recycleDatabaseConnection, ping} from 'actions/admin_actions';
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
@@ -18,7 +20,6 @@ import TextSetting from './text_setting';
 
 import MigrationsTable from './database';
 import {DocLinks} from 'utils/constants';
-import {AdminConfig} from '@mattermost/types/config';
 
 interface Props {
     license: {
@@ -27,7 +28,7 @@ interface Props {
     isDisabled: boolean;
 }
 
-interface ComponentState extends BaseState {
+interface State extends BaseState {
     searchBackend: string;
     maxIdleConns: number;
     maxOpenConns: number;
@@ -41,7 +42,7 @@ interface ComponentState extends BaseState {
     driverName: string;
 }
 
-export default class DatabaseSettings extends AdminSettings<Props, ComponentState> {
+export default class DatabaseSettings extends AdminSettings<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -59,8 +60,8 @@ export default class DatabaseSettings extends AdminSettings<Props, ComponentStat
         config.SqlSettings.Trace = this.state.trace;
         config.SqlSettings.DisableDatabaseSearch = this.state.disableDatabaseSearch;
         config.SqlSettings.QueryTimeout = this.parseIntNonZero(this.state.queryTimeout);
-        config.SqlSettings.ConnMaxLifetimeMilliseconds = this.parseIntNonZero(this.state.connMaxLifetimeMilliseconds);
-        config.SqlSettings.ConnMaxIdleTimeMilliseconds = this.parseIntNonZero(this.state.connMaxIdleTimeMilliseconds);
+        config.SqlSettings.ConnMaxLifetimeMilliseconds = this.parseIntNonNegative(this.state.connMaxLifetimeMilliseconds);
+        config.SqlSettings.ConnMaxIdleTimeMilliseconds = this.parseIntNonNegative(this.state.connMaxIdleTimeMilliseconds);
         config.ServiceSettings.MinimumHashtagLength = this.parseIntNonZero(this.state.minimumHashtagLength, 3, 2);
 
         return config;

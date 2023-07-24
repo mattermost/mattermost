@@ -160,8 +160,8 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         return n;
     };
 
-    public parseIntNonNegative = (str: string, defaultValue?: number) => {
-        const n = parseInt(str, 10);
+    protected parseIntNonNegative = (str: string | number, defaultValue?: number) => {
+        const n = typeof str === 'string' ? parseInt(str, 10) : str;
 
         if (isNaN(n) || n < 0) {
             if (defaultValue) {
