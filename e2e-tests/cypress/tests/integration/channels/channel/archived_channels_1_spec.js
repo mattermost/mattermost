@@ -16,6 +16,7 @@ describe('Leave an archived channel', () => {
     let testTeam;
     let offTopicUrl;
     const channelType = {
+        all: 'Channel Type: All',
         public: 'Channel Type: Public',
         archived: 'Channel Type: Archived',
     };
@@ -100,10 +101,10 @@ describe('Leave an archived channel', () => {
             // # More channels modal opens
             cy.get('#browseChannelsModal').should('be.visible').within(() => {
                 // # Click on dropdown
-                cy.findByText(channelType.public).should('be.visible').click();
+                cy.findByText(channelType.all).should('be.visible').click();
 
                 // # Click archived channels
-                cy.findByText('Archived Channels').click();
+                cy.findByText('Archived channels').click();
 
                 // # Modal should contain created channel
                 cy.get('#moreChannelsList').should('contain', channel.display_name);
@@ -147,11 +148,11 @@ describe('Leave an archived channel', () => {
 
         // # More channels modal opens
         cy.get('#browseChannelsModal').should('be.visible').within(() => {
-            // # Public channel list opens by default
-            cy.findByText(channelType.public).should('be.visible').click();
+            // # All channel list opens by default
+            cy.findByText(channelType.all).should('be.visible').click();
 
             // # Click on archived channels
-            cy.findByText('Archived Channels').click();
+            cy.findByText('Archived channels').click();
 
             // # Channel list should contain newly created channels
             cy.get('#moreChannelsList').should('contain', archivedPrivateChannel.name);
@@ -200,11 +201,11 @@ describe('Leave an archived channel', () => {
 
         // # More channels modal opens
         cy.get('#browseChannelsModal').should('be.visible').within(() => {
-            // # Public channels are shown by default
-            cy.findByText(channelType.public).should('be.visible').click();
+            // # All channels are shown by default
+            cy.findByText(channelType.all).should('be.visible').click();
 
             // # Go to archived channels
-            cy.findByText('Archived Channels').click();
+            cy.findByText('Archived channels').click();
 
             // # Channel list should contain both archived public channels
             cy.get('#moreChannelsList').should('contain', archivedPublicChannel1.display_name);
@@ -254,11 +255,11 @@ describe('Leave an archived channel', () => {
 
         // # More channels modal opens
         cy.get('#browseChannelsModal').should('be.visible').within(() => {
-            // # Show public channels is visible by default
-            cy.findByText(channelType.public).should('be.visible').click();
+            // # Show all channels is visible by default
+            cy.findByText(channelType.all).should('be.visible').click();
 
             // # Go to archived channels
-            cy.findByText('Archived Channels').click();
+            cy.findByText('Archived channels').click();
 
             // # Channel list should contain only the private channel user is a member of
             cy.get('#moreChannelsList').should('contain', archivedPrivateChannel1.name);
@@ -287,12 +288,12 @@ describe('Leave an archived channel', () => {
         // # Click on browse channels
         cy.get('#showMoreChannels').click();
 
-        // # More channels modal opens and lands on public channels
+        // # More channels modal opens and lands on all channels
         cy.get('#browseChannelsModal').should('be.visible').within(() => {
-            cy.findByText(channelType.public).should('be.visible').click();
+            cy.findByText(channelType.all).should('be.visible').click();
 
             // # Go to archived channels
-            cy.findByText('Archived Channels').click();
+            cy.findByText('Archived channels').click();
 
             // # More channels list should contain the archived channel
             cy.get('#moreChannelsList').should('contain', archivedChannel.display_name);
@@ -323,7 +324,8 @@ describe('Leave an archived channel', () => {
             cy.get('#showMoreChannels').click();
 
             // # Modal should not contain the created channel
-            cy.get('#channelsMoreDropdown').should('not.exist');
+            cy.findByText(channelType.all).should('be.visible').click();
+            cy.findByText('Archived channels').should('not.exist');
             cy.get('#moreChannelsList').should('not.contain', channel.name);
         });
         cy.get('body').typeWithForce('{esc}');

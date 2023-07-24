@@ -15,6 +15,7 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {createPrivateChannel} from '../enterprise/elasticsearch_autocomplete/helpers';
 
 const channelType = {
+    all: 'Channel Type: All',
     public: 'Channel Type: Public',
     archived: 'Channel Type: Archived',
 };
@@ -69,8 +70,8 @@ describe('Channels', () => {
         cy.uiBrowseOrCreateChannel('Browse channels').click();
 
         cy.get('#browseChannelsModal').should('be.visible').within(() => {
-            // * Dropdown should be visible, defaulting to "Public Channels"
-            cy.get('#channelsMoreDropdown').should('be.visible').and('contain', channelType.public).wait(TIMEOUTS.HALF_SEC);
+            // * Dropdown should be visible, defaulting to "All Channels"
+            cy.get('#channelsMoreDropdown').should('be.visible').and('contain', channelType.all).wait(TIMEOUTS.HALF_SEC);
 
             cy.get('#searchChannelsTextbox').should('be.visible').type(testChannel.display_name).wait(TIMEOUTS.HALF_SEC);
             cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 1).within(() => {
@@ -177,7 +178,7 @@ describe('Channels', () => {
         });
     });
 
-    it('MM-T1702 Search works when changing public/archived options in the dropdown', () => {
+    it('MM-T1702 Search works when changing public/all options in the dropdown', () => {
         cy.apiAdminLogin();
         cy.apiUpdateConfig({
             TeamSettings: {
@@ -231,22 +232,23 @@ describe('Channels', () => {
         // # Go to LHS and click 'Browse channels'
         cy.uiBrowseOrCreateChannel('Browse channels').click();
 
-        // * Dropdown should be visible, defaulting to "Public Channels"
+        // * Dropdown should be visible, defaulting to "All channels"
         cy.get('#channelsMoreDropdown').should('be.visible').within((el) => {
-            cy.wrap(el).should('contain', channelType.public);
+            cy.wrap(el).should('contain', channelType.all);
         });
 
         // * Users should be able to type and search
         cy.get('#searchChannelsTextbox').should('be.visible').type('iv').wait(TIMEOUTS.HALF_SEC);
-        cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 1).within(() => {
+        cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 2)
+        cy.get('#moreChannelsList').should('be.visible').within(() => {
             cy.findByText(newChannel.display_name).should('be.visible');
         });
 
         cy.get('#browseChannelsModal').should('be.visible').within(() => {
             // * Users should be able to switch to "Archived Channels" list
-            cy.get('#channelsMoreDropdown').should('be.visible').and('contain', channelType.public).click().within((el) => {
+            cy.get('#channelsMoreDropdown').should('be.visible').and('contain', channelType.all).click().within((el) => {
                 // # Click on archived channels item
-                cy.findByText('Archived Channels').should('be.visible').click();
+                cy.findByText('Archived channels').should('be.visible').click();
 
                 // * Modal should show the archived channels list
                 cy.wrap(el).should('contain', channelType.archived);
@@ -287,9 +289,10 @@ function verifyBrowseChannelsModal(isEnabled) {
     // * Verify that the browse channels modal is open and with or without option to view archived channels
     cy.get('#browseChannelsModal').should('be.visible').within(() => {
         if (isEnabled) {
-            cy.get('#channelsMoreDropdown').should('be.visible').and('have.text', channelType.public);
+            cy.get('#channelsMoreDropdown').should('be.visible').and('have.text', channelType.all);
         } else {
-            cy.get('#channelsMoreDropdown').should('not.exist');
+            cy.get('#channelsMoreDropdown').click();
+            cy.findByText('Archived channels').should('not.exist');
         }
     });
 }
