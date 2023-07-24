@@ -223,6 +223,7 @@ var SystemEmojis = map[string]string{
 "palms_up_together": "1f932",
 "handshake": "1f91d",
 "pray": "1f64f",
+"thanks": "1f64f",
 "thank you": "1f64f",
 "writing_hand": "270d-fe0f",
 "nail_care": "1f485",
