@@ -25,6 +25,10 @@ jobs:
       BUILD_IMAGE: mattermost/mattermost-build-server:20230118_golang-1.19.5
     steps:
       - name: Test secret
-        run: |
-            echo "Counting characters in ${{ secrets.MM_COMMUNITY_DEVELOPERS_INCOMING_WEBHOOK_FROM_GH_ACTIONS }}"
-            echo -n ${{ secrets.MM_COMMUNITY_DEVELOPERS_INCOMING_WEBHOOK_FROM_GH_ACTIONS }} | wc -c
+        run: >
+          curl
+            --fail
+            -X POST
+            -H "Content-Type: application/json"
+            -d "{\"text\":\"Test, please ignore.\"}"
+            ${{ secrets.MM_COMMUNITY_DEVELOPERS_INCOMING_WEBHOOK_FROM_GH_ACTIONS }}
