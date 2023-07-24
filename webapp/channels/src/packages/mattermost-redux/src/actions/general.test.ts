@@ -10,10 +10,6 @@ import {Client4} from 'mattermost-redux/client';
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import {FormattedError} from './helpers';
-
 const OK_RESPONSE = {status: 'OK'};
 
 describe('Actions.General', () => {

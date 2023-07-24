@@ -14,7 +14,7 @@ import {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/act
 
 import {logError} from './errors';
 import {loadRolesIfNeeded} from './roles';
-import {bindClientFunc, forceLogoutIfNecessary, FormattedError} from './helpers';
+import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 export function getClientConfig(): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
