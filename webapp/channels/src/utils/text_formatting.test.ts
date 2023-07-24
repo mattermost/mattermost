@@ -12,6 +12,7 @@ import {
     autolinkAtMentions,
     highlightSearchTerms,
     handleUnicodeEmoji,
+    highlightCurrentMentions,
     parseSearchTerms, autolinkChannelMentions, ChannelNamesMap,
 } from 'utils/text_formatting';
 import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
@@ -279,6 +280,26 @@ describe('linkOnlyMarkdown', () => {
         expect(output).toBe(
             'Do you like <a class="theme markdown__link" href="https://www.mattermost.com" target="_blank">' +
             'Mattermost</a>?');
+    });
+});
+
+describe('highlightCurrentMentions', () => {
+    const tokens = new Map();
+    const mentionKeys = [
+        {key: '메터모스트'}, // Korean word
+        {key: 'マッターモスト'}, // Japanese word
+        {key: 'маттермост'}, // Russian word
+        {key: 'Mattermost'}, // Latin word
+    ];
+
+    it('should find and match Korean, Japanese, latin and Russian words', () => {
+        const text = '메터모스트, notinkeys, マッターモスト, маттермост!, Mattermost, notinkeys';
+        const highlightedText = highlightCurrentMentions(text, tokens, mentionKeys);
+
+        const expectedOutput = '$MM_SELFMENTION0$, notinkeys, $MM_SELFMENTION1$, $MM_SELFMENTION2$!, $MM_SELFMENTION3$, notinkeys';
+
+        // note that the string output $MM_SELFMENTION{idx} will be used by doFormatText to add the highlight later in the format process
+        expect(highlightedText).toContain(expectedOutput);
     });
 });
 

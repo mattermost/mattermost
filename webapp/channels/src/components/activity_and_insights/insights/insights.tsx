@@ -42,13 +42,11 @@ const Insights = () => {
     const dispatch = useDispatch();
     const products = useProducts();
 
-    let focalboardEnabled = false;
+    const focalboardEnabled = false;
     let playbooksEnabled = false;
     if (products) {
         products.forEach((product) => {
-            if (product.pluginId === suitePluginIds.boards) {
-                focalboardEnabled = true;
-            } else if (product.pluginId === suitePluginIds.playbooks) {
+            if (product.pluginId === suitePluginIds.playbooks) {
                 playbooksEnabled = true;
             }
         });

@@ -145,7 +145,7 @@ const HeaderIconWrapper = (props: Props) => {
         ariaLabelText = `${localizeMessage(toolTips[tooltipKey].messageID, toolTips[tooltipKey].message)}`;
     }
 
-    const boardsEnabled = pluginId === suitePluginIds.focalboard || pluginId === suitePluginIds.boards;
+    const boardsEnabled = pluginId === suitePluginIds.focalboard;
 
     if (tooltip) {
         return (
