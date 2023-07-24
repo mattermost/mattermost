@@ -43,8 +43,6 @@ type FeatureFlags struct {
 
 	InsightsEnabled bool
 
-	CommandPalette bool
-
 	PostPriority bool
 
 	// Enable WYSIWYG text editor
@@ -74,7 +72,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.NormalizeLdapDNs = false
 	f.GraphQL = false
 	f.InsightsEnabled = false
-	f.CommandPalette = false
 	f.CallsEnabled = true
 	f.PeopleProduct = false
 	f.DeprecateCloudFree = false

@@ -18,13 +18,18 @@ describe('components/MarkdownImage', () => {
             format: 'png',
             height: 90,
             width: 1041,
-            frame_count: 0,
+            frameCount: 0,
         },
         alt: 'test image',
+        height: '',
+        width: '',
+        title: 'test title',
         className: 'markdown-inline-img',
         postId: 'post_id',
         imageIsLink: false,
         onImageLoaded: jest.fn(),
+        onImageHeightChanged: jest.fn(),
+        postType: 'system_generic',
         actions: {
             openModal: jest.fn(),
         },
@@ -40,7 +45,14 @@ describe('components/MarkdownImage', () => {
     });
 
     test('should match snapshot for broken link', () => {
-        const props = {...baseProps, imageMetadata: {}, src: 'brokenLink'};
+        const props = {...baseProps,
+            imageMetadata: {
+                format: 'png',
+                height: 10,
+                width: 10,
+                frameCount: 0,
+            },
+            src: 'brokenLink'};
         const wrapper = shallow(
             <MarkdownImage {...props}/>,
         );
@@ -49,20 +61,36 @@ describe('components/MarkdownImage', () => {
     });
 
     test('should handle load failure properly', () => {
-        const props = {...baseProps, imageMetadata: {}, src: 'brokenLink'};
+        const props = {...baseProps,
+            imageMetadata: {
+                format: 'png',
+                height: 10,
+                width: 10,
+                frameCount: 0,
+
+            },
+            src: 'brokenLink'};
         const wrapper = shallow(
             <MarkdownImage {...props}/>,
         );
 
         expect(wrapper.state('loadFailed')).toBe(false);
 
-        wrapper.instance().handleLoadFail();
+        (wrapper.instance() as MarkdownImage).handleLoadFail();
 
         expect(wrapper.state('loadFailed')).toBe(true);
     });
 
     test('should reset loadFailed state after image source is updated', () => {
-        const props = {...baseProps, imageMetadata: {}, src: 'brokenLink'};
+        const props = {...baseProps,
+            imageMetadata: {
+                format: 'png',
+                height: 10,
+                width: 10,
+                frameCount: 0,
+
+            },
+            src: 'brokenLink'};
         const nextProps = {...baseProps, src: 'https://example.com/image.png'};
         const wrapper = shallow(
             <MarkdownImage {...props}/>,
@@ -133,7 +161,7 @@ describe('components/MarkdownImage', () => {
 
         expect(wrapper.state('loaded')).toBe(false);
 
-        wrapper.instance().handleImageLoaded(dimensions);
+        (wrapper.instance() as MarkdownImage).handleImageLoaded(dimensions);
 
         expect(wrapper.state('loaded')).toBe(true);
 
@@ -143,7 +171,7 @@ describe('components/MarkdownImage', () => {
 
     it('should match snapshot for SizeAwareImage dimensions', () => {
         const props = {...baseProps,
-            imageMetadata: {format: 'jpg', frame_count: 0, width: 100, height: 90},
+            imageMetadata: {format: 'jpg', frameCount: 0, width: 100, height: 90},
             src: 'path/image',
         };
         const wrapper = shallow(
@@ -198,8 +226,10 @@ describe('components/MarkdownImage', () => {
         const wrapper = shallow(
             <MarkdownImage {...props}/>,
         );
-
-        wrapper.instance().showModal({preventDefault: () => {}}, 'https://example.com/image.png');
+        const mockEvent = {
+            preventDefault: () => {},
+        };
+        (wrapper.instance() as MarkdownImage).showModal(mockEvent as unknown as React.MouseEvent<HTMLImageElement>, 'https://example.com/image.png');
         expect(props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
@@ -281,7 +311,7 @@ describe('components/MarkdownImage', () => {
 
     test('should provide image src as an alt text for MarkdownImageExpand if image has no own alt text', () => {
         const props = {
-            alt: null,
+            alt: '',
             title: 'test title',
             className: 'markdown-inline-img',
             postId: 'post_id',
