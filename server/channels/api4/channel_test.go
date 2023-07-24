@@ -4470,6 +4470,74 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 	})
 }
 
+func TestGetChannelsMemberCount(t *testing.T) {
+	// Setup
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	client := th.Client
+
+	channel1 := th.CreatePublicChannel()
+	channel2 := th.CreatePublicChannel()
+
+	user1 := th.CreateUser()
+	user2 := th.CreateUser()
+	user3 := th.CreateUser()
+
+	th.LinkUserToTeam(user1, th.BasicTeam)
+	th.LinkUserToTeam(user2, th.BasicTeam)
+	th.LinkUserToTeam(user3, th.BasicTeam)
+
+	th.AddUserToChannel(user1, channel1)
+	th.AddUserToChannel(user2, channel1)
+	th.AddUserToChannel(user3, channel1)
+	th.AddUserToChannel(user2, channel2)
+
+	t.Run("Should return correct member count", func(t *testing.T) {
+		// Create a request with channel IDs
+		channelIDs := []string{channel1.Id, channel2.Id}
+		channelsMemberCount, _, err := client.GetChannelsMemberCount(context.Background(), channelIDs)
+		require.NoError(t, err)
+
+		// Verify the member counts
+		require.Contains(t, channelsMemberCount, channel1.Id)
+		require.Contains(t, channelsMemberCount, channel2.Id)
+		require.Equal(t, int64(4), channelsMemberCount[channel1.Id])
+		require.Equal(t, int64(2), channelsMemberCount[channel2.Id])
+	})
+
+	t.Run("Should return empty object when empty array is passed", func(t *testing.T) {
+		channelsMemberCount, _, err := client.GetChannelsMemberCount(context.Background(), []string{})
+		require.NoError(t, err)
+		require.Equal(t, 0, len(channelsMemberCount))
+	})
+
+	t.Run("Should fail due to permissions", func(t *testing.T) {
+		_, resp, err := client.GetChannelsMemberCount(context.Background(), []string{"junk"})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("Should fail due to expired session when logged out", func(t *testing.T) {
+		client.Logout(context.Background())
+		channelIDs := []string{channel1.Id, channel2.Id}
+		_, resp, err := client.GetChannelsMemberCount(context.Background(), channelIDs)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+		CheckErrorID(t, err, "api.context.session_expired.app_error")
+	})
+
+	t.Run("Should fail due to expired session when logged out", func(t *testing.T) {
+		th.LoginBasic2()
+		channelIDs := []string{channel1.Id, channel2.Id}
+		_, resp, err := client.GetChannelsMemberCount(context.Background(), channelIDs)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+}
+
 func TestMoveChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

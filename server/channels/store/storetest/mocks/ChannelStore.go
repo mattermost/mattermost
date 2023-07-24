@@ -910,6 +910,32 @@ func (_m *ChannelStore) GetChannelsByUser(userID string, includeDeleted bool, la
 	return r0, r1
 }
 
+// GetChannelsMemberCount provides a mock function with given fields: channelIDs
+func (_m *ChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]int64, error) {
+	ret := _m.Called(channelIDs)
+
+	var r0 map[string]int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string) (map[string]int64, error)); ok {
+		return rf(channelIDs)
+	}
+	if rf, ok := ret.Get(0).(func([]string) map[string]int64); ok {
+		r0 = rf(channelIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]int64)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(channelIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChannelsWithCursor provides a mock function with given fields: teamId, userId, opts, afterChannelID
 func (_m *ChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error) {
 	ret := _m.Called(teamId, userId, opts, afterChannelID)

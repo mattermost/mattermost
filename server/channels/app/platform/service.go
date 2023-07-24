@@ -43,7 +43,8 @@ type PlatformService struct {
 
 	configStore *config.Store
 
-	filestore filestore.FileBackend
+	filestore       filestore.FileBackend
+	exportFilestore filestore.FileBackend
 
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
@@ -245,6 +246,18 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		}
 
 		ps.filestore = backend
+	}
+
+	if ps.exportFilestore == nil {
+		ps.exportFilestore = ps.filestore
+		if *ps.Config().FileSettings.DedicatedExportStore {
+			backend, errFileBack := filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, false))
+			if errFileBack != nil {
+				return nil, fmt.Errorf("failed to initialize export filebackend: %w", errFileBack)
+			}
+
+			ps.exportFilestore = backend
+		}
 	}
 
 	var err error
@@ -489,4 +502,8 @@ func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.App
 
 func (ps *PlatformService) FileBackend() filestore.FileBackend {
 	return ps.filestore
+}
+
+func (ps *PlatformService) ExportFileBackend() filestore.FileBackend {
+	return ps.exportFilestore
 }

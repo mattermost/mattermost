@@ -53,8 +53,12 @@ describe('more public channels', () => {
 
         // * Assert that the moreChannelsModel is visible
         cy.findByRole('dialog', {name: 'Browse Channels'}).should('be.visible').within(() => {
-            // # Click hide joined checkbox
-            cy.findByText('Hide Joined').should('be.visible').click();
+            // # Click hide joined checkbox if not already checked
+            cy.findByText('Hide Joined').should('be.visible').then(($checkbox) => {
+                if (!$checkbox.prop('checked')) {
+                    cy.wrap($checkbox).click();
+                }
+            });
 
             // * Assert that the moreChannelsList is visible and the number of channels is 31
             cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 31);

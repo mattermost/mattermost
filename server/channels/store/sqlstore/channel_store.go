@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -777,12 +778,7 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
-			dupChannel := model.Channel{}
-			s.GetReplicaX().Get(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]any{"TeamId": channel.TeamId, "Name": channel.Name})
-			if dupChannel.DeleteAt > 0 {
-				return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
-			}
-			return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
+			return nil, store.NewErrInvalidInput("Channel", "Name", channel.Name)
 		}
 		return nil, errors.Wrapf(err, "failed to update channel with id=%s", channel.Id)
 	}
@@ -1547,16 +1543,14 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Channels").
-		Where(sq.Eq{"Name": name})
-
-	if !includeDeleted {
-		query = query.Where(sq.Eq{"DeleteAt": 0})
-	}
-	if teamId != "" {
-		query = query.Where(sq.Or{
+		Where(sq.Eq{"Name": name}).
+		Where(sq.Or{
 			sq.Eq{"TeamId": teamId},
 			sq.Eq{"TeamId": ""},
 		})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
 	}
 	channel := model.Channel{}
 
@@ -1916,10 +1910,15 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 	}
 	defer finalizeTransactionX(tx, &err)
 
+	jsonNotifyProps := model.MapToJSON(props)
+	if utf8.RuneCountInString(jsonNotifyProps) > model.ChannelMemberNotifyPropsMaxRunes {
+		return nil, store.NewErrInvalidInput("ChannelMember", "NotifyProps", props)
+	}
+
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		sql, args, err2 := s.getQueryBuilder().
 			Update("channelmembers").
-			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", model.MapToJSON(props))).
+			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
 			Where(sq.Eq{
 				"userid":    userID,
 				"channelid": channelID,
@@ -2285,6 +2284,47 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 		allChannelMembersForUserCache.SetWithExpiry(cache_key, ids, AllChannelMembersForUserCacheDuration)
 	}
 	return ids, nil
+}
+
+func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[string]int64, err error) {
+	query := s.getQueryBuilder().
+		Select("ChannelMembers.ChannelId,COUNT(*) AS Count").
+		From("ChannelMembers").
+		InnerJoin("Users ON ChannelMembers.UserId = Users.Id").
+		Where(sq.And{
+			sq.Eq{"ChannelMembers.ChannelId": channelIDs},
+			sq.Eq{"Users.DeleteAt": 0},
+		}).
+		GroupBy("ChannelMembers.ChannelId")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channels_member_count_tosql")
+	}
+
+	rows, err := s.GetReplicaX().DB.Query(queryString, args...)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch member counts")
+	}
+	defer rows.Close()
+
+	memberCounts := make(map[string]int64)
+	for rows.Next() {
+		var channelID string
+		var count int64
+		errScan := rows.Scan(&channelID, &count)
+		if errScan != nil {
+			return nil, errors.Wrap(err, "failed to scan row")
+		}
+		memberCounts[channelID] = count
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error while iterating rows")
+	}
+
+	return memberCounts, nil
 }
 
 func (s SqlChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {

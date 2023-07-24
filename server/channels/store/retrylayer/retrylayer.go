@@ -1406,6 +1406,27 @@ func (s *RetryLayerChannelStore) GetChannelsByUser(userID string, includeDeleted
 
 }
 
+func (s *RetryLayerChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetChannelsMemberCount(channelIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error) {
 
 	tries := 0
@@ -3839,11 +3860,11 @@ func (s *RetryLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 
 }
 
-func (s *RetryLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
+func (s *RetryLayerEmojiStore) GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error) {
 
 	tries := 0
 	for {
-		result, err := s.EmojiStore.GetMultipleByName(names)
+		result, err := s.EmojiStore.GetMultipleByName(ctx, names)
 		if err == nil {
 			return result, nil
 		}
@@ -7271,27 +7292,6 @@ func (s *RetryLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceFo
 
 }
 
-func (s *RetryLayerPostStore) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, error) {
-
-	tries := 0
-	for {
-		result, err := s.PostStore.GetRecentSearchesForUser(userID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerPostStore) GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error) {
 
 	tries := 0
@@ -7379,27 +7379,6 @@ func (s *RetryLayerPostStore) HasAutoResponsePostByUserSince(options model.GetPo
 func (s *RetryLayerPostStore) InvalidateLastPostTimeCache(channelID string) {
 
 	s.PostStore.InvalidateLastPostTimeCache(channelID)
-
-}
-
-func (s *RetryLayerPostStore) LogRecentSearch(userID string, searchQuery []byte, createAt int64) error {
-
-	tries := 0
-	for {
-		err := s.PostStore.LogRecentSearch(userID, searchQuery, createAt)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
 
 }
 
@@ -11042,11 +11021,11 @@ func (s *RetryLayerTeamStore) GetMembersByIds(teamID string, userIds []string, r
 
 }
 
-func (s *RetryLayerTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int) (*model.NewTeamMembersList, int64, error) {
+func (s *RetryLayerTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int, showFullName bool) (*model.NewTeamMembersList, int64, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.TeamStore.GetNewTeamMembersSince(teamID, since, offset, limit)
+		result, resultVar1, err := s.TeamStore.GetNewTeamMembersSince(teamID, since, offset, limit, showFullName)
 		if err == nil {
 			return result, resultVar1, nil
 		}

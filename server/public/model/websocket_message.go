@@ -93,14 +93,15 @@ type WebSocketMessage interface {
 }
 
 type WebsocketBroadcast struct {
-	OmitUsers             map[string]bool `json:"omit_users"`                        // broadcast is omitted for users listed here
-	UserId                string          `json:"user_id"`                           // broadcast only occurs for this user
-	ChannelId             string          `json:"channel_id"`                        // broadcast only occurs for users in this channel
-	TeamId                string          `json:"team_id"`                           // broadcast only occurs for users in this team
-	ConnectionId          string          `json:"connection_id"`                     // broadcast only occurs for this connection
-	OmitConnectionId      string          `json:"omit_connection_id"`                // broadcast is omitted for this connection
-	ContainsSanitizedData bool            `json:"contains_sanitized_data,omitempty"` // broadcast only occurs for non-sysadmins
-	ContainsSensitiveData bool            `json:"contains_sensitive_data,omitempty"` // broadcast only occurs for sysadmins
+	ConnectionId          string                                       `json:"connection_id"`                     // broadcast only occurs for this connection
+	OmitConnectionId      string                                       `json:"omit_connection_id"`                // broadcast is omitted for this connection
+	UserId                string                                       `json:"user_id"`                           // broadcast only occurs for this user
+	OmitUsers             map[string]bool                              `json:"omit_users"`                        // broadcast is omitted for users listed here
+	ChannelId             string                                       `json:"channel_id"`                        // broadcast only occurs for users in this channel
+	ChannelHook           func(userID string, ev *WebSocketEvent) bool `json:"-"`                                 // ChannelHook is a function that runs for a channel scoped event. It can be used to modify the event payload based on some custom logic that runs only for connected users. The return value indicates whether the websocket event was modified or not.
+	TeamId                string                                       `json:"team_id"`                           // broadcast only occurs for users in this team
+	ContainsSanitizedData bool                                         `json:"contains_sanitized_data,omitempty"` // broadcast only occurs for non-sysadmins
+	ContainsSensitiveData bool                                         `json:"contains_sensitive_data,omitempty"` // broadcast only occurs for sysadmins
 	// ReliableClusterSend indicates whether or not the message should
 	// be sent through the cluster using the reliable, TCP backed channel.
 	ReliableClusterSend bool `json:"-"`
@@ -190,7 +191,18 @@ func (ev *WebSocketEvent) PrecomputeJSON() *WebSocketEvent {
 	return evCopy
 }
 
+func (ev *WebSocketEvent) RemovePrecomputedJSON() {
+	ev.precomputedJSON = nil
+}
+
 func (ev *WebSocketEvent) Add(key string, value any) {
+	ev.data[key] = value
+}
+
+// AddWithCopy copies the map and writes to a copy of that,
+// and sets the map to the new event.
+func (ev *WebSocketEvent) AddWithCopy(key string, value any) {
+	ev.data = copyMap(ev.data)
 	ev.data[key] = value
 }
 
@@ -219,22 +231,22 @@ func (ev *WebSocketEvent) Copy() *WebSocketEvent {
 }
 
 func (ev *WebSocketEvent) DeepCopy() *WebSocketEvent {
-	var dataCopy map[string]any
-	if ev.data != nil {
-		dataCopy = make(map[string]any, len(ev.data))
-		for k, v := range ev.data {
-			dataCopy[k] = v
-		}
-	}
-
 	evCopy := &WebSocketEvent{
 		event:           ev.event,
-		data:            dataCopy,
+		data:            copyMap(ev.data),
 		broadcast:       ev.broadcast.copy(),
 		sequence:        ev.sequence,
 		precomputedJSON: ev.precomputedJSON.copy(),
 	}
 	return evCopy
+}
+
+func copyMap[K comparable, V any](m map[K]V) map[K]V {
+	dataCopy := make(map[K]V, len(m))
+	for k, v := range m {
+		dataCopy[k] = v
+	}
+	return dataCopy
 }
 
 func (ev *WebSocketEvent) GetData() map[string]any {

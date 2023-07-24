@@ -8,7 +8,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 import EditCategoryModal from 'components/edit_category_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
 import DataPrefetch from 'components/data_prefetch';
-import MoreChannels from 'components/more_channels';
+import BrowseChannels from 'components/browse_channels';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import InvitationModal from 'components/invitation_modal';
 import UserSettingsModal from 'components/user_settings/modal';
@@ -148,7 +148,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
     showMoreChannelsModal = () => {
         this.props.actions.openModal({
             modalId: ModalIdentifiers.MORE_CHANNELS,
-            dialogType: MoreChannels,
+            dialogType: BrowseChannels,
             dialogProps: {morePublicChannelsModalType: 'public'},
         });
         trackEvent('ui', 'ui_channels_more_public_v2');

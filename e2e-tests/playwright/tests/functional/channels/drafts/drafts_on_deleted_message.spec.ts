@@ -20,8 +20,8 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
     // # Create a post in the channel by admin
     const adminPost = await adminClient.createPost(
         createRandomPost({
-                channel_id: channel.id,
-                user_id: adminUser.id,
+            channel_id: channel.id,
+            user_id: adminUser.id,
         })
     );
 
@@ -35,7 +35,7 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
 
     const lastPostByAdmin = await channelPage.getLastPost();
     await lastPostByAdmin.toBeVisible();
-    
+
     // # Open the last post sent by admin in RHS
     await lastPostByAdmin.hover();
     await lastPostByAdmin.postMenu.toBeVisible();
@@ -52,7 +52,7 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
     await sidebarRight.postMessage(draftMessageByUser);
 
     // # Close the RHS for draft to be saved
-    await sidebarRight.close()
+    await sidebarRight.close();
 
     // * Verify drafts link in channel sidebar is visible
     await channelPage.sidebarLeft.draftsVisible();
@@ -111,7 +111,7 @@ test('MM-T5435_2 Global Drafts link in sidebar should be hidden when user delete
     await sidebarRight.postMessage('I should be in drafts');
 
     // # Close the RHS for draft to be saved
-    await sidebarRight.close()
+    await sidebarRight.close();
 
     // * Verify drafts link in channel sidebar is visible
     await channelPage.sidebarLeft.draftsVisible();
@@ -120,7 +120,7 @@ test('MM-T5435_2 Global Drafts link in sidebar should be hidden when user delete
     await post.hover();
     await post.postMenu.toBeVisible();
     await post.postMenu.openDotMenu();
-    await channelPage.postDotMenu.toBeVisible()
+    await channelPage.postDotMenu.toBeVisible();
     await channelPage.postDotMenu.delete();
 
     // # Confirm the delete from the modal
