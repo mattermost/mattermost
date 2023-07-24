@@ -162,7 +162,6 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
                     defaultUrl = url;
                 }
             }
-
             return (
                 <Route
                     key={item.url}

@@ -33,6 +33,7 @@ export type BaseState = {
 // Placeholder type until ClientError is exported from redux.
 // TODO: remove ClientErrorPlaceholder and change the return type of updateConfig
 type ClientErrorPlaceholder = {
+    id: any;
     message: string;
     server_error_id: string;
 }

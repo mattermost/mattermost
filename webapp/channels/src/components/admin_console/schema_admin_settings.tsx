@@ -32,24 +32,33 @@ import Tooltip from 'components/tooltip';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-
 import Setting from './setting';
 
 import './schema_admin_settings.scss';
+import {Role} from '@mattermost/types/roles';
+import {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
+import {CloudState} from '@mattermost/types/cloud';
+import {DeepPartial} from '@mattermost/types/utilities';
+
+type ConsoleAccess = {
+    read: Record<string, boolean>;
+    write: Record<string, boolean>;
+}
 
 type Props = {
-    config?: any;
-    environmentConfig?: any;
-    setNavigationBlocked?: any;
-    schema?: any;
-    roles?: any;
-    license?: any;
-    editRole?: any;
-    updateConfig?: any;
+    schema: Record<string, any>;
+    setNavigationBlocked?: (blocked: boolean) => void;
     isDisabled?: boolean;
-    consoleAccess?: any;
-    cloud?: any;
-    isCurrentUserSystemAdmin?: any;
+    consoleAccess?: ConsoleAccess;
+    enterpriseReady?: boolean;
+    license?: Record<string, any>;
+    config?: any;
+    environmentConfig?: Partial<EnvironmentConfig>;
+    roles?: Record<string, Role>;
+    editRole?: (role: Role) => void;
+    updateConfig?: any;
+    cloud?: CloudState;
+    isCurrentUserSystemAdmin?: boolean;
 }
 
 type State = any
@@ -98,8 +107,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
     }
 
     static getDerivedStateFromProps(props: Props, state: State) {
-        console.log("PROPS",props)
-        if (props.schema && props.schema.id !== state.prevSchemaId) {
+        if (props.schema && props.schema.id !== state.prevSchemaId && props.roles) {
             return {
                 prevSchemaId: props.schema.id,
                 saveNeeded: false,
@@ -112,7 +120,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         return null;
     }
 
-    handleSubmit = async (e: any) => {
+    handleSubmit = async (e: React.MouseEvent | KeyboardEvent| React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         if (this.state.confirmNeededId) {
@@ -129,33 +137,35 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
 
         if (this.state.saveNeeded === 'both' || this.state.saveNeeded === 'permissions') {
             const settings = (this.props.schema && this.props.schema.settings) || [];
-            const rolesBinding: any = settings.reduce((acc: any, val: any) => {
+            const rolesBinding = settings.reduce((acc: { [key: string]: Role }, val: any) => {
                 if (val.type === Constants.SettingsTypes.TYPE_PERMISSION) {
                     acc[val.permissions_mapping_name] = this.state[val.key].toString();
                 }
                 return acc;
             }, {});
-            const updatedRoles = rolesFromMapping(rolesBinding, this.props.roles);
+            if (this.props.roles) {
+                const updatedRoles = rolesFromMapping(rolesBinding, this.props.roles);
+                let success = true;
 
-            let success = true;
+                await Promise.all(Object.values(updatedRoles).map(async (item) => {
+                    try {
+                        if (this.props.editRole) {
+                            await this.props.editRole(item);
+                        }
+                    } catch (err) {
+                        success = false;
+                        this.setState({
+                            saving: false,
+                            serverError: err.message,
+                        });
+                    }
+                }));
 
-            await Promise.all(Object.values(updatedRoles).map(async (item) => {
-                try {
-                    await this.props.editRole(item);
-                } catch (err) {
-                    success = false;
-                    this.setState({
-                        saving: false,
-                        serverError: err.message,
-                    });
+                if (!success) {
+                    return;
                 }
-            }));
-
-            if (!success) {
-                return;
             }
         }
-
         if (this.state.saveNeeded === 'both' || this.state.saveNeeded === 'config') {
             this.doSubmit(SchemaAdminSettings.getStateFromConfig);
         } else {
@@ -164,7 +174,9 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
                 saveNeeded: false,
                 serverError: null,
             });
-            this.props.setNavigationBlocked(false);
+            if (this.props.setNavigationBlocked) {
+                this.props.setNavigationBlocked(false);
+            }
         }
     };
 
@@ -208,7 +220,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         return config;
     }
 
-    static getStateFromConfig(config: any, schema: any, roles: any) {
+    static getStateFromConfig(config: DeepPartial<AdminConfig>, schema: Record<string, any>, roles: Record<string, Role>) {
         let state: any = {};
 
         if (schema) {
@@ -251,12 +263,13 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
     }
 
     getSetting(key: string) {
-        for (const setting of this.props.schema.settings) {
-            if (setting.key === key) {
-                return setting;
+        if (this.props.schema) {
+            for (const setting of this.props.schema.settings) {
+                if (setting.key === key) {
+                    return setting;
+                }
             }
         }
-
         return null;
     }
 
@@ -361,7 +374,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         );
     };
 
-    renderLabel = (setting: any) => {
+    renderLabel = (setting: Record<string, any>) => {
         if (!this.props.schema) {
             return '';
         }
@@ -373,7 +386,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
     };
 
     isDisabled = (setting: any) => {
-        const enterpriseReady = this.props.config.BuildEnterpriseReady === 'true';
+        const enterpriseReady = this.props.config?.BuildEnterpriseReady === 'true';
         if (typeof setting.isDisabled === 'function') {
             return setting.isDisabled(this.props.config, this.state, this.props.license, enterpriseReady, this.props.consoleAccess, this.props.cloud, this.props.isCurrentUserSystemAdmin);
         }
@@ -680,11 +693,11 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         this.handleChange(id, s.replace(/\+/g, '-').replace(/\//g, '_'));
     };
 
-    handleChange = (id: any, value: any, confirm = false, doSubmit = false, warning = false) => {
+    handleChange = (id: string, value: any, confirm = false, doSubmit = false, warning = false) => {
         let saveNeeded: any = this.state.saveNeeded === 'permissions' ? 'both' : 'config';
 
         // Exception: Since OpenId-Custom is treated as feature discovery for Cloud Starter licenses, save button is disabled.
-        const isCloudStarter = this.props.license.Cloud === 'true' && this.props.license.SkuShortName === 'starter';
+        const isCloudStarter = this.props.license?.Cloud === 'true' && this.props.license.SkuShortName === 'starter';
         if (id === 'openidType' && value === 'openid' && isCloudStarter) {
             saveNeeded = false;
         }
@@ -706,11 +719,12 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         if (doSubmit) {
             this.doSubmit(SchemaAdminSettings.getStateFromConfig);
         }
-
-        this.props.setNavigationBlocked(true);
+        if (this.props.setNavigationBlocked) {
+            this.props.setNavigationBlocked(true);
+        }
     };
 
-    handlePermissionChange = (id: any, value: any) => {
+    handlePermissionChange = (id: string, value: any) => {
         let saveNeeded = 'permissions';
         if (this.state.saveNeeded === 'config') {
             saveNeeded = 'both';
@@ -719,8 +733,9 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
             saveNeeded,
             [id]: value,
         });
-
-        this.props.setNavigationBlocked(true);
+        if (this.props.setNavigationBlocked) {
+            this.props.setNavigationBlocked(true);
+        }
     };
 
     buildUsernameSetting = (setting: any) => {
@@ -763,7 +778,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
 
     buildFileUploadSetting = (setting: any) => {
         if (this.state[setting.key]) {
-            const removeFile = (id: any, callback: any) => {
+            const removeFile = (id: string, callback: any) => {
                 const successCallback = () => {
                     this.handleChange(setting.key, '');
                     this.setState({[setting.key]: null, [`${setting.key}Error`]: null});
@@ -875,7 +890,9 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
 
     setSaveNeeded = () => {
         this.setState({saveNeeded: 'config'});
-        this.props.setNavigationBlocked(true);
+        if (this.props.setNavigationBlocked) {
+            this.props.setNavigationBlocked(true);
+        }
     };
 
     renderSettings = () => {
@@ -994,7 +1011,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         this.setState({errorTooltip: false});
     };
 
-    openTooltip = (e: any) => {
+    openTooltip = (e: React.MouseEvent<any>) => {
         const elm = e.currentTarget.querySelector('.control-label');
         const isElipsis = elm.offsetWidth < elm.scrollWidth;
         this.setState({errorTooltip: isElipsis});
@@ -1004,15 +1021,16 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         // clone config so that we aren't modifying data in the stores
         let config = JSON.parse(JSON.stringify(this.props.config));
         config = this.getConfigFromState(config);
-
-        const {error} = await this.props.updateConfig(config);
-        if (error) {
-            this.setState({
-                serverError: error.message,
-                serverErrorId: error.id,
-            });
-        } else {
-            this.setState(getStateFromConfig(config));
+        if (this.props.updateConfig) {
+            const {error} = await this.props.updateConfig(config);
+            if (error) {
+                this.setState({
+                    serverError: error.message,
+                    serverErrorId: error.id,
+                });
+            } else {
+                this.setState(getStateFromConfig(config));
+            }
         }
 
         if (this.handleSaved) {
@@ -1031,7 +1049,9 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
             this.setState({saving: false});
         } else {
             this.setState({saving: false, saveNeeded: false, confirmNeededId: '', showConfirmId: '', clientWarning: ''});
-            this.props.setNavigationBlocked(false);
+            if (this.props.setNavigationBlocked) {
+                this.props.setNavigationBlocked(false);
+            }
         }
     };
 
@@ -1045,18 +1065,18 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
     // relies on splitting by periods. Use this pair of functions to allow such path parts.
     //
     // It is assumed that no path contains the symbol '+'.
-    static escapePathPart(pathPart: any) {
+    static escapePathPart(pathPart: string) {
         return pathPart.replace(/\./g, '+');
     }
 
-    static unescapePathPart(pathPart: any) {
+    static unescapePathPart(pathPart: string) {
         return pathPart.replace(/\+/g, '.');
     }
 
-    static getConfigValue(config: any, path: any) {
+    static getConfigValue(config: any, path: string) {
         const pathParts = path.split('.');
 
-        return pathParts.reduce((obj: any, pathPart: any) => {
+        return pathParts.reduce((obj: any, pathPart: string) => {
             if (!obj) {
                 return null;
             }
@@ -1065,7 +1085,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         }, config);
     }
 
-    setConfigValue(config: any, path: any, value: any) {
+    setConfigValue(config: DeepPartial<AdminConfig>, path: string, value: any) {
         function setValue(obj: any, pathParts: any) {
             const part = SchemaAdminSettings.unescapePathPart(pathParts[0]);
 
@@ -1083,7 +1103,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         setValue(config, path.split('.'));
     }
 
-    isSetByEnv = (path: any) => {
+    isSetByEnv = (path: string) => {
         return Boolean(SchemaAdminSettings.getConfigValue(this.props.environmentConfig, path));
     };
 

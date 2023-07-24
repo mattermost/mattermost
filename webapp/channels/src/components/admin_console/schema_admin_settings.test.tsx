@@ -305,7 +305,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         const props = {
             config,
             environmentConfig,
-            schema: null,
+            schema,
             updateConfig: jest.fn(),
         };
 
