@@ -5,7 +5,7 @@ exports[`components/MarkdownImage should match snapshot 1`] = `
   imageMetadata={
     Object {
       "format": "png",
-      "frame_count": 0,
+      "frameCount": 0,
       "height": 90,
       "width": 1041,
     }
@@ -23,22 +23,32 @@ exports[`components/MarkdownImage should match snapshot for SizeAwareImage dimen
   dimensions={
     Object {
       "format": "jpg",
-      "frame_count": 0,
+      "frameCount": 0,
       "height": 90,
       "width": 100,
     }
   }
+  height=""
   onClick={[Function]}
   onImageLoadFail={[Function]}
   onImageLoaded={[Function]}
   showLoader={false}
   src="safeSrc"
+  title="test title"
+  width=""
 />
 `;
 
 exports[`components/MarkdownImage should match snapshot for broken link 1`] = `
 <Connect(ExternalImage)
-  imageMetadata={Object {}}
+  imageMetadata={
+    Object {
+      "format": "png",
+      "frameCount": 0,
+      "height": 10,
+      "width": 10,
+    }
+  }
   src="brokenLink"
 >
   <Component />
@@ -53,7 +63,7 @@ exports[`components/MarkdownImage should provide image src as an alt text for Ma
     postId="post_id"
   >
     <SizeAwareImage
-      alt={null}
+      alt=""
       className="markdown-inline-img markdown-inline-img--hover cursor--pointer a11y--active"
       dimensions={Object {}}
       height="250"
@@ -93,16 +103,19 @@ exports[`components/MarkdownImage should render an image with no preview if the 
     dimensions={
       Object {
         "format": "png",
-        "frame_count": 0,
+        "frameCount": 0,
         "height": 90,
         "width": 1041,
       }
     }
+    height=""
     onClick={[Function]}
     onImageLoadFail={[Function]}
     onImageLoaded={[Function]}
     showLoader={false}
     src="https://example.com/image.png"
+    title="test title"
+    width=""
   />
 </div>
 `;
@@ -115,16 +128,19 @@ exports[`components/MarkdownImage should render an image with preview modal if t
     dimensions={
       Object {
         "format": "png",
-        "frame_count": 0,
+        "frameCount": 0,
         "height": 90,
         "width": 1041,
       }
     }
+    height=""
     onClick={[Function]}
     onImageLoadFail={[Function]}
     onImageLoaded={[Function]}
     showLoader={false}
     src="https://example.com/image.png"
+    title="test title"
+    width=""
   />
 </div>
 `;

@@ -4401,6 +4401,8 @@
   "post_info.edit": "Edit",
   "post_info.edit.aria_label": "Select to restore an old message.",
   "post_info.edit.current_version": "Current Version",
+  "post_info.edit.history.retrieveError": "Unable to load edit history",
+  "post_info.edit.history.retrieveErrorVerbose": "There was an error loading the history for this message. Check your network connection or try again later.",
   "post_info.edit.restore": "Restore this version",
   "post_info.edit.restore_question": "Restore this version?",
   "post_info.edit.undo": "Undo",
