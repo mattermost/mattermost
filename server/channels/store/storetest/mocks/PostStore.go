@@ -788,32 +788,6 @@ func (_m *PostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOpti
 	return r0, r1, r2
 }
 
-// GetRecentSearchesForUser provides a mock function with given fields: userID
-func (_m *PostStore) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, error) {
-	ret := _m.Called(userID)
-
-	var r0 []*model.SearchParams
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]*model.SearchParams, error)); ok {
-		return rf(userID)
-	}
-	if rf, ok := ret.Get(0).(func(string) []*model.SearchParams); ok {
-		r0 = rf(userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.SearchParams)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetRepliesForExport provides a mock function with given fields: parentID
 func (_m *PostStore) GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error) {
 	ret := _m.Called(parentID)
@@ -919,20 +893,6 @@ func (_m *PostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceO
 // InvalidateLastPostTimeCache provides a mock function with given fields: channelID
 func (_m *PostStore) InvalidateLastPostTimeCache(channelID string) {
 	_m.Called(channelID)
-}
-
-// LogRecentSearch provides a mock function with given fields: userID, searchQuery, createAt
-func (_m *PostStore) LogRecentSearch(userID string, searchQuery []byte, createAt int64) error {
-	ret := _m.Called(userID, searchQuery, createAt)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, []byte, int64) error); ok {
-		r0 = rf(userID, searchQuery, createAt)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // Overwrite provides a mock function with given fields: post

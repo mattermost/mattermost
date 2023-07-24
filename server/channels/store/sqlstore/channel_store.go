@@ -1543,16 +1543,14 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Channels").
-		Where(sq.Eq{"Name": name})
-
-	if !includeDeleted {
-		query = query.Where(sq.Eq{"DeleteAt": 0})
-	}
-	if teamId != "" {
-		query = query.Where(sq.Or{
+		Where(sq.Eq{"Name": name}).
+		Where(sq.Or{
 			sq.Eq{"TeamId": teamId},
 			sq.Eq{"TeamId": ""},
 		})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
 	}
 	channel := model.Channel{}
 
