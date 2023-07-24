@@ -577,6 +577,7 @@ func (s *Server) doCloudS3PathMigrations() {
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
 		return
 	}
+
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyS3Path); err == nil {
 		return

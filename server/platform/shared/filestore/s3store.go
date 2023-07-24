@@ -384,39 +384,41 @@ func (b *S3FileBackend) DecodeFilePathIfNeeded(path string) error {
 		return err
 	}
 
+	if !exists {
+		return nil
+	}
+
 	// If yes, then it needs to be migrated.
 	// This is basically a copy of MoveFile without the path encoding.
 	// We avoid any further refactoring because this method will be removed anyways.
-	if exists {
-		oldPath := filepath.Join(b.pathPrefix, s3utils.EncodePath(path))
-		newPath := filepath.Join(b.pathPrefix, path)
-		srcOpts := s3.CopySrcOptions{
-			Bucket: b.bucket,
-			Object: oldPath,
-		}
-		if b.encrypt {
-			srcOpts.Encryption = encrypt.NewSSE()
-		}
+	oldPath := filepath.Join(b.pathPrefix, s3utils.EncodePath(path))
+	newPath := filepath.Join(b.pathPrefix, path)
+	srcOpts := s3.CopySrcOptions{
+		Bucket: b.bucket,
+		Object: oldPath,
+	}
+	if b.encrypt {
+		srcOpts.Encryption = encrypt.NewSSE()
+	}
 
-		dstOpts := s3.CopyDestOptions{
-			Bucket: b.bucket,
-			Object: newPath,
-		}
-		if b.encrypt {
-			dstOpts.Encryption = encrypt.NewSSE()
-		}
+	dstOpts := s3.CopyDestOptions{
+		Bucket: b.bucket,
+		Object: newPath,
+	}
+	if b.encrypt {
+		dstOpts.Encryption = encrypt.NewSSE()
+	}
 
-		ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
-		defer cancel()
-		if _, err := b.client.CopyObject(ctx, dstOpts, srcOpts); err != nil {
-			return errors.Wrapf(err, "unable to copy the file to %s to the new destination", newPath)
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	if _, err := b.client.CopyObject(ctx, dstOpts, srcOpts); err != nil {
+		return errors.Wrapf(err, "unable to copy the file to %s to the new destination", newPath)
+	}
 
-		ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
-		defer cancel2()
-		if err := b.client.RemoveObject(ctx2, b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
-			return errors.Wrapf(err, "unable to remove the file old file %s", oldPath)
-		}
+	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel2()
+	if err := b.client.RemoveObject(ctx2, b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
+		return errors.Wrapf(err, "unable to remove the file old file %s", oldPath)
 	}
 
 	return nil

@@ -4,6 +4,7 @@
 package s3_path_migration
 
 import (
+	"errors"
 	"net/http"
 	"os"
 	"strconv"
@@ -110,7 +111,9 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 	}
 
 	if worker.fileBackend == nil {
-		mlog.Error("S3PathMigrationWorker: no s3 file backend found.")
+		err := errors.New("no S3 file backend found")
+		mlog.Error("S3PathMigrationWorker: ", mlog.Err(err))
+		worker.setJobError(job, model.NewAppError("DoJob", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
 		return
 	}
 
@@ -123,25 +126,9 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 		return
 	}
 
-	totalCount, appErr := worker.getJobMetadata(job, "total_file_count")
-	if appErr != nil {
-		mlog.Error("S3PathMigrationWorker: failed to get total file count", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(appErr))
-		worker.setJobError(job, appErr)
-		return
-	}
-	if totalCount == 0 {
-		total, err := worker.store.FileInfo().CountAll()
-		if err != nil {
-			mlog.Error("S3PathMigrationWorker: failed to count all files", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
-			worker.setJobError(job, model.NewAppError("S3PathMigrationWorker", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
-			return
-		}
-		totalCount = int(total)
-	}
-
 	// Check if there is metadata for that job.
 	// If there isn't, it will be empty by default, which is the right value.
-	offset := job.Data["start_file_id"]
+	startFileID := job.Data["start_file_id"]
 
 	doneCount, appErr := worker.getJobMetadata(job, "done_file_count")
 	if appErr != nil {
@@ -150,17 +137,17 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 		return
 	}
 
-	createAtOffset, appErr := worker.getJobMetadata(job, "start_create_at")
+	startTime, appErr := worker.getJobMetadata(job, "start_create_at")
 	if appErr != nil {
 		mlog.Error("S3PathMigrationWorker: failed to get start create_at", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(appErr))
 		worker.setJobError(job, appErr)
 		return
 	}
-	if createAtOffset == 0 {
+	if startTime == 0 {
 		// Time of the commit because we know no files older than that are affected.
 		// Exact commit was done on 09:54AM June 27, IST.
 		// We take June 26 as an approximation.
-		createAtOffset = int(time.Date(2023, time.June, 26, 0, 0, 0, 0, time.UTC).UnixMilli())
+		startTime = int(time.Date(2023, time.June, 26, 0, 0, 0, 0, time.UTC).UnixMilli())
 	}
 
 	const pageSize = 100
@@ -183,8 +170,8 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 			tries := 0
 			for files == nil {
 				var err error
-				// Iterate through the rows in fileInfo, starting from the metadata ID
-				files, err = worker.store.FileInfo().GetFilesBatchForIndexing(int64(createAtOffset), offset, false, pageSize)
+				// Take batches of `pageSize`
+				files, err = worker.store.FileInfo().GetFilesBatchForIndexing(int64(startTime), startFileID, true, pageSize)
 				if err != nil {
 					if tries > 3 {
 						mlog.Error("Worker: Failed to get files after multiple retries. Exiting")
@@ -207,41 +194,39 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 				return
 			}
 
-			// Take batches of `pageSize`
+			// Iterate through the rows in each page.
 			for _, f := range files {
+				mlog.Debug("Processing file ID", mlog.String("id", f.Id), mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
 				// We do not fail the job if a single image failed to encode.
 				if f.Path != "" {
 					if err := worker.fileBackend.DecodeFilePathIfNeeded(f.Path); err != nil {
-						mlog.Warn("Failed to encode S3 file path", mlog.String("path", f.Path), mlog.Err(err))
+						mlog.Warn("Failed to encode S3 file path", mlog.String("path", f.Path), mlog.String("id", f.Id), mlog.Err(err))
 					}
 				}
 				if f.PreviewPath != "" {
 					if err := worker.fileBackend.DecodeFilePathIfNeeded(f.PreviewPath); err != nil {
-						mlog.Warn("Failed to encode S3 file path", mlog.String("path", f.PreviewPath), mlog.Err(err))
+						mlog.Warn("Failed to encode S3 file path", mlog.String("path", f.PreviewPath), mlog.String("id", f.Id), mlog.Err(err))
 					}
 				}
 				if f.ThumbnailPath != "" {
 					if err := worker.fileBackend.DecodeFilePathIfNeeded(f.ThumbnailPath); err != nil {
-						mlog.Warn("Failed to encode S3 file path", mlog.String("path", f.ThumbnailPath), mlog.Err(err))
+						mlog.Warn("Failed to encode S3 file path", mlog.String("path", f.ThumbnailPath), mlog.String("id", f.Id), mlog.Err(err))
 					}
 				}
 			}
 
 			// Work on each batch and save the batch starting ID in metadata
 			lastFile := files[len(files)-1]
-			offset = lastFile.Id
-			createAtOffset = int(lastFile.CreateAt)
+			startFileID = lastFile.Id
+			startTime = int(lastFile.CreateAt)
 
 			if job.Data == nil {
 				job.Data = make(model.StringMap)
 			}
-			job.Data["start_file_id"] = offset
-			job.Data["start_create_at"] = strconv.Itoa(createAtOffset)
+			job.Data["start_file_id"] = startFileID
+			job.Data["start_create_at"] = strconv.Itoa(startTime)
 			doneCount += len(files)
 			job.Data["done_file_count"] = strconv.Itoa(doneCount)
-			job.Data["total_file_count"] = strconv.Itoa(totalCount)
-
-			worker.jobServer.SetJobProgress(job, int64((doneCount+len(files))/totalCount))
 		}
 	}
 }
@@ -252,8 +237,12 @@ func (worker *S3PathMigrationWorker) markAsComplete() {
 		Value: "true",
 	}
 
+	// Note that if this fails, then the job would have still succeeded.
+	// So it will try to run the same job again next time, but then
+	// it will just fall through everything because all files would have
+	// converted. The actual job is idempotent, so there won't be a problem.
 	if err := worker.jobServer.Store.System().Save(&system); err != nil {
-		mlog.Error("Worker: Failed to mark s3 path migration as completed.", mlog.String("workername", worker.name), mlog.Err(err))
+		mlog.Error("Worker: Failed to mark s3 path migration as completed in the systems table.", mlog.String("workername", worker.name), mlog.Err(err))
 	}
 }
 
