@@ -11,8 +11,8 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {Action, ActionResult} from 'mattermost-redux/types/actions';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getChannels, getArchivedChannels, joinChannel} from 'mattermost-redux/actions/channels';
-import {getChannelsInCurrentTeam, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
+import {getChannels, getArchivedChannels, joinChannel, getChannelsMemberCount} from 'mattermost-redux/actions/channels';
+import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector} from 'mattermost-redux/selectors/entities/channels';
 
 import {searchMoreChannels} from 'actions/channel_actions';
 import {openModal, closeModal} from 'actions/views/modals';
@@ -23,7 +23,7 @@ import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {ModalData} from 'types/actions';
 import {GlobalState} from 'types/store';
 
-import MoreChannels from './more_channels';
+import BrowseChannels from './browse_channels';
 import {makeGetGlobalItem} from 'selectors/storage';
 import Constants, {StoragePrefixes} from 'utils/constants';
 import {setGlobalItem} from 'actions/storage';
@@ -56,18 +56,20 @@ function mapStateToProps(state: GlobalState) {
         shouldHideJoinedChannels: getGlobalItem(state) === 'true',
         rhsState: getRhsState(state),
         rhsOpen: getIsRhsOpen(state),
+        channelsMemberCount: getChannelsMemberCountSelector(state),
     };
 }
 
 type Actions = {
-    getChannels: (teamId: string, page: number, perPage: number) => void;
-    getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => void;
+    getChannels: (teamId: string, page: number, perPage: number) => Promise<ActionResult<Channel[], Error>>;
+    getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => Promise<ActionResult<Channel[], Error>>;
     joinChannel: (currentUserId: string, teamId: string, channelId: string) => Promise<ActionResult>;
     searchMoreChannels: (term: string, shouldShowArchivedChannels: boolean) => Promise<ActionResult>;
     openModal: <P>(modalData: ModalData<P>) => void;
     closeModal: (modalId: string) => void;
     setGlobalItem: (name: string, value: string) => void;
     closeRightHandSide: () => void;
+    getChannelsMemberCount: (channelIds: string[]) => Promise<ActionResult>;
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
@@ -81,8 +83,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
             closeModal,
             setGlobalItem,
             closeRightHandSide,
+            getChannelsMemberCount,
         }, dispatch),
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(MoreChannels);
+export default connect(mapStateToProps, mapDispatchToProps)(BrowseChannels);
