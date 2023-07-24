@@ -33,7 +33,3 @@
             Client.Login("email@domain.com", "Password1")
 
             imports, response := Client.ListImports()
-        - lang: Curl
-          source: |
-            curl 'http://localhost:8065/api/v4/imports' \
-            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw'

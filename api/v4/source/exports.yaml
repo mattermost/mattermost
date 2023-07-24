@@ -29,10 +29,6 @@
             Client.Login("email@domain.com", "Password1")
 
             exports, response := Client.ListExports()
-        - lang: Curl
-          source: |
-            curl 'http://localhost:8065/api/v4/exports' \
-            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw'
   "/api/v4/exports/{export_name}":
     get:
       tags:
@@ -82,10 +78,6 @@
             outFile, _ := os.Create("export.zip")
 
             n, response := Client.DownloadExport("export.zip", outFile, 0)
-        - lang: Curl
-          source: |
-            curl 'http://localhost:8065/api/v4/exports/export.zip' \
-            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw'
     delete:
       tags:
         - exports
@@ -126,7 +118,3 @@
             Client.Login("email@domain.com", "Password1")
 
             ok, response := Client.DeleteExport("export.zip")
-        - lang: Curl
-          source: |
-            curl -X DELETE 'http://localhost:8065/api/v4/exports/export.zip' \
-            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw'

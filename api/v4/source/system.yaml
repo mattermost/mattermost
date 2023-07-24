@@ -1110,11 +1110,6 @@
             Client.Login("email@domain.com", "Password1")
 
             ok, resp := Client.SetServerBusy(300)
-        - lang: curl
-          source: |
-            curl -X POST \
-              'http://your-mattermost-url.com/api/v4/server_busy?seconds=3600' \
-              -H 'Authorization: Bearer kno8tcdotpbx3dj1gzcbx9jrqy'
     get:
       tags:
         - system
@@ -1150,12 +1145,6 @@
 
             // expires is a time.Time
             expires, resp := Client.GetServerBusyExpires()
-        - lang: curl
-          source: |
-            curl -X GET \
-              'http://your-mattermost-url.com/api/v4/server_busy' \
-              -H 'Authorization: Bearer kno8tcdotpbx3dj1gzcbx9jrqy' \
-              -H 'Content-Type: application/json'
     delete:
       tags:
         - system
@@ -1190,11 +1179,6 @@
             Client.Login("email@domain.com", "Password1")
 
             ok, resp := Client.ClearServerBusy()
-        - lang: curl
-          source: |
-            curl -X DELETE \
-              'http://your-mattermost-url.com/api/v4/server_busy' \
-              -H 'Authorization: Bearer kno8tcdotpbx3dj1gzcbx9jrqy'
   /api/v4/notifications/ack:
     post:
       tags:

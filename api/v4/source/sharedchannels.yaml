@@ -56,11 +56,6 @@
             teamID := "4xp9fdt77pncbef59f4k1qe83o"
 
             shared_channels, err := Client.GetAllSharedChannels(teamID, 0, 100)
-        - lang: curl
-          source: |
-            curl -X POST \
-              'http://your-mattermost-url.com/api/v4/sharedchannels/4xp9fdt77pncbef59f4k1qe83o' \
-              -H 'Authorization: Bearer kno8tcdotpbx3dj1gzcbx9jrqy'
 
   "/api/v4/sharedchannels/remote_info/{remote_id}":
     get:
@@ -108,9 +103,3 @@
             remoteID := "4xp9fdt77pncbef59f4k1qe83o"
 
             info, err := Client.GetRemoteClusterInfo(remoteID)
-        - lang: curl
-          source: |
-            curl -X POST \
-              'http://your-mattermost-url.com/api/v4/sharedchannels/getremote/4xp9fdt77pncbef59f4k1qe83o' \
-              -H 'Authorization: Bearer kno8tcdotpbx3dj1gzcbx9jrqy'
-

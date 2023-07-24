@@ -116,12 +116,6 @@
 
 
             fileUploadResponse, response := Client.UploadFile(data, channelID, filename)
-        - lang: Curl
-          source: |
-            curl -F 'files=@PATH/TO/LOCAL/FILE' \
-            -F 'channel_id=CHANNEL_ID' \
-            --header 'authorization: Bearer c49adc55z3f53ck7xtp8ebq1ir'
-            https://your-mattermost-url.com/api/v4/files
   "/api/v4/files/{file_id}":
     get:
       tags:
@@ -511,10 +505,3 @@
             teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
 
             fileInfoList, resp := Client.SearchFiles(teamID, "filename", false)
-        - lang: curl
-          source: >
-            curl -X POST \
-              https://your-mattermost-url.com/api/v4/teams/zWEyrTZ7GZ22aBSfoX60iWryTY/files/search \
-              -H 'Authorization: Bearer frn8fu5rtpyc5m4xy6q3oj4yur' \
-              -H 'Content-Type: application/json' \
-              -d '{"terms": "filename", "is_or_search": false}'

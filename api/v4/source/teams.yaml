@@ -2043,13 +2043,6 @@
             schemeID := "qjda3stwafbgpqjaxej3k76sga"
 
             ok, resp := UpdateTeamScheme(teamID, schemeID)
-        - lang: curl
-          source: >
-            curl -X PUT \
-              https://your-mattermost-url.com/api/v4/teams/4xp9fdt77pncbef59f4k1qe83o/scheme \
-              -H 'Authorization: Bearer frn8fu5rtpyc5m4xy6q3oj4yur' \
-              -H 'Content-Type: application/json' \
-              -d '{"scheme_id": "qjda3stwafbgpqjaxej3k76sga"}'
   "/api/v4/teams/{team_id}/members_minus_group_members":
     get:
       tags:
@@ -2107,12 +2100,3 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: curl
-          source: >
-            curl
-            'http://your-mattermost-url.com/api/v4/teams/fcnst115y3y7xmzzp5uq34u8ce/members_minus_group_members?group_ids=eoezijg8zffgjmch8icy5bjd1e,ugaw6wjc3tfxpcr1eq5u5k8dhe&page=0&per_page=100'
-            \
-                -H 'Authorization: Bearer mq8rrfxpdfyafbnw3qfmhwkx6c' \
-                -H 'Content-Type: application/json' \
-                -H 'X-Requested-With: XMLHttpRequest'

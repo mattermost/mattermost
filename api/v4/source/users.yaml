@@ -3293,10 +3293,6 @@
             Client.Login("email@domain.com", "Password1")
 
             uss, response := Client.GetUploadsForUser("fc6suoon9pbbpmhrb9c967paxe")
-        - lang: Curl
-          source: |
-            curl 'http://localhost:8065/api/v4/users/fc6suoon9pbbpmhrb9c967paxe/uploads' \
-            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw' \
 
   "/api/v4/users/{user_id}/channel_members":
     get:
@@ -3356,10 +3352,6 @@
             Client.Login("email@domain.com", "Password1")
 
             channels, response, err := Client.GetChannelMembersWithTeamData("fc6suoon9pbbpmhrb9c967paxe", 0, 10)
-        - lang: Curl
-          source: |
-            curl 'http://localhost:8065/api/v4/users/me/channel_members?page=0&per_page=2' \
-            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw' \
 
   /api/v4/users/migrate_auth/ldap:
     post:
@@ -3579,10 +3571,6 @@
                                                                                       Page: 0,
                                                                                       PageSize: 40,
                                                                                       })
-      - lang: Curl
-        source: |
-          curl 'http://localhost:8065/api/v4/users/fc6suoon9pbbpmhrb9c967paxe/threads' \
-          -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw' \
 
   "/api/v4/users/{user_id}/teams/{team_id}/threads/mention_counts":
     get:
@@ -3630,10 +3618,6 @@
           Client.Login("email@domain.com", "Password1")
 
           uss, response := Client.GetThreadMentionsForUserPerChannel("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe")
-      - lang: Curl
-        source: |
-          curl -X PUT 'http://localhost:8065/api/v4/users/fc6suoon9pbbpmhrb9c967paxe/threads/mention_counts' \
-          -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw' \          
   "/api/v4/users/{user_id}/teams/{team_id}/threads/read":
     put:
       tags:
@@ -3680,10 +3664,6 @@
           Client.Login("email@domain.com", "Password1")
 
           uss, response := Client.UpdateThreadsReadForUser("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe")
-      - lang: Curl
-        source: |
-          curl -X PUT 'http://localhost:8065/api/v4/users/fc6suoon9pbbpmhrb9c967paxe/threads/read' \
-          -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw' \
   "/api/v4/users/{user_id}/teams/{team_id}/threads/{thread_id}/read/{timestamp}":
     put:
       tags:
@@ -3742,10 +3722,6 @@
             Client.Login("email@domain.com", "Password1")
 
             uss, response := Client.UpdateThreadReadForUser("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe", "f96cv0897624352346e" true)
-        - lang: Curl
-          source: |
-            curl -X PUT 'http://localhost:8065/api/v4/users/fc6suoon9pbbpmhrb9c967paxe/threads/f96345234975624/read' \
-            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw' 
   "/api/v4/users/{user_id}/teams/{team_id}/threads/{thread_id}/set_unread/{post_id}":
     put:
       tags:
@@ -3806,10 +3782,6 @@
             Client.Login("email@domain.com", "Password1")
 
             uss, response := Client.SetThreadUnreadByPostId("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe", "f96cv0897624352346e", "f96cv0897624352346e")
-        - lang: Curl
-          source: |
-            curl -X PUT 'http://localhost:8065/api/v4/users/fc6suoon9pbbpmhrb9c967paxe/teams/fc6su111111pmhrb9c967paxe/threads/f96cv0897624352346e/set_unread' \
-            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw' 
   "/api/v4/users/{user_id}/teams/{team_id}/threads/{thread_id}/following":
     put:
       tags:
@@ -3862,10 +3834,6 @@
             Client.Login("email@domain.com", "Password1")
 
             uss, response := Client.UpdateThreadFollowForUser("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe", "f96cv0897624352346e" true)
-        - lang: Curl
-          source: |
-            curl -X PUT 'http://localhost:8065/api/v4/users/fc6suoon9pbbpmhrb9c967paxe/threads/f96345234975624/followin' \
-            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw' \
     delete:
       tags:
         - threads
@@ -3917,10 +3885,6 @@
             Client.Login("email@domain.com", "Password1")
 
             uss, response := Client.UpdateThreadFollowForUser("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe", "f96cv0897624352346e" false)
-        - lang: Curl
-          source: |
-            curl -X DELETE 'http://localhost:8065/api/v4/users/fc6suoon9pbbpmhrb9c967paxe/threads/f96345234975624/following' \
-            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw' \
   "/api/v4/users/{user_id}/teams/{team_id}/threads/{thread_id}":
     get:
       tags:
@@ -3973,10 +3937,6 @@
             Client.Login("email@domain.com", "Password1")
 
             uss, response := Client.GetUserThread("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe", "f96cv0897624352346e")
-        - lang: Curl
-          source: |
-            curl -X GET 'http://localhost:8065/api/v4/users/fc6suoon9pbbpmhrb9c967paxe/threads/f96345234975624' \
-            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw' \
   "/api/v4/users/{user_id}/data_retention/team_policies":
     get:
       tags:

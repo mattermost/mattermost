@@ -2228,10 +2228,6 @@
             Client.Login("email@domain.com", "Password1")
 
             channels, response, err := Client.GetChannelsForUserWithLastDeleteAt("fc6suoon9pbbpmhrb9c967paxe", 0)
-        - lang: Curl
-          source: |
-            curl -X GET 'http://localhost:8065/api/v4/users/fc6suoon9pbbpmhrb9c967paxe/channels' \
-            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw'
   "/api/v4/users/{user_id}/channels/{channel_id}/unread":
     get:
       tags:
@@ -2347,13 +2343,6 @@
             channelID := "4xp9fdt77pncbef59f4k1qe83o"
             schemeID := "qjda3stwafbgpqjaxej3k76sga"
             ok, resp := UpdateChannelScheme(channelID, schemeID)
-        - lang: curl
-          source: >
-            curl -X PUT \
-              https://your-mattermost-url.com/api/v4/channels/4xp9fdt77pncbef59f4k1qe83o/scheme \
-              -H 'Authorization: Bearer frn8fu5rtpyc5m4xy6q3oj4yur' \
-              -H 'Content-Type: application/json' \
-              -d '{"scheme_id": "qjda3stwafbgpqjaxej3k76sga"}'
   "/api/v4/channels/{channel_id}/members_minus_group_members":
     get:
       tags:
@@ -2411,14 +2400,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: curl
-          source: >
-            curl -X GET \
-              'http://your-mattermost-url.com/api/v4/channels/3wyp678obid8pggjmhmhwpah1r/members_minus_group_members?group_ids=eoezijg8zffgjmch8icy5bjd1e,ugaw6wjc3tfxpcr1eq5u5k8dhe&page=0&per_page=100' \
-              -H 'Authorization: Bearer kno8tcdotpbx3dj1gzcbx9jrqy' \
-              -H 'Content-Type: application/json' \
-              -H 'X-Requested-With: XMLHttpRequest'
   "/api/v4/channels/{channel_id}/member_counts_by_group":
     get:
       tags:
@@ -2455,14 +2436,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: curl
-          source: >
-            curl -X GET \
-              'http://your-mattermost-url.com/api/v4/channels/3wyp678obid8pggjmhmhwpah1r/member_counts_by_group?include_timezones=true' \
-              -H 'Authorization: Bearer kno8tcdotpbx3dj1gzcbx9jrqy' \
-              -H 'Content-Type: application/json' \
-              -H 'X-Requested-With: XMLHttpRequest'
   "/api/v4/channels/{channel_id}/moderations":
     get:
       tags:
