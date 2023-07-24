@@ -108,18 +108,13 @@ export default class AppsFormField extends React.PureComponent<Props> {
                 }
             }
 
-            let textType: InputTypes = 'input';
-            if (subtype && TextSetting.validTypes.includes(subtype)) {
-                textType = subtype as InputTypes;
-            }
-
             const textValue = value as string;
             return (
                 <TextSetting
                     autoFocus={this.props.autoFocus}
                     id={name}
                     disabled={field.readonly}
-                    type={textType}
+                    type={subtype as InputTypes}
                     label={displayNameContent}
                     maxLength={maxLength}
                     value={textValue || ''}

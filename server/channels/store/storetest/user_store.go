@@ -94,7 +94,6 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, ss) })
-	t.Run("GetFirstSystemAdminID", func(t *testing.T) { testUserStoreGetFirstSystemAdminID(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -4194,30 +4193,6 @@ func testCount(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUserStoreGetFirstSystemAdminID(t *testing.T, ss store.Store) {
-	sysAdmin := &model.User{}
-	sysAdmin.Email = MakeEmail()
-	sysAdmin.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
-	sysAdmin, err := ss.User().Save(sysAdmin)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(sysAdmin.Id)) }()
-
-	// We need the second system admin to be created after the first one
-	// our granulirity is ms
-	time.Sleep(1 * time.Millisecond)
-
-	sysAdmin2 := &model.User{}
-	sysAdmin2.Email = MakeEmail()
-	sysAdmin2.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
-	sysAdmin2, err = ss.User().Save(sysAdmin2)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(sysAdmin2.Id)) }()
-
-	returnedId, err := ss.User().GetFirstSystemAdminID()
-	require.NoError(t, err)
-	require.Equal(t, sysAdmin.Id, returnedId)
-}
-
 func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore) {
 
 	cleanupStatusStore(t, s)
@@ -5724,7 +5699,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 
 		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
 		require.NoError(t, err)
-		require.Equal(t, "system_guest custom_role", updatedUser.Roles)
+		require.Equal(t, "system_guest", updatedUser.Roles)
 
 		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
 		require.NoError(t, nErr)

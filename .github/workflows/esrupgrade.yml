@@ -1,12 +1,13 @@
 name: ESR Upgrade
 on:
-  pull_request:
-    paths:
-      - 'server/scripts/esrupgrades/*'
-      - '.github/workflows/esr*'
+  # Uncomment after https://mattermost.atlassian.net/browse/MM-53275 is fixed
+  # pull_request:
+  #   paths:
+  #     - 'server/scripts/esrupgrades/*'
+  #     - '.github/workflows/esr*'
   push:
     branches:
-      - master
+      # - master
       - cloud
       - release-*
 jobs:

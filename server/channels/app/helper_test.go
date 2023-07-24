@@ -159,8 +159,6 @@ func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	// Only boards migrations are applied
-	mainHelper.PreloadBoardsMigrationsIfNeeded()
 
 	return setupTestHelper(dbStore, false, true, nil, tb)
 }

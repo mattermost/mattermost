@@ -20,9 +20,6 @@ import PaymentSuccessStandardSvg from 'components/common/svg_images_components/p
 import PaymentFailedSvg from 'components/common/svg_images_components/payment_failed_svg';
 import IconMessage from 'components/purchase_modal/icon_message';
 import ProgressBar, {ProcessState} from 'components/icon_message_with_progress_bar';
-import {
-    archiveAllTeamsExcept,
-} from 'mattermost-redux/actions/teams';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 type Props = RouteComponentProps & {
@@ -55,10 +52,6 @@ function CloudSubscribeWithLoad(props: Props) {
 
     const handleSubscribe = async () => {
         const start = new Date();
-        if (props.teamToKeep) {
-            await dispatch(archiveAllTeamsExcept(props.teamToKeep.id));
-        }
-
         const result = await dispatch(subscribeCloudSubscription(
             props.selectedProduct?.id as string, undefined, 0, props.downgradeFeedback,
         ));

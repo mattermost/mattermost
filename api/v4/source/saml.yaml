@@ -1,0 +1,323 @@
+  /api/v4/saml/metadata:
+    get:
+      tags:
+        - SAML
+      summary: Get metadata
+      description: |
+        Get SAML metadata from the server. SAML must be configured properly.
+        ##### Permissions
+        No permission required.
+      operationId: GetSamlMetadata
+      responses:
+        "200":
+          description: SAML metadata retrieval successful
+          content:
+            application/json:
+              schema:
+                type: string
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/saml/metadatafromidp:
+    post:
+      tags:
+        - SAML
+      summary: Get metadata from Identity Provider
+      description: |
+        Get SAML metadata from the Identity Provider. SAML must be configured properly.
+        ##### Permissions
+        No permission required.
+      operationId: GetSamlMetadataFromIdp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                saml_metadata_url:
+                  type: string
+                  description: The URL from which to retrieve the SAML IDP data.
+      responses:
+        "200":
+          description: SAML metadata retrieval successful
+          content:
+            application/json:
+              schema:
+                type: string
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/saml/certificate/idp:
+    post:
+      tags:
+        - SAML
+      summary: Upload IDP certificate
+      description: >
+        Upload the IDP certificate to be used with your SAML configuration. The
+        server will pick a hard-coded filename for the IdpCertificateFile
+        setting in your `config.json`.
+
+        ##### Permissions
+
+        Must have `sysconsole_write_authentication` permission.
+      operationId: UploadSamlIdpCertificate
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                certificate:
+                  description: The IDP certificate file
+                  type: string
+                  format: binary
+              required:
+                - certificate
+      responses:
+        "200":
+          description: SAML certificate upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - SAML
+      summary: Remove IDP certificate
+      description: >
+        Delete the current IDP certificate being used with your SAML
+        configuration. This will also disable SAML on your system as this
+        certificate is required for SAML.
+
+        ##### Permissions
+
+        Must have `sysconsole_write_authentication` permission.
+      operationId: DeleteSamlIdpCertificate
+      responses:
+        "200":
+          description: SAML certificate delete successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/saml/certificate/public:
+    post:
+      tags:
+        - SAML
+      summary: Upload public certificate
+      description: >
+        Upload the public certificate to be used for encryption with your SAML
+        configuration. The server will pick a hard-coded filename for the
+        PublicCertificateFile setting in your `config.json`.
+
+        ##### Permissions
+
+        Must have `sysconsole_write_authentication` permission.
+      operationId: UploadSamlPublicCertificate
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                certificate:
+                  description: The public certificate file
+                  type: string
+                  format: binary
+              required:
+                - certificate
+      responses:
+        "200":
+          description: SAML certificate upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - SAML
+      summary: Remove public certificate
+      description: >
+        Delete the current public certificate being used with your SAML
+        configuration. This will also disable encryption for SAML on your system
+        as this certificate is required for that.
+
+        ##### Permissions
+
+        Must have `sysconsole_write_authentication` permission.
+      operationId: DeleteSamlPublicCertificate
+      responses:
+        "200":
+          description: SAML certificate delete successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/saml/certificate/private:
+    post:
+      tags:
+        - SAML
+      summary: Upload private key
+      description: >
+        Upload the private key to be used for encryption with your SAML
+        configuration. The server will pick a hard-coded filename for the
+        PrivateKeyFile setting in your `config.json`.
+
+        ##### Permissions
+
+        Must have `sysconsole_write_authentication` permission.
+      operationId: UploadSamlPrivateCertificate
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                certificate:
+                  description: The private key file
+                  type: string
+                  format: binary
+              required:
+                - certificate
+      responses:
+        "200":
+          description: SAML certificate upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - SAML
+      summary: Remove private key
+      description: >
+        Delete the current private key being used with your SAML configuration.
+        This will also disable encryption for SAML on your system as this key is
+        required for that.
+
+        ##### Permissions
+
+        Must have `sysconsole_write_authentication` permission.
+      operationId: DeleteSamlPrivateCertificate
+      responses:
+        "200":
+          description: SAML certificate delete successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/saml/certificate/status:
+    get:
+      tags:
+        - SAML
+      summary: Get certificate status
+      description: >
+        Get the status of the uploaded certificates and keys in use by your SAML
+        configuration.
+
+        ##### Permissions
+
+        Must have `sysconsole_write_authentication` permission.
+      operationId: GetSamlCertificateStatus
+      responses:
+        "200":
+          description: SAML certificate status retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SamlCertificateStatus"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/saml/reset_auth_data:
+    post:
+      tags:
+        - SAML
+      summary: Reset AuthData to Email
+      description: >
+        Reset the AuthData field of SAML users to their email. This is meant to be
+        used when the "id" attribute is set to an empty value ("") from a previously
+        non-empty value.
+
+        __Minimum server version__: 5.35
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: ResetSamlAuthDataToEmail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                include_deleted:
+                  type: boolean
+                  default: false
+                  description: Whether to include deleted users.
+                dry_run:
+                  type: boolean
+                  default: false
+                  description: If set to true, the number of users who would be affected is returned.
+                user_ids:
+                  type: array
+                  items:
+                    type: string
+                  default: []
+                  description: If set to a non-empty array, then users whose IDs are not in the array will be excluded.
+      responses:
+        "200":
+          description: AuthData successfully reset
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  num_affected:
+                    type: integer
+                    description: The number of users whose AuthData field was reset.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
