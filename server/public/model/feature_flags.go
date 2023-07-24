@@ -33,9 +33,6 @@ type FeatureFlags struct {
 	// CallsEnabled controls whether or not the Calls plugin should be enabled
 	CallsEnabled bool
 
-	// A dash separated list for feature flags to turn on for Boards
-	BoardsFeatureFlags string
-
 	// Enable DataRetention for Boards
 	BoardsDataRetention bool
 
@@ -46,11 +43,6 @@ type FeatureFlags struct {
 
 	InsightsEnabled bool
 
-	CommandPalette bool
-
-	// A/B Test on posting a welcome message
-	SendWelcomePost bool
-
 	PostPriority bool
 
 	// Enable WYSIWYG text editor
@@ -58,21 +50,15 @@ type FeatureFlags struct {
 
 	PeopleProduct bool
 
-	// A/B Test on reduced onboarding task list item
-	ReduceOnBoardingTaskList bool
-
-	// A/B Test to control when to show onboarding linked board
-	OnboardingAutoShowLinkedBoard bool
-
-	ThreadsEverywhere bool
-
-	GlobalDrafts bool
-
 	OnboardingTourTips bool
 
 	DeprecateCloudFree bool
 
 	CloudReverseTrial bool
+
+	EnableExportDirectDownload bool
+
+	DataRetentionConcurrencyEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -82,25 +68,18 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = true
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
-	f.PermalinkPreviews = true
-	f.BoardsFeatureFlags = ""
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.GraphQL = false
 	f.InsightsEnabled = false
-	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.SendWelcomePost = true
-	f.PostPriority = true
 	f.PeopleProduct = false
-	f.ReduceOnBoardingTaskList = false
-	f.ThreadsEverywhere = false
-	f.GlobalDrafts = true
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
-	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
+	f.EnableExportDirectDownload = false
+	f.DataRetentionConcurrencyEnabled = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

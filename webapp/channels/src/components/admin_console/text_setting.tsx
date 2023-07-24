@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import TextSetting, {WidgetTextSettingProps} from 'components/widgets/settings/text_setting';
+import TextSetting, {Props as WidgetTextSettingProps} from 'components/widgets/settings/text_setting';
 
 import SetByEnv from './set_by_env';
 

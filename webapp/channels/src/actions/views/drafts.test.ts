@@ -102,7 +102,6 @@ describe('draft actions', () => {
             general: {
                 config: {
                     EnableCustomEmoji: 'true',
-                    FeatureFlagGlobalDrafts: 'true',
                     AllowSyncedDrafts: 'true',
                 },
             },

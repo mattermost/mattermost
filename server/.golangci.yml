@@ -46,10 +46,6 @@ issues:
 
     - linters:
       - revive
-      path: "public/*" # TODO: fix this
-
-    - linters:
-      - revive
       path: "enterprise" # TODO: fix this
 
     - linters:

@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -512,33 +511,12 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		From("FileInfo").
 		LeftJoin("Channels as C ON C.Id=FileInfo.ChannelId").
 		LeftJoin("ChannelMembers as CM ON C.Id=CM.ChannelId").
+		Where(sq.Or{sq.Eq{"C.TeamId": teamId}, sq.Eq{"C.TeamId": ""}}).
 		Where(sq.Eq{"FileInfo.DeleteAt": 0}).
 		OrderBy("FileInfo.CreateAt DESC").
 		Limit(100)
 
-	if teamId != "" {
-		query = query.Where(sq.Or{
-			sq.Eq{"C.TeamId": teamId},
-			sq.Eq{"C.TeamId": ""},
-		})
-	}
-
-	now := model.GetMillis()
 	for _, params := range paramsList {
-		if params.Modifier == model.ModifierFiles {
-			// Deliberately keeping non-alphanumeric characters to
-			// prevent surprises in UI.
-			buf, err := json.Marshal(params)
-			if err != nil {
-				return nil, err
-			}
-
-			err = fs.stores.post.LogRecentSearch(userId, buf, now)
-			if err != nil {
-				return nil, err
-			}
-		}
-
 		params.Terms = removeNonAlphaNumericUnquotedTerms(params.Terms, " ")
 
 		if !params.IncludeDeletedChannels {

@@ -9,6 +9,8 @@ import ChannelSelect from 'components/channel_select';
 import AbstractIncomingWebhook from 'components/integrations/abstract_incoming_webhook';
 import {Team} from '@mattermost/types/teams';
 
+type AbstractIncomingWebhookProps = React.ComponentProps<typeof AbstractIncomingWebhook>;
+
 describe('components/integrations/AbstractIncomingWebhook', () => {
     const team: Team = {id: 'team_id',
         create_at: 0,
@@ -55,7 +57,7 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         },
     );
 
-    const requiredProps = {
+    const requiredProps: AbstractIncomingWebhookProps = {
         team,
         header,
         footer,
@@ -80,10 +82,9 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
     });
 
     test('should match snapshot, displays client error when no initial hook', () => {
-        const newInitialHook = {};
-        const props = {...requiredProps, initialHook: newInitialHook};
+        const props = {...requiredProps};
+        delete props.initialHook;
         const wrapper = shallow(<AbstractIncomingWebhook {...props}/>);
-
         wrapper.find('.btn-primary').simulate('click', {preventDefault() {
             return jest.fn();
         }});
