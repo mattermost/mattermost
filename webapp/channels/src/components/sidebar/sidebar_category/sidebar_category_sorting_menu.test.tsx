@@ -18,13 +18,13 @@ const initialState = {
             myPreferences: {
                 'sidebar_settings--limit_visible_dms_gms': {
                     value: '10',
-                }
-            }
-        }
-    }
+                },
+            },
+        },
+    },
 };
 
-jest.spyOn(redux, 'useSelector').mockImplementation(cb => cb(initialState));
+jest.spyOn(redux, 'useSelector').mockImplementation((cb) => cb(initialState));
 jest.spyOn(redux, 'useDispatch').mockReturnValue((t) => t);
 
 describe('components/sidebar/sidebar_category/sidebar_category_sorting_menu', () => {

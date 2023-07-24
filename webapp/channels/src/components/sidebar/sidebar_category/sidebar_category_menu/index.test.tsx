@@ -14,21 +14,18 @@ import CreateNewCategoryMenuItem from './create_new_category_menu_item';
 
 const initialState = {
     entities: {
-        users: {
-            currentUserId: 'user_id',
-        },
         preferences: {
-            myPreferences: {}
+            myPreferences: {},
         },
         general: {
             config: {
                 ExperimentalGroupUnreadChannels: 'default_off',
-            }
-        }
-    }
+            },
+        },
+    },
 };
 
-jest.spyOn(redux, 'useSelector').mockImplementation(cb => cb(initialState));
+jest.spyOn(redux, 'useSelector').mockImplementation((cb) => cb(initialState));
 jest.spyOn(redux, 'useDispatch').mockReturnValue((t) => t);
 
 describe('components/sidebar/sidebar_category/sidebar_category_menu', () => {
