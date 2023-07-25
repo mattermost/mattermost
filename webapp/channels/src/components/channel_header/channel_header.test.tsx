@@ -46,6 +46,7 @@ describe('components/ChannelHeader', () => {
             'minute',
             'hour',
         ],
+        hideGuestTags: false,
     };
 
     const populatedProps = {

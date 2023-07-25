@@ -76,6 +76,7 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
+                      aria-label="Name"
                       class="Input form-control large"
                       id="input_name"
                       name="name"
@@ -101,6 +102,7 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
+                      aria-label="Business Email"
                       class="Input form-control large Input__focus"
                       id="input_email"
                       name="email"
@@ -134,6 +136,7 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
+                      aria-label="Company Name"
                       class="Input form-control large"
                       id="input_company_name"
                       name="company_name"
@@ -308,7 +311,7 @@ Object {
                 </a>
                 , 
                 <a
-                  href="https://mattermost.com/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123"
+                  href="https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123"
                   location="start_trial_form_modal"
                   rel="noopener noreferrer"
                   target="_blank"

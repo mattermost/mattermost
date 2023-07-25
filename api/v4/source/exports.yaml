@@ -1,0 +1,132 @@
+  "/api/v4/exports":
+    get:
+      tags:
+        - exports
+      summary: List export files
+      description: >
+        Lists all available export files.
+
+        __Minimum server version__: 5.33
+
+        ##### Permissions
+
+        Must have `manage_system` permissions.
+      operationId: ListExports
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      x-code-samples:
+        - lang: Go
+          source: >
+            import "github.com/mattermost/mattermost-server/v5/model"
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            exports, response := Client.ListExports()
+        - lang: Curl
+          source: |
+            curl 'http://localhost:8065/api/v4/exports' \
+            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw'
+  "/api/v4/exports/{export_name}":
+    get:
+      tags:
+        - exports
+      summary: Download an export file
+      description: |
+        Downloads an export file.
+
+
+        __Minimum server version__: 5.33
+
+        ##### Permissions
+
+        Must have `manage_system` permissions.
+      operationId: DownloadExport
+      parameters:
+        - name: export_name
+          in: path
+          description: The name of the export file to download
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import (
+              "os"
+              
+              "github.com/mattermost/mattermost-server/v5/model"
+            }
+
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            outFile, _ := os.Create("export.zip")
+
+            n, response := Client.DownloadExport("export.zip", outFile, 0)
+        - lang: Curl
+          source: |
+            curl 'http://localhost:8065/api/v4/exports/export.zip' \
+            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw'
+    delete:
+      tags:
+        - exports
+      summary: Delete an export file
+      description: |
+        Deletes an export file.
+
+
+        __Minimum server version__: 5.33
+
+        ##### Permissions
+
+        Must have `manage_system` permissions.
+      operationId: DeleteExport
+      parameters:
+        - name: export_name
+          in: path
+          description: The name of the export file to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            ok, response := Client.DeleteExport("export.zip")
+        - lang: Curl
+          source: |
+            curl -X DELETE 'http://localhost:8065/api/v4/exports/export.zip' \
+            -H 'Authorization: Bearer 9kg8nqrnxprd9jbykqeg4r51hw'

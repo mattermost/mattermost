@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -777,12 +778,7 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
-			dupChannel := model.Channel{}
-			s.GetReplicaX().Get(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]any{"TeamId": channel.TeamId, "Name": channel.Name})
-			if dupChannel.DeleteAt > 0 {
-				return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
-			}
-			return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
+			return nil, store.NewErrInvalidInput("Channel", "Name", channel.Name)
 		}
 		return nil, errors.Wrapf(err, "failed to update channel with id=%s", channel.Id)
 	}
@@ -1547,16 +1543,14 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Channels").
-		Where(sq.Eq{"Name": name})
-
-	if !includeDeleted {
-		query = query.Where(sq.Eq{"DeleteAt": 0})
-	}
-	if teamId != "" {
-		query = query.Where(sq.Or{
+		Where(sq.Eq{"Name": name}).
+		Where(sq.Or{
 			sq.Eq{"TeamId": teamId},
 			sq.Eq{"TeamId": ""},
 		})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
 	}
 	channel := model.Channel{}
 
@@ -1916,10 +1910,15 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 	}
 	defer finalizeTransactionX(tx, &err)
 
+	jsonNotifyProps := model.MapToJSON(props)
+	if utf8.RuneCountInString(jsonNotifyProps) > model.ChannelMemberNotifyPropsMaxRunes {
+		return nil, store.NewErrInvalidInput("ChannelMember", "NotifyProps", props)
+	}
+
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		sql, args, err2 := s.getQueryBuilder().
 			Update("channelmembers").
-			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", model.MapToJSON(props))).
+			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
 			Where(sq.Eq{
 				"userid":    userID,
 				"channelid": channelID,
@@ -2199,6 +2198,47 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 		allChannelMembersForUserCache.SetWithExpiry(cache_key, ids, AllChannelMembersForUserCacheDuration)
 	}
 	return ids, nil
+}
+
+func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[string]int64, err error) {
+	query := s.getQueryBuilder().
+		Select("ChannelMembers.ChannelId,COUNT(*) AS Count").
+		From("ChannelMembers").
+		InnerJoin("Users ON ChannelMembers.UserId = Users.Id").
+		Where(sq.And{
+			sq.Eq{"ChannelMembers.ChannelId": channelIDs},
+			sq.Eq{"Users.DeleteAt": 0},
+		}).
+		GroupBy("ChannelMembers.ChannelId")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channels_member_count_tosql")
+	}
+
+	rows, err := s.GetReplicaX().DB.Query(queryString, args...)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch member counts")
+	}
+	defer rows.Close()
+
+	memberCounts := make(map[string]int64)
+	for rows.Next() {
+		var channelID string
+		var count int64
+		errScan := rows.Scan(&channelID, &count)
+		if errScan != nil {
+			return nil, errors.Wrap(err, "failed to scan row")
+		}
+		memberCounts[channelID] = count
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error while iterating rows")
+	}
+
+	return memberCounts, nil
 }
 
 func (s SqlChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
@@ -3561,7 +3601,7 @@ func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) 
 	return searchFields
 }
 
-const spaceFulltextSearchChars = "<>+-()~:*\"!@"
+const spaceFulltextSearchChars = "<>+-()~:*\"!@&"
 
 func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) (fulltextClause, fulltextTerm string) {
 	// Copy the terms as we will need to prepare them differently for each search type.
@@ -4301,415 +4341,4 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 		return nil, errors.Wrapf(err, "failed to find team with channel_id=%s", channelID)
 	}
 	return &team, nil
-}
-
-// GetTopChannelsForTeamSince returns the filtered post counts of the following Channels sets:
-// a) those that are private channels in the given user's membership graph on the given team, and
-// b) those that are public channels in the given team.
-func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
-	channels := make([]*model.TopChannel, 0)
-	var args []any
-	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false') AND (Posts.Props ->> 'from_oauth_app' IS NULL OR Posts.Props ->> 'from_oauth_app' = 'false') AND (Posts.Props ->> 'from_plugin' IS NULL OR Posts.Props ->> 'from_plugin' = 'false')`
-	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_plugin') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_plugin') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_oauth_app') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_oauth_app') = 'false')`
-
-	query := `
-		SELECT
-			ID,
-			Type,
-			DisplayName,
-			Name,
-			TeamID,
-			MessageCount
-		FROM
-			((SELECT
-				Posts.ChannelId AS ID,
-				'O' AS Type,
-				PublicChannels.DisplayName AS DisplayName,
-				PublicChannels.Name AS Name,
-				PublicChannels.TeamId AS TeamID,
-				count(Posts.Id) AS MessageCount,
-				PublicChannels.DeleteAt AS DeleteAt
-			FROM
-				Posts
-				LEFT JOIN PublicChannels on Posts.ChannelId = PublicChannels.Id
-			WHERE
-				Posts.DeleteAt = 0
-				AND Posts.CreateAt > ?
-				AND Posts.Type = ''`
-	args = []any{since}
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query += mySqlPropsQuery
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		query += postgresPropQuery
-	}
-
-	query += `
-				AND PublicChannels.TeamId = ?
-			GROUP BY
-				Posts.ChannelId,
-				PublicChannels.DisplayName,
-				PublicChannels.Name,
-				PublicChannels.TeamId,
-				PublicChannels.DeleteAt)
-		UNION ALL
-			(SELECT
-				Posts.ChannelId AS ID,
-				Channels.Type AS Type,
-				Channels.DisplayName AS DisplayName,
-				Channels.Name AS Name,
-				Channels.TeamId AS TeamID,
-				count(Posts.Id) AS MessageCount,
-				Channels.DeleteAt AS DeleteAt
-			FROM
-				Posts
-				LEFT JOIN Channels on Posts.ChannelId = Channels.Id
-				LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
-			WHERE
-				Posts.DeleteAt = 0
-				AND Posts.CreateAt > ?
-				AND Posts.Type = ''`
-	args = append(args, teamID, since)
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query += mySqlPropsQuery
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		query += postgresPropQuery
-	}
-
-	query += `
-				AND Channels.TeamId = ?
-				AND Channels.Type = 'P'
-				AND ChannelMembers.UserId = ?
-			GROUP BY
-				Posts.ChannelId,
-				Channels.Type,
-				Channels.DisplayName,
-				Channels.Name,
-				Channels.TeamId,
-				Channels.DeleteAt)) AS A
-		WHERE
-			DeleteAt = 0
-		ORDER BY
-			MessageCount DESC,
-			Name ASC
-		LIMIT ?
-		OFFSET ?`
-	args = append(args, teamID, userID, limit+1, offset)
-
-	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to get top Channels")
-	}
-
-	return model.GetTopChannelListWithPagination(channels, limit), nil
-}
-
-// GetTopChannelsForUserSince returns the filtered post counts of channels with with posts created by the user
-// after the given timestamp within the given team (or across the workspace if no team is given). Excludes DM and GM channels.
-func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
-	channels := make([]*model.TopChannel, 0)
-	var args []any
-	var query string
-
-	var propsQuery string
-	if s.DriverName() == model.DatabaseDriverMysql {
-		propsQuery = `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_plugin') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_plugin') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_oauth_app') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_oauth_app') = 'false')`
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		propsQuery = `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false') AND (Posts.Props ->> 'from_oauth_app' IS NULL OR Posts.Props ->> 'from_oauth_app' = 'false') AND (Posts.Props ->> 'from_plugin' IS NULL OR Posts.Props ->> 'from_plugin' = 'false')`
-	}
-
-	query = `
-		SELECT
-			Posts.ChannelId AS ID,
-			Channels.Type AS Type,
-			Channels.DisplayName AS DisplayName,
-			Channels.Name AS Name,
-			Channels.TeamId AS TeamID,
-			count(Posts.Id) AS MessageCount
-		FROM
-			Posts
-			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
-			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
-		WHERE
-			Posts.DeleteAt = 0
-			AND Posts.CreateAt > ?
-			AND Posts.Type = ''
-			AND Posts.UserID = ?
-			AND Channels.DeleteAt = 0
-			AND (Channels.Type = 'O' OR Channels.Type = 'P')
-			AND ChannelMembers.UserId = ? `
-
-	query += propsQuery
-
-	args = []any{since, userID, userID}
-
-	if teamID != "" {
-		query += `
-			AND Channels.TeamID = ?`
-		args = append(args, teamID)
-	}
-
-	query += `
-		Group By
-			Posts.ChannelId,
-			Channels.Type,
-			Channels.DisplayName,
-			Channels.Name,
-			Channels.TeamId
-		ORDER BY
-			MessageCount DESC,
-			Name ASC
-		LIMIT ?
-		OFFSET ?`
-	args = append(args, limit+1, offset)
-
-	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to get top Channels")
-	}
-
-	return model.GetTopChannelListWithPagination(channels, limit), nil
-}
-
-// GetTopInactiveChannelsForTeamSince returns the filtered post counts of the following Channels sets:
-// a) those that are private channels in the given user's membership graph on the given team, and
-// b) those that are public channels in the given team.
-func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
-	channels := make([]*model.TopInactiveChannel, 0)
-	var args []any
-
-	query := `
-		SELECT
-			ID,
-			Type,
-			DisplayName,
-			Name,
-			MessageCount,
-			LastActivityAt
-		FROM
-			((SELECT
-				PublicChannels.Id AS ID,
-				'O' AS Type,
-				PublicChannels.DisplayName AS DisplayName,
-				PublicChannels.Name AS Name,
-				COALESCE(count(Posts.Id), 0) AS MessageCount,
-				COALESCE(max(Posts.CreateAt), 0) AS LastActivityAt
-			FROM
-				PublicChannels
-				LEFT JOIN Posts on Posts.ChannelId = PublicChannels.Id AND Posts.Type = '' AND Posts.CreateAt > ? AND Posts.DeleteAt = 0
-				LEFT JOIN Channels on Channels.Id = PublicChannels.Id
-			WHERE
-				PublicChannels.TeamId = ?
-				AND PublicChannels.DeleteAt = 0
-				AND Channels.CreateAt < ?
-			GROUP BY
-				PublicChannels.Id,
-				PublicChannels.DisplayName,
-				PublicChannels.Name,
-				PublicChannels.TeamId)
-		UNION ALL
-			(SELECT
-				Channels.Id AS ID,
-				Channels.Type AS Type,
-				Channels.DisplayName AS DisplayName,
-				Channels.Name AS Name,
-				COALESCE(count(Posts.Id), 0) AS MessageCount,
-				COALESCE(max(Posts.CreateAt), 0) AS LastActivityAt
-			FROM
-				Channels
-				LEFT JOIN Posts on Posts.ChannelId = Channels.Id AND Posts.Type = '' AND Posts.CreateAt > ? AND Posts.DeleteAt = 0
-				LEFT JOIN ChannelMembers on Channels.Id = ChannelMembers.ChannelId
-			WHERE
-				Channels.TeamId = ?
-				AND Channels.CreateAt < ?
-				AND Channels.Type = 'P'
-				AND Channels.DeleteAt = 0
-				AND ChannelMembers.UserId = ?
-			GROUP BY
-				Channels.Id,
-				Channels.Type,
-				Channels.DisplayName,
-				Channels.Name)) AS A
-		ORDER BY
-			MessageCount ASC,
-			Name ASC
-		LIMIT ?
-		OFFSET ?`
-	args = append(args, since, teamID, since, since, teamID, since, userID, limit+1, offset)
-	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to get top Channels")
-	}
-
-	channels, err := postProcessTopInactiveChannels(s, channels)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return model.GetTopInactiveChannelListWithPagination(channels, limit), nil
-}
-
-// GetTopInactiveChannelsForUserSince returns the filtered post counts of channels with with posts created by the user
-// after the given timestamp within the given team (or across the workspace if no team is given). Excludes DM and GM channels.
-func (s SqlChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
-	channels := make([]*model.TopInactiveChannel, 0)
-	var args []any
-	var query string
-
-	query = `
-		SELECT
-			Channels.Id AS ID,
-			Channels.Type AS Type,
-			Channels.DisplayName AS DisplayName,
-			Channels.Name AS Name,
-			COALESCE(count(Posts.Id), 0) AS MessageCount,
-			COALESCE(max(Posts.CreateAt), 0) AS LastActivityAt
-		FROM
-			Channels
-			LEFT JOIN Posts on Posts.ChannelId = Channels.Id AND Posts.Type = '' AND Posts.CreateAt > ? AND Posts.DeleteAt = 0
-			LEFT JOIN ChannelMembers on Channels.Id = ChannelMembers.ChannelId
-		WHERE
-			Channels.DeleteAt = 0
-			AND Channels.CreateAt < ?
-			AND (Channels.Type = 'O' OR Channels.Type = 'P')
-			AND ChannelMembers.UserId = ? `
-
-	args = []any{since, since, userID}
-
-	if teamID != "" {
-		query += `
-			AND Channels.TeamID = ?`
-		args = append(args, teamID)
-	}
-
-	query += `
-		Group By
-			Channels.Id,
-			Channels.Type,
-			Channels.DisplayName,
-			Channels.Name
-		ORDER BY
-			MessageCount ASC,
-			Name ASC
-		LIMIT ?
-		OFFSET ?`
-	args = append(args, limit+1, offset)
-
-	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to get top Inactive Channels")
-	}
-
-	channels, err := postProcessTopInactiveChannels(s, channels)
-	if err != nil {
-		return nil, err
-	}
-
-	return model.GetTopInactiveChannelListWithPagination(channels, limit), nil
-}
-
-func postProcessTopInactiveChannels(s SqlChannelStore, channels []*model.TopInactiveChannel) ([]*model.TopInactiveChannel, error) {
-	// query channel members for Ids
-	var conditionalAggrSelector string
-	if s.DriverName() == model.DatabaseDriverMysql {
-		conditionalAggrSelector = "GROUP_CONCAT(UserId SEPARATOR ',') as UserIds"
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		conditionalAggrSelector = "string_agg(UserId, ',') as UserIds"
-	}
-
-	var channelIds []string
-	for _, channel := range channels {
-		channelIds = append(channelIds, channel.ID)
-	}
-	q := s.getQueryBuilder().Select("ChannelId", conditionalAggrSelector).From("ChannelMembers").
-		Where(sq.Eq{
-			"ChannelId": channelIds,
-		}).GroupBy("ChannelId")
-
-	channelsUserIdsMap := make(map[string]string, len(channels))
-	type ChannelUserIdsResult struct {
-		ChannelId string
-		UserIds   string
-	}
-
-	channelsUserIdsResultList := make([]ChannelUserIdsResult, len(channels))
-	sql, args, err := q.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to stringify squirrel query")
-	}
-	if err := s.GetReplicaX().Select(&channelsUserIdsResultList, sql, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to get top Inactive Channels users")
-	}
-
-	for _, channelUserIds := range channelsUserIdsResultList {
-		channelsUserIdsMap[channelUserIds.ChannelId] = channelUserIds.UserIds
-	}
-	for index, channel := range channels {
-		userIds := channelsUserIdsMap[channel.ID]
-		userIdsSlice := strings.Split(userIds, ",")
-
-		channels[index].Participants = userIdsSlice
-
-		// handle channels with 0 participants
-		if len(userIdsSlice) == 1 && userIdsSlice[0] == "" {
-			channels[index].Participants = make([]string, 0)
-		}
-	}
-	return channels, nil
-}
-
-func (s SqlChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, atLocation *time.Location) ([]*model.DurationPostCount, error) {
-	var unixSelect string
-	var propsQuery string
-	loc := atLocation.String()
-	if loc == "Local" {
-		loc = "UTC"
-	}
-	var format string
-	if s.DriverName() == model.DatabaseDriverMysql {
-		if duration == model.PostsByDay {
-			format = `%Y-%m-%d`
-		} else {
-			format = `%Y-%m-%dT%H`
-		}
-		unixSelect = fmt.Sprintf(`DATE_FORMAT(
-			COALESCE(
-				CONVERT_TZ(FROM_UNIXTIME(Posts.CreateAt / 1000), 'GMT', '%s'),
-				FROM_UNIXTIME(Posts.CreateAt / 1000)
-			),
-		'%s') AS duration`, loc, format)
-		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_plugin') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_plugin') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_oauth_app') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_oauth_app') = 'false')`
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		if duration == model.PostsByDay {
-			format = "YYYY-MM-DD"
-		} else {
-			format = `YYYY-MM-DD"T"HH24`
-		}
-		unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', '%s') AS duration`, loc, format)
-		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false') AND (Posts.Props ->> 'from_oauth_app' IS NULL OR Posts.Props ->> 'from_oauth_app' = 'false') AND (Posts.Props ->> 'from_plugin' IS NULL OR Posts.Props ->> 'from_plugin' = 'false')`
-	}
-	query := sq.
-		Select("Posts.ChannelId AS channelid", unixSelect, "count(Posts.Id) AS postcount").
-		From("Posts").
-		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
-		Where(sq.And{
-			sq.Eq{"Posts.DeleteAt": 0},
-			sq.Gt{"Posts.CreateAt": sinceUnixMillis},
-			sq.Eq{"Posts.Type": ""},
-			sq.Eq{"Channels.Id": channelIDs},
-		}).
-		Where(propsQuery).
-		GroupBy("channelid", "duration").
-		OrderBy("channelid", "duration")
-	if userID != nil && model.IsValidId(*userID) {
-		query = query.Where(sq.And{sq.Eq{"Posts.UserId": *userID}})
-	}
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse query")
-	}
-	dailyPostCounts := make([]*model.DurationPostCount, 0)
-	if err := s.GetReplicaX().Select(&dailyPostCounts, queryString, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to get post counts by duration")
-	}
-
-	return dailyPostCounts, nil
 }

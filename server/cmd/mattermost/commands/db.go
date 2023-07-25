@@ -14,8 +14,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -124,11 +122,11 @@ func initDbCmdF(command *cobra.Command, _ []string) error {
 }
 
 func resetCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command, app.SkipPostInitialization())
+	ss, err := initStoreCommandContextCobra(command)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "could not initialize store")
 	}
-	defer a.Srv().Shutdown()
+	defer ss.Close()
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {
@@ -146,11 +144,9 @@ func resetCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	a.Srv().Store().DropAllTables()
-	CommandPrettyPrintln("Database successfully reset")
+	ss.DropAllTables()
 
-	auditRec := a.MakeAuditRecord("reset", audit.Success)
-	a.LogAuditRec(auditRec, nil)
+	CommandPrettyPrintln("Database successfully reset")
 
 	return nil
 }
@@ -281,19 +277,15 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 }
 
 func dbVersionCmdF(command *cobra.Command, args []string) error {
-	cfgDSN := getConfigDSN(command, config.GetEnvironment())
-	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
+	ss, err := initStoreCommandContextCobra(command)
 	if err != nil {
-		return errors.Wrap(err, "failed to load configuration")
+		return errors.Wrap(err, "could not initialize store")
 	}
-	config := cfgStore.Get()
-
-	store := sqlstore.New(config.SqlSettings, nil)
-	defer store.Close()
+	defer ss.Close()
 
 	allFlag, _ := command.Flags().GetBool("all")
 	if allFlag {
-		applied, err2 := store.GetAppliedMigrations()
+		applied, err2 := ss.GetAppliedMigrations()
 		if err2 != nil {
 			return errors.Wrap(err2, "failed to get applied migrations")
 		}
@@ -303,7 +295,7 @@ func dbVersionCmdF(command *cobra.Command, args []string) error {
 		return nil
 	}
 
-	v, err := store.GetDBSchemaVersion()
+	v, err := ss.GetDBSchemaVersion()
 	if err != nil {
 		return errors.Wrap(err, "failed to get schema version")
 	}

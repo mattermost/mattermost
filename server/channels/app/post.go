@@ -100,9 +100,10 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 	// the post is NOT a reply post with CRT enabled
 	_, fromWebhook := post.GetProps()["from_webhook"]
 	_, fromBot := post.GetProps()["from_bot"]
-	isCRTReply := post.RootId != "" && a.IsCRTEnabledForUser(c, post.UserId)
+	isCRTEnabled := a.IsCRTEnabledForUser(c, post.UserId)
+	isCRTReply := post.RootId != "" && isCRTEnabled
 	if !fromWebhook && !fromBot && !isCRTReply {
-		if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
+		if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true, isCRTEnabled); err != nil {
 			c.Logger().Warn(
 				"Encountered error updating last viewed",
 				mlog.String("channel_id", post.ChannelId),
@@ -1570,7 +1571,7 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string) (*model.PostSearchResults, *model.AppError) {
+func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
@@ -1582,7 +1583,6 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 	finalParamsList := []*model.SearchParams{}
 
 	for _, params := range paramsList {
-		params.Modifier = modifier
 		params.OrTerms = isOrSearch
 		params.IncludeDeletedChannels = includeDeleted
 		// Don't allow users to search for "*"
@@ -1623,15 +1623,6 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 	}
 
 	return postSearchResults, nil
-}
-
-func (a *App) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, *model.AppError) {
-	searchParams, err := a.Srv().Store().Post().GetRecentSearchesForUser(userID)
-	if err != nil {
-		return nil, model.NewAppError("GetRecentSearchesForUser", "app.recent_searches.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return searchParams, nil
 }
 
 func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
@@ -2054,49 +2045,6 @@ func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppErr
 	return posts, nil
 }
 
-func (a *App) GetTopThreadsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topThreads, err := a.Srv().Store().Thread().GetTopThreadsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	topThreadsWithEmbedAndImage, err := includeEmbedsAndImages(a, c, topThreads, userID)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topThreadsWithEmbedAndImage, nil
-}
-
-func (a *App) GetTopThreadsForUserSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topThreads, err := a.Srv().Store().Thread().GetTopThreadsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	topThreadsWithEmbedAndImage, err := includeEmbedsAndImages(a, c, topThreads, userID)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.post.get_top_threads_for_user_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topThreadsWithEmbedAndImage, nil
-}
-
-func (a *App) GetTopDMsForUserSince(userID string, opts *model.InsightsOpts) (*model.TopDMList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopDMsForUserSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-	topDMs, err := a.Srv().Store().Post().GetTopDMsForUserSince(userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopDMsForUserSince", "app.post.get_top_dms_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return topDMs, nil
-}
-
 func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.AppError {
 	// Store the reminder in the DB
 	reminder := &model.PostReminder{
@@ -2293,16 +2241,4 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 		info.HasJoinedTeam = teamMemberErr == nil
 	}
 	return &info, nil
-}
-
-func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThreadList, userID string) (*model.TopThreadList, error) {
-	for _, topThread := range topThreadList.Items {
-		topThread.Post = a.PreparePostForClientWithEmbedsAndImages(c, topThread.Post, false, false, true)
-		sanitizedPost, err := a.SanitizePostMetadataForUser(c, topThread.Post, userID)
-		if err != nil {
-			return nil, err
-		}
-		topThread.Post = sanitizedPost
-	}
-	return topThreadList, nil
 }

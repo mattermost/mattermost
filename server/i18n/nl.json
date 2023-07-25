@@ -6857,7 +6857,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Je Mattermost systeem heeft nu verschillende teams. Veel teams hebben hun eigen manier van coördineren en samenwerken, inclusief hoe kanalen worden gecreëerd, wie nieuwe teamgenoten kan uitnodigen en hoe integraties worden beheerd. Met Team schema's kan je de gebruikersrechten binnen elk team aanpassen aan hun specifieke behoeften.\n\n[Meer informatie over het gebruik van geavanceerde rechten](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/privacy-policy/), en het ontvangen van product-e-mails."
+    "translation": "Je Mattermost systeem heeft nu verschillende teams. Veel teams hebben hun eigen manier van coördineren en samenwerken, inclusief hoe kanalen worden gecreëerd, wie nieuwe teamgenoten kan uitnodigen en hoe integraties worden beheerd. Met Team schema's kan je de gebruikersrechten binnen elk team aanpassen aan hun specifieke behoeften.\n\n[Meer informatie over het gebruik van geavanceerde rechten](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
@@ -6877,7 +6877,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Jouw Mattermost-systeem heeft een groot aantal berichten. Het standaard zoeken in de Mattermost-database begint bij ongeveer 2,5 miljoen berichten een prestatieverlies te vertonen. Met meer dan 5 miljoen berichten kan Elasticsearch aanzienlijke prestatieproblemen helpen voorkomen, zoals time-outs, met zoekopdrachten en bijvermeldingen. Neem contact met ons op voor meer informatie en laat ons weten hoe we kunnen helpen.\n\n[Meer informatie over het verbeteren van de prestaties](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/privacy-policy/), en het ontvangen van product-e-mails."
+    "translation": "Jouw Mattermost-systeem heeft een groot aantal berichten. Het standaard zoeken in de Mattermost-database begint bij ongeveer 2,5 miljoen berichten een prestatieverlies te vertonen. Met meer dan 5 miljoen berichten kan Elasticsearch aanzienlijke prestatieproblemen helpen voorkomen, zoals time-outs, met zoekopdrachten en bijvermeldingen. Neem contact met ons op voor meer informatie en laat ons weten hoe we kunnen helpen.\n\n[Meer informatie over het verbeteren van de prestaties](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
@@ -6897,7 +6897,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Kanalen helpen de communicatie te verbeteren, maar met gebruikers over de meest materiële kanalen die zich aansluiten en kanalen creëren, neemt de uitdaging toe om het systeem georganiseerd te houden. Met geavanceerde rechten kan je instellen welke gebruikers of rollen bepaalde acties kunnen uitvoeren, waaronder het beheren van kanaalinstellingen en leden, het gebruik van @channel of @here om brede groepen gebruikers te taggen en het maken van nieuwe webhooks.\n\n[Meer informatie over het gebruik van geavanceerde rechten](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/privacy-policy/), en het ontvangen van product-e-mails."
+    "translation": "Kanalen helpen de communicatie te verbeteren, maar met gebruikers over de meest materiële kanalen die zich aansluiten en kanalen creëren, neemt de uitdaging toe om het systeem georganiseerd te houden. Met geavanceerde rechten kan je instellen welke gebruikers of rollen bepaalde acties kunnen uitvoeren, waaronder het beheren van kanaalinstellingen en leden, het gebruik van @channel of @here om brede groepen gebruikers te taggen en het maken van nieuwe webhooks.\n\n[Meer informatie over het gebruik van geavanceerde rechten](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_title",
@@ -6917,7 +6917,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Het wordt ten zeerste aanbevolen dat implementaties van meer dan 500 gebruikers gebruik maken van functies zoals gebruikersbeheer, serverclustering en prestatiebewaking. Neem contact met ons op voor meer informatie en laat ons weten hoe we kunnen helpen.\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/privacy-policy/) en het ontvangen van product-e-mails."
+    "translation": "Het wordt ten zeerste aanbevolen dat implementaties van meer dan 500 gebruikers gebruik maken van functies zoals gebruikersbeheer, serverclustering en prestatiebewaking. Neem contact met ons op voor meer informatie en laat ons weten hoe we kunnen helpen.\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/) en het ontvangen van product-e-mails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
@@ -6933,7 +6933,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Met zoveel gesprekken die in Mattermost plaatsvinden, kan het een uitdaging zijn om te weten waar je moet zoeken naar belangrijke informatie. Als je een bericht wilt uitzenden naar een groot publiek, kan je alleen-lezen-kanalen instellen waar iedereen kan meedoen, maar alleen kanaalbeheerders kunnen berichten plaatsen.\n\n[Meer informatie over het creëren van alleen-lezen-kanalen](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/privacy-policy/), en het ontvangen van product-e-mails."
+    "translation": "Met zoveel gesprekken die in Mattermost plaatsvinden, kan het een uitdaging zijn om te weten waar je moet zoeken naar belangrijke informatie. Als je een bericht wilt uitzenden naar een groot publiek, kan je alleen-lezen-kanalen instellen waar iedereen kan meedoen, maar alleen kanaalbeheerders kunnen berichten plaatsen.\n\n[Meer informatie over het creëren van alleen-lezen-kanalen](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
@@ -6949,7 +6949,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Jouw Mattermost systeem heeft nu 200 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. We raden je aan om jouw SAML 2.0 provider te integreren met jouw Mattermost server.[Meer informatie over integratie met SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/privacy-policy/), en het ontvangen van product-e-mails."
+    "translation": "Jouw Mattermost systeem heeft nu 200 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. We raden je aan om jouw SAML 2.0 provider te integreren met jouw Mattermost server.[Meer informatie over integratie met SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
@@ -6961,7 +6961,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Jouw Mattermost systeem heeft meer dan 100 gebruikers. Naarmate jouw gebruikersbasis groeit, kan het aanmaken van nieuwe accounts tijdrovend worden. Wij raden je aan de Active Directory/LDAP van jouw organisatie te integreren, waardoor iedereen met een account toegang krijgt tot Mattermost.\n\n[Meer informatie over integratie met AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/privacy-policy/), en het ontvangen van product-e-mails."
+    "translation": "Jouw Mattermost systeem heeft meer dan 100 gebruikers. Naarmate jouw gebruikersbasis groeit, kan het aanmaken van nieuwe accounts tijdrovend worden. Wij raden je aan de Active Directory/LDAP van jouw organisatie te integreren, waardoor iedereen met een account toegang krijgt tot Mattermost.\n\n[Meer informatie over integratie met AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
@@ -6981,7 +6981,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Jouw Mattermost systeem heeft multi-factor authenticatie ingeschakeld, waardoor gebruikers de keuze hebben om hun accounts te beveiligen met extra authenticatiemiddelen die verder gaan dan een wachtwoord. Om de beveiliging in het hele systeem te verbeteren kan je eisen dat alle Mattermost-accounts multi-factor authenticatie gebruiken.\n\n[Meer informatie over het afdwingen van Multi-Factor Authenticatie](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/privacy-policy/), en het ontvangen van product-e-mails."
+    "translation": "Jouw Mattermost systeem heeft multi-factor authenticatie ingeschakeld, waardoor gebruikers de keuze hebben om hun accounts te beveiligen met extra authenticatiemiddelen die verder gaan dan een wachtwoord. Om de beveiliging in het hele systeem te verbeteren kan je eisen dat alle Mattermost-accounts multi-factor authenticatie gebruiken.\n\n[Meer informatie over het afdwingen van Multi-Factor Authenticatie](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -7001,7 +7001,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Bij projecten zijn vaak mensen binnen en buiten een organisatie betrokken. Met gastaccounts kan je externe partners in jouw Mattermost-systeem brengen en aangeven met wie ze kunnen werken en wat ze kunnen zien.\n\n[Meer informatie over het inschakelen van gastaccounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/privacy-policy/), en het ontvangen van product-e-mails."
+    "translation": "Bij projecten zijn vaak mensen binnen en buiten een organisatie betrokken. Met gastaccounts kan je externe partners in jouw Mattermost-systeem brengen en aangeven met wie ze kunnen werken en wat ze kunnen zien.\n\n[Meer informatie over het inschakelen van gastaccounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
   },
   {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
@@ -9465,10 +9465,6 @@
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Gastaccounts zijn uitgeschakeld"
-  },
-  {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "Ongeldig tijdsbereik."
   },
   {
     "id": "app.collection.add_topic.exists.app_error",

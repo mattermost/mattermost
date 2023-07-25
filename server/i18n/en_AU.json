@@ -7378,7 +7378,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Your Mattermost system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customise user permissions within each team to meet their specific needs.\n\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Mattermost system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customise user permissions within each team to meet their specific needs.\n\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
@@ -7398,7 +7398,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\n\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nBy clicking 'Start Trial', I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\n\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nBy clicking 'Start Trial', I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
@@ -7418,7 +7418,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Channels help improve communication, but with users across Mattermost joining and creating channels, the challenge of keeping the system organised increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\n\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nBy clicking 'Start Trial', I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Channels help improve communication, but with users across Mattermost joining and creating channels, the challenge of keeping the system organised increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\n\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nBy clicking 'Start Trial', I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_title",
@@ -7438,7 +7438,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\n\nBy clicking 'Start Trial', I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Mattermost strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\n\nBy clicking 'Start Trial', I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
@@ -7462,7 +7462,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "With so much conversation happening across Mattermost, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\n\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "With so much conversation happening across Mattermost, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\n\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
@@ -7478,7 +7478,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Your Mattermost system now has 200 users. When you connect Mattermost with your organisation's single sign-on provider, users can access Mattermost without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Mattermost server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nBy clicking 'Start Trial', I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Mattermost system now has 200 users. When you connect Mattermost with your organisation's single sign-on provider, users can access Mattermost without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Mattermost server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nBy clicking 'Start Trial', I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -7498,7 +7498,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Your Mattermost system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organisation’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost.\n\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nBy clicking 'Start Trial', I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Mattermost system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organisation’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost.\n\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nBy clicking 'Start Trial', I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
@@ -7518,7 +7518,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\n\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\n\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -7542,7 +7542,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Projects often involve people both inside and outside of an organisation. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\n\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Projects often involve people both inside and outside of an organisation. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\n\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -9461,10 +9461,6 @@
   {
     "id": "app.file.cloud.get.app_error",
     "translation": "Unable to retrieve file: cloud storage limit exceeded."
-  },
-  {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "Invalid time range."
   },
   {
     "id": "api.team.invite_guests_to_channels.license.error",

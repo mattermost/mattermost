@@ -217,19 +217,6 @@ func (a *App) IsFirstUserAccount() bool {
 	return a.ch.srv.platform.IsFirstUserAccount()
 }
 
-func (a *App) IsFirstAdmin(user *model.User) bool {
-	if !user.IsSystemAdmin() {
-		return false
-	}
-
-	adminID, err := a.Srv().Store().User().GetFirstSystemAdminID()
-	if err != nil {
-		return false
-	}
-
-	return adminID == user.Id
-}
-
 // CreateUser creates a user and sets several fields of the returned User struct to
 // their zero values.
 func (a *App) CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError) {
@@ -297,14 +284,6 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: ruser.Id, Value: "0"}
 
 	preferences := model.Preferences{recommendedNextStepsPref, tutorialStepPref}
-
-	if a.Config().FeatureFlags.InsightsEnabled {
-		// We don't want to show the insights intro modal for new users
-		preferences = append(preferences, model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryInsights, Name: model.PreferenceNameInsights, Value: "{\"insights_modal_viewed\":true}"})
-	} else {
-		preferences = append(preferences, model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryInsights, Name: model.PreferenceNameInsights, Value: "{\"insights_modal_viewed\":false}"})
-	}
-
 	if err := a.Srv().Store().Preference().Save(preferences); err != nil {
 		c.Logger().Warn("Encountered error saving user preferences", mlog.Err(err))
 	}

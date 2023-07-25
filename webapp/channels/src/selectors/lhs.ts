@@ -7,9 +7,7 @@ import {StaticPage} from 'types/store/lhs';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetDraftsCount} from 'selectors/drafts';
 import {
-    insightsAreEnabled,
     isCollapsedThreadsEnabled,
-    localDraftsAreEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
 
 export function getIsLhsOpen(state: GlobalState): boolean {
@@ -24,19 +22,10 @@ export const getDraftsCount = makeGetDraftsCount();
 
 export const getVisibleStaticPages = createSelector(
     'getVisibleSidebarStaticPages',
-    insightsAreEnabled,
     isCollapsedThreadsEnabled,
-    localDraftsAreEnabled,
     getDraftsCount,
-    (insightsEnabled, collapsedThreadsEnabled, localDraftsEnabled, draftsCount) => {
+    (collapsedThreadsEnabled, draftsCount) => {
         const staticPages: StaticPage[] = [];
-
-        if (insightsEnabled) {
-            staticPages.push({
-                id: 'activity-and-insights',
-                isVisible: true,
-            });
-        }
 
         if (collapsedThreadsEnabled) {
             staticPages.push({
@@ -45,12 +34,10 @@ export const getVisibleStaticPages = createSelector(
             });
         }
 
-        if (localDraftsEnabled) {
-            staticPages.push({
-                id: 'drafts',
-                isVisible: draftsCount > 0,
-            });
-        }
+        staticPages.push({
+            id: 'drafts',
+            isVisible: draftsCount > 0,
+        });
 
         return staticPages.filter((item) => item.isVisible);
     },

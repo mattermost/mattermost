@@ -8,7 +8,6 @@ import {bindActionCreators, Dispatch} from 'redux';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getPostEditHistory} from 'mattermost-redux/actions/posts';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
@@ -41,7 +40,6 @@ type StateProps = {
 type DispatchProps = {
     actions: {
         openShowEditHistory: (post: Post) => void;
-        getPostEditHistory: (postId: string) => void;
     };
 }
 
@@ -70,7 +68,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openShowEditHistory,
-            getPostEditHistory,
         }, dispatch),
     };
 }

@@ -17,6 +17,7 @@ import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
 import MigrationsTable from './database';
+import {DocLinks} from 'utils/constants';
 
 export default class DatabaseSettings extends AdminSettings {
     constructor(props) {
@@ -353,7 +354,7 @@ export default class DatabaseSettings extends AdminSettings {
                                 link: (msg) => (
                                     <ExternalLink
                                         location='database_settings'
-                                        href='https://mattermost.com/pl/default-search-engine'
+                                        href={DocLinks.ELASTICSEARCH}
                                     >
                                         {msg}
                                     </ExternalLink>
