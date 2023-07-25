@@ -1099,11 +1099,17 @@ func (a *App) getAddChannelReadContentPermissions() (permissionsMap, error) {
 		model.PermissionReadChannelContent.Id,
 	}
 
+	// Migrate all roles including custom roles that have the read_channel permission
+	// but exclude system console roles system_read_only_admin system_user_manager & system_manager
+	// as this system roles are for the admin console use only
 	t = append(t, permissionTransformation{
-		On: permissionOr(
-			isExactRole(model.SystemAdminRoleId),
-			isExactRole(model.ChannelUserRoleId),
-			isExactRole(model.ChannelGuestRoleId),
+		On: permissionAnd(
+			permissionAnd(
+				isNotExactRole(model.SystemUserManagerRoleId),
+				isNotExactRole(model.SystemReadOnlyAdminRoleId),
+				isNotExactRole(model.SystemManagerRoleId),
+			),
+			permissionExists(model.PermissionReadChannel.Id),
 		),
 		Add: readChannelContentPermissions,
 	})
