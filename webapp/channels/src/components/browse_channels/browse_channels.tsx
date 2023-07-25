@@ -29,13 +29,14 @@ import './browse_channels.scss';
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
 const SEARCH_TIMEOUT_MILLISECONDS = 100;
-export const FILTER = {
-    all: 'all' as const,
-    public: 'public' as const,
-    private: 'private' as const,
-    archived: 'archived' as const,
-};
-export type FilterType = keyof typeof FILTER;
+export enum Filter {
+    All = 'All',
+    Public = 'Public',
+    Private = 'Private',
+    Archived = 'Archived',
+}
+
+export type FilterType = keyof typeof Filter;
 
 type Actions = {
     getChannels: (teamId: string, page: number, perPage: number) => Promise<ActionResult<Channel[], Error>>;
@@ -91,7 +92,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
         this.state = {
             loading: true,
-            filter: FILTER.all,
+            filter: Filter.All,
             search: false,
             searchedChannels: [],
             serverError: null,
@@ -221,13 +222,13 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     setSearchResults = (channels: Channel[]) => {
         // filter out private channels that the user is not a member of
         let searchedChannels = channels.filter((c) => c.type !== Constants.PRIVATE_CHANNEL || this.isMemberOfChannel(c.id));
-        if (this.state.filter === FILTER.private) {
+        if (this.state.filter === Filter.Private) {
             searchedChannels = channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL && this.isMemberOfChannel(c.id));
         }
-        if (this.state.filter === FILTER.public) {
+        if (this.state.filter === Filter.Public) {
             searchedChannels = channels.filter((c) => c.type === Constants.OPEN_CHANNEL && c.delete_at === 0);
         }
-        if (this.state.filter === FILTER.archived) {
+        if (this.state.filter === Filter.Archived) {
             searchedChannels = channels.filter((c) => c.delete_at !== 0);
         }
         if (this.props.shouldHideJoinedChannels) {
@@ -264,19 +265,18 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         const archivedChannelsWithoutJoined = this.getChannelsWithoutJoined(archivedChannels);
         const privateChannelsWithoutJoined = this.getChannelsWithoutJoined(privateChannels);
 
+        const filterOptions = {
+            [Filter.All]: shouldHideJoinedChannels ? allChannelsWithoutJoined : allChannels,
+            [Filter.Archived]: shouldHideJoinedChannels ? archivedChannelsWithoutJoined : archivedChannels,
+            [Filter.Private]: shouldHideJoinedChannels ? privateChannelsWithoutJoined : privateChannels,
+            [Filter.Public]: shouldHideJoinedChannels ? publicChannelsWithoutJoined : channels,
+        };
+
         if (search) {
             return searchedChannels;
         }
-        if (filter === FILTER.archived) {
-            return shouldHideJoinedChannels ? archivedChannelsWithoutJoined : archivedChannels;
-        }
-        if (filter === FILTER.private) {
-            return shouldHideJoinedChannels ? privateChannelsWithoutJoined : privateChannels;
-        }
-        if (filter === FILTER.public) {
-            return shouldHideJoinedChannels ? publicChannelsWithoutJoined : channels;
-        }
-        return shouldHideJoinedChannels ? allChannelsWithoutJoined : allChannels;
+
+        return filterOptions[filter] || filterOptions[Filter.All];
     };
 
     render() {

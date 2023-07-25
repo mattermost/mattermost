@@ -27,7 +27,7 @@ import {t} from 'utils/i18n';
 import MenuWrapper from './widgets/menu/menu_wrapper';
 import Menu from './widgets/menu/menu';
 import {isKeyPressed} from 'utils/keyboard';
-import {FILTER, FilterType} from './browse_channels/browse_channels';
+import {Filter, FilterType} from './browse_channels/browse_channels';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 
@@ -271,26 +271,26 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
             );
         }
         switch (this.props.filter) {
-        case 'archived':
+        case Filter.Archived:
             return (
                 <FormattedMessage
-                    id={t('more_channels.noArchived')}
+                    id={'more_channels.noArchived'}
                     tagName='strong'
                     defaultMessage={'No archived channels'}
                 />
             );
-        case 'private':
+        case Filter.Private:
             return (
                 <FormattedMessage
-                    id={t('more_channels.noPrivate')}
+                    id={'more_channels.noPrivate'}
                     tagName='strong'
                     defaultMessage={'No private channels'}
                 />
             );
-        case 'public':
+        case Filter.Public:
             return (
                 <FormattedMessage
-                    id={t('more_channels.noPublic')}
+                    id={'more_channels.noPublic'}
                     tagName='strong'
                     defaultMessage={'No public channels'}
                 />
@@ -298,7 +298,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
         default:
             return (
                 <FormattedMessage
-                    id={t('more_channels.noChannels')}
+                    id={'more_channels.noChannels'}
                     tagName='strong'
                     defaultMessage={'No channels'}
                 />
@@ -307,11 +307,11 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
     };
     getFilterLabel = () => {
         switch (this.props.filter) {
-        case 'archived':
+        case Filter.Archived:
             return <span>{localizeMessage('more_channels.show_archived_channels', 'Channel Type: Archived')}</span>;
-        case 'public':
+        case Filter.Public:
             return <span>{localizeMessage('more_channels.show_public_channels', 'Channel Type: Public')}</span>;
-        case 'private':
+        case Filter.Private:
             return <span>{localizeMessage('more_channels.show_private_channels', 'Channel Type: Private')}</span>;
         default:
             return <span>{localizeMessage('more_channels.show_all_channels', 'Channel Type: All')}</span>;
@@ -413,28 +413,28 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
             <Menu.ItemAction
                 key='channelsMoreDropdownAll'
                 id='channelsMoreDropdownAll'
-                onClick={() => this.props.changeFilter(FILTER.all)}
+                onClick={() => this.props.changeFilter(Filter.All)}
                 icon={<GlobeIcon size={16}/>} //  todo use the correct icon from compass: PR opened: https://github.com/mattermost/compass-icons/pull/78/files
                 text={localizeMessage('suggestion.all', 'All channel types')}
-                rightDecorator={this.props.filter === FILTER.all ? checkIcon : null}
+                rightDecorator={this.props.filter === Filter.All ? checkIcon : null}
                 ariaLabel={localizeMessage('suggestion.all', 'All channel types')}
             />,
             <Menu.ItemAction
                 key='channelsMoreDropdownPublic'
                 id='channelsMoreDropdownPublic'
-                onClick={() => this.props.changeFilter(FILTER.public)}
+                onClick={() => this.props.changeFilter(Filter.Public)}
                 icon={<GlobeIcon size={16}/>}
                 text={localizeMessage('suggestion.public', 'Public channels')}
-                rightDecorator={this.props.filter === FILTER.public ? checkIcon : null}
+                rightDecorator={this.props.filter === Filter.Public ? checkIcon : null}
                 ariaLabel={localizeMessage('suggestion.public', 'Public channels')}
             />,
             <Menu.ItemAction
                 key='channelsMoreDropdownPrivate'
                 id='channelsMoreDropdownPrivate'
-                onClick={() => this.props.changeFilter(FILTER.private)}
+                onClick={() => this.props.changeFilter(Filter.Private)}
                 icon={<LockOutlineIcon size={16}/>}
                 text={localizeMessage('suggestion.private', 'Private channels')}
-                rightDecorator={this.props.filter === FILTER.private ? checkIcon : null}
+                rightDecorator={this.props.filter === Filter.Private ? checkIcon : null}
                 ariaLabel={localizeMessage('suggestion.private', 'Private channels')}
             />,
         ];
@@ -443,10 +443,10 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
             channelDropdownItems.push(
                 <Menu.ItemAction
                     id='channelsMoreDropdownArchived'
-                    onClick={() => this.props.changeFilter(FILTER.archived)}
+                    onClick={() => this.props.changeFilter(Filter.Archived)}
                     icon={<ArchiveOutlineIcon size={16}/>}
                     text={localizeMessage('suggestion.archive', 'Archived channels')}
-                    rightDecorator={this.props.filter === FILTER.archived ? checkIcon : null}
+                    rightDecorator={this.props.filter === Filter.Archived ? checkIcon : null}
                     ariaLabel={localizeMessage('suggestion.archive', 'Archived channels')}
                 />,
             );
