@@ -23,9 +23,7 @@ describe('Forward Message', () => {
     const replyMessage = 'Forward this reply';
 
     before(() => {
-        // # Testing Forwarding from Insights view requires a license
         cy.apiRequireLicense();
-        cy.shouldHaveFeatureFlag('InsightsEnabled', true);
 
         cy.apiUpdateConfig({
             ServiceSettings: {

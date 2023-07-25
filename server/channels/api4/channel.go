@@ -713,8 +713,8 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannelContent) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 

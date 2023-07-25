@@ -1978,10 +1978,6 @@
     "translation": "Invalid username."
   },
   {
-    "id": "api.insights.feature_disabled",
-    "translation": "Insights is behind a feature flag which is not enabled."
-  },
-  {
     "id": "api.invalid_channel",
     "translation": "Channel listed in the request doesn't belong to the user"
   },
@@ -5832,10 +5828,6 @@
     "translation": "insert error"
   },
   {
-    "id": "app.insights.feature_disabled",
-    "translation": "Insights feature is disabled."
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
@@ -6294,18 +6286,6 @@
   {
     "id": "app.post.get_root_posts.app_error",
     "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "Unable to get top DMs for user."
-  },
-  {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "Unable to get top threads for team."
-  },
-  {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "Unable to get top threads for user."
   },
   {
     "id": "app.post.marshal.app_error",
@@ -9070,10 +9050,6 @@
   {
     "id": "model.incoming_hook.username.app_error",
     "translation": "Invalid username."
-  },
-  {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "Invalid time range."
   },
   {
     "id": "model.job.is_valid.create_at.app_error",

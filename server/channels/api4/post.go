@@ -249,8 +249,8 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannelContent) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -333,8 +333,8 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	channelId := c.Params.ChannelId
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannelContent) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -424,7 +424,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		if !ok {
 			allowed = false
 
-			if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannelContent) {
+			if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannel) {
 				allowed = true
 			}
 
@@ -529,7 +529,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 			channelMap[channel.Id] = channel
 		}
 
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannelContent) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
 			if channel.Type != model.ChannelTypeOpen || (channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)) {
 				continue
 			}
@@ -942,8 +942,8 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -967,8 +967,8 @@ func setPostReminder(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -997,8 +997,8 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1049,8 +1049,8 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1086,8 +1086,8 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1112,8 +1112,8 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 

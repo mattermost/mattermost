@@ -170,8 +170,6 @@ type TeamStore interface {
 	// GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
 	// users belong.
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
-
-	GetNewTeamMembersSince(teamID string, since int64, offset int, limit int, showFullName bool) (*model.NewTeamMembersList, int64, error)
 }
 
 type ChannelStore interface {
@@ -301,15 +299,6 @@ type ChannelStore interface {
 	SetShared(channelId string, shared bool) error
 	// GetTeamForChannel returns the team for a given channelID.
 	GetTeamForChannel(channelID string) (*model.Team, error)
-
-	// Insights - channels
-	GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error)
-	GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error)
-	PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, error)
-
-	// Insights - inactive channels
-	GetTopInactiveChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error)
-	GetTopInactiveChannelsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -348,10 +337,6 @@ type ThreadStore interface {
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error)
 	DeleteMembershipsForChannel(userID, channelID string) error
-
-	// Insights - threads
-	GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error)
-	GetTopThreadsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error)
 }
 
 type PostStore interface {
@@ -405,9 +390,6 @@ type PostStore interface {
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
-
-	// Insights - top DMs
-	GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error)
 }
 
 type UserStore interface {
@@ -704,7 +686,7 @@ type FileInfoStore interface {
 	SetContent(fileID, content string) error
 	Search(paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.FileInfoList, error)
 	CountAll() (int64, error)
-	GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error)
+	GetFilesBatchForIndexing(startTime int64, startFileID string, includeDeleted bool, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
 	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
 	// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
@@ -728,8 +710,6 @@ type ReactionStore interface {
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 	DeleteOrphanedRows(limit int) (int64, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
-	GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopReactionList, error)
-	GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error)
 }
 
 type JobStore interface {
