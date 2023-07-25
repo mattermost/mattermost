@@ -9188,10 +9188,6 @@
     "translation": "Отсутствуют обязательные поля для отправки электронного письма о просрочке."
   },
   {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "Неверный диапазон времени."
-  },
-  {
     "id": "model.group.name.reserved_name.app_error",
     "translation": "имя группы уже существует как зарезервированное имя"
   },
