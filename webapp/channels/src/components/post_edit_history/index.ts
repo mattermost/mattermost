@@ -8,7 +8,6 @@ import {getChannel, getCurrentChannel} from 'mattermost-redux/selectors/entities
 import {GlobalState} from 'types/store';
 
 import {getSelectedPostId} from 'selectors/rhs';
-import {getPostEditHistory} from 'selectors/posts';
 
 import PostEditHistory from './post_edit_history';
 
@@ -20,7 +19,6 @@ function mapStateToProps(state: GlobalState) {
     return {
         channelDisplayName,
         originalPost,
-        postEditHistory: getPostEditHistory(state),
     };
 }
 

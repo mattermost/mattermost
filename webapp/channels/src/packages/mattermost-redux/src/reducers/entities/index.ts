@@ -27,7 +27,6 @@ import cloud from './cloud';
 import hostedCustomer from './hosted_customer';
 import usage from './usage';
 import threads from './threads';
-import insights from './insights';
 
 export default combineReducers({
     general,
@@ -52,7 +51,6 @@ export default combineReducers({
     channelCategories,
     apps,
     cloud,
-    insights,
     usage,
     hostedCustomer,
 });
