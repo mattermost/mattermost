@@ -1092,25 +1092,6 @@ func (a *App) getProductsBoardsPermissions() (permissionsMap, error) {
 	return transformations, nil
 }
 
-func (a *App) getAddChannelReadContentPermissions() (permissionsMap, error) {
-	t := []permissionTransformation{}
-
-	readChannelContentPermissions := []string{
-		model.PermissionReadChannelContent.Id,
-	}
-
-	t = append(t, permissionTransformation{
-		On: permissionOr(
-			isExactRole(model.SystemAdminRoleId),
-			isExactRole(model.ChannelUserRoleId),
-			isExactRole(model.ChannelGuestRoleId),
-		),
-		Add: readChannelContentPermissions,
-	})
-
-	return t, nil
-}
-
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1154,7 +1135,6 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddPlayboosksManageRolesPermissions, Migration: a.getPlaybooksPermissionsAddManageRoles},
 		{Key: model.MigrationKeyAddProductsBoardsPermissions, Migration: a.getProductsBoardsPermissions},
 		{Key: model.MigrationKeyAddCustomUserGroupsPermissionRestore, Migration: a.getAddCustomUserGroupsPermissionRestore},
-		{Key: model.MigrationKeyAddReadChannelContentPermissions, Migration: a.getAddChannelReadContentPermissions},
 	}
 
 	roles, err := s.Store().Role().GetAll()
