@@ -1353,6 +1353,7 @@ export const Locations = {
     SEARCH: 'SEARCH' as const,
     NO_WHERE: 'NO_WHERE' as const,
     MODAL: 'MODAL' as const,
+    EDITOR: 'EDITOR' as const,
 };
 
 export const PostListRowListIds = {

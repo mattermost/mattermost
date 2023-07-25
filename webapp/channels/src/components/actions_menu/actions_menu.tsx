@@ -39,7 +39,7 @@ export type Props = {
     intl: IntlShape;
     isMenuOpen?: boolean;
     isSysAdmin: boolean;
-    location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | 'SEARCH' | string;
+    location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | 'SEARCH' | 'EDITOR' | string;
     pluginMenuItems?: PluginComponent[];
     customMenuItems?: PluginComponent[];
     post: Post;
@@ -47,6 +47,7 @@ export type Props = {
     canOpenMarketplace: boolean;
     tooltipText?: React.ReactNode;
     icon?: React.ReactNode;
+    onPluginActionReturn: (text: string) => void
 
     /**
      * Components for overriding provided by plugins
@@ -300,7 +301,10 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         text={item.text}
                         onClick={() => {
                             if (item.action) {
-                                item.action(this.props.post.id);
+                                const result = item.action(this.props.post.id || this.props.post.message);
+                                if (result !== null && result !== undefined) {
+                                    this.props.onPluginActionReturn(result)
+                                }
                             }
                         }}
                     />
@@ -398,6 +402,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         id={`${this.props.location}_actions_button_${this.props.post.id}`}
                         aria-label={Utils.localizeMessage('post_info.actions.tooltip.actions', 'Actions').toLowerCase()}
                         className={classNames('post-menu__item', {
+                            'post-menu__item--show': this.props.location === Locations.EDITOR,
                             'post-menu__item--active': this.props.isMenuOpen,
                         })}
                         type='button'

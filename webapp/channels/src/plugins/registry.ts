@@ -590,6 +590,64 @@ export default class PluginRegistry {
         return id;
     });
 
+    // Register a post editor action item by providing some text and an action function.
+    // Accepts the following:
+    // - text - A string to display in the name of the action on hover
+    // - icon - A React element to display the icon
+    // - subComponents - A list of subcomponents to show in a menu
+    // - action - A function to trigger when component is clicked on
+    // - filter - A function whether to apply the plugin into the post actions
+    // Returns a unique identifier.
+    registerPostEditorAction = reArg([
+        'text',
+        'icon',
+        'subComponents',
+        'action',
+        'filter',
+    ], ({
+        text,
+        icon,
+        subComponents,
+        action,
+        filter,
+    }: {
+        text: string;
+        icon: ReactResolvable;
+        subComponents: {
+            text: ReactResolvable;
+            action: PluginComponent['action'];
+            filter: PluginComponent['filter'];
+        }[];
+        action: PluginComponent['action'];
+        filter: PluginComponent['filter'];
+    }) => {
+        const id = generateId();
+
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'PostEditorAction',
+            data: {
+                id,
+                pluginId: this.id,
+                text: text,
+                icon: resolveReactElement(icon),
+                action,
+                filter,
+                subComponents: subComponents.map((subComponent) => {
+                    return {
+                        id: generateId(),
+                        pluginId: this.id,
+                        text: resolveReactElement(subComponent.text),
+                        action: subComponent.action,
+                        filter: subComponent.filter,
+                    }
+                }),
+            },
+        });
+
+        return id;
+    });
+
     // Register a post sub menu list item by providing some text and an action function.
     // Accepts the following:
     // - text - A string or React element to display in the menu

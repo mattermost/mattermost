@@ -18,6 +18,7 @@ import {CommandArgs} from '@mattermost/types/integrations';
 import {Group, GroupSource} from '@mattermost/types/groups';
 import {FileInfo} from '@mattermost/types/files';
 import {Emoji} from '@mattermost/types/emojis';
+import {PluginComponent} from 'types/store/plugins';
 
 import * as GlobalActions from 'actions/global_actions';
 import Constants, {
@@ -56,6 +57,7 @@ import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown
 import {execCommandInsertText} from 'utils/exec_commands';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
+import ActionsMenu from 'components/actions_menu';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
@@ -234,6 +236,7 @@ type Props = {
     channelMemberCountsByGroup: ChannelMemberCountsByGroup;
     useLDAPGroupMentions: boolean;
     useCustomGroupMentions: boolean;
+    postEditorActions: PluginComponent[];
 }
 
 type State = {
@@ -251,6 +254,7 @@ type State = {
     showFormat: boolean;
     isFormattingBarHidden: boolean;
     showPostPriorityPicker: boolean;
+    pluginMenuOpen: string;
 };
 
 class AdvancedCreatePost extends React.PureComponent<Props, State> {
@@ -303,6 +307,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             showFormat: false,
             isFormattingBarHidden: props.isFormattingBarHidden,
             showPostPriorityPicker: false,
+            pluginMenuOpen: '',
         };
 
         this.topDiv = React.createRef<HTMLFormElement>();
@@ -1560,6 +1565,23 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     render() {
         const {draft, canPost} = this.props;
 
+        const pluginItems = this.props.postEditorActions?.
+            map((item) => {
+                console.log(item.subComponents)
+                return (
+                    <ActionsMenu
+                        key={item.id}
+                        tooltipText={item.text}
+                        icon={item.icon}
+                        post={draft as any}
+                        location='EDITOR'
+                        handleDropdownOpened={(open: boolean) => this.setState({pluginMenuOpen: (open ? item.id : '')})}
+                        isMenuOpen={this.state.pluginMenuOpen == item.id}
+                        customMenuItems={item.subComponents}
+                    />
+                );
+            });
+
         let centerClass = '';
         if (!this.props.fullWidthTextBox) {
             centerClass = 'center';
@@ -1649,6 +1671,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                                 disabled={this.props.shouldShowPreview}
                             />
                         ),
+                        ...pluginItems,
                     ].filter(Boolean)}
                 />
             </form>
