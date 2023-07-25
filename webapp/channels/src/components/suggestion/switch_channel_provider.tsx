@@ -456,8 +456,7 @@ export default class SwitchChannelProvider extends Provider {
             }
 
             // Dispatch suggestions for local data (filter out deleted and archived channels from local store data)
-            let channels = getChannelsInAllTeams(getState()).concat(getDirectAndGroupChannels(getState())).filter((c) => c.delete_at === 0);
-            channels = this.removeChannelsFromArchivedTeams(channels);
+            const channels = getChannelsInAllTeams(getState()).concat(getDirectAndGroupChannels(getState())).filter((c) => c.delete_at === 0);
             const users = searchProfilesMatchingWithTerm(getState(), channelPrefix, false);
             const formattedData = this.formatList(channelPrefix, [ThreadsChannel, InsightsChannel, ...channels], users, true, true);
             if (formattedData) {
@@ -510,10 +509,13 @@ export default class SwitchChannelProvider extends Provider {
         const currentUserId = getCurrentUserId(state);
 
         // filter out deleted and archived channels from local store data
-        const localChannelData = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state)).filter((c) => c.delete_at === 0) || [];
+        let localChannelData = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state)).filter((c) => c.delete_at === 0) || [];
+        localChannelData = this.removeChannelsFromArchivedTeams(localChannelData);
         const localUserData = searchProfilesMatchingWithTerm(state, channelPrefix, false);
         const localFormattedData = this.formatList(channelPrefix, [ThreadsChannel, InsightsChannel, ...localChannelData], localUserData);
-        const remoteChannelData = channelsFromServer.concat(getGroupChannels(state)) || [];
+        let remoteChannelData = channelsFromServer.concat(getGroupChannels(state)) || [];
+        remoteChannelData = this.removeChannelsFromArchivedTeams(remoteChannelData);
+
         const remoteUserData = usersFromServer.users || [];
         const remoteFormattedData = this.formatList(channelPrefix, remoteChannelData, remoteUserData, false);
 
