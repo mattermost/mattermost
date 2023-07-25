@@ -3680,7 +3680,7 @@ func (a *OpenTracingAppLayer) DoActionRequest(c *request.Context, rawURL string,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DoAdvancedPermissionsMigration() {
+func (a *OpenTracingAppLayer) DoAdvancedPermissionsMigration() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoAdvancedPermissionsMigration")
 
@@ -3692,7 +3692,14 @@ func (a *OpenTracingAppLayer) DoAdvancedPermissionsMigration() {
 	}()
 
 	defer span.Finish()
-	a.app.DoAdvancedPermissionsMigration()
+	resultVar0 := a.app.DoAdvancedPermissionsMigration()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) DoAppMigrations() {
@@ -3894,7 +3901,7 @@ func (a *OpenTracingAppLayer) DoPostActionWithCookie(c *request.Context, postID 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DoSystemConsoleRolesCreationMigration() {
+func (a *OpenTracingAppLayer) DoSystemConsoleRolesCreationMigration() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoSystemConsoleRolesCreationMigration")
 
@@ -3906,7 +3913,14 @@ func (a *OpenTracingAppLayer) DoSystemConsoleRolesCreationMigration() {
 	}()
 
 	defer span.Finish()
-	a.app.DoSystemConsoleRolesCreationMigration()
+	resultVar0 := a.app.DoSystemConsoleRolesCreationMigration()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
