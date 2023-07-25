@@ -33,7 +33,6 @@ const values = {
     DELETE_PRIVATE_CHANNEL: 'delete_private_channel',
     EDIT_OTHER_USERS: 'edit_other_users',
     READ_CHANNEL: 'read_channel',
-    READ_CHANNEL_CONTENT: 'read_channel_content',
     READ_PUBLIC_CHANNEL: 'read_public_channel',
     ADD_REACTION: 'add_reaction',
     REMOVE_REACTION: 'remove_reaction',
@@ -108,7 +107,6 @@ const values = {
     CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB: 'create_elasticsearch_post_aggregation_job',
     READ_ELASTICSEARCH_POST_INDEXING_JOB: 'read_elasticsearch_post_indexing_job',
     READ_ELASTICSEARCH_POST_AGGREGATION_JOB: 'read_elasticsearch_post_aggregation_job',
-    USE_SLASH_COMMANDS: 'use_slash_commands',
 
     SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE: 'sysconsole_read_about_edition_and_license',
     SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE: 'sysconsole_write_about_edition_and_license',

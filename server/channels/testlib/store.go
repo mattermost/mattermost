@@ -70,7 +70,6 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MigrationKeyAddCustomUserGroupsPermissions).Return(&model.System{Name: model.MigrationKeyAddCustomUserGroupsPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddPlayboosksManageRolesPermissions).Return(&model.System{Name: model.MigrationKeyAddPlayboosksManageRolesPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddCustomUserGroupsPermissionRestore).Return(&model.System{Name: model.MigrationKeyAddCustomUserGroupsPermissionRestore, Value: "true"}, nil)
-	systemStore.On("GetByName", model.MigrationKeyAddReadChannelContentPermissions).Return(&model.System{Name: model.MigrationKeyAddReadChannelContentPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", "CustomGroupAdminRoleCreationMigrationComplete").Return(&model.System{Name: model.MigrationKeyAddPlayboosksManageRolesPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", "products_boards").Return(&model.System{Name: "products_boards", Value: "true"}, nil)
 	systemStore.On("GetByName", "elasticsearch_fix_channel_index_migration").Return(&model.System{Name: "elasticsearch_fix_channel_index_migration", Value: "true"}, nil)
