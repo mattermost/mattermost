@@ -48,7 +48,62 @@ func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
 	}
 
 	if _, err = jss.GetMasterX().Exec(queryString, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to save Preference")
+		return nil, errors.Wrap(err, "failed to save Job")
+	}
+
+	return job, nil
+}
+
+func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
+	jsonData, err := json.Marshal(job.Data)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed marshalling job data")
+	}
+	if jss.IsBinaryParamEnabled() {
+		jsonData = AppendBinaryFlag(jsonData)
+	}
+
+	tx, err := jss.GetMasterX().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	query, args, err := jss.getQueryBuilder().
+		Select("COUNT(*)").
+		From("Jobs").
+		Where(sq.Eq{
+			"Status": []string{model.JobStatusPending, model.JobStatusInProgress},
+			"Type":   job.Type,
+		}).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "job_tosql")
+	}
+
+	var count int64
+	err = tx.Get(&count, query, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to count pending and in-progress jobs with type=%s", job.Type)
+	}
+
+	if count > 0 {
+		return nil, nil
+	}
+
+	query, args, err = jss.getQueryBuilder().
+		Insert("Jobs").
+		Columns("Id", "Type", "Priority", "CreateAt", "StartAt", "LastActivityAt", "Status", "Progress", "Data").
+		Values(job.Id, job.Type, job.Priority, job.CreateAt, job.StartAt, job.LastActivityAt, job.Status, job.Progress, jsonData).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate sqlquery")
+	}
+
+	if _, err = tx.Exec(query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to save Job")
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	return job, nil

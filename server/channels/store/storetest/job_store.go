@@ -18,6 +18,7 @@ import (
 
 func TestJobStore(t *testing.T, ss store.Store) {
 	t.Run("JobSaveGet", func(t *testing.T) { testJobSaveGet(t, ss) })
+	t.Run("JobSaveOnce", func(t *testing.T) { testJobSaveOnce(t, ss) })
 	t.Run("JobGetAllByType", func(t *testing.T) { testJobGetAllByType(t, ss) })
 	t.Run("JobGetAllByTypeAndStatus", func(t *testing.T) { testJobGetAllByTypeAndStatus(t, ss) })
 	t.Run("JobGetAllByTypePage", func(t *testing.T) { testJobGetAllByTypePage(t, ss) })
@@ -54,6 +55,38 @@ func testJobSaveGet(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.Equal(t, job.Id, received.Id, "received incorrect job after save")
 	require.Equal(t, "12345", received.Data["Total"])
+}
+
+func testJobSaveOnce(t *testing.T, ss store.Store) {
+	job := &model.Job{
+		Id:     model.NewId(),
+		Type:   model.JobTypeS3PathMigration,
+		Status: model.JobStatusPending,
+		Data: map[string]string{
+			"Processed":     "0",
+			"Total":         "12345",
+			"LastProcessed": "abcd",
+		},
+	}
+
+	_, err := ss.Job().SaveOnce(job)
+	require.NoError(t, err)
+
+	defer ss.Job().Delete(job.Id)
+
+	received, err := ss.Job().Get(job.Id)
+	require.NoError(t, err)
+	require.Equal(t, job.Id, received.Id, "received incorrect job after save")
+
+	job.Id = model.NewId()
+	newJob, err := ss.Job().SaveOnce(job)
+	require.NoError(t, err)
+	require.Nil(t, newJob)
+
+	_, err = ss.Job().Get(job.Id)
+	require.Error(t, err)
+	var nfErr *store.ErrNotFound
+	assert.True(t, errors.As(err, &nfErr))
 }
 
 func testJobGetAllByType(t *testing.T, ss store.Store) {
