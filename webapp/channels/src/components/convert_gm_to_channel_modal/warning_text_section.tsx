@@ -1,7 +1,12 @@
-import {FormattedMessage} from "react-intl";
+import {FormattedMessage, useIntl} from "react-intl";
 import React from "react";
 
-const WarningTextSection = (): JSX.Element => {
+export type Props = {
+    channelMemberNames: string[]
+}
+const WarningTextSection = (props: Props): JSX.Element => {
+    const intl = useIntl()
+
     return (
         <div className='warning-section'>
             <i className='fa fa-exclamation-circle'/>
@@ -15,7 +20,10 @@ const WarningTextSection = (): JSX.Element => {
                 <div className='warning-body'>
                     <FormattedMessage
                         id='sidebar_left.sidebar_channel_modal.warning_body'
-                        defaultMessage='You are about to convert the Group Message with Tim Thomas and John James to a Channel. This cannot be undone.'
+                        defaultMessage='You are about to convert the Group Message with {memberNames} to a Channel. This cannot be undone.'
+                        values={{
+                            memberNames: intl.formatList(props.channelMemberNames),
+                        }}
                     />
                 </div>
             </div>

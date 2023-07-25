@@ -5,14 +5,19 @@ import React, {useCallback, useState} from "react";
 import {GenericModal} from "@mattermost/components";
 import {useIntl} from "react-intl";
 
-export type Props = {
-    onExited: () => void,
-}
-
 import './convert_gm_to_channel_modal.scss';
 import WarningTextSection from "components/convert_gm_to_channel_modal/warning_text_section";
 
 import ChannelNameFormField from "components/channel_name_form_field/chanenl_name_form_field";
+import {Channel} from "@mattermost/types/channels";
+import {Actions} from "components/convert_gm_to_channel_modal/index";
+import {ModalIdentifiers} from "utils/constants";
+
+export type Props = {
+    onExited: () => void,
+    channel: Channel,
+    actions: Actions
+}
 
 const ConvertGmToChannelModal = (props: Props) => {
     const intl = useIntl()
@@ -30,6 +35,12 @@ const ConvertGmToChannelModal = (props: Props) => {
         setChannelName(newName);
     }, [])
 
+    const channelMemberNames = props.channel.display_name.split(',')
+
+    const handleCancel = useCallback(() => {
+        props.actions.closeModal(ModalIdentifiers.CONVERT_GM_TO_CHANNEL);
+    }, [])
+
     return (
         <GenericModal
             id='convert-gm-to-channel-modal'
@@ -37,12 +48,15 @@ const ConvertGmToChannelModal = (props: Props) => {
             modalHeaderText={formatMessage({id: 'sidebar_left.sidebar_channel_modal.header', defaultMessage: 'Convert to Private Channel'})}
             confirmButtonText={formatMessage({id: 'sidebar_left.sidebar_channel_modal.confirmation_text', defaultMessage: 'Convert to private channel'})}
             cancelButtonText={formatMessage({id: 'channel_modal.cancel', defaultMessage: 'Cancel'})}
+            isDeleteModal={true}
             compassDesign={true}
-            handleCancel={() => {}}
+            handleCancel={handleCancel}
             handleConfirm={() => {}}
+            onExited={handleCancel}
+
         >
             <div className='convert-gm-to-channel-modal-body'>
-                <WarningTextSection/>
+                <WarningTextSection channelMemberNames={channelMemberNames}/>
                 <ChannelNameFormField
                     value={channelName}
                     name='convert-gm-to-channel-modal-channel-name'

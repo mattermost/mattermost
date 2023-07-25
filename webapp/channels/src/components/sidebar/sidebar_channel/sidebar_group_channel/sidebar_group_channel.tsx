@@ -50,6 +50,8 @@ export default class SidebarGroupChannel extends React.PureComponent<Props, Stat
     render() {
         const {channel, currentTeamName} = this.props;
 
+        console.log(`channel displayName: ${channel.display_name}`);
+
         return (
             <SidebarChannelLink
                 channel={channel}

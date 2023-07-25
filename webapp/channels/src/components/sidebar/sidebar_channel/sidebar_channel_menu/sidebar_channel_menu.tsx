@@ -280,6 +280,7 @@ const SidebarChannelMenu = (props: Props) => {
             props.openModal({
                 modalId: ModalIdentifiers.CONVERT_GM_TO_CHANNEL,
                 dialogType: ConvertGmToChannelModal,
+                dialogProps: {channel: props.channel},
             });
             trackEvent('ui', 'ui_sidebar_channel_menu_convertGmToChannel');
         }

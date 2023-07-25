@@ -4921,7 +4921,7 @@
   "sidebar_left.sidebar_channel_modal.header": "Convert to Private Channel",
   "sidebar_left.sidebar_channel_modal.confirmation_text": "Convert to private channel",
   "sidebar_left.sidebar_channel_modal.warning_header": "Conversation history will be visible to any channel members",
-  "sidebar_left.sidebar_channel_modal.warning_body": "You are about to convert the Group Message with Tim Thomas and John James to a Channel. This cannot be undone.",
+  "sidebar_left.sidebar_channel_modal.warning_body": "You are about to convert the Group Message with {memberNames} to a Channel. This cannot be undone.",
   "sidebar_left.sidebar_channel_modal.channel_name_placeholder": "Enter a name for the channel",
   "sidebar_right_menu.console": "System Console",
   "sidebar_right_menu.flagged": "Saved Posts",
