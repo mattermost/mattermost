@@ -60,7 +60,6 @@ export const InviteTypes = {
 export const PreviousViewedTypes = {
     CHANNELS: 'channels',
     THREADS: 'threads',
-    INSIGHTS: 'insights',
 };
 
 export const Preferences = {
@@ -315,7 +314,6 @@ export const ActionTypes = keyMirror({
 
     FIRST_CHANNEL_NAME: null,
 
-    RECEIVED_PLUGIN_INSIGHT: null,
     SET_EDIT_CHANNEL_MEMBERS: null,
     NEEDS_LOGGED_IN_LIMIT_REACHED_CHECK: null,
 
@@ -419,7 +417,6 @@ export const ModalIdentifiers = {
     DELETE_DRAFT: 'delete_draft_modal',
     SEND_DRAFT: 'send_draft_modal',
     UPLOAD_LICENSE: 'upload_license',
-    INSIGHTS: 'insights',
     CLOUD_LIMITS: 'cloud_limits',
     THREE_DAYS_LEFT_TRIAL_MODAL: 'three_days_left_trial_modal',
     REQUEST_BUSINESS_EMAIL_MODAL: 'request_business_email_modal',
@@ -506,7 +503,6 @@ export const MattermostFeatures = {
     PLAYBOOKS_RETRO: 'mattermost.feature.playbooks_retro',
     UNLIMITED_MESSAGES: 'mattermost.feature.unlimited_messages',
     UNLIMITED_FILE_STORAGE: 'mattermost.feature.unlimited_file_storage',
-    TEAM_INSIGHTS: 'mattermost.feature.team_insights',
     ALL_PROFESSIONAL_FEATURES: 'mattermost.feature.all_professional',
     ALL_ENTERPRISE_FEATURES: 'mattermost.feature.all_enterprise',
     UPGRADE_DOWNGRADED_WORKSPACE: 'mattermost.feature.upgrade_downgraded_workspace',
@@ -1575,7 +1571,6 @@ export const Constants = {
     INVITE_TEAM: 'I',
     OPEN_TEAM: 'O',
     THREADS: 'threads',
-    INSIGHTS: 'insights',
     MAX_POST_LEN: 4000,
     EMOJI_SIZE: 16,
     DEFAULT_EMOJI_PICKER_LEFT_OFFSET: 87,
@@ -2143,141 +2138,6 @@ export const durationValues = {
         defaultMessage: 'Custom Date and Time',
     },
 };
-
-export const InsightsScopes = {
-    MY: 'MY',
-    TEAM: 'TEAM',
-};
-
-export const InsightsCardTitles = {
-    TOP_CHANNELS: {
-        teamTitle: {
-            id: t('insights.topChannels.title'),
-            defaultMessage: 'Top channels',
-        },
-        myTitle: {
-            id: t('insights.topChannels.myTitle'),
-            defaultMessage: 'My top channels',
-        },
-        teamSubTitle: {
-            id: t('insights.topChannels.subTitle'),
-            defaultMessage: 'Most active channels for the team',
-        },
-        mySubTitle: {
-            id: t('insights.topChannels.mySubTitle'),
-            defaultMessage: 'Most active channels that I\'m a member of',
-        },
-    },
-    TOP_REACTIONS: {
-        teamTitle: {
-            id: t('insights.topReactions.title'),
-            defaultMessage: 'Top reactions',
-        },
-        myTitle: {
-            id: t('insights.topReactions.myTitle'),
-            defaultMessage: 'My top reactions',
-        },
-        teamSubTitle: {
-            id: t('insights.topReactions.subTitle'),
-            defaultMessage: 'The team\'s most-used reactions',
-        },
-        mySubTitle: {
-            id: t('insights.topReactions.mySubTitle'),
-            defaultMessage: 'Reactions I\'ve used the most',
-        },
-    },
-    TOP_THREADS: {
-        teamTitle: {
-            id: t('insights.topThreads.title'),
-            defaultMessage: 'Top threads',
-        },
-        myTitle: {
-            id: t('insights.topThreads.myTitle'),
-            defaultMessage: 'My top threads',
-        },
-        teamSubTitle: {
-            id: t('insights.topThreads.subTitle'),
-            defaultMessage: 'Most active threads for the team',
-        },
-        mySubTitle: {
-            id: t('insights.topThreads.mySubTitle'),
-            defaultMessage: 'Most active threads I\'ve followed',
-        },
-    },
-    TOP_BOARDS: {
-        teamTitle: {
-            id: t('insights.topBoards.title'),
-            defaultMessage: 'Top boards',
-        },
-        myTitle: {
-            id: t('insights.topBoards.myTitle'),
-            defaultMessage: 'My top boards',
-        },
-        teamSubTitle: {
-            id: t('insights.topBoards.subTitle'),
-            defaultMessage: 'Most active boards for the team',
-        },
-        mySubTitle: {
-            id: t('insights.topBoards.mySubTitle'),
-            defaultMessage: 'Most active boards I\'ve participated in',
-        },
-    },
-    LEAST_ACTIVE_CHANNELS: {
-        teamTitle: {
-            id: t('insights.leastActiveChannels.title'),
-            defaultMessage: 'Least active channels',
-        },
-        myTitle: {
-            id: t('insights.leastActiveChannels.myTitle'),
-            defaultMessage: 'My least active channels',
-        },
-        teamSubTitle: {
-            id: t('insights.leastActiveChannels.subTitle'),
-            defaultMessage: 'Channels with the least posts',
-        },
-        mySubTitle: {
-            id: t('insights.leastActiveChannels.mySubTitle'),
-            defaultMessage: 'My channels with the least posts',
-        },
-    },
-    TOP_PLAYBOOKS: {
-        teamTitle: {
-            id: t('insights.topPlaybooks.title'),
-            defaultMessage: 'Top playbooks',
-        },
-        myTitle: {
-            id: t('insights.topPlaybooks.myTitle'),
-            defaultMessage: 'My top playbooks',
-        },
-        teamSubTitle: {
-            id: t('insights.topPlaybooks.subTitle'),
-            defaultMessage: 'Playbooks with the most runs',
-        },
-        mySubTitle: {
-            id: t('insights.topPlaybooks.mySubTitle'),
-            defaultMessage: 'Playbooks I\'ve used with the most runs',
-        },
-    },
-    TOP_DMS: {
-        teamTitle: {},
-        myTitle: {
-            id: t('insights.topDMs.myTitle'),
-            defaultMessage: 'My most active direct messages',
-        },
-        teamSubTitle: {},
-        mySubTitle: {},
-    },
-    NEW_TEAM_MEMBERS: {
-        teamTitle: {
-            id: t('insights.newTeamMembers.title'),
-            defaultMessage: 'New team members',
-        },
-        myTitle: {},
-        teamSubTitle: {},
-        mySubTitle: {},
-    },
-};
-
 export enum ClaimErrors {
     MFA_VALIDATE_TOKEN_AUTHENTICATE = 'mfa.validate_token.authenticate.app_error',
     ENT_LDAP_LOGIN_USER_NOT_REGISTERED = 'ent.ldap.do_login.user_not_registered.app_error',
