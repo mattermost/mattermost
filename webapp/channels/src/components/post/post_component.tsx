@@ -528,7 +528,7 @@ const PostComponent = (props: Props): JSX.Element => {
                         className='search-channel__name__container'
                         aria-hidden='true'
                     >
-                        {Boolean(isSearchResultItem) &&
+                        {(Boolean(isSearchResultItem) || props.isFlaggedPosts) &&
                         <span className='search-channel__name'>
                             {channelDisplayName}
                         </span>
@@ -542,7 +542,7 @@ const PostComponent = (props: Props): JSX.Element => {
                             />
                         </span>
                         }
-                        {Boolean(isSearchResultItem) && Boolean(props.teamDisplayName) &&
+                        {(Boolean(isSearchResultItem) || props.isFlaggedPosts) && Boolean(props.teamDisplayName) &&
                         <span className='search-team__name'>
                             {props.teamDisplayName}
                         </span>
