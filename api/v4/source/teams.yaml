@@ -42,19 +42,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            newTeam, err := Client.CreateTeam(&model.Team{
-              Name:        "teamName",
-              DisplayName: "TeamDisplayName",
-              Type:        "O",
-            })
     get:
       tags:
         - teams
@@ -111,15 +98,6 @@
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teams, resp := Client.GetAllTeams("", 0, 100)
   "/api/v4/teams/{team_id}":
     get:
       tags:
@@ -152,17 +130,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            t, err := Client.GetTeam(teamID, "")
     put:
       tags:
         - teams
@@ -228,26 +195,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "4xp9fdt77pncbef59f4k1qe83o"
-            inviteID := "qjda3stwafbgpqjaxej3k76sga"
-
-            uteam, resp := Client.UpdateTeam(&model.Team{
-              Id:              teamID,
-              DisplayName:     "displayName",
-              Description:     "description",
-              CompanyName:     "companyName",
-              AllowedDomains:  "allowedDomains",
-              InviteId:        inviteID,
-              AllowOpenInvite: false,
-            })
     delete:
       tags:
         - teams
@@ -294,21 +241,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            // Non-permanent deletion
-            ok, resp := Client.SoftDeleteTeam(&model.Team{Id: teamID})
-
-            // Permanent deletion
-            ok, resp := Client.PermanentDeleteTeam(&model.Team{Id: teamID})
   "/api/v4/teams/{team_id}/patch":
     put:
       tags:
@@ -361,23 +293,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            patch := &model.TeamPatch{}
-            patch.DisplayName = model.NewString("Other name")
-            patch.Description = model.NewString("Other description")
-            patch.CompanyName = model.NewString("Other company name")
-            patch.AllowOpenInvite = model.NewBool(true)
-
-            teamID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            team, resp := Client.PatchTeam(teamID, patch)
   "/api/v4/teams/{team_id}/privacy":
     put:
       tags:
@@ -430,24 +345,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            // Update team's privacy to Public
-
-            updatedTeam, resp := Client.UpdateTeamPrivacy(<TEAMID>, model.TEAM_OPEN)
-
-
-            // Update team's privacy to Private
-
-            updatedTeam, resp := Client.UpdateTeamPrivacy(<TEAMID>, model.TEAM_INVITE)
   "/api/v4/teams/{team_id}/restore":
     post:
       tags:
@@ -481,14 +378,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-            teamID := "4xp9fdt77pncbef59f4k1qe83o"
-            team, resp := Client.RestoreTeam(teamID)
   "/api/v4/teams/name/{name}":
     get:
       tags:
@@ -523,15 +412,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            team, resp := Client.GetTeamByName("teamName", "")
   /api/v4/teams/search:
     post:
       tags:
@@ -619,18 +499,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            teams, resp := Client.SearchTeams(&model.TeamSearch{Term: "searchTerm"})
   "/api/v4/teams/name/{name}/exists":
     get:
       tags:
@@ -661,15 +529,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            exists, resp := Client.TeamExists("teamName", "")
   "/api/v4/users/{user_id}/teams":
     get:
       tags:
@@ -704,17 +563,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            teams, resp := Client.GetTeamsForUser(userID, "")
   "/api/v4/teams/{team_id}/members":
     get:
       tags:
@@ -764,17 +612,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            members, resp := Client.GetTeamMembers(teamID, 0, 100, "")
     post:
       tags:
         - teams
@@ -819,18 +656,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "4xp9fdt77pncbef59f4k1qe83o"
-            userID := "qjda3stwafbgpqjaxej3k76sga"
-
-            teamMember, resp := Client.AddTeamMember(teamID, userID)
   /api/v4/teams/members/invite:
     post:
       tags:
@@ -866,17 +691,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            tokenID := "qjda3stwafbgpqjaxej3k76sga"
-
-            tm, resp = Client.AddTeamMemberFromInvite(tokenID, "")
   "/api/v4/teams/{team_id}/members/batch":
     post:
       tags:
@@ -930,20 +744,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "IJyUQLwh1CO9ahbzaQwWwc0ZnV"
-
-            userID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-            userID2 := "NqCSr5HMDZjrWS74IEmedvlOYf"
-
-            tm, resp := Client.AddTeamMembers(teamID, []string{userID, userID2})
   "/api/v4/users/{user_id}/teams/members":
     get:
       tags:
@@ -981,17 +781,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            teamMembers, resp = Client.GetTeamMembersForUser(userID, "")
   "/api/v4/teams/{team_id}/members/{user_id}":
     get:
       tags:
@@ -1030,18 +819,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
-
-            teamMember, resp = Client.GetTeamMember(teamID, userID, "")
     delete:
       tags:
         - teams
@@ -1082,18 +859,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
-
-            ok, resp = Client.RemoveTeamMember(teamID, userID)
   "/api/v4/teams/{team_id}/members/ids":
     post:
       tags:
@@ -1135,26 +900,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            teamID := zWEyrTZ7GZ22aBSfoX60iWryTY
-
-
-            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
-
-            userID2 := "UAFalLvtKwNKABAnmwR7uGB5md"
-
-
-            tm, resp := Client.GetTeamMembersByIds(teamID, []string{userID, userID2})
   "/api/v4/teams/{team_id}/stats":
     get:
       tags:
@@ -1187,17 +932,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            stats, resp := Client.GetTeamStats(teamID, "")
   "/api/v4/teams/{team_id}/regenerate_invite_id":
     post:
       tags:
@@ -1230,17 +964,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            team, resp := Client.RegenerateTeamInviteId(teamID)
   "/api/v4/teams/{team_id}/image":
     get:
       tags:
@@ -1277,17 +1000,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            icon, resp = Client.GetTeamIcon(teamID, "")
     post:
       tags:
         - teams
@@ -1336,27 +1048,6 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import (
-              "io/ioutil"
-              "log"
-
-              "github.com/mattermost/mattermost-server/v5/model"
-            )
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            data, err := ioutil.ReadFile("icon.png")
-            if err != nil {
-              log.Fatal(err)
-            }
-
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            ok, resp := Client.SetTeamIcon(teamID, data)
     delete:
       tags:
         - teams
@@ -1393,17 +1084,6 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            ok, resp = Client.RemoveTeamIcon(teamID)
   "/api/v4/teams/{team_id}/members/{user_id}/roles":
     put:
       tags:
@@ -1458,23 +1138,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
-
-
-            ok, resp := Client.UpdateTeamMemberRoles(teamID, userID, "team_user team_admin")
   "/api/v4/teams/{team_id}/members/{user_id}/schemeRoles":
     put:
       tags:
@@ -1537,26 +1200,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
-
-
-            ok, resp := Client.UpdateTeamMemberSchemeRoles(teamID, userID, &model.SchemeRoles{
-              SchemeAdmin: true,
-              SchemeUser:  true,
-            })
   "/api/v4/users/{user_id}/teams/unread":
     get:
       tags:
@@ -1605,18 +1248,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            teams, resp := Client.GetTeamsUnreadForUser(userID, teamID)
   "/api/v4/users/{user_id}/teams/{team_id}/unread":
     get:
       tags:
@@ -1658,18 +1289,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "NqCSr5HMDZjrWS74IEmedvlOYf"
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            teamUnread, resp := Client.GetTeamUnread(userID, teamID)
   "/api/v4/teams/{team_id}/invite/email":
     post:
       tags:
@@ -1713,21 +1332,6 @@
           $ref: "#/components/responses/Forbidden"
         "413":
           $ref: "#/components/responses/TooLarge"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-
-            ok, resp := Client.InviteUsersToTeam(teamID, []string{"test@domain.com", "test2@domain.com"})
   "/api/v4/teams/{team_id}/invite-guests/email":
     post:
       tags:
@@ -1789,25 +1393,6 @@
           $ref: "#/components/responses/Forbidden"
         "413":
           $ref: "#/components/responses/TooLarge"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            channel1ID := "wu6wyxm9spgwtjaycjrcihnqtr"
-
-            channel2ID := "ymzsgjw1tprniqtzyb7g3cmuuc"
-
-
-            ok, resp := Client.InviteGuestsToTeam(teamID, []string{"test@domain.com", "test2@domain.com"}, []string{channel1ID, channel2ID}, "Please join to our mattermost team to keep working in the project")
   /api/v4/teams/invites/email:
     delete:
       tags:
@@ -1834,15 +1419,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            ok, resp := Client.InvalidateEmailInvites()
   "/api/v4/teams/{team_id}/import":
     post:
       tags:
@@ -1899,34 +1475,6 @@
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import (
-              "encoding/binary"
-              "io/ioutil"
-              "log"
-
-              "github.com/mattermost/mattermost-server/v5/model"
-            )
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            data, err = ioutil.ReadFile("to_import.zip")
-
-            if err != nil && len(data) == 0 {
-              log.Fatal("Error while reading file.")
-            }
-
-
-            teamID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-
-            fileResp, resp := Client.ImportTeam(data, binary.Size(data), "slack", "to_import.zip", teamID)
   "/api/v4/teams/invite/{invite_id}":
     get:
       tags:
@@ -1969,16 +1517,6 @@
                     type: string
         "400":
           $ref: "#/components/responses/BadRequest"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            inviteID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            team, resp = Client.GetTeamInviteInfo(inviteID)
   "/api/v4/teams/{team_id}/scheme":
     put:
       tags:
@@ -2031,18 +1569,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "4xp9fdt77pncbef59f4k1qe83o"
-            schemeID := "qjda3stwafbgpqjaxej3k76sga"
-
-            ok, resp := UpdateTeamScheme(teamID, schemeID)
   "/api/v4/teams/{team_id}/members_minus_group_members":
     get:
       tags:

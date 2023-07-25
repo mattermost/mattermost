@@ -48,28 +48,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            newCmd := &model.Command {
-              TeamId:       <TEAMID>,
-              URL:          "http://nowhere.com",
-              Method:       model.COMMAND_METHOD_POST,
-              Trigger:      "trigger",
-              AutoComplete: false,
-              Description:  "Description",
-              DisplayName:  "Display name",
-              IconURL:      "IconURL",
-              Username:     "Username"
-            }
-
-            // CreateCommand
-            createdCmd, resp := Client.CreateCommand(newCmd)
     get:
       tags:
         - commands
@@ -111,22 +89,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            // ListCommands
-
-            // The second parameter is to set if you want only custom commands (true) or defaults commands (false)
-
-            listCommands, resp := Client.ListCommands(<TEAMID>, true)
   "/api/v4/teams/{team_id}/commands/autocomplete":
     get:
       tags:
@@ -159,16 +121,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // ListAutocompleteCommands
-            listCommands, resp := Client.ListAutocompleteCommands(<TEAMID>)
   '/teams/{team_id}/commands/autocomplete_suggestions':
     get:
       tags:
@@ -208,18 +160,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: 'Go'
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // ListCommandAutocompleteSuggestions
-            teamID := "4xp9fdt77pncbef59f4k1qe83o"
-            userInput := "/jira"
-            listCommands, resp := Client.ListCommandAutocompleteSuggestions(userInput, teamID)
   "/api/v4/commands/{command_id}":
     get:
       tags:
@@ -255,16 +195,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // GetCommand
-            cmd, resp := Client.GetCommand(<COMMANDID>)
     put:
       tags:
         - commands
@@ -302,24 +232,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            cmdToUpdate := &model.Command{
-              CreatorId: <USERID>,
-              TeamId:    <TEAMID>,
-              URL:       "<http://nowhere.com/change>",
-              Trigger:   <NEWTRIGGERNAME>,
-              Id:        <COMMANDID>,
-            }
-
-            // UpdateCommand
-            listCommands, resp := Client.UpdateCommand(cmdToUpdate)
     delete:
       tags:
         - commands
@@ -353,16 +265,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // DeleteCommand
-            ok, resp := Client.DeleteCommand(<COMMANDID>)
   "/api/v4/commands/{command_id}/move":
     put:
       tags:
@@ -410,16 +312,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // MoveCommand
-            ok, resp := Client.MoveCommand(<TEAMID>,<COMMANDID>)
   "/api/v4/commands/{command_id}/regen_token":
     put:
       tags:
@@ -456,16 +348,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // RegenCommandToken
-            newToken, resp := Client.RegenCommandToken(<COMMANDID>)
   /api/v4/commands/execute:
     post:
       tags:

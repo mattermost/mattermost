@@ -313,17 +313,6 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            botUserID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            data, resp := Client.GetBotIconImage(botUserID)
     post:
       tags:
         - bots
@@ -376,27 +365,6 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import (
-              "io/ioutil"
-              "log"
-
-              "github.com/mattermost/mattermost-server/v5/model"
-            )
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            data, err := ioutil.ReadFile("icon_image.svg")
-            if err != nil {
-              log.Fatal(err)
-            }
-
-            botUserID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            ok, resp := Client.SetBotIconImage(botUserID, data)
     delete:
       tags:
         - bots
@@ -433,17 +401,6 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            botUserID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            ok, resp := Client.DeleteBotIconImage(botUserID)
   "/api/v4/bots/{bot_user_id}/convert_to_user":
     post:
       tags:
@@ -514,17 +471,3 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            userId := "BbaYBYDV5IDOZFiJGBSzkw1k5u"
-            patch := &model.UserPatch{}
-            patch.Email = model.NewString("test@domain.com")
-            patch.Username = model.NewString("testUsername")
-            patch.Password = model.NewString("password")
-
-            user, resp := Client.ConvertBotToUser(userId, userPatch, false)

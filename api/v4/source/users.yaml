@@ -171,20 +171,6 @@
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            user := &model.User{
-                Username: "username",
-                Email: "email@domain.com",
-                Password: "Password1",
-            }
-
-            createdUser, response := Client.CreateUser(user)
     get:
       tags:
         - users
@@ -355,31 +341,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-
-            // page, perPage, etag
-
-            users := Client.GetUsers(0, 60, "")
-
-            users = Client.GetUsersInChannel("channelid", 0, 60, "")
-
-            users = Client.GetUsersNotInChannel("teamid", "channelid", 0, 60, "")
-
-            users = Client.GetUsersInTeam("teamid", 0, 60, "")
-
-            users = Client.GetUsersNotInTeam("teamid", 0, 60, "")
-
-            users = Client.GetUsersWithoutTeam(0, 60, "")
     delete:
       tags:
         - users
@@ -396,26 +357,6 @@
       responses:
         "200":
           description: Delete request was successful
-      x-code-samples:
-        - lang: Go
-          source: |
-            import (
-                "net"
-                "net/http"
-
-                "github.com/mattermost/mattermost-server/v5/model"
-            )
-
-            tr := &http.Transport{
-                Dial: func(network, addr string) (net.Conn, error) {
-                    return net.Dial("unix", socketPath)
-                },
-            }
-
-            Client := model.NewAPIv4Client("http://_")
-            Client.HttpClient = &http.Client{Transport: tr}
-
-            ok, resp := Client.PermanentDeleteAllUsers()
   /api/v4/users/ids:
     post:
       tags:
@@ -533,18 +474,6 @@
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            users, resp := Client.GetUsersByUsernames([]string{"username1", "username2"})
   /api/v4/users/search:
     post:
       tags:
@@ -626,30 +555,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            teamID := "4xp9fdt77pncbef59f4k1qe83o"
-            teamID2 := "JhMjDX9rAlCdBf0l9oyq4eGhxw"
-            channelID := "Ej3SKOHlWIKAblkUTK5Xvkj2cm"
-            channelID2 := "dWdfrUSdjJ7kyBvyBCgCav67Kz"
-
-            users, resp := Client.SearchUsers(&model.UserSearch{
-              Term:           "searchTerm",
-              TeamId:         teamID,
-              NotInTeamId:    teamID2,
-              InChannelId:    channelID,
-              NotInChannelId: channelID2,
-              AllowInactive:  true,
-              WithoutTeam:    true,
-              Limit:          100,
-              Role:           "admin",
-            })
   /api/v4/users/autocomplete:
     get:
       tags:
@@ -704,25 +609,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            teamID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            channelID := "Ej3SKOHlWIKAblkUTK5Xvkj2cm"
-
-            username := "testUsername"
-
-
-            users, resp := Client.AutocompleteUsersInChannel(teamID, channelID, username, 100, "")
   /api/v4/users/known:
     get:
       tags:
@@ -747,16 +633,6 @@
                 $ref: "#/components/schemas/KnownUsers"
         "401":
           $ref: "#/components/responses/Unauthorized"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userIds, resp := Client.GetKnownUsers()
-
   /api/v4/users/stats:
     get:
       tags:
@@ -782,15 +658,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            stats, resp := Client.GetTotalUsersStats("")
   /api/v4/users/stats/filtered:
     get:
       tags:
@@ -897,17 +764,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            user, resp := Client.GetUser(userID, "")
     put:
       tags:
         - users
@@ -976,39 +832,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "4xp9fdt77pncbef59f4k1qe83o"
-            email := "test@domain.com"
-            username := "testUsername"
-            firstName := "testFirstname"
-            lastName := "testLastname"
-            nickname := "testNickname"
-            locale := "en"
-            position := "testPosition"
-            props := model.StringMap{}
-            props["testPropKey"] = "testPropValue"
-            notifyProps := model.StringMap{}
-            notifyProps["comment"] = "somethingrandom"
-
-            user, resp := Client.UpdateUser(&model.User{
-              Id:          userID,
-              Email:       email,
-              Username:    username,
-              FirstName:   firstName,
-              LastName:    lastName,
-              Nickname:    nickname,
-              Locale:      locale,
-              Position:    position,
-              Props:       props,
-              NotifyProps: notifyProps,
-            })
     delete:
       tags:
         - users
@@ -1046,17 +869,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            ok, resp := Client.DeleteUser(userID)
   "/api/v4/users/{user_id}/patch":
     put:
       tags:
@@ -1117,30 +929,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            patch := &model.UserPatch{}
-            patch.Email = model.NewString("test@domain.com")
-            patch.Username = model.NewString("testUsername")
-            patch.FirstName = model.NewString("testFirstname")
-            patch.LastName = model.NewString("testLastname")
-            patch.Nickname = model.NewString("testNickname")
-            patch.Locale = model.NewString("en")
-            patch.Position = model.NewString("testPosition")
-            patch.Props = model.StringMap{}
-            patch.Props["testPropKey"] = "testPropValue"
-            patch.NotifyProps = model.StringMap{}
-            patch.NotifyProps["comment"] = "somethingrandom"
-
-            user, resp := Client.PatchUser(userID, patch)
   "/api/v4/users/{user_id}/roles":
     put:
       tags:
@@ -1187,18 +975,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "4xp9fdt77pncbef59f4k1qe83o"
-            roles := "team_user team_admin"
-
-            ok, resp = Client.UpdateUserRoles(userID, roles)
   "/api/v4/users/{user_id}/active":
     put:
       tags:
@@ -1248,17 +1024,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            ok, resp := Client.UpdateUserActive(userID, true)
   "/api/v4/users/{user_id}/image":
     get:
       tags:
@@ -1295,17 +1060,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            data, resp := Client.GetProfileImage(userID, "")
     post:
       tags:
         - users
@@ -1353,27 +1107,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import (
-              "io/ioutil"
-              "log"
-
-              "github.com/mattermost/mattermost-server/v5/model"
-            )
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            data, err := ioutil.ReadFile("profile_pic.png")
-            if err != nil {
-              log.Fatal(err)
-            }
-
-            userID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            ok, resp := Client.SetProfileImage(userID, data)
     delete:
       tags:
         - users
@@ -1412,23 +1145,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            userID := "4xp9fdt77pncbef59f4k1qe83o"
-
-
-            // Deleting user's profile image consists on resetting it to default one
-
-            ok, resp := Client.SetDefaultProfileImage(userID)
   "/api/v4/users/{user_id}/image/default":
     get:
       tags:
@@ -1464,17 +1180,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            ok, resp := Client.SetDefaultProfileImage(userID)
   "/api/v4/users/username/{username}":
     get:
       tags:
@@ -1508,17 +1213,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            user, resp := Client.GetUserByUsername(userID, "")
   /api/v4/users/password/reset:
     post:
       tags:
@@ -1561,18 +1255,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            code := "4xp9fdt77pncbef59f4k1qe83o"
-            newPassword := "awesomePassword"
-
-            success, resp = Client.ResetPassword(code, newPassword)
   "/api/v4/users/{user_id}/mfa":
     put:
       tags:
@@ -1625,18 +1307,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "BbaYBYDV5IDOZFiJGBSzkw1k5u"
-            code := "4xp9fdt77pncbef59f4k1qe83o"
-
-            ok, resp := Client.UpdateUserMfa(userID, code, true)
   "/api/v4/users/{user_id}/mfa/generate":
     post:
       tags:
@@ -1681,17 +1351,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "BbaYBYDV5IDOZFiJGBSzkw1k5u"
-
-            mfaSecret, resp = Client.GenerateMfaSecret(userID)
   "/api/v4/users/{user_id}/demote":
     post:
       tags:
@@ -1731,17 +1390,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "BbaYBYDV5IDOZFiJGBSzkw1k5u"
-
-            ok, resp = Client.demoteUserToGuest(userID)
   "/api/v4/users/{user_id}/promote":
     post:
       tags:
@@ -1781,17 +1429,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "BbaYBYDV5IDOZFiJGBSzkw1k5u"
-
-            ok, resp = Client.PromoteGuestToUser(userID)
   "/api/v4/users/{user_id}/convert_to_bot":
     post:
       tags:
@@ -1828,16 +1465,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            userId := "BbaYBYDV5IDOZFiJGBSzkw1k5u"
-
-            bot, resp := Client.ConvertUserToBot(userId)
   /api/v4/users/mfa:
     post:
       tags:
@@ -1877,16 +1504,6 @@
                     type: boolean
         "400":
           $ref: "#/components/responses/BadRequest"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            loginID := "test@domain.com"
-
-            required, resp := Client.CheckUserMfa(loginID)
   "/api/v4/users/{user_id}/password":
     put:
       tags:
@@ -1936,25 +1553,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            userID := "BbaYBYDV5IDOZFiJGBSzkw1k5u"
-
-            currentPassword := "badPassword"
-
-            newPassword := "awesomePassword"
-
-
-            ok, resp := Client.UpdateUserPassword(userID, currentPassword, newPassword)
   /api/v4/users/password/reset/send:
     post:
       tags:
@@ -1994,16 +1592,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            email := "test@domain.com"
-
-            pass, resp := Client.SendVerificationEmail(email)
   "/api/v4/users/email/{email}":
     get:
       tags:
@@ -2039,17 +1627,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            email := "test@domain.com"
-
-            user, resp := Client.GetUserByEmail(email, "")
   "/api/v4/users/{user_id}/sessions":
     get:
       tags:
@@ -2085,17 +1662,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            sessions, resp := Client.GetSessions(userID, "")
   "/api/v4/users/{user_id}/sessions/revoke":
     post:
       tags:
@@ -2140,18 +1706,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-            sessionID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
-
-            ok, resp = Client.RevokeSession(userID, sessionID)
   "/api/v4/users/{user_id}/sessions/revoke/all":
     post:
       tags:
@@ -2187,17 +1741,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            ok, resp := Client.RevokeAllSessions(userID)
   /api/v4/users/sessions/device:
     put:
       tags:
@@ -2235,17 +1778,6 @@
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            deviceID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            pass, resp := Client.AttachDeviceId(deviceID)
   "/api/v4/users/{user_id}/audits":
     get:
       tags:
@@ -2278,17 +1810,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            audits, resp := Client.GetUserAudits(userID, 0, 100, "")
   "/api/v4/users/{user_id}/email/verify/member":
     post:
       tags:
@@ -2323,17 +1844,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "BbaYBYDV5IDOZFiJGBSzkw1k5u
-
-            user, resp := Client.VerifyUserEmailWithoutToken(userID)
   /api/v4/users/email/verify:
     post:
       tags:
@@ -2365,16 +1875,6 @@
                 $ref: "#/components/schemas/StatusOK"
         "400":
           $ref: "#/components/responses/BadRequest"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            token := "zWEyrTZ7GZ22aBSfoX60iWryTY"
-
-            ok, resp := Client.VerifyUserEmail(token)
   /api/v4/users/email/verify/send:
     post:
       tags:
@@ -2410,16 +1910,6 @@
                 $ref: "#/components/schemas/StatusOK"
         "400":
           $ref: "#/components/responses/BadRequest"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            email := "test@domain.com"
-
-            pass, resp := Client.SendVerificationEmail(email)
   /api/v4/users/login/switch:
     post:
       tags:
@@ -2502,29 +1992,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            currentService := "email"
-            newService := "gitlab"
-            email := "test@domain.com"
-            password := "awesomePassword"
-            mfaCode := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
-            ldapLoginID := "RdDjEDlkWgt7ndjyVLwWGvnX8c"
-
-
-            link, resp := Client.SwitchAccountType(&model.SwitchRequest{
-              CurrentService: currentService,
-              NewService:     newService,
-              Email:          email,
-              Password:       password,
-              MfaCode:        mfaCode,
-              LdapLoginId:    ldapLoginID,
-            })
   "/api/v4/users/{user_id}/tokens":
     post:
       tags:
@@ -2574,21 +2041,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            userID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
-
-
-            userAccessToken, resp := Client.CreateUserAccessToken(userID, "test token")
     get:
       tags:
         - users
@@ -2639,17 +2091,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
-
-            tokens, resp := Client.GetUserAccessTokensForUser(userID, 0, 100)
   /api/v4/users/tokens:
     get:
       tags:
@@ -2696,15 +2137,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            tokens, resp := Client.GetUserAccessTokens(0, 100)
   /api/v4/users/tokens/revoke:
     post:
       tags:
@@ -2746,17 +2178,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            tokenID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
-
-            ok, resp := Client.RevokeUserAccessToken(tokenID)
   "/api/v4/users/tokens/{token_id}":
     get:
       tags:
@@ -2796,17 +2217,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            tokenID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
-
-            token, resp := Client.GetUserAccessToken(tokenID)
   /api/v4/users/tokens/disable:
     post:
       tags:
@@ -2849,17 +2259,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            tokenID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
-
-            ok, resp := Client.DisableUserAccessToken(tokenID)
   /api/v4/users/tokens/enable:
     post:
       tags:
@@ -2901,17 +2300,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            tokenID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
-
-            ok, resp := Client.EnableUserAccessToken(tokenID)
   /api/v4/users/tokens/search:
     post:
       tags:
@@ -2952,21 +2340,6 @@
                 type: array
                 items:
                   $ref: "#/components/schemas/UserAccessTokenSanitized"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            tokenID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
-
-
-            userAccessTokens, resp = Client.SearchUserAccessTokens(&model.UserAccessTokenSearch{Term: tokenID})
   "/api/v4/users/{user_id}/auth":
     put:
       tags:
@@ -3011,21 +2384,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
-            user, resp := Client.GetUser(userID, "")
-            userAuth := &model.UserAuth{}
-            userAuth.AuthData = user.AuthData
-            userAuth.AuthService = user.AuthService
-
-            user, resp := Client.UpdateUserAuth(userID, userAuth)
   "/api/v4/users/{user_id}/terms_of_service":
     post:
       tags:
@@ -3083,23 +2441,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            userID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
-
-            serviceTermsID := "RdDjEDlkWgt7ndjyVLwWGvnX8c"
-
-
-            success, resp = Client.RegisterTermsOfServiceAction(userID, serviceTermsID, true)
     get:
       tags:
         - users
@@ -3142,17 +2483,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            userID := "adWv1qPZmHdtxk7Lmqh6RtxWxS"
-
-            userTermsOfService, resp := Client.GetUserTermsOfService(userID, "")
   /api/v4/users/sessions/revoke/all:
     post:
       tags:
@@ -3179,16 +2509,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            response, err := Client.RevokeSessionsFromAllUsers()
-
   "/api/v4/users/{user_id}/typing":
     post:
       tags:
@@ -3234,19 +2554,6 @@
           $ref: "#/components/responses/Unauthorized"
         '403':
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: 'Go'
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            ok, response := Client.PublishUserTyping(userID, TypingRequest{
-                ChannelId: "channel_id",
-                ParentId: "post_id",
-            })
-
   "/api/v4/users/{user_id}/uploads":
     get:
       tags:
@@ -3282,18 +2589,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-            uss, response := Client.GetUploadsForUser("fc6suoon9pbbpmhrb9c967paxe")
-
   "/api/v4/users/{user_id}/channel_members":
     get:
       tags:
@@ -3341,18 +2636,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-            channels, response, err := Client.GetChannelMembersWithTeamData("fc6suoon9pbbpmhrb9c967paxe", 0, 10)
-
   /api/v4/users/migrate_auth/ldap:
     post:
       tags:
@@ -3401,16 +2684,6 @@
           $ref: "#/components/responses/Forbidden"
         '501':
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: 'Go'
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("sysadmin@domain.com", "Password1")
-
-            ok, response := Client.MigrateAuthToLdap(fromAuthService, matchField, force)
-
   /api/v4/users/migrate_auth/saml:
       post:
         tags:
@@ -3459,16 +2732,6 @@
             $ref: "#/components/responses/Forbidden"
           '501':
             $ref: "#/components/responses/NotImplemented"
-        x-code-samples:
-          - lang: 'Go'
-            source: |
-              import "github.com/mattermost/mattermost-server/v5/model"
-
-              Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-              Client.Login("sysadmin@domain.com", "Password1")
-
-              ok, response := Client.MigrateAuthToSaml(fromAuthService, usersMap, auto)
-
   "/api/v4/users/{user_id}/teams/{team_id}/threads":
    get:
     tags:
@@ -3556,22 +2819,6 @@
         $ref: "#/components/responses/Unauthorized"
       "404":
         $ref: "#/components/responses/NotFound"
-
-    x-code-samples:
-      - lang: Go
-        source: >
-          import "github.com/mattermost/mattermost-server/v5/model"
-
-          Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-          Client.Login("email@domain.com", "Password1")
-
-          uss, response := Client.GetUserThreads("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe", model.GetUserThreadsOpts{
-                                                                                      Deleted: true,
-                                                                                      Since: 123123,
-                                                                                      Page: 0,
-                                                                                      PageSize: 40,
-                                                                                      })
-
   "/api/v4/users/{user_id}/teams/{team_id}/threads/mention_counts":
     get:
       tags:
@@ -3607,17 +2854,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-      - lang: Go
-        source: >
-          import "github.com/mattermost/mattermost-server/v5/model"
-
-
-          Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-          Client.Login("email@domain.com", "Password1")
-
-          uss, response := Client.GetThreadMentionsForUserPerChannel("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe")
   "/api/v4/users/{user_id}/teams/{team_id}/threads/read":
     put:
       tags:
@@ -3653,17 +2889,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-      - lang: Go
-        source: >
-          import "github.com/mattermost/mattermost-server/v5/model"
-
-
-          Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-          Client.Login("email@domain.com", "Password1")
-
-          uss, response := Client.UpdateThreadsReadForUser("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe")
   "/api/v4/users/{user_id}/teams/{team_id}/threads/{thread_id}/read/{timestamp}":
     put:
       tags:
@@ -3711,17 +2936,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-            uss, response := Client.UpdateThreadReadForUser("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe", "f96cv0897624352346e" true)
   "/api/v4/users/{user_id}/teams/{team_id}/threads/{thread_id}/set_unread/{post_id}":
     put:
       tags:
@@ -3771,17 +2985,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-            uss, response := Client.SetThreadUnreadByPostId("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe", "f96cv0897624352346e", "f96cv0897624352346e")
   "/api/v4/users/{user_id}/teams/{team_id}/threads/{thread_id}/following":
     put:
       tags:
@@ -3823,17 +3026,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-            uss, response := Client.UpdateThreadFollowForUser("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe", "f96cv0897624352346e" true)
     delete:
       tags:
         - threads
@@ -3874,17 +3066,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-            uss, response := Client.UpdateThreadFollowForUser("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe", "f96cv0897624352346e" false)
   "/api/v4/users/{user_id}/teams/{team_id}/threads/{thread_id}":
     get:
       tags:
@@ -3926,17 +3107,6 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-            uss, response := Client.GetUserThread("fc6suoon9pbbpmhrb9c967paxe", "fc6su111111pmhrb9c967paxe", "f96cv0897624352346e")
   "/api/v4/users/{user_id}/data_retention/team_policies":
     get:
       tags:

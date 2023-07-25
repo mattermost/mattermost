@@ -21,14 +21,6 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            exports, response := Client.ListExports()
   "/api/v4/exports/{export_name}":
     get:
       tags:
@@ -62,22 +54,6 @@
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import (
-              "os"
-              
-              "github.com/mattermost/mattermost-server/v5/model"
-            }
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            outFile, _ := os.Create("export.zip")
-
-            n, response := Client.DownloadExport("export.zip", outFile, 0)
     delete:
       tags:
         - exports
@@ -108,13 +84,3 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            ok, response := Client.DeleteExport("export.zip")

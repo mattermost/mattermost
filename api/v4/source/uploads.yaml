@@ -52,23 +52,6 @@
           $ref: "#/components/responses/TooLarge"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-            us := &model.UploadSession{
-              ChannelId: "4i6jn8r483nnuqnibnmgz8jo4o",
-              Filename: "file.png",
-              FileSize: 512000,
-            }
-
-            us, response := Client.CreateUpload(us)
   "/api/v4/uploads/{upload_id}":
     get:
       tags:
@@ -98,17 +81,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-            us, response := Client.GetUpload("nuyrh9ymridqmenof7exe3a6aw")
     post:
       tags:
         - uploads
@@ -155,22 +127,3 @@
           $ref: "#/components/responses/TooLarge"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import (
-              "os"
-
-              "github.com/mattermost/mattermost-server/v5/model"
-            )
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            file, err := os.Open("file.png")
-            if err != nil {
-              fmt.Fprintf(os.Stderr, "%v\n", err)
-              return
-            }
-
-            info, err := Client.UploadData(us, file)
