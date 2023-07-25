@@ -3608,7 +3608,7 @@ func (s *OpenTracingLayerFileInfoStore) GetByPath(path string) (*model.FileInfo,
 	return result, err
 }
 
-func (s *OpenTracingLayerFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error) {
+func (s *OpenTracingLayerFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID string, includeDeleted bool, limit int) ([]*model.FileForIndexing, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetFilesBatchForIndexing")
 	s.Root.Store.SetContext(newCtx)
@@ -3617,7 +3617,7 @@ func (s *OpenTracingLayerFileInfoStore) GetFilesBatchForIndexing(startTime int64
 	}()
 
 	defer span.Finish()
-	result, err := s.FileInfoStore.GetFilesBatchForIndexing(startTime, startFileID, limit)
+	result, err := s.FileInfoStore.GetFilesBatchForIndexing(startTime, startFileID, includeDeleted, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

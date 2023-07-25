@@ -691,9 +691,10 @@ func (fs SqlFileInfoStore) CountAll() (int64, error) {
 	return count, nil
 }
 
-func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error) {
+func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID string, includeDeleted bool, limit int) ([]*model.FileForIndexing, error) {
 	files := []*model.FileForIndexing{}
-	sql, args, _ := fs.getQueryBuilder().
+
+	query := fs.getQueryBuilder().
 		Select(fs.queryFields...).
 		From("FileInfo").
 		Where(sq.Or{
@@ -704,10 +705,13 @@ func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID
 			},
 		}).
 		OrderBy("FileInfo.CreateAt ASC, FileInfo.Id ASC").
-		Limit(uint64(limit)).
-		ToSql()
+		Limit(uint64(limit))
 
-	err := fs.GetSearchReplicaX().Select(&files, sql, args...)
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"FileInfo.DeleteAt": 0})
+	}
+
+	err := fs.GetSearchReplicaX().SelectBuilder(&files, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Files")
 	}
