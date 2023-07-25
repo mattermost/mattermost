@@ -35,6 +35,7 @@ const (
 	JobTypePostPersistentNotifications  = "post_persistent_notifications"
 	JobTypeInstallPluginNotifyAdmin     = "install_plugin_notify_admin"
 	JobTypeHostedPurchaseScreening      = "hosted_purchase_screening"
+	JobTypeS3PathMigration              = "s3_path_migration"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"

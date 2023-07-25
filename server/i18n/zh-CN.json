@@ -9468,10 +9468,6 @@
     "translation": "全公司"
   },
   {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "不正确的时间范围。"
-  },
-  {
     "id": "model.group.name.reserved_name.app_error",
     "translation": "群组名称已作为保留名称存在"
   },
