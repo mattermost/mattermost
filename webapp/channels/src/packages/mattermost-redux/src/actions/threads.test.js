@@ -126,6 +126,25 @@ describe('Actions.Threads', () => {
         expect(thread).toEqual({...mockThread, is_following: true});
     });
 
+    test('getThread - should be unfollowed if error occurs', async () => {
+        const [mockThread, {threadId}] = mockUserThread({channelId: channel.id});
+
+        nock(Client4.getBaseRoute()).
+            get((uri) => uri.includes(`/users/${currentUserId}/teams/${currentTeamId}/threads/${threadId}`)).
+            reply(200, mockThread);
+
+        await store.dispatch(fetchThread(currentUserId, currentTeamId, threadId, false));
+
+        nock(Client4.getBaseRoute()).
+            get((uri) => uri.includes(`/users/${currentUserId}/teams/${currentTeamId}/threads/${threadId}`)).
+            reply(404, null);
+
+        await store.dispatch(fetchThread(currentUserId, currentTeamId, threadId, false));
+        const state = store.getState();
+        const thread = getThread(state, threadId);
+        expect(thread).toEqual(thread, {...mockThread, is_following: false});
+    });
+
     test('getThreads', async () => {
         const [mockThread0, {threadId: threadId0}] = mockUserThread({uniq: 0});
         const [mockThread1, {threadId: threadId1}] = mockUserThread({uniq: 1});

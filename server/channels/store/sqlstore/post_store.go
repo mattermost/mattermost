@@ -841,8 +841,9 @@ func (s *SqlPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, erro
 }
 
 type etagPosts struct {
-	Id       string
-	UpdateAt int64
+	Id                 string
+	UpdateAt           int64
+	MembershipUpdateAt int64
 }
 
 //nolint:unparam
@@ -850,10 +851,15 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 }
 
 //nolint:unparam
-func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThreads bool) string {
-	q := s.getQueryBuilder().Select("Id", "UpdateAt").From("Posts").Where(sq.Eq{"ChannelId": channelId}).OrderBy("UpdateAt DESC").Limit(1)
+func (s *SqlPostStore) GetEtag(channelId, userId string, allowFromCache, collapsedThreads bool) string {
+	q := s.getQueryBuilder().Select("Id", "UpdateAt").From("Posts").Where(sq.Eq{"ChannelId": channelId}).Limit(1)
 	if collapsedThreads {
-		q.Where(sq.Eq{"RootId": ""})
+		q = q.LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId=?", userId).
+			Column("COALESCE(ThreadMemberships.LastUpdated, 0) AS MembershipUpdateAt").
+			Where(sq.Eq{"RootId": ""}).
+			OrderBy("GREATEST(COALESCE(ThreadMemberships.LastUpdated, 0), UpdateAt) DESC")
+	} else {
+		q = q.OrderBy("UpdateAt DESC")
 	}
 	sql, args := q.MustSql()
 
@@ -863,7 +869,7 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThread
 	if err != nil {
 		result = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 	} else {
-		result = fmt.Sprintf("%v.%v", model.CurrentVersion, et.UpdateAt)
+		result = fmt.Sprintf("%v.%v.%v", model.CurrentVersion, et.UpdateAt, et.MembershipUpdateAt)
 	}
 
 	return result

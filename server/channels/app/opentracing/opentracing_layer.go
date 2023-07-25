@@ -8312,7 +8312,7 @@ func (a *OpenTracingAppLayer) GetPostsByIds(postIDs []string) ([]*model.Post, in
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) GetPostsEtag(channelID string, collapsedThreads bool) string {
+func (a *OpenTracingAppLayer) GetPostsEtag(channelID string, userId string, collapsedThreads bool) string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsEtag")
 
@@ -8324,7 +8324,7 @@ func (a *OpenTracingAppLayer) GetPostsEtag(channelID string, collapsedThreads bo
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetPostsEtag(channelID, collapsedThreads)
+	resultVar0 := a.app.GetPostsEtag(channelID, userId, collapsedThreads)
 
 	return resultVar0
 }

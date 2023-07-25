@@ -892,8 +892,8 @@ func (a *App) GetPosts(channelID string, offset int, limit int) (*model.PostList
 	return postList, nil
 }
 
-func (a *App) GetPostsEtag(channelID string, collapsedThreads bool) string {
-	return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads)
+func (a *App) GetPostsEtag(channelID, userId string, collapsedThreads bool) string {
+	return a.Srv().Store().Post().GetEtag(channelID, userId, true, collapsedThreads)
 }
 
 func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {

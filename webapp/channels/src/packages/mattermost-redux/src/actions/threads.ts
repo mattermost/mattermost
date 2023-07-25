@@ -226,6 +226,16 @@ export function getThread(userId: string, teamId: string, threadId: string, exte
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
+
+            // Make sure the thread is marked as unfollowed as this API throws a 404 when the thread isn't followed
+            dispatch({
+                type: ThreadTypes.FOLLOW_CHANGED_THREAD,
+                data: {
+                    id: threadId,
+                    following: false,
+                },
+            });
+
             return {error};
         }
 

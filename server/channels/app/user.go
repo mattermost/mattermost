@@ -2601,6 +2601,9 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	message.Add("state", state)
 	message.Add("reply_count", replyCount)
 	a.Publish(message)
+
+	// need to make sure posts gets reloaded after following is changed
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(thread.ChannelId)
 	return nil
 }
 
