@@ -12,7 +12,7 @@ ARG MM_PACKAGE="https://releases.mattermost.com/7.10.2/mattermost-7.10.2-linux-a
 
 # # Install needed packages and indirect dependencies
 RUN apt-get update \
-  && apt-get install --no-install-recommends -y \
+  && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
   ca-certificates \
   curl \
   mime-support \
@@ -20,6 +20,7 @@ RUN apt-get update \
   wv \
   poppler-utils \
   tidy \
+  tzdata \
   && rm -rf /var/lib/apt/lists/*
 
 # Set mattermost group/user and download Mattermost
