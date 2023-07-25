@@ -13,7 +13,6 @@ export type ExternalLoginButtonType = {
     label: string;
     style?: React.CSSProperties;
     direction?: 'row' | 'column';
-    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 };
 
 const ExternalLoginButton = ({
@@ -23,14 +22,12 @@ const ExternalLoginButton = ({
     label,
     style,
     direction = 'row',
-    onClick,
 }: ExternalLoginButtonType) => (
     <a
         id={id}
         className={classNames('external-login-button', {'direction-column': direction === 'column'}, id)}
         href={url}
         style={style}
-        onClick={onClick}
     >
         {icon}
         <span className='external-login-button-label'>
