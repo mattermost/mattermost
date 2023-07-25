@@ -103,7 +103,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
     }
     channelsPerPage={50}
     closeModal={[MockFunction]}
-    filter="all"
+    filter="All"
     handleJoin={[Function]}
     hideJoinedChannelsPreference={[Function]}
     isSearch={false}
