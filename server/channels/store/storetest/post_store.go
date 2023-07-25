@@ -3939,6 +3939,10 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err, "Should have found post 3 after purge")
 
+	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 0, 1000)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(rows))
+
 	t.Run("with pagination", func(t *testing.T) {
 		for i := 0; i < 3; i++ {
 			_, err = ss.Post().Save(&model.Post{

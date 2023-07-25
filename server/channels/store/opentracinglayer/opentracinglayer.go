@@ -7335,6 +7335,24 @@ func (s *OpenTracingLayerReactionStore) DeleteOrphanedRows(limit int) (int64, er
 	return result, err
 }
 
+func (s *OpenTracingLayerReactionStore) DeleteOrphanedRowsByIdsTx(r *model.RetentionIdsForDeletion) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.DeleteOrphanedRowsByIdsTx")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ReactionStore.DeleteOrphanedRowsByIdsTx(r)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.GetForPost")
@@ -7759,6 +7777,24 @@ func (s *OpenTracingLayerRetentionPolicyStore) GetCount() (int64, error) {
 
 	defer span.Finish()
 	result, err := s.RetentionPolicyStore.GetCount()
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, offset int, limit int) ([]*model.RetentionIdsForDeletion, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.GetIdsForDeletionByTableName")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.RetentionPolicyStore.GetIdsForDeletionByTableName(tableName, offset, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

@@ -919,6 +919,7 @@ func (s *SqlThreadStore) PermanentDeleteBatchForRetentionPolicies(now, globalPol
 		NowMillis:           now,
 		GlobalPolicyEndTime: globalPolicyEndTime,
 		Limit:               limit,
+		UseTransaction:      false,
 	}, s.SqlStore, cursor)
 }
 
@@ -939,6 +940,7 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolici
 		NowMillis:           now,
 		GlobalPolicyEndTime: globalPolicyEndTime,
 		Limit:               limit,
+		UseTransaction:      false,
 	}, s.SqlStore, cursor)
 }
 

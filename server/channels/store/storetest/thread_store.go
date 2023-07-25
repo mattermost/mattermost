@@ -534,6 +534,9 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	thread, err = ss.Thread().Get(post.Id)
 	assert.NoError(t, err)
 	assert.Nil(t, thread, "thread should have been deleted by channel policy")
+	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Threads", 0, 1000)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(rows))
 
 	// create a new thread
 	threadStoreCreateReply(t, ss, channel.Id, post.Id, post.UserId, 2000)
@@ -555,6 +558,9 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	require.NoError(t, err)
 	_, err = ss.Thread().Get(post.Id)
 	require.NoError(t, err, "channel policy should have overridden team policy")
+	rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Threads", 0, 1000)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(rows))
 
 	// Delete channel policy and re-run team policy
 	err = ss.RetentionPolicy().Delete(channelPolicy.ID)
@@ -564,6 +570,9 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	thread, err = ss.Thread().Get(post.Id)
 	assert.NoError(t, err)
 	assert.Nil(t, thread, "thread should have been deleted by team policy")
+	rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Threads", 0, 1000)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(rows))
 }
 
 func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, ss store.Store, s SqlStore) {
@@ -620,6 +629,9 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	require.NoError(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
 	require.Error(t, err, "thread membership should have been deleted by channel policy")
+	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Threads", 0, 1000)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(rows))
 
 	// create a new thread membership
 	threadMembership = createThreadMembership(userID, post.Id)
@@ -639,6 +651,9 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	require.NoError(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
 	require.NoError(t, err, "channel policy should have overridden team policy")
+	rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Threads", 0, 1000)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(rows))
 
 	// Delete channel policy and re-run team policy
 	err = ss.RetentionPolicy().Delete(channelPolicy.ID)
@@ -647,6 +662,9 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	require.NoError(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
 	require.Error(t, err, "thread membership should have been deleted by team policy")
+	rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Threads", 0, 1000)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(rows))
 
 	// create a new thread membership
 	createThreadMembership(userID, post.Id)

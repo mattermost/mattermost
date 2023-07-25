@@ -6628,6 +6628,22 @@ func (s *TimerLayerReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return result, err
 }
 
+func (s *TimerLayerReactionStore) DeleteOrphanedRowsByIdsTx(r *model.RetentionIdsForDeletion) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ReactionStore.DeleteOrphanedRowsByIdsTx(r)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.DeleteOrphanedRowsByIdsTx", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
 	start := time.Now()
 
@@ -7008,6 +7024,22 @@ func (s *TimerLayerRetentionPolicyStore) GetCount() (int64, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetCount", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, offset int, limit int) ([]*model.RetentionIdsForDeletion, error) {
+	start := time.Now()
+
+	result, err := s.RetentionPolicyStore.GetIdsForDeletionByTableName(tableName, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetIdsForDeletionByTableName", success, elapsed)
 	}
 	return result, err
 }

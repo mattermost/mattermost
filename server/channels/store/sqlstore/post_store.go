@@ -2423,6 +2423,7 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolic
 		NowMillis:           now,
 		GlobalPolicyEndTime: globalPolicyEndTime,
 		Limit:               limit,
+		UseTransaction:      true,
 	}, s.SqlStore, cursor)
 }
 

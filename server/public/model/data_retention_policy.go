@@ -86,3 +86,15 @@ type RetentionPolicyCursor struct {
 	TeamPoliciesDone    bool
 	GlobalPoliciesDone  bool
 }
+
+type RetentionIdsForDeletion struct {
+	Id 	      string
+	TableName string
+	Ids		  []string
+}
+
+func(r *RetentionIdsForDeletion) PreSave() {
+	if r.Id == "" {
+		r.Id = NewId()
+	}
+}

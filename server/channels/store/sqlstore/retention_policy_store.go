@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -817,6 +818,56 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) 
 	return count, nil
 }
 
+func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, offset, limit int) ([]*model.RetentionIdsForDeletion, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("RetentionIdsForDeletion").
+		Where(
+			sq.Eq{"TableName": tableName},
+		).
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_ids_for_deletion_tosql")
+	}
+
+	rows, err := s.GetReplicaX().DB.Query(queryString, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get ids for deletion")
+	}
+	defer deferClose(rows, &err)
+
+	idsForDeletion := []*model.RetentionIdsForDeletion{}
+	for rows.Next() {
+		var row model.RetentionIdsForDeletion
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			err = rows.Scan(
+				&row.Id, &row.TableName, pq.Array(&row.Ids),
+			)
+		} else {
+			var ids []byte
+			err = rows.Scan(
+				&row.Id, &row.TableName, &ids,
+			)
+			if err = json.Unmarshal(ids, &row.Ids); err != nil {
+				return nil, errors.Wrap(err, "failed to unmarshal ids")
+			}
+		} 
+		
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to scan columns")
+		}
+		idsForDeletion = append(idsForDeletion, &row)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error while iterating over rows")
+	}
+
+	return idsForDeletion, nil
+}
+
 // RetentionPolicyBatchDeletionInfo gives information on how to delete records
 // under a retention policy; see `genericPermanentDeleteBatchForRetentionPolicies`.
 //
@@ -845,6 +896,7 @@ type RetentionPolicyBatchDeletionInfo struct {
 	NowMillis           int64
 	GlobalPolicyEndTime int64
 	Limit               int64
+	UseTransaction      bool
 }
 
 // genericPermanentDeleteBatchForRetentionPolicies is a helper function for tables
@@ -958,31 +1010,144 @@ func genericRetentionPoliciesDeletion(
 	if err != nil {
 		return 0, errors.Wrap(err, r.Table+"_tosql")
 	}
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
-		query = `
-		DELETE FROM ` + r.Table + ` WHERE ` + primaryKeysStr + ` IN (
-		` + query + `
-		)`
-	} else {
-		// MySQL does not support the LIMIT clause in a subquery with IN
-		clauses := make([]string, len(r.PrimaryKeys))
-		for i, key := range r.PrimaryKeys {
-			clauses[i] = r.Table + "." + key + " = A." + key
+
+	if r.UseTransaction {
+		txn, err := s.GetMasterX().Beginx()
+		if err != nil {
+			return 0, err
 		}
-		joinClause := strings.Join(clauses, " AND ")
-		query = `
-		DELETE ` + r.Table + ` FROM ` + r.Table + ` INNER JOIN (
-		` + query + `
-		) AS A ON ` + joinClause
-	}
-	result, err := s.GetMasterX().Exec(query, args...)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete "+r.Table)
-	}
-	rowsAffected, err = result.RowsAffected()
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to get rows affected for "+r.Table)
+		defer finalizeTransactionX(txn, &err)
+
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
+			query = `
+			DELETE FROM ` + r.Table + ` WHERE ` + primaryKeysStr + ` IN (
+			` + query + `
+			) RETURNING ` + r.PrimaryKeys[0]
+			rows, err := txn.Query(query, args...)
+			if err != nil {
+				return 0, errors.Wrap(err, "failed to delete "+r.Table)
+			}
+
+			defer rows.Close()
+			ids := []string{}
+			for rows.Next() {
+				var id string
+				if err = rows.Scan(&id); err != nil {
+					return 0, errors.Wrap(err, "unable to scan from rows")
+				}
+				ids = append(ids, id)
+			}
+			if err = rows.Err(); err != nil {
+				return 0, errors.Wrap(err, "failed while iterating over rows")
+			}
+			rowsAffected = int64(len(ids))
+
+			if len(ids) > 0 {
+				retentionIdsRow := model.RetentionIdsForDeletion{
+					TableName: r.Table,
+					Ids: ids,
+				}
+				retentionIdsRow.PreSave()
+				insertBuilder := s.getQueryBuilder().
+					Insert("RetentionIdsForDeletion").
+					Columns("Id", "TableName", "Ids").
+					Values(retentionIdsRow.Id, retentionIdsRow.TableName, pq.Array(retentionIdsRow.Ids))
+				
+				insertQuery, insertArgs, err := insertBuilder.ToSql()
+
+				if _, err = txn.Exec(insertQuery, insertArgs...); err != nil {
+					return 0, err
+				}
+			}
+		} else {
+			retentionIdsRow := model.RetentionIdsForDeletion{
+				TableName: r.Table,
+				Ids: make([]string, 0),
+			}
+			// 1. Select rows that will be deleted
+			if err = txn.Select(&retentionIdsRow.Ids, query, args...); err != nil {
+				return 0, err
+			}
+			
+			if len(retentionIdsRow.Ids) > 0 {
+				jsonIds, err := json.Marshal(retentionIdsRow.Ids)
+				if err != nil {
+					return 0, err
+				}
+				retentionIdsRow.PreSave()
+				insertBuilder := s.getQueryBuilder().
+					Insert("RetentionIdsForDeletion").
+					Columns("Id", "TableName", "Ids").
+					Values(retentionIdsRow.Id, retentionIdsRow.TableName, jsonIds)
+				
+				insertQuery, insertArgs, err := insertBuilder.ToSql()
+
+				// 2. Insert the selected rows into retentionidsfordeletion table
+				if _, err = txn.Exec(insertQuery, insertArgs...); err != nil {
+					return 0, err
+				}
+
+				// MySQL does not support the LIMIT clause in a subquery with IN
+				clauses := make([]string, len(r.PrimaryKeys))
+				for i, key := range r.PrimaryKeys {
+					clauses[i] = r.Table + "." + key + " = A." + key
+				}
+				joinClause := strings.Join(clauses, " AND ")
+				query = `
+				DELETE ` + r.Table + ` FROM ` + r.Table + ` INNER JOIN (
+				` + query + `
+				) AS A ON ` + joinClause
+
+				// 3. Delete from Parent table
+				result, err := txn.Exec(query, args...)
+				if err != nil {
+					return 0, errors.Wrap(err, "failed to delete "+r.Table)
+				}
+
+				rowsAffected, err = result.RowsAffected()
+				if err != nil {
+					return 0, errors.Wrap(err, "failed to get rows affected for "+r.Table)
+				}
+			}
+		}
+		if err = txn.Commit(); err != nil {
+			return 0, err
+		}
+	} else {
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
+			query = `
+			DELETE FROM ` + r.Table + ` WHERE ` + primaryKeysStr + ` IN (
+			` + query + `
+			)`
+		} else {
+			// MySQL does not support the LIMIT clause in a subquery with IN
+			clauses := make([]string, len(r.PrimaryKeys))
+			for i, key := range r.PrimaryKeys {
+				clauses[i] = r.Table + "." + key + " = A." + key
+			}
+			joinClause := strings.Join(clauses, " AND ")
+			query = `
+			DELETE ` + r.Table + ` FROM ` + r.Table + ` INNER JOIN (
+			` + query + `
+			) AS A ON ` + joinClause
+		}
+		result, err := s.GetMasterX().Exec(query, args...)
+		if err != nil {
+			return 0, errors.Wrap(err, "failed to delete "+r.Table)
+		}
+		rowsAffected, err = result.RowsAffected()
+		if err != nil {
+			return 0, errors.Wrap(err, "failed to get rows affected for "+r.Table)
+		}
 	}
 	return
+}
+
+func deleteFromRetentionIdsTx(txn *sqlxTxWrapper, id string) (err error) {
+	if _, err := txn.Exec("DELETE FROM RetentionIdsForDeletion WHERE Id = ?", id); err != nil {
+		return errors.Wrap(err, "Failed to delete from RetentionIdsForDeletion")
+	}
+	return nil
 }

@@ -8327,6 +8327,27 @@ func (s *RetryLayerReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
 
 }
 
+func (s *RetryLayerReactionStore) DeleteOrphanedRowsByIdsTx(r *model.RetentionIdsForDeletion) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReactionStore.DeleteOrphanedRowsByIdsTx(r)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
 
 	tries := 0
@@ -8815,6 +8836,27 @@ func (s *RetryLayerRetentionPolicyStore) GetCount() (int64, error) {
 	tries := 0
 	for {
 		result, err := s.RetentionPolicyStore.GetCount()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, offset int, limit int) ([]*model.RetentionIdsForDeletion, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.GetIdsForDeletionByTableName(tableName, offset, limit)
 		if err == nil {
 			return result, nil
 		}

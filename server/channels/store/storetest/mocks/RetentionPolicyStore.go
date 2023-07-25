@@ -256,6 +256,32 @@ func (_m *RetentionPolicyStore) GetCount() (int64, error) {
 	return r0, r1
 }
 
+// GetIdsForDeletionByTableName provides a mock function with given fields: tableName, offset, limit
+func (_m *RetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, offset int, limit int) ([]*model.RetentionIdsForDeletion, error) {
+	ret := _m.Called(tableName, offset, limit)
+
+	var r0 []*model.RetentionIdsForDeletion
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int, int) ([]*model.RetentionIdsForDeletion, error)); ok {
+		return rf(tableName, offset, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.RetentionIdsForDeletion); ok {
+		r0 = rf(tableName, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.RetentionIdsForDeletion)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
+		r1 = rf(tableName, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTeamPoliciesCountForUser provides a mock function with given fields: userID
 func (_m *RetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (int64, error) {
 	ret := _m.Called(userID)

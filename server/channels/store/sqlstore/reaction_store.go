@@ -225,6 +225,34 @@ func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err err
 	return
 }
 
+func (s *SqlReactionStore) DeleteOrphanedRowsByIdsTx(r *model.RetentionIdsForDeletion) (deleted int64, err error) {
+	txn, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return 0, err
+	}
+	defer finalizeTransactionX(txn, &err)
+
+	query := s.getQueryBuilder().
+		Delete("Reactions").
+		Where(
+			sq.Eq{"PostId": r.Ids},
+		)
+
+	result, err := txn.ExecBuilder(query)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to delete channel with ids=%s", r.Ids)
+	}
+	err = deleteFromRetentionIdsTx(txn, r.Id)
+	if err != nil {
+		return 0, err
+	}
+	if err = txn.Commit(); err != nil {
+		return 0, err
+	}
+	deleted, err = result.RowsAffected()
+	return
+}
+
 func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var query string
 	if s.DriverName() == "postgres" {

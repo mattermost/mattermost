@@ -104,6 +104,30 @@ func (_m *ReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return r0, r1
 }
 
+// DeleteOrphanedRowsByIdsTx provides a mock function with given fields: r
+func (_m *ReactionStore) DeleteOrphanedRowsByIdsTx(r *model.RetentionIdsForDeletion) (int64, error) {
+	ret := _m.Called(r)
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.RetentionIdsForDeletion) (int64, error)); ok {
+		return rf(r)
+	}
+	if rf, ok := ret.Get(0).(func(*model.RetentionIdsForDeletion) int64); ok {
+		r0 = rf(r)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.RetentionIdsForDeletion) error); ok {
+		r1 = rf(r)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForPost provides a mock function with given fields: postID, allowFromCache
 func (_m *ReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
 	ret := _m.Called(postID, allowFromCache)
