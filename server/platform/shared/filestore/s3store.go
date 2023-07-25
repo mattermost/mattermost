@@ -368,6 +368,62 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	return nil
 }
 
+// DecodeFilePathIfNeeded is a special method to URL decode all older
+// file paths. It is only needed for the migration, and will be removed
+// as soon as the migration is complete.
+func (b *S3FileBackend) DecodeFilePathIfNeeded(path string) error {
+	// Encode and check if file path changes.
+	// If there is no change, then there is no need to do anything.
+	if path == s3utils.EncodePath(path) {
+		return nil
+	}
+
+	// Check if encoded path exists.
+	exists, err := b.lookupOriginalPath(s3utils.EncodePath(path))
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return nil
+	}
+
+	// If yes, then it needs to be migrated.
+	// This is basically a copy of MoveFile without the path encoding.
+	// We avoid any further refactoring because this method will be removed anyways.
+	oldPath := filepath.Join(b.pathPrefix, s3utils.EncodePath(path))
+	newPath := filepath.Join(b.pathPrefix, path)
+	srcOpts := s3.CopySrcOptions{
+		Bucket: b.bucket,
+		Object: oldPath,
+	}
+	if b.encrypt {
+		srcOpts.Encryption = encrypt.NewSSE()
+	}
+
+	dstOpts := s3.CopyDestOptions{
+		Bucket: b.bucket,
+		Object: newPath,
+	}
+	if b.encrypt {
+		dstOpts.Encryption = encrypt.NewSSE()
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	if _, err := b.client.CopyObject(ctx, dstOpts, srcOpts); err != nil {
+		return errors.Wrapf(err, "unable to copy the file to %s to the new destination", newPath)
+	}
+
+	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel2()
+	if err := b.client.RemoveObject(ctx2, b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
+		return errors.Wrapf(err, "unable to remove the file old file %s", oldPath)
+	}
+
+	return nil
+}
+
 func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 	oldPath, err := b.prefixedPath(oldPath)
 	if err != nil {
@@ -666,7 +722,6 @@ func (b *S3FileBackend) prefixedPath(s string) (string, error) {
 			// More info at: https://github.com/aws/aws-sdk-go/blob/a57c4d92784a43b716645a57b6fa5fb94fb6e419/aws/signer/v4/v4.go#L8
 			s = s3utils.EncodePath(s)
 		}
-
 	}
 	return filepath.Join(b.pathPrefix, s), nil
 }

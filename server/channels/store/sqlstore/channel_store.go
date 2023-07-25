@@ -778,12 +778,7 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
-			dupChannel := model.Channel{}
-			s.GetReplicaX().Get(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]any{"TeamId": channel.TeamId, "Name": channel.Name})
-			if dupChannel.DeleteAt > 0 {
-				return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
-			}
-			return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
+			return nil, store.NewErrInvalidInput("Channel", "Name", channel.Name)
 		}
 		return nil, errors.Wrapf(err, "failed to update channel with id=%s", channel.Id)
 	}
@@ -1548,16 +1543,14 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Channels").
-		Where(sq.Eq{"Name": name})
-
-	if !includeDeleted {
-		query = query.Where(sq.Eq{"DeleteAt": 0})
-	}
-	if teamId != "" {
-		query = query.Where(sq.Or{
+		Where(sq.Eq{"Name": name}).
+		Where(sq.Or{
 			sq.Eq{"TeamId": teamId},
 			sq.Eq{"TeamId": ""},
 		})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
 	}
 	channel := model.Channel{}
 

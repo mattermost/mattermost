@@ -6,11 +6,9 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -1923,13 +1921,11 @@ func (s *SqlPostStore) buildSearchPostFilterClause(teamID string, fromUsers []st
 	}
 
 	// Sub-query builder.
-	sb := s.getSubQueryBuilder().
-		Select("Id").
-		From("Users, TeamMembers").
-		Where(sq.Expr("Users.Id = TeamMembers.UserId"))
-	if teamID != "" {
-		sb = sb.Where(sq.Eq{"TeamMembers.TeamId": teamID})
-	}
+	sb := s.getSubQueryBuilder().Select("Id").From("Users, TeamMembers").Where(
+		sq.And{
+			sq.Eq{"TeamMembers.TeamId": teamID},
+			sq.Expr("Users.Id = TeamMembers.UserId"),
+		})
 	sb = s.buildSearchUserFilterClause(fromUsers, false, userByUsername, sb)
 	sb = s.buildSearchUserFilterClause(excludedUsers, true, userByUsername, sb)
 	subQuery, subQueryArgs, err := sb.ToSql()
@@ -2710,7 +2706,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 }
 
 //nolint:unparam
-func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID, teamId string, page, perPage int) (*model.PostSearchResults, error) {
+func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
 	// Since we don't support paging for DB search, we just return nothing for later pages
 	if page > 0 {
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
@@ -2720,22 +2716,11 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 		return nil, err
 	}
 
-	now := model.GetMillis()
+	var wg sync.WaitGroup
+
 	pchan := make(chan store.StoreResult, len(paramsList))
 
-	var wg sync.WaitGroup
 	for _, params := range paramsList {
-		// Deliberately keeping non-alphanumeric characters to
-		// prevent surprises in UI.
-		buf, err := json.Marshal(params)
-		if err != nil {
-			return nil, err
-		}
-		err = s.LogRecentSearch(userID, buf, now)
-		if err != nil {
-			return nil, err
-		}
-
 		// remove any unquoted term that contains only non-alphanumeric chars
 		// ex: abcd "**" && abc     >>     abcd "**" abc
 		params.Terms = removeNonAlphaNumericUnquotedTerms(params.Terms, " ")
@@ -2744,7 +2729,7 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 
 		go func(params *model.SearchParams) {
 			defer wg.Done()
-			postList, err := s.search(teamId, userID, params, false, false)
+			postList, err := s.search(teamId, userId, params, false, false)
 			pchan <- store.StoreResult{Data: postList, NErr: err}
 		}(params)
 	}
@@ -2765,103 +2750,6 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 	posts.SortByCreateAt()
 
 	return model.MakePostSearchResults(posts, nil), nil
-}
-
-const lastSearchesLimit = 5
-
-func (s *SqlPostStore) LogRecentSearch(userID string, searchQuery []byte, createAt int64) (err error) {
-	transaction, err := s.GetMasterX().Beginx()
-	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
-	}
-
-	defer finalizeTransactionX(transaction, &err)
-
-	var lastSearchPointer int
-	var queryStr string
-	// get search_pointer
-	// We coalesce to -1 because we want to start from 0
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		queryStr = `SELECT COALESCE((props->>'last_search_pointer')::integer, -1)
-			FROM Users
-			WHERE Id=?`
-	} else {
-		queryStr = `SELECT COALESCE(CAST(JSON_EXTRACT(Props, '$.last_search_pointer') as unsigned), -1)
-			FROM Users
-			WHERE Id=?`
-	}
-	err = transaction.Get(&lastSearchPointer, queryStr, userID)
-	if err != nil {
-		return errors.Wrapf(err, "failed to find last_search_pointer for user=%s", userID)
-	}
-
-	// (ptr+1)%lastSearchesLimit
-	lastSearchPointer = (lastSearchPointer + 1) % lastSearchesLimit
-
-	if s.IsBinaryParamEnabled() {
-		searchQuery = AppendBinaryFlag(searchQuery)
-	}
-
-	// insert at pointer
-	query := s.getQueryBuilder().
-		Insert("RecentSearches").
-		Columns("UserId", "SearchPointer", "Query", "CreateAt").
-		Values(userID, lastSearchPointer, searchQuery, createAt)
-
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid, searchpointer) DO UPDATE SET Query = ?, CreateAt = ?", searchQuery, createAt))
-	} else {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Query = ?, CreateAt = ?", searchQuery, createAt))
-	}
-
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return errors.Wrap(err, "log_recent_search_tosql")
-	}
-
-	if _, err2 := transaction.Exec(queryString, args...); err2 != nil {
-		return errors.Wrapf(err2, "failed to upsert recent_search for user=%s", userID)
-	}
-
-	// write ptr on users prop
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		_, err = transaction.Exec(`UPDATE Users
-			SET Props = jsonb_set(Props, $1, $2)
-			WHERE Id = $3`, jsonKeyPath("last_search_pointer"), jsonStringVal(strconv.Itoa(lastSearchPointer)), userID)
-	} else {
-		_, err = transaction.Exec(`UPDATE Users
-			SET Props = JSON_SET(Props, ?, ?)
-			WHERE Id = ?`, "$.last_search_pointer", strconv.Itoa(lastSearchPointer), userID)
-	}
-	if err != nil {
-		return errors.Wrapf(err, "failed to update last_search_pointer for user=%s", userID)
-	}
-
-	if err2 := transaction.Commit(); err2 != nil {
-		return errors.Wrap(err2, "commit_transaction")
-	}
-
-	return nil
-}
-
-func (s *SqlPostStore) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, error) {
-	params := [][]byte{}
-	err := s.GetReplicaX().Select(&params, `SELECT query
-		FROM RecentSearches
-		WHERE UserId=?
-		ORDER BY CreateAt DESC`, userID)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get recent searches for user=%s", userID)
-	}
-
-	res := make([]*model.SearchParams, len(params))
-	for i, param := range params {
-		err = json.Unmarshal(param, &res[i])
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to unmarshal recent search query for user=%s", userID)
-		}
-	}
-	return res, nil
 }
 
 func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {

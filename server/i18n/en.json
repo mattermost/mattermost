@@ -6384,10 +6384,6 @@
     "translation": "Unable to save reaction."
   },
   {
-    "id": "app.recent_searches.app_error",
-    "translation": "Error fetching recent searches"
-  },
-  {
     "id": "app.recover.delete.app_error",
     "translation": "Unable to delete token."
   },

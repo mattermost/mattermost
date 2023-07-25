@@ -1,125 +1,391 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/post_edit_history should match snapshot 1`] = `
-<div
-  className="sidebar-right__body"
-  id="rhsContainer"
->
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
+exports[`components/post_edit_history should display error screen if errors are present 1`] = `
+<div>
+  <div
+    class="sidebar-right__body"
+    id="rhsContainer"
   >
-    <Connect(SearchResultsHeader)>
-      Edit History
+    <div
+      style="position: relative; overflow: hidden; width: 100%; height: 100%;"
+    >
       <div
-        className="sidebar--right__title__channel"
+        class="scrollbar--view"
+        style="position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; overflow: scroll; margin-right: 0px; margin-bottom: 0px;"
       >
-        channel_display_name
+        <div
+          class="sidebar--right__header"
+        >
+          <span
+            class="sidebar--right__title"
+          >
+            Edit History
+            <div
+              class="sidebar--right__title__channel"
+            >
+              channel_display_name
+            </div>
+          </span>
+          <div
+            class="pull-right"
+          >
+            <button
+              class="sidebar--right__expand btn-icon"
+              type="button"
+            >
+              <i
+                aria-label="Expand Sidebar Icon"
+                class="icon icon-arrow-expand"
+              />
+              <i
+                aria-label="Collapse Sidebar Icon"
+                class="icon icon-arrow-collapse"
+              />
+            </button>
+            <button
+              aria-label="Close"
+              class="sidebar--right__close btn-icon"
+              id="searchResultsCloseButton"
+              type="button"
+            >
+              <i
+                aria-label="Close Sidebar Icon"
+                class="icon icon-close"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="edit-post-history__error_container"
+        >
+          <div
+            class="edit-post-history__error_item"
+          >
+            <svg
+              fill="none"
+              height="127"
+              viewBox="0 0 110 100"
+              width="127"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M26.4736 81.0278C23.2554 81.0278 21.7973 78.708 23.2333 75.8728L49.2438 24.7796C50.7166 21.9517 53.0364 21.9517 54.4798 24.7796L80.483 75.8728C81.9558 78.7006 80.483 81.0278 77.2427 81.0278H26.4736Z"
+                fill="#FFBC1F"
+              />
+              <path
+                d="M47.7783 43.6764L50.4515 61.6378C50.4773 61.9942 50.6371 62.3276 50.8988 62.571C51.1604 62.8144 51.5045 62.9497 51.8618 62.9497C52.2192 62.9497 52.5632 62.8144 52.8249 62.571C53.0865 62.3276 53.2463 61.9942 53.2721 61.6378L55.9453 43.6764C56.4314 36.673 47.2849 36.673 47.7783 43.6764Z"
+                fill="#2D3039"
+              />
+              <path
+                d="M51.8582 64.8853C52.6677 64.8867 53.4586 65.1281 54.1309 65.5789C54.8033 66.0297 55.327 66.6697 55.6358 67.418C55.9446 68.1663 56.0246 68.9893 55.8657 69.7831C55.7069 70.5769 55.3164 71.3058 54.7435 71.8777C54.1706 72.4496 53.441 72.8388 52.6469 72.9962C51.8529 73.1536 51.03 73.0721 50.2822 72.7619C49.5345 72.4518 48.8954 71.927 48.4458 71.2538C47.9963 70.5806 47.7563 69.7893 47.7563 68.9798C47.7563 68.4415 47.8624 67.9084 48.0686 67.4112C48.2749 66.9139 48.5772 66.4622 48.9582 66.0819C49.3392 65.7016 49.7914 65.4002 50.2891 65.1948C50.7867 64.9895 51.3199 64.8843 51.8582 64.8853Z"
+                fill="#2D3039"
+              />
+            </svg>
+            <p
+              class="edit-post-history__error_heading"
+            >
+              Unable to load edit history
+            </p>
+            <p
+              class="edit-post-history__error_subheading"
+            >
+              There was an error loading the history for this message. Check your network connection or try again later.
+            </p>
+          </div>
+        </div>
       </div>
-    </Connect(SearchResultsHeader)>
-    <Connect(Component)
-      isCurrent={true}
-      post={
-        Object {
-          "channel_id": "",
-          "create_at": 0,
-          "delete_at": 0,
-          "edit_at": 0,
-          "hashtags": "",
-          "id": "post_id",
-          "is_pinned": false,
-          "message": "post message",
-          "metadata": Object {
-            "embeds": Array [],
-            "emojis": Array [],
-            "files": Array [],
-            "images": Object {},
-            "reactions": Array [],
-          },
-          "original_id": "",
-          "pending_post_id": "",
-          "props": Object {},
-          "reply_count": 0,
-          "root_id": "",
-          "type": "system_add_remove",
-          "update_at": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(Component)
-      key="post_id_1"
-      post={
-        Object {
-          "channel_id": "",
-          "create_at": 0,
-          "delete_at": 0,
-          "edit_at": 0,
-          "hashtags": "",
-          "id": "post_id_1",
-          "is_pinned": false,
-          "message": "post message version 1",
-          "metadata": Object {
-            "embeds": Array [],
-            "emojis": Array [],
-            "files": Array [],
-            "images": Object {},
-            "reactions": Array [],
-          },
-          "original_id": "",
-          "pending_post_id": "",
-          "props": Object {},
-          "reply_count": 0,
-          "root_id": "",
-          "type": "system_add_remove",
-          "update_at": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(Component)
-      key="post_id_2"
-      post={
-        Object {
-          "channel_id": "",
-          "create_at": 0,
-          "delete_at": 0,
-          "edit_at": 0,
-          "hashtags": "",
-          "id": "post_id_2",
-          "is_pinned": false,
-          "message": "post message version 2",
-          "metadata": Object {
-            "embeds": Array [],
-            "emojis": Array [],
-            "files": Array [],
-            "images": Object {},
-            "reactions": Array [],
-          },
-          "original_id": "",
-          "pending_post_id": "",
-          "props": Object {},
-          "reply_count": 0,
-          "root_id": "",
-          "type": "system_add_remove",
-          "update_at": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-  </Scrollbars>
+      <div
+        style="position: absolute; height: 6px; transition: opacity 500ms; opacity: 0; display: none; right: 2px; bottom: 2px; left: 2px; border-radius: 3px;"
+      >
+        <div
+          class="scrollbar--horizontal"
+          style="position: relative; display: block; height: 100%;"
+        />
+      </div>
+      <div
+        style="position: absolute; width: 6px; transition: opacity 500ms; opacity: 0; display: none; right: 2px; bottom: 2px; top: 2px; border-radius: 3px;"
+      >
+        <div
+          class="scrollbar--vertical"
+          style="position: relative; display: block; width: 100%;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_edit_history should match snapshot 1`] = `
+<div>
+  <div
+    class="sidebar-right__body"
+    id="rhsContainer"
+  >
+    <div
+      style="position: relative; overflow: hidden; width: 100%; height: 100%;"
+    >
+      <div
+        class="scrollbar--view"
+        style="position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; overflow: scroll; margin-right: 0px; margin-bottom: 0px;"
+      >
+        <div
+          class="sidebar--right__header"
+        >
+          <span
+            class="sidebar--right__title"
+          >
+            Edit History
+            <div
+              class="sidebar--right__title__channel"
+            >
+              channel_display_name
+            </div>
+          </span>
+          <div
+            class="pull-right"
+          >
+            <button
+              class="sidebar--right__expand btn-icon"
+              type="button"
+            >
+              <i
+                aria-label="Expand Sidebar Icon"
+                class="icon icon-arrow-expand"
+              />
+              <i
+                aria-label="Collapse Sidebar Icon"
+                class="icon icon-arrow-collapse"
+              />
+            </button>
+            <button
+              aria-label="Close"
+              class="sidebar--right__close btn-icon"
+              id="searchResultsCloseButton"
+              type="button"
+            >
+              <i
+                aria-label="Close Sidebar Icon"
+                class="icon icon-close"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="edit-post-history__container edit-post-history__container__background"
+        >
+          <div
+            aria-label="At 12:00 AM Thursday, January 1, Someone wrote, post message"
+            class="a11y__section post"
+            id="searchResult_post_id"
+          >
+            <div
+              aria-hidden="true"
+              class="edit-post-history__title__container"
+            >
+              <div
+                class="edit-post-history__date__badge__container"
+              >
+                <button
+                  aria-label="Toggle to see an old message."
+                  class="IconButtonRoot-hOPlUx gmplBN edit-post-history__icon__button"
+                  disabled=""
+                >
+                  <i
+                    class="IconRoot-jSSaqj bQHSub  icon-chevron-down"
+                    color="inherit"
+                    size="16"
+                  />
+                </button>
+                <span
+                  class="edit-post-history__date"
+                >
+                  <time
+                    datetime="1970-01-01T00:00:00.000"
+                  >
+                    January 01, 1970 at 12:00 AM
+                  </time>
+                </span>
+                <div
+                  class="edit-post-history__current__indicator"
+                >
+                  Current Version
+                </div>
+              </div>
+            </div>
+            <div
+              class="edit-post-history__content_container"
+            >
+              <div
+                class="edit-post-history__header"
+              >
+                <span
+                  class="profile-icon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-sm avatar-post-preview"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image?_=0"
+                    tabindex="0"
+                  />
+                </span>
+                <div
+                  class="edit-post-history__header__username"
+                >
+                  <div
+                    class="user-popover"
+                  >
+                    Someone
+                  </div>
+                </div>
+              </div>
+              <div
+                class="post__content"
+              >
+                <div
+                  class="search-item-snippet post__body"
+                >
+                  <div
+                    class="post-message post-message--collapsed"
+                  >
+                    <div
+                      class="post-message__text-container"
+                      style="max-height: 600px;"
+                    >
+                      <div
+                        aria-readonly="true"
+                        class="post-message__text"
+                        dir="auto"
+                        id="rhsPostMessageText_post_id"
+                        tabindex="0"
+                      >
+                        <p>
+                          post message
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="edit-post-history__container"
+        >
+          <div
+            aria-label="At 12:00 AM Thursday, January 1, Someone wrote, post message version 1"
+            class="a11y__section post"
+            id="searchResult_post_id_1"
+          >
+            <div
+              aria-hidden="true"
+              class="edit-post-history__title__container"
+            >
+              <div
+                class="edit-post-history__date__badge__container"
+              >
+                <button
+                  aria-label="Toggle to see an old message."
+                  class="IconButtonRoot-hOPlUx gmplBN edit-post-history__icon__button"
+                  disabled=""
+                >
+                  <i
+                    class="IconRoot-jSSaqj bQHSub  icon-chevron-right"
+                    color="inherit"
+                    size="16"
+                  />
+                </button>
+                <span
+                  class="edit-post-history__date"
+                >
+                  <time
+                    datetime="1970-01-01T00:00:00.000"
+                  >
+                    January 01, 1970 at 12:00 AM
+                  </time>
+                </span>
+              </div>
+              <button
+                aria-label="Select to restore an old message."
+                class="IconButtonRoot-hOPlUx gBoGLw edit-post-history__icon__button restore-icon"
+              >
+                <i
+                  class="IconRoot-jSSaqj bQHSub  icon-restore"
+                  color="inherit"
+                  size="16"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          class="edit-post-history__container"
+        >
+          <div
+            aria-label="At 12:00 AM Thursday, January 1, Someone wrote, post message version 2"
+            class="a11y__section post"
+            id="searchResult_post_id_2"
+          >
+            <div
+              aria-hidden="true"
+              class="edit-post-history__title__container"
+            >
+              <div
+                class="edit-post-history__date__badge__container"
+              >
+                <button
+                  aria-label="Toggle to see an old message."
+                  class="IconButtonRoot-hOPlUx gmplBN edit-post-history__icon__button"
+                  disabled=""
+                >
+                  <i
+                    class="IconRoot-jSSaqj bQHSub  icon-chevron-right"
+                    color="inherit"
+                    size="16"
+                  />
+                </button>
+                <span
+                  class="edit-post-history__date"
+                >
+                  <time
+                    datetime="1970-01-01T00:00:00.000"
+                  >
+                    January 01, 1970 at 12:00 AM
+                  </time>
+                </span>
+              </div>
+              <button
+                aria-label="Select to restore an old message."
+                class="IconButtonRoot-hOPlUx gBoGLw edit-post-history__icon__button restore-icon"
+              >
+                <i
+                  class="IconRoot-jSSaqj bQHSub  icon-restore"
+                  color="inherit"
+                  size="16"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style="position: absolute; height: 6px; transition: opacity 500ms; opacity: 0; display: none; right: 2px; bottom: 2px; left: 2px; border-radius: 3px;"
+      >
+        <div
+          class="scrollbar--horizontal"
+          style="position: relative; display: block; height: 100%;"
+        />
+      </div>
+      <div
+        style="position: absolute; width: 6px; transition: opacity 500ms; opacity: 0; display: none; right: 2px; bottom: 2px; top: 2px; border-radius: 3px;"
+      >
+        <div
+          class="scrollbar--vertical"
+          style="position: relative; display: block; width: 100%;"
+        />
+      </div>
+    </div>
+  </div>
 </div>
 `;
