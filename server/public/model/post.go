@@ -77,11 +77,6 @@ const (
 	PostPropsPersistentNotifications = "persistent_notifications"
 )
 
-const (
-	ModifierMessages string = "messages"
-	ModifierFiles    string = "files"
-)
-
 type Post struct {
 	Id         string `json:"id"`
 	CreateAt   int64  `json:"create_at"`
@@ -197,7 +192,6 @@ type SearchParameter struct {
 	Page                   *int    `json:"page"`
 	PerPage                *int    `json:"per_page"`
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
-	Modifier               *string `json:"modifier"` // whether it's messages or file
 }
 
 type AnalyticsPostCountsOptions struct {
