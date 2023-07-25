@@ -7,7 +7,7 @@ import {shallow} from 'enzyme';
 import {ActionResult} from 'mattermost-redux/types/actions';
 import {Channel} from '@mattermost/types/channels';
 
-import BrowseChannels, {FILTER, Props} from 'components/browse_channels/browse_channels';
+import BrowseChannels, {Filter, Props} from 'components/browse_channels/browse_channels';
 import SearchableChannelList from 'components/searchable_channel_list';
 
 import {getHistory} from 'utils/browser_history';
@@ -337,7 +337,7 @@ describe('components/BrowseChannels', () => {
         expect(wrapper.instance().searchTimeoutId).not.toEqual('');
         expect(setTimeout).toHaveBeenCalledTimes(1);
         expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 100);
-        wrapper.instance().changeFilter(FILTER.archived);
+        wrapper.instance().changeFilter(Filter.Archived);
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledTimes(1);
@@ -364,7 +364,7 @@ describe('components/BrowseChannels', () => {
         expect(wrapper.instance().searchTimeoutId).not.toEqual('');
         expect(setTimeout).toHaveBeenCalledTimes(1);
         expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 100);
-        wrapper.instance().changeFilter(FILTER.private);
+        wrapper.instance().changeFilter(Filter.Private);
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledTimes(1);
@@ -391,7 +391,7 @@ describe('components/BrowseChannels', () => {
         expect(wrapper.instance().searchTimeoutId).not.toEqual('');
         expect(setTimeout).toHaveBeenCalledTimes(1);
         expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 100);
-        wrapper.instance().changeFilter(FILTER.public);
+        wrapper.instance().changeFilter(Filter.Public);
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledTimes(1);
@@ -423,7 +423,7 @@ describe('components/BrowseChannels', () => {
         expect(wrapper.instance().searchTimeoutId).not.toEqual('');
         expect(setTimeout).toHaveBeenCalledTimes(1);
         expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 100);
-        wrapper.instance().changeFilter(FILTER.all);
+        wrapper.instance().changeFilter(Filter.All);
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledTimes(1);
@@ -455,7 +455,7 @@ describe('components/BrowseChannels', () => {
         expect(wrapper.instance().searchTimeoutId).not.toEqual('');
         expect(setTimeout).toHaveBeenCalledTimes(1);
         expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 100);
-        wrapper.instance().changeFilter(FILTER.private);
+        wrapper.instance().changeFilter(Filter.Private);
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledTimes(1);

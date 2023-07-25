@@ -5,7 +5,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import SearchableChannelList from 'components/searchable_channel_list';
-import {FILTER} from './browse_channels/browse_channels';
+import {Filter} from './browse_channels/browse_channels';
 
 describe('components/SearchableChannelList', () => {
     const baseProps = {
@@ -24,7 +24,7 @@ describe('components/SearchableChannelList', () => {
         canShowArchivedChannels: false,
         rememberHideJoinedChannelsChecked: false,
         noResultsText: <>{'no channel found'}</>,
-        filter: FILTER.all,
+        filter: Filter.All,
     };
 
     test('should match init snapshot', () => {
