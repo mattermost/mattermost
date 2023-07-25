@@ -1995,13 +1995,13 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 		return nil, err
 	}
 
-	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannelContent) {
+	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannel) {
 		if channel.Type == model.ChannelTypeOpen {
 			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
 				return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
 			}
 		} else {
-			return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent})
+			return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadChannel})
 		}
 	}
 
@@ -2043,49 +2043,6 @@ func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppErr
 	}
 
 	return posts, nil
-}
-
-func (a *App) GetTopThreadsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topThreads, err := a.Srv().Store().Thread().GetTopThreadsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	topThreadsWithEmbedAndImage, err := includeEmbedsAndImages(a, c, topThreads, userID)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topThreadsWithEmbedAndImage, nil
-}
-
-func (a *App) GetTopThreadsForUserSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topThreads, err := a.Srv().Store().Thread().GetTopThreadsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	topThreadsWithEmbedAndImage, err := includeEmbedsAndImages(a, c, topThreads, userID)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.post.get_top_threads_for_user_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topThreadsWithEmbedAndImage, nil
-}
-
-func (a *App) GetTopDMsForUserSince(userID string, opts *model.InsightsOpts) (*model.TopDMList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopDMsForUserSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-	topDMs, err := a.Srv().Store().Post().GetTopDMsForUserSince(userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopDMsForUserSince", "app.post.get_top_dms_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return topDMs, nil
 }
 
 func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.AppError {
@@ -2260,7 +2217,7 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 	} else if channel.Type == model.ChannelTypePrivate {
 		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
 	} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent)
+		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannel)
 	}
 
 	if !hasPermissionToAccessChannel {
@@ -2284,16 +2241,4 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 		info.HasJoinedTeam = teamMemberErr == nil
 	}
 	return &info, nil
-}
-
-func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThreadList, userID string) (*model.TopThreadList, error) {
-	for _, topThread := range topThreadList.Items {
-		topThread.Post = a.PreparePostForClientWithEmbedsAndImages(c, topThread.Post, false, false, true)
-		sanitizedPost, err := a.SanitizePostMetadataForUser(c, topThread.Post, userID)
-		if err != nil {
-			return nil, err
-		}
-		topThread.Post = sanitizedPost
-	}
-	return topThreadList, nil
 }
