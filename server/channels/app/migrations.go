@@ -585,21 +585,12 @@ func (s *Server) doCloudS3PathMigrations() {
 
 	// If there is a job already pending, no need to schedule again.
 	// This is possible if the pod was rolled over.
-	cnt, err := s.Store().Job().GetCountByStatusAndType(model.JobStatusPending, model.JobTypeS3PathMigration)
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(model.JobTypeS3PathMigration, model.JobStatusPending)
 	if err != nil {
-		mlog.Fatal("failed to get pending jobs", mlog.Err(err))
+		mlog.Fatal("failed to get jobs by type and status", mlog.Err(err))
 		return
 	}
-	if cnt > 0 {
-		return
-	}
-
-	cnt, err = s.Store().Job().GetCountByStatusAndType(model.JobStatusInProgress, model.JobTypeS3PathMigration)
-	if err != nil {
-		mlog.Fatal("failed to get in-progress jobs", mlog.Err(err))
-		return
-	}
-	if cnt > 0 {
+	if len(jobs) > 0 {
 		return
 	}
 
