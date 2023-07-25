@@ -42,6 +42,7 @@ export default function UnreadChannels({
                     <MarkAsReadMenuItem
                         id={'unreads'}
                         handleViewCategory={handleViewCategory}
+                        numChannels={unreadChannels.length}
                     />
                     <Menu.Separator/>
                     <CreateNewCategoryMenuItem id={'unreads'}/>

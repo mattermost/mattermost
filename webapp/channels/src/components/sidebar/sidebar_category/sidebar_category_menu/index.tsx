@@ -224,6 +224,7 @@ const SidebarCategoryMenu = ({
             <MarkAsReadMenuItem
                 id={category.id}
                 handleViewCategory={handleViewCategory}
+                numChannels={category.channel_ids.length}
             />
         );
 
