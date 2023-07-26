@@ -40,6 +40,9 @@ type Props = StaticProps & {
 }
 
 export const SidebarCategoryHeader = React.forwardRef((props: Props, ref?: React.Ref<HTMLButtonElement>) => {
+    const {dragHandleProps} = props;
+    delete dragHandleProps?.role;
+
     return (
         <div
             className={classNames('SidebarChannelGroupHeader', {
@@ -61,7 +64,7 @@ export const SidebarCategoryHeader = React.forwardRef((props: Props, ref?: React
                 />
                 <div
                     className='SidebarChannelGroupHeader_text'
-                    {...props.dragHandleProps}
+                    {...dragHandleProps}
                 >
                     {wrapEmojis(props.displayName)}
                 </div>
