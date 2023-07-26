@@ -12,11 +12,15 @@ import ChannelNameFormField from "components/channel_name_form_field/chanenl_nam
 import {Channel} from "@mattermost/types/channels";
 import {Actions} from "components/convert_gm_to_channel_modal/index";
 import {ModalIdentifiers} from "utils/constants";
+import {UserProfile} from "@mattermost/types/users";
+import {displayUsername} from "mattermost-redux/utils/user_utils";
 
 export type Props = {
     onExited: () => void,
     channel: Channel,
-    actions: Actions
+    actions: Actions,
+    profilesInChannel: UserProfile[],
+    teammateNameDisplaySetting: string,
 }
 
 const ConvertGmToChannelModal = (props: Props) => {
@@ -35,7 +39,7 @@ const ConvertGmToChannelModal = (props: Props) => {
         setChannelName(newName);
     }, [])
 
-    const channelMemberNames = props.channel.display_name.split(',')
+    const channelMemberNames = props.profilesInChannel.map((user) => displayUsername(user, props.teammateNameDisplaySetting))
 
     const handleCancel = useCallback(() => {
         props.actions.closeModal(ModalIdentifiers.CONVERT_GM_TO_CHANNEL);

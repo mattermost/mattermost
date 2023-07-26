@@ -1,14 +1,32 @@
 import {GlobalState} from "types/store";
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from "redux";
 import {connect} from "react-redux";
-import ConvertGmToChannelModal from "components/convert_gm_to_channel_modal/convert_gm_to_channel_modal";
+import ConvertGmToChannelModal, { Props } from "components/convert_gm_to_channel_modal/convert_gm_to_channel_modal";
 import {makeGetChannel} from "mattermost-redux/selectors/entities/channels";
 import {Action} from "mattermost-redux/types/actions";
 import {closeModal} from "actions/views/modals";
+import {
+    getCurrentUser,
+    getCurrentUserId,
+    getUsers,
+    makeGetProfilesInChannel
+} from "mattermost-redux/selectors/entities/users";
+import {getTeammateNameDisplaySetting} from "mattermost-redux/selectors/entities/preferences";
 
 
-function mapStateToProps(state: GlobalState, props: any) {
-    return {}
+function mapStateToProps(state: GlobalState, ownProps: Props) {
+    const allProfilesInChannel = makeGetProfilesInChannel()(state, ownProps.channel.id);
+    const currentUserId = getCurrentUserId(state);
+    const validProfilesInChannel = allProfilesInChannel.filter(
+        (user) => user.id !== currentUserId && user.delete_at === 0,
+    );
+
+    const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state)
+
+    return {
+        profilesInChannel: validProfilesInChannel,
+        teammateNameDisplaySetting: teammateNameDisplaySetting,
+    }
 }
 
 export type Actions = {

@@ -1513,6 +1513,15 @@ func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([
 	return teamIDs, nil
 }
 
+func (s SqlTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs ...string) {
+	// select t.id from teams t join teammembers tm on t.id = tm.teamid and tm.userid in (select userid from channelmembers where channelid = (select id from channels where name = '6beb74ca25f52d8576752fed4447dac81842fe5b')) where tm.deleteat = 0 and t.deleteat = 0 group by t.id having count(userid) = 8;
+
+	query := s.getQueryBuilder().
+		Select("t.Id").
+		From("Teams AS T").
+		Join("TeamMembers AS tm ON t.Id = tm.TeamId AND ")
+}
+
 // GetTeamMembersForExport gets the various teams for which a user, denoted by userId, is a part of.
 func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, error) {
 	members := []*model.TeamMemberForExport{}

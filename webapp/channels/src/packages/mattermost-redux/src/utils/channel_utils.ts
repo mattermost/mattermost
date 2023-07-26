@@ -155,6 +155,8 @@ export function isDefault(channel: Channel): boolean {
 }
 
 export function completeDirectGroupInfo(usersState: UsersState, teammateNameDisplay: string, channel: Channel, omitCurrentUser = true) {
+    console.log(`completeDirectGroupInfo channelID: ${channel.id}`);
+
     const {currentUserId, profiles, profilesInChannel} = usersState;
     const profilesIds = profilesInChannel[channel.id];
     const gm = {...channel};
