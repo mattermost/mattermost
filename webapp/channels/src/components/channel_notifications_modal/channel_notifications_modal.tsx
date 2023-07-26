@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import deepEqual from 'fast-deep-equal';
-import React from 'react';
+import React, {ReactNode} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
@@ -42,7 +42,7 @@ export type ChannelMemberNotifyProps = Partial<ChannelNotifyProps> & Pick<UserNo
 type State = {
     show: boolean;
     activeSection: string;
-    serverError: string | null;
+    serverError: ReactNode;
     desktopNotifyLevel: ChannelNotifyProps['desktop'];
     desktopSound: ChannelNotifyProps['desktop_sound'];
     desktopNotifySound: ChannelNotifyProps['desktop_notification_sound'];
@@ -432,7 +432,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                     section={NotificationSections.MARK_UNREAD}
                                     expand={activeSection === NotificationSections.MARK_UNREAD}
                                     memberNotificationLevel={markUnreadNotifyLevel}
-                                    onChange={this.handleUpdateMarkUnreadLevel as (value: string | any) => void}
+                                    onChange={this.handleUpdateMarkUnreadLevel}
                                     onSubmit={this.handleSubmitMarkUnreadLevel}
                                     onUpdateSection={this.updateSection}
                                     serverError={serverError}
@@ -443,7 +443,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                     expand={activeSection === NotificationSections.IGNORE_CHANNEL_MENTIONS}
                                     memberNotificationLevel={markUnreadNotifyLevel}
                                     ignoreChannelMentions={ignoreChannelMentions}
-                                    onChange={this.handleUpdateIgnoreChannelMentions as (value: string | any) => void}
+                                    onChange={this.handleUpdateIgnoreChannelMentions}
                                     onSubmit={this.handleSubmitIgnoreChannelMentions}
                                     onUpdateSection={this.updateSection}
                                     serverError={serverError}
@@ -461,10 +461,10 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                         globalNotificationLevel={currentUser.notify_props ? currentUser.notify_props.desktop : NotificationLevels.ALL}
                                         globalNotificationSound={(currentUser.notify_props && currentUser.notify_props.desktop_notification_sound) ? currentUser.notify_props.desktop_notification_sound : 'Bing'}
                                         isNotificationsSettingSameAsGlobal={isNotificationsSettingSameAsGlobal}
-                                        onChange={this.handleUpdateDesktopNotifyLevel as (value: string | any) => void}
-                                        onChangeThreads={this.handleUpdateDesktopThreadsNotifyLevel as (value: string | any) => void}
-                                        onChangeDesktopSound={this.handleUpdateDesktopSound as (value: string | any) => void}
-                                        onChangeNotificationSound={this.handleUpdateDesktopNotifySound as (value: string | any) => void}
+                                        onChange={this.handleUpdateDesktopNotifyLevel}
+                                        onChangeThreads={this.handleUpdateDesktopThreadsNotifyLevel}
+                                        onChangeDesktopSound={this.handleUpdateDesktopSound}
+                                        onChangeNotificationSound={this.handleUpdateDesktopNotifySound}
                                         onReset={this.handleResetDesktopNotification}
                                         onSubmit={this.handleSubmitDesktopNotification}
                                         onUpdateSection={this.updateSection}
@@ -479,12 +479,12 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                         memberThreadsNotificationLevel={pushThreadsNotifyLevel}
                                         globalNotificationLevel={currentUser.notify_props ? currentUser.notify_props.push : NotificationLevels.ALL}
                                         isNotificationsSettingSameAsGlobal={isPushNotificationsSettingSameAsGlobal}
-                                        onChange={this.handleUpdatePushNotificationLevel as (value: string | any) => void}
+                                        onChange={this.handleUpdatePushNotificationLevel}
                                         onReset={this.handleResetPushNotification}
-                                        onChangeThreads={this.handleUpdatePushThreadsNotificationLevel as (value: string | any) => void}
+                                        onChangeThreads={this.handleUpdatePushThreadsNotificationLevel}
                                         onSubmit={this.handleSubmitPushNotificationLevel}
                                         onUpdateSection={this.updateSection}
-                                        serverError={serverErrorTag as string | null}
+                                        serverError={serverErrorTag}
                                     />
                                     }
                                 </div>

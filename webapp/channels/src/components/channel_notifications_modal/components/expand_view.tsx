@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, useMemo, useRef} from 'react';
+import React, {ChangeEvent, useMemo, useRef, ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -44,7 +44,7 @@ type Props = {
     memberDesktopSound?: string;
     memberDesktopNotificationSound?: string;
     section: string;
-    serverError?: string | null;
+    serverError?: ReactNode;
 }
 
 const sounds = Array.from(notificationSounds.keys());

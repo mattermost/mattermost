@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, PureComponent} from 'react';
+import React, {ChangeEvent, PureComponent, ReactNode} from 'react';
 
 import {ValueType} from 'react-select';
 
@@ -94,7 +94,7 @@ export type Props = {
     /**
      * Error string from the server
      */
-    serverError?: string | null;
+    serverError?: ReactNode;
 }
 
 export default class NotificationSection extends PureComponent<Props> {
@@ -162,7 +162,7 @@ export default class NotificationSection extends PureComponent<Props> {
                     onChangeThreads={this.handleOnChangeThreads}
                     onChangeDesktopSound={this.handleOnChangeDesktopSound}
                     onChangeNotificationSound={this.handleOnChangeNotificationSound}
-                    onSubmit={onSubmit as (value: string | any) => void}
+                    onSubmit={onSubmit}
                     serverError={serverError}
                     onCollapseSection={this.handleCollapseSection}
                 />
