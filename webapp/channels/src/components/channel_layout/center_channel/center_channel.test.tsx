@@ -23,7 +23,6 @@ describe('components/channel_layout/CenterChannel', () => {
         rhsMenuOpen: true,
         isCollapsedThreadsEnabled: true,
         currentUserId: 'testUserId',
-        insightsAreEnabled: true,
         isMobileView: false,
         actions: {
             getProfiles: jest.fn,
