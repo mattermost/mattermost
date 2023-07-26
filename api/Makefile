@@ -1,9 +1,11 @@
+ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
 .PHONY: build build-v4 clean playbooks
 
-V4_YAML = v4/html/static/mattermost-openapi-v4.yaml
+V4_YAML = $(ROOT)/v4/html/static/mattermost-openapi-v4.yaml
 
-V4_SRC = v4/source
-PLAYBOOKS_SRC = playbooks
+V4_SRC = $(ROOT)/v4/source
+PLAYBOOKS_SRC = $(ROOT)/playbooks
 
 build: build-v4
 
@@ -74,5 +76,5 @@ clean:
 playbooks:
 	@echo Fetching Playbooks OpenAPI spec
 	cd playbooks && node extract.js
-	cd playbooks && node merge-definitions.js ../$(V4_SRC)/definitions.yaml
-	cd playbooks && node merge-tags.js ../$(V4_SRC)/introduction.yaml
+	cd playbooks && node merge-definitions.js $(V4_SRC)/definitions.yaml
+	cd playbooks && node merge-tags.js $(V4_SRC)/introduction.yaml
