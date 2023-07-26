@@ -4,7 +4,7 @@
 export type LhsViewState = {
     isOpen: boolean;
 
-    // Static pages (e.g. Threads, Insights, etc.)
+    // Static pages (e.g. Threads, etc.)
     currentStaticPageId: string;
 }
 
@@ -16,7 +16,6 @@ export enum LhsItemType {
 
 export enum LhsPage {
     Drafts = 'drafts',
-    Insights = 'activity-and-insights',
     Threads = 'threads',
 }
 

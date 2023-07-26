@@ -6,7 +6,7 @@ import {useHistory} from 'react-router-dom';
 
 import {t} from 'utils/i18n';
 
-import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook.jsx';
+import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook';
 
 import {Team} from '@mattermost/types/teams';
 import {OutgoingWebhook} from '@mattermost/types/integrations';
