@@ -336,6 +336,32 @@ func (_m *JobStore) Save(job *model.Job) (*model.Job, error) {
 	return r0, r1
 }
 
+// SaveOnce provides a mock function with given fields: job
+func (_m *JobStore) SaveOnce(job *model.Job) (*model.Job, error) {
+	ret := _m.Called(job)
+
+	var r0 *model.Job
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.Job) (*model.Job, error)); ok {
+		return rf(job)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Job) *model.Job); ok {
+		r0 = rf(job)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Job)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Job) error); ok {
+		r1 = rf(job)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateOptimistically provides a mock function with given fields: job, currentStatus
 func (_m *JobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
 	ret := _m.Called(job, currentStatus)
