@@ -1105,9 +1105,9 @@ func (a *App) getAddChannelReadContentPermissions() (permissionsMap, error) {
 	t = append(t, permissionTransformation{
 		On: permissionAnd(
 			permissionAnd(
-				isNotExactRole(model.SystemUserManagerRoleId),
-				isNotExactRole(model.SystemReadOnlyAdminRoleId),
-				isNotExactRole(model.SystemManagerRoleId),
+				isNotRole(model.SystemUserManagerRoleId),
+				isNotRole(model.SystemReadOnlyAdminRoleId),
+				isNotRole(model.SystemManagerRoleId),
 			),
 			permissionExists(model.PermissionReadChannel.Id),
 		),
