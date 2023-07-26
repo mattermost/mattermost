@@ -41,6 +41,11 @@ type Props = StaticProps & {
 
 export const SidebarCategoryHeader = React.forwardRef((props: Props, ref?: React.Ref<HTMLButtonElement>) => {
     const {dragHandleProps} = props;
+
+    // (Accessibility) Ensures interactive controls are not nested as they are not always announced
+    // by screen readers or can cause focus problems for assistive technologies.
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     delete dragHandleProps?.role;
 
     return (
