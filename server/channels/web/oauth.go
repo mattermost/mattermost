@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -344,6 +345,38 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else { // For web
 			c.App.AttachSessionCookies(c.AppContext, w, r)
 		}
+
+		desktopToken := ""
+		if val, ok := props["desktop_token"]; ok {
+			desktopToken = val
+		}
+
+		if desktopToken != "" {
+			expiryTime := time.Now().Add(-model.DesktopTokenTTL).Unix()
+			desktopTokenErr := c.App.AuthenticateClientDesktopToken(desktopToken, expiryTime, user)
+			if desktopTokenErr != nil {
+				desktopTokenErr.Translate(c.AppContext.T)
+				c.LogErrorByCode(desktopTokenErr)
+				renderError(desktopTokenErr)
+				return
+			}
+
+			serverToken, serverTokenErr := c.App.GenerateAndSaveServerDesktopToken(desktopToken, expiryTime)
+			if serverTokenErr != nil {
+				serverTokenErr.Translate(c.AppContext.T)
+				c.LogErrorByCode(serverTokenErr)
+				renderError(serverTokenErr)
+				return
+			}
+
+			queryString := map[string]string{
+				"server_token": *serverToken,
+			}
+			if val, ok := props["redirect_to"]; ok {
+				queryString["redirect_to"] = val
+			}
+			redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login/desktop", queryString)
+		}
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -358,6 +391,15 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	loginHint := r.URL.Query().Get("login_hint")
 	redirectURL := r.URL.Query().Get("redirect_to")
+	desktopToken := r.URL.Query().Get("desktop_token")
+	if desktopToken != "" {
+		desktopTokenErr := c.App.SaveClientDesktopToken(desktopToken, time.Now().Unix())
+
+		if desktopTokenErr != nil {
+			c.Err = desktopTokenErr
+			return
+		}
+	}
 
 	if redirectURL != "" && !utils.IsValidWebAuthRedirectURL(c.App.Config(), redirectURL) {
 		c.Err = model.NewAppError("loginWithOAuth", "api.invalid_redirect_url", nil, "", http.StatusBadRequest)
@@ -370,7 +412,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionLogin, redirectURL, loginHint, false)
+	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionLogin, redirectURL, loginHint, false, desktopToken)
 	if err != nil {
 		c.Err = err
 		return
@@ -399,7 +441,7 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionMobile, redirectURL, "", true)
+	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionMobile, redirectURL, "", true, "")
 	if err != nil {
 		c.Err = err
 		return
@@ -427,7 +469,17 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authURL, err := c.App.GetOAuthSignupEndpoint(w, r, c.Params.Service, teamId)
+	desktopToken := r.URL.Query().Get("desktop_token")
+	if desktopToken != "" {
+		desktopTokenErr := c.App.SaveClientDesktopToken(desktopToken, time.Now().Unix())
+
+		if desktopTokenErr != nil {
+			c.Err = desktopTokenErr
+			return
+		}
+	}
+
+	authURL, err := c.App.GetOAuthSignupEndpoint(w, r, c.Params.Service, teamId, desktopToken)
 	if err != nil {
 		c.Err = err
 		return

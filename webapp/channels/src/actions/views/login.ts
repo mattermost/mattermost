@@ -45,6 +45,40 @@ export function login(loginId: string, password: string, mfaToken = ''): ActionF
     };
 }
 
+export function loginWithDesktopToken(clientToken: string, serverToken: string): ActionFunc {
+    return async (dispatch: DispatchFunc) => {
+        dispatch({type: UserTypes.LOGIN_REQUEST, data: null});
+
+        try {
+            // This is partial user profile we recieved when we login. We still need to make getMe for complete user profile.
+            const loggedInUserProfile = await Client4.loginWithDesktopToken(clientToken, serverToken);
+
+            dispatch(
+                batchActions([
+                    {
+                        type: UserTypes.LOGIN_SUCCESS,
+                    },
+                    {
+                        type: UserTypes.RECEIVED_ME,
+                        data: loggedInUserProfile,
+                    },
+                ]),
+            );
+
+            dispatch(loadRolesIfNeeded(loggedInUserProfile.roles.split(' ')));
+        } catch (error) {
+            dispatch({
+                type: UserTypes.LOGIN_FAILURE,
+                error,
+            });
+            dispatch(logError(error as ServerError));
+            return {error};
+        }
+
+        return {data: true};
+    };
+}
+
 export function loginById(id: string, password: string): ActionFunc {
     return async (dispatch: DispatchFunc) => {
         dispatch({type: UserTypes.LOGIN_REQUEST, data: null});

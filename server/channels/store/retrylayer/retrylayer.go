@@ -29,6 +29,7 @@ type RetryLayer struct {
 	CommandStore                    store.CommandStore
 	CommandWebhookStore             store.CommandWebhookStore
 	ComplianceStore                 store.ComplianceStore
+	DesktopTokensStore              store.DesktopTokensStore
 	DraftStore                      store.DraftStore
 	EmojiStore                      store.EmojiStore
 	FileInfoStore                   store.FileInfoStore
@@ -96,6 +97,10 @@ func (s *RetryLayer) CommandWebhook() store.CommandWebhookStore {
 
 func (s *RetryLayer) Compliance() store.ComplianceStore {
 	return s.ComplianceStore
+}
+
+func (s *RetryLayer) DesktopTokens() store.DesktopTokensStore {
+	return s.DesktopTokensStore
 }
 
 func (s *RetryLayer) Draft() store.DraftStore {
@@ -275,6 +280,11 @@ type RetryLayerCommandWebhookStore struct {
 
 type RetryLayerComplianceStore struct {
 	store.ComplianceStore
+	Root *RetryLayer
+}
+
+type RetryLayerDesktopTokensStore struct {
+	store.DesktopTokensStore
 	Root *RetryLayer
 }
 
@@ -3559,6 +3569,153 @@ func (s *RetryLayerComplianceStore) Update(compliance *model.Compliance) (*model
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDesktopTokensStore) Delete(desktopToken string) error {
+
+	tries := 0
+	for {
+		err := s.DesktopTokensStore.Delete(desktopToken)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDesktopTokensStore) DeleteByUserId(userId string) error {
+
+	tries := 0
+	for {
+		err := s.DesktopTokensStore.DeleteByUserId(userId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDesktopTokensStore) DeleteOlderThan(minCreatedAt int64) error {
+
+	tries := 0
+	for {
+		err := s.DesktopTokensStore.DeleteOlderThan(minCreatedAt)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDesktopTokensStore) GetUserId(desktopToken string, serverToken string, minCreatedAt int64) (*string, error) {
+
+	tries := 0
+	for {
+		result, err := s.DesktopTokensStore.GetUserId(desktopToken, serverToken, minCreatedAt)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDesktopTokensStore) Insert(desktopToken string, createdAt int64, userId *string) error {
+
+	tries := 0
+	for {
+		err := s.DesktopTokensStore.Insert(desktopToken, createdAt, userId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDesktopTokensStore) SetServerToken(desktopToken string, minCreatedAt int64, serverToken string) error {
+
+	tries := 0
+	for {
+		err := s.DesktopTokensStore.SetServerToken(desktopToken, minCreatedAt, serverToken)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDesktopTokensStore) SetUserId(desktopToken string, minCreatedAt int64, userId string) error {
+
+	tries := 0
+	for {
+		err := s.DesktopTokensStore.SetUserId(desktopToken, minCreatedAt, userId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -14600,6 +14757,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.CommandStore = &RetryLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}
 	newStore.CommandWebhookStore = &RetryLayerCommandWebhookStore{CommandWebhookStore: childStore.CommandWebhook(), Root: &newStore}
 	newStore.ComplianceStore = &RetryLayerComplianceStore{ComplianceStore: childStore.Compliance(), Root: &newStore}
+	newStore.DesktopTokensStore = &RetryLayerDesktopTokensStore{DesktopTokensStore: childStore.DesktopTokens(), Root: &newStore}
 	newStore.DraftStore = &RetryLayerDraftStore{DraftStore: childStore.Draft(), Root: &newStore}
 	newStore.EmojiStore = &RetryLayerEmojiStore{EmojiStore: childStore.Emoji(), Root: &newStore}
 	newStore.FileInfoStore = &RetryLayerFileInfoStore{FileInfoStore: childStore.FileInfo(), Root: &newStore}

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -57,6 +58,16 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		relayProps["redirect_to"] = redirectURL
+	}
+
+	desktopToken := r.URL.Query().Get("desktop_token")
+	if desktopToken != "" {
+		desktopTokenErr := c.App.SaveClientDesktopToken(desktopToken, time.Now().Unix())
+		if desktopTokenErr != nil {
+			c.Err = err
+			return
+		}
+		relayProps["desktop_token"] = desktopToken
 	}
 
 	relayProps[model.UserAuthServiceIsMobile] = strconv.FormatBool(isMobile)
@@ -184,6 +195,33 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 
 	c.App.AttachSessionCookies(c.AppContext, w, r)
+
+	desktopToken := relayProps["desktop_token"]
+	if desktopToken != "" {
+		expiryTime := time.Now().Add(-model.DesktopTokenTTL).Unix()
+		desktopTokenErr := c.App.AuthenticateClientDesktopToken(desktopToken, expiryTime, user)
+		if desktopTokenErr != nil {
+			handleError(desktopTokenErr)
+			return
+		}
+
+		serverToken, serverTokenErr := c.App.GenerateAndSaveServerDesktopToken(desktopToken, expiryTime)
+		if serverTokenErr != nil {
+			handleError(serverTokenErr)
+			return
+		}
+
+		queryString := map[string]string{
+			"server_token": *serverToken,
+		}
+		if val, ok := relayProps["redirect_to"]; ok {
+			queryString["redirect_to"] = val
+		}
+
+		redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login/desktop", queryString)
+		http.Redirect(w, r, redirectURL, http.StatusFound)
+		return
+	}
 
 	if hasRedirectURL {
 		if isMobile {
