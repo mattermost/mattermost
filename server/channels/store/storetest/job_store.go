@@ -5,10 +5,12 @@ package storetest
 
 import (
 	"errors"
+	"sync"
 	"testing"
 
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -58,35 +60,48 @@ func testJobSaveGet(t *testing.T, ss store.Store) {
 }
 
 func testJobSaveOnce(t *testing.T, ss store.Store) {
-	job := &model.Job{
-		Id:     model.NewId(),
-		Type:   model.JobTypeS3PathMigration,
-		Status: model.JobStatusPending,
-		Data: map[string]string{
-			"Processed":     "0",
-			"Total":         "12345",
-			"LastProcessed": "abcd",
-		},
+	var wg sync.WaitGroup
+
+	ids := make([]string, 2)
+	for i := 0; i < 2; i++ {
+		wg.Add(1)
+		go func(){
+			defer wg.Done()
+			job := &model.Job{
+				Id:     model.NewId(),
+				Type:   model.JobTypeS3PathMigration,
+				Status: model.JobStatusPending,
+				Data: map[string]string{
+					"Processed":     "0",
+					"Total":         "12345",
+					"LastProcessed": "abcd",
+				},
+			}
+
+			job, err := ss.Job().SaveOnce(job)
+			if err != nil {
+				var pqErr *pq.Error
+				if errors.As(err, &pqErr) {
+					t.Logf("%#v\n", pqErr)
+				}
+			}
+			require.NoError(t, err)
+
+			if job != nil {
+				ids[0] = job.Id
+			}
+		}()
 	}
 
-	_, err := ss.Job().SaveOnce(job)
+	wg.Wait()
+
+	cnt, err := ss.Job().GetCountByStatusAndType(model.JobStatusPending, model.JobTypeS3PathMigration)
 	require.NoError(t, err)
+	assert.Equal(t, 1, int(cnt))
 
-	defer ss.Job().Delete(job.Id)
-
-	received, err := ss.Job().Get(job.Id)
-	require.NoError(t, err)
-	require.Equal(t, job.Id, received.Id, "received incorrect job after save")
-
-	job.Id = model.NewId()
-	newJob, err := ss.Job().SaveOnce(job)
-	require.NoError(t, err)
-	require.Nil(t, newJob)
-
-	_, err = ss.Job().Get(job.Id)
-	require.Error(t, err)
-	var nfErr *store.ErrNotFound
-	assert.True(t, errors.As(err, &nfErr))
+	for _, id := range ids {
+		ss.Job().Delete(id)
+	}
 }
 
 func testJobGetAllByType(t *testing.T, ss store.Store) {

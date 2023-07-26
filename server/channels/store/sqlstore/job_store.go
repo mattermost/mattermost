@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
+	"github.com/lib/pq"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -63,7 +65,9 @@ func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 		jsonData = AppendBinaryFlag(jsonData)
 	}
 
-	tx, err := jss.GetMasterX().Beginx()
+	tx, err := jss.GetMasterX().BeginXWithIsolation(&sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -99,10 +103,16 @@ func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 	}
 
 	if _, err = tx.Exec(query, args...); err != nil {
+		if isRepeatableError(err) {
+			return nil, nil
+		}
 		return nil, errors.Wrap(err, "failed to save Job")
 	}
 
 	if err = tx.Commit(); err != nil {
+		if isRepeatableError(err) {
+			return nil, nil
+		}
 		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
@@ -396,4 +406,25 @@ func (jss SqlJobStore) Cleanup(expiryTime int64, batchSize int) error {
 	}
 
 	return nil
+}
+
+const mySQLDeadlockCode = uint16(1213)
+
+// isRepeatableError is a bit of copied code from retrylayer.go.
+// A little copying is fine because we don't want to import another package
+// in the store layer
+func isRepeatableError(err error) bool {
+	var pqErr *pq.Error
+	var mysqlErr *mysql.MySQLError
+	switch {
+	case errors.As(err, &pqErr):
+		if pqErr.Code == "40001" || pqErr.Code == "40P01" {
+			return true
+		}
+	case errors.As(err, &mysqlErr):
+		if mysqlErr.Number == mySQLDeadlockCode {
+			return true
+		}
+	}
+	return false
 }
