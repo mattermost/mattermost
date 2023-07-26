@@ -594,7 +594,7 @@ func (s *Server) doCloudS3PathMigrations() {
 		return
 	}
 
-	if _, appErr := s.Jobs.CreateJob(model.JobTypeS3PathMigration, nil); appErr != nil {
+	if _, appErr := s.Jobs.CreateJobOnce(model.JobTypeS3PathMigration, nil); appErr != nil {
 		mlog.Fatal("failed to start job for migrating s3 file paths", mlog.Err(appErr))
 		return
 	}
