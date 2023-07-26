@@ -1,19 +1,5 @@
 @charset "utf-8";
 
-@media screen and (min-width: 1680px) and (max-width: 2135px) {
-    .inner-wrap {
-        &.move--left {
-            .ActivityAndInsights {
-                .insights-card {
-                    &.large {
-                        align-self: flex-start;
-                    }
-                }
-            }
-        }
-    }
-}
-
 @media screen and (min-width: 1680px) {
     .sidebar--right,
     .sidebar--right--width-holder {

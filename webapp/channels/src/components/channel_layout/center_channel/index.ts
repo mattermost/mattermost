@@ -9,7 +9,7 @@ import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {getProfiles} from 'mattermost-redux/actions/users';
 import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
-import {isCollapsedThreadsEnabled, insightsAreEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {getIsMobileView} from 'selectors/views/browser';
@@ -49,8 +49,6 @@ const mapStateToProps = (state: GlobalState, ownProps: OwnProps) => {
     let lastChannelPath;
     if (isCollapsedThreadsEnabled(state) && (previousTeamLastViewedType === PreviousViewedTypes.THREADS || lastViewedType === PreviousViewedTypes.THREADS)) {
         lastChannelPath = `${ownProps.match.url}/threads`;
-    } else if (insightsAreEnabled(state) && lastViewedType === PreviousViewedTypes.INSIGHTS) {
-        lastChannelPath = `${ownProps.match.url}/activity-and-insights`;
     } else {
         lastChannelPath = `${ownProps.match.url}/channels/${channelName}`;
     }
@@ -62,7 +60,6 @@ const mapStateToProps = (state: GlobalState, ownProps: OwnProps) => {
         rhsMenuOpen: getIsRhsMenuOpen(state),
         isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
         currentUserId: getCurrentUserId(state),
-        insightsAreEnabled: insightsAreEnabled(state),
         isMobileView: getIsMobileView(state),
     };
 };
