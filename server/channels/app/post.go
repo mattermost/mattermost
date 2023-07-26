@@ -2297,6 +2297,10 @@ func (a *App) isPostPriorityEnabled() bool {
 }
 
 func (a *App) applyPostsWillBeConsumedHook(posts map[string]*model.Post) {
+	if !a.Config().FeatureFlags.ConsumePostHook {
+		return
+	}
+
 	postsSlice := make([]*model.Post, 0, len(posts))
 
 	for _, post := range posts {
@@ -2314,6 +2318,10 @@ func (a *App) applyPostsWillBeConsumedHook(posts map[string]*model.Post) {
 }
 
 func (a *App) applyPostWillBeConsumedHook(post **model.Post) {
+	if !a.Config().FeatureFlags.ConsumePostHook {
+		return
+	}
+
 	ps := []*model.Post{*post}
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 		rp := hooks.MessagesWillBeConsumed(ps)

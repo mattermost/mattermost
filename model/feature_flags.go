@@ -80,6 +80,8 @@ type FeatureFlags struct {
 	AppsSidebarCategory bool
 
 	CloudReverseTrial bool
+
+	ConsumePostHook bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -111,6 +113,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.OnboardingTourTips = true
 	f.AppsSidebarCategory = false
 	f.CloudReverseTrial = false
+	f.ConsumePostHook = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
