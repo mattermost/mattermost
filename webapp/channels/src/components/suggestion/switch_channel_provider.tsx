@@ -697,6 +697,9 @@ export default class SwitchChannelProvider extends Provider {
         const state = getState();
         const activeTeams = getActiveTeamsList(state).map((team: Team) => team.id);
         const newChannels = channels.filter((channel: Channel) => {
+            if (!channel.team_id) {
+                return true;
+            }
             return activeTeams.includes(channel.team_id);
         });
         return newChannels;
