@@ -52,6 +52,8 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/exports.yaml >> $(V4_YAML)
 	@if [ -r $(PLAYBOOKS_SRC)/paths.yaml ]; then cat $(PLAYBOOKS_SRC)/paths.yaml >> $(V4_YAML); fi
 	@if [ -r $(PLAYBOOKS_SRC)/merged-definitions.yaml ]; then cat $(PLAYBOOKS_SRC)/merged-definitions.yaml >> $(V4_YAML); else cat $(V4_SRC)/definitions.yaml >> $(V4_YAML); fi
+	@echo Extracting code samples
+	cd server && go run . $(V4_YAML)
 
 	@node_modules/.bin/swagger-cli validate $(V4_YAML)
 	@node_modules/.bin/redoc-cli -t ./v4/html/ssr_template.hbs build ./v4/html/static/mattermost-openapi-v4.yaml -o ./v4/html/index.html --options.noAutoAuth  --options.suppressWarnings
