@@ -620,8 +620,20 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 
-	_, err = ss.Reaction().DeleteOrphanedRows(limit)
+	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 0, 1000)
 	require.NoError(t, err)
+	require.Equal(t, 1, len(rows))
+	require.Equal(t, 1, len(rows[0].Ids))
+	require.Contains(t, rows[0].Ids, olderPost.Id)
+
+	for _, row := range rows {
+		_, err = ss.Reaction().DeleteOrphanedRowsByIdsTx(row)
+		require.NoError(t, err)
+	}
+
+	rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 0, 1000)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(rows))
 
 	returned, err := ss.Reaction().GetForPost(olderPost.Id, false)
 	require.NoError(t, err)
