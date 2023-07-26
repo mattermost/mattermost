@@ -733,6 +733,9 @@ type ReactionStore interface {
 
 type JobStore interface {
 	Save(job *model.Job) (*model.Job, error)
+	// SaveOnce will only insert the job with the same category once.
+	// If this method is called concurrently with another job of the same type,
+	// then nil, nil is returned.
 	SaveOnce(job *model.Job) (*model.Job, error)
 	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
 	UpdateStatus(id string, status string) (*model.Job, error)

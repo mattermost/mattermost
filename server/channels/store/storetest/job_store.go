@@ -65,7 +65,7 @@ func testJobSaveOnce(t *testing.T, ss store.Store) {
 	ids := make([]string, 2)
 	for i := 0; i < 2; i++ {
 		wg.Add(1)
-		go func(){
+		go func(i int) {
 			defer wg.Done()
 			job := &model.Job{
 				Id:     model.NewId(),
@@ -88,9 +88,9 @@ func testJobSaveOnce(t *testing.T, ss store.Store) {
 			require.NoError(t, err)
 
 			if job != nil {
-				ids[0] = job.Id
+				ids[i] = job.Id
 			}
-		}()
+		}(i)
 	}
 
 	wg.Wait()
