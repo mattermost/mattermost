@@ -375,6 +375,10 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			if val, ok := props["redirect_to"]; ok {
 				queryString["redirect_to"] = val
 			}
+			if strings.HasPrefix(desktopToken, "dev-") {
+				queryString["isDesktopDev"] = "true"
+			}
+
 			redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login/desktop", queryString)
 		}
 	}

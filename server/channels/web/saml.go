@@ -217,6 +217,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		if val, ok := relayProps["redirect_to"]; ok {
 			queryString["redirect_to"] = val
 		}
+		if strings.HasPrefix(desktopToken, "dev-") {
+			queryString["isDesktopDev"] = "true"
+		}
 
 		redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login/desktop", queryString)
 		http.Redirect(w, r, redirectURL, http.StatusFound)

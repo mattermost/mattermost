@@ -19,6 +19,14 @@ import './desktop_auth_token.scss';
 const BOTTOM_MESSAGE_TIMEOUT = 10000;
 const DESKTOP_AUTH_PREFIX = 'desktop_auth_client_token';
 
+declare global {
+    interface Window {
+        desktopAPI?: {
+            isDev?: () => Promise<boolean>;
+        };
+    }
+}
+
 enum DesktopAuthStatus {
     None,
     WaitingForBrowser,
@@ -63,8 +71,9 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
         await onLogin(userProfile as UserProfile);
     };
 
-    const openExternalLoginURL = () => {
-        const desktopToken = crypto.randomBytes(32).toString('hex');
+    const openExternalLoginURL = async () => {
+        const isDev = await window.desktopAPI?.isDev?.();
+        const desktopToken = `${isDev ? 'dev-' : ''}${crypto.randomBytes(32).toString('hex')}`.slice(0, 64);
         sessionStorage.setItem(DESKTOP_AUTH_PREFIX, desktopToken);
         const parsedURL = new URL(href);
 
@@ -77,7 +86,12 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
 
     const forwardToDesktopApp = () => {
         const url = new URL(window.location.href);
-        url.protocol = 'mattermost';
+        if (url.searchParams.get('isDesktopDev')) {
+            url.protocol = 'mattermost-dev';
+        } else {
+            url.protocol = 'mattermost';
+        }
+
         window.location.href = url.toString();
     };
 
