@@ -1,7 +1,7 @@
 # Utility variables
 # NB: these assume you `source` them from the directory this file is in
-export MME2E_DC_SERVER="docker-compose -p mmserver -f $(readlink -e ../../server/build/gitlab-dc.postgres.yml) -f $(readlink -e ./server.override.yml)"
-export MME2E_DC_DASHBOARD="docker-compose -p mmdashboard -f $(readlink -e ./dashboard/docker/docker-compose.yml) -f $(readlink -e ./dashboard.override.yml)"
+export MME2E_DC_SERVER="docker compose -p mmserver -f $(readlink -f ../../server/build/gitlab-dc.postgres.yml) -f $(readlink -f ./server.override.yml)"
+export MME2E_DC_DASHBOARD="docker compose -p mmdashboard -f $(readlink -f ./dashboard/docker/docker-compose.yml) -f $(readlink -f ./dashboard.override.yml)"
 export MME2E_UID=$(id -u)
 
 # Default the optional variables that are used in the docker-compose file
@@ -9,7 +9,7 @@ export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mm-ee-test:$(git rev-parse --
 export SERVER_IMAGE=${SERVER_IMAGE:-$SERVER_IMAGE_DEFAULT}
 
 # Function definitions
-mme2e_log () { echo "[$(date -Is)]" "$@"; }
+mme2e_log () { echo "[$(date +%Y-%m-%dT%H:%M:%S%:z)]" "$@"; }
 mme2e_get_current_shopt_arg () {
   # This function lets you get the current value of shell options, e.g. pipefail or allexport, in the form
   # of arguments to pass to the 'set' shell function, in order to restore its value later
