@@ -390,7 +390,6 @@ func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]impo
 }
 
 func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *imports.UserNotifyPropsImportData {
-
 	getProp := func(key string) *string {
 		if v, ok := notifyProps[key]; ok {
 			return &v
