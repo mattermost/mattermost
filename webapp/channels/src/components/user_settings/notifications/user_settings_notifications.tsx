@@ -338,7 +338,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             const customKeysWithNotification = values.
                 map((value: MultiInputValue) => {
                     // Remove all spaces from the value
-                    const formattedValue = value.value.trim().replace(/ /g, '');
+                    const formattedValue = value.value.trim().replace(WHITE_SPACE_REGEX, '');
                     return {value: formattedValue, label: formattedValue};
                 }).
                 filter((value) => value.value.length > 0);
