@@ -9,7 +9,7 @@ export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mm-ee-test:$(git rev-parse --
 export SERVER_IMAGE=${SERVER_IMAGE:-$SERVER_IMAGE_DEFAULT}
 
 # Function definitions
-mme2e_log () { echo "[$(date +%Y-%m-%dT%H:%M:%S%:z)]" "$@"; }
+mme2e_log () { echo "[$(date +%Y-%m-%dT%H:%M:%S%Z)]" "$@"; }
 mme2e_get_current_shopt_arg () {
   # This function lets you get the current value of shell options, e.g. pipefail or allexport, in the form
   # of arguments to pass to the 'set' shell function, in order to restore its value later
