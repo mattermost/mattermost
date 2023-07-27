@@ -404,7 +404,7 @@ func (worker *BleveIndexerWorker) IndexFilesBatch(progress IndexingProgress) (In
 	tries := 0
 	for files == nil {
 		var err error
-		files, err = worker.jobServer.Store.FileInfo().GetFilesBatchForIndexing(progress.LastEntityTime, progress.LastFileID, *worker.jobServer.Config().BleveSettings.BatchSize)
+		files, err = worker.jobServer.Store.FileInfo().GetFilesBatchForIndexing(progress.LastEntityTime, progress.LastFileID, true, *worker.jobServer.Config().BleveSettings.BatchSize)
 		if err != nil {
 			if tries >= 10 {
 				return progress, model.NewAppError("IndexFilesBatch", "app.post.get_files_batch_for_indexing.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

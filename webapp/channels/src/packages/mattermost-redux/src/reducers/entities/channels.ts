@@ -713,6 +713,22 @@ function stats(state: RelationOneToOne<Channel, ChannelStats> = {}, action: Gene
     }
 }
 
+function channelsMemberCount(state: Record<string, number> = {}, action: GenericAction) {
+    switch (action.type) {
+    case ChannelTypes.RECEIVED_CHANNELS_MEMBER_COUNT: {
+        const memberCount = action.data;
+        return {
+            ...state,
+            ...memberCount,
+        };
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 function groupsAssociatedToChannel(state: any = {}, action: GenericAction) {
     switch (action.type) {
     case GroupTypes.RECEIVED_ALL_GROUPS_ASSOCIATED_TO_CHANNELS_IN_TEAM: {
@@ -989,4 +1005,7 @@ export default combineReducers({
 
     // object where every key is the channel id mapping to an object containing the number of messages in the channel
     messageCounts,
+
+    // object where key is the channel id and value is the member count for the channel
+    channelsMemberCount,
 });
