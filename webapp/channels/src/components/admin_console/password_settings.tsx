@@ -12,6 +12,7 @@ import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 
 import AdminSettings, {BaseProps, BaseState} from './admin_settings';
+import CheckboxSetting from './checkbox_setting';
 import BooleanSetting from './boolean_setting';
 import Setting from './setting';
 import SettingsGroup from './settings_group';
@@ -153,9 +154,9 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
         );
     };
 
-    handleCheckboxChange = (id: string) => {
-        return (event: React.ChangeEvent<HTMLInputElement>) => {
-            this.handleChange(id, event.target.checked);
+    handleBooleanChange = (id: string) => {
+        return (_: string, value: boolean) => {
+            this.handleChange(id, value);
         };
     };
 
@@ -205,64 +206,64 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
                         }
                     >
                         <div>
-                            <label className='checkbox-inline'>
-                                <input
-                                    type='checkbox'
-                                    defaultChecked={this.state.passwordLowercase}
-                                    name='admin.password.lowercase'
-                                    disabled={this.props.isDisabled}
-                                    onChange={this.handleCheckboxChange('passwordLowercase')}
-                                />
-                                <FormattedMessage
-                                    id='admin.password.lowercase'
-                                    defaultMessage='At least one lowercase letter'
-                                />
-                            </label>
+                            <CheckboxSetting
+                                id='admin.password.lowercase'
+                                label={
+                                    <FormattedMessage
+                                        id='admin.password.lowercase'
+                                        defaultMessage='At least one lowercase letter'
+                                    />
+                                }
+                                defaultChecked={this.state.passwordLowercase}
+                                onChange={this.handleBooleanChange('passwordLowercase')}
+                                setByEnv={this.isSetByEnv('PasswordSettings.Lowercase')}
+                                disabled={this.props.isDisabled}
+                            />
                         </div>
                         <div>
-                            <label className='checkbox-inline'>
-                                <input
-                                    type='checkbox'
-                                    defaultChecked={this.state.passwordUppercase}
-                                    name='admin.password.uppercase'
-                                    disabled={this.props.isDisabled}
-                                    onChange={this.handleCheckboxChange('passwordUppercase')}
-                                />
-                                <FormattedMessage
-                                    id='admin.password.uppercase'
-                                    defaultMessage='At least one uppercase letter'
-                                />
-                            </label>
+                            <CheckboxSetting
+                                id='admin.password.uppercase'
+                                label={
+                                    <FormattedMessage
+                                        id='admin.password.uppercase'
+                                        defaultMessage='At least one uppercase letter'
+                                    />
+                                }
+                                defaultChecked={this.state.passwordUppercase}
+                                onChange={this.handleBooleanChange('passwordUppercase')}
+                                setByEnv={this.isSetByEnv('PasswordSettings.Uppercase')}
+                                disabled={this.props.isDisabled}
+                            />
                         </div>
                         <div>
-                            <label className='checkbox-inline'>
-                                <input
-                                    type='checkbox'
-                                    defaultChecked={this.state.passwordNumber}
-                                    name='admin.password.number'
-                                    disabled={this.props.isDisabled}
-                                    onChange={this.handleCheckboxChange('passwordNumber')}
-                                />
-                                <FormattedMessage
-                                    id='admin.password.number'
-                                    defaultMessage='At least one number'
-                                />
-                            </label>
+                            <CheckboxSetting
+                                id='admin.password.number'
+                                label={
+                                    <FormattedMessage
+                                        id='admin.password.number'
+                                        defaultMessage='At least one number'
+                                    />
+                                }
+                                defaultChecked={this.state.passwordNumber}
+                                onChange={this.handleBooleanChange('passwordNumber')}
+                                setByEnv={this.isSetByEnv('PasswordSettings.Number')}
+                                disabled={this.props.isDisabled}
+                            />
                         </div>
                         <div>
-                            <label className='checkbox-inline'>
-                                <input
-                                    type='checkbox'
-                                    defaultChecked={this.state.passwordSymbol}
-                                    name='admin.password.symbol'
-                                    disabled={this.props.isDisabled}
-                                    onChange={this.handleCheckboxChange('passwordSymbol')}
-                                />
-                                <FormattedMessage
-                                    id='admin.password.symbol'
-                                    defaultMessage='At least one symbol (e.g. "~!@#$%^&*()")'
-                                />
-                            </label>
+                            <CheckboxSetting
+                                id='admin.password.symbol'
+                                label={
+                                    <FormattedMessage
+                                        id='admin.password.symbol'
+                                        defaultMessage='At least one symbol (e.g. "~!@#$%^&*()")'
+                                    />
+                                }
+                                defaultChecked={this.state.passwordSymbol}
+                                onChange={this.handleBooleanChange('passwordSymbol')}
+                                setByEnv={this.isSetByEnv('PasswordSettings.Symbol')}
+                                disabled={this.props.isDisabled}
+                            />
                         </div>
                         <div>
                             <br/>

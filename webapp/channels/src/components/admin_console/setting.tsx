@@ -4,6 +4,7 @@
 import React, {PureComponent} from 'react';
 
 import SetByEnv from './set_by_env';
+import classNames from 'classnames';
 
 export type Props = {
     inputId?: string;
@@ -11,9 +12,13 @@ export type Props = {
     children: React.ReactNode;
     helpText?: React.ReactNode;
     setByEnv?: boolean;
+    nested?: boolean;
 }
 
 export default class Settings extends PureComponent<Props> {
+    public static defaultProps = {
+        nested: false,
+    };
     public render() {
         const {
             children,
@@ -28,13 +33,20 @@ export default class Settings extends PureComponent<Props> {
                 data-testid={inputId}
                 className='form-group'
             >
-                <label
-                    className='control-label col-sm-4'
-                    htmlFor={inputId}
+                {!this.props.nested && (
+                    <label
+                        className='control-label col-sm-4'
+                        htmlFor={inputId}
+                    >
+                        {label}
+                    </label>
+                )}
+                <div
+                    className={classNames({
+                        'col-sm-8': this.props.nested === false,
+                        'col-sm-12': this.props.nested === true,
+                    })}
                 >
-                    {label}
-                </label>
-                <div className='col-sm-8'>
                     {children}
                     <div
                         data-testid={inputId + 'help-text'}
