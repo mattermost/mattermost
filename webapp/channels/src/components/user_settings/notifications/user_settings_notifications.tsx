@@ -369,23 +369,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
     };
 
-    handleChangeForCustomKeysWithHightlightInput = (values: ValueType<{ value: string }>) => {
-        if (values && Array.isArray(values) && values.length > 0) {
-            const customKeysWithHighlight = values.
-                map((value: MultiInputValue) => {
-                    // Remove all spaces from the value
-                    const formattedValue = value.value.trim().replace(/ /g, '');
-                    return {value: formattedValue, label: formattedValue};
-                }).
-                filter((value) => value.value.length > 0);
-            this.setState({customKeysWithHighlight});
-        } else {
-            this.setState({
-                customKeysWithHighlight: [],
-            });
-        }
-    };
-
     createPushNotificationSection = () => {
         const active = this.props.activeSection === 'push';
         const inputs = [];
