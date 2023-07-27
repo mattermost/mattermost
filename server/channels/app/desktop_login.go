@@ -24,9 +24,7 @@ func (a *App) AuthenticateClientDesktopToken(token string, expiryTime int64, use
 	err := a.Srv().Store().DesktopTokens().SetUserId(token, expiryTime, user.Id)
 	if err != nil {
 		// Delete the token if it is expired
-		a.Srv().Go(func() {
-			a.Srv().Store().DesktopTokens().Delete(token)
-		})
+		a.Srv().Store().DesktopTokens().Delete(token)
 
 		return model.NewAppError("AuthenticateClientDesktopToken", "app.desktop_token.authenticate.invalid_or_expired", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -39,9 +37,7 @@ func (a *App) GenerateAndSaveServerDesktopToken(clientToken string, expiryTime i
 	err := a.Srv().Store().DesktopTokens().SetServerToken(clientToken, expiryTime, serverToken)
 	if err != nil {
 		// Delete the token if it is expired
-		a.Srv().Go(func() {
-			a.Srv().Store().DesktopTokens().Delete(clientToken)
-		})
+		a.Srv().Store().DesktopTokens().Delete(clientToken)
 
 		return nil, model.NewAppError("GenerateAndSaveServerDesktopToken", "app.desktop_token.generateServerToken.invalid_or_expired", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -54,9 +50,7 @@ func (a *App) ValidateDesktopToken(clientToken, serverToken string, expiryTime i
 	userId, err := a.Srv().Store().DesktopTokens().GetUserId(clientToken, serverToken, expiryTime)
 	if err != nil {
 		// Delete the token if it is expired or invalid
-		a.Srv().Go(func() {
-			a.Srv().Store().DesktopTokens().Delete(clientToken)
-		})
+		a.Srv().Store().DesktopTokens().Delete(clientToken)
 
 		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.invalid", nil, err.Error(), http.StatusUnauthorized)
 	}
@@ -65,17 +59,13 @@ func (a *App) ValidateDesktopToken(clientToken, serverToken string, expiryTime i
 	user, userErr := a.GetUser(*userId)
 	if userErr != nil {
 		// Delete the token if the user is invalid somehow
-		a.Srv().Go(func() {
-			a.Srv().Store().DesktopTokens().Delete(clientToken)
-		})
+		a.Srv().Store().DesktopTokens().Delete(clientToken)
 
 		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.no_user", nil, userErr.Error(), http.StatusInternalServerError)
 	}
 
 	// Clean up other tokens if they exist
-	a.Srv().Go(func() {
-		a.Srv().Store().DesktopTokens().DeleteByUserId(*userId)
-	})
+	a.Srv().Store().DesktopTokens().DeleteByUserId(*userId)
 
 	return user, nil
 }

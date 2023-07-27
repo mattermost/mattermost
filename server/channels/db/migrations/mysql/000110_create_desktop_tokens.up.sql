@@ -11,10 +11,10 @@ SET @preparedStatement = (SELECT IF(
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
         WHERE table_name = 'DesktopTokens'
         AND table_schema = DATABASE()
-        AND index_name = 'idx_desktoptokens_createat'
+        AND index_name = 'idx_desktoptokens_desktoptoken_servertoken_createat'
     ) > 0,
     'SELECT 1',
-    'CREATE INDEX idx_desktoptokens_createat ON DesktopTokens(CreateAt);'
+    'CREATE INDEX idx_desktoptokens_desktoptoken_servertoken_createat ON DesktopTokens(DesktopToken, ServerToken, CreateAt);'
 ));
 
 PREPARE createIndexIfNotExists FROM @preparedStatement;
