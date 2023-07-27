@@ -1513,13 +1513,48 @@ func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([
 	return teamIDs, nil
 }
 
-func (s SqlTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs ...string) {
-	// select t.id from teams t join teammembers tm on t.id = tm.teamid and tm.userid in (select userid from channelmembers where channelid = (select id from channels where name = '6beb74ca25f52d8576752fed4447dac81842fe5b')) where tm.deleteat = 0 and t.deleteat = 0 group by t.id having count(userid) = 8;
+func (s SqlTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs ...string) ([]string, error) {
+	// select t.id from teams t join (select * from teammembers where userid in
+	// ('4yagyk6abtnkjmk1kzafti3mbc', '9xa5pi4aq3dj5cz947hizkxq6o', 'gpns7ez81bg3xfwy7zgtacnm6e', 'hia8iww74tgyzmssrbos3gq6ra', 'mw4g7tt3mjbcfjyd6jy1aigppy', 'rfegmdpdktrnjyr9479si96xzr', 'txc5h8f9s7n88cpwq9txsani9e', 'x3awpwio1fbwdmd8sr33ptd1ny') AND deleteat = 0)
+	// as tm on t.id = tm.teamid where t.deleteat = 0 group by t.id having count(userid) = 8;
+
+	subQuery := s.getSubQueryBuilder().
+		Select("TeamId, UserId").
+		From("TeamMembers").
+		Where(sq.Eq{
+			"UserId":   userIDs,
+			"DeleteAt": 0,
+		})
+
+	subQuerySQL, subQueryParams, err := subQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetCommonTeamIDsForMultipleUsers_subquery_toSQL")
+	}
 
 	query := s.getQueryBuilder().
 		Select("t.Id").
 		From("Teams AS T").
-		Join("TeamMembers AS tm ON t.Id = tm.TeamId AND ")
+		Join("("+subQuerySQL+") AS tm ON t.Id = tm.TeamId", subQueryParams...).
+		Where(sq.Eq{
+			"t.DeleteAt": 0,
+		}).
+		GroupBy("t.Id").
+		Having(sq.Eq{
+			"COUNT(UserId)": len(userIDs),
+		})
+
+	querySQL, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetCommonTeamIDsForMultipleUsers_query_toSQL")
+	}
+
+	var teamIDs []string
+
+	if err := s.GetReplicaX().Select(&teamIDs, querySQL, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find common team for users %v", userIDs)
+	}
+
+	return teamIDs, nil
 }
 
 // GetTeamMembersForExport gets the various teams for which a user, denoted by userId, is a part of.

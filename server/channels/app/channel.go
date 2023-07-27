@@ -3504,6 +3504,34 @@ func (a *App) getDirectChannel(c request.CTX, userID, otherUserID string) (*mode
 	return a.Srv().getDirectChannel(c, userID, otherUserID)
 }
 
+func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string) ([]string, *model.AppError) {
+	channel, appErr := a.GetChannel(c, channelID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if channel.Type != model.ChannelTypeGroup {
+		return nil, model.NewAppError("GetChannelByName", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
+	}
+
+	members, appErr := a.GetChannelMembersPage(c, channelID, 0, model.ChannelGroupMaxUsers)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	var userIDs = make([]string, len(members))
+	for i := 0; i < len(members); i++ {
+		userIDs[i] = members[i].UserId
+	}
+
+	commonTeamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForMultipleUsers(userIDs...)
+	if err != nil {
+		return nil, model.NewAppError("GetMemberCountsByGroup", "app.channel.get_gm_common_teams.store_error", map[string]any{"channelID": channelID}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return commonTeamIDs, nil
+}
+
 func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*model.Channel, *model.AppError) {
 	channel, nErr := s.Store().Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
 	if nErr != nil {

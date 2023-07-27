@@ -4704,6 +4704,10 @@
     "translation": "Unable to save direct channel."
   },
   {
+    "id": "app.channel.get_gm_common_teams.store_error",
+    "translation": "Unable to get common teams for group message members."
+  },
+  {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
     "translation": "Unable to create initial sidebar categories for user."
   },
