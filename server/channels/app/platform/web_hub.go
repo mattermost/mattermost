@@ -478,7 +478,9 @@ func (h *Hub) Start() {
 				select {
 				case directMsg.conn.send <- directMsg.msg:
 				default:
-					mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", directMsg.conn.UserId))
+					mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
+						mlog.String("user_id", directMsg.conn.UserId),
+						mlog.String("conn_id", directMsg.conn.GetConnectionID()))
 					close(directMsg.conn.send)
 					connIndex.Remove(directMsg.conn)
 				}
@@ -495,7 +497,9 @@ func (h *Hub) Start() {
 						select {
 						case webConn.send <- msg:
 						default:
-							mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webConn.UserId))
+							mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
+								mlog.String("user_id", webConn.UserId),
+								mlog.String("conn_id", webConn.GetConnectionID()))
 							close(webConn.send)
 							connIndex.Remove(webConn)
 						}
