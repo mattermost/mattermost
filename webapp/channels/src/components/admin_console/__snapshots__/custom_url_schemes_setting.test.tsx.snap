@@ -5,6 +5,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with multi
   helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
   inputId="MySetting"
   label="Custom URL Schemes:"
+  nested={false}
   setByEnv={false}
 >
   <LocalizedInput
@@ -29,6 +30,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with no it
   helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
   inputId="MySetting"
   label="Custom URL Schemes:"
+  nested={false}
   setByEnv={false}
 >
   <LocalizedInput
@@ -53,6 +55,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with one i
   helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
   inputId="MySetting"
   label="Custom URL Schemes:"
+  nested={false}
   setByEnv={false}
 >
   <LocalizedInput
@@ -77,6 +80,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when di
   helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
   inputId="MySetting"
   label="Custom URL Schemes:"
+  nested={false}
   setByEnv={false}
 >
   <LocalizedInput
@@ -101,6 +105,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when se
   helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
   inputId="MySetting"
   label="Custom URL Schemes:"
+  nested={false}
   setByEnv={true}
 >
   <LocalizedInput

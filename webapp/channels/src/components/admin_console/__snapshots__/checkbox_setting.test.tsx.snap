@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/CheckboxSetting should match snapshot 1`] = `
+<div>
+  <div
+    class="form-group"
+    data-testid="string.id"
+  >
+    <div
+      class="col-sm-12"
+    >
+      <a
+        id="string.id"
+      />
+      <label
+        class="checkbox-inline"
+      >
+        <input
+          data-testid="string.id"
+          id="string.id"
+          name="string.id"
+          type="checkbox"
+        />
+        some label
+      </label>
+      <div
+        class="help-text"
+        data-testid="string.idhelp-text"
+      />
+    </div>
+  </div>
+</div>
+`;

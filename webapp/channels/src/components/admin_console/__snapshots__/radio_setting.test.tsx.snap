@@ -4,6 +4,7 @@ exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
 <Settings
   inputId="string.id"
   label="some label"
+  nested={false}
   setByEnv={false}
 >
   <div
