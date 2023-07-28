@@ -14,6 +14,7 @@ import {Actions} from "components/convert_gm_to_channel_modal/index";
 import {ModalIdentifiers} from "utils/constants";
 import {UserProfile} from "@mattermost/types/users";
 import {displayUsername} from "mattermost-redux/utils/user_utils";
+import AllMembersDeactivated from "components/convert_gm_to_channel_modal/all_members_deactivated";
 
 export type Props = {
     onExited: () => void,
@@ -44,6 +45,24 @@ const ConvertGmToChannelModal = (props: Props) => {
     const handleCancel = useCallback(() => {
         props.actions.closeModal(ModalIdentifiers.CONVERT_GM_TO_CHANNEL);
     }, [])
+
+    if (props.profilesInChannel.length === 0) {
+        return (
+            <GenericModal
+                id='convert-gm-to-channel-modal'
+                className='convert-gm-to-channel-modal'
+                modalHeaderText={formatMessage({id: 'sidebar_left.sidebar_channel_modal.header', defaultMessage: 'Convert to Private Channel'})}
+                confirmButtonText={formatMessage({id: 'generic.okay', defaultMessage: 'Okay'})}
+                compassDesign={true}
+                handleConfirm={handleCancel}
+                onExited={handleCancel}
+            >
+                <div className='convert-gm-to-channel-modal-body'>
+                    <AllMembersDeactivated/>
+                </div>
+            </GenericModal>
+        )
+    }
 
     return (
         <GenericModal

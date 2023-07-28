@@ -4,34 +4,6 @@
       flex-direction: column;
       gap: 20px;
 
-    .warning-section {
-      background: rgba(var(--sidebar-text-active-border-rgb), 0.08);
-      border: 1px solid rgba(var(--sidebar-text-active-border-rgb), 0.16);
-      border-radius: 4px;
-      padding: 16px;
-      display: flex;
-      gap: 12px;
-
-      .fa.fa-exclamation-circle {
-        width: 24px;
-        height: 24px;
-        font-size: 24px;
-        color: rgba(var(--sidebar-text-active-border-rgb), 1);
-      }
-
-      .warning-text {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        color: var(--center-channel-color-88);
-      }
-
-      .warning-header {
-        font-weight: bold;
-      }
-    }
-
-
     .new-channel-modal__url {
       margin-top: -20px;
     }

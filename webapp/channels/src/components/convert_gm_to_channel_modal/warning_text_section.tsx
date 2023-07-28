@@ -1,5 +1,10 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import {FormattedMessage, useIntl} from "react-intl";
 import React from "react";
+
+import './warning_text_section.scss';
 
 export type Props = {
     channelMemberNames: string[]

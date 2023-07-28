@@ -24,7 +24,8 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state)
 
     return {
-        profilesInChannel: validProfilesInChannel,
+        // profilesInChannel: validProfilesInChannel,
+        profilesInChannel: [],
         teammateNameDisplaySetting: teammateNameDisplaySetting,
     }
 }
