@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {GenericModal} from "@mattermost/components";
 import {useIntl} from "react-intl";
 
@@ -15,6 +15,9 @@ import {ModalIdentifiers} from "utils/constants";
 import {UserProfile} from "@mattermost/types/users";
 import {displayUsername} from "mattermost-redux/utils/user_utils";
 import AllMembersDeactivated from "components/convert_gm_to_channel_modal/all_members_deactivated";
+import {Team} from "@mattermost/types/teams";
+import {useDispatch} from "react-redux";
+import {Client4} from "mattermost-redux/client";
 
 export type Props = {
     onExited: () => void,
@@ -27,20 +30,6 @@ export type Props = {
 const ConvertGmToChannelModal = (props: Props) => {
     const intl = useIntl()
     const {formatMessage} = intl
-
-    const [show, setShow] = useState<boolean>(true)
-
-    const onHide = useCallback(() => {
-        setShow(false);
-    }, [])
-
-    const [channelName, setChannelName] = useState<string>('');
-
-    const handleChannelNameChange = useCallback((newName: string) => {
-        setChannelName(newName);
-    }, [])
-
-    const channelMemberNames = props.profilesInChannel.map((user) => displayUsername(user, props.teammateNameDisplaySetting))
 
     const handleCancel = useCallback(() => {
         props.actions.closeModal(ModalIdentifiers.CONVERT_GM_TO_CHANNEL);
@@ -63,6 +52,30 @@ const ConvertGmToChannelModal = (props: Props) => {
             </GenericModal>
         )
     }
+
+    const [channelName, setChannelName] = useState<string>('');
+
+    const handleChannelNameChange = useCallback((newName: string) => {
+        setChannelName(newName);
+    }, [])
+
+    const channelMemberNames = props.profilesInChannel.map((user) => displayUsername(user, props.teammateNameDisplaySetting));
+
+    const [commonTeams, setCommonTeams] = useState<Team[]>([]);
+
+    const dispatch = useDispatch()
+
+    useEffect(() => {
+        const work = async () => {
+            const response = await Client4.getGroupMessageMembersCommonTeams(props.channel.id)
+            setCommonTeams(response.data);
+
+            console.log(response.data);
+        }
+
+        work();
+    }, [props.channel.id]);
+
 
     return (
         <GenericModal

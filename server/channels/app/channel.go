@@ -3504,7 +3504,7 @@ func (a *App) getDirectChannel(c request.CTX, userID, otherUserID string) (*mode
 	return a.Srv().getDirectChannel(c, userID, otherUserID)
 }
 
-func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string) ([]string, *model.AppError) {
+func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string) ([]*model.Team, *model.AppError) {
 	channel, appErr := a.GetChannel(c, channelID)
 	if appErr != nil {
 		return nil, appErr
@@ -3529,7 +3529,7 @@ func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string)
 		return nil, model.NewAppError("GetMemberCountsByGroup", "app.channel.get_gm_common_teams.store_error", map[string]any{"channelID": channelID}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return commonTeamIDs, nil
+	return a.GetTeams(commonTeamIDs)
 }
 
 func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*model.Channel, *model.AppError) {

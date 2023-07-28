@@ -6643,7 +6643,7 @@ func (a *OpenTracingAppLayer) GetGroupMemberUsersSortedPage(groupID string, page
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string) ([]string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string) ([]*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupMessageMembersCommonTeams")
 

@@ -2178,14 +2178,14 @@ func getGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
-	teamIDs, appErr := c.App.GetGroupMessageMembersCommonTeams(c.AppContext, c.Params.ChannelId)
+	teams, appErr := c.App.GetGroupMessageMembersCommonTeams(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	auditRec.Success()
-	if err := json.NewEncoder(w).Encode(teamIDs); err != nil {
+	if err := json.NewEncoder(w).Encode(teams); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

@@ -4186,6 +4186,13 @@ export default class Client4 {
             {method: 'delete', body: JSON.stringify(deletionRequest)},
         );
     }
+
+    getGroupMessageMembersCommonTeams = (channelId: string) => {
+        return this.doFetchWithResponse<Team[]>(
+            `${this.getChannelRoute(channelId)}/common_teams`,
+            {method: 'get'},
+        )
+    }
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {
