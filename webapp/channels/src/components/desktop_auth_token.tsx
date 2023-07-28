@@ -49,7 +49,7 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
     const serverToken = query.get('server_token');
     const clientToken = sessionStorage.getItem(DESKTOP_AUTH_PREFIX);
     const [status, setStatus] = useState(serverToken ? DesktopAuthStatus.LoggedIn : DesktopAuthStatus.None);
-    const [showBottomMessage, setShowBottomMessage] = useState<React.ReactNode>();
+    const [showBottomMessage, setShowBottomMessage] = useState<boolean>();
 
     const tryDesktopLogin = async () => {
         if (!(clientToken && serverToken)) {
