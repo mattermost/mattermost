@@ -6,7 +6,7 @@ import {GenericModal} from "@mattermost/components";
 import {useIntl} from "react-intl";
 
 import './convert_gm_to_channel_modal.scss';
-import WarningTextSection from "components/convert_gm_to_channel_modal/warning_text_section";
+import WarningTextSection from "components/convert_gm_to_channel_modal/warning_text_section/warning_text_section";
 
 import ChannelNameFormField from "components/channel_name_form_field/chanenl_name_form_field";
 import {Channel} from "@mattermost/types/channels";
@@ -14,10 +14,12 @@ import {Actions} from "components/convert_gm_to_channel_modal/index";
 import {ModalIdentifiers} from "utils/constants";
 import {UserProfile} from "@mattermost/types/users";
 import {displayUsername} from "mattermost-redux/utils/user_utils";
-import AllMembersDeactivated from "components/convert_gm_to_channel_modal/all_members_deactivated";
+import AllMembersDeactivated from "components/convert_gm_to_channel_modal/all_members_deactivated/all_members_deactivated";
 import {Team} from "@mattermost/types/teams";
 import {useDispatch} from "react-redux";
 import {Client4} from "mattermost-redux/client";
+import {common} from "@mui/material/colors";
+import TeamSelector from "components/convert_gm_to_channel_modal/team_selector/team_selector";
 
 export type Props = {
     onExited: () => void,
@@ -63,19 +65,14 @@ const ConvertGmToChannelModal = (props: Props) => {
 
     const [commonTeams, setCommonTeams] = useState<Team[]>([]);
 
-    const dispatch = useDispatch()
-
     useEffect(() => {
         const work = async () => {
             const response = await Client4.getGroupMessageMembersCommonTeams(props.channel.id)
             setCommonTeams(response.data);
-
-            console.log(response.data);
         }
 
         work();
     }, [props.channel.id]);
-
 
     return (
         <GenericModal
@@ -93,6 +90,10 @@ const ConvertGmToChannelModal = (props: Props) => {
         >
             <div className='convert-gm-to-channel-modal-body'>
                 <WarningTextSection channelMemberNames={channelMemberNames}/>
+                {
+                    commonTeams.length > 0 &&
+                    <TeamSelector teams={commonTeams} onChange={() => {}}/>
+                }
                 <ChannelNameFormField
                     value={channelName}
                     name='convert-gm-to-channel-modal-channel-name'

@@ -4,7 +4,7 @@
 import React from "react";
 import {FormattedMessage} from "react-intl";
 
-import './warning_text_section.scss';
+import 'components/convert_gm_to_channel_modal/warning_text_section/warning_text_section.scss';
 
 const AllMembersDeactivated = (): JSX.Element => {
     return (
