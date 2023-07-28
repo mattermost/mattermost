@@ -513,7 +513,6 @@ const PostComponent = (props: Props): JSX.Element => {
             {(isSearchResultItem || (props.location !== Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
             <PostAriaLabelDiv
                 ref={postRef}
-                role='listitem'
                 id={getTestId()}
                 data-testid={props.location === 'CENTER' ? 'postView' : ''}
                 tabIndex={0}
