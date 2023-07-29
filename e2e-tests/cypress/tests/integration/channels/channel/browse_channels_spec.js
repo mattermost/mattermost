@@ -116,7 +116,7 @@ describe('Channels', () => {
             // # CLick dropdown to open selection
             cy.get('#channelsMoreDropdown').should('be.visible').click().within((el) => {
                 // # Click on archived channels item
-                cy.findByText('Archived Channels').should('be.visible').click();
+                cy.findByText('Archived channels').should('be.visible').click();
 
                 // * Channel test should be visible as an archived channel in the list
                 cy.wrap(el).should('contain', channelType.archived);
