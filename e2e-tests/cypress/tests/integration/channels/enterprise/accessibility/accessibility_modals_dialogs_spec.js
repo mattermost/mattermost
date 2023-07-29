@@ -20,7 +20,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
 
     before(() => {
         // * Check if server has license for Guest Accounts
-        // cy.apiRequireLicenseForFeature('GuestAccounts');
+        cy.apiRequireLicenseForFeature('GuestAccounts');
 
         cy.apiInitSetup({userPrefix: 'user000a'}).then(({team, channel, user}) => {
             testTeam = team;
