@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, MagnifyIcon, AccountOutlineIcon} from '@mattermost/compass-icons/components';
+import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, MagnifyIcon, AccountOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
 import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {RelationOneToOne} from '@mattermost/types/utilities';
 import {isPrivateChannel} from 'mattermost-redux/utils/channel_utils';
@@ -414,7 +414,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                 key='channelsMoreDropdownAll'
                 id='channelsMoreDropdownAll'
                 onClick={() => this.props.changeFilter(Filter.All)}
-                icon={<GlobeIcon size={16}/>} //  todo use the correct icon from compass: PR opened: https://github.com/mattermost/compass-icons/pull/78/files
+                icon={<GlobeCheckedIcon size={16}/>}
                 text={localizeMessage('suggestion.all', 'All channel types')}
                 rightDecorator={this.props.filter === Filter.All ? checkIcon : null}
                 ariaLabel={localizeMessage('suggestion.all', 'All channel types')}
