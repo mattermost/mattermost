@@ -20,7 +20,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
 
     before(() => {
         // * Check if server has license for Guest Accounts
-        cy.apiRequireLicenseForFeature('GuestAccounts');
+        // cy.apiRequireLicenseForFeature('GuestAccounts');
 
         cy.apiInitSetup({userPrefix: 'user000a'}).then(({team, channel, user}) => {
             testTeam = team;
@@ -117,8 +117,8 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                     // # Hide already joined channels
                     cy.findByText('Hide Joined').click();
 
-                    // # Focus on the Create Channel button and TAB three time
-                    cy.get('#createNewChannelButton').focus().tab().tab().tab();
+                    // # Focus on the Create Channel button and TAB four time
+                    cy.get('#createNewChannelButton').focus().tab().tab().tab().tab();
 
                     // * Verify channel name is highlighted and reader reads the channel name and channel description
                     cy.get('#moreChannelsList').within(() => {
