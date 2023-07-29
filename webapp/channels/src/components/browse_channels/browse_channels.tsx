@@ -205,7 +205,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     }
 
                     if (data) {
-                        this.setSearchResults(data.filter(channel => channel.team_id === this.props.teamId));
+                        this.setSearchResults(data.filter((channel) => channel.team_id === this.props.teamId));
                     } else {
                         this.setState({searchedChannels: [], searching: false});
                     }
