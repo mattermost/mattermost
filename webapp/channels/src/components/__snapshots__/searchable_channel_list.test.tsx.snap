@@ -71,7 +71,7 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
           <MenuItemAction
             ariaLabel="All channel types"
             icon={
-              <GlobeIcon
+              <GlobeCheckedIcon
                 size={16}
               />
             }
