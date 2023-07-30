@@ -3,12 +3,6 @@
 
 import {SidebarSize, SIDEBAR_SNAP_SIZE, SIDEBAR_SNAP_SPEED_LIMIT} from './constants';
 
-export const isResizableSize = (size: SidebarSize) => size !== SidebarSize.SMALL;
-
-export const isOverLimit = (newWidth: number, maxWidth: number, minWidth: number) => {
-    return newWidth > maxWidth || newWidth < minWidth;
-};
-
 export const isSizeLessThanSnapSize = (size: number) => {
     return Math.abs(size) <= SIDEBAR_SNAP_SIZE;
 };
@@ -33,41 +27,3 @@ export const shouldSnapWhenSizeShrunk = (newWidth: number, prevWidth: number, de
 
 export const shouldRhsOverlapChannelView = (size: SidebarSize) => size === SidebarSize.MEDIUM;
 
-export const requestAnimationFrameForMouseMove = (callback: (e: MouseEvent) => void) => {
-    let isTriggered = false;
-
-    return (e: MouseEvent) => {
-        e.preventDefault();
-
-        if (isTriggered) {
-            return;
-        }
-
-        isTriggered = true;
-
-        requestAnimationFrame(() => {
-            isTriggered = false;
-            return callback(e);
-        });
-    };
-};
-
-export const preventAnimation = (elem: HTMLElement) => {
-    elem.classList.add('resizeWrapper', 'prevent-animation');
-};
-
-export const restoreAnimation = (elem: HTMLElement) => {
-    elem.classList.remove('resizeWrapper', 'prevent-animation');
-};
-
-export const setWidth = (elem: HTMLElement, width: number, unit: 'px' | '%' = 'px') => {
-    elem.style.width = `${width}${unit}`;
-};
-
-export const resetStyle = (elem: HTMLElement) => {
-    elem.removeAttribute('style');
-};
-
-export const toggleColResizeCursor = () => {
-    document.body.classList.toggle('resized');
-};

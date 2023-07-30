@@ -15,8 +15,6 @@ export const getPenultimateChannelNameKey = (userId: string, teamId: string) => 
 const getRecentEmojisKey = (userId: string) => ['recent_emojis', userId].join(':');
 const getWasLoggedInKey = () => 'was_logged_in';
 const teamIdJoinedOnLoadKey = 'teamIdJoinedOnLoad';
-const getLhsWidthKey = () => 'lhs_width';
-const getRhsWidthKey = () => 'rhs_width';
 
 const getPathScopedKey = (path: string, key: string) => {
     if (path === '' || path === '/') {
@@ -115,22 +113,6 @@ class LocalStorageStoreClass {
 
     setPreviousTeamId(userId: string, teamId: string) {
         this.setItem(getPreviousTeamIdKey(userId), teamId);
-    }
-
-    getLhsWidth() {
-        return this.getItem(getLhsWidthKey());
-    }
-
-    setLhsWidth(width: number) {
-        this.setItem(getLhsWidthKey(), width.toString());
-    }
-
-    getRhsWidth() {
-        return this.getItem(getRhsWidthKey());
-    }
-
-    setRhsWidth(width: number) {
-        this.setItem(getRhsWidthKey(), width.toString());
     }
 
     /**
