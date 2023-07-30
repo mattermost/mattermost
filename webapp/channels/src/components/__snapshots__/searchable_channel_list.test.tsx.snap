@@ -48,75 +48,88 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
     <div
       id="modalPreferenceContainer"
     >
-      <MenuWrapper
-        animationComponent={[Function]}
-        className=""
-        id="channelsMoreDropdown"
+      <Menu
+        menu={
+          Object {
+            "aria-label": "Browse channels",
+            "id": "browseChannelsDropdown",
+          }
+        }
+        menuButton={
+          Object {
+            "children": <React.Fragment>
+              <span>
+                Channel Type: All
+              </span>
+              <ChevronDownIcon
+                color="rgba(var(--center-channel-color-rgb), 0.64)"
+                size={16}
+              />
+            </React.Fragment>,
+            "id": "menuWrapper",
+          }
+        }
       >
-        <button
-          id="menuWrapper"
-        >
-          <span>
-            Channel Type: All
-          </span>
-          <ChevronDownIcon
-            color="rgba(var(--center-channel-color-rgb), 0.64)"
-            size={16}
-          />
-        </button>
-        <Menu
-          ariaLabel="Browse channels"
-          openLeft={false}
-        >
-          <MenuItemAction
-            ariaLabel="All channel types"
-            icon={
-              <GlobeCheckedIcon
-                size={16}
-              />
-            }
-            id="channelsMoreDropdownAll"
-            key="channelsMoreDropdownAll"
-            onClick={[Function]}
-            rightDecorator={
-              <CheckIcon
-                color="var(--button-bg)"
-                size={18}
-              />
-            }
-            show={true}
-            text="All channel types"
-          />
-          <MenuItemAction
-            ariaLabel="Public channels"
-            icon={
-              <GlobeIcon
-                size={16}
-              />
-            }
-            id="channelsMoreDropdownPublic"
-            key="channelsMoreDropdownPublic"
-            onClick={[Function]}
-            rightDecorator={null}
-            show={true}
-            text="Public channels"
-          />
-          <MenuItemAction
-            ariaLabel="Private channels"
-            icon={
-              <LockOutlineIcon
-                size={16}
-              />
-            }
-            id="channelsMoreDropdownPrivate"
-            key="channelsMoreDropdownPrivate"
-            onClick={[Function]}
-            rightDecorator={null}
-            show={true}
-            text="Private channels"
-          />
-        </Menu>
-      </MenuWrapper>
+        <MenuItem
+          aria-label="All channel types"
+          id="channelsMoreDropdownAll"
+          key="channelsMoreDropdownAll"
+          labels={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="All channel types"
+              id="suggestion.all"
+            />
+          }
+          leadingElement={
+            <GlobeCheckedIcon
+              size={16}
+            />
+          }
+          onClick={[Function]}
+          trailingElements={
+            <CheckIcon
+              color="var(--button-bg)"
+              size={18}
+            />
+          }
+        />
+        <MenuItem
+          aria-label="Public channels"
+          id="channelsMoreDropdownPublic"
+          key="channelsMoreDropdownPublic"
+          labels={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Public channels"
+              id="suggestion.public"
+            />
+          }
+          leadingElement={
+            <GlobeIcon
+              size={16}
+            />
+          }
+          onClick={[Function]}
+          trailingElements={null}
+        />
+        <MenuItem
+          aria-label="Private channels"
+          id="channelsMoreDropdownPrivate"
+          key="channelsMoreDropdownPrivate"
+          labels={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Private channels"
+              id="suggestion.private"
+            />
+          }
+          leadingElement={
+            <LockOutlineIcon
+              size={16}
+            />
+          }
+          onClick={[Function]}
+          trailingElements={null}
+        />
+      </Menu>
       <div
         id="hideJoinedPreferenceCheckbox"
         onClick={[Function]}
