@@ -37,6 +37,10 @@ describe('Compliance Export', () => {
                 teamName = team.name;
             });
 
+            // # Visit a channel and post a message so it has something to be exported initially
+            cy.visit('/');
+            cy.postMessage('hello');
+
             // # Go to compliance page, enable export and do export
             cy.uiGoToCompliancePage();
             cy.uiEnableComplianceExport();

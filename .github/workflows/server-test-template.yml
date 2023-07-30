@@ -1,0 +1,87 @@
+name: Server Test Template
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: true
+        type: string
+      datasource:
+        required: true
+        type: string
+      drivername:
+        required: true
+        type: string
+      logsartifact:
+        required: true
+        type: string
+env:
+  go-version: "1.19.5"
+jobs:
+  test:
+    name: ${{ inputs.name }}
+    runs-on: ubuntu-latest-8-cores
+    env:
+      COMPOSE_PROJECT_NAME: ghactions
+      BUILD_IMAGE: mattermost/mattermost-build-server:20230118_golang-1.19.5
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
+      - name: Run docker compose
+        run: |
+          cd server/build
+          docker-compose --ansi never run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker-compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker-compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker-compose --ansi never ps
+      - name: Run Tests
+        run: |
+          if [[ ${{ github.ref_name }} == 'master' ]]; then
+            export RACE_MODE="-race"
+          fi
+          docker run --net ghactions_mm-test \
+            --ulimit nofile=8096:8096 \
+            --env-file=server/build/dotenv/test.env \
+            --env MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}" \
+            --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
+            --env TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}" \
+            --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
+            -v $(go env GOCACHE):/go/cache \
+            -e GOCACHE=/go/cache \
+            -v $PWD:/mattermost \
+            -w /mattermost/server \
+            $BUILD_IMAGE \
+            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+      - name: Stop docker compose
+        run: |
+          cd server/build
+          docker-compose --ansi never stop
+      - name: Archive logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: ${{ inputs.logsartifact }}
+          path: |
+            server/gotestsum.json
+            server/report.xml
+      - name: Publish test report
+        id: report
+        uses: mikepenz/action-junit-report@dfc44cebdda1e40b1e3c3b244a84dc303b952fb0 # v3.7.7 + count retries + check urls from https://github.com/lieut-data/action-junit-report
+        if: success() || failure() # always run even if the previous step fails
+        with:
+          report_paths: server/report.xml
+          check_name: ${{ inputs.name }} (Results)
+          require_tests: true
+      - name: Report retried tests via webhook
+        if: ${{ steps.report.outputs.retried > 0 }}
+        run: >
+          curl
+            --fail
+            -X POST
+            -H "Content-Type: application/json"
+            -d "{\"text\":\"#### ⚠️  One or more flaky tests detected ⚠️\\n* Failing job: [github.com/mattermost/mattermost:${{ inputs.name }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\\n* If this is your pull request, double check your code to ensure you haven't introduced a flaky test.\\n* If this occurred on master or a release branch, reply to this message if you're willing to help.\\n* Submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.\\n* Finally, reply to this message with a link to the created JIRA ticket.\\ncc @devs\"}"
+            ${{ secrets.MM_COMMUNITY_DEVELOPERS_INCOMING_WEBHOOK_FROM_GH_ACTIONS }}

@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/server/v8/model"
+	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -149,58 +149,6 @@ func (_m *ReactionStore) GetForPostSince(postId string, since int64, excludeRemo
 
 	if rf, ok := ret.Get(1).(func(string, int64, string, bool) error); ok {
 		r1 = rf(postId, since, excludeRemoteId, inclDeleted)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetTopForTeamSince provides a mock function with given fields: teamID, userID, since, offset, limit
-func (_m *ReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
-	ret := _m.Called(teamID, userID, since, offset, limit)
-
-	var r0 *model.TopReactionList
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) (*model.TopReactionList, error)); ok {
-		return rf(teamID, userID, since, offset, limit)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopReactionList); ok {
-		r0 = rf(teamID, userID, since, offset, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.TopReactionList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
-		r1 = rf(teamID, userID, since, offset, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetTopForUserSince provides a mock function with given fields: userID, teamID, since, offset, limit
-func (_m *ReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
-	ret := _m.Called(userID, teamID, since, offset, limit)
-
-	var r0 *model.TopReactionList
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) (*model.TopReactionList, error)); ok {
-		return rf(userID, teamID, since, offset, limit)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopReactionList); ok {
-		r0 = rf(userID, teamID, since, offset, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.TopReactionList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
-		r1 = rf(userID, teamID, since, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

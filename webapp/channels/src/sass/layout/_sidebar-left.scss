@@ -213,7 +213,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             margin-left: 0;
             background: none;
 
-            li {
+            div {
                 display: flex;
                 margin-left: 15px;
             }
@@ -744,9 +744,17 @@ $sidebarOpacityAnimationDuration: 0.15s;
     .AddChannelsCtaDropdown .dropdown-menu {
         min-width: 210px !important;
         margin-left: 20px;
+
+        .MenuItem button span {
+            color: rgba(var(--center-channel-color-rgb), 0.9);
+
+            i {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+            }
+        }
     }
 
-    #introTextInvite,
+    #inviteMembersButton,
     #addChannelsCta {
         display: flex;
         width: 100%;

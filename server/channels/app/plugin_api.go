@@ -14,10 +14,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 type PluginAPI struct {
@@ -546,7 +546,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	results, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, model.ModifierMessages)
+	results, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 	if results != nil {
 		results = results.ForPlugin()
 	}
@@ -1232,10 +1232,9 @@ func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
 	return limits, err
 }
 
-// RegisterCollectionAndTopic informs the server that this plugin handles
-// the given collection and topic types.
+// RegisterCollectionAndTopic is no longer supported.
 func (api *PluginAPI) RegisterCollectionAndTopic(collectionType, topicType string) error {
-	return api.app.RegisterCollectionAndTopic(api.id, collectionType, topicType)
+	return nil
 }
 
 func (api *PluginAPI) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, error) {

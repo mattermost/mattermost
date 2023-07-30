@@ -6,8 +6,8 @@ package localcachelayer
 import (
 	"bytes"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -47,7 +47,7 @@ func (s LocalCacheTermsOfServiceStore) Save(termsOfService *model.TermsOfService
 
 func (s LocalCacheTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, error) {
 	if allowFromCache {
-		if len, err := s.rootStore.termsOfServiceCache.Len(); err == nil && len != 0 {
+		if l, err := s.rootStore.termsOfServiceCache.Len(); err == nil && l != 0 {
 			var cacheItem *model.TermsOfService
 			if err := s.rootStore.doStandardReadCache(s.rootStore.termsOfServiceCache, LatestKey, &cacheItem); err == nil {
 				return cacheItem, nil

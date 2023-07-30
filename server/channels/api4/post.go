@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/channels/web"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 func (api *API) InitPost() {
@@ -78,6 +78,57 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if post.CreateAt != 0 && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		post.CreateAt = 0
+	}
+
+	if post.GetPriority() != nil {
+		priorityForbiddenErr := model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
+
+		if !c.App.IsPostPriorityEnabled() {
+			c.Err = priorityForbiddenErr
+			return
+		}
+
+		if post.RootId != "" {
+			c.Err = model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		if ack := post.GetRequestedAck(); ack != nil && *ack {
+			licenseErr := minimumProfessionalLicense(c)
+			if licenseErr != nil {
+				c.Err = licenseErr
+				return
+			}
+		}
+
+		if notification := post.GetPersistentNotification(); notification != nil && *notification {
+			licenseErr := minimumProfessionalLicense(c)
+			if licenseErr != nil {
+				c.Err = licenseErr
+				return
+			}
+			if !c.App.IsPersistentNotificationsEnabled() {
+				c.Err = priorityForbiddenErr
+				return
+			}
+
+			if !post.IsUrgent() {
+				c.Err = model.NewAppError("Api4.createPost", "api.post.post_priority.urgent_persistent_notification_post.request_error", nil, "", http.StatusBadRequest)
+				return
+			}
+
+			if !*c.App.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
+				user, err := c.App.GetUser(c.AppContext.Session().UserId)
+				if err != nil {
+					c.Err = err
+					return
+				}
+				if user.IsGuest() {
+					c.Err = priorityForbiddenErr
+					return
+				}
+			}
+		}
 	}
 
 	setOnline := r.URL.Query().Get("set_online")
@@ -722,18 +773,9 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		includeDeletedChannels = *params.IncludeDeletedChannels
 	}
 
-	modifier := ""
-	if params.Modifier != nil {
-		modifier = *params.Modifier
-	}
-	if modifier != "" && modifier != model.ModifierFiles && modifier != model.ModifierMessages {
-		c.SetInvalidParam("modifier")
-		return
-	}
-
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, modifier)
+	results, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics()

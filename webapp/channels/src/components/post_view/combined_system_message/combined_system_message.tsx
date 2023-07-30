@@ -322,14 +322,15 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
         );
     }
 
-    renderMessage(postType: string, userIds: string[], actorId?: string): JSX.Element {
+    renderMessage(index: number, postType: string, userIds: string[], actorId?: string): JSX.Element {
         return (
-            <React.Fragment key={postType + actorId}>
+            <React.Fragment key={index}>
                 {this.renderFormattedMessage(postType, userIds, actorId)}
                 <br/>
             </React.Fragment>
         );
     }
+
     render(): JSX.Element {
         const {
             currentUserId,
@@ -337,7 +338,8 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
         } = this.props;
 
         const content = [];
-        for (const message of messageData) {
+        for (let i = 0; i < messageData.length; i++) {
+            const message = messageData[i];
             const {
                 postType,
                 actorId,
@@ -356,7 +358,7 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
                 }
             }
 
-            content.push(this.renderMessage(postType, userIds, actorId));
+            content.push(this.renderMessage(i, postType, userIds, actorId));
         }
 
         return (

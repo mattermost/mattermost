@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestChannelStore(t *testing.T) {
@@ -101,6 +101,43 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 		cachedStore.Channel().InvalidateMemberCount("id")
 		cachedStore.Channel().GetMemberCount("id", true)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMemberCount", 2)
+	})
+}
+
+func TestChannelStoreChannelsMemberCountCache(t *testing.T) {
+	channelsCountResult := map[string]int64{
+		"channel1": 10,
+		"channel2": 20,
+	}
+
+	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		require.NoError(t, err)
+
+		channelsCount, err := cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"})
+		require.NoError(t, err)
+		assert.Equal(t, channelsCount, channelsCountResult)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetChannelsMemberCount", 1)
+		channelsCount, err = cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"})
+		require.NoError(t, err)
+		assert.Equal(t, channelsCount, channelsCountResult)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetChannelsMemberCount", 1)
+	})
+
+	t.Run("first call not cached, invalidate cache, second call not cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		require.NoError(t, err)
+
+		cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"})
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetChannelsMemberCount", 1)
+		cachedStore.Channel().InvalidateMemberCount("channel1")
+		cachedStore.Channel().InvalidateMemberCount("channel2")
+		cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"})
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetChannelsMemberCount", 2)
 	})
 }
 

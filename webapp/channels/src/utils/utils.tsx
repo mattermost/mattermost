@@ -400,13 +400,9 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('.app__body .sidebar--right', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__body', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
-        if (!UserAgent.isFirefox() && !UserAgent.isInternetExplorer() && !UserAgent.isEdge()) {
-            changeCss('body.app__body ::-webkit-scrollbar-thumb', 'background:' + changeOpacity(theme.centerChannelColor, 0.4));
-        }
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor);
         changeCss('.app__body .post-create__container .post-create-body .btn-file svg, .app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .status svg, .app__body .edit-post__actions .icon svg', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5));
-        changeCss('.app__body .post.post--comment .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('@media(min-width: 768px){.app__body .post.post--compact.same--root.post--comment .post__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
@@ -467,7 +463,6 @@ export function applyTheme(theme: Theme) {
 
     if (theme.mentionHighlightBg) {
         changeCss('.app__body .search-highlight', 'background:' + theme.mentionHighlightBg);
-        changeCss('.app__body .post.post--comment .post__body.mention-comment', 'border-color:' + theme.mentionHighlightBg);
         changeCss('.app__body .post.post--highlight', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5));
     }
 
@@ -640,12 +635,12 @@ function changeCss(className: string, classValue: string) {
     }
 }
 
-function updateCodeTheme(userTheme: string) {
+function updateCodeTheme(codeTheme: string) {
     let cssPath = '';
     Constants.THEME_ELEMENTS.forEach((element) => {
         if (element.id === 'codeTheme') {
-            (element.themes as any).forEach((theme: Theme) => {
-                if (userTheme === theme.id) {
+            element.themes?.forEach((theme) => {
+                if (codeTheme === theme.id) {
                     cssPath = theme.cssURL!;
                 }
             });
@@ -1573,68 +1568,6 @@ export function setCSRFFromCookie() {
                 break;
             }
         }
-    }
-}
-
-/**
- * Get closest parent which match selector
- */
-export function getClosestParent(elem: HTMLElement, selector: string) {
-    // Element.matches() polyfill
-    if (!Element.prototype.matches) {
-        Element.prototype.matches =
-            (Element.prototype as any).matchesSelector ||
-            (Element.prototype as any).mozMatchesSelector ||
-            (Element.prototype as any).msMatchesSelector ||
-            (Element.prototype as any).oMatchesSelector ||
-            (Element.prototype as any).webkitMatchesSelector ||
-            ((s) => {
-                // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-                const matches = (this.document || this.ownerDocument).querySelectorAll(s);
-                let i = matches.length - 1;
-
-                // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-                while (i >= 0 && matches.item(i) !== this) {
-                    i--;
-                }
-                return i > -1;
-            });
-    }
-
-    // Get the closest matching element
-    let currentElem = elem;
-
-    // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-    for (; currentElem && currentElem !== document; currentElem = currentElem.parentNode) {
-        if (currentElem.matches(selector)) {
-            return currentElem;
-        }
-    }
-    return null;
-}
-
-/**
- * Adjust selection to correct text when there is Italic markdown (_) around selected text.
- */
-export function adjustSelection(inputBox: HTMLInputElement, e: React.SyntheticEvent<TextboxElement>) {
-    const el = e.target as TextboxElement;
-    const {selectionEnd, selectionStart, value} = el;
-
-    if (selectionStart === selectionEnd) {
-        // nothing selected.
-        return;
-    }
-
-    e.preventDefault();
-
-    const firstUnderscore = value.charAt(selectionStart!) === '_';
-    const lastUnderscore = value.charAt(selectionEnd! - 1) === '_';
-
-    const spaceBefore = value.charAt(selectionStart! - 1) === ' ';
-    const spaceAfter = value.charAt(selectionEnd!) === ' ';
-
-    if (firstUnderscore && lastUnderscore && (spaceBefore || spaceAfter)) {
-        setSelectionRange(inputBox, selectionStart! + 1, selectionEnd! - 1);
     }
 }
 

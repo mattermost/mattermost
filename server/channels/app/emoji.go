@@ -22,11 +22,11 @@ import (
 	"github.com/disintegration/imaging"
 	_ "golang.org/x/image/webp"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 const (
@@ -131,7 +131,7 @@ func (a *App) UploadEmojiImage(c request.CTX, id string, imageData *multipart.Fi
 	if config.Width > MaxEmojiWidth || config.Height > MaxEmojiHeight {
 		data := buf.Bytes()
 		newbuf := bytes.NewBuffer(nil)
-		info, err := model.GetInfoForBytes(imageData.Filename, bytes.NewReader(data), len(data))
+		info, err := getInfoForBytes(imageData.Filename, bytes.NewReader(data), len(data))
 		if err != nil {
 			return err
 		}
@@ -191,7 +191,7 @@ func (a *App) GetEmoji(c request.CTX, emojiId string) (*model.Emoji, *model.AppE
 		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusForbidden)
 	}
 
-	emoji, err := a.Srv().Store().Emoji().Get(context.Background(), emojiId, true)
+	emoji, err := a.Srv().Store().Emoji().Get(c.Context(), emojiId, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -214,7 +214,7 @@ func (a *App) GetEmojiByName(c request.CTX, emojiName string) (*model.Emoji, *mo
 		return nil, model.NewAppError("GetEmojiByName", "api.emoji.storage.app_error", nil, "", http.StatusForbidden)
 	}
 
-	emoji, err := a.Srv().Store().Emoji().GetByName(context.Background(), emojiName, true)
+	emoji, err := a.Srv().Store().Emoji().GetByName(c.Context(), emojiName, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -233,7 +233,21 @@ func (a *App) GetMultipleEmojiByName(c request.CTX, names []string) ([]*model.Em
 		return nil, model.NewAppError("GetMultipleEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
 	}
 
-	emoji, err := a.Srv().Store().Emoji().GetMultipleByName(names)
+	// Filtering out system emojis
+	i := 0
+	for _, n := range names {
+		if _, ok := model.GetSystemEmojiId(n); !ok {
+			names[i] = n
+			i++
+		}
+	}
+	names = names[:i]
+
+	if len(names) == 0 {
+		return []*model.Emoji{}, nil
+	}
+
+	emoji, err := a.Srv().Store().Emoji().GetMultipleByName(c.Context(), names)
 	if err != nil {
 		return nil, model.NewAppError("GetMultipleEmojiByName", "app.emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
 	}
@@ -242,7 +256,7 @@ func (a *App) GetMultipleEmojiByName(c request.CTX, names []string) ([]*model.Em
 }
 
 func (a *App) GetEmojiImage(c request.CTX, emojiId string) ([]byte, string, *model.AppError) {
-	_, storeErr := a.Srv().Store().Emoji().Get(context.Background(), emojiId, true)
+	_, storeErr := a.Srv().Store().Emoji().Get(c.Context(), emojiId, true)
 	if storeErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {

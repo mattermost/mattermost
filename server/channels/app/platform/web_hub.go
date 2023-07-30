@@ -11,8 +11,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -442,7 +442,7 @@ func (h *Hub) Start() {
 					})
 					continue
 				}
-				var latestActivity int64 = 0
+				var latestActivity int64
 				for _, conn := range conns {
 					if !conn.active {
 						continue
@@ -478,7 +478,9 @@ func (h *Hub) Start() {
 				select {
 				case directMsg.conn.send <- directMsg.msg:
 				default:
-					mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", directMsg.conn.UserId))
+					mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
+						mlog.String("user_id", directMsg.conn.UserId),
+						mlog.String("conn_id", directMsg.conn.GetConnectionID()))
 					close(directMsg.conn.send)
 					connIndex.Remove(directMsg.conn)
 				}
@@ -495,7 +497,9 @@ func (h *Hub) Start() {
 						select {
 						case webConn.send <- msg:
 						default:
-							mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webConn.UserId))
+							mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
+								mlog.String("user_id", webConn.UserId),
+								mlog.String("conn_id", webConn.GetConnectionID()))
 							close(webConn.send)
 							connIndex.Remove(webConn)
 						}

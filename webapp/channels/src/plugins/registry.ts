@@ -208,7 +208,7 @@ export default class PluginRegistry {
     // Accepts the following:
     // - icon - React element to use as the button's icon
     // - action - a function called when the button is clicked, passed the channel and channel member as arguments
-    // - text - a localized string to use as the button's text
+    // - text - a localized string or React element  to use as the button's text
     registerChannelIntroButtonAction = reArg([
         'icon',
         'action',
@@ -220,8 +220,7 @@ export default class PluginRegistry {
     }: {
         icon: ReactResolvable;
         action: PluginComponent['action'];
-        tooltipText: string;
-        text: string;
+        text: ReactResolvable;
     }) => {
         const id = generateId();
 
@@ -1153,16 +1152,6 @@ export default class PluginRegistry {
         store.dispatch({
             type: ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER,
             data,
-        });
-    });
-
-    registerInsightsHandler = reArg(['handler'], ({handler}) => {
-        store.dispatch({
-            type: ActionTypes.RECEIVED_PLUGIN_INSIGHT,
-            data: {
-                pluginId: this.id,
-                handler,
-            },
         });
     });
 }

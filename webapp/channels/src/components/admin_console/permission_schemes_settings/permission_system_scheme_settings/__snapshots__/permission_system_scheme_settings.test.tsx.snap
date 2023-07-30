@@ -147,8 +147,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -160,7 +160,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -457,8 +457,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -470,7 +470,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -768,8 +768,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -781,7 +781,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1079,8 +1079,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -1092,7 +1092,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

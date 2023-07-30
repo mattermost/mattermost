@@ -1,68 +1,56 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactFragment} from 'react';
+import React, {MouseEventHandler} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {ServerError} from '@mattermost/types/errors';
 
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
 
-interface MessageSubmitErrorProps {
+interface Props {
     error: ServerError;
-    handleSubmit: (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void;
+    handleSubmit: MouseEventHandler<HTMLAnchorElement>;
     submittedMessage?: string;
 }
 
-class MessageSubmitError extends React.PureComponent<MessageSubmitErrorProps> {
-    public renderSlashCommandError = (): string | ReactFragment => {
-        if (!this.props.submittedMessage) {
-            return this.props.error.message;
-        }
-
-        const command = this.props.submittedMessage.split(' ')[0];
-        return (
-            <React.Fragment>
-                <FormattedMessage
-                    id='message_submit_error.invalidCommand'
-                    defaultMessage="Command with a trigger of ''{command}'' not found. "
-                    values={{
-                        command,
-                    }}
-                />
-                <a
-                    href='#'
-                    onClick={this.props.handleSubmit}
-                >
-                    <FormattedMessage
-                        id='message_submit_error.sendAsMessageLink'
-                        defaultMessage='Click here to send as a message.'
-                    />
-                </a>
-            </React.Fragment>
-        );
-    };
-
-    public render(): JSX.Element | null {
-        const error = this.props.error;
-
-        if (!error) {
-            return null;
-        }
-
-        let errorContent: string | ReactFragment = error.message;
-        if (isErrorInvalidSlashCommand(error)) {
-            errorContent = this.renderSlashCommandError();
-        }
+function MessageSubmitError(props: Props) {
+    if (isErrorInvalidSlashCommand(props.error)) {
+        const slashCommand = props.submittedMessage?.split(' ')[0];
 
         return (
             <div className='has-error'>
                 <label className='control-label'>
-                    {errorContent}
+                    <FormattedMessage
+                        id='message_submit_error.invalidCommand'
+                        defaultMessage="Command with a trigger of ''{slashCommand}'' not found. "
+                        values={{
+                            slashCommand,
+                        }}
+                    />
+                    <a
+                        href='#'
+                        onClick={props.handleSubmit}
+                    >
+                        <FormattedMessage
+                            id='message_submit_error.sendAsMessageLink'
+                            defaultMessage='Click here to send as a message.'
+                        />
+                    </a>
                 </label>
             </div>
         );
     }
+
+    if (props.error?.message?.trim()?.length === 0) {
+        return null;
+    }
+
+    return (
+        <div className='has-error'>
+            <label className='control-label'>{props.error.message.trim()}</label>
+        </div>
+    );
 }
 
 export default MessageSubmitError;

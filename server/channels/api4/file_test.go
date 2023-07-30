@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
@@ -22,10 +23,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
 var testDir = ""
@@ -699,8 +700,8 @@ func TestUploadFiles(t *testing.T) {
 					}
 
 					if !tc.skipPayloadValidation {
-						compare := func(get func(string) ([]byte, *model.Response, error), name string) {
-							data, _, err := get(ri.Id)
+						compare := func(get func(context.Context, string) ([]byte, *model.Response, error), name string) {
+							data, _, err := get(context.Background(), ri.Id)
 							require.NoError(t, err)
 
 							expected, err := os.ReadFile(filepath.Join(testDir, name))
@@ -748,12 +749,12 @@ func TestGetFile(t *testing.T) {
 	sent, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err := client.UploadFile(sent, channel.Id, "test.png")
+	fileResp, _, err := client.UploadFile(context.Background(), sent, channel.Id, "test.png")
 	require.NoError(t, err)
 
 	fileId := fileResp.FileInfos[0].Id
 
-	data, _, err := client.GetFile(fileId)
+	data, _, err := client.GetFile(context.Background(), fileId)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(data), "should not be empty")
 
@@ -761,20 +762,20 @@ func TestGetFile(t *testing.T) {
 		require.Equal(t, sent[i], data[i], "received file didn't match sent one")
 	}
 
-	_, resp, err := client.GetFile("junk")
+	_, resp, err := client.GetFile(context.Background(), "junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.GetFile(model.NewId())
+	_, resp, err = client.GetFile(context.Background(), model.NewId())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout()
-	_, resp, err = client.GetFile(fileId)
+	client.Logout(context.Background())
+	_, resp, err = client.GetFile(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, _, err = th.SystemAdminClient.GetFile(fileId)
+	_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileId)
 	require.NoError(t, err)
 }
 
@@ -803,12 +804,12 @@ func TestGetFileHeaders(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			fileResp, _, err := client.UploadFile(data, channel.Id, filename)
+			fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, filename)
 			require.NoError(t, err)
 
 			fileId := fileResp.FileInfos[0].Id
 
-			_, resp, err := client.GetFile(fileId)
+			_, resp, err := client.GetFile(context.Background(), fileId)
 			require.NoError(t, err)
 
 			CheckStartsWith(t, resp.Header.Get("Content-Type"), expectedContentType, "returned incorrect Content-Type")
@@ -819,7 +820,7 @@ func TestGetFileHeaders(t *testing.T) {
 				CheckStartsWith(t, resp.Header.Get("Content-Disposition"), "attachment", "returned incorrect Content-Disposition")
 			}
 
-			_, resp, err = client.DownloadFile(fileId, true)
+			_, resp, err = client.DownloadFile(context.Background(), fileId, true)
 			require.NoError(t, err)
 
 			CheckStartsWith(t, resp.Header.Get("Content-Type"), expectedContentType, "returned incorrect Content-Type")
@@ -859,36 +860,36 @@ func TestGetFileThumbnail(t *testing.T) {
 	sent, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err := client.UploadFile(sent, channel.Id, "test.png")
+	fileResp, _, err := client.UploadFile(context.Background(), sent, channel.Id, "test.png")
 	require.NoError(t, err)
 
 	fileId := fileResp.FileInfos[0].Id
 
-	data, _, err := client.GetFileThumbnail(fileId)
+	data, _, err := client.GetFileThumbnail(context.Background(), fileId)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(data), "should not be empty")
 
-	_, resp, err := client.GetFileThumbnail("junk")
+	_, resp, err := client.GetFileThumbnail(context.Background(), "junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.GetFileThumbnail(model.NewId())
+	_, resp, err = client.GetFileThumbnail(context.Background(), model.NewId())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout()
-	_, resp, err = client.GetFileThumbnail(fileId)
+	client.Logout(context.Background())
+	_, resp, err = client.GetFileThumbnail(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	otherUser := th.CreateUser()
-	client.Login(otherUser.Email, otherUser.Password)
-	_, resp, err = client.GetFileThumbnail(fileId)
+	client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	_, resp, err = client.GetFileThumbnail(context.Background(), fileId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout()
-	_, _, err = th.SystemAdminClient.GetFileThumbnail(fileId)
+	client.Logout(context.Background())
+	_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), fileId)
 	require.NoError(t, err)
 }
 
@@ -908,12 +909,12 @@ func TestGetFileLink(t *testing.T) {
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err := client.UploadFile(data, channel.Id, "test.png")
+	fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
 	require.NoError(t, err)
 
 	fileId := fileResp.FileInfos[0].Id
 
-	_, resp, err := client.GetFileLink(fileId)
+	_, resp, err := client.GetFileLink(context.Background(), fileId)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
@@ -922,36 +923,36 @@ func TestGetFileLink(t *testing.T) {
 	require.NoError(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
-	_, resp, err = client.GetFileLink(fileId)
+	_, resp, err = client.GetFileLink(context.Background(), fileId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
-	link, _, err := client.GetFileLink(fileId)
+	link, _, err := client.GetFileLink(context.Background(), fileId)
 	require.NoError(t, err)
 	require.NotEqual(t, "", link, "should've received public link")
 
-	_, resp, err = client.GetFileLink("junk")
+	_, resp, err = client.GetFileLink(context.Background(), "junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.GetFileLink(model.NewId())
+	_, resp, err = client.GetFileLink(context.Background(), model.NewId())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout()
-	_, resp, err = client.GetFileLink(fileId)
+	client.Logout(context.Background())
+	_, resp, err = client.GetFileLink(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	otherUser := th.CreateUser()
-	client.Login(otherUser.Email, otherUser.Password)
-	_, resp, err = client.GetFileLink(fileId)
+	client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	_, resp, err = client.GetFileLink(context.Background(), fileId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout()
-	_, _, err = th.SystemAdminClient.GetFileLink(fileId)
+	client.Logout(context.Background())
+	_, _, err = th.SystemAdminClient.GetFileLink(context.Background(), fileId)
 	require.NoError(t, err)
 
 	fileInfo, err := th.App.Srv().Store().FileInfo().Get(fileId)
@@ -972,35 +973,35 @@ func TestGetFilePreview(t *testing.T) {
 	sent, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err := client.UploadFile(sent, channel.Id, "test.png")
+	fileResp, _, err := client.UploadFile(context.Background(), sent, channel.Id, "test.png")
 	require.NoError(t, err)
 	fileId := fileResp.FileInfos[0].Id
 
-	data, _, err := client.GetFilePreview(fileId)
+	data, _, err := client.GetFilePreview(context.Background(), fileId)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(data), "should not be empty")
 
-	_, resp, err := client.GetFilePreview("junk")
+	_, resp, err := client.GetFilePreview(context.Background(), "junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.GetFilePreview(model.NewId())
+	_, resp, err = client.GetFilePreview(context.Background(), model.NewId())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout()
-	_, resp, err = client.GetFilePreview(fileId)
+	client.Logout(context.Background())
+	_, resp, err = client.GetFilePreview(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	otherUser := th.CreateUser()
-	client.Login(otherUser.Email, otherUser.Password)
-	_, resp, err = client.GetFilePreview(fileId)
+	client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	_, resp, err = client.GetFilePreview(context.Background(), fileId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout()
-	_, _, err = th.SystemAdminClient.GetFilePreview(fileId)
+	client.Logout(context.Background())
+	_, _, err = th.SystemAdminClient.GetFilePreview(context.Background(), fileId)
 	require.NoError(t, err)
 }
 
@@ -1018,11 +1019,11 @@ func TestGetFileInfo(t *testing.T) {
 	sent, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err := client.UploadFile(sent, channel.Id, "test.png")
+	fileResp, _, err := client.UploadFile(context.Background(), sent, channel.Id, "test.png")
 	require.NoError(t, err)
 	fileId := fileResp.FileInfos[0].Id
 
-	info, _, err := client.GetFileInfo(fileId)
+	info, _, err := client.GetFileInfo(context.Background(), fileId)
 	require.NoError(t, err)
 
 	require.NoError(t, err)
@@ -1034,27 +1035,27 @@ func TestGetFileInfo(t *testing.T) {
 	require.Equal(t, "", info.PreviewPath, "file preview path shouldn't have been returned to client")
 	require.Equal(t, "image/png", info.MimeType, "mime type should've been image/png")
 
-	_, resp, err := client.GetFileInfo("junk")
+	_, resp, err := client.GetFileInfo(context.Background(), "junk")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.GetFileInfo(model.NewId())
+	_, resp, err = client.GetFileInfo(context.Background(), model.NewId())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout()
-	_, resp, err = client.GetFileInfo(fileId)
+	client.Logout(context.Background())
+	_, resp, err = client.GetFileInfo(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	otherUser := th.CreateUser()
-	client.Login(otherUser.Email, otherUser.Password)
-	_, resp, err = client.GetFileInfo(fileId)
+	client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	_, resp, err = client.GetFileInfo(context.Background(), fileId)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout()
-	_, _, err = th.SystemAdminClient.GetFileInfo(fileId)
+	client.Logout(context.Background())
+	_, _, err = th.SystemAdminClient.GetFileInfo(context.Background(), fileId)
 	require.NoError(t, err)
 }
 
@@ -1070,7 +1071,7 @@ func TestGetPublicFile(t *testing.T) {
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	fileResp, _, err := client.UploadFile(data, channel.Id, "test.png")
+	fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
 	require.NoError(t, err)
 
 	fileId := fileResp.FileInfos[0].Id
@@ -1166,11 +1167,11 @@ func TestSearchFiles(t *testing.T) {
 	fileInfo5, appErr := th.App.UploadFile(th.Context, data, archivedChannel.Id, "tagged for fileInfo3")
 	require.Nil(t, appErr)
 	post := &model.Post{ChannelId: archivedChannel.Id, Message: model.NewId() + "a"}
-	rpost, _, err := client.CreatePost(post)
+	rpost, _, err := client.CreatePost(context.Background(), post)
 	require.NoError(t, err)
 	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo5.Id, rpost.Id, rpost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
-	th.Client.DeleteChannel(archivedChannel.Id)
+	th.Client.DeleteChannel(context.Background(), archivedChannel.Id)
 
 	terms := "search"
 	isOrSearch := false
@@ -1180,7 +1181,7 @@ func TestSearchFiles(t *testing.T) {
 		IsOrSearch:     &isOrSearch,
 		TimeZoneOffset: &timezoneOffset,
 	}
-	fileInfos, _, err := client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	fileInfos, _, err := client.SearchFilesWithParams(context.Background(), th.BasicTeam.Id, &searchParams)
 	require.NoError(t, err)
 	require.Len(t, fileInfos.Order, 3, "wrong search")
 
@@ -1194,7 +1195,7 @@ func TestSearchFiles(t *testing.T) {
 		Page:           &page,
 		PerPage:        &perPage,
 	}
-	fileInfos2, _, err := client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	fileInfos2, _, err := client.SearchFilesWithParams(context.Background(), th.BasicTeam.Id, &searchParams)
 	require.NoError(t, err)
 	// We don't support paging for DB search yet, modify this when we do.
 	require.Len(t, fileInfos2.Order, 3, "Wrong number of fileInfos")
@@ -1209,16 +1210,16 @@ func TestSearchFiles(t *testing.T) {
 		Page:           &page,
 		PerPage:        &perPage,
 	}
-	fileInfos2, _, err = client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	fileInfos2, _, err = client.SearchFilesWithParams(context.Background(), th.BasicTeam.Id, &searchParams)
 	require.NoError(t, err)
 	// We don't support paging for DB search yet, modify this when we do.
 	require.Empty(t, fileInfos2.Order, "Wrong number of fileInfos")
 
-	fileInfos, _, err = client.SearchFiles(th.BasicTeam.Id, "search", false)
+	fileInfos, _, err = client.SearchFiles(context.Background(), th.BasicTeam.Id, "search", false)
 	require.NoError(t, err)
 	require.Len(t, fileInfos.Order, 3, "wrong search")
 
-	fileInfos, _, err = client.SearchFiles(th.BasicTeam.Id, "fileInfo2", false)
+	fileInfos, _, err = client.SearchFiles(context.Background(), th.BasicTeam.Id, "fileInfo2", false)
 	require.NoError(t, err)
 	require.Len(t, fileInfos.Order, 1, "wrong number of fileInfos")
 	require.Equal(t, fileInfo2.Id, fileInfos.Order[0], "wrong search")
@@ -1231,7 +1232,7 @@ func TestSearchFiles(t *testing.T) {
 		TimeZoneOffset:         &timezoneOffset,
 		IncludeDeletedChannels: &includeDeletedChannels,
 	}
-	fileInfos, _, err = client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	fileInfos, _, err = client.SearchFilesWithParams(context.Background(), th.BasicTeam.Id, &searchParams)
 	require.NoError(t, err)
 	require.Len(t, fileInfos.Order, 3, "wrong search")
 
@@ -1239,31 +1240,31 @@ func TestSearchFiles(t *testing.T) {
 		*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
 	})
 
-	fileInfos, _, err = client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	fileInfos, _, err = client.SearchFilesWithParams(context.Background(), th.BasicTeam.Id, &searchParams)
 	require.NoError(t, err)
 	require.Len(t, fileInfos.Order, 2, "wrong search")
 
-	fileInfos, _, _ = client.SearchFiles(th.BasicTeam.Id, "*", false)
+	fileInfos, _, _ = client.SearchFiles(context.Background(), th.BasicTeam.Id, "*", false)
 	require.Empty(t, fileInfos.Order, "searching for just * shouldn't return any results")
 
-	fileInfos, _, err = client.SearchFiles(th.BasicTeam.Id, "fileInfo1 fileInfo2", true)
+	fileInfos, _, err = client.SearchFiles(context.Background(), th.BasicTeam.Id, "fileInfo1 fileInfo2", true)
 	require.NoError(t, err)
 	require.Len(t, fileInfos.Order, 2, "wrong search results")
 
-	_, resp, err := client.SearchFiles("junk", "#sgtitlereview", false)
+	_, resp, err := client.SearchFiles(context.Background(), "junk", "#sgtitlereview", false)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.SearchFiles(model.NewId(), "#sgtitlereview", false)
+	_, resp, err = client.SearchFiles(context.Background(), model.NewId(), "#sgtitlereview", false)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, err = client.SearchFiles(th.BasicTeam.Id, "", false)
+	_, resp, err = client.SearchFiles(context.Background(), th.BasicTeam.Id, "", false)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	client.Logout()
-	_, resp, err = client.SearchFiles(th.BasicTeam.Id, "#sgtitlereview", false)
+	client.Logout(context.Background())
+	_, resp, err = client.SearchFiles(context.Background(), th.BasicTeam.Id, "#sgtitlereview", false)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }

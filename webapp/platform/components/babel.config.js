@@ -11,6 +11,13 @@ const config = {
                 safari: 12,
             },
             modules: false,
+            corejs: {
+                version: "3.26",
+                proposals: true,
+            },
+            debug: false,
+            shippedProposals: true,
+            useBuiltIns: 'usage',
         }],
         ['@babel/preset-react', {
             useBuiltIns: true,
@@ -38,5 +45,13 @@ const config = {
         ],
     ],
 };
+
+config.env = {
+    test: {
+        presets: config.presets,
+        plugins: config.plugins,
+    },
+};
+config.env.test.presets[0][1].modules = 'auto';
 
 module.exports = config;

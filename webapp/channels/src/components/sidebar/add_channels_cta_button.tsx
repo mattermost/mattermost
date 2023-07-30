@@ -9,7 +9,7 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Menu from 'components/widgets/menu/menu';
-import MoreChannels from 'components/more_channels';
+import BrowseChannels from 'components/browse_channels';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 
 import {isAddChannelCtaDropdownOpen} from 'selectors/views/add_channel_dropdown';
@@ -59,7 +59,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     const showMoreChannelsModal = () => {
         dispatch(openModal({
             modalId: ModalIdentifiers.MORE_CHANNELS,
-            dialogType: MoreChannels,
+            dialogType: BrowseChannels,
             dialogProps: {morePublicChannelsModalType: 'public'},
         }));
         trackEvent('ui', 'browse_channels_button_is_clicked');
@@ -80,6 +80,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 <Menu.ItemAction
                     id='showMoreChannels'
                     onClick={showMoreChannelsModal}
+                    icon={<i className='icon-globe'/>}
                     text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels', defaultMessage: 'Browse channels'})}
                 />
             );
@@ -91,6 +92,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 <Menu.ItemAction
                     id='showNewChannel'
                     onClick={showNewChannelModal}
+                    icon={<i className='icon-plus'/>}
                     text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.createNewChannel', defaultMessage: 'Create new channel'})}
                 />
             );
@@ -115,14 +117,14 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 aria-label={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
                 onClick={handleClick}
             >
-                <li
+                <div
                     aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.addChannelsCta', defaultMessage: 'Add channels'})}
                 >
                     <i className='icon-plus-box'/>
                     <span>
                         {intl.formatMessage({id: 'sidebar_left.addChannelsCta', defaultMessage: 'Add Channels'})}
                     </span>
-                </li>
+                </div>
             </button>
         );
     };

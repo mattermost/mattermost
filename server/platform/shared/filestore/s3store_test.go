@@ -18,15 +18,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/require"
-)
-
-// Copied from model/config.go to avoid an import cycle
-const (
-	MinioAccessKey = "minioaccesskey"
-	MinioSecretKey = "miniosecretkey"
-	ImageDriverS3  = "amazons3"
 )
 
 func TestCheckMandatoryS3Fields(t *testing.T) {
@@ -69,9 +63,9 @@ func TestMakeBucket(t *testing.T) {
 	bucketName = strings.Replace(bucketName, "/", "", -1)
 
 	cfg := FileBackendSettings{
-		DriverName:                         ImageDriverS3,
-		AmazonS3AccessKeyId:                MinioAccessKey,
-		AmazonS3SecretAccessKey:            MinioSecretKey,
+		DriverName:                         model.ImageDriverS3,
+		AmazonS3AccessKeyId:                model.MinioAccessKey,
+		AmazonS3SecretAccessKey:            model.MinioSecretKey,
 		AmazonS3Bucket:                     bucketName,
 		AmazonS3Endpoint:                   s3Endpoint,
 		AmazonS3Region:                     "",
@@ -110,9 +104,9 @@ func TestTimeout(t *testing.T) {
 	bucketName = strings.Replace(bucketName, "/", "", -1)
 
 	cfg := FileBackendSettings{
-		DriverName:                         ImageDriverS3,
-		AmazonS3AccessKeyId:                MinioAccessKey,
-		AmazonS3SecretAccessKey:            MinioSecretKey,
+		DriverName:                         model.ImageDriverS3,
+		AmazonS3AccessKeyId:                model.MinioAccessKey,
+		AmazonS3SecretAccessKey:            model.MinioSecretKey,
 		AmazonS3Bucket:                     bucketName,
 		AmazonS3Endpoint:                   s3Endpoint,
 		AmazonS3Region:                     "",
@@ -171,9 +165,9 @@ func TestInsecureMakeBucket(t *testing.T) {
 			bucketName = strings.Replace(bucketName, "/", "", -1)
 
 			cfg := FileBackendSettings{
-				DriverName:                         ImageDriverS3,
-				AmazonS3AccessKeyId:                MinioAccessKey,
-				AmazonS3SecretAccessKey:            MinioSecretKey,
+				DriverName:                         model.ImageDriverS3,
+				AmazonS3AccessKeyId:                model.MinioAccessKey,
+				AmazonS3SecretAccessKey:            model.MinioSecretKey,
 				AmazonS3Bucket:                     bucketName,
 				AmazonS3Endpoint:                   proxySelfSignedHTTPS.URL[8:],
 				AmazonS3Region:                     "",
