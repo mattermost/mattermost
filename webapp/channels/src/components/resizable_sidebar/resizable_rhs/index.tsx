@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {HTMLAttributes, useCallback, useMemo} from 'react';
+import React, {HTMLAttributes, useEffect, useRef} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getIsRhsExpanded, getRhsSize} from 'selectors/rhs';
-import LocalStorageStore from 'stores/local_storage_store';
 
-import {isResizableSize, preventAnimation, resetStyle, restoreAnimation, setWidth, shouldRhsOverlapChannelView} from '../utils';
-import Resizable from '../resizable';
-import {RHS_MIN_MAX_WIDTH, SidebarSize} from '../constants';
+import {shouldRhsOverlapChannelView} from '../utils';
+import {CssVarKeyForResizable, RHS_MIN_MAX_WIDTH, ResizeDirection} from '../constants';
+import ResizableDivider from '../resizable_divider';
 
 interface Props extends HTMLAttributes<'div'> {
     children: React.ReactNode;
@@ -23,139 +22,74 @@ function ResizableRhs({
     className,
     rightWidthHolderRef,
 }: Props) {
+    const containerRef = useRef<HTMLDivElement>(null);
+
     const rhsSize = useSelector(getRhsSize);
     const isRhsExpanded = useSelector(getIsRhsExpanded);
 
-    const minWidth = useMemo(() => RHS_MIN_MAX_WIDTH[rhsSize].min, [rhsSize]);
-    const maxWidth = useMemo(() => RHS_MIN_MAX_WIDTH[rhsSize].max, [rhsSize]);
-    const defaultWidth = useMemo(() => RHS_MIN_MAX_WIDTH[rhsSize].default, [rhsSize]);
+    const defaultWidth = RHS_MIN_MAX_WIDTH[rhsSize].default;
 
-    const isRhsResizable = useMemo(() => isResizableSize(rhsSize), [rhsSize]);
-    const shouldRhsOverlap = useMemo(() => shouldRhsOverlapChannelView(rhsSize), [rhsSize]);
+    const shouldRhsOverlap = shouldRhsOverlapChannelView(rhsSize);
 
-    const handleInit = useCallback((width: number) => {
+    const handleResize = (_: number, cssVarProp: string, cssVarValue: string) => {
         const rightWidthHolderRefElement = rightWidthHolderRef.current;
-
-        if (!rightWidthHolderRefElement) {
-            return;
-        }
-        if (!shouldRhsOverlap) {
-            setWidth(rightWidthHolderRefElement, width);
-        } else if (shouldRhsOverlap) {
-            setWidth(rightWidthHolderRefElement, minWidth);
-        }
-
-        preventAnimation(rightWidthHolderRefElement);
-
-        requestAnimationFrame(() => {
-            if (rightWidthHolderRefElement) {
-                restoreAnimation(rightWidthHolderRefElement);
-            }
-        });
-    }, [rightWidthHolderRef, minWidth, rhsSize, shouldRhsOverlap]);
-
-    const handleLimitChange = useCallback((width: number) => {
-        const rightWidthHolderRefElement = rightWidthHolderRef.current;
-
-        if (!rightWidthHolderRefElement) {
-            return;
-        }
-
-        if (rhsSize === SidebarSize.MEDIUM) {
-            setWidth(rightWidthHolderRefElement, minWidth);
-            return;
-        }
-
-        if (rhsSize === SidebarSize.SMALL) {
-            resetStyle(rightWidthHolderRefElement);
-            return;
-        }
-
-        setWidth(rightWidthHolderRefElement, width);
-    }, [defaultWidth, rightWidthHolderRef, minWidth, rhsSize]);
-
-    const handleResize = useCallback((width: number) => {
-        const rightWidthHolderRefElement = rightWidthHolderRef.current;
-
-        LocalStorageStore.setRhsWidth(width);
 
         if (!rightWidthHolderRefElement) {
             return;
         }
 
         if (!shouldRhsOverlap) {
-            setWidth(rightWidthHolderRefElement, width);
+            rightWidthHolderRefElement.style.setProperty(cssVarProp, cssVarValue);
         }
-    }, [rightWidthHolderRef, shouldRhsOverlap]);
+    };
 
-    const handleResizeStart = useCallback(() => {
-        const rightWidthHolderRefElement = rightWidthHolderRef.current;
-
-        if (rightWidthHolderRefElement) {
-            preventAnimation(rightWidthHolderRefElement);
-        }
-    }, [rightWidthHolderRef]);
-
-    const handleResizeEnd = useCallback(() => {
-        const rightWidthHolderRefElement = rightWidthHolderRef.current;
-        if (rightWidthHolderRefElement) {
-            restoreAnimation(rightWidthHolderRefElement);
-        }
-    }, [rightWidthHolderRef]);
-
-    const handleLineDoubleClick = useCallback(() => {
-        const rightWidthHolderRefElement = rightWidthHolderRef.current;
-
-        if (!shouldRhsOverlap && rightWidthHolderRefElement) {
-            setWidth(rightWidthHolderRefElement, defaultWidth);
-            preventAnimation(rightWidthHolderRefElement);
-
-            requestAnimationFrame(() => {
-                if (rightWidthHolderRefElement) {
-                    restoreAnimation(rightWidthHolderRefElement);
-                }
-            });
-        }
-    }, [defaultWidth, rightWidthHolderRef, shouldRhsOverlap]);
-
-    const handleDisabled = useCallback(() => {
+    const handleResizeEnd = (_: number, cssVarProp: string) => {
         const rightWidthHolderRefElement = rightWidthHolderRef.current;
 
         if (!rightWidthHolderRefElement) {
             return;
         }
-        if (shouldRhsOverlap) {
-            setWidth(rightWidthHolderRefElement, minWidth);
-        } else {
-            resetStyle(rightWidthHolderRefElement);
+
+        rightWidthHolderRefElement.style.removeProperty(cssVarProp);
+    };
+
+    // If max-width is applied immediately when expanded is canceled, the transition will not work correctly.
+    useEffect(() => {
+        const containerRefElement = containerRef.current;
+
+        if (!containerRefElement) {
+            return;
         }
-    }, [minWidth, rightWidthHolderRef, shouldRhsOverlap]);
+
+        if (!isRhsExpanded) {
+            containerRefElement.classList.add('resize-disabled');
+
+            setTimeout(() => {
+                containerRefElement.classList.remove('resize-disabled');
+            }, 1000);
+        }
+    }, [isRhsExpanded]);
 
     return (
-        <Resizable
+        <div
             id={id}
             className={className}
             role={role}
-            maxWidth={maxWidth}
-            minWidth={minWidth}
-            defaultWidth={defaultWidth}
-            disabled={isRhsExpanded}
-            initialWidth={Number(LocalStorageStore.getRhsWidth())}
-            enabledDirection={{
-                left: false,
-                right: isRhsResizable,
-            }}
-            onDisabled={handleDisabled}
-            onInit={handleInit}
-            onLimitChange={handleLimitChange}
-            onResize={handleResize}
-            onResizeStart={handleResizeStart}
-            onResizeEnd={handleResizeEnd}
-            onLineDoubleClick={handleLineDoubleClick}
+            ref={containerRef}
         >
-
             {children}
-        </Resizable>
+            <ResizableDivider
+                name='rhsResizeHandle'
+                globalCssVar={CssVarKeyForResizable.RHS}
+                defaultWidth={defaultWidth}
+                dir={ResizeDirection.RIGHT}
+                disabled={isRhsExpanded}
+                containerRef={containerRef}
+                onResize={handleResize}
+                onResizeEnd={handleResizeEnd}
+                onDividerDoubleClick={handleResizeEnd}
+            />
+        </div>
     );
 }
 

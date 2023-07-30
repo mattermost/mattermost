@@ -28,11 +28,26 @@ $sidebarOpacityAnimationDuration: 0.15s;
     z-index: 16;
     left: 0;
     display: flex;
-    width: 240px;
+    width: var(--overrideLhsWidth, 240px);
+    min-width: 240px;
+    max-width: 240px;
     height: 100%;
     flex-direction: column;
     border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     background-color: var(--sidebar-bg);
+
+    @media screen and (min-width: 901px) {
+        min-width: 200px;
+        max-width: 264px;
+    }
+
+    @media screen and (min-width: 1201px) {
+        max-width: 304px;
+    }
+
+    @media screen and (min-width: 1681px) {
+        max-width: 440px;
+    }
 
     h1,
     h2,

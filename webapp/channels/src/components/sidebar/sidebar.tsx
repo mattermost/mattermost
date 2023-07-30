@@ -243,6 +243,8 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     'move--right': this.props.isOpen && this.props.isMobileView,
                     dragging: this.state.isDragging,
                 })}
+                disabled={this.props.isMobileView}
+
             >
                 {this.props.isMobileView ? <MobileSidebarHeader/> : (
                     <SidebarHeader

@@ -1,58 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {HTMLAttributes, useCallback, useMemo} from 'react';
-import {useSelector} from 'react-redux';
+import React, {HTMLAttributes, useRef} from 'react';
 
-import {getLhsSize} from 'selectors/lhs';
-import LocalStorageStore from 'stores/local_storage_store';
-
-import {isResizableSize} from '../utils';
-import Resizable from '../resizable';
-import {LHS_MIN_MAX_WIDTH, DEFAULT_LHS_WIDTH} from '../constants';
+import {DEFAULT_LHS_WIDTH, CssVarKeyForResizable, ResizeDirection} from '../constants';
+import ResizableDivider from '../resizable_divider';
 
 interface Props extends HTMLAttributes<'div'> {
     children: React.ReactNode;
+    disabled?: boolean;
 }
 
 function ResizableLhs({
     children,
+    disabled,
     id,
     className,
 }: Props) {
-    const lhsSize = useSelector(getLhsSize);
-
-    const minWidth = useMemo(() => LHS_MIN_MAX_WIDTH[lhsSize].min, [lhsSize]);
-    const maxWidth = useMemo(() => LHS_MIN_MAX_WIDTH[lhsSize].max, [lhsSize]);
-
-    const isLhsResizable = useMemo(() => isResizableSize(lhsSize), [lhsSize]);
-
-    const handleResize = useCallback((width: number) => {
-        LocalStorageStore.setLhsWidth(width);
-    }, []);
-
-    const handleLineDoubleClick = useCallback(() => {
-        LocalStorageStore.setLhsWidth(DEFAULT_LHS_WIDTH);
-    }, []);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     return (
-        <Resizable
+        <div
             id={id}
             className={className}
-            maxWidth={maxWidth}
-            minWidth={minWidth}
-            defaultWidth={DEFAULT_LHS_WIDTH}
-            initialWidth={Number(LocalStorageStore.getLhsWidth())}
-            enabledDirection={{
-                left: isLhsResizable,
-                right: false,
-            }}
-            onResize={handleResize}
-            onLineDoubleClick={handleLineDoubleClick}
+            ref={containerRef}
         >
-
             {children}
-        </Resizable>
+            <ResizableDivider
+                name={'lhsResizeHandle'}
+                globalCssVar={CssVarKeyForResizable.LHS}
+                disabled={disabled}
+                defaultWidth={DEFAULT_LHS_WIDTH}
+                dir={ResizeDirection.LEFT}
+                containerRef={containerRef}
+            />
+        </div>
     );
 }
 

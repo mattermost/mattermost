@@ -13,6 +13,11 @@ export enum ResizeDirection {
     RIGHT = 'right',
 }
 
+export enum CssVarKeyForResizable {
+    LHS = 'overrideLhsWidth',
+    RHS = 'overrideRhsWidth',
+}
+
 export const SIDEBAR_SNAP_SIZE = 16;
 export const SIDEBAR_SNAP_SPEED_LIMIT = 5;
 
