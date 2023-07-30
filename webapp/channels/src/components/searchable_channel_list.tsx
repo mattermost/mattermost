@@ -17,6 +17,7 @@ import QuickInput from 'components/quick_input';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LocalizedInput from 'components/localized_input/localized_input';
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
+import * as Menu from 'components/menu';
 
 import * as UserAgent from 'utils/user_agent';
 import Constants, {ModalIdentifiers} from 'utils/constants';
@@ -24,8 +25,6 @@ import {localizeMessage, localizeAndFormatMessage} from 'utils/utils';
 import {isArchivedChannel} from 'utils/channel_utils';
 
 import {t} from 'utils/i18n';
-import MenuWrapper from './widgets/menu/menu_wrapper';
-import Menu from './widgets/menu/menu';
 import {isKeyPressed} from 'utils/keyboard';
 import {Filter, FilterType} from './browse_channels/browse_channels';
 
@@ -410,63 +409,89 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
             />
         );
         const channelDropdownItems = [
-            <Menu.ItemAction
+            <Menu.Item
                 key='channelsMoreDropdownAll'
                 id='channelsMoreDropdownAll'
                 onClick={() => this.props.changeFilter(Filter.All)}
-                icon={<GlobeCheckedIcon size={16}/>}
-                text={localizeMessage('suggestion.all', 'All channel types')}
-                rightDecorator={this.props.filter === Filter.All ? checkIcon : null}
-                ariaLabel={localizeMessage('suggestion.all', 'All channel types')}
+                leadingElement={<GlobeCheckedIcon size={16}/>}
+                labels={
+                    <FormattedMessage
+                        id='suggestion.all'
+                        defaultMessage='All channel types'
+                    />
+                }
+                trailingElements={this.props.filter === Filter.All ? checkIcon : null}
+                aria-label={localizeMessage('suggestion.all', 'All channel types')}
             />,
-            <Menu.ItemAction
+            <Menu.Item
                 key='channelsMoreDropdownPublic'
                 id='channelsMoreDropdownPublic'
                 onClick={() => this.props.changeFilter(Filter.Public)}
-                icon={<GlobeIcon size={16}/>}
-                text={localizeMessage('suggestion.public', 'Public channels')}
-                rightDecorator={this.props.filter === Filter.Public ? checkIcon : null}
-                ariaLabel={localizeMessage('suggestion.public', 'Public channels')}
+                leadingElement={<GlobeIcon size={16}/>}
+                labels={
+                    <FormattedMessage
+                        id='suggestion.public'
+                        defaultMessage='Public channels'
+                    />
+                }
+                trailingElements={this.props.filter === Filter.Public ? checkIcon : null}
+                aria-label={localizeMessage('suggestion.public', 'Public channels')}
             />,
-            <Menu.ItemAction
+            <Menu.Item
                 key='channelsMoreDropdownPrivate'
                 id='channelsMoreDropdownPrivate'
                 onClick={() => this.props.changeFilter(Filter.Private)}
-                icon={<LockOutlineIcon size={16}/>}
-                text={localizeMessage('suggestion.private', 'Private channels')}
-                rightDecorator={this.props.filter === Filter.Private ? checkIcon : null}
-                ariaLabel={localizeMessage('suggestion.private', 'Private channels')}
+                leadingElement={<LockOutlineIcon size={16}/>}
+                labels={
+                    <FormattedMessage
+                        id='suggestion.private'
+                        defaultMessage='Private channels'
+                    />
+                }
+                trailingElements={this.props.filter === Filter.Private ? checkIcon : null}
+                aria-label={localizeMessage('suggestion.private', 'Private channels')}
             />,
         ];
 
         if (this.props.canShowArchivedChannels) {
             channelDropdownItems.push(
-                <Menu.ItemAction
+                <Menu.Item
                     id='channelsMoreDropdownArchived'
                     onClick={() => this.props.changeFilter(Filter.Archived)}
-                    icon={<ArchiveOutlineIcon size={16}/>}
-                    text={localizeMessage('suggestion.archive', 'Archived channels')}
-                    rightDecorator={this.props.filter === Filter.Archived ? checkIcon : null}
-                    ariaLabel={localizeMessage('suggestion.archive', 'Archived channels')}
+                    leadingElement={<ArchiveOutlineIcon size={16}/>}
+                    labels={
+                        <FormattedMessage
+                            id='suggestion.archive'
+                            defaultMessage='Archived channels'
+                        />
+                    }
+                    trailingElements={this.props.filter === Filter.Archived ? checkIcon : null}
+                    aria-label={localizeMessage('suggestion.archive', 'Archived channels')}
                 />,
             );
         }
+        const menuButton = (
+            <>
+                {this.getFilterLabel()}
+                <ChevronDownIcon
+                    color={'rgba(var(--center-channel-color-rgb), 0.64)'}
+                    size={16}
+                />
+            </>
+        );
         const channelDropdown = (
-            <MenuWrapper id='channelsMoreDropdown'>
-                <button id='menuWrapper'>
-                    {this.getFilterLabel()}
-                    <ChevronDownIcon
-                        color={'rgba(var(--center-channel-color-rgb), 0.64)'}
-                        size={16}
-                    />
-                </button>
-                <Menu
-                    openLeft={false}
-                    ariaLabel={localizeMessage('more_channels.title', 'Browse channels')}
-                >
-                    {channelDropdownItems.map((item) => item)}
-                </Menu>
-            </MenuWrapper>
+            <Menu.Container
+                menuButton={{
+                    id: 'menuWrapper',
+                    children: menuButton,
+                }}
+                menu={{
+                    id: 'browseChannelsDropdown',
+                    'aria-label': localizeMessage('more_channels.title', 'Browse channels'),
+                }}
+            >
+                {channelDropdownItems.map((item) => item)}
+            </Menu.Container >
         );
 
         const hideJoinedButtonClass = classNames('get-app__checkbox', {checked: this.props.rememberHideJoinedChannelsChecked});

@@ -4,14 +4,18 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import Permissions from 'mattermost-redux/constants/permissions';
 import {ActionResult} from 'mattermost-redux/types/actions';
 import {RelationOneToOne} from '@mattermost/types/utilities';
 import {Channel, ChannelMembership, ChannelSearchOpts} from '@mattermost/types/channels';
-import Permissions from 'mattermost-redux/constants/permissions';
+import {GenericModal} from '@mattermost/components';
+
+import classNames from 'classnames';
 
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import SearchableChannelList from 'components/searchable_channel_list';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
+import LoadingScreen from 'components/loading_screen';
 
 import {ModalData} from 'types/actions';
 import {RhsState} from 'types/store/rhs';
@@ -19,10 +23,7 @@ import {RhsState} from 'types/store/rhs';
 import {getHistory} from 'utils/browser_history';
 import Constants, {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getRelativeChannelURL} from 'utils/url';
-import {GenericModal} from '@mattermost/components';
-import classNames from 'classnames';
 import {localizeMessage} from 'utils/utils';
-import LoadingScreen from 'components/loading_screen';
 
 import './browse_channels.scss';
 
