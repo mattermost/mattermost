@@ -266,7 +266,15 @@ func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
 
 func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE RemoteId = ? AND Source = ?", remoteID, groupSource); err != nil {
+	query, args, _ := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{
+			"RemoteId": remoteID,
+			"Source":   groupSource,
+		}).
+		ToSql()
+	if err := s.GetReplicaX().Get(&group, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", fmt.Sprintf("remoteId=%s", remoteID))
 		}
@@ -278,8 +286,16 @@ func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSo
 
 func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error) {
 	groups := []*model.Group{}
+	query, args, _ := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{
+			"DeleteAt": 0,
+			"Source":   groupSource,
+		}).
+		ToSql()
 
-	if err := s.GetReplicaX().Select(&groups, "SELECT * from UserGroups WHERE DeleteAt = 0 AND Source = ?", groupSource); err != nil {
+	if err := s.GetReplicaX().Select(&groups, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Groups by groupSource=%v", groupSource)
 	}
 
@@ -380,7 +396,13 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 
 func (s *SqlGroupStore) Restore(groupID string) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ? AND DeleteAt != 0", groupID); err != nil {
+	query, args, _ := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{"Id": groupID}).
+		Where(sq.NotEq{"DeleteAt": 0}).
+		ToSql()
+	if err := s.GetReplicaX().Get(&group, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupID)
 		}
