@@ -124,19 +124,21 @@ const PostOptions = (props: Props): JSX.Element => {
         );
     }
 
-    const sidebarDimensions = useFollowElementDimensions('sidebar-right');
-
     const showRecentlyUsedReactions = (!isMobileView && !isReadOnly && !isEphemeral && !post.failed && !systemMessage && !channelIsArchived && oneClickReactionsEnabled && props.enableEmojiPicker && hoverLocal);
 
     let showRecentReactions: ReactNode;
     if (showRecentlyUsedReactions) {
+        const showMoreReactions = props.isExpanded ||
+            props.location === 'CENTER' ||
+            (document.getElementById('sidebar-right')?.getBoundingClientRect().width ?? 0) > 400;
+
         showRecentReactions = (
             <PostRecentReactions
                 channelId={post.channel_id}
                 postId={post.id}
                 teamId={props.teamId}
                 emojis={props.recentEmojis}
-                size={props.isExpanded || props.location === 'CENTER' || sidebarDimensions?.width > 400 ? 3 : 1}
+                size={showMoreReactions ? 3 : 1}
             />
         );
     }
