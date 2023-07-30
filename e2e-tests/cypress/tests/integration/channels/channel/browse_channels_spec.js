@@ -71,7 +71,7 @@ describe('Channels', () => {
 
         cy.get('#browseChannelsModal').should('be.visible').within(() => {
             // * Dropdown should be visible, defaulting to "All Channels"
-            cy.get('#channelsMoreDropdown').should('be.visible').and('contain', channelType.all).wait(TIMEOUTS.HALF_SEC);
+            cy.get('#menuWrapper').should('be.visible').and('contain', channelType.all).wait(TIMEOUTS.HALF_SEC);
 
             cy.get('#searchChannelsTextbox').should('be.visible').type(testChannel.display_name).wait(TIMEOUTS.HALF_SEC);
             cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 1).within(() => {
@@ -112,27 +112,27 @@ describe('Channels', () => {
         // # Go to LHS and click 'Browse channels'
         cy.uiBrowseOrCreateChannel('Browse channels').click();
 
-        cy.get('#browseChannelsModal').should('be.visible').within(() => {
-            // # CLick dropdown to open selection
-            cy.get('#channelsMoreDropdown').should('be.visible').click().within((el) => {
-                // # Click on archived channels item
-                cy.findByText('Archived channels').should('be.visible').click();
+        cy.get('#browseChannelsModal').should('be.visible')
+        
+        // # CLick dropdown to open selection
+        cy.get('#menuWrapper').should('be.visible').click();
 
-                // * Channel test should be visible as an archived channel in the list
-                cy.wrap(el).should('contain', channelType.archived);
-            });
+        // # Click on archived channels item
+        cy.findByText('Archived channels').should('be.visible').click();
 
-            cy.get('#searchChannelsTextbox').should('be.visible').type(testChannel.display_name).wait(TIMEOUTS.HALF_SEC);
-            cy.get('#moreChannelsList').children().should('have.length', 1).within(() => {
-                cy.findByText(testChannel.display_name).should('be.visible');
-            });
-            cy.get('#searchChannelsTextbox').clear();
+        // * Menu text should be updated to reflect the selection
+        cy.get('#menuWrapper').should('contain', channelType.archived);
 
-            // * Test channel should be visible as a archived channel in the list
-            cy.get('#moreChannelsList').should('be.visible').within(() => {
-                // # Click to view archived channel
-                cy.findByText(testChannel.display_name).scrollIntoView().should('be.visible').click();
-            });
+        cy.get('#searchChannelsTextbox').should('be.visible').type(testChannel.display_name).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#moreChannelsList').children().should('have.length', 1).within(() => {
+            cy.findByText(testChannel.display_name).should('be.visible');
+        });
+        cy.get('#searchChannelsTextbox').clear();
+
+        // * Test channel should be visible as a archived channel in the list
+        cy.get('#moreChannelsList').should('be.visible').within(() => {
+            // # Click to view archived channel
+            cy.findByText(testChannel.display_name).scrollIntoView().should('be.visible').click();
         });
 
         // * Assert that channel is archived and new messages can't be posted.
@@ -233,7 +233,7 @@ describe('Channels', () => {
         cy.uiBrowseOrCreateChannel('Browse channels').click();
 
         // * Dropdown should be visible, defaulting to "All channels"
-        cy.get('#channelsMoreDropdown').should('be.visible').within((el) => {
+        cy.get('#menuWrapper').should('be.visible').within((el) => {
             cy.wrap(el).should('contain', channelType.all);
         });
 
@@ -244,23 +244,24 @@ describe('Channels', () => {
             cy.findByText(newChannel.display_name).should('be.visible');
         });
 
-        cy.get('#browseChannelsModal').should('be.visible').within(() => {
-            // * Users should be able to switch to "Archived Channels" list
-            cy.get('#channelsMoreDropdown').should('be.visible').and('contain', channelType.all).click().within((el) => {
-                // # Click on archived channels item
-                cy.findByText('Archived channels').should('be.visible').click();
+        cy.get('#browseChannelsModal').should('be.visible')
+        
+        // * Users should be able to switch to "Archived Channels" list
+        cy.get('#menuWrapper').should('be.visible').and('contain', channelType.all).click().wait(TIMEOUTS.HALF_SEC);
+        
+        // # Click on archived channels item
+        cy.findByText('Archived channels').should('be.visible').click();
 
-                // * Modal should show the archived channels list
-                cy.wrap(el).should('contain', channelType.archived);
-            }).wait(TIMEOUTS.HALF_SEC);
-            cy.get('#searchChannelsTextbox').clear();
-            cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 2);
-            cy.get('#moreChannelsList').within(() => {
-                cy.findByText(testArchivedChannel.display_name).should('be.visible');
-                cy.findByText(testPrivateArchivedChannel.display_name).should('be.visible');
-            });
+        // * Modal menu should be updated accordingly
+        cy.get('#menuWrapper').should('contain', channelType.archived);
+        
+        cy.get('#searchChannelsTextbox').clear();
+        cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 2);
+        cy.get('#moreChannelsList').within(() => {
+            cy.findByText(testArchivedChannel.display_name).should('be.visible');
+            cy.findByText(testPrivateArchivedChannel.display_name).should('be.visible');
         });
-    });
+});
 });
 
 function verifyBrowseChannelsModalWithArchivedSelection(isEnabled, testUser, testTeam) {
@@ -289,9 +290,9 @@ function verifyBrowseChannelsModal(isEnabled) {
     // * Verify that the browse channels modal is open and with or without option to view archived channels
     cy.get('#browseChannelsModal').should('be.visible').within(() => {
         if (isEnabled) {
-            cy.get('#channelsMoreDropdown').should('be.visible').and('have.text', channelType.all);
+            cy.get('#menuWrapper').should('be.visible').and('have.text', channelType.all);
         } else {
-            cy.get('#channelsMoreDropdown').click();
+            cy.get('#menuWrapper').click();
             cy.findByText('Archived channels').should('not.exist');
         }
     });

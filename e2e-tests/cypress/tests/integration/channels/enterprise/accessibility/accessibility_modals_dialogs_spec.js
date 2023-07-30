@@ -86,7 +86,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         });
     });
 
-    it('MM-T1467 Accessibility Support in More Channels Dialog screen', () => {
+    it('MM-T1467 Accessibility Support in Browse Channels Dialog screen', () => {
         function getChannelAriaLabel(channel) {
             return channel.display_name.toLowerCase() + ', ' + channel.purpose.toLowerCase();
         }

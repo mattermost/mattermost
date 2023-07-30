@@ -99,16 +99,16 @@ describe('Leave an archived channel', () => {
             cy.get('#showMoreChannels').click();
 
             // # More channels modal opens
-            cy.get('#browseChannelsModal').should('be.visible').within(() => {
-                // # Click on dropdown
-                cy.findByText(channelType.all).should('be.visible').click();
+            cy.get('#browseChannelsModal').should('be.visible');
+            
+            // # Click on dropdown
+            cy.findByText(channelType.all).should('be.visible').click();
 
-                // # Click archived channels
-                cy.findByText('Archived channels').click();
+            // # Click archived channels
+            cy.findByText('Archived channels').click();
 
-                // # Modal should contain created channel
-                cy.get('#moreChannelsList').should('contain', channel.display_name);
-            });
+            // # Modal should contain created channel
+            cy.get('#moreChannelsList').should('contain', channel.display_name);
 
             cy.get('body').typeWithForce('{esc}');
         });
@@ -147,17 +147,17 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens
-        cy.get('#browseChannelsModal').should('be.visible').within(() => {
-            // # All channel list opens by default
-            cy.findByText(channelType.all).should('be.visible').click();
+        cy.get('#browseChannelsModal').should('be.visible');
 
-            // # Click on archived channels
-            cy.findByText('Archived channels').click();
+        // # All channel list opens by default
+        cy.findByText(channelType.all).should('be.visible').click();
 
-            // # Channel list should contain newly created channels
-            cy.get('#moreChannelsList').should('contain', archivedPrivateChannel.name);
-            cy.get('#moreChannelsList').should('contain', archivedPublicChannel.display_name);
-        });
+        // # Click on archived channels
+        cy.findByText('Archived channels').click();
+
+        // # Channel list should contain newly created channels
+        cy.get('#moreChannelsList').should('contain', archivedPrivateChannel.name);
+        cy.get('#moreChannelsList').should('contain', archivedPublicChannel.display_name);
         cy.get('body').typeWithForce('{esc}');
     });
 
@@ -200,17 +200,18 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens
-        cy.get('#browseChannelsModal').should('be.visible').within(() => {
-            // # All channels are shown by default
-            cy.findByText(channelType.all).should('be.visible').click();
+        cy.get('#browseChannelsModal').should('be.visible');
 
-            // # Go to archived channels
-            cy.findByText('Archived channels').click();
+        // # All channels are shown by default
+        cy.findByText(channelType.all).should('be.visible').click();
 
-            // # Channel list should contain both archived public channels
-            cy.get('#moreChannelsList').should('contain', archivedPublicChannel1.display_name);
-            cy.get('#moreChannelsList').should('contain', archivedPublicChannel2.display_name);
-        });
+        // # Go to archived channels
+        cy.findByText('Archived channels').click();
+
+        // # Channel list should contain both archived public channels
+        cy.get('#moreChannelsList').should('contain', archivedPublicChannel1.display_name);
+        cy.get('#moreChannelsList').should('contain', archivedPublicChannel2.display_name);
+
         cy.get('body').typeWithForce('{esc}');
     });
 
@@ -254,17 +255,17 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens
-        cy.get('#browseChannelsModal').should('be.visible').within(() => {
-            // # Show all channels is visible by default
-            cy.findByText(channelType.all).should('be.visible').click();
+        cy.get('#browseChannelsModal').should('be.visible')
+        
+        // # Show all channels is visible by default
+        cy.findByText(channelType.all).should('be.visible').click();
 
-            // # Go to archived channels
-            cy.findByText('Archived channels').click();
+        // # Go to archived channels
+        cy.findByText('Archived channels').click();
 
-            // # Channel list should contain only the private channel user is a member of
-            cy.get('#moreChannelsList').should('contain', archivedPrivateChannel1.name);
-            cy.get('#moreChannelsList').should('not.contain', archivedPrivateChannel2.name);
-        });
+        // # Channel list should contain only the private channel user is a member of
+        cy.get('#moreChannelsList').should('contain', archivedPrivateChannel1.name);
+        cy.get('#moreChannelsList').should('not.contain', archivedPrivateChannel2.name);
         cy.get('body').typeWithForce('{esc}');
     });
 
@@ -289,15 +290,16 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens and lands on all channels
-        cy.get('#browseChannelsModal').should('be.visible').within(() => {
-            cy.findByText(channelType.all).should('be.visible').click();
+        cy.get('#browseChannelsModal').should('be.visible')
 
-            // # Go to archived channels
-            cy.findByText('Archived channels').click();
+        cy.findByText(channelType.all).should('be.visible').click();
 
-            // # More channels list should contain the archived channel
-            cy.get('#moreChannelsList').should('contain', archivedChannel.display_name);
-        });
+        // # Go to archived channels
+        cy.findByText('Archived channels').click();
+
+        // # More channels list should contain the archived channel
+        cy.get('#moreChannelsList').should('contain', archivedChannel.display_name);
+
         cy.get('body').typeWithForce('{esc}');
     });
 
