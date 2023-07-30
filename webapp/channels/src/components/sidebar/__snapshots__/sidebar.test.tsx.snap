@@ -5,6 +5,7 @@ exports[`components/sidebar should match empty div snapshot when teamId is missi
 exports[`components/sidebar should match snapshot 1`] = `
 <ResizableLhs
   className=""
+  disabled={false}
   id="SidebarContainer"
 >
   <SidebarHeader
@@ -59,6 +60,7 @@ exports[`components/sidebar should match snapshot 1`] = `
 exports[`components/sidebar should match snapshot when direct channels modal is open 1`] = `
 <ResizableLhs
   className=""
+  disabled={false}
   id="SidebarContainer"
 >
   <SidebarHeader
@@ -117,6 +119,7 @@ exports[`components/sidebar should match snapshot when direct channels modal is 
 exports[`components/sidebar should match snapshot when more channels modal is open 1`] = `
 <ResizableLhs
   className=""
+  disabled={false}
   id="SidebarContainer"
 >
   <SidebarHeader
