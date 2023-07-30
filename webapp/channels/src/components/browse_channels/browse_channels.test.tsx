@@ -20,24 +20,28 @@ describe('components/BrowseChannels', () => {
         data: [{
             id: 'channel-id-1',
             name: 'channel-name-1',
+            team_id: 'team_1',
             display_name: 'Channel 1',
             delete_at: 0,
             type: 'O',
         }, {
             id: 'channel-id-2',
             name: 'archived-channel',
+            team_id: 'team_1',
             display_name: 'Archived',
             delete_at: 123,
             type: 'O',
         }, {
             id: 'channel-id-3',
             name: 'private-channel',
+            team_id: 'team_1',
             display_name: 'Private',
             delete_at: 0,
             type: 'P',
         }, {
             id: 'channel-id-4',
             name: 'private-channel-not-member',
+            team_id: 'team_1',
             display_name: 'Private Not Member',
             delete_at: 0,
             type: 'P',
@@ -46,7 +50,7 @@ describe('components/BrowseChannels', () => {
 
     const archivedChannel = TestHelper.getChannelMock({
         id: 'channel_id_2',
-        team_id: 'channel_team_2',
+        team_id: 'team_1',
         display_name: 'channel-2',
         name: 'channel-2',
         header: 'channel-2-header',
@@ -55,7 +59,7 @@ describe('components/BrowseChannels', () => {
 
     const privateChannel = TestHelper.getChannelMock({
         id: 'channel_id_3',
-        team_id: 'channel_team_3',
+        team_id: 'team_1',
         display_name: 'channel-3',
         name: 'channel-3',
         header: 'channel-3-header',
@@ -111,7 +115,7 @@ describe('components/BrowseChannels', () => {
         archivedChannels: [archivedChannel],
         privateChannels: [privateChannel],
         currentUserId: 'user-1',
-        teamId: 'team_id',
+        teamId: 'team_1',
         teamName: 'team_name',
         channelsRequestStarted: false,
         canShowArchivedChannels: true,
@@ -287,7 +291,7 @@ describe('components/BrowseChannels', () => {
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('fail', {include_deleted: true, nonAdminSearch: false, team_ids: ['team_id']});
+        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('fail', {include_deleted: true, nonAdminSearch: true, team_ids: ['team_1']});
         process.nextTick(() => {
             expect(wrapper.state('search')).toEqual(true);
             expect(wrapper.state('searching')).toEqual(false);
@@ -314,7 +318,7 @@ describe('components/BrowseChannels', () => {
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('channel', {include_deleted: true, nonAdminSearch: false, team_ids: ['team_id']});
+        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('channel', {include_deleted: true, nonAdminSearch: true, team_ids: ['team_1']});
         process.nextTick(() => {
             expect(wrapper.state('search')).toEqual(true);
             expect(wrapper.state('searching')).toEqual(false);
@@ -341,7 +345,7 @@ describe('components/BrowseChannels', () => {
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('channel', {include_deleted: true, nonAdminSearch: false, team_ids: ['team_id']});
+        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('channel', {include_deleted: true, nonAdminSearch: true, team_ids: ['team_1']});
         process.nextTick(() => {
             expect(wrapper.state('search')).toEqual(true);
             expect(wrapper.state('searching')).toEqual(false);
@@ -368,7 +372,7 @@ describe('components/BrowseChannels', () => {
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('channel', {include_deleted: true, nonAdminSearch: false, team_ids: ['team_id']});
+        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('channel', {include_deleted: true, nonAdminSearch: true, team_ids: ['team_1']});
         process.nextTick(() => {
             expect(wrapper.state('search')).toEqual(true);
             expect(wrapper.state('searching')).toEqual(false);
@@ -395,7 +399,7 @@ describe('components/BrowseChannels', () => {
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('channel', {include_deleted: true, nonAdminSearch: false, team_ids: ['team_id']});
+        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('channel', {include_deleted: true, nonAdminSearch: true, team_ids: ['team_1']});
         process.nextTick(() => {
             expect(wrapper.state('search')).toEqual(true);
             expect(wrapper.state('searching')).toEqual(false);
@@ -427,7 +431,7 @@ describe('components/BrowseChannels', () => {
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('channel', {include_deleted: true, nonAdminSearch: false, team_ids: ['team_id']});
+        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('channel', {include_deleted: true, nonAdminSearch: true, team_ids: ['team_1']});
         process.nextTick(() => {
             expect(wrapper.state('search')).toEqual(true);
             expect(wrapper.state('searching')).toEqual(false);
@@ -459,7 +463,7 @@ describe('components/BrowseChannels', () => {
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('channel', {include_deleted: true, nonAdminSearch: false, team_ids: ['team_id']});
+        expect(wrapper.instance().props.actions.searchAllChannels).toHaveBeenCalledWith('channel', {include_deleted: true, nonAdminSearch: true, team_ids: ['team_1']});
         process.nextTick(() => {
             expect(wrapper.state('search')).toEqual(true);
             expect(wrapper.state('searching')).toEqual(false);

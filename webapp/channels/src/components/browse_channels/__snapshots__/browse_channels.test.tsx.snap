@@ -16,7 +16,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
           "create_public_channel",
         ]
       }
-      teamId="team_id"
+      teamId="team_1"
     >
       <button
         aria-label="Create New Channel"
@@ -61,7 +61,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
           "name": "channel-2",
           "purpose": "channel-2-purpose",
           "scheme_id": "id",
-          "team_id": "channel_team_2",
+          "team_id": "team_1",
           "type": "O",
           "update_at": 0,
         },
@@ -78,7 +78,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
           "name": "channel-3",
           "purpose": "channel-3-purpose",
           "scheme_id": "id",
-          "team_id": "channel_team_3",
+          "team_id": "team_1",
           "type": "P",
           "update_at": 0,
         },
@@ -151,7 +151,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
               "create_public_channel",
             ]
           }
-          teamId="team_id"
+          teamId="team_1"
         >
           <button
             aria-label="Create New Channel"
