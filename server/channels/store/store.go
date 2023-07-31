@@ -300,6 +300,8 @@ type ChannelStore interface {
 	SetShared(channelId string, shared bool) error
 	// GetTeamForChannel returns the team for a given channelID.
 	GetTeamForChannel(channelID string) (*model.Team, error)
+
+	ConvertGroupMessageToChannel(groupMessageID, teamID string) error
 }
 
 type ChannelMemberHistoryStore interface {

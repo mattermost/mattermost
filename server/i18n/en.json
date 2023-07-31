@@ -4708,6 +4708,10 @@
     "translation": "Unable to get common teams for group message members."
   },
   {
+    "id": "app.channel.convert_gm_to_channel.store_error",
+    "translation": "Unable to convert group message to channel."
+  },
+  {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
     "translation": "Unable to create initial sidebar categories for user."
   },

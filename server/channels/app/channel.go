@@ -3537,6 +3537,33 @@ func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string)
 	return teams, appErr
 }
 
+func (a *App) ConvertGroupMessageToChannel(c request.CTX, userID, groupMessageID, teamID string) *model.AppError {
+	channel, appErr := a.GetChannel(c, groupMessageID)
+	if appErr != nil {
+		return appErr
+	}
+
+	if channel.Type != model.ChannelTypeGroup {
+		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
+	}
+
+	channelMember, appErr := a.GetChannelMember(c, groupMessageID, userID)
+	if appErr != nil {
+		return appErr
+	}
+
+	if channelMember == nil {
+		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
+	}
+
+	err := a.Srv().Store().Channel().ConvertGroupMessageToChannel(groupMessageID, teamID)
+	if err != nil {
+		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.convert_gm_to_channel.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
 func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*model.Channel, *model.AppError) {
 	channel, nErr := s.Store().Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
 	if nErr != nil {

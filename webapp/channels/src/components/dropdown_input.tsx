@@ -113,7 +113,6 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
 
     }
     const validateInput = () => {
-        console.log('validatettetetet');
         if (!props.required || ownValue !== null && ownValue) {
             setCustomInputLabel(null);
             return;
