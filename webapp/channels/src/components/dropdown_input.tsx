@@ -6,6 +6,9 @@ import ReactSelect, {Props as SelectProps, ActionMeta, components} from 'react-s
 import classNames from 'classnames';
 
 import './dropdown_input.scss';
+import {useIntl} from "react-intl";
+import {CustomMessageInputType} from "components/widgets/inputs/input/input";
+import {ItemStatus} from "utils/constants";
 
 // TODO: This component needs work, should not be used outside of AddressInfo until this comment is removed.
 
@@ -20,6 +23,7 @@ type Props<T> = Omit<SelectProps<T>, 'onChange'> & {
     error?: string;
     onChange: (value: T, action: ActionMeta<T>) => void;
     testId?: string;
+    required?: boolean;
 };
 
 const baseStyles = {
@@ -99,10 +103,22 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
         }
     };
 
+    const {formatMessage} = useIntl();
+    const [customInputLabel, setCustomInputLabel] = useState<CustomMessageInputType>(null);
+    const validateInput = () => {
+        if (!props.required || value !== null && !value) {
+            return;
+        }
+
+        const validationErrorMsg = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
+        setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
+    }
+
     const onInputBlur = (event: React.FocusEvent<HTMLElement>) => {
         const {onBlur} = props;
 
         setFocused(false);
+        validateInput();
 
         if (onBlur) {
             onBlur(event);
@@ -110,6 +126,7 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
     };
 
     const showLegend = Boolean(focused || value);
+    const isError = error || customInputLabel?.type === 'error';
 
     return (
         <div
@@ -118,7 +135,7 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
         >
             <fieldset
                 className={classNames('Input_fieldset', className, {
-                    Input_fieldset___error: error,
+                    Input_fieldset___error: isError,
                     Input_fieldset___legend: showLegend,
                 })}
             >
@@ -150,7 +167,21 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
                 </div>
                 {addon}
             </fieldset>
-            {renderError(error)}
+            {error && renderError(error)}
+            {
+                !error && customInputLabel &&
+                <div className={`Input___customMessage Input___${customInputLabel.type}`}>
+                    <i
+                        className={classNames(`icon ${customInputLabel.type}`, {
+                            'icon-alert-outline': customInputLabel.type === ItemStatus.WARNING,
+                            'icon-alert-circle-outline': customInputLabel.type === ItemStatus.ERROR,
+                            'icon-information-outline': customInputLabel.type === ItemStatus.INFO,
+                            'icon-check': customInputLabel.type === ItemStatus.SUCCESS,
+                        })}
+                    />
+                    <span>{customInputLabel.value}</span>
+                </div>
+            }
         </div>
     );
 };

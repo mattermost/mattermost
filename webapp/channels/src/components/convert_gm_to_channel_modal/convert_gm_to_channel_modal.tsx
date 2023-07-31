@@ -63,12 +63,16 @@ const ConvertGmToChannelModal = (props: Props) => {
 
     const channelMemberNames = props.profilesInChannel.map((user) => displayUsername(user, props.teammateNameDisplaySetting));
 
-    const [commonTeams, setCommonTeams] = useState<Team[]>([]);
+    const [commonTeamsById, setCommonTeamsById] = useState<{[id: string]: Team}>({});
 
     useEffect(() => {
         const work = async () => {
-            const response = await Client4.getGroupMessageMembersCommonTeams(props.channel.id)
-            setCommonTeams(response.data);
+            const teams = (await Client4.getGroupMessageMembersCommonTeams(props.channel.id)).data;
+            const teamsById: {[id: string]: Team} = {};
+            teams.forEach(team => {
+                teamsById[team.id] = team;
+            })
+            setCommonTeamsById(teamsById)
         }
 
         work();
@@ -91,8 +95,11 @@ const ConvertGmToChannelModal = (props: Props) => {
             <div className='convert-gm-to-channel-modal-body'>
                 <WarningTextSection channelMemberNames={channelMemberNames}/>
                 {
-                    commonTeams.length > 0 &&
-                    <TeamSelector teams={commonTeams} onChange={() => {}}/>
+                    Object.keys(commonTeamsById).length > 0 &&
+                    <TeamSelector
+                        teamsById={commonTeamsById}
+                        onChange={() => {}}
+                    />
                 }
                 <ChannelNameFormField
                     value={channelName}
