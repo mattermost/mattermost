@@ -657,19 +657,3 @@ func TestDiffChannelsBetweenCategories(t *testing.T) {
 		)
 	})
 }
-
-func createPostAsAdmin(th *TestHelper, channel *model.Channel) {
-	id := model.NewId()
-
-	post := &model.Post{
-		UserId:    th.SystemAdminUser.Id,
-		ChannelId: channel.Id,
-		Message:   "message_" + id,
-		CreateAt:  model.GetMillis() - 10000,
-	}
-
-	var err *model.AppError
-	if _, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
-		panic(err)
-	}
-}
