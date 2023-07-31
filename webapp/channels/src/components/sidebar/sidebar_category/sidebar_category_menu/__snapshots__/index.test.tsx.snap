@@ -7,7 +7,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
   <MarkAsUnreadItem
     handleViewCategory={[Function]}
     id="test_category_id"
-    numChannels={1}
+    numChannels={0}
   />
   <MenuItemSeparator />
   <MenuItem

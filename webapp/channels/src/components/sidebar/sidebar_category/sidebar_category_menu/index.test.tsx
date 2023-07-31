@@ -17,10 +17,26 @@ const initialState = {
         preferences: {
             myPreferences: {},
         },
+        channels: {
+            channels: {},
+            channelsInTeam: {},
+        },
+        users: {
+            currentUserId: '',
+            profiles: {},
+        },
+        teams: {
+            currentTeamId: '',
+        },
         general: {
             config: {
                 ExperimentalGroupUnreadChannels: 'default_off',
             },
+        },
+    },
+    views: {
+        channel: {
+            lastUnreadChannel: '',
         },
     },
 };
