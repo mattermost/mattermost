@@ -40,6 +40,19 @@ describe('Post PreHeader', () => {
             // * Assert the preHeader is displayed and works as expected
             verifySavedPost(postId, message);
 
+            // # Click the saved link
+            cy.get('@savedLink').click();
+
+            // * Check that the saved post shows the channel name
+            cy.findByTestId('search-item-container').within(() => {
+                cy.get('span.search-channel__name').
+                    should('be.visible').
+                    and('have.text', 'Off-Topic');
+            });
+
+            // # Close the RHS
+            cy.get('#searchResultsCloseButton').should('be.visible').click();
+
             // # Click again the center save icon of a post
             cy.clickPostSaveIcon(postId);
 

@@ -212,7 +212,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             margin-left: 0;
             background: none;
 
-            li {
+            div {
                 display: flex;
                 margin-left: 15px;
             }
@@ -753,7 +753,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
     }
 
-    #introTextInvite,
+    #inviteMembersButton,
     #addChannelsCta {
         display: flex;
         width: 100%;

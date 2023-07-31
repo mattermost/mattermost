@@ -254,7 +254,6 @@ type State = {
     showFormat: boolean;
     isFormattingBarHidden: boolean;
     showPostPriorityPicker: boolean;
-    pluginMenuOpen: string;
 };
 
 class AdvancedCreatePost extends React.PureComponent<Props, State> {
@@ -307,7 +306,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             showFormat: false,
             isFormattingBarHidden: props.isFormattingBarHidden,
             showPostPriorityPicker: false,
-            pluginMenuOpen: '',
         };
 
         this.topDiv = React.createRef<HTMLFormElement>();

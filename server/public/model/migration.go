@@ -40,7 +40,6 @@ const (
 	MigrationKeyAddPlayboosksManageRolesPermissions    = "playbooks_manage_roles"
 	MigrationKeyAddProductsBoardsPermissions           = "products_boards"
 	MigrationKeyAddCustomUserGroupsPermissionRestore   = "custom_groups_permission_restore"
-	MigrationKeyAddReadChannelContentPermissions       = "read_channel_content_permissions"
 	MigrationKeyElasticsearchFixChannelIndex           = "elasticsearch_fix_channel_index_migration"
 	MigrationKeyS3Path                                 = "s3_path_migration"
 )

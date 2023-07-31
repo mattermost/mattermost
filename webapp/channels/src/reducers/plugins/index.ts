@@ -182,6 +182,7 @@ const initialComponents: PluginsState['components'] = {
     MobileChannelHeaderButton: [],
     PostDropdownMenu: [],
     PostAction: [],
+    PostEditorAction: [],
     Product: [],
     RightHandSidebarComponent: [],
     UserGuideDropdownItem: [],

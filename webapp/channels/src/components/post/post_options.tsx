@@ -62,7 +62,6 @@ const PostOptions = (props: Props): JSX.Element => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showDotMenu, setShowDotMenu] = useState(false);
     const [showActionsMenu, setShowActionsMenu] = useState(false);
-    const [showPluginMenu, setShowPluginMenu] = useState('');
 
     useEffect(() => {
         if (props.isLastPost &&
@@ -103,11 +102,6 @@ const PostOptions = (props: Props): JSX.Element => {
     const handleActionsMenuOpened = (open: boolean) => {
         setShowActionsMenu(open);
         props.handleDropdownOpened!(open);
-    };
-
-    const handlePluginMenuOpened = (pluginId: string) => {
-        setShowPluginMenu(pluginId);
-        props.handleDropdownOpened!(pluginId == '');
     };
 
     const getDotMenuRef = () => dotMenuRef.current;
@@ -258,7 +252,6 @@ const PostOptions = (props: Props): JSX.Element => {
             <div
                 ref={dotMenuRef}
                 data-testid={`post-menu-${props.post.id}`}
-                data-postid={props.post.id}
                 className={classnames('col post-menu', {'post-menu--position': !hoverLocal && showCommentIcon})}
             >
                 {!collapsedThreadsEnabled && !showRecentlyUsedReactions && dotMenu}
