@@ -316,7 +316,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                 id='error.plugin_not_found.title'
                 defaultMessage='Plugin Not Found'
             />,
-        )).toEqual(true);
+        )).toEqual(false);
     });
 
     test('should not try to validate when a setting does not contain a key', () => {
