@@ -15,9 +15,11 @@ export type Props = {
     name: string
     placeholder: string
     onDisplayNameChange: (name: string) => void
+    autoFocus?: boolean
 }
 
 import './channel_name_form_field.scss';
+import {bool} from "yup";
 
 const ChannelNameFormField = (props: Props): JSX.Element => {
     const {value, name, placeholder, onDisplayNameChange} = props;
@@ -79,7 +81,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
             <Input
                 type='text'
                 autoComplete='off'
-                autoFocus={true}
+                autoFocus={props.autoFocus !== false}
                 required={true}
                 name={name}
                 containerClassName={`${name}-container`}

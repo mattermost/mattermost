@@ -90,7 +90,7 @@ const ConvertGmToChannelModal = (props: Props) => {
             handleCancel={handleCancel}
             handleConfirm={() => {}}
             onExited={handleCancel}
-
+            autoCloseOnConfirmButton={false}
         >
             <div className='convert-gm-to-channel-modal-body'>
                 <WarningTextSection channelMemberNames={channelMemberNames}/>
@@ -106,6 +106,7 @@ const ConvertGmToChannelModal = (props: Props) => {
                     name='convert-gm-to-channel-modal-channel-name'
                     placeholder={formatMessage({id: 'sidebar_left.sidebar_channel_modal.channel_name_placeholder', defaultMessage: 'Enter a name for the channel'})}
                     onDisplayNameChange={handleChannelNameChange}
+                    autoFocus={false}
                 />
             </div>
         </GenericModal>
