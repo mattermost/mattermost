@@ -81,7 +81,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             placeholder="e.g. some setting"
             setByEnv={false}
             type="input"
-            value="fsdsdg"
+            value=""
           />
           <BooleanSetting
             disabled={false}
@@ -126,7 +126,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             label="Setting Three"
             onChange={[Function]}
             setByEnv={false}
-            value="option3"
+            value="option1"
             values={
               Array [
                 Object {
@@ -198,7 +198,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               />
             }
             setByEnv={false}
-            value="Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23"
+            value=""
           />
           <Connect(UserAutocompleteSetting)
             disabled={false}
@@ -214,7 +214,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             label="Setting Six"
             onChange={[Function]}
             placeholder="Type a username here"
-            value="3xz3r6n7dtbbmgref3yw4zg7sr"
+            value=""
           />
           <AdminTextSetting
             disabled={false}
@@ -233,7 +233,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             placeholder="e.g. some setting"
             setByEnv={false}
             type="number"
-            value={7}
+            value=""
           />
           <AdminTextSetting
             disabled={false}
@@ -252,7 +252,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             placeholder="e.g. some setting"
             setByEnv={false}
             type="number"
-            value={10}
+            value=""
           />
           <div
             className="banner undefined"
@@ -585,7 +585,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 id="admin.true"
               />
             }
-            value={true}
+            value={false}
           />
           <ColorSetting
             disabled={false}
@@ -681,7 +681,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 id="admin.true"
               />
             }
-            value={true}
+            value={false}
           />
         </SettingsGroup>
       </form>
