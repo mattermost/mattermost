@@ -331,34 +331,3 @@ func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec.Success()
 	ReturnStatusOK(w)
 }
-
-func viewCategory(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId().RequireCategoryId()
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionToCategory(c.AppContext, *c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
-		c.SetPermissionError(model.PermissionEditOtherUsers)
-		return
-	}
-
-	auditRec := c.MakeAuditRecord("viewCategory", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-
-	times, appErr := c.App.ViewCategory(c.AppContext, c.Params.UserId, c.Params.CategoryId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	auditRec.Success()
-	resp := &model.ChannelViewResponse{
-		Status:            "OK",
-		LastViewedAtTimes: times,
-	}
-
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}

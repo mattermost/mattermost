@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {
@@ -31,19 +31,25 @@ import MarkAsReadMenuItem from './mark_as_read_menu_item';
 import CreateNewCategoryMenuItem from './create_new_category_menu_item';
 import {useDispatch, useSelector} from 'react-redux';
 import {shouldShowUnreadsCategory} from 'mattermost-redux/selectors/entities/preferences';
-import {setCategoryMuted, setCategorySorting, viewCategory} from 'mattermost-redux/actions/channel_categories';
+import {setCategoryMuted, setCategorySorting} from 'mattermost-redux/actions/channel_categories';
 
 import {openModal} from 'actions/views/modals';
+import {makeGetUnreadIdsForCategory} from 'selectors/views/channel_sidebar';
+import {GlobalState} from 'types/store';
+import {viewMultipleChannels} from 'mattermost-redux/actions/channels';
 
 type Props = {
     category: ChannelCategory;
 };
+
+const getUnreadsIdsForCategory = makeGetUnreadIdsForCategory();
 
 const SidebarCategoryMenu = ({
     category,
 }: Props) => {
     const dispatch = useDispatch();
     const showUnreadsCategory = useSelector(shouldShowUnreadsCategory);
+    const unreadsIds = useSelector((state: GlobalState) => getUnreadsIdsForCategory(state, category));
 
     const {formatMessage} = useIntl();
 
@@ -213,10 +219,10 @@ const SidebarCategoryMenu = ({
         </Menu.SubMenu>
     );
 
-    function handleViewCategory() {
-        dispatch(viewCategory(category.id, category.team_id));
+    const handleViewCategory = useCallback(() => {
+        dispatch(viewMultipleChannels(unreadsIds));
         trackEvent('ui', 'ui_sidebar_category_menu_viewCategory');
-    }
+    }, [dispatch, unreadsIds]);
 
     const markAsReadMenuItem = showUnreadsCategory ?
         null :
@@ -224,7 +230,7 @@ const SidebarCategoryMenu = ({
             <MarkAsReadMenuItem
                 id={category.id}
                 handleViewCategory={handleViewCategory}
-                numChannels={category.channel_ids.length}
+                numChannels={unreadsIds.length}
             />
         );
 

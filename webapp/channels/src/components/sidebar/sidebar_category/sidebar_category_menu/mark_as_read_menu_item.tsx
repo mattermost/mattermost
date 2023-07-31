@@ -25,6 +25,15 @@ const MarkAsUnreadItem = ({
     const dispatch = useDispatch();
 
     const onClick = useCallback(() => {
+        if (numChannels <= 0) {
+            return;
+        }
+
+        if (numChannels === 1) {
+            handleViewCategory();
+            return;
+        }
+
         dispatch(openModal({
             modalId: ModalIdentifiers.DELETE_CATEGORY,
             dialogType: MarkAsReadConfirmModal,

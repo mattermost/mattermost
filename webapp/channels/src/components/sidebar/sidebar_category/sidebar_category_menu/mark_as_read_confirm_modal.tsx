@@ -6,16 +6,18 @@ import {useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
-import '../../../category_modal.scss';
+import 'components/category_modal.scss';
 
 type Props = {
     handleConfirm: () => void;
     numChannels: number;
+    onExited: () => void;
 };
 
 const MarkAsReadConfirmModal = ({
     handleConfirm,
     numChannels,
+    onExited,
 }: Props) => {
     const intl = useIntl();
 
@@ -28,8 +30,8 @@ const MarkAsReadConfirmModal = ({
             ariaLabel={header}
             modalHeaderText={header}
             handleConfirm={handleConfirm}
+            onExited={onExited}
             confirmButtonText={confirm}
-            confirmButtonClassName={'delete'}
         >
             <span className='mark-as-read__helpText'>
                 {body}

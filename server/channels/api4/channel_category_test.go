@@ -547,27 +547,6 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 	})
 }
 
-func TestViewCategory(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	t.Run("should fail when trying to view invalid category", func(t *testing.T) {
-		user, client := setupUserForSubtest(t, th)
-		_, err := client.ViewCategory(context.Background(), user.Id, th.BasicTeam.Id, "invalidID")
-		require.Error(t, err)
-	})
-	t.Run("should work when trying to view valid category", func(t *testing.T) {
-		user, client := setupUserForSubtest(t, th)
-
-		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
-		require.NoError(t, err)
-		require.Len(t, categories.Categories, 3)
-		require.Len(t, categories.Order, 3)
-
-		_, err = client.ViewCategory(context.Background(), user.Id, th.BasicTeam.Id, categories.Categories[1].Id)
-		require.NoError(t, err)
-	})
-}
-
 func setupUserForSubtest(t *testing.T, th *TestHelper) (*model.User, *model.Client4) {
 	password := "password"
 	user, appErr := th.App.CreateUser(th.Context, &model.User{

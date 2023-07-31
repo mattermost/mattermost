@@ -1184,7 +1184,6 @@ type AppIface interface {
 	UserIsFirstAdmin(user *model.User) bool
 	VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError
 	VerifyUserEmail(userID, email string) *model.AppError
-	ViewCategory(c request.CTX, userID string, categoryId string) (map[string]int64, *model.AppError)
 	ViewChannel(c request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
 	WriteExportFile(fr io.Reader, path string) (int64, *model.AppError)
 	WriteExportFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)

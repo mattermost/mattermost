@@ -1903,13 +1903,6 @@ export default class Client4 {
         );
     };
 
-    viewCategory = (userId: string, categoryId: string, teamId: string) => {
-        return this.doFetch<ChannelViewResponse>(
-            `${this.getChannelCategoriesRoute(userId, teamId)}/${categoryId}/view`,
-            {method: 'post'},
-        );
-    }
-
     deleteChannelCategory = (userId: string, teamId: string, categoryId: string) => {
         return this.doFetch<ChannelCategory>(
             `${this.getChannelCategoriesRoute(userId, teamId)}/${categoryId}`,

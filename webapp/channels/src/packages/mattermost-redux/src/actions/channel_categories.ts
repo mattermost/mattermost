@@ -31,7 +31,6 @@ import {CategorySorting, OrderedChannelCategories, ChannelCategory} from '@matte
 import {Channel} from '@mattermost/types/channels';
 
 import {insertMultipleWithoutDuplicates, insertWithoutDuplicates, removeItem} from 'mattermost-redux/utils/array_utils';
-import {markMultipleChannelsAsRead} from './channels';
 
 export function expandCategory(categoryId: string) {
     return setCategoryCollapsed(categoryId, false);
@@ -135,26 +134,6 @@ function updateCategory(category: ChannelCategory) {
         // The updated category will be added to the state after receiving the corresponding websocket event.
 
         return {data: updatedCategory};
-    };
-}
-
-export function viewCategory(categoryId: string, teamId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState();
-        const currentUserId = getCurrentUserId(state);
-
-        let response;
-        try {
-            response = await Client4.viewCategory(currentUserId, categoryId, teamId);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-
-        dispatch(markMultipleChannelsAsRead(response.last_viewed_at_times));
-
-        return {data: true};
     };
 }
 
