@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -3485,67 +3484,4 @@ func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*m
 	}
 
 	return channel, nil
-}
-
-func (a *App) GetTopChannelsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topChannels, err := a.Srv().Store().Channel().GetTopChannelsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topChannels, nil
-}
-
-func (a *App) GetTopChannelsForUserSince(c request.CTX, userID, teamID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topChannels, err := a.Srv().Store().Channel().GetTopChannelsForUserSince(userID, teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topChannels, nil
-}
-
-// PostCountsByDuration returns the post counts for the given channels, grouped by day, starting at the given time.
-// Unless one is specifically itending to omit results from part of the calendar day, it will typically makes the most sense to
-// use a sinceUnixMillis parameter value as returned by model.GetStartOfDayMillis.
-//
-// WARNING: PostCountsByDuration PERFORMS NO AUTHORIZATION CHECKS ON THE GIVEN CHANNELS.
-func (a *App) PostCountsByDuration(c request.CTX, channelIDs []string, sinceUnixMillis int64, userID *string, grouping model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("PostCountsByDuration", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-	postCountByDay, err := a.Srv().Store().Channel().PostCountsByDuration(channelIDs, sinceUnixMillis, userID, grouping, groupingLocation)
-	if err != nil {
-		return nil, model.NewAppError("PostCountsByDuration", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return postCountByDay, nil
-}
-
-func (a *App) GetTopInactiveChannelsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-	topChannels, err := a.Srv().Store().Channel().GetTopInactiveChannelsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopInactiveChannelsForTeamSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topChannels, nil
-}
-
-func (a *App) GetTopInactiveChannelsForUserSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topChannels, err := a.Srv().Store().Channel().GetTopInactiveChannelsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopInactiveChannelsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topChannels, nil
 }

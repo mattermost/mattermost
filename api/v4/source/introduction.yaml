@@ -579,8 +579,6 @@ tags:
     description: Endpoints for interactive actions for use by integrations.
   - name: shared channels
     description: Endpoints for getting information about shared channels.
-  - name: insights
-    description: Endpoints for getting insights into teams and users.
   - name: terms of service
     description: Endpoints for getting and updating custom terms of service.
   - name: imports
@@ -635,7 +633,6 @@ x-tagGroups:
       - schemes
       - integration_actions
       - shared channels
-      - insights
       - terms of service
       - imports
       - permissions

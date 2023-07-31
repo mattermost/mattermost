@@ -17,8 +17,6 @@ export const GUEST_INCLUDED_PERMISSIONS = [
     Permissions.DELETE_POST,
     Permissions.ADD_REACTION,
     Permissions.REMOVE_REACTION,
-    Permissions.READ_CHANNEL,
-    Permissions.UPLOAD_FILE,
     Permissions.USE_CHANNEL_MENTIONS,
     Permissions.USE_GROUP_MENTIONS,
     Permissions.CREATE_POST,

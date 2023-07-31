@@ -840,32 +840,6 @@ func (_m *PostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error)
 	return r0, r1
 }
 
-// GetTopDMsForUserSince provides a mock function with given fields: userID, since, offset, limit
-func (_m *PostStore) GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error) {
-	ret := _m.Called(userID, since, offset, limit)
-
-	var r0 *model.TopDMList
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, int64, int, int) (*model.TopDMList, error)); ok {
-		return rf(userID, since, offset, limit)
-	}
-	if rf, ok := ret.Get(0).(func(string, int64, int, int) *model.TopDMList); ok {
-		r0 = rf(userID, since, offset, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.TopDMList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, int64, int, int) error); ok {
-		r1 = rf(userID, since, offset, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // HasAutoResponsePostByUserSince provides a mock function with given fields: options, userId
 func (_m *PostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
 	ret := _m.Called(options, userId)
