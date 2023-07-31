@@ -322,11 +322,12 @@ describe('components/AdvancedCreateComment', () => {
         expect(wrapper.state().postError).toBe('test error 2');
     });
 
+    // debug next
     test('handleUploadError should update state with the correct error', () => {
         const updateCommentDraftWithRootId = jest.fn();
         const draft :any= {
             message: 'Test message',
-            uploadsInProgress: [1, 2, 3],
+            uploadsInProgress: ['1', '2', '3'],
             fileInfos: [{}, {}, {}],
         };
         const props : any = {...baseProps, draft, updateCommentDraftWithRootId};
@@ -345,10 +346,10 @@ describe('components/AdvancedCreateComment', () => {
         expect(updateCommentDraftWithRootId).toHaveBeenCalled();
         expect(updateCommentDraftWithRootId.mock.calls[0][0]).toEqual(props.rootId);
         expect(updateCommentDraftWithRootId.mock.calls[0][1]).toEqual(
-            expect.objectContaining({uploadsInProgress: [2, 3]}),
+            expect.objectContaining({uploadsInProgress: ['2', '3']}),
         );
         expect(wrapper.state().serverError!.message).toBe(testError1);
-        expect(wrapper.state().draft!.uploadsInProgress).toEqual([2, 3]);
+        expect(wrapper.state().draft!.uploadsInProgress).toEqual(['2', '3']);
 
         const testError2 = 'test error 2';
         instance.handleUploadError(testError2, '', undefined, props.rootId);
@@ -397,35 +398,35 @@ describe('components/AdvancedCreateComment', () => {
     });
 
     test('handleFileUploadComplete should update comment draft correctly', () => {
-        const updateCommentDraftWithRootId = jest.fn();
-        const fileInfos = [{id: '1', name: 'aaa', create_at: 100}, {id: '2', name: 'bbb', create_at: 200}];
+        const updateCommentDraftWithRootId:any = jest.fn();
+        const fileInfos:any = [{id: '1', name: 'aaa', create_at: 100}, {id: '2', name: 'bbb', create_at: 200}];
         const draft :any= {
             message: 'Test message',
-            uploadsInProgress: [1, 2, 3],
+            uploadsInProgress: ['1', '2', '3'],
             fileInfos,
         };
         const props : any = {...baseProps, updateCommentDraftWithRootId, draft};
 
-        const wrapper = shallow<AdvancedCreateComment>(
+        const wrapper:any = shallow<AdvancedCreateComment>(
             <AdvancedCreateComment {...props}/>,
         );
 
-        const instance = wrapper.instance();
+        const instance:any = wrapper.instance();
         wrapper.setState({draft});
         instance.draftsForPost[props.rootId] = draft;
 
         const uploadCompleteFileInfo:any = [{id: '3', name: 'ccc', create_at: 300}];
-        const expectedNewFileInfos = fileInfos.concat(uploadCompleteFileInfo);
-        instance.handleFileUploadComplete(uploadCompleteFileInfo, ['3'], '', props.rootId);
+        const expectedNewFileInfos:any = fileInfos.concat(uploadCompleteFileInfo);
+        instance.handleFileUploadComplete(uploadCompleteFileInfo, ['3'],null as any, props.rootId);
 
         jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
         expect(updateCommentDraftWithRootId).toHaveBeenCalled();
         expect(updateCommentDraftWithRootId.mock.calls[0][0]).toEqual(props.rootId);
         expect(updateCommentDraftWithRootId.mock.calls[0][1]).toEqual(
-            expect.objectContaining({uploadsInProgress: [1, 2], fileInfos: expectedNewFileInfos}),
+            expect.objectContaining({uploadsInProgress: ['1', '2'], fileInfos: expectedNewFileInfos}),
         );
 
-        expect(wrapper.state().draft!.uploadsInProgress).toEqual([1, 2]);
+        expect(wrapper.state().draft!.uploadsInProgress).toEqual(['1', '2']);
         expect(wrapper.state().draft!.fileInfos).toEqual(expectedNewFileInfos);
     });
 
@@ -642,7 +643,8 @@ describe('components/AdvancedCreateComment', () => {
         );
 
         const preventDefault = jest.fn();
-        wrapper.instance().handleSubmit(preventDefaultObject);        expect(onSubmit).toHaveBeenCalled();
+        wrapper.instance().handleSubmit({...preventDefaultObject,preventDefault});        
+        expect(onSubmit).toHaveBeenCalled();
         expect(preventDefault).toHaveBeenCalled();
     });
 
@@ -656,7 +658,7 @@ describe('components/AdvancedCreateComment', () => {
             preventDefaultObject.preventDefault = preventDefault;
         });
 
-        ['channel', 'all', 'here'].forEach((mention) => {
+        ['channel', 'all', 'here'].forEach((mention:string) => {
             describe(`should not show Confirm Modal for @${mention} mentions`, () => {
                 it('when channel member count too low', () => {
                     const props : any = {
