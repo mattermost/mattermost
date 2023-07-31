@@ -1403,7 +1403,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.setState({showEmojiPicker: false});
     };
 
-    setMessageAndCaretPostion = (newMessage: string, newCaretPosition: number) => {
+    setMessageAndCaretPosition = (newMessage: string, newCaretPosition: number) => {
         const textbox = this.textboxRef.current?.getInputBox();
 
         this.setState({
@@ -1422,7 +1422,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     prefillMessage = (message: string, shouldFocus?: boolean) => {
-        this.setMessageAndCaretPostion(message, message.length);
+        this.setMessageAndCaretPosition(message, message.length);
 
         if (shouldFocus) {
             const inputBox = this.textboxRef.current?.getInputBox();
@@ -1444,7 +1444,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
         if (this.state.message === '') {
             const newMessage = ':' + emojiAlias + ': ';
-            this.setMessageAndCaretPostion(newMessage, newMessage.length);
+            this.setMessageAndCaretPosition(newMessage, newMessage.length);
         } else {
             const {message} = this.state;
             const {firstPiece, lastPiece} = splitMessageBasedOnCaretPosition(this.state.caretPosition, message);
@@ -1455,7 +1455,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
             const newCaretPosition =
                 firstPiece === '' ? `:${emojiAlias}: `.length : `${firstPiece} :${emojiAlias}: `.length;
-            this.setMessageAndCaretPostion(newMessage, newCaretPosition);
+            this.setMessageAndCaretPosition(newMessage, newCaretPosition);
         }
 
         this.handleEmojiClose();
@@ -1567,19 +1567,25 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
         const pluginItems = this.props.postEditorActions?.
             map((item) => {
-                console.log(item.subComponents)
-                return (
-                    <ActionsMenu
-                        key={item.id}
-                        tooltipText={item.text}
-                        icon={item.icon}
-                        post={draft as any}
-                        location='EDITOR'
-                        handleDropdownOpened={(open: boolean) => this.setState({pluginMenuOpen: (open ? item.id : '')})}
-                        isMenuOpen={this.state.pluginMenuOpen == item.id}
-                        customMenuItems={item.subComponents}
-                    />
-                );
+                // TODO: Add the selected text support here
+                if (item.component) {
+                    const Component = item.component as any
+                    return (
+                        <Component
+                            draft={draft}
+                            selectedText={''}
+                            updateText={(message: string) => {
+                                this.setState({
+                                    message,
+                                });
+                                this.handleDraftChange({
+                                    ...this.props.draft,
+                                    message,
+                                });
+                            }}
+                        />);
+                }
+                return null
             });
 
         let centerClass = '';
@@ -1671,7 +1677,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                                 disabled={this.props.shouldShowPreview}
                             />
                         ),
-                        ...pluginItems,
+                        ...(pluginItems || []),
                     ].filter(Boolean)}
                 />
             </form>

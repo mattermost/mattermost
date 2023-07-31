@@ -39,15 +39,11 @@ export type Props = {
     intl: IntlShape;
     isMenuOpen?: boolean;
     isSysAdmin: boolean;
-    location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | 'SEARCH' | 'EDITOR' | string;
+    location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | 'SEARCH' | string;
     pluginMenuItems?: PluginComponent[];
-    customMenuItems?: PluginComponent[];
     post: Post;
     teamId: string;
     canOpenMarketplace: boolean;
-    tooltipText?: React.ReactNode;
-    icon?: React.ReactNode;
-    onPluginActionReturn: (text: string) => void
 
     /**
      * Components for overriding provided by plugins
@@ -114,10 +110,10 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
             id='actions-menu-icon-tooltip'
             className='hidden-xs'
         >
-            {this.props.tooltipText || <FormattedMessage
+            <FormattedMessage
                 id='post_info.tooltip.actions'
                 defaultMessage='Message actions'
-            />}
+            />
         </Tooltip>
     );
 
@@ -277,7 +273,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
 
         // const isMobile = this.props.isMobileView TODO;
 
-        const pluginItems = (this.props.customMenuItems || this.props.pluginMenuItems || []).
+        const pluginItems = this.props.pluginMenuItems?.
             filter((item) => {
                 return item.filter ? item.filter(this.props.post.id) : item;
             }).
@@ -301,10 +297,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         text={item.text}
                         onClick={() => {
                             if (item.action) {
-                                const result = item.action(this.props.post.id || this.props.post.message);
-                                if (result !== null && result !== undefined) {
-                                    this.props.onPluginActionReturn(result)
-                                }
+                                item.action(this.props.post.id);
                             }
                         }}
                     />
@@ -337,7 +330,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         const {formatMessage} = this.props.intl;
 
         let marketPlace = null;
-        if (this.props.canOpenMarketplace && !this.props.customMenuItems) {
+        if (this.props.canOpenMarketplace) {
             marketPlace = (
                 <React.Fragment key={'marketplace'}>
                     {this.renderDivider('marketplace')}
@@ -402,13 +395,12 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         id={`${this.props.location}_actions_button_${this.props.post.id}`}
                         aria-label={Utils.localizeMessage('post_info.actions.tooltip.actions', 'Actions').toLowerCase()}
                         className={classNames('post-menu__item', {
-                            'post-menu__item--show': this.props.location === Locations.EDITOR,
                             'post-menu__item--active': this.props.isMenuOpen,
                         })}
                         type='button'
                         aria-expanded='false'
                     >
-                        {this.props.icon || <i className={'icon icon-apps'}/>}
+                        <i className={'icon icon-apps'}/>
                     </button>
                 </OverlayTrigger>
                 <Menu

@@ -126,6 +126,18 @@ export default class PluginRegistry {
         return dispatchPluginComponentAction('PostMessageAttachment', this.id, component);
     });
 
+    // Register a component to the add to the post message menu.
+    // Accepts a React component. Returns a unique identifier.
+    registerPostActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('PostAction', this.id, component);
+    });
+
+    // Register a component to the add to the post editor menu.
+    // Accepts a React component. Returns a unique identifier.
+    registerPostEditorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('PostEditorAction', this.id, component);
+    });
+
     // Register a component to show as a tooltip when a user hovers on a link in a post.
     // Accepts a React component. Returns a unique identifier.
     // The component will be passed the following props:
@@ -526,122 +538,6 @@ export default class PluginRegistry {
                 text: resolveReactElement(text),
                 action,
                 filter,
-            },
-        });
-
-        return id;
-    });
-
-    // Register a post action item by providing some text and an action function.
-    // Accepts the following:
-    // - text - A string to display in the name of the action on hover
-    // - icon - A React element to display the icon
-    // - subComponents - A list of subcomponents to show in a menu
-    // - action - A function to trigger when component is clicked on
-    // - filter - A function whether to apply the plugin into the post actions
-    // Returns a unique identifier.
-    registerPostAction = reArg([
-        'text',
-        'icon',
-        'subComponents',
-        'action',
-        'filter',
-    ], ({
-        text,
-        icon,
-        subComponents,
-        action,
-        filter,
-    }: {
-        text: string;
-        icon: ReactResolvable;
-        subComponents: {
-            text: ReactResolvable;
-            action: PluginComponent['action'];
-            filter: PluginComponent['filter'];
-        }[];
-        action: PluginComponent['action'];
-        filter: PluginComponent['filter'];
-    }) => {
-        const id = generateId();
-
-        store.dispatch({
-            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
-            name: 'PostAction',
-            data: {
-                id,
-                pluginId: this.id,
-                text: text,
-                icon: resolveReactElement(icon),
-                action,
-                filter,
-                subComponents: subComponents.map((subComponent) => {
-                    return {
-                        id: generateId(),
-                        pluginId: this.id,
-                        text: resolveReactElement(subComponent.text),
-                        action: subComponent.action,
-                        filter: subComponent.filter,
-                    }
-                }),
-            },
-        });
-
-        return id;
-    });
-
-    // Register a post editor action item by providing some text and an action function.
-    // Accepts the following:
-    // - text - A string to display in the name of the action on hover
-    // - icon - A React element to display the icon
-    // - subComponents - A list of subcomponents to show in a menu
-    // - action - A function to trigger when component is clicked on
-    // - filter - A function whether to apply the plugin into the post actions
-    // Returns a unique identifier.
-    registerPostEditorAction = reArg([
-        'text',
-        'icon',
-        'subComponents',
-        'action',
-        'filter',
-    ], ({
-        text,
-        icon,
-        subComponents,
-        action,
-        filter,
-    }: {
-        text: string;
-        icon: ReactResolvable;
-        subComponents: {
-            text: ReactResolvable;
-            action: PluginComponent['action'];
-            filter: PluginComponent['filter'];
-        }[];
-        action: PluginComponent['action'];
-        filter: PluginComponent['filter'];
-    }) => {
-        const id = generateId();
-
-        store.dispatch({
-            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
-            name: 'PostEditorAction',
-            data: {
-                id,
-                pluginId: this.id,
-                text: text,
-                icon: resolveReactElement(icon),
-                action,
-                filter,
-                subComponents: subComponents.map((subComponent) => {
-                    return {
-                        id: generateId(),
-                        pluginId: this.id,
-                        text: resolveReactElement(subComponent.text),
-                        action: subComponent.action,
-                        filter: subComponent.filter,
-                    }
-                }),
             },
         });
 

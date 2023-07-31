@@ -187,21 +187,12 @@ const PostOptions = (props: Props): JSX.Element => {
     let pluginItems: ReactNode = null;
     if ((!isEphemeral && !post.failed && !systemMessage) && hoverLocal) {
         pluginItems = props.pluginActions?.
-            filter((item) => {
-                return item.filter ? item.filter(props.post.id) : item;
-            }).
             map((item) => {
-                return (
-                    <ActionsMenu
-                        tooltipText={item.text}
-                        icon={item.icon}
-                        post={post}
-                        location={props.location}
-                        handleDropdownOpened={(open) => handlePluginMenuOpened(open ? item.id : '')}
-                        isMenuOpen={showPluginMenu == item.id}
-                        customMenuItems={item.subComponents}
-                    />
-                );
+                if (item.component) {
+                    const Component = item.component as any
+                    return (<Component post={props.post}/>);
+                }
+                return null
             }) || [];
     }
 
