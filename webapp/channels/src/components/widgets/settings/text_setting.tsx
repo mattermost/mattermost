@@ -5,7 +5,7 @@ import React, {ChangeEvent, ReactNode} from 'react';
 
 import Setting from './setting';
 
-const INPUT_TYPES = ['text', 'textarea', 'number', 'email', 'tel', 'url', 'password'] as const;
+const INPUT_TYPES = ['text', 'textarea', 'number', 'email', 'tel', 'url', 'password', 'input'] as const;
 export type InputTypes = typeof INPUT_TYPES[number];
 
 export type Props = {
