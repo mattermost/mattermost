@@ -1995,13 +1995,13 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 		return nil, err
 	}
 
-	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannel) {
+	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannelContent) {
 		if channel.Type == model.ChannelTypeOpen {
 			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
 				return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
 			}
 		} else {
-			return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadChannel})
+			return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent})
 		}
 	}
 
@@ -2217,7 +2217,7 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 	} else if channel.Type == model.ChannelTypePrivate {
 		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
 	} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannel)
+		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent)
 	}
 
 	if !hasPermissionToAccessChannel {
