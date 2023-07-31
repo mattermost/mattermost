@@ -1571,7 +1571,14 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                     return (
                         <Component
                             draft={draft}
-                            selectedText={''}
+                            getSelectedText={() => {
+                                const input = this.textboxRef.current?.getInputBox();
+
+                                return {
+                                    start: input.selectionStart,
+                                    end: input.selectionEnd,
+                                };
+                            }}
                             updateText={(message: string) => {
                                 this.setState({
                                     message,
