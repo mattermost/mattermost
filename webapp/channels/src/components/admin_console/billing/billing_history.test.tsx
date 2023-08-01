@@ -5,9 +5,7 @@ import React from 'react';
 
 import {Provider} from 'react-redux';
 
-import {screen} from '@testing-library/react';
-
-import {renderWithIntl, renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithIntl, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
@@ -136,7 +134,7 @@ describe('components/admin_console/billing/billing_history', () => {
         expect(screen.queryByTestId(invoiceA.id)).not.toBeInTheDocument();
         expect(screen.queryByTestId(invoiceB.id)).not.toBeInTheDocument();
 
-        expect(screen.getByRole('link')).toHaveAttribute('href', 'https://docs.mattermost.com/cloud/cloud-billing/cloud-billing.html?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=billing_history&uid=current_user_id&sid=');
+        expect(screen.getByRole('link')).toHaveAttribute('href', CloudLinks.BILLING_DOCS + '?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=billing_history&uid=current_user_id&sid=');
         expect(screen.getByRole('link')).toHaveTextContent('See how billing works');
         expect(screen.getByTestId('no-invoices')).toHaveTextContent(NO_INVOICES_LEGEND);
     });
@@ -226,7 +224,7 @@ describe('BillingHistory -- self-hosted', () => {
         expect(screen.queryByTestId(invoiceA.id)).not.toBeInTheDocument();
         expect(screen.queryByTestId(invoiceB.id)).not.toBeInTheDocument();
 
-        expect(screen.getByRole('link')).toHaveAttribute('href', 'https://docs.mattermost.com/manage/self-hosted-billing.html?utm_source=mattermost&utm_medium=in-product&utm_content=billing_history&uid=current_user_id&sid=');
+        expect(screen.getByRole('link')).toHaveAttribute('href', HostedCustomerLinks.SELF_HOSTED_BILLING + '?utm_source=mattermost&utm_medium=in-product&utm_content=billing_history&uid=current_user_id&sid=');
         expect(screen.getByRole('link')).toHaveTextContent('See how billing works');
         expect(screen.getByTestId('no-invoices')).toHaveTextContent(NO_INVOICES_LEGEND);
     });

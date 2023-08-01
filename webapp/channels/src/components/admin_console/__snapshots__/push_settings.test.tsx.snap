@@ -1,0 +1,328 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/PushSettings should match snapshot, licensed 1`] = `
+<form
+  className="form-horizontal"
+  onSubmit={[Function]}
+  role="form"
+>
+  <div
+    className="wrapper--fixed"
+  >
+    <AdminHeader>
+      <MemoizedFormattedMessage
+        defaultMessage="Push Notification Server"
+        id="admin.environment.pushNotificationServer"
+      />
+    </AdminHeader>
+    <SettingsGroup>
+      <DropdownSetting
+        helpText={null}
+        id="pushNotificationServerType"
+        isDisabled={false}
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Enable Push Notifications: "
+            id="admin.email.pushTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        value="mhpns"
+        values={
+          Array [
+            Object {
+              "text": "Do not send push notifications",
+              "value": "off",
+            },
+            Object {
+              "text": "Use HPNS connection with uptime SLA to send notifications to iOS and Android apps",
+              "value": "mhpns",
+            },
+            Object {
+              "text": "Use TPNS connection to send notifications to iOS and Android apps",
+              "value": "mtpns",
+            },
+            Object {
+              "text": "Manually enter Push Notification Service location",
+              "value": "custom",
+            },
+          ]
+        }
+      />
+      <DropdownSetting
+        id="pushNotificationServerLocation"
+        isDisabled={false}
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Push Notification Server location:"
+            id="admin.email.pushServerLocationTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        value="us"
+        values={
+          Array [
+            Object {
+              "text": "US",
+              "value": "us",
+            },
+            Object {
+              "text": "Germany",
+              "value": "de",
+            },
+          ]
+        }
+      />
+      <div
+        className="form-group"
+      >
+        <div
+          className="col-sm-4"
+        />
+        <div
+          className="col-sm-8"
+        >
+          <input
+            checked={false}
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <MemoizedFormattedMessage
+            defaultMessage=" I understand and accept the Mattermost Hosted Push Notification Service <linkTerms>Terms of Service</linkTerms> and <linkPrivacy>Privacy Policy</linkPrivacy>."
+            id="admin.email.agreeHPNS"
+            values={
+              Object {
+                "linkPrivacy": [Function],
+                "linkTerms": [Function],
+              }
+            }
+          />
+        </div>
+      </div>
+      <AdminTextSetting
+        disabled={true}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Download <linkIOS>Mattermost iOS app</linkIOS> from iTunes. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkHPNS>Mattermost Hosted Push Notification Service</linkHPNS>."
+            id="admin.email.mhpnsHelp"
+            values={
+              Object {
+                "linkAndroid": [Function],
+                "linkHPNS": [Function],
+                "linkIOS": [Function],
+              }
+            }
+          />
+        }
+        id="pushNotificationServer"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Push Notification Server:"
+            id="admin.email.pushServerTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder="E.g.: \\"https://push-test.mattermost.com\\""
+        setByEnv={false}
+        value="https://push.mattermost.com"
+      />
+      <AdminTextSetting
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Maximum total number of users in a channel before users typing messages, @all, @here, and @channel no longer send notifications because of performance."
+            id="admin.team.maxNotificationsPerChannelDescription"
+          />
+        }
+        id="maxNotificationsPerChannel"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Max Notifications Per Channel:"
+            id="admin.team.maxNotificationsPerChannelTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder="E.g.: \\"1000\\""
+        setByEnv={false}
+        type="number"
+        value={1000}
+      />
+    </SettingsGroup>
+    <div
+      className="admin-console-save"
+    >
+      <SaveButton
+        btnClass="btn-primary"
+        defaultMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Save"
+            id="save_button.save"
+          />
+        }
+        disabled={true}
+        extraClasses=""
+        onClick={[Function]}
+        saving={false}
+        savingMessage="Saving Config..."
+      />
+      <div
+        className="error-message"
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+      <Overlay
+        animation={[Function]}
+        placement="top"
+        rootClose={false}
+        show={false}
+        target={null}
+      >
+        <Tooltip
+          id="error-tooltip"
+        />
+      </Overlay>
+    </div>
+  </div>
+</form>
+`;
+
+exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
+<form
+  className="form-horizontal"
+  onSubmit={[Function]}
+  role="form"
+>
+  <div
+    className="wrapper--fixed"
+  >
+    <AdminHeader>
+      <MemoizedFormattedMessage
+        defaultMessage="Push Notification Server"
+        id="admin.environment.pushNotificationServer"
+      />
+    </AdminHeader>
+    <SettingsGroup>
+      <DropdownSetting
+        helpText={null}
+        id="pushNotificationServerType"
+        isDisabled={false}
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Enable Push Notifications: "
+            id="admin.email.pushTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        value="custom"
+        values={
+          Array [
+            Object {
+              "text": "Do not send push notifications",
+              "value": "off",
+            },
+            Object {
+              "text": "Use TPNS connection to send notifications to iOS and Android apps",
+              "value": "mtpns",
+            },
+            Object {
+              "text": "Manually enter Push Notification Service location",
+              "value": "custom",
+            },
+          ]
+        }
+      />
+      <AdminTextSetting
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Learn more about compiling and deploying your own mobile apps from an <link>Enterprise App Store</link>."
+            id="admin.email.easHelp"
+            values={
+              Object {
+                "link": [Function],
+              }
+            }
+          />
+        }
+        id="pushNotificationServer"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Push Notification Server:"
+            id="admin.email.pushServerTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder="E.g.: \\"https://push-test.mattermost.com\\""
+        setByEnv={false}
+        value="https://push.mattermost.com"
+      />
+      <AdminTextSetting
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Maximum total number of users in a channel before users typing messages, @all, @here, and @channel no longer send notifications because of performance."
+            id="admin.team.maxNotificationsPerChannelDescription"
+          />
+        }
+        id="maxNotificationsPerChannel"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Max Notifications Per Channel:"
+            id="admin.team.maxNotificationsPerChannelTitle"
+          />
+        }
+        onChange={[Function]}
+        placeholder="E.g.: \\"1000\\""
+        setByEnv={false}
+        type="number"
+        value={1000}
+      />
+    </SettingsGroup>
+    <div
+      className="admin-console-save"
+    >
+      <SaveButton
+        btnClass="btn-primary"
+        defaultMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Save"
+            id="save_button.save"
+          />
+        }
+        disabled={true}
+        extraClasses=""
+        onClick={[Function]}
+        saving={false}
+        savingMessage="Saving Config..."
+      />
+      <div
+        className="error-message"
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+      <Overlay
+        animation={[Function]}
+        placement="top"
+        rootClose={false}
+        show={false}
+        target={null}
+      >
+        <Tooltip
+          id="error-tooltip"
+        />
+      </Overlay>
+    </div>
+  </div>
+</form>
+`;

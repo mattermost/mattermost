@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useRef, useCallback, FormEvent} from 'react';
 import {useIntl} from 'react-intl';
 import {Link, useLocation, useHistory} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
@@ -59,6 +59,7 @@ import {setCSRFFromCookie} from 'utils/utils';
 import LoginMfa from './login_mfa';
 
 import './login.scss';
+import ExternalLink from 'components/external_link';
 
 const MOBILE_SCREEN_WIDTH = 1200;
 
@@ -98,6 +99,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         CustomDescriptionText,
         SiteName,
         ExperimentalPrimaryTeam,
+        ForgotPasswordLink,
+        PasswordEnableForgotLink,
     } = useSelector(getConfig);
     const {IsLicensed} = useSelector(getLicense);
     const initializing = useSelector((state: GlobalState) => state.requests.users.logout.status === RequestStatus.SUCCESS || !state.storage.initialized);
@@ -672,12 +675,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         setBrandImageError(true);
     };
 
-    const onEnterKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === Constants.KeyCodes.ENTER[0]) {
-            preSubmit(e);
-        }
-    };
-
     const getCardTitle = () => {
         if (CustomDescriptionText) {
             return CustomDescriptionText;
@@ -707,6 +704,34 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 {formatMessage({id: 'login.subtitle', defaultMessage: 'Collaborate with your team in real-time'})}
             </p>
         );
+    };
+
+    const getResetPasswordLink = () => {
+        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false') {
+            return null;
+        }
+
+        if (ForgotPasswordLink) {
+            return (
+                <div className='login-body-card-form-link'>
+                    <ExternalLink href={ForgotPasswordLink}>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                    </ExternalLink>
+                </div>
+            );
+        }
+
+        if (enableSignInWithUsername || enableSignInWithEmail) {
+            return (
+                <div className='login-body-card-form-link'>
+                    <Link to='/reset_password'>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                    </Link>
+                </div>
+            );
+        }
+
+        return null;
     };
 
     const getContent = () => {
@@ -765,7 +790,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             className='login-body-card-content'
-                            onKeyDown={onEnterKeyDown}
                             tabIndex={0}
                         >
                             <p className='login-body-card-title'>
@@ -781,44 +805,44 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                 />
                             )}
                             {enableBaseLogin && (
-                                <div className='login-body-card-form'>
-                                    <Input
-                                        ref={loginIdInput}
-                                        name='loginId'
-                                        containerClassName='login-body-card-form-input'
-                                        type='text'
-                                        inputSize={SIZE.LARGE}
-                                        value={loginId}
-                                        onChange={handleInputOnChange}
-                                        hasError={hasError}
-                                        placeholder={getInputPlaceholder()}
-                                        disabled={isWaiting}
-                                        autoFocus={true}
-                                    />
-                                    <PasswordInput
-                                        ref={passwordInput}
-                                        className='login-body-card-form-password-input'
-                                        value={password}
-                                        inputSize={SIZE.LARGE}
-                                        onChange={handlePasswordInputOnChange}
-                                        hasError={hasError}
-                                        disabled={isWaiting}
-                                    />
-                                    {(enableSignInWithUsername || enableSignInWithEmail) && (
-                                        <div className='login-body-card-form-link'>
-                                            <Link to='/reset_password'>
-                                                {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
-                                            </Link>
-                                        </div>
-                                    )}
-                                    <SaveButton
-                                        extraClasses='login-body-card-form-button-submit large'
-                                        saving={isWaiting}
-                                        onClick={preSubmit}
-                                        defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
-                                        savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
-                                    />
-                                </div>
+                                <form
+                                    onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                                        preSubmit(event as unknown as React.MouseEvent);
+                                    }}
+                                >
+                                    <div className='login-body-card-form'>
+                                        <Input
+                                            ref={loginIdInput}
+                                            name='loginId'
+                                            containerClassName='login-body-card-form-input'
+                                            type='text'
+                                            inputSize={SIZE.LARGE}
+                                            value={loginId}
+                                            onChange={handleInputOnChange}
+                                            hasError={hasError}
+                                            placeholder={getInputPlaceholder()}
+                                            disabled={isWaiting}
+                                            autoFocus={true}
+                                        />
+                                        <PasswordInput
+                                            ref={passwordInput}
+                                            className='login-body-card-form-password-input'
+                                            value={password}
+                                            inputSize={SIZE.LARGE}
+                                            onChange={handlePasswordInputOnChange}
+                                            hasError={hasError}
+                                            disabled={isWaiting}
+                                        />
+                                        {getResetPasswordLink()}
+                                        <SaveButton
+                                            extraClasses='login-body-card-form-button-submit large'
+                                            saving={isWaiting}
+                                            onClick={preSubmit}
+                                            defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
+                                            savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
+                                        />
+                                    </div>
+                                </form>
                             )}
                             {enableBaseLogin && enableExternalSignup && (
                                 <div className='login-body-card-form-divider'>

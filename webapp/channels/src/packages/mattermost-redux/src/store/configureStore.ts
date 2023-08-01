@@ -8,7 +8,7 @@ import {
     Store,
 } from 'redux';
 import thunk from 'redux-thunk';
-import {composeWithDevToolsDevelopmentOnly} from '@redux-devtools/extension';
+import {composeWithDevTools} from '@redux-devtools/extension';
 
 import {GlobalState} from '@mattermost/types/store';
 
@@ -39,7 +39,7 @@ export default function configureStore<S extends GlobalState>({
         ...preloadedState,
     };
 
-    const composeEnhancers = composeWithDevToolsDevelopmentOnly({
+    const composeEnhancers = composeWithDevTools({
         shouldHotReload: false,
         trace: true,
         traceLimit: 25,

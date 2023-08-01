@@ -4,17 +4,24 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-
-import {ModalData} from 'types/actions.js';
-
 import {isNil} from 'lodash';
 
+import {PreferenceType} from '@mattermost/types/preferences';
+import {Group, GroupSource} from '@mattermost/types/groups';
+import {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
+import {Emoji} from '@mattermost/types/emojis';
+import {ServerError} from '@mattermost/types/errors';
+import {FileInfo} from '@mattermost/types/files';
+
+import {ActionResult} from 'mattermost-redux/types/actions';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import * as GlobalActions from 'actions/global_actions';
 
+import {PostDraft} from 'types/store/draft';
+import {ModalData} from 'types/actions';
+
 import Constants, {AdvancedTextEditor as AdvancedTextEditorConst, Locations, ModalIdentifiers, Preferences} from 'utils/constants';
-import {PreferenceType} from '@mattermost/types/preferences';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
@@ -27,30 +34,28 @@ import {
     groupsMentionedInText,
     mentionsMinusSpecialMentionsInText,
 } from 'utils/post_utils';
-import {getTable, hasHtmlLink, formatMarkdownMessage, isGitHubCodeBlock, formatGithubCodePaste, isHttpProtocol, isHttpsProtocol} from 'utils/paste';
+import {
+    getHtmlTable,
+    hasHtmlLink,
+    formatMarkdownMessage,
+    isGitHubCodeBlock,
+    formatGithubCodePaste,
+    isTextUrl,
+    formatMarkdownLinkMessage,
+} from 'utils/paste';
+import {
+    applyMarkdown,
+    ApplyMarkdownOptions,
+} from 'utils/markdown/apply_markdown';
+import {execCommandInsertText} from 'utils/exec_commands';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 import PostDeletedModal from 'components/post_deleted_modal';
-import {PostDraft} from 'types/store/draft';
-import {Group, GroupSource} from '@mattermost/types/groups';
-import {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
 import {FilePreviewInfo} from 'components/file_preview/file_preview';
-import {Emoji} from '@mattermost/types/emojis';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {ServerError} from '@mattermost/types/errors';
-import {FileInfo} from '@mattermost/types/files';
-import EmojiMap from 'utils/emoji_map';
-import {
-    applyLinkMarkdown,
-    ApplyLinkMarkdownOptions,
-    applyMarkdown,
-    ApplyMarkdownOptions,
-} from 'utils/markdown/apply_markdown';
-import AdvancedTextEditor from '../advanced_text_editor/advanced_text_editor';
-import {TextboxClass, TextboxElement} from '../textbox';
-
-import FileLimitStickyBanner from '../file_limit_sticky_banner';
+import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
+import {TextboxClass, TextboxElement} from 'components/textbox';
+import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -181,13 +186,11 @@ type Props = {
     getChannelMemberCountsByGroup: (channelID: string, isTimezoneEnabled: boolean) => void;
     groupsWithAllowReference: Map<string, Group> | null;
     channelMemberCountsByGroup: ChannelMemberCountsByGroup;
-    onHeightChange?: (height: number, maxHeight: number) => void;
     focusOnMount?: boolean;
     isThreadView?: boolean;
     openModal: <P>(modalData: ModalData<P>) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
     useCustomGroupMentions: boolean;
-    emojiMap: EmojiMap;
     isFormattingBarHidden: boolean;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
 }
@@ -238,7 +241,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             draft: state.draft || {...props.draft, caretPosition: props.draft.message.length, uploadsInProgress: []},
         };
 
-        const rootChanged = props.rootId !== state.rootId;
+        const rootChanged = props.rootId !== state.rootId || props.draft.rootId !== state.draft?.rootId;
         const messageInHistoryChanged = props.messageInHistory !== state.messageInHistory;
         if (rootChanged || messageInHistoryChanged || (props.isRemoteDraft && props.draft.message !== state.draft?.message)) {
             updatedState = {
@@ -350,7 +353,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     };
 
     saveDraftOnUnmount = () => {
-        if (!this.isDraftEdited || !this.state.draft) {
+        if (!this.isDraftEdited || !this.state.draft || this.props.rootDeleted) {
             return;
         }
 
@@ -422,66 +425,41 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         });
     };
 
-    pasteHandler = (e: ClipboardEvent) => {
-        // we need to cast the TextboxElement type onto the EventTarget here since the ClipboardEvent is not generic
-        if (!e.clipboardData || !e.clipboardData.items || (e.target as TextboxElement).id !== 'reply_textbox') {
+    pasteHandler = (event: ClipboardEvent) => {
+        const {clipboardData, target} = event;
+
+        if (!clipboardData || !clipboardData.items || !target || (target as TextboxElement)?.id !== 'reply_textbox') {
             return;
         }
 
-        const {clipboardData} = e;
-
-        const target = e.target as TextboxElement;
-
-        const {selectionStart, selectionEnd, value} = target;
+        const {selectionStart, selectionEnd} = target as TextboxElement;
 
         const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
-        const clipboardText = clipboardData.getData('text/plain');
-        const isClipboardTextURL = isHttpProtocol(clipboardText) || isHttpsProtocol(clipboardText);
-        const shouldApplyLinkMarkdown = hasSelection && isClipboardTextURL;
+        const hasTextUrl = isTextUrl(clipboardData);
+        const hasHTMLLinks = hasHtmlLink(clipboardData);
+        const htmlTable = getHtmlTable(clipboardData);
+        const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
+        const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
 
-        const hasLinks = hasHtmlLink(clipboardData);
-        let table = getTable(clipboardData);
-        if (!table && !hasLinks && !shouldApplyLinkMarkdown) {
+        if (!htmlTable && !hasHTMLLinks && !shouldApplyLinkMarkdown) {
             return;
         }
 
-        e.preventDefault();
+        event.preventDefault();
 
+        const message = this.state.draft?.message ?? '';
+
+        // execCommand's insertText' triggers a 'change' event, hence we need not set respective state explicitly.
         if (shouldApplyLinkMarkdown) {
-            this.applyLinkMarkdownWhenPaste({
-                selectionStart,
-                selectionEnd,
-                message: value,
-                url: clipboardText,
-            });
-
-            return;
-        }
-
-        table = table as HTMLTableElement;
-
-        const draft = this.state.draft!;
-        let message = draft.message;
-
-        const caretPosition = this.state.caretPosition || 0;
-        if (table && isGitHubCodeBlock(table.className)) {
-            const selectionStart = (e.target as any).selectionStart;
-            const selectionEnd = (e.target as any).selectionEnd;
-            const {formattedMessage, formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
-            const newCaretPosition = caretPosition + formattedCodeBlock.length;
-            message = formattedMessage;
-            this.setCaretPosition(newCaretPosition);
+            const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
+            execCommandInsertText(formattedLink);
+        } else if (shouldApplyGithubCodeBlock) {
+            const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
+            execCommandInsertText(formattedCodeBlock);
         } else {
-            const originalSize = draft.message.length;
-            message = formatMarkdownMessage(clipboardData, draft.message.trim(), this.state.caretPosition);
-            const newCaretPosition = message.length - (originalSize - caretPosition);
-            this.setCaretPosition(newCaretPosition);
+            const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, this.state.caretPosition);
+            execCommandInsertText(formattedMarkdown);
         }
-
-        const updatedDraft = {...draft, message};
-
-        this.handleDraftChange(updatedDraft);
-        this.setState({draft: updatedDraft});
     };
 
     handleNotifyAllConfirmation = () => {
@@ -497,6 +475,9 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 channelTimezoneCount,
                 memberNotifyCount,
                 onConfirm: () => this.handleNotifyAllConfirmation(),
+                onExited: () => {
+                    this.isDraftSubmitting = false;
+                },
             },
         });
     };
@@ -672,7 +653,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         if (memberNotifyCount > 0) {
             this.showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount);
-            this.isDraftSubmitting = false;
             return;
         }
 
@@ -846,10 +826,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.setState({
             caretPosition: (e.target as TextboxElement).selectionStart || 0,
         });
-    };
-
-    handleSelect = (e: React.SyntheticEvent<TextboxElement>) => {
-        Utils.adjustSelection(this.textboxRef.current?.getInputBox(), e);
     };
 
     handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
@@ -1042,25 +1018,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }, () => {
             const textbox = this.textboxRef.current?.getInputBox();
             Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
-        });
-    };
-
-    applyLinkMarkdownWhenPaste = (params: ApplyLinkMarkdownOptions) => {
-        const res = applyLinkMarkdown(params);
-
-        const draft = this.state.draft!;
-        const modifiedDraft = {
-            ...draft,
-            message: res.message,
-        };
-
-        this.handleDraftChange(modifiedDraft);
-
-        this.setState({
-            draft: modifiedDraft,
-        }, () => {
-            const textbox = this.textboxRef.current?.getInputBox();
-            Utils.setSelectionRange(textbox, res.selectionEnd + 1, res.selectionEnd + 1);
         });
     };
 
@@ -1278,7 +1235,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     handlePostError={this.handlePostError}
                     emitTypingEvent={this.emitTypingEvent}
                     handleMouseUpKeyUp={this.handleMouseUpKeyUp}
-                    handleSelect={this.handleSelect}
                     handleKeyDown={this.handleKeyDown}
                     postMsgKeyPress={this.commentMsgKeyPress}
                     handleChange={this.handleChange}

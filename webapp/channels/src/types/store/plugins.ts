@@ -9,12 +9,13 @@ import {PluginAnalyticsRow} from '@mattermost/types/admin';
 import {FileInfo} from '@mattermost/types/files';
 import {Post, PostEmbed} from '@mattermost/types/posts';
 import {IDMappedObjects} from '@mattermost/types/utilities';
-import {TopBoardResponse} from '@mattermost/types/insights';
 import {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {WebSocketClient} from '@mattermost/client';
 
 import {GlobalState} from 'types/store';
+import {Channel} from '@mattermost/types/channels';
+import {NewPostMessageProps} from 'actions/new_post';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;
 
@@ -37,6 +38,7 @@ export type PluginsState = {
         FilesWillUploadHook: PluginComponent[];
         NeedsTeamComponent: NeedsTeamComponent[];
         CreateBoardFromTemplate: PluginComponent[];
+        DesktopNotificationHooks: DesktopNotificationHook[];
     };
 
     postTypes: {
@@ -57,15 +59,12 @@ export type PluginsState = {
     siteStatsHandlers: {
         [pluginId: string]: PluginSiteStatsHandler;
     };
-    insightsHandlers: {
-        [pluginId: string]: (timeRange: string, page: number, perPage: number, teamId: string, insightType: string) => Promise<TopBoardResponse>;
-    };
 };
 
 export type Menu = {
     id: string;
     parentMenuId?: string;
-    text?: React.ReactElement|string;
+    text?: React.ReactElement | string;
     selectedValueText?: string;
     subMenu?: Menu[];
     filter?: (id?: string) => boolean;
@@ -113,7 +112,7 @@ export type FilePreviewComponent = {
     id: string;
     pluginId: string;
     override: (fileInfo: FileInfo, post?: Post) => boolean;
-    component: React.ComponentType<{fileInfo: FileInfo; post?: Post; onModalDismissed: () => void}>;
+    component: React.ComponentType<{ fileInfo: FileInfo; post?: Post; onModalDismissed: () => void }>;
 }
 
 export type FileDropdownPluginComponent = {
@@ -220,3 +219,19 @@ export type ProductComponent = {
      */
     wrapped: boolean;
 };
+
+export type DesktopNotificationArgs = {
+    title: string;
+    body: string;
+    silent: boolean;
+    soundName: string;
+    url: string;
+    notify: boolean;
+};
+
+export type DesktopNotificationHook = PluginComponent & {
+    hook: (post: Post, msgProps: NewPostMessageProps, channel: Channel, teamId: string, args: DesktopNotificationArgs) => Promise<{
+        error?: string;
+        args?: DesktopNotificationArgs;
+    }>;
+}

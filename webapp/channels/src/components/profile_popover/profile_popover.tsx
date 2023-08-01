@@ -50,7 +50,7 @@ import BotTag from '../widgets/tag/bot_tag';
 import GuestTag from '../widgets/tag/guest_tag';
 import Tag from '../widgets/tag/tag';
 
-interface ProfilePopoverProps extends Omit<React.ComponentProps<typeof Popover>, 'id'> {
+export interface ProfilePopoverProps extends Omit<React.ComponentProps<typeof Popover>, 'id'> {
 
     /**
      * Source URL from the image to display in the popover
@@ -669,9 +669,11 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                 >
                     <FormattedMessage
                         id='user_profile.account.post_was_created'
-                        defaultMessage='This post was created by an integration from'
+                        defaultMessage='This post was created by an integration from @{username}'
+                        values={{
+                            username: this.props.user.username,
+                        }}
                     />
-                    {` @${this.props.user.username}`}
                 </div>,
             );
         }

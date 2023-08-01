@@ -4,12 +4,11 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {createSelector} from 'reselect';
-
 import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 import {TeamSearchOpts} from '@mattermost/types/teams';
 import {getTeams as fetchTeams, searchTeams} from 'mattermost-redux/actions/teams';
 import {getTeams} from 'mattermost-redux/selectors/entities/teams';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 import {GlobalState} from 'types/store';
 

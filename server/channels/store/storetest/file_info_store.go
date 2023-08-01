@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -748,21 +748,29 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 		ss.FileInfo().PermanentDelete(f3.Id)
 	}()
 
+	// Soft-deleting one file info
+	_, err = ss.FileInfo().DeleteForPost(f1.PostId)
+	require.NoError(t, err)
+
 	// Getting all
-	r, err := ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", 100)
+	r, err := ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", true, 100)
 	require.NoError(t, err)
 	require.Len(t, r, 3, "Expected 3 posts in results. Got %v", len(r))
 
-	// Testing pagination
-	r, err = ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", 2)
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", false, 100)
 	require.NoError(t, err)
 	require.Len(t, r, 2, "Expected 2 posts in results. Got %v", len(r))
 
-	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[1].CreateAt, r[1].Id, 2)
+	// Testing pagination
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", true, 2)
+	require.NoError(t, err)
+	require.Len(t, r, 2, "Expected 2 posts in results. Got %v", len(r))
+
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[1].CreateAt, r[1].Id, true, 2)
 	require.NoError(t, err)
 	require.Len(t, r, 1, "Expected 1 post in results. Got %v", len(r))
 
-	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[0].CreateAt, r[0].Id, 2)
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[0].CreateAt, r[0].Id, true, 2)
 	require.NoError(t, err)
 	require.Len(t, r, 0, "Expected 0 posts in results. Got %v", len(r))
 }

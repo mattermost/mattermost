@@ -16,10 +16,10 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 const (
@@ -1324,8 +1324,7 @@ func (us SqlUserStore) PermanentDelete(userId string) error {
 }
 
 func (us SqlUserStore) Count(options model.UserCountOptions) (int64, error) {
-	isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres
-	query := us.getQueryBuilder().Select("COUNT(DISTINCT u.Id)").From("Users AS u")
+	query := us.getQueryBuilder().Select("COUNT(*)").From("Users AS u")
 
 	if !options.IncludeDeleted {
 		query = query.Where("u.DeleteAt = 0")
@@ -1335,12 +1334,18 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, error) {
 		query = query.Where(sq.Or{sq.Eq{"u.RemoteId": ""}, sq.Eq{"u.RemoteId": nil}})
 	}
 
+	isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres
 	if options.IncludeBotAccounts {
 		if options.ExcludeRegularUsers {
 			query = query.Join("Bots ON u.Id = Bots.UserId")
 		}
 	} else {
-		query = query.LeftJoin("Bots ON u.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+		if isPostgreSQL {
+			query = query.LeftJoin("Bots ON u.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+		} else {
+			query = query.Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)"))
+		}
+
 		if options.ExcludeRegularUsers {
 			// Currently this doesn't make sense because it will always return 0
 			return int64(0), errors.New("query with IncludeBotAccounts=false and excludeRegularUsers=true always return 0")
@@ -1378,7 +1383,11 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ?", time)
 
 	if !options.IncludeBotAccounts {
-		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+		if us.DriverName() == model.DatabaseDriverPostgres {
+			query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+		} else {
+			query = query.Where(sq.Expr("UserId NOT IN (SELECT UserId FROM Bots)"))
+		}
 	}
 
 	if !options.IncludeRemoteUsers || !options.IncludeDeleted {
@@ -1394,7 +1403,6 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 	}
 
 	queryStr, args, err := query.ToSql()
-
 	if err != nil {
 		return 0, errors.Wrap(err, "analytics_active_count_tosql")
 	}
@@ -1411,7 +1419,11 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ? AND LastActivityAt <= ?", startTime, endTime)
 
 	if !options.IncludeBotAccounts {
-		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+		if us.DriverName() == model.DatabaseDriverPostgres {
+			query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+		} else {
+			query = query.Where(sq.Expr("UserId NOT IN (SELECT UserId FROM Bots)"))
+		}
 	}
 
 	if !options.IncludeRemoteUsers || !options.IncludeDeleted {
@@ -1427,7 +1439,6 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 	}
 
 	queryStr, args, err := query.ToSql()
-
 	if err != nil {
 		return 0, errors.Wrap(err, "Failed to build query.")
 	}
@@ -1786,16 +1797,6 @@ func (us SqlUserStore) InferSystemInstallDate() (int64, error) {
 	return createAt, nil
 }
 
-func (us SqlUserStore) GetFirstSystemAdminID() (string, error) {
-	var id string
-	err := us.GetReplicaX().Get(&id, "SELECT Id FROM Users WHERE Roles LIKE ? ORDER BY CreateAt ASC LIMIT 1", "%system_admin%")
-	if err != nil {
-		return "", errors.Wrap(err, "failed to get first system admin")
-	}
-
-	return id, nil
-}
-
 func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.UserForIndexing, error) {
 	users := []*model.User{}
 	usersQuery, args, err := us.usersQuery.
@@ -2068,19 +2069,9 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err erro
 		return nil, err
 	}
 
-	roles := user.GetRoles()
-
-	newRoles := []string{}
-	for _, role := range roles {
-		if role == model.SystemUserRoleId {
-			newRoles = append(newRoles, model.SystemGuestRoleId)
-		} else if role != model.SystemAdminRoleId {
-			newRoles = append(newRoles, role)
-		}
-	}
-
 	curTime := model.GetMillis()
-	newRolesDBStr := strings.Join(newRoles, " ")
+	newRolesDBStr := model.SystemGuestRoleId
+
 	query := us.getQueryBuilder().Update("Users").
 		Set("Roles", newRolesDBStr).
 		Set("UpdateAt", curTime).
@@ -2190,7 +2181,11 @@ func (us SqlUserStore) IsEmpty(excludeBots bool) (bool, error) {
 		From("Users")
 
 	if excludeBots {
-		builder = builder.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+		if us.DriverName() == model.DatabaseDriverPostgres {
+			builder = builder.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+		} else {
+			builder = builder.Where(sq.Expr("Users.Id NOT IN (SELECT UserId FROM Bots)"))
+		}
 	}
 
 	builder = builder.Suffix(")")

@@ -7,8 +7,7 @@ import {withRouter} from 'react-router-dom';
 
 import {GlobalState} from 'types/store/index';
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {Posts} from 'mattermost-redux/constants';
 import {getAllPosts, getPostIdsInChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';

@@ -4,8 +4,8 @@
 import React from 'react';
 import {mount, ReactWrapper} from 'enzyme';
 import * as reactRedux from 'react-redux';
-import {act} from '@testing-library/react';
 
+import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import {CloudProducts, LicenseSkus} from 'utils/constants';

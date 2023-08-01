@@ -201,7 +201,7 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.focused().tab();
 
                 // * Verify focus is on the post text
-                cy.get(`#postMessageText_${postId}`).should('be.focused').and('have.attr', 'aria-readonly', 'true');
+                cy.get(`#postMessageText_${postId}`).should('be.focused');
             });
         });
     });
@@ -231,7 +231,7 @@ describe('Verify Accessibility Support in Post', () => {
         cy.getLastPostId().then((postId) => {
             cy.get(`#rhsPost_${postId}`).within(() => {
                 // * Verify focus is on the post text
-                cy.get(`#rhsPostMessageText_${postId}`).should('be.focused').and('have.attr', 'aria-readonly', 'true');
+                cy.get(`#rhsPostMessageText_${postId}`).should('be.focused');
                 cy.focused().tab({shift: true});
 
                 // * Verify focus is on the more button

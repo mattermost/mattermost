@@ -125,6 +125,7 @@ describe('components/login/Login', () => {
             CustomDescriptionText: '',
             SiteName: 'Mattermost',
             ExperimentalPrimaryTeam: '',
+            PasswordEnableForgotLink: 'true',
         };
     });
 

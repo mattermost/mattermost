@@ -6,7 +6,7 @@ package searchengine
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 type SearchEngineInterface interface {
@@ -17,6 +17,8 @@ type SearchEngineInterface interface {
 	GetPlugins() []string
 	UpdateConfig(cfg *model.Config)
 	GetName() string
+	// IsEnabled returns a boolean indicating whether the engine is enabled in the settings
+	IsEnabled() bool
 	IsActive() bool
 	IsIndexingEnabled() bool
 	IsSearchEnabled() bool

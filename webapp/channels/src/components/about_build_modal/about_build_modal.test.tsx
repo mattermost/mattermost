@@ -2,21 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
-
-import mockStore from 'tests/test_store';
 
 import {ClientConfig, ClientLicense} from '@mattermost/types/config';
 
 import AboutBuildModal from 'components/about_build_modal/about_build_modal';
 
+import {renderWithFullContext, screen, userEvent} from 'tests/react_testing_utils';
+
 import {AboutLinks} from 'utils/constants';
 
 import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cloud';
-import {screen} from '@testing-library/react';
-import {renderWithIntl} from 'tests/react_testing_utils';
-import store from 'stores/redux_store';
-import userEvent from '@testing-library/user-event';
 
 describe('components/AboutBuildModal', () => {
     const RealDate: DateConstructor = Date;
@@ -50,8 +45,8 @@ describe('components/AboutBuildModal', () => {
             BuildHash: 'abcdef1234567890',
             BuildHashEnterprise: '0123456789abcdef',
             BuildDate: '21 January 2017',
-            TermsOfServiceLink: 'https://about.custom.com/default-terms/',
-            PrivacyPolicyLink: 'https://about.custom.com/privacy-policy/',
+            TermsOfServiceLink: AboutLinks.TERMS_OF_SERVICE,
+            PrivacyPolicyLink: AboutLinks.PRIVACY_POLICY,
         };
         license = {
             IsLicensed: 'true',
@@ -98,16 +93,14 @@ describe('components/AboutBuildModal', () => {
             license.Cloud = 'true';
         }
 
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutBuildModalCloud
-                    config={config}
-                    license={license}
-                    show={true}
-                    onExited={jest.fn()}
-                    doHide={jest.fn()}
-                />
-            </Provider>,
+        renderWithFullContext(
+            <AboutBuildModalCloud
+                config={config}
+                license={license}
+                show={true}
+                onExited={jest.fn()}
+                doHide={jest.fn()}
+            />,
         );
 
         expect(screen.getByText('Mattermost Cloud')).toBeInTheDocument();
@@ -170,7 +163,7 @@ describe('components/AboutBuildModal', () => {
 
     test('should call onExited callback when the modal is hidden', () => {
         const onExited = jest.fn();
-        const store = mockStore({
+        const state = {
             entities: {
                 general: {
                     config: {},
@@ -182,16 +175,15 @@ describe('components/AboutBuildModal', () => {
                     currentUserId: 'currentUserId',
                 },
             },
-        });
+        };
 
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutBuildModal
-                    config={config}
-                    license={license}
-                    onExited={onExited}
-                />
-            </Provider>,
+        renderWithFullContext(
+            <AboutBuildModal
+                config={config}
+                license={license}
+                onExited={onExited}
+            />,
+            state,
         );
 
         userEvent.click(screen.getByText('Close'));
@@ -199,7 +191,7 @@ describe('components/AboutBuildModal', () => {
     });
 
     test('should show default tos and privacy policy links and not the config links', () => {
-        const store = mockStore({
+        const state = {
             entities: {
                 general: {
                     config: {},
@@ -211,15 +203,14 @@ describe('components/AboutBuildModal', () => {
                     currentUserId: 'currentUserId',
                 },
             },
-        });
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutBuildModal
-                    config={config}
-                    license={license}
-                    onExited={jest.fn()}
-                />
-            </Provider>,
+        };
+        renderWithFullContext(
+            <AboutBuildModal
+                config={config}
+                license={license}
+                onExited={jest.fn()}
+            />,
+            state,
         );
 
         expect(screen.getByRole('link', {name: 'Terms of Use'})).toHaveAttribute('href', `${AboutLinks.TERMS_OF_SERVICE}?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=currentUserId&sid=`);
@@ -242,6 +233,6 @@ describe('components/AboutBuildModal', () => {
             ...props,
         };
 
-        return renderWithIntl(<Provider store={store}><AboutBuildModal {...allProps}/></Provider>);
+        return renderWithFullContext(<AboutBuildModal {...allProps}/>);
     }
 });
