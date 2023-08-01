@@ -267,7 +267,7 @@ export default function InviteView(props: Props) {
                     disabled={!isInviteValid}
                     onClick={props.invite}
                     className={'btn btn-primary'}
-                    id={props.inviteType === InviteType.MEMBER ? 'inviteMembersButton' : 'inviteGuestButton'}
+                    data-testid={'inviteButton'}
                 >
                     <FormattedMessage
                         id='invite_modal.invite'
