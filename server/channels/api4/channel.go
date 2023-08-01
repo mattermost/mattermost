@@ -60,6 +60,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channel.Handle("/move", api.APISessionRequired(moveChannel)).Methods("POST")
 	api.BaseRoutes.Channel.Handle("/member_counts_by_group", api.APISessionRequired(channelMemberCountsByGroup)).Methods("GET")
 	api.BaseRoutes.Channel.Handle("/common_teams", api.APISessionRequired(getGroupMessageMembersCommonTeams)).Methods("GET")
+	api.BaseRoutes.Channel.Handle("/convert_to_channel", api.APISessionRequired(convertGroupMessageToChannel)).Methods("POST")
 
 	api.BaseRoutes.ChannelForUser.Handle("/unread", api.APISessionRequired(getChannelUnread)).Methods("GET")
 
@@ -2188,4 +2189,27 @@ func getGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter, r *htt
 	if err := json.NewEncoder(w).Encode(teams); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	// TODO: don't allow guest users to perform this operation
+
+	c.RequireChannelId().RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("convertGroupMessageToChannel", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
+	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+
+	appErr := c.App.ConvertGroupMessageToChannel(c.AppContext, c.AppContext.Session().UserId, c.Params.ChannelId, c.Params.TeamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }

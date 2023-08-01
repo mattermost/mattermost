@@ -3538,6 +3538,20 @@ func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string)
 }
 
 func (a *App) ConvertGroupMessageToChannel(c request.CTX, userID, groupMessageID, teamID string) *model.AppError {
+	appErr := a.validateForConvertGroupMessageToChannel(c, userID, groupMessageID, teamID)
+	if appErr != nil {
+		return appErr
+	}
+
+	err := a.Srv().Store().Channel().ConvertGroupMessageToChannel(groupMessageID, teamID)
+	if err != nil {
+		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.convert_gm_to_channel.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, userID, groupMessageID, teamID string) *model.AppError {
 	channel, appErr := a.GetChannel(c, groupMessageID)
 	if appErr != nil {
 		return appErr
@@ -3556,9 +3570,13 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, userID, groupMessageID
 		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
 	}
 
-	err := a.Srv().Store().Channel().ConvertGroupMessageToChannel(groupMessageID, teamID)
-	if err != nil {
-		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.convert_gm_to_channel.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	teamMember, appErr := a.GetTeamMember(teamID, userID)
+	if appErr != nil {
+		return appErr
+	}
+
+	if teamMember == nil {
+		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
 	}
 
 	return nil
