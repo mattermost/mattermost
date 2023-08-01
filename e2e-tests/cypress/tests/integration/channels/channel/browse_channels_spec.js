@@ -112,8 +112,8 @@ describe('Channels', () => {
         // # Go to LHS and click 'Browse channels'
         cy.uiBrowseOrCreateChannel('Browse channels').click();
 
-        cy.get('#browseChannelsModal').should('be.visible')
-        
+        cy.get('#browseChannelsModal').should('be.visible');
+
         // # CLick dropdown to open selection
         cy.get('#menuWrapper').should('be.visible').click();
 
@@ -239,29 +239,29 @@ describe('Channels', () => {
 
         // * Users should be able to type and search
         cy.get('#searchChannelsTextbox').should('be.visible').type('iv').wait(TIMEOUTS.HALF_SEC);
-        cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 2)
+        cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 2);
         cy.get('#moreChannelsList').should('be.visible').within(() => {
             cy.findByText(newChannel.display_name).should('be.visible');
         });
 
-        cy.get('#browseChannelsModal').should('be.visible')
-        
+        cy.get('#browseChannelsModal').should('be.visible');
+
         // * Users should be able to switch to "Archived Channels" list
         cy.get('#menuWrapper').should('be.visible').and('contain', channelType.all).click().wait(TIMEOUTS.HALF_SEC);
-        
+
         // # Click on archived channels item
         cy.findByText('Archived channels').should('be.visible').click();
 
         // * Modal menu should be updated accordingly
         cy.get('#menuWrapper').should('contain', channelType.archived);
-        
+
         cy.get('#searchChannelsTextbox').clear();
         cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 2);
         cy.get('#moreChannelsList').within(() => {
             cy.findByText(testArchivedChannel.display_name).should('be.visible');
             cy.findByText(testPrivateArchivedChannel.display_name).should('be.visible');
         });
-});
+    });
 });
 
 function verifyBrowseChannelsModalWithArchivedSelection(isEnabled, testUser, testTeam) {

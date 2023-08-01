@@ -100,7 +100,7 @@ describe('Leave an archived channel', () => {
 
             // # More channels modal opens
             cy.get('#browseChannelsModal').should('be.visible');
-            
+
             // # Click on dropdown
             cy.findByText(channelType.all).should('be.visible').click();
 
@@ -255,8 +255,8 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens
-        cy.get('#browseChannelsModal').should('be.visible')
-        
+        cy.get('#browseChannelsModal').should('be.visible');
+
         // # Show all channels is visible by default
         cy.findByText(channelType.all).should('be.visible').click();
 
@@ -290,7 +290,7 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens and lands on all channels
-        cy.get('#browseChannelsModal').should('be.visible')
+        cy.get('#browseChannelsModal').should('be.visible');
 
         cy.findByText(channelType.all).should('be.visible').click();
 
