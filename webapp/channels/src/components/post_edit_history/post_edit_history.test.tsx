@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {ComponentProps} from 'react';
-import {shallow} from 'enzyme';
+import {Client4} from 'mattermost-redux/client';
+
+import {act, renderWithIntlAndStore} from 'tests/react_testing_utils';
 
 import {TestHelper} from 'utils/test_helper';
 
@@ -15,7 +17,12 @@ describe('components/post_edit_history', () => {
             id: 'post_id',
             message: 'post message',
         }),
-        postEditHistory: [
+        dispatch: jest.fn(),
+    };
+    const mock = jest.spyOn(Client4, 'getPostEditHistory');
+
+    test('should match snapshot', async () => {
+        const data = [
             TestHelper.getPostMock({
                 id: 'post_id_1',
                 message: 'post message version 1',
@@ -24,13 +31,34 @@ describe('components/post_edit_history', () => {
                 id: 'post_id_2',
                 message: 'post message version 2',
             }),
-        ],
-        dispatch: jest.fn(),
-    };
+        ];
+        mock.mockResolvedValue(data);
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(<PostEditHistory {...baseProps}/>);
+        let wrapper: HTMLElement;
 
-        expect(wrapper).toMatchSnapshot();
+        await act(async () => {
+            const {container} = renderWithIntlAndStore(<PostEditHistory {...baseProps}/>, {});
+            wrapper = container;
+        });
+        await act(async () => {
+            expect(wrapper).toMatchSnapshot();
+            expect(mock).toBeCalledWith(baseProps.originalPost.id);
+        });
+    });
+
+    test('should display error screen if errors are present', async () => {
+        const error = new Error('An example error');
+        mock.mockRejectedValue(error);
+
+        let wrapper: HTMLElement;
+
+        await act(async () => {
+            const {container} = renderWithIntlAndStore(<PostEditHistory {...baseProps}/>, {});
+            wrapper = container;
+        });
+        await act(async () => {
+            expect(wrapper).toMatchSnapshot();
+            expect(mock).toBeCalledWith(baseProps.originalPost.id);
+        });
     });
 });

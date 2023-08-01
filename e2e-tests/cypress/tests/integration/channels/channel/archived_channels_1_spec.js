@@ -98,7 +98,7 @@ describe('Leave an archived channel', () => {
             cy.get('#showMoreChannels').click();
 
             // # More channels modal opens
-            cy.get('#moreChannelsModal').should('be.visible').within(() => {
+            cy.get('#browseChannelsModal').should('be.visible').within(() => {
                 // # Click on dropdown
                 cy.findByText(channelType.public).should('be.visible').click();
 
@@ -146,7 +146,7 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens
-        cy.get('#moreChannelsModal').should('be.visible').within(() => {
+        cy.get('#browseChannelsModal').should('be.visible').within(() => {
             // # Public channel list opens by default
             cy.findByText(channelType.public).should('be.visible').click();
 
@@ -199,7 +199,7 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens
-        cy.get('#moreChannelsModal').should('be.visible').within(() => {
+        cy.get('#browseChannelsModal').should('be.visible').within(() => {
             // # Public channels are shown by default
             cy.findByText(channelType.public).should('be.visible').click();
 
@@ -253,7 +253,7 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens
-        cy.get('#moreChannelsModal').should('be.visible').within(() => {
+        cy.get('#browseChannelsModal').should('be.visible').within(() => {
             // # Show public channels is visible by default
             cy.findByText(channelType.public).should('be.visible').click();
 
@@ -288,7 +288,7 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens and lands on public channels
-        cy.get('#moreChannelsModal').should('be.visible').within(() => {
+        cy.get('#browseChannelsModal').should('be.visible').within(() => {
             cy.findByText(channelType.public).should('be.visible').click();
 
             // # Go to archived channels
