@@ -22,6 +22,32 @@ const (
 )
 
 func (srv *JobServer) CreateJob(jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+	job, appErr := srv._createJob(jobType, jobData)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if _, err := srv.Store.Job().Save(job); err != nil {
+		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return job, nil
+}
+
+func (srv *JobServer) CreateJobOnce(jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+	job, appErr := srv._createJob(jobType, jobData)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if _, err := srv.Store.Job().SaveOnce(job); err != nil {
+		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return job, nil
+}
+
+func (srv *JobServer) _createJob(jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job := model.Job{
 		Id:       model.NewId(),
 		Type:     jobType,
@@ -36,10 +62,6 @@ func (srv *JobServer) CreateJob(jobType string, jobData map[string]string) (*mod
 
 	if srv.workers.Get(job.Type) == nil {
 		return nil, model.NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+job.Id, http.StatusBadRequest)
-	}
-
-	if _, err := srv.Store.Job().Save(&job); err != nil {
-		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return &job, nil

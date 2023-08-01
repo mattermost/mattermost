@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -23,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 // We use this map to identify the exportable preferences.
@@ -817,7 +819,7 @@ func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.App
 }
 
 func (a *App) ListExports() ([]string, *model.AppError) {
-	exports, appErr := a.ListDirectory(*a.Config().ExportSettings.Directory)
+	exports, appErr := a.ListExportDirectory(*a.Config().ExportSettings.Directory)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -830,16 +832,51 @@ func (a *App) ListExports() ([]string, *model.AppError) {
 	return results, nil
 }
 
+func (a *App) GeneratePresignURLForExport(name string) (*model.PresignURLResponse, *model.AppError) {
+	if !a.Config().FeatureFlags.EnableExportDirectDownload {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.featureflag.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	if !*a.Config().FileSettings.DedicatedExportStore {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.config.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	b := a.ExportFileBackend()
+	backend, ok := b.(filestore.FileBackendWithLinkGenerator)
+	if !ok {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.driver.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	p := path.Join(*a.Config().ExportSettings.Directory, filepath.Base(name))
+	found, err := b.FileExists(p)
+	if err != nil {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.fileexist.app_error", nil, "", http.StatusInternalServerError)
+	}
+	if !found {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.notfound.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	link, exp, err := backend.GeneratePublicLink(p)
+	if err != nil {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.link.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return &model.PresignURLResponse{
+		URL:        link,
+		Expiration: exp,
+	}, nil
+}
+
 func (a *App) DeleteExport(name string) *model.AppError {
 	filePath := filepath.Join(*a.Config().ExportSettings.Directory, name)
 
-	if ok, err := a.FileExists(filePath); err != nil {
+	if ok, err := a.ExportFileExists(filePath); err != nil {
 		return err
 	} else if !ok {
 		return nil
 	}
 
-	return a.RemoveFile(filePath)
+	return a.RemoveExportFile(filePath)
 }
 
 func updateJobProgress(logger mlog.LoggerIFace, store store.Store, job *model.Job, key string, value int) {
