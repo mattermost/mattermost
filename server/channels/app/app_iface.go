@@ -476,7 +476,7 @@ type AppIface interface {
 	CompleteSwitchWithOAuth(service string, userData io.Reader, email string, tokenUser *model.User) (*model.User, *model.AppError)
 	Compliance() einterfaces.ComplianceInterface
 	Config() *model.Config
-	ConvertGroupMessageToChannel(c request.CTX, userID, groupMessageID, teamID string) *model.AppError
+	ConvertGroupMessageToChannel(c request.CTX, userID, groupMessageID, teamID string) (*model.Channel, *model.AppError)
 	CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError)
 	CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError)
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)

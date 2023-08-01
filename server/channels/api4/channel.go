@@ -2194,22 +2194,26 @@ func getGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter, r *htt
 func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	// TODO: don't allow guest users to perform this operation
 
-	c.RequireChannelId().RequireTeamId()
+	c.RequireChannelId()
 	if c.Err != nil {
 		return
 	}
 
+	teamID := r.URL.Query().Get("team_id")
+
 	auditRec := c.MakeAuditRecord("convertGroupMessageToChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
-	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
+	audit.AddEventParameter(auditRec, "team_id", teamID)
 
-	appErr := c.App.ConvertGroupMessageToChannel(c.AppContext, c.AppContext.Session().UserId, c.Params.ChannelId, c.Params.TeamId)
+	updatedChannel, appErr := c.App.ConvertGroupMessageToChannel(c.AppContext, c.AppContext.Session().UserId, c.Params.ChannelId, teamID)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	auditRec.Success()
-	ReturnStatusOK(w)
+	if err := json.NewEncoder(w).Encode(updatedChannel); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

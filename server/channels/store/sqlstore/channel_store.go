@@ -4346,13 +4346,10 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 func (s SqlChannelStore) ConvertGroupMessageToChannel(groupMessageID, teamID string) error {
 	query := s.getQueryBuilder().
 		Update("Channels").
-		Set("Type", model.ChannelTypePrivate).
 		Set("TeamId", teamID).
+		Set("Type", model.ChannelTypePrivate).
 		Where(sq.Eq{
-			"Id":       groupMessageID,
-			"Type":     model.ChannelTypeGroup,
-			"TeamId":   "",
-			"DeleteAt": 0,
+			"Id": groupMessageID,
 		})
 
 	querySQL, args, err := query.ToSql()
@@ -4360,7 +4357,7 @@ func (s SqlChannelStore) ConvertGroupMessageToChannel(groupMessageID, teamID str
 		return errors.Wrapf(err, "ConvertGroupMessageToChannel: failed to get SQL query from query builder. groupMessageID: %s", groupMessageID)
 	}
 
-	_, err = s.GetMasterX().Exec(querySQL, args)
+	_, err = s.GetMasterX().Exec(querySQL, args...)
 	if err != nil {
 		return errors.Wrapf(err, "ConvertGroupMessageToChannel: failed to convert group message to private channel. groupMessageID: %s", groupMessageID)
 	}

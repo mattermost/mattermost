@@ -1818,7 +1818,7 @@ func (a *OpenTracingAppLayer) ConvertBotToUser(c request.CTX, bot *model.Bot, us
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ConvertGroupMessageToChannel(c request.CTX, userID string, groupMessageID string, teamID string) *model.AppError {
+func (a *OpenTracingAppLayer) ConvertGroupMessageToChannel(c request.CTX, userID string, groupMessageID string, teamID string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ConvertGroupMessageToChannel")
 
@@ -1830,14 +1830,14 @@ func (a *OpenTracingAppLayer) ConvertGroupMessageToChannel(c request.CTX, userID
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.ConvertGroupMessageToChannel(c, userID, groupMessageID, teamID)
+	resultVar0, resultVar1 := a.app.ConvertGroupMessageToChannel(c, userID, groupMessageID, teamID)
 
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
