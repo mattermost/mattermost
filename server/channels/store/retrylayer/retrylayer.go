@@ -3575,11 +3575,11 @@ func (s *RetryLayerComplianceStore) Update(compliance *model.Compliance) (*model
 
 }
 
-func (s *RetryLayerDesktopTokensStore) Delete(desktopToken string) error {
+func (s *RetryLayerDesktopTokensStore) Delete(token string) error {
 
 	tries := 0
 	for {
-		err := s.DesktopTokensStore.Delete(desktopToken)
+		err := s.DesktopTokensStore.Delete(token)
 		if err == nil {
 			return nil
 		}
@@ -3638,11 +3638,11 @@ func (s *RetryLayerDesktopTokensStore) DeleteOlderThan(minCreatedAt int64) error
 
 }
 
-func (s *RetryLayerDesktopTokensStore) GetUserId(desktopToken string, serverToken string, minCreatedAt int64) (*string, error) {
+func (s *RetryLayerDesktopTokensStore) GetUserId(token string, minCreatedAt int64) (*string, error) {
 
 	tries := 0
 	for {
-		result, err := s.DesktopTokensStore.GetUserId(desktopToken, serverToken, minCreatedAt)
+		result, err := s.DesktopTokensStore.GetUserId(token, minCreatedAt)
 		if err == nil {
 			return result, nil
 		}
@@ -3659,53 +3659,11 @@ func (s *RetryLayerDesktopTokensStore) GetUserId(desktopToken string, serverToke
 
 }
 
-func (s *RetryLayerDesktopTokensStore) Insert(desktopToken string, createdAt int64, userId *string) error {
+func (s *RetryLayerDesktopTokensStore) Insert(token string, createdAt int64, userId string) error {
 
 	tries := 0
 	for {
-		err := s.DesktopTokensStore.Insert(desktopToken, createdAt, userId)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerDesktopTokensStore) SetServerToken(desktopToken string, minCreatedAt int64, serverToken string) error {
-
-	tries := 0
-	for {
-		err := s.DesktopTokensStore.SetServerToken(desktopToken, minCreatedAt, serverToken)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerDesktopTokensStore) SetUserId(desktopToken string, minCreatedAt int64, userId string) error {
-
-	tries := 0
-	for {
-		err := s.DesktopTokensStore.SetUserId(desktopToken, minCreatedAt, userId)
+		err := s.DesktopTokensStore.Insert(token, createdAt, userId)
 		if err == nil {
 			return nil
 		}

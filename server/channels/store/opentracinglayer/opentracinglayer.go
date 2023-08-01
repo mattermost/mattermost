@@ -3208,7 +3208,7 @@ func (s *OpenTracingLayerComplianceStore) Update(compliance *model.Compliance) (
 	return result, err
 }
 
-func (s *OpenTracingLayerDesktopTokensStore) Delete(desktopToken string) error {
+func (s *OpenTracingLayerDesktopTokensStore) Delete(token string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DesktopTokensStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -3217,7 +3217,7 @@ func (s *OpenTracingLayerDesktopTokensStore) Delete(desktopToken string) error {
 	}()
 
 	defer span.Finish()
-	err := s.DesktopTokensStore.Delete(desktopToken)
+	err := s.DesktopTokensStore.Delete(token)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -3262,7 +3262,7 @@ func (s *OpenTracingLayerDesktopTokensStore) DeleteOlderThan(minCreatedAt int64)
 	return err
 }
 
-func (s *OpenTracingLayerDesktopTokensStore) GetUserId(desktopToken string, serverToken string, minCreatedAt int64) (*string, error) {
+func (s *OpenTracingLayerDesktopTokensStore) GetUserId(token string, minCreatedAt int64) (*string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DesktopTokensStore.GetUserId")
 	s.Root.Store.SetContext(newCtx)
@@ -3271,7 +3271,7 @@ func (s *OpenTracingLayerDesktopTokensStore) GetUserId(desktopToken string, serv
 	}()
 
 	defer span.Finish()
-	result, err := s.DesktopTokensStore.GetUserId(desktopToken, serverToken, minCreatedAt)
+	result, err := s.DesktopTokensStore.GetUserId(token, minCreatedAt)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -3280,7 +3280,7 @@ func (s *OpenTracingLayerDesktopTokensStore) GetUserId(desktopToken string, serv
 	return result, err
 }
 
-func (s *OpenTracingLayerDesktopTokensStore) Insert(desktopToken string, createdAt int64, userId *string) error {
+func (s *OpenTracingLayerDesktopTokensStore) Insert(token string, createdAt int64, userId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DesktopTokensStore.Insert")
 	s.Root.Store.SetContext(newCtx)
@@ -3289,43 +3289,7 @@ func (s *OpenTracingLayerDesktopTokensStore) Insert(desktopToken string, created
 	}()
 
 	defer span.Finish()
-	err := s.DesktopTokensStore.Insert(desktopToken, createdAt, userId)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return err
-}
-
-func (s *OpenTracingLayerDesktopTokensStore) SetServerToken(desktopToken string, minCreatedAt int64, serverToken string) error {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DesktopTokensStore.SetServerToken")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	err := s.DesktopTokensStore.SetServerToken(desktopToken, minCreatedAt, serverToken)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return err
-}
-
-func (s *OpenTracingLayerDesktopTokensStore) SetUserId(desktopToken string, minCreatedAt int64, userId string) error {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DesktopTokensStore.SetUserId")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	err := s.DesktopTokensStore.SetUserId(desktopToken, minCreatedAt, userId)
+	err := s.DesktopTokensStore.Insert(token, createdAt, userId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

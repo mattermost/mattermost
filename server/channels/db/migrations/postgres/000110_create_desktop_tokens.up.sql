@@ -1,9 +1,8 @@
 CREATE TABLE IF NOT EXISTS desktoptokens (
-    desktoptoken VARCHAR(64) NOT NULL,
-    servertoken VARCHAR(64),
-    userid VARCHAR(26),
+    token VARCHAR(64) NOT NULL,
     createat BIGINT NOT NULL,
-    PRIMARY KEY (desktoptoken)
+    userid VARCHAR(26) NOT NULL,    
+    PRIMARY KEY (token)
 );
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_desktoptokens_desktoptoken_servertoken_createat ON desktoptokens(desktoptoken, servertoken, createat);
+CREATE INDEX IF NOT EXISTS idx_desktoptokens_token_createat ON desktoptokens(token, createat)

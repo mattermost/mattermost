@@ -1968,11 +1968,10 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJSON(r.Body)
-	clientToken := props["client_token"]
-	serverToken := props["server_token"]
+	token := props["token"]
 	deviceId := props["device_id"]
 
-	user, err := c.App.ValidateDesktopToken(clientToken, serverToken, time.Now().Add(-model.DesktopTokenTTL).Unix())
+	user, err := c.App.ValidateDesktopToken(token, time.Now().Add(-model.DesktopTokenTTL).Unix())
 	if err != nil {
 		c.Err = err
 		return

@@ -352,16 +352,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if desktopToken != "" {
-			expiryTime := time.Now().Add(-model.DesktopTokenTTL).Unix()
-			desktopTokenErr := c.App.AuthenticateClientDesktopToken(desktopToken, expiryTime, user)
-			if desktopTokenErr != nil {
-				desktopTokenErr.Translate(c.AppContext.T)
-				c.LogErrorByCode(desktopTokenErr)
-				renderError(desktopTokenErr)
-				return
-			}
-
-			serverToken, serverTokenErr := c.App.GenerateAndSaveServerDesktopToken(desktopToken, expiryTime)
+			serverToken, serverTokenErr := c.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
 			if serverTokenErr != nil {
 				serverTokenErr.Translate(c.AppContext.T)
 				c.LogErrorByCode(serverTokenErr)
@@ -370,6 +361,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			queryString := map[string]string{
+				"client_token": desktopToken,
 				"server_token": *serverToken,
 			}
 			if val, ok := props["redirect_to"]; ok {
@@ -396,14 +388,6 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	loginHint := r.URL.Query().Get("login_hint")
 	redirectURL := r.URL.Query().Get("redirect_to")
 	desktopToken := r.URL.Query().Get("desktop_token")
-	if desktopToken != "" {
-		desktopTokenErr := c.App.SaveClientDesktopToken(desktopToken, time.Now().Unix())
-
-		if desktopTokenErr != nil {
-			c.Err = desktopTokenErr
-			return
-		}
-	}
 
 	if redirectURL != "" && !utils.IsValidWebAuthRedirectURL(c.App.Config(), redirectURL) {
 		c.Err = model.NewAppError("loginWithOAuth", "api.invalid_redirect_url", nil, "", http.StatusBadRequest)
@@ -474,14 +458,6 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	desktopToken := r.URL.Query().Get("desktop_token")
-	if desktopToken != "" {
-		desktopTokenErr := c.App.SaveClientDesktopToken(desktopToken, time.Now().Unix())
-
-		if desktopTokenErr != nil {
-			c.Err = desktopTokenErr
-			return
-		}
-	}
 
 	authURL, err := c.App.GetOAuthSignupEndpoint(w, r, c.Params.Service, teamId, desktopToken)
 	if err != nil {

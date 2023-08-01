@@ -47,23 +47,22 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
     const query = new URLSearchParams(search);
 
     const serverToken = query.get('server_token');
-    const clientToken = sessionStorage.getItem(DESKTOP_AUTH_PREFIX);
+    const receivedClientToken = query.get('client_token');
+    const storedClientToken = sessionStorage.getItem(DESKTOP_AUTH_PREFIX);
     const [status, setStatus] = useState(serverToken ? DesktopAuthStatus.LoggedIn : DesktopAuthStatus.None);
     const [showBottomMessage, setShowBottomMessage] = useState<boolean>();
 
     const tryDesktopLogin = async () => {
-        if (!(clientToken && serverToken)) {
+        if (!(serverToken && receivedClientToken === storedClientToken)) {
             setStatus(DesktopAuthStatus.Error);
             return;
         }
 
         sessionStorage.removeItem(DESKTOP_AUTH_PREFIX);
-        const {data: userProfile, error: loginError} = await dispatch(loginWithDesktopToken(clientToken, serverToken));
+        const {data: userProfile, error: loginError} = await dispatch(loginWithDesktopToken(serverToken));
 
         if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
-            if (loginError.server_error_id === 'app.desktop_token.validate.expired') {
-                setStatus(DesktopAuthStatus.Error);
-            }
+            setStatus(DesktopAuthStatus.Error);
             return;
         }
 
@@ -109,7 +108,7 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
 
     useEffect(() => {
         if (status === DesktopAuthStatus.LoggedIn) {
-            if (clientToken && serverToken) {
+            if (storedClientToken) {
                 tryDesktopLogin();
             } else {
                 forwardToDesktopApp();

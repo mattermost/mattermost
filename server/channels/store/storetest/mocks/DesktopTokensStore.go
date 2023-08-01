@@ -11,13 +11,13 @@ type DesktopTokensStore struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: desktopToken
-func (_m *DesktopTokensStore) Delete(desktopToken string) error {
-	ret := _m.Called(desktopToken)
+// Delete provides a mock function with given fields: token
+func (_m *DesktopTokensStore) Delete(token string) error {
+	ret := _m.Called(token)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(desktopToken)
+		r0 = rf(token)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -53,25 +53,25 @@ func (_m *DesktopTokensStore) DeleteOlderThan(minCreatedAt int64) error {
 	return r0
 }
 
-// GetUserId provides a mock function with given fields: desktopToken, serverToken, minCreatedAt
-func (_m *DesktopTokensStore) GetUserId(desktopToken string, serverToken string, minCreatedAt int64) (*string, error) {
-	ret := _m.Called(desktopToken, serverToken, minCreatedAt)
+// GetUserId provides a mock function with given fields: token, minCreatedAt
+func (_m *DesktopTokensStore) GetUserId(token string, minCreatedAt int64) (*string, error) {
+	ret := _m.Called(token, minCreatedAt)
 
 	var r0 *string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, int64) (*string, error)); ok {
-		return rf(desktopToken, serverToken, minCreatedAt)
+	if rf, ok := ret.Get(0).(func(string, int64) (*string, error)); ok {
+		return rf(token, minCreatedAt)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, int64) *string); ok {
-		r0 = rf(desktopToken, serverToken, minCreatedAt)
+	if rf, ok := ret.Get(0).(func(string, int64) *string); ok {
+		r0 = rf(token, minCreatedAt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
-		r1 = rf(desktopToken, serverToken, minCreatedAt)
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(token, minCreatedAt)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -79,41 +79,13 @@ func (_m *DesktopTokensStore) GetUserId(desktopToken string, serverToken string,
 	return r0, r1
 }
 
-// Insert provides a mock function with given fields: desktopToken, createdAt, userId
-func (_m *DesktopTokensStore) Insert(desktopToken string, createdAt int64, userId *string) error {
-	ret := _m.Called(desktopToken, createdAt, userId)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, int64, *string) error); ok {
-		r0 = rf(desktopToken, createdAt, userId)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SetServerToken provides a mock function with given fields: desktopToken, minCreatedAt, serverToken
-func (_m *DesktopTokensStore) SetServerToken(desktopToken string, minCreatedAt int64, serverToken string) error {
-	ret := _m.Called(desktopToken, minCreatedAt, serverToken)
+// Insert provides a mock function with given fields: token, createdAt, userId
+func (_m *DesktopTokensStore) Insert(token string, createdAt int64, userId string) error {
+	ret := _m.Called(token, createdAt, userId)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64, string) error); ok {
-		r0 = rf(desktopToken, minCreatedAt, serverToken)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SetUserId provides a mock function with given fields: desktopToken, minCreatedAt, userId
-func (_m *DesktopTokensStore) SetUserId(desktopToken string, minCreatedAt int64, userId string) error {
-	ret := _m.Called(desktopToken, minCreatedAt, userId)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, int64, string) error); ok {
-		r0 = rf(desktopToken, minCreatedAt, userId)
+		r0 = rf(token, createdAt, userId)
 	} else {
 		r0 = ret.Error(0)
 	}

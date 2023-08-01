@@ -62,11 +62,6 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	desktopToken := r.URL.Query().Get("desktop_token")
 	if desktopToken != "" {
-		desktopTokenErr := c.App.SaveClientDesktopToken(desktopToken, time.Now().Unix())
-		if desktopTokenErr != nil {
-			c.Err = err
-			return
-		}
 		relayProps["desktop_token"] = desktopToken
 	}
 
@@ -198,20 +193,14 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	desktopToken := relayProps["desktop_token"]
 	if desktopToken != "" {
-		expiryTime := time.Now().Add(-model.DesktopTokenTTL).Unix()
-		desktopTokenErr := c.App.AuthenticateClientDesktopToken(desktopToken, expiryTime, user)
-		if desktopTokenErr != nil {
-			handleError(desktopTokenErr)
-			return
-		}
-
-		serverToken, serverTokenErr := c.App.GenerateAndSaveServerDesktopToken(desktopToken, expiryTime)
+		serverToken, serverTokenErr := c.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
 		if serverTokenErr != nil {
 			handleError(serverTokenErr)
 			return
 		}
 
 		queryString := map[string]string{
+			"client_token": desktopToken,
 			"server_token": *serverToken,
 		}
 		if val, ok := relayProps["redirect_to"]; ok {

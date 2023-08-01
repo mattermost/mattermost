@@ -45,13 +45,13 @@ export function login(loginId: string, password: string, mfaToken = ''): ActionF
     };
 }
 
-export function loginWithDesktopToken(clientToken: string, serverToken: string): ActionFunc {
+export function loginWithDesktopToken(token: string): ActionFunc {
     return async (dispatch: DispatchFunc) => {
         dispatch({type: UserTypes.LOGIN_REQUEST, data: null});
 
         try {
             // This is partial user profile we recieved when we login. We still need to make getMe for complete user profile.
-            const loggedInUserProfile = await Client4.loginWithDesktopToken(clientToken, serverToken);
+            const loggedInUserProfile = await Client4.loginWithDesktopToken(token);
 
             dispatch(
                 batchActions([

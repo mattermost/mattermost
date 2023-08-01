@@ -24,39 +24,33 @@ func newSqlDesktopTokensStore(sqlStore *SqlStore, metrics einterfaces.MetricsInt
 	}
 }
 
-func (s *SqlDesktopTokensStore) GetUserId(desktopToken, serverToken string, minCreateAt int64) (*string, error) {
+func (s *SqlDesktopTokensStore) GetUserId(token string, minCreateAt int64) (*string, error) {
 	query := s.getQueryBuilder().
 		Select("UserId").
 		From("DesktopTokens").
 		Where(sq.And{
-			sq.Eq{"DesktopToken": desktopToken},
-			sq.Eq{"ServerToken": serverToken},
+			sq.Eq{"Token": token},
 			sq.GtOrEq{"CreateAt": minCreateAt},
 		})
 
-	dt := struct{ UserId sql.NullString }{}
+	dt := struct{ UserId string }{}
 	err := s.GetReplicaX().GetBuilder(&dt, query)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("DesktopTokens", desktopToken)
+			return nil, store.NewErrNotFound("DesktopTokens", token)
 		}
-		return nil, errors.Wrapf(err, "No token for %s", desktopToken)
+		return nil, errors.Wrapf(err, "No token for %s", token)
 	}
 
-	// Check if the string is NULL, if so throw not found
-	if !dt.UserId.Valid {
-		return nil, store.NewErrNotFound("DesktopTokens", desktopToken)
-	}
-
-	return &dt.UserId.String, nil
+	return &dt.UserId, nil
 }
 
-func (s *SqlDesktopTokensStore) Insert(desktopToken string, createAt int64, userId *string) error {
+func (s *SqlDesktopTokensStore) Insert(token string, createAt int64, userId string) error {
 	builder := s.getQueryBuilder().
 		Insert("DesktopTokens").
-		Columns("DesktopToken", "CreateAt", "UserId").
-		Values(desktopToken, createAt, userId)
+		Columns("Token", "CreateAt", "UserId").
+		Values(token, createAt, userId)
 
 	query, args, err := builder.ToSql()
 
@@ -71,75 +65,11 @@ func (s *SqlDesktopTokensStore) Insert(desktopToken string, createAt int64, user
 	return nil
 }
 
-func (s *SqlDesktopTokensStore) SetUserId(desktopToken string, minCreateAt int64, userId string) error {
-	builder := s.getQueryBuilder().
-		Update("DesktopTokens").
-		Set("UserId", userId).
-		Where(sq.Eq{
-			"DesktopToken": desktopToken,
-		}).
-		Where(sq.GtOrEq{
-			"CreateAt": minCreateAt,
-		})
-
-	query, args, err := builder.ToSql()
-
-	if err != nil {
-		return errors.Wrap(err, "set_userid_desktoptokens_tosql")
-	}
-
-	result, err := s.GetMasterX().Exec(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to update token row")
-	}
-
-	num, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "nothing updated")
-	}
-	if num == 0 {
-		return errors.New("no rows updated")
-	}
-
-	return nil
-}
-
-func (s *SqlDesktopTokensStore) SetServerToken(desktopToken string, minCreateAt int64, serverToken string) error {
-	builder := s.getQueryBuilder().
-		Update("DesktopTokens").
-		Set("ServerToken", serverToken).
-		Where(sq.And{
-			sq.Eq{"DesktopToken": desktopToken},
-			sq.GtOrEq{"CreateAt": minCreateAt},
-		})
-
-	query, args, err := builder.ToSql()
-
-	if err != nil {
-		return errors.Wrap(err, "set_servertoken_desktoptokens_tosql")
-	}
-
-	result, err := s.GetMasterX().Exec(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to update token row")
-	}
-
-	num, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "nothing updated")
-	}
-	if num == 0 {
-		return errors.New("no rows updated")
-	}
-
-	return nil
-}
-
-func (s *SqlDesktopTokensStore) Delete(desktopToken string) error {
+func (s *SqlDesktopTokensStore) Delete(token string) error {
 	builder := s.getQueryBuilder().
 		Delete("DesktopTokens").
 		Where(sq.Eq{
-			"DesktopToken": desktopToken,
+			"Token": token,
 		})
 
 	query, args, err := builder.ToSql()

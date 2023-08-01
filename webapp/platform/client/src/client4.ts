@@ -755,10 +755,9 @@ export default class Client4 {
         return profile;
     };
 
-    loginWithDesktopToken = async (clientToken: string, serverToken: string) => {
+    loginWithDesktopToken = async (token: string) => {
         const body: any = {
-            client_token: clientToken,
-            server_token: serverToken,
+            token,
             deviceId: '',
         };
 

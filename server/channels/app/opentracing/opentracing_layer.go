@@ -771,28 +771,6 @@ func (a *OpenTracingAppLayer) AttachSessionCookies(c *request.Context, w http.Re
 	a.app.AttachSessionCookies(c, w, r)
 }
 
-func (a *OpenTracingAppLayer) AuthenticateClientDesktopToken(token string, expiryTime int64, user *model.User) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AuthenticateClientDesktopToken")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.AuthenticateClientDesktopToken(token, expiryTime, user)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) AuthenticateUserForLogin(c *request.Context, id string, loginId string, password string, mfaToken string, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AuthenticateUserForLogin")
@@ -4561,9 +4539,9 @@ func (a *OpenTracingAppLayer) FinishSendAdminNotifyPost(trial bool, now int64, p
 	a.app.FinishSendAdminNotifyPost(trial, now, pluginBasedData)
 }
 
-func (a *OpenTracingAppLayer) GenerateAndSaveServerDesktopToken(clientToken string, expiryTime int64) (*string, *model.AppError) {
+func (a *OpenTracingAppLayer) GenerateAndSaveDesktopToken(expiryTime int64, user *model.User) (*string, *model.AppError) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GenerateAndSaveServerDesktopToken")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GenerateAndSaveDesktopToken")
 
 	a.ctx = newCtx
 	a.app.Srv().Store().SetContext(newCtx)
@@ -4573,7 +4551,7 @@ func (a *OpenTracingAppLayer) GenerateAndSaveServerDesktopToken(clientToken stri
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GenerateAndSaveServerDesktopToken(clientToken, expiryTime)
+	resultVar0, resultVar1 := a.app.GenerateAndSaveDesktopToken(expiryTime, user)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -14797,28 +14775,6 @@ func (a *OpenTracingAppLayer) SaveBrandImage(imageData *multipart.FileHeader) *m
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SaveClientDesktopToken(token string, createdAt int64) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveClientDesktopToken")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SaveClientDesktopToken(token, createdAt)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveComplianceReport")
@@ -18605,7 +18561,7 @@ func (a *OpenTracingAppLayer) UserIsInAdminRoleGroup(userID string, syncableID s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ValidateDesktopToken(clientToken string, serverToken string, expiryTime int64) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) ValidateDesktopToken(token string, expiryTime int64) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ValidateDesktopToken")
 
@@ -18617,7 +18573,7 @@ func (a *OpenTracingAppLayer) ValidateDesktopToken(clientToken string, serverTok
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ValidateDesktopToken(clientToken, serverToken, expiryTime)
+	resultVar0, resultVar1 := a.app.ValidateDesktopToken(token, expiryTime)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

@@ -2946,10 +2946,10 @@ func (s *TimerLayerComplianceStore) Update(compliance *model.Compliance) (*model
 	return result, err
 }
 
-func (s *TimerLayerDesktopTokensStore) Delete(desktopToken string) error {
+func (s *TimerLayerDesktopTokensStore) Delete(token string) error {
 	start := time.Now()
 
-	err := s.DesktopTokensStore.Delete(desktopToken)
+	err := s.DesktopTokensStore.Delete(token)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2994,10 +2994,10 @@ func (s *TimerLayerDesktopTokensStore) DeleteOlderThan(minCreatedAt int64) error
 	return err
 }
 
-func (s *TimerLayerDesktopTokensStore) GetUserId(desktopToken string, serverToken string, minCreatedAt int64) (*string, error) {
+func (s *TimerLayerDesktopTokensStore) GetUserId(token string, minCreatedAt int64) (*string, error) {
 	start := time.Now()
 
-	result, err := s.DesktopTokensStore.GetUserId(desktopToken, serverToken, minCreatedAt)
+	result, err := s.DesktopTokensStore.GetUserId(token, minCreatedAt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3010,10 +3010,10 @@ func (s *TimerLayerDesktopTokensStore) GetUserId(desktopToken string, serverToke
 	return result, err
 }
 
-func (s *TimerLayerDesktopTokensStore) Insert(desktopToken string, createdAt int64, userId *string) error {
+func (s *TimerLayerDesktopTokensStore) Insert(token string, createdAt int64, userId string) error {
 	start := time.Now()
 
-	err := s.DesktopTokensStore.Insert(desktopToken, createdAt, userId)
+	err := s.DesktopTokensStore.Insert(token, createdAt, userId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3022,38 +3022,6 @@ func (s *TimerLayerDesktopTokensStore) Insert(desktopToken string, createdAt int
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("DesktopTokensStore.Insert", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerDesktopTokensStore) SetServerToken(desktopToken string, minCreatedAt int64, serverToken string) error {
-	start := time.Now()
-
-	err := s.DesktopTokensStore.SetServerToken(desktopToken, minCreatedAt, serverToken)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("DesktopTokensStore.SetServerToken", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerDesktopTokensStore) SetUserId(desktopToken string, minCreatedAt int64, userId string) error {
-	start := time.Now()
-
-	err := s.DesktopTokensStore.SetUserId(desktopToken, minCreatedAt, userId)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("DesktopTokensStore.SetUserId", success, elapsed)
 	}
 	return err
 }
