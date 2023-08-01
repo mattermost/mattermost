@@ -92,7 +92,7 @@ const NewChannelModal = () => {
     const [url, setURL] = useState('');
     const [purpose, setPurpose] = useState('');
     // const [displayNameModified, setDisplayNameModified] = useState(false);
-    // const [urlModified, setURLModified] = useState(false);
+    const [urlModified, setURLModified] = useState(false);
     const [displayNameError, setDisplayNameError] = useState('');
     const [urlError, setURLError] = useState('');
     const [purposeError, setPurposeError] = useState('');
@@ -256,6 +256,10 @@ const NewChannelModal = () => {
     //     setServerError('');
     // };
 
+    const handleOnURLChange = (updatedURL: string) => {
+        setURL(updatedURL);
+    }
+
     const handleOnTypeChange = (channelType: ChannelType) => {
         setType(channelType);
         setServerError('');
@@ -357,6 +361,7 @@ const NewChannelModal = () => {
                     name='new-channel-modal-name'
                     placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
                     onDisplayNameChange={onChannelDisplayNameChanged}
+                    onURLChange={handleOnURLChange}
                 />
                 <PublicPrivateSelector
                     className='new-channel-modal-type-selector'

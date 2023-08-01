@@ -15,11 +15,13 @@ export type Props = {
     name: string
     placeholder: string
     onDisplayNameChange: (name: string) => void
+    onURLChange: (url: string) => void
     autoFocus?: boolean
 }
 
 import './channel_name_form_field.scss';
 import {bool} from "yup";
+import {clean} from "semver";
 
 const ChannelNameFormField = (props: Props): JSX.Element => {
     const {value, name, placeholder, onDisplayNameChange} = props;
@@ -49,8 +51,10 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         onDisplayNameChange(displayName);
 
         if (!urlModified) {
-            setURL(cleanUpUrlable(displayName));
+            const cleanURL = cleanUpUrlable(displayName)
+            setURL(cleanURL);
             setURLError('');
+            props.onURLChange(cleanURL);
         }
     };
 
@@ -74,6 +78,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         setURL(cleanURL);
         setURLModified(true);
         setServerError('');
+        props.onURLChange(cleanURL);
     };
 
     return (
