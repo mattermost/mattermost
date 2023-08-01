@@ -1,0 +1,644 @@
+openapi: 3.0.0
+info:
+  description: >
+    There is also a work-in-progress [Postman API
+    reference](https://documenter.getpostman.com/view/4508214/RW8FERUn).
+  version: 4.0.0
+  title: Mattermost API Reference
+  termsOfService: https://about.mattermost.com/default-terms/
+  contact:
+    email: feedback@mattermost.com
+  x-logo:
+    url: https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png
+    backgroundColor: "#FFFFFF"
+tags:
+  - name: introduction
+    description: >
+      The Mattermost Web Services API is used by Mattermost clients and third
+      party applications to interact with the server. [JavaScript and Golang
+      drivers for](/#tag/drivers) connecting to the APIs are also available.
+
+
+      ### Support
+
+
+      Mattermost core committers work with the community to keep the API documentation up-to-date.
+
+
+      If you have questions on API routes not listed in this reference, please [join the Mattermost community server](https://community.mattermost.com) to ask questions in the Developers channel, [or post questions to our Developer Discussion forum](https://forum.mattermost.org/c/dev).
+
+
+      [Bug reports](https://github.com/mattermost/mattermost/issues) in the documentation or the API are also welcome, as are pull requests to fix the issues.
+
+
+      ### Contributing
+
+
+      When you have answers to API questions not addressed in our documentation we ask you to consider making a pull request to improve our reference. Small and large changes are all welcome.
+
+
+      We also have [Help Wanted tickets](https://github.com/mattermost/mattermost/issues?q=is%3Aopen+is%3Aissue+label%3AArea%2FAPI) available for community members who would like to help others more easily use the APIs. We acknowledge everyone's contribution in the [release notes of our next version](https://docs.mattermost.com/administration/changelog.html#contributors).
+
+
+      The source code for this API reference is hosted at https://github.com/mattermost/mattermost/tree/master/api.
+  - name: schema
+    description: >
+      All API access is through HTTP(S) requests at
+      `your-mattermost-url.com/api/v4`. All request and response bodies are
+      `application/json`.
+
+
+      When using endpoints that require a user id, the string `me` can be used in place of the user id to indicate the action is to be taken for the logged in user.
+  - name: drivers
+    description: >
+      The easiest way to interact with the Mattermost Web Service API is through
+      a language specific driver.
+
+
+      #### Official Drivers
+
+      * [Mattermost JavaScript Driver](https://github.com/mattermost/mattermost-redux/blob/master/src/client/client4.ts)
+
+      * [Mattermost Golang Driver](https://github.com/mattermost/mattermost/blob/master/server/public/model/client4.go)
+
+
+      #### Community-built Drivers
+
+      * [PHP Driver](https://github.com/gnello/php-mattermost-driver) - built by [@gnello](https://github.com/gnello) and [@prixone](https://github.com/prixone)
+
+      * [Python Driver](https://github.com/Vaelor/python-mattermost-driver) - built by [@Vaelor](https://github.com/Vaelor)
+
+
+      For other community-built drivers and API wrappers, see [our app directory](https://mattermost.com/marketplace/).
+  - name: authentication
+    description: >
+      There are multiple ways to authenticate against the Mattermost API.
+
+
+      All examples assume there is a Mattermost instance running at http://localhost:8065.
+
+
+      #### Session Token
+
+
+      Make an HTTP POST to `your-mattermost-url.com/api/v4/users/login` with a JSON body indicating the user’s `login_id`, `password` and optionally the MFA `token`. The `login_id` can be an email, username or an AD/LDAP ID depending on the system's configuration.
+
+
+      ```
+
+      curl -i -d '{"login_id":"someone@nowhere.com","password":"thisisabadpassword"}' http://localhost:8065/api/v4/users/login
+
+      ```
+
+
+      NOTE: If you're running cURL on windows, you will have to change the single quotes to double quotes, and escape the inner double quotes with backslash, like below:
+
+
+      ```
+
+      curl -i -d "{\"login_id\":\"someone@nowhere.com\",\"password\":\"thisisabadpassword\"}" http://localhost:8065/api/v4/users/login
+
+      ```
+
+
+      If successful, the response will contain a `Token` header and a user object in the body.
+
+
+      ```
+
+      HTTP/1.1 200 OK
+
+      Set-Cookie: MMSID=hyr5dmb1mbb49c44qmx4whniso; Path=/; Max-Age=2592000; HttpOnly
+
+      Token: hyr5dmb1mbb49c44qmx4whniso
+
+      X-Ratelimit-Limit: 10
+
+      X-Ratelimit-Remaining: 9
+
+      X-Ratelimit-Reset: 1
+
+      X-Request-Id: smda55ckcfy89b6tia58shk5fh
+
+      X-Version-Id: developer
+
+      Date: Fri, 11 Sep 2015 13:21:14 GMT
+
+      Content-Length: 657
+
+      Content-Type: application/json; charset=utf-8
+
+
+      {{user object as json}}
+
+      ```
+
+
+      Include the `Token` as part of the `Authorization` header on your future API requests with the `Bearer` method.
+
+
+      ```
+
+      curl -i -H 'Authorization: Bearer hyr5dmb1mbb49c44qmx4whniso' http://localhost:8065/api/v4/users/me
+
+      ```
+
+
+      You should now be able to access the API as the user you logged in as.
+
+
+      #### Personal Access Tokens
+
+
+      Using [personal access tokens](https://docs.mattermost.com/developer/personal-access-tokens.html) is very similar to using a session token. The only real difference is that session tokens will expire, while personal access tokens will live until they are manually revoked by the user or an admin.
+
+
+      Just like session tokens, include the personal access token as part of the `Authorization` header in your requests using the `Bearer` method. Assuming our personal access token is `9xuqwrwgstrb3mzrxb83nb357a`, we could use it as shown below.
+
+
+      ```
+
+      curl -i -H 'Authorization: Bearer 9xuqwrwgstrb3mzrxb83nb357a' http://localhost:8065/api/v4/users/me
+
+      ```
+
+
+      #### OAuth 2.0
+
+
+      Mattermost has the ability to act as an [OAuth 2.0](https://tools.ietf.org/html/rfc6749) service provider.
+
+
+      The official documentation for [using your Mattermost server as an OAuth 2.0 service provider can be found here.](https://docs.mattermost.com/developer/oauth-2-0-applications.html)
+
+
+      For an example on how to register an OAuth 2.0 app with your Mattermost instance, please see the [Mattermost-Zapier integration documentation](https://docs.mattermost.com/integrations/zapier.html#register-zapier-as-an-oauth-2-0-application).
+  - name: errors
+    description: >
+      All errors will return an appropriate HTTP response code along with the
+      following JSON body:
+
+      ```
+
+      {
+          "id": "the.error.id",
+          "message": "Something went wrong", // the reason for the error
+          "request_id": "", // the ID of the request
+          "status_code": 0, // the HTTP status code
+          "is_oauth": false // whether the error is OAuth specific
+      }
+
+      ```
+  - name: rate limiting
+    description: >
+      Whenever you make an HTTP request to the Mattermost API you might notice
+      the following headers included in the response:
+
+      ```
+
+      X-Ratelimit-Limit: 10
+
+      X-Ratelimit-Remaining: 9
+
+      X-Ratelimit-Reset: 1441983590
+
+      ```
+
+
+      These headers are telling you your current rate limit status.
+
+
+      | Header | Description |
+
+      | ------ | ----------- |
+
+      | X-Ratelimit-Limit | The maximum number of requests you can make per second. |
+
+      | X-Ratelimit-Remaining | The number of requests remaining in the current window. |
+
+      | X-Ratelimit-Reset | The remaining UTC epoch seconds before the rate limit resets. |
+
+
+      If you exceed your rate limit for a window you will receive the following error in the body of the response:
+
+
+      ```
+
+      HTTP/1.1 429 Too Many Requests
+
+      Date: Tue, 10 Sep 2015 11:20:28 GMT
+
+      X-RateLimit-Limit: 10
+
+      X-RateLimit-Remaining: 0
+
+      X-RateLimit-Reset: 1
+
+
+      limit exceeded
+
+      ```
+  - name: WebSocket
+    description: >
+      In addition to the HTTP RESTful web service, Mattermost also offers a
+      WebSocket event delivery system and some API functionality.
+
+
+      To connect to the WebSocket follow the standard opening handshake as [defined by the RFC specification](https://tools.ietf.org/html/rfc6455#section-1.3) to the `/api/v4/websocket` endpoint of Mattermost.
+
+
+      #### Authentication
+
+
+      The Mattermost WebSocket can be authenticated using [the standard API authentication methods](/#tag/authentication) (by a cookie or with an explicit Authorization header) or through an authentication challenge. If you're authenticating from a browser and have logged in with the Mattermost API, your authentication cookie should already be set. This is how the Mattermost webapp authenticates with the WebSocket.
+
+
+      To authenticate with an authentication challenge, first connect the WebSocket and then send the following JSON over the connection:
+
+
+      ```
+
+      {
+        "seq": 1,
+        "action": "authentication_challenge",
+        "data": {
+          "token": "mattermosttokengoeshere"
+        }
+      }
+
+      ```
+
+
+      If successful, you will receive a standard OK response over the WebSocket connection:
+
+
+      ```
+
+      {
+        "status": "OK",
+        "seq_reply": 1
+      }
+
+      ```
+
+
+      Once successfully authenticated, the server will pass a `hello` WebSocket event containing server version over the connection.
+
+
+      #### Events
+
+
+      WebSocket events are primarily used to alert the client to changes in Mattermost, such as delivering new posts or alerting the client that another user is typing in a channel.
+
+
+      Events on the WebSocket will have the form:
+
+
+      ```
+
+      {
+        "event": "hello",
+        "data": {
+          "server_version": "3.6.0.1451.1c38da627ebb4e3635677db6939e9195"
+        },
+        "broadcast":{
+          "omit_users": null,
+          "user_id": "ay5sq51sebfh58ktrce5ijtcwy",
+          "channel_id": "",
+          "team_id": ""
+        },
+        "seq": 0
+      }
+
+      ```
+
+
+      The `event` field indicates the event type, `data` contains any data relevant to the event and `broadcast` contains information about who the event was sent to. For example, the above example has `user_id` set to "ay5sq51sebfh58ktrce5ijtcwy" meaning that only the user with that ID received this event broadcast. The `omit_users` field can contain an array of user IDs that were specifically omitted from receiving the event.
+
+
+      The list of Mattermost WebSocket events are:
+
+      - added_to_team
+
+      - authentication_challenge
+
+      - channel_converted
+
+      - channel_created
+
+      - channel_deleted
+
+      - channel_member_updated
+
+      - channel_updated
+
+      - channel_viewed
+
+      - config_changed
+
+      - delete_team
+
+      - direct_added
+
+      - emoji_added
+
+      - ephemeral_message
+
+      - group_added
+
+      - hello
+
+      - leave_team
+
+      - license_changed
+
+      - memberrole_updated
+
+      - new_user
+
+      - plugin_disabled
+
+      - plugin_enabled
+
+      - plugin_statuses_changed
+
+      - post_deleted
+
+      - post_edited
+
+      - post_unread
+
+      - posted
+
+      - preference_changed
+
+      - preferences_changed
+
+      - preferences_deleted
+
+      - reaction_added
+
+      - reaction_removed
+
+      - response
+
+      - role_updated
+
+      - status_change
+
+      - typing
+
+      - update_team
+
+      - user_added
+
+      - user_removed
+
+      - user_role_updated
+
+      - user_updated
+
+      - dialog_opened
+
+      - thread_updated
+
+      - thread_follow_changed
+
+      - thread_read_changed
+
+
+      #### WebSocket API
+
+
+      Mattermost has some basic support for WebSocket APIs. A connected WebSocket can make requests by sending the following over the connection:
+
+
+      ```
+
+      {
+        "action": "user_typing",
+        "seq": 2,
+        "data": {
+          "channel_id": "nhze199c4j87ped4wannrjdt9c",
+          "parent_id": ""
+        }
+      }
+
+      ```
+
+
+      This is an example of making a `user_typing` request, with the purpose of alerting the server that the connected client has begun typing in a channel or thread. The `action` field indicates what is being requested, and performs a similar duty as the route in a HTTP API. The `data` field is used to add any additional data along with the request. The server supports binary websocket messages as well in case the client has such a requirement.
+
+
+      The `seq` or sequence number is set by the client and should be incremented with every use. It is used to distinguish responses to requests that come down the WebSocket. For example, a standard response to the above request would be:
+
+
+      ```
+
+      {
+        "status": "OK",
+        "seq_reply": 2
+      }
+
+      ```
+
+
+      Notice `seq_reply` is 2, matching the `seq` of the original request. Using this a client can distinguish which request the response is meant for.
+
+
+      If there was any information to respond with, it would be encapsulated in a `data` field.
+
+
+      In the case of an error, the response would be:
+
+
+      ```
+
+      {
+        "status": "FAIL",
+        "seq_reply": 2,
+        "error": {
+          "id": "some.error.id.here",
+          "message": "Some error message here"
+        }
+      }
+
+      ```
+
+
+      The list of WebSocket API actions is:
+
+      - user_typing
+
+      - get_statuses
+
+      - get_statuses_by_ids
+
+
+      To see how these actions work, please refer to either the [Golang WebSocket driver](https://github.com/mattermost/mattermost-server/blob/master/model/websocket_client.go) or our [JavaScript WebSocket driver](https://github.com/mattermost/mattermost-redux/blob/master/src/client/websocket_client.ts).
+  - name: APIv3 Deprecation
+    description: >
+      Since Mattermost 4.6 released on January 16, 2018, API v3 has no longer
+      been supported and it will be removed in Mattermost Server v5.0 on June
+      16, 2018. Follow these simple steps to migrate your integrations and apps
+      to API v4. Otherwise your integrations may break once you upgrade to
+      Mattermost 5.0
+
+
+      1. Set your server's log level to `DEBUG` in **System Console > General > Logging > File Log Level** to print detailed logs for API requests.
+
+      2. In **System Console > Logs**, search for requests hitting `/api/v3/` endpoints. Any requests hitting these endpoints are from integrations that should be migrated to API v4.
+        - For in-house or self-built integrations, update them to use v4 with the help of [this API reference](https://api.mattermost.com). Most v3 endpoints have direct counterparts in v4 and should be migrated easily.
+        - For third-party integrations, visit their homepage (on GitHub, GitLab, etc.). Check if they already have a version that uses the Mattermost v4 API. If they do not, consider opening an issue asking them if support is planned.
+      3. Once all integrations have been migrated to API v4, review the server logs with log level set to `DEBUG`. Confirm no requests hit `/api/v3/` endpoints.
+
+      4. Set **Allow use of API v3 endpoints** to `false` in **System Console > General > Configuration**, or set `EnableAPIv3` to `false` in `config.json`. This setting disables API v3 on your server. Any time a v3 endpoint is used, an error is logged in **System Console > Logs**.
+
+      5. Set your server's log level back to `ERROR`. Use the error logs to help track down any remaining uses of API v3.
+
+
+      Below are the major changes made between v3 and v4:
+
+
+      1. Endpoint URLs only require team IDs when necessary. For example, getting a channel by ID no longer requires a team ID in v4.
+
+      2. Collection endpoints now generally return lists and include paging as part of the query string.
+
+      3. User ID is now included in most user endpoints. This allows admins to modify other users through v4 endpoints.
+
+
+      If you have any questions about the API v3 deprecation, or about migrating from v3 to v4, [join our daily build server at community.mattermost.com](https://community.mattermost.com) and ask questions in the [APIv4 channel](https://community.mattermost.com/core/channels/apiv4).
+  - name: users
+    description: >
+      Endpoints for creating, getting and interacting with users.
+
+
+      When using endpoints that require a user id, the string `me` can be used in place of the user id to indicate the action is to be taken for the logged in user.
+  - name: bots
+    description: Endpoints for creating, getting and updating bot users.
+  - name: teams
+    description: Endpoints for creating, getting and interacting with teams.
+  - name: channels
+    description: Endpoints for creating, getting and interacting with channels.
+  - name: posts
+    description: Endpoints for creating, getting and interacting with posts.
+  - name: files
+    description: Endpoints for uploading and interacting with files.
+  - name: uploads
+    description: Endpoints for creating and performing file uploads.
+  - name: preferences
+    description: Endpoints for saving and modifying user preferences.
+  - name: status
+    description: Endpoints for getting and updating user statuses.
+  - name: emoji
+    description: Endpoints for creating, getting and interacting with emojis.
+  - name: reactions
+    description: Endpoints for creating, getting and removing emoji reactions.
+  - name: webhooks
+    description: Endpoints for creating, getting and updating webhooks.
+  - name: commands
+    description: Endpoints for creating, getting and updating slash commands.
+  - name: OpenGraph
+    description: Endpoint for getting Open Graph metadata.
+  - name: system
+    description: General endpoints for interacting with the server, such as configuration and logging.
+  - name: brand
+    description:
+      Endpoints related to custom branding and white-labeling. See [our branding
+      documentation](https://docs.mattermost.com/administration/branding.html)
+      for more information.
+  - name: OAuth
+    description:
+      Endpoints for configuring and interacting with Mattermost as an OAuth 2.0
+      service provider.
+  - name: SAML
+    description: Endpoints for configuring and interacting with SAML.
+  - name: LDAP
+    description: Endpoints for configuring and interacting with LDAP.
+  - name: groups
+    description: Endpoints related to LDAP groups.
+  - name: compliance
+    description: Endpoints for creating, getting and downloading compliance reports.
+  - name: cluster
+    description: Endpoints for configuring and interacting with high availability clusters.
+  - name: elasticsearch
+    description: Endpoints for configuring and interacting with Elasticsearch.
+  - name: data retention
+    description: Endpoint for getting data retention policy settings.
+  - name: jobs
+    description:
+      Endpoints related to various background jobs that can be run by the server
+      or separately by job servers.
+  - name: plugins
+    description: Endpoints related to uploading and managing plugins.
+  - name: roles
+    description: Endpoints for creating, getting and updating roles.
+  - name: schemes
+    description: Endpoints for creating, getting and updating and deleting schemes.
+  - name: integration_actions
+    description: Endpoints for interactive actions for use by integrations.
+  - name: shared channels
+    description: Endpoints for getting information about shared channels.
+  - name: terms of service
+    description: Endpoints for getting and updating custom terms of service.
+  - name: imports
+    description: Endpoints related to import files.
+  - name: exports
+    description: Endpoints related to export files.
+x-tagGroups:
+  - name: Overview
+    tags:
+      - introduction
+      - schema
+      - APIv3 Deprecation
+  - name: Standard Features
+    tags:
+      - drivers
+      - authentication
+      - errors
+      - rate limiting
+      - WebSocket
+  - name: Endpoints
+    tags:
+      - users
+      - bots
+      - teams
+      - channels
+      - posts
+      - threads
+      - files
+      - uploads
+      - preferences
+      - status
+      - emoji
+      - reactions
+      - webhooks
+      - commands
+      - OpenGraph
+      - system
+      - brand
+      - OAuth
+      - SAML
+      - LDAP
+      - groups
+      - compliance
+      - cluster
+      - cloud
+      - elasticsearch
+      - bleve
+      - data retention
+      - jobs
+      - plugins
+      - roles
+      - schemes
+      - integration_actions
+      - shared channels
+      - terms of service
+      - imports
+      - permissions
+      - exports
+      - usage
+servers:
+  - url: http://your-mattermost-url.com
+  - url: https://your-mattermost-url.com
+paths:

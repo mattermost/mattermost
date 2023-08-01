@@ -118,20 +118,19 @@ export type ClientConfig = {
     ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
-    FeatureFlagAppsSidebarCategory: string;
-    FeatureFlagBoardsProduct: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagGraphQL: string;
+    ForgotPasswordLink: string;
     GfycatAPIKey: string;
     GfycatAPISecret: string;
     GoogleDeveloperKey: string;
     GuestAccountsEnforceMultifactorAuthentication: string;
     HasImageProxy: string;
     HelpLink: string;
+    HideGuestTags: string;
     IosAppDownloadLink: string;
     IosLatestVersion: string;
     IosMinVersion: string;
-    InsightsEnabled: string;
     InstallationDate: string;
     IsDefaultMarketplace: string;
     LdapFirstNameAttributeSet: string;
@@ -154,6 +153,7 @@ export type ClientConfig = {
     GitLabButtonColor: string;
     OpenIdButtonText: string;
     OpenIdButtonColor: string;
+    PasswordEnableForgotLink: string;
     PasswordMinimumLength: string;
     PasswordRequireLowercase: string;
     PasswordRequireNumber: string;
@@ -192,16 +192,16 @@ export type ClientConfig = {
     WebsocketSecurePort: string;
     WebsocketURL: string;
     ExperimentalSharedChannels: string;
-    EnableAppBar: string;
+    DisableAppBar: string;
     EnableComplianceExport: string;
     PostPriority: string;
-    ReduceOnBoardingTaskList: string;
     PostAcknowledgements: string;
     AllowPersistentNotifications: string;
     PersistentNotificationMaxRecipients: string;
     PersistentNotificationIntervalMinutes: string;
     AllowPersistentNotificationsForGuests: string;
     DelayChannelAutocomplete: 'true' | 'false';
+    ServiceEnvironment: string;
 };
 
 export type License = {
@@ -477,6 +477,7 @@ export type PasswordSettings = {
     Number: boolean;
     Uppercase: boolean;
     Symbol: boolean;
+    EnableForgotLink: boolean;
 };
 
 export type FileSettings = {
@@ -526,6 +527,8 @@ export type EmailSettings = {
     ConnectionSecurity: string;
     SendPushNotifications: boolean;
     PushNotificationServer: string;
+    PushNotificationServerType: 'off' | 'mhpns' | 'mtpns' | 'custom';
+    PushNotificationServerLocation: 'us' | 'de';
     PushNotificationContents: string;
     PushNotificationBuffer: number;
     EnableEmailBatching: boolean;
@@ -560,6 +563,7 @@ export type SupportSettings = {
     AboutLink: string;
     HelpLink: string;
     ReportAProblemLink: string;
+    ForgotPasswordLink: string;
     SupportEmail: string;
     CustomTermsOfServiceEnabled: boolean;
     CustomTermsOfServiceReAcceptancePeriod: number;
@@ -738,7 +742,7 @@ export type ExperimentalSettings = {
     UseNewSAMLLibrary: boolean;
     EnableSharedChannels: boolean;
     EnableRemoteClusterService: boolean;
-    EnableAppBar: boolean;
+    DisableAppBar: boolean;
     DisableRefetchingOnBrowserFocus: boolean;
     DelayChannelAutocomplete: boolean;
 };
@@ -772,6 +776,7 @@ export type ElasticsearchSettings = {
     ClientCert: string;
     ClientKey: string;
     Trace: string;
+    IgnoredPurgeIndexes: string;
 };
 
 export type BleveSettings = {
@@ -817,7 +822,6 @@ export type JobSettings = {
 };
 
 export type ProductSettings = {
-    EnablePublicSharedBoards: boolean;
 };
 
 export type PluginSettings = {
@@ -845,6 +849,7 @@ export type DisplaySettings = {
 
 export type GuestAccountsSettings = {
     Enable: boolean;
+    HideTags: boolean;
     AllowEmailAccounts: boolean;
     EnforceMultifactorAuthentication: boolean;
     RestrictCreationToDomains: string;
@@ -945,4 +950,10 @@ export enum CollapsedThreads {
     DEFAULT_ON = 'default_on',
     DEFAULT_OFF = 'default_off',
     ALWAYS_ON = 'always_on',
+}
+
+export enum ServiceEnvironment {
+    PRODUCTION = 'production',
+    TEST = 'test',
+    DEV = 'dev',
 }

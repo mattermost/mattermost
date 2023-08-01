@@ -812,6 +812,46 @@
     "translation": "An error occurred while expanding previews."
   },
   {
+    "id": "api.command_exportlink.desc",
+    "translation": "Generate a link to download a export."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "The file store driver does not support link generation."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "No export file has been found."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip filename|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Unable to find the file you requested."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "You can download your file here: {{.Link}}.\nThis link will expire in {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Unable to retrieve the export list."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "You don't have enough permissions to run this command."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Unable to generate presign url."
+  },
+  {
     "id": "api.command_groupmsg.desc",
     "translation": "Sends a Group Message to the specified users"
   },
@@ -1483,18 +1523,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.command_templates.desc",
-    "translation": "Open the create from template window"
-  },
-  {
-    "id": "api.command_templates.name",
-    "translation": "templates"
-  },
-  {
-    "id": "api.command_templates.unsupported.app_error",
-    "translation": "The templates command is not supported on your device."
-  },
-  {
     "id": "api.config.client.old_format.app_error",
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
@@ -1948,10 +1976,6 @@
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
     "translation": "Invalid username."
-  },
-  {
-    "id": "api.insights.feature_disabled",
-    "translation": "Insights is behind a feature flag which is not enabled."
   },
   {
     "id": "api.invalid_channel",
@@ -2717,7 +2741,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Projects often involve people both inside and outside of an organization. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Projects often involve people both inside and outside of an organization. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
@@ -2741,7 +2765,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
@@ -2761,7 +2785,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Your Mattermost system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost.\r\n\r\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Mattermost system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost.\r\n\r\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
@@ -2781,7 +2805,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Your Mattermost system now has 200 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Mattermost server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Mattermost system now has 200 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Mattermost server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
@@ -2797,7 +2821,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "With so much conversation happening across Mattermost, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\r\n\r\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "With so much conversation happening across Mattermost, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\r\n\r\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
@@ -2821,7 +2845,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Mattermost strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
@@ -2841,7 +2865,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Channels help improve communication, but with users across Mattermost joining and creating channels, the challenge of keeping the system organized increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Channels help improve communication, but with users across Mattermost joining and creating channels, the challenge of keeping the system organized increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
@@ -2861,7 +2885,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
@@ -2881,7 +2905,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Your Mattermost system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customize user permissions within each team to meet their specific needs.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Mattermost system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customize user permissions within each team to meet their specific needs.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
@@ -4556,10 +4580,6 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
-    "id": "api.work_templates.disabled",
-    "translation": "Work templates are disabled."
-  },
-  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Unable to delete acknowledgement."
   },
@@ -4756,6 +4776,14 @@
     "translation": "No channel found."
   },
   {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Unable to find member count for given channels."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Unable to find member count."
+  },
+  {
     "id": "app.channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel."
   },
@@ -4904,6 +4932,14 @@
     "translation": "Unable to mark channel as unread."
   },
   {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Unable to update the channel member."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Unable to update the channel member, notify props size limit exceeded."
+  },
+  {
     "id": "app.channel.user_belongs_to_channels.app_error",
     "translation": "Unable to determine if the user belongs to a list of channels."
   },
@@ -4948,24 +4984,12 @@
     "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested a workspace upgrade for: "
   },
   {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Collection type already exists."
-  },
-  {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Topic type already exists."
-  },
-  {
     "id": "app.command.createcommand.internal_error",
     "translation": "Unable to save the command."
   },
   {
     "id": "app.command.deletecommand.internal_error",
     "translation": "Unable to delete the command."
-  },
-  {
-    "id": "app.command.execute.error",
-    "translation": "Unable to execute command."
   },
   {
     "id": "app.command.getcommand.internal_error",
@@ -5118,6 +5142,30 @@
   {
     "id": "app.emoji.get_list.internal_error",
     "translation": "Unable to get the emoji."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "This actions requires the use of a dedicated export store."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Your export store driver does not support presign url generation."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "This feature is restricted by a feature flag."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Unable to check if the file exists."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Unable to generate the presigned url."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "The export file was not found."
   },
   {
     "id": "app.export.export_attachment.copy_file.error",
@@ -5780,10 +5828,6 @@
     "translation": "insert error"
   },
   {
-    "id": "app.insights.feature_disabled",
-    "translation": "Insights feature is disabled."
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
@@ -6192,6 +6236,10 @@
     "translation": "Unable to delete the post."
   },
   {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "An error occurred getting the team."
+  },
+  {
     "id": "app.post.get.app_error",
     "translation": "Unable to get the post."
   },
@@ -6238,18 +6286,6 @@
   {
     "id": "app.post.get_root_posts.app_error",
     "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "Unable to get top DMs for user."
-  },
-  {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "Unable to get top threads for team."
-  },
-  {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "Unable to get top threads for user."
   },
   {
     "id": "app.post.marshal.app_error",
@@ -6348,10 +6384,6 @@
     "translation": "Unable to save reaction."
   },
   {
-    "id": "app.recent_searches.app_error",
-    "translation": "Error fetching recent searches"
-  },
-  {
     "id": "app.recover.delete.app_error",
     "translation": "Unable to delete token."
   },
@@ -6394,6 +6426,10 @@
   {
     "id": "app.save_config.app_error",
     "translation": "An error occurred saving the configuration."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "An error occurred running the plugin hook on configuration save."
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -6534,30 +6570,6 @@
   {
     "id": "app.team.clear_cache.app_error",
     "translation": "Error clearing team member cache"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "error duplicating board"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "error getting boards templates"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "error no board created"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "error while patching board"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "interface not of expected type"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "product key not found"
   },
   {
     "id": "app.team.get.find.app_error",
@@ -6824,88 +6836,6 @@
     "translation": "Failed to update the user."
   },
   {
-    "id": "app.user.digest.overdue_status_updates.heading",
-    "translation": "Overdue Status Updates"
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.num_overdue",
-    "translation": {
-      "one": "You have {{.Count}} run overdue for a status update:",
-      "other": "You have {{.Count}} runs overdue for a status update:"
-    }
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.zero_overdue",
-    "translation": "You have 0 runs overdue."
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.heading",
-    "translation": "Runs in Progress"
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.num_in_progress",
-    "translation": {
-      "one": "You have {{.Count}} run currently in progress:",
-      "other": "You have {{.Count}} runs currently in progress:"
-    }
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.zero_in_progress",
-    "translation": "You have 0 runs currently in progress."
-  },
-  {
-    "id": "app.user.digest.tasks.all_tasks_command",
-    "translation": "Please use `/playbook todo` to see all your tasks."
-  },
-  {
-    "id": "app.user.digest.tasks.due_after_today",
-    "translation": {
-      "one": "You have **{{.Count}} assigned task due after today**.",
-      "other": "You have **{{.Count}} assigned tasks due after today**."
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.due_in_x_days",
-    "translation": {
-      "one": "Due in {{.Count}} day",
-      "other": "Due in {{.Count}} days"
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.due_today",
-    "translation": "Due today"
-  },
-  {
-    "id": "app.user.digest.tasks.due_x_days_ago",
-    "translation": "Due {{.Count}} days ago"
-  },
-  {
-    "id": "app.user.digest.tasks.due_yesterday",
-    "translation": "Due yesterday"
-  },
-  {
-    "id": "app.user.digest.tasks.heading",
-    "translation": "Your assigned tasks"
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "one": "You have {{.Count}} assigned task:",
-      "other": "You have {{.Count}} total assigned tasks:"
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "one": "You have {{.Count}} assigned task that is now due:",
-      "other": "You have {{.Count}} assigned tasks that are now due:"
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.zero_assigned",
-    "translation": "You have 0 assigned tasks."
-  },
-  {
     "id": "app.user.get.app_error",
     "translation": "We encountered an error finding the account."
   },
@@ -6982,26 +6912,6 @@
     "translation": "Unable to find the user."
   },
   {
-    "id": "app.user.new_run.intro",
-    "translation": "**Owner** {{.Username}}"
-  },
-  {
-    "id": "app.user.new_run.playbook",
-    "translation": "Playbook"
-  },
-  {
-    "id": "app.user.new_run.run_name",
-    "translation": "Run name"
-  },
-  {
-    "id": "app.user.new_run.submit_label",
-    "translation": "Start run"
-  },
-  {
-    "id": "app.user.new_run.title",
-    "translation": "Run playbook"
-  },
-  {
     "id": "app.user.permanent_delete.app_error",
     "translation": "Unable to delete the existing account."
   },
@@ -7012,108 +6922,6 @@
   {
     "id": "app.user.promote_guest.user_update.app_error",
     "translation": "Failed to update the user."
-  },
-  {
-    "id": "app.user.run.add_checklist_item.description",
-    "translation": "Description"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.name",
-    "translation": "Name"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.submit_label",
-    "translation": "Add task"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.title",
-    "translation": "Add new task"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.playbook_run",
-    "translation": "Playbook Run"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.submit_label",
-    "translation": "Add to run timeline"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary",
-    "translation": "Summary"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.help",
-    "translation": "Max 64 chars"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "Short summary shown in the timeline"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "Add to run timeline"
-  },
-  {
-    "id": "app.user.run.confirm_finish.num_outstanding",
-    "translation": {
-      "one": "There is **{{.Count}} outstanding task**. Are you sure you want to finish the run *{{.RunName}}* for all participants?",
-      "other": "There are **{{.Count}} outstanding tasks**. Are you sure you want to finish the run *{{.RunName}}* for all participants?"
-    }
-  },
-  {
-    "id": "app.user.run.confirm_finish.submit_label",
-    "translation": "Finish run"
-  },
-  {
-    "id": "app.user.run.confirm_finish.title",
-    "translation": "Confirm finish run"
-  },
-  {
-    "id": "app.user.run.request_join_channel",
-    "translation": "@{{.Name}} is a run participant and wants join this channel. Any member of the channel can invite them.\n"
-  },
-  {
-    "id": "app.user.run.request_update",
-    "translation": "@here — @{{.Name}} requested a status update for [{{.RunName}}]({{.RunURL}}). \n"
-  },
-  {
-    "id": "app.user.run.status_disable",
-    "translation": "@{{.Username}} disabled the status updates for [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "app.user.run.status_enable",
-    "translation": "@{{.Username}} enabled the status updates for [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "app.user.run.update_status.change_since_last_update",
-    "translation": "Change since last update"
-  },
-  {
-    "id": "app.user.run.update_status.finish_run",
-    "translation": "Finish run"
-  },
-  {
-    "id": "app.user.run.update_status.finish_run.placeholder",
-    "translation": "Also mark the run as finished"
-  },
-  {
-    "id": "app.user.run.update_status.num_channel",
-    "translation": {
-      "one": "Provide an update to the stakeholders. This post will be broadcasted to {{.Count}} channel.",
-      "other": "Provide an update to the stakeholders. This post will be broadcasted to {{.Count}} channels."
-    }
-  },
-  {
-    "id": "app.user.run.update_status.reminder_for_next_update",
-    "translation": "Reminder for next update"
-  },
-  {
-    "id": "app.user.run.update_status.submit_label",
-    "translation": "Update status"
-  },
-  {
-    "id": "app.user.run.update_status.title",
-    "translation": "Status update"
   },
   {
     "id": "app.user.save.app_error",
@@ -7330,66 +7138,6 @@
   {
     "id": "app.webhooks.update_outgoing.app_error",
     "translation": "Unable to update the webhook."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_board",
-    "translation": "You don't have permissions to create a private board."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
-    "translation": "You don't have permissions to create a private channel."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
-    "translation": "You don't have permissions to create a private playbook."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_board",
-    "translation": "You don't have permissions to create a public board."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
-    "translation": "You don't have permissions to create a public channel."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
-    "translation": "You don't have permissions to create a public playbook."
-  },
-  {
-    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
-    "translation": "Your license does not support private playbooks."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "Error while executing a work template."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.boards.create_error",
-    "translation": "Error while creating a board."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.channels.create_error",
-    "translation": "Error while creating a channel."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.name_too_long",
-    "translation": "The name field cannot contain more than 64 characters."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
-    "translation": "Error while creating a playbook."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
-    "translation": "Unable to find channel associated with a playbook."
-  },
-  {
-    "id": "app.worktemplates.get_categories.app_error",
-    "translation": "Unable to get work template categories"
-  },
-  {
-    "id": "app.worktemplates.get_templates.app_error",
-    "translation": "Unable to get work templates"
   },
   {
     "id": "bleveengine.already_started.error",
@@ -8532,6 +8280,10 @@
     "translation": "Invalid notify level."
   },
   {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Notify props size limit exceeded."
+  },
+  {
     "id": "model.channel_member.is_valid.push_level.app_error",
     "translation": "Invalid push notification level."
   },
@@ -8758,6 +8510,10 @@
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
     "translation": "Elasticsearch EnableIndexing setting must be set to true when Elasticsearch EnableSearching is set to true"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ignored indexes for purge should not start with dash."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -9294,10 +9050,6 @@
   {
     "id": "model.incoming_hook.username.app_error",
     "translation": "Invalid username."
-  },
-  {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "Invalid time range."
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
@@ -10041,7 +9793,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 110+"
+    "translation": "Version 112+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -10118,557 +9870,5 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user."
-  },
-  {
-    "id": "worktemplate.category.design",
-    "translation": "Design"
-  },
-  {
-    "id": "worktemplate.category.devops",
-    "translation": "DevOps"
-  },
-  {
-    "id": "worktemplate.category.engineering",
-    "translation": "Engineering"
-  },
-  {
-    "id": "worktemplate.category.leadership",
-    "translation": "Leadership"
-  },
-  {
-    "id": "worktemplate.category.marketing",
-    "translation": "Marketing"
-  },
-  {
-    "id": "worktemplate.category.other",
-    "translation": "Other"
-  },
-  {
-    "id": "worktemplate.category.product_teams",
-    "translation": "Product"
-  },
-  {
-    "id": "worktemplate.category.project_management",
-    "translation": "Project Management"
-  },
-  {
-    "id": "worktemplate.category.qa",
-    "translation": "QA"
-  },
-  {
-    "id": "worktemplate.design.content_calendar.board",
-    "translation": "Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones."
-  },
-  {
-    "id": "worktemplate.design.content_calendar.channel",
-    "translation": "Share content ideas, trending posts, blog links, and mentions in a dedicated channel."
-  },
-  {
-    "id": "worktemplate.design.create_project.board",
-    "translation": "Use a Kanban board to define and track your project tasks and progress."
-  },
-  {
-    "id": "worktemplate.design.create_project.channel",
-    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
-  },
-  {
-    "id": "worktemplate.design.create_project.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.design.feature_release.description.board",
-    "translation": "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
-  },
-  {
-    "id": "worktemplate.design.feature_release.description.channel",
-    "translation": "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
-  },
-  {
-    "id": "worktemplate.design.feature_release.description.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.design.feature_release.description.playbook",
-    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
-  },
-  {
-    "id": "worktemplate.design.product_release.board",
-    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
-  },
-  {
-    "id": "worktemplate.design.product_release.channel",
-    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
-  },
-  {
-    "id": "worktemplate.design.product_release.playbook",
-    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
-  },
-  {
-    "id": "worktemplate.design.sprint_planning.board",
-    "translation": "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments."
-  },
-  {
-    "id": "worktemplate.design.sprint_planning.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
-  },
-  {
-    "id": "worktemplate.design.sprint_planning.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.devops.bug_bash.channel",
-    "translation": "Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization."
-  },
-  {
-    "id": "worktemplate.devops.bug_bash.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Jira, to track your bug bash progress. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.devops.bug_bash.playbook",
-    "translation": "Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time."
-  },
-  {
-    "id": "worktemplate.devops.create_project.board",
-    "translation": "Use a Kanban board to define and track your project tasks and progress."
-  },
-  {
-    "id": "worktemplate.devops.create_project.channel",
-    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
-  },
-  {
-    "id": "worktemplate.devops.create_project.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
-  },
-  {
-    "id": "worktemplate.devops.sprint_planning.board",
-    "translation": "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments."
-  },
-  {
-    "id": "worktemplate.devops.sprint_planning.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
-  },
-  {
-    "id": "worktemplate.devops.sprint_planning.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.engineering.bug_bash.channel",
-    "translation": "Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization."
-  },
-  {
-    "id": "worktemplate.engineering.bug_bash.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Jira, to track your bug bash progress. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.engineering.bug_bash.playbook",
-    "translation": "Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time."
-  },
-  {
-    "id": "worktemplate.engineering.create_project.board",
-    "translation": "Use a Kanban board to define and track your project tasks and progress."
-  },
-  {
-    "id": "worktemplate.engineering.create_project.channel",
-    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
-  },
-  {
-    "id": "worktemplate.engineering.create_project.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.engineering.feature_release.description.board",
-    "translation": "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
-  },
-  {
-    "id": "worktemplate.engineering.feature_release.description.channel",
-    "translation": "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
-  },
-  {
-    "id": "worktemplate.engineering.feature_release.description.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.engineering.feature_release.description.playbook",
-    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
-  },
-  {
-    "id": "worktemplate.engineering.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
-  },
-  {
-    "id": "worktemplate.engineering.goals_and_okrs.channel",
-    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
-  },
-  {
-    "id": "worktemplate.engineering.goals_and_okrs.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.engineering.sprint_planning.board",
-    "translation": "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments."
-  },
-  {
-    "id": "worktemplate.engineering.sprint_planning.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
-  },
-  {
-    "id": "worktemplate.engineering.sprint_planning.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.leadership.content_calendar.board",
-    "translation": "Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones."
-  },
-  {
-    "id": "worktemplate.leadership.content_calendar.channel",
-    "translation": "Share content ideas, trending posts, blog links, and mentions in a dedicated channel."
-  },
-  {
-    "id": "worktemplate.leadership.create_project.board",
-    "translation": "Use a Kanban board to define and track your project tasks and progress."
-  },
-  {
-    "id": "worktemplate.leadership.create_project.channel",
-    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
-  },
-  {
-    "id": "worktemplate.leadership.create_project.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.leadership.incident_resolution.description.board",
-    "translation": "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
-  },
-  {
-    "id": "worktemplate.leadership.incident_resolution.description.channel",
-    "translation": "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
-  },
-  {
-    "id": "worktemplate.leadership.incident_resolution.description.playbook",
-    "translation": "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
-  },
-  {
-    "id": "worktemplate.marketing.content_calendar.board",
-    "translation": "Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones."
-  },
-  {
-    "id": "worktemplate.marketing.content_calendar.channel",
-    "translation": "Share content ideas, trending posts, blog links, and mentions in a dedicated channel."
-  },
-  {
-    "id": "worktemplate.marketing.create_project.board",
-    "translation": "Use a Kanban board to define and track your project tasks and progress."
-  },
-  {
-    "id": "worktemplate.marketing.create_project.channel",
-    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
-  },
-  {
-    "id": "worktemplate.marketing.create_project.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.marketing.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
-  },
-  {
-    "id": "worktemplate.marketing.goals_and_okrs.channel",
-    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
-  },
-  {
-    "id": "worktemplate.marketing.goals_and_okrs.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.marketing.product_release.board",
-    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
-  },
-  {
-    "id": "worktemplate.marketing.product_release.channel",
-    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
-  },
-  {
-    "id": "worktemplate.marketing.product_release.playbook",
-    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
-  },
-  {
-    "id": "worktemplate.other.create_project.board",
-    "translation": "Use a Kanban board to define and track your project tasks and progress."
-  },
-  {
-    "id": "worktemplate.other.create_project.channel",
-    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
-  },
-  {
-    "id": "worktemplate.other.create_project.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.other.feature_release.description.board",
-    "translation": "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
-  },
-  {
-    "id": "worktemplate.other.feature_release.description.channel",
-    "translation": "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
-  },
-  {
-    "id": "worktemplate.other.feature_release.description.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.other.feature_release.description.playbook",
-    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
-  },
-  {
-    "id": "worktemplate.other.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
-  },
-  {
-    "id": "worktemplate.other.goals_and_okrs.channel",
-    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
-  },
-  {
-    "id": "worktemplate.other.goals_and_okrs.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.other.incident_resolution.description.board",
-    "translation": "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
-  },
-  {
-    "id": "worktemplate.other.incident_resolution.description.channel",
-    "translation": "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
-  },
-  {
-    "id": "worktemplate.other.incident_resolution.description.playbook",
-    "translation": "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
-  },
-  {
-    "id": "worktemplate.other.product_release.board",
-    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
-  },
-  {
-    "id": "worktemplate.other.product_release.channel",
-    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
-  },
-  {
-    "id": "worktemplate.other.product_release.playbook",
-    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Jira, to track your bug bash progress. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Use the Product Roadmap board to manage user feedback, assign resources, view deliverables in a calendar view, and prioritize issues."
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "Chat with your team about your customers' feedback, prioritization, and get aligned on progress together."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.project_management.create_project.board",
-    "translation": "Use a Kanban board to define and track your project tasks and progress."
-  },
-  {
-    "id": "worktemplate.project_management.create_project.channel",
-    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
-  },
-  {
-    "id": "worktemplate.project_management.create_project.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.project_management.feature_release.description.board",
-    "translation": "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
-  },
-  {
-    "id": "worktemplate.project_management.feature_release.description.channel",
-    "translation": "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
-  },
-  {
-    "id": "worktemplate.project_management.feature_release.description.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.project_management.feature_release.description.playbook",
-    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
-  },
-  {
-    "id": "worktemplate.project_management.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
-  },
-  {
-    "id": "worktemplate.project_management.goals_and_okrs.channel",
-    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
-  },
-  {
-    "id": "worktemplate.project_management.goals_and_okrs.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.project_management.product_release.board",
-    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
-  },
-  {
-    "id": "worktemplate.project_management.product_release.channel",
-    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
-  },
-  {
-    "id": "worktemplate.project_management.product_release.playbook",
-    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
-  },
-  {
-    "id": "worktemplate.project_management.product_roadmap.board",
-    "translation": "Use the Product Roadmap board to manage user feedback, assign resources, view deliverables in a calendar view, and prioritize issues."
-  },
-  {
-    "id": "worktemplate.project_management.product_roadmap.channel",
-    "translation": "Chat with your team about your customers' feedback, prioritization, and get aligned on progress together."
-  },
-  {
-    "id": "worktemplate.qa.bug_bash.channel",
-    "translation": "Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization."
-  },
-  {
-    "id": "worktemplate.qa.bug_bash.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Jira, to track your bug bash progress. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.qa.bug_bash.playbook",
-    "translation": "Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time."
-  },
-  {
-    "id": "worktemplate.qa.create_project.board",
-    "translation": "Use a Kanban board to define and track your project tasks and progress."
-  },
-  {
-    "id": "worktemplate.qa.create_project.channel",
-    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
-  },
-  {
-    "id": "worktemplate.qa.create_project.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
-  },
-  {
-    "id": "worktemplate.qa.incident_resolution.description.board",
-    "translation": "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
-  },
-  {
-    "id": "worktemplate.qa.incident_resolution.description.channel",
-    "translation": "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
-  },
-  {
-    "id": "worktemplate.qa.incident_resolution.description.playbook",
-    "translation": "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
-  },
-  {
-    "id": "worktemplate.qa.product_release.board",
-    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
-  },
-  {
-    "id": "worktemplate.qa.product_release.channel",
-    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
-  },
-  {
-    "id": "worktemplate.qa.product_release.playbook",
-    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
-  },
-  {
-    "id": "worktemplate.qa.sprint_planning.board",
-    "translation": "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments."
-  },
-  {
-    "id": "worktemplate.qa.sprint_planning.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
-  },
-  {
-    "id": "worktemplate.qa.sprint_planning.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you."
   }
 ]

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, MouseEvent, useState, KeyboardEvent} from 'react';
+import React, {memo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import classNames from 'classnames';
 
@@ -44,8 +44,7 @@ const SidebarCategoryMenu = (props: Props) => {
 
     let muteUnmuteCategoryMenuItem: JSX.Element | null = null;
     if (props.category.type !== CategoryTypes.DIRECT_MESSAGES) {
-        function toggleCategoryMute(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-            event.preventDefault();
+        function toggleCategoryMute() {
             props.setCategoryMuted(props.category.id, !props.category.muted);
         }
 
@@ -127,9 +126,7 @@ const SidebarCategoryMenu = (props: Props) => {
         );
     }
 
-    function handleSortChannels(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>, sorting: CategorySorting) {
-        event.preventDefault();
-
+    function handleSortChannels(sorting: CategorySorting) {
         props.setCategorySorting(props.category.id, sorting);
         trackEvent('ui', `ui_sidebar_sort_dm_${sorting}`);
     }
@@ -186,7 +183,7 @@ const SidebarCategoryMenu = (props: Props) => {
                         defaultMessage='Alphabetically'
                     />
                 )}
-                onClick={(event) => handleSortChannels(event, CategorySorting.Alphabetical)}
+                onClick={() => handleSortChannels(CategorySorting.Alphabetical)}
             />
             <Menu.Item
                 id={`sortByMostRecent-${props.category.id}`}
@@ -196,7 +193,7 @@ const SidebarCategoryMenu = (props: Props) => {
                         defaultMessage='Recent Activity'
                     />
                 )}
-                onClick={(event) => handleSortChannels(event, CategorySorting.Recency)}
+                onClick={() => handleSortChannels(CategorySorting.Recency)}
             />
             <Menu.Item
                 id={`sortManual-${props.category.id}`}
@@ -206,7 +203,7 @@ const SidebarCategoryMenu = (props: Props) => {
                         defaultMessage='Manually'
                     />
                 )}
-                onClick={(event) => handleSortChannels(event, CategorySorting.Manual)}
+                onClick={() => handleSortChannels(CategorySorting.Manual)}
             />
         </Menu.SubMenu>
     );

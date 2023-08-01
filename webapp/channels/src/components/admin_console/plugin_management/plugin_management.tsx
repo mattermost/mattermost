@@ -17,10 +17,11 @@ import ConfirmModal from 'components/confirm_modal';
 
 import AdminSettings, {BaseProps, BaseState} from '../admin_settings';
 import BooleanSetting from '../boolean_setting';
-import SettingsGroup from '../settings_group.jsx';
+import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
 import {appsPluginID} from 'utils/apps';
 import ExternalLink from 'components/external_link';
+import {DeveloperLinks} from 'utils/constants';
 
 const PluginItemState = ({state}: {state: number}) => {
     switch (state) {
@@ -674,7 +675,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                         values={{
                             link: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-plugins-beta/'
+                                    href={DeveloperLinks.PLUGINS}
                                     location='plugin_management'
                                 >
                                     {msg}
@@ -875,7 +876,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                             values={{
                                 link: (msg: React.ReactNode) => (
                                     <ExternalLink
-                                        href='https://developers.mattermost.com/integrate/admin-guide/admin-plugins-beta/'
+                                        href={DeveloperLinks.PLUGINS}
                                         location='plugin_management'
                                     >
                                         {msg}
@@ -1021,7 +1022,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-plugins-beta/'
+                                href={DeveloperLinks.PLUGINS}
                                 location='plugin_management'
                             >
                                 {msg}
@@ -1038,7 +1039,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-plugins-beta/'
+                                href={DeveloperLinks.PLUGINS}
                                 location='plugin_management'
                             >
                                 {msg}
@@ -1055,7 +1056,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-plugins-beta/'
+                                href={DeveloperLinks.PLUGINS}
                                 location='plugin_management'
                             >
                                 {msg}
@@ -1104,7 +1105,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                             values={{
                                                 link: (msg: React.ReactNode) => (
                                                     <ExternalLink
-                                                        href='https://mattermost.com/pl/default-plugin-signing'
+                                                        href={DeveloperLinks.PLUGIN_SIGNING}
                                                         location='plugin_management'
                                                     >
                                                         {msg}
@@ -1234,7 +1235,6 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                 />
                                 <TextSetting
                                     id={'marketplaceUrl'}
-                                    type={'input'}
                                     label={
                                         <FormattedMessage
                                             id='admin.plugins.settings.marketplaceUrl'

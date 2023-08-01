@@ -187,6 +187,7 @@ const initialComponents: PluginsState['components'] = {
     FilesWillUploadHook: [],
     NeedsTeamComponent: [],
     CreateBoardFromTemplate: [],
+    DesktopNotificationHooks: [],
 };
 
 function components(state: PluginsState['components'] = initialComponents, action: GenericAction) {
@@ -380,29 +381,6 @@ function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action
     }
 }
 
-function insightsHandlers(state: PluginsState['insightsHandlers'] = {}, action: GenericAction) {
-    switch (action.type) {
-    case ActionTypes.RECEIVED_PLUGIN_INSIGHT:
-        if (action.data) {
-            const nextState = {...state};
-            nextState[action.data.pluginId] = action.data.handler;
-            return nextState;
-        }
-        return state;
-    case ActionTypes.REMOVED_WEBAPP_PLUGIN:
-        if (action.data) {
-            const nextState = {...state};
-            delete nextState[action.data.id];
-            return nextState;
-        }
-        return state;
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
-    }
-}
-
 export default combineReducers({
 
     // object where every key is a plugin id and values are webapp plugin manifests
@@ -431,8 +409,4 @@ export default combineReducers({
     // objects where every key is a plugin id and the value is a promise to fetch stats from
     // a plugin to render on system console
     siteStatsHandlers,
-
-    // object where every key is a plugin id and the value is a promise to fetch insights from
-    // a plugin to render on the insights page
-    insightsHandlers,
 });

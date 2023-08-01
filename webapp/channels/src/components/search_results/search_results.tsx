@@ -21,17 +21,16 @@ import FileSearchResultItem from 'components/file_search_results';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 
 import * as Utils from 'utils/utils';
-import {searchHintOptions, DataSearchTypes, Locations} from 'utils/constants';
+import {searchHintOptions, DataSearchTypes} from 'utils/constants';
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
 import {t} from 'utils/i18n';
 
 import {Post} from '@mattermost/types/posts';
 import {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/types/files';
 
-import PostComponent from 'components/post';
-
 import MessageOrFileSelector from './messages_or_files_selector';
 import FilesFilterMenu from './files_filter_menu';
+import PostSearchResultsItem from './post_search_results_item';
 import SearchLimitsBanner from './search_limits_banner';
 
 import type {Props} from './types';
@@ -286,14 +285,15 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         contentItems = sortedResults.map((item: Post|FileSearchResultItemType, index: number) => {
             if (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && !props.isChannelFiles) {
                 return (
-                    <PostComponent
+                    <PostSearchResultsItem
                         key={item.id}
                         post={item as Post}
                         matches={props.matches[item.id]}
-                        term={(!props.isFlaggedPosts && !props.isPinnedPosts && !props.isMentionSearch) ? searchTerms : ''}
+                        searchTerm={searchTerms}
+                        isFlaggedPosts={props.isFlaggedPosts}
                         isMentionSearch={props.isMentionSearch}
+                        isPinnedPosts={props.isPinnedPosts}
                         a11yIndex={index}
-                        location={Locations.SEARCH}
                     />
                 );
             }

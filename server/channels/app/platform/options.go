@@ -8,13 +8,13 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/localcachelayer"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 type Option func(ps *PlatformService) error
@@ -78,6 +78,13 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 func SetFileStore(filestore filestore.FileBackend) Option {
 	return func(ps *PlatformService) error {
 		ps.filestore = filestore
+		return nil
+	}
+}
+
+func SetExportFileStore(filestore filestore.FileBackend) Option {
+	return func(ps *PlatformService) error {
+		ps.exportFilestore = filestore
 		return nil
 	}
 }

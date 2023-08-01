@@ -1154,14 +1154,4 @@ export default class PluginRegistry {
             data,
         });
     });
-
-    registerInsightsHandler = reArg(['handler'], ({handler}) => {
-        store.dispatch({
-            type: ActionTypes.RECEIVED_PLUGIN_INSIGHT,
-            data: {
-                pluginId: this.id,
-                handler,
-            },
-        });
-    });
 }

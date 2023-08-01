@@ -50,8 +50,7 @@ import {
 
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     Channel,
     ChannelMemberCountsByGroup,
@@ -99,6 +98,10 @@ export function getAllChannelStats(state: GlobalState): RelationOneToOne<Channel
     return state.entities.channels.stats;
 }
 
+export function getChannelsMemberCount(state: GlobalState): Record<string, number> {
+    return state.entities.channels.channelsMemberCount;
+}
+
 export function getChannelsInTeam(state: GlobalState): RelationOneToMany<Team, Channel> {
     return state.entities.channels.channelsInTeam;
 }
@@ -142,6 +145,10 @@ export const getDirectChannelsSet: (state: GlobalState) => Set<string> = createS
 
 export function getChannelMembersInChannels(state: GlobalState): RelationOneToOne<Channel, Record<string, ChannelMembership>> {
     return state.entities.channels.membersInChannel;
+}
+
+export function getChannelMember(state: GlobalState, channelId: string, userId: string): ChannelMembership | undefined {
+    return getChannelMembersInChannels(state)[channelId]?.[userId];
 }
 
 // makeGetChannel returns a selector that returns a channel from the store with the following filled in for DM/GM channels:
@@ -350,7 +357,7 @@ export function makeGetChannelUnreadCount(): (state: GlobalState, channelId: str
     );
 }
 
-export function getChannelByName(state: GlobalState, channelName: string): Channel | undefined | null {
+export function getChannelByName(state: GlobalState, channelName: string): Channel | undefined {
     return getChannelByNameHelper(getAllChannels(state), channelName);
 }
 

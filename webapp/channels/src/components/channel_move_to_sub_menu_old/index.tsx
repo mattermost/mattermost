@@ -41,7 +41,7 @@ type Props = {
     inHeaderDropdown?: boolean;
 };
 
-const ChannelMoveToSubMenu = (props: Props) => {
+const ChannelMoveToSubMenuOld = (props: Props) => {
     const {formatMessage} = useIntl();
 
     const dispatch = useDispatch<DispatchFunc>();
@@ -168,4 +168,4 @@ const ChannelMoveToSubMenu = (props: Props) => {
     );
 };
 
-export default memo(ChannelMoveToSubMenu);
+export default memo(ChannelMoveToSubMenuOld);

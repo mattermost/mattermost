@@ -16,12 +16,12 @@ import (
 
 	"github.com/avct/uasurfer"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 const cwsTokenEnv = "CWS_CLOUD_TOKEN"
@@ -321,6 +321,12 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 		Expires: expiresAt,
 		Domain:  domain,
 		Secure:  secure,
+	}
+
+	if secure && utils.CheckEmbeddedCookie(r) {
+		sessionCookie.SameSite = http.SameSiteNoneMode
+		userCookie.SameSite = http.SameSiteNoneMode
+		csrfCookie.SameSite = http.SameSiteNoneMode
 	}
 
 	http.SetCookie(w, sessionCookie)

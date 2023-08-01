@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,13 +26,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/plugin/utils"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin/utils"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func getDefaultPluginSettingsSchema() string {
@@ -143,7 +144,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/plugin"
 		)
 
 		type MyPlugin struct {
@@ -177,22 +178,17 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	assert.Equal(t, 2, len(preferences))
 
 	assert.Equal(t, user1.Id, preferences[0].UserId)
-	assert.Equal(t, model.PreferenceCategoryInsights, preferences[0].Category)
-	assert.Equal(t, model.PreferenceNameInsights, preferences[0].Name)
-	assert.Equal(t, "{\"insights_modal_viewed\":true}", preferences[0].Value)
+	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
+	assert.Equal(t, "hide", preferences[0].Name)
+	assert.Equal(t, "false", preferences[0].Value)
 
 	assert.Equal(t, user1.Id, preferences[1].UserId)
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[1].Category)
-	assert.Equal(t, "hide", preferences[1].Name)
-	assert.Equal(t, "false", preferences[1].Value)
-
-	assert.Equal(t, user1.Id, preferences[2].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
-	assert.Equal(t, user1.Id, preferences[2].Name)
-	assert.Equal(t, "0", preferences[2].Value)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
+	assert.Equal(t, user1.Id, preferences[1].Name)
+	assert.Equal(t, "0", preferences[1].Value)
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
@@ -244,10 +240,9 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 	require.Nil(t, err)
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
-	assert.Equal(t, model.PreferenceCategoryInsights, preferences[0].Category)
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[1].Category)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
+	assert.Equal(t, 2, len(preferences))
+	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
 }
 
 func TestPluginAPIUpdateUserPreferences(t *testing.T) {
@@ -265,22 +260,16 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	assert.Equal(t, 2, len(preferences))
 
 	assert.Equal(t, user1.Id, preferences[0].UserId)
-	assert.Equal(t, model.PreferenceCategoryInsights, preferences[0].Category)
-	assert.Equal(t, model.PreferenceNameInsights, preferences[0].Name)
-	assert.Equal(t, "{\"insights_modal_viewed\":true}", preferences[0].Value)
-
+	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
+	assert.Equal(t, "hide", preferences[0].Name)
+	assert.Equal(t, "false", preferences[0].Value)
 	assert.Equal(t, user1.Id, preferences[1].UserId)
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[1].Category)
-	assert.Equal(t, "hide", preferences[1].Name)
-	assert.Equal(t, "false", preferences[1].Value)
-
-	assert.Equal(t, user1.Id, preferences[2].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
-	assert.Equal(t, user1.Id, preferences[2].Name)
-	assert.Equal(t, "0", preferences[2].Value)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
+	assert.Equal(t, user1.Id, preferences[1].Name)
+	assert.Equal(t, "0", preferences[1].Value)
 
 	preference := model.Preference{
 		Name:     user1.Id,
@@ -295,8 +284,8 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 	preferences, err = api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
 
-	assert.Equal(t, 4, len(preferences))
-	expectedCategories := []string{model.PreferenceCategoryTutorialSteps, model.PreferenceCategoryTheme, model.PreferenceRecommendedNextSteps, model.PreferenceCategoryInsights}
+	assert.Equal(t, 3, len(preferences))
+	expectedCategories := []string{model.PreferenceCategoryTutorialSteps, model.PreferenceCategoryTheme, model.PreferenceRecommendedNextSteps}
 	for _, pref := range preferences {
 		assert.Contains(t, expectedCategories, pref.Category)
 		assert.Equal(t, user1.Id, pref.UserId)
@@ -830,7 +819,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
     package main
 
     import (
-      "github.com/mattermost/mattermost-server/server/public/plugin"
+      "github.com/mattermost/mattermost/server/public/plugin"
     )
 
     type MyPlugin struct {
@@ -982,7 +971,7 @@ func TestInstallPlugin(t *testing.T) {
 
 			"github.com/pkg/errors"
 
-			"github.com/mattermost/mattermost-server/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/plugin"
 		)
 
 		type configuration struct {
@@ -1498,7 +1487,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/plugin"
 			"bytes"
 			"net/http"
 		)
@@ -1539,8 +1528,8 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/public/plugin"
-			"github.com/mattermost/mattermost-server/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
 			"bytes"
 			"net/http"
 			"io"
@@ -1644,8 +1633,8 @@ func TestAPIMetrics(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/server/public/model"
-		"github.com/mattermost/mattermost-server/server/public/plugin"
+		"github.com/mattermost/mattermost/server/public/model"
+		"github.com/mattermost/mattermost/server/public/plugin"
 	)
 
 	type MyPlugin struct {
@@ -2018,89 +2007,6 @@ func TestPluginAPIIsEnterpriseReady(t *testing.T) {
 	assert.Equal(t, true, api.IsEnterpriseReady())
 }
 
-func TestRegisterCollectionAndTopic(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_THREADSEVERYWHERE", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_THREADSEVERYWHERE")
-	th := Setup(t)
-	defer th.TearDown()
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.FeatureFlags.ThreadsEverywhere = true
-	})
-	api := th.SetupPluginAPI()
-
-	err := api.RegisterCollectionAndTopic("collection1", "topic1")
-	assert.NoError(t, err)
-	err = api.RegisterCollectionAndTopic("collection1", "topic1")
-	assert.NoError(t, err)
-	err = api.RegisterCollectionAndTopic("collection1", "topic2")
-	assert.NoError(t, err)
-	err = api.RegisterCollectionAndTopic("collection2", "topic3")
-	assert.NoError(t, err)
-	err = api.RegisterCollectionAndTopic("collection2", "topic1")
-	assert.Error(t, err)
-
-	pluginCode := `
-    package main
-
-    import (
-	  "github.com/pkg/errors"
-      "github.com/mattermost/mattermost-server/server/public/plugin"
-    )
-
-    type MyPlugin struct {
-      plugin.MattermostPlugin
-    }
-
-	func (p *MyPlugin) OnActivate() error {
-		if err := p.API.RegisterCollectionAndTopic("collectionTypeToBeRepeated", "some topic"); err != nil {
-			return errors.Wrap(err, "cannot register collection")
-		}
-		if err := p.API.RegisterCollectionAndTopic("some collection", "topicToBeRepeated"); err != nil {
-			return errors.Wrap(err, "cannot register collection")
-		}
-		return nil
-	}
-
-    func main() {
-      plugin.ClientMain(&MyPlugin{})
-    }
-  `
-	pluginDir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	webappPluginDir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Directory = pluginDir
-		*cfg.PluginSettings.ClientDirectory = webappPluginDir
-	})
-
-	newPluginAPI := func(manifest *model.Manifest) plugin.API {
-		return th.App.NewPluginAPI(th.Context, manifest)
-	}
-
-	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, th.App.Log(), nil)
-	require.NoError(t, err)
-
-	th.App.ch.SetPluginsEnvironment(env)
-
-	pluginID := "testplugin"
-	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
-	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-	utils.CompileGo(t, pluginCode, backend)
-
-	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
-	manifest, activated, reterr := env.Activate(pluginID)
-	require.NoError(t, reterr)
-	require.NotNil(t, manifest)
-	require.True(t, activated)
-
-	err = api.RegisterCollectionAndTopic("collectionTypeToBeRepeated", "some other topic")
-	assert.Error(t, err)
-	err = api.RegisterCollectionAndTopic("some other collection", "topicToBeRepeated")
-	assert.Error(t, err)
-}
-
 func TestPluginUploadsAPI(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2112,8 +2018,8 @@ func TestPluginUploadsAPI(t *testing.T) {
 		  "fmt"
 			"bytes"
 
-      "github.com/mattermost/mattermost-server/server/public/model"
-      "github.com/mattermost/mattermost-server/server/public/plugin"
+      "github.com/mattermost/mattermost/server/public/model"
+      "github.com/mattermost/mattermost/server/public/plugin"
     )
 
     type TestPlugin struct {
@@ -2194,4 +2100,107 @@ func TestPluginUploadsAPI(t *testing.T) {
 	require.NoError(t, reterr)
 	require.NotNil(t, manifest)
 	require.True(t, activated)
+}
+
+//go:embed plugin_api_tests/manual.test_configuration_will_be_saved_hook/main.tmpl
+var configurationWillBeSavedHookTemplate string
+
+func TestConfigurationWillBeSavedHook(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	getPluginCode := func(hookCode string) string {
+		return fmt.Sprintf(configurationWillBeSavedHookTemplate, hookCode)
+	}
+
+	runPlugin := func(t *testing.T, code string) {
+		pluginDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		webappPluginDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		defer os.RemoveAll(pluginDir)
+		defer os.RemoveAll(webappPluginDir)
+
+		newPluginAPI := func(manifest *model.Manifest) plugin.API {
+			return th.App.NewPluginAPI(th.Context, manifest)
+		}
+		env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, th.App.Log(), nil)
+		require.NoError(t, err)
+
+		th.App.ch.SetPluginsEnvironment(env)
+
+		pluginID := "testplugin"
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+		utils.CompileGo(t, code, backend)
+
+		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+		manifest, activated, reterr := env.Activate(pluginID)
+		require.NoError(t, reterr)
+		require.NotNil(t, manifest)
+		require.True(t, activated)
+	}
+
+	t.Run("error", func(t *testing.T) {
+		hookCode := `
+    return nil, fmt.Errorf("plugin hook failed")
+    `
+
+		runPlugin(t, getPluginCode(hookCode))
+
+		cfg := th.App.Config()
+		_, _, appErr := th.App.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		require.Equal(t, "saveConfig: An error occurred running the plugin hook on configuration save., plugin hook failed", appErr.Error())
+
+		require.Equal(t, cfg, th.App.Config())
+	})
+
+	t.Run("AppError", func(t *testing.T) {
+		hookCode := `
+    return nil, model.NewAppError("saveConfig", "custom_error", nil, "", 400)
+    `
+
+		runPlugin(t, getPluginCode(hookCode))
+
+		cfg := th.App.Config()
+		_, _, appErr := th.App.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		require.Equal(t, "custom_error", appErr.Id)
+
+		require.Equal(t, cfg, th.App.Config())
+	})
+
+	t.Run("no error, no config change", func(t *testing.T) {
+		hookCode := `
+    return nil, nil
+    `
+
+		runPlugin(t, getPluginCode(hookCode))
+
+		cfg := th.App.Config()
+		_, newCfg, appErr := th.App.SaveConfig(cfg, false)
+		require.Nil(t, appErr)
+		require.Equal(t, cfg, newCfg)
+	})
+
+	t.Run("config change", func(t *testing.T) {
+		hookCode := `
+    cfg := newCfg.Clone()
+		cfg.PluginSettings.Plugins["custom_plugin"] = map[string]any{
+		  "custom_key": "custom_val",
+		}
+    return cfg, nil
+    `
+
+		runPlugin(t, getPluginCode(hookCode))
+
+		cfg := th.App.Config()
+		_, newCfg, appErr := th.App.SaveConfig(cfg, false)
+		require.Nil(t, appErr)
+		require.NotEqual(t, cfg, newCfg)
+		require.Equal(t, map[string]any{
+			"custom_key": "custom_val",
+		}, newCfg.PluginSettings.Plugins["custom_plugin"])
+	})
 }

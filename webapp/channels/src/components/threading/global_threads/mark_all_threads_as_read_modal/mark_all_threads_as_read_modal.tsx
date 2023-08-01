@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as React from 'react';
+import React from 'react';
 import {useIntl} from 'react-intl';
 
-import {LegacyGenericModal} from '@mattermost/components';
+import {GenericModal} from '@mattermost/components';
 
 import './mark_all_threads_as_read_modal.scss';
 
@@ -20,7 +20,7 @@ function MarkAllThreadsAsReadModal({
     const {formatMessage} = useIntl();
 
     return (
-        <LegacyGenericModal
+        <GenericModal
             className='mark-all-threads-as-read'
             id='mark-all-threads-as-read-modal'
             compassDesign={true}
@@ -48,7 +48,7 @@ function MarkAllThreadsAsReadModal({
                     })}
                 </span>
             </div>
-        </LegacyGenericModal>
+        </GenericModal>
     );
 }
 
