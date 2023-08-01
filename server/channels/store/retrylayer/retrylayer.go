@@ -6649,6 +6649,27 @@ func (s *RetryLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
 
 }
 
+func (s *RetryLayerPostStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.DeleteOrphanedRowsByIds(r)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
@@ -8179,11 +8200,11 @@ func (s *RetryLayerReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
 
 }
 
-func (s *RetryLayerReactionStore) DeleteOrphanedRowsByIdsTx(r *model.RetentionIdsForDeletion) (int64, error) {
+func (s *RetryLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.ReactionStore.DeleteOrphanedRowsByIdsTx(r)
+		result, err := s.ReactionStore.DeleteOrphanedRowsByIds(r)
 		if err == nil {
 			return result, nil
 		}
@@ -11577,6 +11598,27 @@ func (s *RetryLayerThreadStore) DeleteOrphanedRows(limit int) (int64, error) {
 	tries := 0
 	for {
 		result, err := s.ThreadStore.DeleteOrphanedRows(limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerThreadStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.DeleteOrphanedRowsByIds(r)
 		if err == nil {
 			return result, nil
 		}

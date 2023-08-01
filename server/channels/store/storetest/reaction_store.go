@@ -627,7 +627,7 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	require.Contains(t, rows[0].Ids, olderPost.Id)
 
 	for _, row := range rows {
-		_, err = ss.Reaction().DeleteOrphanedRowsByIdsTx(row)
+		_, err = ss.Reaction().DeleteOrphanedRowsByIds(row)
 		require.NoError(t, err)
 	}
 

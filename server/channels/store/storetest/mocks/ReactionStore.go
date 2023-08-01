@@ -104,8 +104,8 @@ func (_m *ReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return r0, r1
 }
 
-// DeleteOrphanedRowsByIdsTx provides a mock function with given fields: r
-func (_m *ReactionStore) DeleteOrphanedRowsByIdsTx(r *model.RetentionIdsForDeletion) (int64, error) {
+// DeleteOrphanedRowsByIds provides a mock function with given fields: r
+func (_m *ReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
 	ret := _m.Called(r)
 
 	var r0 int64

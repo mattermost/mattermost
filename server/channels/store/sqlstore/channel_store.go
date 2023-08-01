@@ -981,6 +981,8 @@ func (s SqlChannelStore) PermanentDelete(channelId string) (err error) {
 	}
 	defer finalizeTransactionX(transaction, &err)
 
+	// We want to check the retentionIdsForDeletion table to see if we are going to append the array or insert a new row.
+
 	if err := s.permanentDeleteT(transaction, channelId); err != nil {
 		return errors.Wrap(err, "permanentDeleteT")
 	}

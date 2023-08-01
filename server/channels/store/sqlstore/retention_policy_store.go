@@ -818,6 +818,36 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) 
 	return count, nil
 }
 
+func scanRetentionIdsForDeletion(rows *sql.Rows, isPostgres bool) ([]*model.RetentionIdsForDeletion, error) {
+	idsForDeletion := []*model.RetentionIdsForDeletion{}
+	for rows.Next() {
+		var row model.RetentionIdsForDeletion
+		if isPostgres {
+			if err := rows.Scan(
+				&row.Id, &row.TableName, pq.Array(&row.Ids),
+			); err != nil {
+				return nil, errors.Wrap(err, "unable to scan columns")
+			}
+		} else {
+			var ids []byte
+			if err := rows.Scan(
+				&row.Id, &row.TableName, &ids,
+			); err != nil {
+				return nil, errors.Wrap(err, "unable to scan columns")
+			}
+			if err := json.Unmarshal(ids, &row.Ids); err != nil {
+				return nil, errors.Wrap(err, "failed to unmarshal ids")
+			}
+		} 
+
+		idsForDeletion = append(idsForDeletion, &row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error while iterating over rows")
+	}
+	return idsForDeletion, nil
+}
+
 func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, offset, limit int) ([]*model.RetentionIdsForDeletion, error) {
 	query := s.getQueryBuilder().
 		Select("*").
@@ -839,33 +869,97 @@ func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string,
 	}
 	defer deferClose(rows, &err)
 
-	idsForDeletion := []*model.RetentionIdsForDeletion{}
-	for rows.Next() {
-		var row model.RetentionIdsForDeletion
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			err = rows.Scan(
-				&row.Id, &row.TableName, pq.Array(&row.Ids),
-			)
-		} else {
-			var ids []byte
-			err = rows.Scan(
-				&row.Id, &row.TableName, &ids,
-			)
-			if err = json.Unmarshal(ids, &row.Ids); err != nil {
-				return nil, errors.Wrap(err, "failed to unmarshal ids")
-			}
-		} 
-		
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to scan columns")
-		}
-		idsForDeletion = append(idsForDeletion, &row)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "error while iterating over rows")
+	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
+	idsForDeletion, err := scanRetentionIdsForDeletion(rows, isPostgres)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to scan ids for deletion")
 	}
 
 	return idsForDeletion, nil
+}
+
+func insertRetentionIdsForDeletion(txn *sqlxTxWrapper, row *model.RetentionIdsForDeletion, s *SqlStore) (err error) {
+	row.PreSave()
+	insertBuilder := s.getQueryBuilder().
+		Insert("RetentionIdsForDeletion").
+		Columns("Id", "TableName", "Ids")
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		insertBuilder = insertBuilder.
+			Values(row.Id, row.TableName, pq.Array(row.Ids))
+	} else {
+		jsonIds, err := json.Marshal(row.Ids)
+		if err != nil {
+			return err
+		}
+		insertBuilder = insertBuilder.
+			Values(row.Id, row.TableName, jsonIds)
+	}
+	insertQuery, insertArgs, err := insertBuilder.ToSql()
+
+	if _, err = txn.Exec(insertQuery, insertArgs...); err != nil {
+		return err
+	}
+	
+	return nil
+}
+
+// For cases where we have deleted a single item (i.e a channel) we want to check if there is an ids array that is under the batch size.
+// // If there is, we want to add the id to the array and update the row. If there isn't, we want to create a new row.
+func addNewIdForDeletionTx(txn *sqlxTxWrapper, tableName string, id string, s *SqlStore) error {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("RetentionIdsForDeletion").
+		Where(
+			sq.Eq{"TableName": tableName},
+		).
+		Limit(1).
+		Offset(0)
+
+	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
+
+	if isPostgres {
+		// Need to figure out the best way to get the batch config
+		query = query.Where("ARRAY_LENGTH(Ids, 1) < ?", 3000)
+	} else {
+		query = query.Where("JSON_LENGTH(Ids) < ?", 3000)
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "get_ids_for_deletion_tosql")
+	}
+
+	rows, err := txn.Query(queryString, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to delete "+tableName)
+	}
+
+	idsForDeletion, err := scanRetentionIdsForDeletion(rows, isPostgres)
+	if err != nil {
+		return errors.Wrap(err, "failed to scan ids for deletion")
+	}
+
+	if len(idsForDeletion) == 1 {
+		idsForDeletion[0].Ids = append(idsForDeletion[0].Ids, id)
+		queryString, args, err := s.getQueryBuilder().
+			Update("RetentionIdsForDeletion").
+			Set("Ids", idsForDeletion[0].Ids).
+			Where(sq.Eq{"Id": idsForDeletion[0].Id}).ToSql()
+		if err != nil {
+			return errors.Wrap(err, "update_retention_ids_tosql")
+		}
+		_, err = txn.Query(queryString, args...)
+		if err != nil {
+			return errors.Wrap(err, "failed to update "+tableName)
+		}
+
+	} else {
+		err = insertRetentionIdsForDeletion(txn, idsForDeletion[0], s)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // RetentionPolicyBatchDeletionInfo gives information on how to delete records
@@ -1048,15 +1142,8 @@ func genericRetentionPoliciesDeletion(
 					TableName: r.Table,
 					Ids: ids,
 				}
-				retentionIdsRow.PreSave()
-				insertBuilder := s.getQueryBuilder().
-					Insert("RetentionIdsForDeletion").
-					Columns("Id", "TableName", "Ids").
-					Values(retentionIdsRow.Id, retentionIdsRow.TableName, pq.Array(retentionIdsRow.Ids))
-				
-				insertQuery, insertArgs, err := insertBuilder.ToSql()
-
-				if _, err = txn.Exec(insertQuery, insertArgs...); err != nil {
+				err = insertRetentionIdsForDeletion(txn, &retentionIdsRow, s)
+				if err != nil {
 					return 0, err
 				}
 			}
@@ -1071,20 +1158,8 @@ func genericRetentionPoliciesDeletion(
 			}
 			
 			if len(retentionIdsRow.Ids) > 0 {
-				jsonIds, err := json.Marshal(retentionIdsRow.Ids)
+				err = insertRetentionIdsForDeletion(txn, &retentionIdsRow, s)
 				if err != nil {
-					return 0, err
-				}
-				retentionIdsRow.PreSave()
-				insertBuilder := s.getQueryBuilder().
-					Insert("RetentionIdsForDeletion").
-					Columns("Id", "TableName", "Ids").
-					Values(retentionIdsRow.Id, retentionIdsRow.TableName, jsonIds)
-				
-				insertQuery, insertArgs, err := insertBuilder.ToSql()
-
-				// 2. Insert the selected rows into retentionidsfordeletion table
-				if _, err = txn.Exec(insertQuery, insertArgs...); err != nil {
 					return 0, err
 				}
 

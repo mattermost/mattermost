@@ -5317,6 +5317,22 @@ func (s *TimerLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return result, err
 }
 
+func (s *TimerLayerPostStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.DeleteOrphanedRowsByIds(r)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.DeleteOrphanedRowsByIds", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
@@ -6516,10 +6532,10 @@ func (s *TimerLayerReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return result, err
 }
 
-func (s *TimerLayerReactionStore) DeleteOrphanedRowsByIdsTx(r *model.RetentionIdsForDeletion) (int64, error) {
+func (s *TimerLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
 	start := time.Now()
 
-	result, err := s.ReactionStore.DeleteOrphanedRowsByIdsTx(r)
+	result, err := s.ReactionStore.DeleteOrphanedRowsByIds(r)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6527,7 +6543,7 @@ func (s *TimerLayerReactionStore) DeleteOrphanedRowsByIdsTx(r *model.RetentionId
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.DeleteOrphanedRowsByIdsTx", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.DeleteOrphanedRowsByIds", success, elapsed)
 	}
 	return result, err
 }
@@ -9134,6 +9150,22 @@ func (s *TimerLayerThreadStore) DeleteOrphanedRows(limit int) (int64, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.DeleteOrphanedRows", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ThreadStore.DeleteOrphanedRowsByIds(r)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.DeleteOrphanedRowsByIds", success, elapsed)
 	}
 	return result, err
 }

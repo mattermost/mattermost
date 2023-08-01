@@ -225,7 +225,7 @@ func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err err
 	return
 }
 
-func (s *SqlReactionStore) DeleteOrphanedRowsByIdsTx(r *model.RetentionIdsForDeletion) (deleted int64, err error) {
+func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (deleted int64, err error) {
 	txn, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return 0, err

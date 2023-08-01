@@ -337,6 +337,7 @@ type ThreadStore interface {
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error)
 	DeleteMembershipsForChannel(userID, channelID string) error
+	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error)
 }
 
 type PostStore interface {
@@ -390,6 +391,7 @@ type PostStore interface {
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
+	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error)
 }
 
 type UserStore interface {
@@ -709,7 +711,7 @@ type ReactionStore interface {
 	DeleteAllWithEmojiName(emojiName string) error
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 	DeleteOrphanedRows(limit int) (int64, error)
-	DeleteOrphanedRowsByIdsTx(r *model.RetentionIdsForDeletion) (int64, error)
+	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 }
 
