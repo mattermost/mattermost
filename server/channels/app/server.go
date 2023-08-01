@@ -269,6 +269,14 @@ func NewServer(options ...Option) (*Server, error) {
 		product.CommandKey:         app,
 	}
 
+	// We can only start the metrics once the license is loaded, and before the
+	// platform starts.
+	// Step 3: Start metrics
+	err = s.platform.StartMetrics()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to start metrics")
+	}
+
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 4: Start platform

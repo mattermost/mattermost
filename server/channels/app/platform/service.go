@@ -285,26 +285,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("could not create session cache: %w", err)
 	}
 
-	// Step 7: Init License
-	if model.BuildEnterpriseReady == "true" {
-		ps.LoadLicense()
-	}
-
-	// Step 8: Init Metrics Server depends on step 6 (store) and 7 (license)
-	if ps.startMetrics {
-		if mErr := ps.resetMetrics(); mErr != nil {
-			return nil, mErr
-		}
-
-		ps.configStore.AddListener(func(oldCfg, newCfg *model.Config) {
-			if *oldCfg.MetricsSettings.Enable != *newCfg.MetricsSettings.Enable || *oldCfg.MetricsSettings.ListenAddress != *newCfg.MetricsSettings.ListenAddress {
-				if mErr := ps.resetMetrics(); mErr != nil {
-					mlog.Warn("Failed to reset metrics", mlog.Err(mErr))
-				}
-			}
-		})
-	}
-
 	// Step 9: Init AsymmetricSigningKey depends on step 6 (store)
 	if err = ps.EnsureAsymmetricSigningKey(); err != nil {
 		return nil, fmt.Errorf("unable to ensure asymmetric signing key: %w", err)
@@ -337,6 +317,28 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	ps.searchLicenseListenerId = searchLicenseListenerId
 
 	return ps, nil
+}
+
+// StartMetrics initializes thte metrics server if needed. It depends on the store
+// initialized and the license loaded, but PlatformService.New does not do the
+// latter, so the callers are responsible of making sure the license is loaded
+// before this function is called.
+func (ps *PlatformService) StartMetrics() error {
+	if ps.startMetrics {
+		if mErr := ps.resetMetrics(); mErr != nil {
+			return mErr
+		}
+
+		ps.configStore.AddListener(func(oldCfg, newCfg *model.Config) {
+			if *oldCfg.MetricsSettings.Enable != *newCfg.MetricsSettings.Enable || *oldCfg.MetricsSettings.ListenAddress != *newCfg.MetricsSettings.ListenAddress {
+				if mErr := ps.resetMetrics(); mErr != nil {
+					mlog.Warn("Failed to reset metrics", mlog.Err(mErr))
+				}
+			}
+		})
+	}
+
+	return nil
 }
 
 func (ps *PlatformService) Start() error {
