@@ -193,6 +193,7 @@ type Props = {
     useCustomGroupMentions: boolean;
     isFormattingBarHidden: boolean;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
+    postEditorActions: PluginComponent[];
 }
 
 type State = {
@@ -1198,6 +1199,41 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
     render() {
         const draft = this.state.draft!;
+
+        const pluginItems = this.props.postEditorActions?.
+            map((item) => {
+                if (!item.component) {
+                    return null;
+                }
+
+                const Component = item.component as any;
+                return (
+                    <Component
+                        key={item.id}
+                        draft={draft}
+                        getSelectedText={() => {
+                            const input = this.textboxRef.current?.getInputBox();
+
+                            return {
+                                start: input.selectionStart,
+                                end: input.selectionEnd,
+                            };
+                        }}
+                        updateText={(message: string) => {
+                            const draft = this.state.draft!;
+                            const modifiedDraft = {
+                                ...draft,
+                                message,
+                            };
+                            this.handleDraftChange(modifiedDraft);
+                            this.setState({
+                                draft: modifiedDraft,
+                            });
+                        }}
+                    />
+                );
+            });
+
         return (
             <form onSubmit={this.handleSubmit}>
                 {
@@ -1251,6 +1287,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     getFileUploadTarget={this.getFileUploadTarget}
                     fileUploadRef={this.fileUploadRef}
                     isThreadView={this.props.isThreadView}
+                    additionalControls={pluginItems.filter(Boolean)}
                 />
             </form>
         );
