@@ -70,7 +70,7 @@ export default class SearchUserProvider extends Provider {
     }
 
     handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<UserProfile>) {
-        const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext.toLowerCase());
+        const captured = (/^(from:|@)\s*(\S*)$/i).exec(pretext.toLowerCase());
 
         this.doAutocomplete(captured, resultsCallback);
 
@@ -82,10 +82,9 @@ export default class SearchUserProvider extends Provider {
             return;
         }
 
-        const usernamePrefix = captured[1];
+        const usernamePrefix = captured[2];
 
         this.startNewRequest(usernamePrefix);
-
         const data = await this.autocompleteUsersInTeam(usernamePrefix);
 
         if (this.shouldCancelDispatch(usernamePrefix)) {
