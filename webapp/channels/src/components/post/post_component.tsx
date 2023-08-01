@@ -14,7 +14,7 @@ import Constants, {A11yCustomEventTypes, A11yFocusEventDetail, AppEvents, Locati
 
 import * as PostUtils from 'utils/post_utils';
 
-import {PostPluginComponent} from 'types/store/plugins';
+import {PostPluginComponent, PluginComponent} from 'types/store/plugins';
 
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import DateSeparator from 'components/post_view/date_separator';
@@ -44,7 +44,6 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import CommentedOn from 'components/post_view/commented_on/commented_on';
 import PriorityLabel from 'components/post_priority/post_priority_label';
-import {PluginComponent} from 'types/store/plugins';
 
 import {UserProfile} from '@mattermost/types/users';
 import {Post} from '@mattermost/types/posts';

@@ -57,7 +57,6 @@ import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown
 import {execCommandInsertText} from 'utils/exec_commands';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
-import ActionsMenu from 'components/actions_menu';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
@@ -1565,32 +1564,34 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
         const pluginItems = this.props.postEditorActions?.
             map((item) => {
-                // TODO: Add the selected text support here
-                if (item.component) {
-                    const Component = item.component as any
-                    return (
-                        <Component
-                            draft={draft}
-                            getSelectedText={() => {
-                                const input = this.textboxRef.current?.getInputBox();
-
-                                return {
-                                    start: input.selectionStart,
-                                    end: input.selectionEnd,
-                                };
-                            }}
-                            updateText={(message: string) => {
-                                this.setState({
-                                    message,
-                                });
-                                this.handleDraftChange({
-                                    ...this.props.draft,
-                                    message,
-                                });
-                            }}
-                        />);
+                if (!item.component) {
+                    return null;
                 }
-                return null
+
+                const Component = item.component as any;
+                return (
+                    <Component
+                        key={item.id}
+                        draft={draft}
+                        getSelectedText={() => {
+                            const input = this.textboxRef.current?.getInputBox();
+
+                            return {
+                                start: input.selectionStart,
+                                end: input.selectionEnd,
+                            };
+                        }}
+                        updateText={(message: string) => {
+                            this.setState({
+                                message,
+                            });
+                            this.handleDraftChange({
+                                ...this.props.draft,
+                                message,
+                            });
+                        }}
+                    />
+                );
             });
 
         let centerClass = '';

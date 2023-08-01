@@ -183,10 +183,15 @@ const PostOptions = (props: Props): JSX.Element => {
         pluginItems = props.pluginActions?.
             map((item) => {
                 if (item.component) {
-                    const Component = item.component as any
-                    return (<Component post={props.post}/>);
+                    const Component = item.component as any;
+                    return (
+                        <Component
+                            post={props.post}
+                            key={item.id}
+                        />
+                    );
                 }
-                return null
+                return null;
             }) || [];
     }
 
