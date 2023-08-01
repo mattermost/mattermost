@@ -111,7 +111,7 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
             className='search-form__container'
         >
             <form
-                role='application'
+                role='search'
                 className={classNames(['search__form', {'search__form--focused': isFocused}])}
                 onSubmit={props.handleSubmit}
                 style={style.searchForm}

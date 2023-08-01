@@ -62,7 +62,7 @@ import GlobalDataRetentionForm from './data_retention_settings/global_policy_for
 import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
 import MessageExportSettings from './message_export_settings.jsx';
 import DatabaseSettings from './database_settings.jsx';
-import ElasticSearchSettings from './elasticsearch_settings.jsx';
+import ElasticSearchSettings from './elasticsearch_settings';
 import BleveSettings from './bleve_settings';
 import FeatureFlags from './feature_flags.tsx';
 import ClusterSettings from './cluster_settings.jsx';
