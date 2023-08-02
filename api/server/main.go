@@ -16,7 +16,7 @@ import (
 	"golang.org/x/tools/imports"
 )
 
-// exampleText defines the template in which the corresponding ExampleClien4_* body is wrapped.
+// exampleText defines the template in which the corresponding ExampleClient4_* body is wrapped.
 const exampleText = `
 package main
 
