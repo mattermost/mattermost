@@ -65,8 +65,8 @@ func main() {
 	// Re-render the file with the injected examples.
 	newDocument, _, _, errors := document.RenderAndReload()
 	if len(errors) > 0 {
-		for i := range errors {
-			log.Printf("error: %s\n", errors[i])
+		for _, err := range errors {
+			log.Printf("error: %s\n", err)
 		}
 		log.Fatalf("cannot render document: %d errors reported", len(errors))
 	}
