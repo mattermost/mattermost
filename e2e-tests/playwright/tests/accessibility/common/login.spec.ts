@@ -12,7 +12,7 @@ test('/login', async ({pw, pages, page, axe}) => {
     await loginPage.toBeVisible();
 
     // # Analyze the page
-    const accessibilityScanResults = await axe.loginPage().analyze();
+    const accessibilityScanResults = await axe.builder(loginPage.page).analyze();
 
     // * Should have no violation
     expect(accessibilityScanResults.violations).toHaveLength(0);
