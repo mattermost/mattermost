@@ -117,7 +117,7 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
                 this.handleSaved(config);
             }
         } else if (error) {
-            this.handleAPIError({id: error.server_error_id, ...error}, callback, config);
+            this.handleAPIError({...error}, callback, config);
         }
     };
 

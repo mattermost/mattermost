@@ -47,7 +47,7 @@ type ConsoleAccess = {
 }
 
 type Props = {
-    schema: Record<string, any>;
+    schema: any;
     setNavigationBlocked?: (blocked: boolean) => void;
     isDisabled?: boolean;
     consoleAccess?: ConsoleAccess;
