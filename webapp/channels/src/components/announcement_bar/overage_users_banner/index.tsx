@@ -117,7 +117,7 @@ const OverageUsersBanner = () => {
     let message = (
         <FormattedMessage
             id='licensingPage.overageUsersBanner.text'
-            defaultMessage='Your workspace user count has exceeded your paid license seat count by {seats, number} {seats, plural, one {seat} other {seats}}. Purchase additional seats to remain compliant.'
+            defaultMessage='(Only visible to admins) Your workspace user count has exceeded your paid license seat count by {seats, number} {seats, plural, one {seat} other {seats}}. Purchase additional seats to remain compliant.'
             values={{
                 seats: overageByUsers,
             }}
@@ -127,7 +127,7 @@ const OverageUsersBanner = () => {
         message = (
             <FormattedMessage
                 id='licensingPage.overageUsersBanner.textSelfHostedExpand'
-                defaultMessage='Your workspace user count has exceeded your paid license seat count. Update your seat count to stay compliant.'
+                defaultMessage='(Only visible to admins) Your workspace user count has exceeded your paid license seat count. Update your seat count to stay compliant.'
                 values={{
                     seats: overageByUsers,
                 }}
