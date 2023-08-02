@@ -286,7 +286,7 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  "/api/v4/files/{file_id}/public":
+  "/files/{file_id}/public":
     get:
       tags:
         - files

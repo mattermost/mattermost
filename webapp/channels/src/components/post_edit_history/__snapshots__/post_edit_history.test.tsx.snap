@@ -253,7 +253,6 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                       style="max-height: 600px;"
                     >
                       <div
-                        aria-readonly="true"
                         class="post-message__text"
                         dir="auto"
                         id="rhsPostMessageText_post_id"
