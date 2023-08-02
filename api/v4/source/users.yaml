@@ -5263,3 +5263,47 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/users/invalid_emails:
+    get:
+      tags:
+        - users
+      summary: Get users with invalid emails
+      description: >
+        Get users whose emails are considered invalid. 
+
+        It is an error to invoke this API if your team settings enable an open server.
+
+        ##### Permissions
+        
+        Requires `sysconsole_read_user_management_users`.
+
+      operationId: GetUsersWithInvalidEmails
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of users per page. There is a maximum limit of 200 users
+            per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: User page retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
