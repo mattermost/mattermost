@@ -508,7 +508,6 @@ export default class PluginRegistry {
         return dispatchPluginComponentAction('PostEditorAction', this.id, component);
     });
 
-
     // Register a post menu list item by providing some text and an action function.
     // Accepts the following:
     // - text - A string or React element to display in the menu
