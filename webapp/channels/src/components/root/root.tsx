@@ -8,6 +8,7 @@ import throttle from 'lodash/throttle';
 import classNames from 'classnames';
 
 import {Client4} from 'mattermost-redux/client';
+import {PageLoadContext} from '@mattermost/client/lib/client4';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
 import {General} from 'mattermost-redux/constants';
 import {Theme, getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -433,6 +434,11 @@ export default class Root extends React.PureComponent<Props, State> {
     };
 
     componentDidMount() {
+        Client4.pageLoadContext = PageLoadContext.PAGE_LOAD;
+        setTimeout(() => {
+            Client4.pageLoadContext = null;
+        }, 3000);
+
         this.mounted = true;
 
         this.initiateMeRequests();

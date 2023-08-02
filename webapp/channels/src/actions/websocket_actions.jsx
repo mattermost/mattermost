@@ -71,6 +71,7 @@ import {setGlobalItem} from 'actions/storage';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 
 import {Client4} from 'mattermost-redux/client';
+import {PageLoadContext} from '@mattermost/client/lib/client4';
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getMyTeams, getCurrentRelativeTeamUrl, getCurrentTeamId, getCurrentTeamUrl, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -207,6 +208,11 @@ function restart() {
 export function reconnect() {
     // eslint-disable-next-line
     console.log('Reconnecting WebSocket');
+
+    Client4.pageLoadContext = PageLoadContext.RECONNECT;
+    setTimeout(() => {
+        Client4.pageLoadContext = null;
+    }, 3000);
 
     dispatch({
         type: GeneralTypes.WEBSOCKET_SUCCESS,

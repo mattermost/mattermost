@@ -159,6 +159,11 @@ export const DEFAULT_LIMIT_AFTER = 30;
 
 const GRAPHQL_ENDPOINT = '/api/v5/graphql';
 
+export enum PageLoadContext {
+    PAGE_LOAD = 'page_load',
+    RECONNECT = 'reconnect',
+}
+
 export default class Client4 {
     logToConsole = false;
     serverVersion = '';
@@ -168,6 +173,7 @@ export default class Client4 {
     url = '';
     urlVersion = '/api/v4';
     userAgent: string|null = null;
+    pageLoadContext: PageLoadContext|null = null;
     enableLogging = false;
     defaultHeaders: {[x: string]: string} = {};
     userId = '';
@@ -519,6 +525,10 @@ export default class Client4 {
 
         if (newOptions.headers) {
             Object.assign(headers, newOptions.headers);
+        }
+
+        if (this.pageLoadContext) {
+            headers.PAGE_LOAD_CONTEXT = this.pageLoadContext;
         }
 
         return {
