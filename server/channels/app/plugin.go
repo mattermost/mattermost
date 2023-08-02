@@ -27,7 +27,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 // prepackagedPluginsDir is the hard-coded folder name where prepackaged plugins are bundled
@@ -347,18 +346,22 @@ func (ch *Channels) syncPlugins() *model.AppError {
 			}
 			defer bundle.Close()
 
-			var signature filestore.ReadCloseSeeker
 			if *ch.cfgSvc.Config().PluginSettings.RequirePluginSignature {
-				signature, appErr = ch.srv.fileReader(plugin.signaturePath)
+				signature, appErr := ch.srv.fileReader(plugin.signaturePath)
 				if appErr != nil {
 					logger.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
 					return
 				}
 				defer signature.Close()
+
+				if appErr = ch.verifyPlugin(bundle, signature); appErr != nil {
+					mlog.Error("Failed to validate plugin signature", mlog.Err(appErr))
+					return
+				}
 			}
 
 			logger.Info("Syncing plugin from file store")
-			if _, err := ch.installPluginLocally(bundle, signature, installPluginLocallyAlways); err != nil && err.Id != "app.plugin.skip_installation.app_error" {
+			if _, err := ch.installPluginLocally(bundle, installPluginLocallyAlways); err != nil && err.Id != "app.plugin.skip_installation.app_error" {
 				logger.Error("Failed to sync plugin from file store", mlog.Err(err))
 			}
 		}(plugin)

@@ -91,9 +91,14 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 			return
 		}
 		defer signature.Close()
+
+		if err := ch.verifyPlugin(bundle, signature); err != nil {
+			mlog.Error("Failed to validate plugin signature.", mlog.Err(appErr))
+			return
+		}
 	}
 
-	manifest, appErr := ch.installPluginLocally(bundle, signature, installPluginLocallyAlways)
+	manifest, appErr := ch.installPluginLocally(bundle, installPluginLocallyAlways)
 	if appErr != nil {
 		// A log line already appears if the plugin is on the blocklist or skipped
 		if appErr.Id != "app.plugin.blocked.app_error" && appErr.Id != "app.plugin.skip_installation.app_error" {
@@ -144,7 +149,7 @@ func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 //
 // The given installation strategy decides how to handle upgrade scenarios.
 func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
-	manifest, appErr := ch.installPluginLocally(bundle, signature, installationStrategy)
+	manifest, appErr := ch.installPluginLocally(bundle, installationStrategy)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -269,6 +274,11 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
 	}
 
+	appErr = ch.verifyPlugin(pluginFile, signatureFile)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	manifest, appErr := ch.installPlugin(pluginFile, signatureFile, installPluginLocallyAlways)
 	if appErr != nil {
 		return nil, appErr
@@ -288,21 +298,14 @@ const (
 	installPluginLocallyAlways
 )
 
-// installPluginLocally extracts and installs the given plugin bundle (optionally signed) for the
-// current server, activating the plugin if already enabled.
+// installPluginLocally extracts and installs the given plugin bundle for the current server,
+// activating the plugin if already enabled.
 //
 // The given installation strategy decides how to handle upgrade scenarios.
-func (ch *Channels) installPluginLocally(bundle, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+func (ch *Channels) installPluginLocally(bundle io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	// verify signature
-	if signature != nil {
-		if err := ch.verifyPlugin(bundle, signature); err != nil {
-			return nil, err
-		}
 	}
 
 	tmpDir, err := os.MkdirTemp("", "plugintmp")
