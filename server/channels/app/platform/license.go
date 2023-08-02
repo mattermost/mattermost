@@ -326,9 +326,6 @@ func (ps *PlatformService) RequestTrialLicense(trialRequest *model.TrialLicenseR
 		return err
 	}
 
-	ps.ReloadConfig()
-	ps.InvalidateAllCaches()
-
 	return nil
 }
 

@@ -208,7 +208,6 @@ func NewServer(options ...Option) (*Server, error) {
 	// Depends on step 1 (s.Platform must be non-nil)
 	s.initEnterprise()
 
-	// Needed to run before loading license.
 	s.userService, err = users.New(users.ServiceConfig{
 		UserStore:    s.Store().User(),
 		SessionStore: s.Store().Session(),
@@ -220,11 +219,6 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create users service")
-	}
-
-	if model.BuildEnterpriseReady == "true" {
-		// Dependent on user service
-		s.LoadLicense()
 	}
 
 	s.licenseWrapper = &licenseWrapper{
@@ -1241,7 +1235,6 @@ func runConfigCleanupJob(s *Server) {
 }
 
 func (s *Server) runLicenseExpirationCheckJob() {
-	s.doLicenseExpirationCheck()
 	model.CreateRecurringTask("License Expiration Check", func() {
 		s.doLicenseExpirationCheck()
 	}, time.Hour*24)
@@ -1383,7 +1376,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 }
 
 func (s *Server) doLicenseExpirationCheck() {
-	s.LoadLicense()
+	s.platform.TriggerLoadLicense()
 
 	// This takes care of a rare edge case reported here https://mattermost.atlassian.net/browse/MM-40962
 	// To reproduce that case locally, attach a license to a server that was started with enterprise enabled
