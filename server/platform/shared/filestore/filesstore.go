@@ -125,10 +125,24 @@ func (settings *FileBackendSettings) CheckMandatoryS3Fields() error {
 	return nil
 }
 
+// NewFileBackend creates a new file backend
 func NewFileBackend(settings FileBackendSettings) (FileBackend, error) {
+	return newFileBackend(settings, true)
+}
+
+// NewExportFileBackend creates a new file backend for exports, that will not attempt to use bifrost.
+func NewExportFileBackend(settings FileBackendSettings) (FileBackend, error) {
+	return newFileBackend(settings, false)
+}
+
+func newFileBackend(settings FileBackendSettings, canBeCloud bool) (FileBackend, error) {
 	switch settings.DriverName {
 	case driverS3:
-		backend, err := NewS3FileBackend(settings)
+		newBackendFn := NewS3FileBackend
+		if !canBeCloud {
+			newBackendFn = NewS3FileBackendWithoutBifrost
+		}
+		backend, err := newBackendFn(settings)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to connect to the s3 backend")
 		}
