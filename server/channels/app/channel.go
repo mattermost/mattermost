@@ -3538,7 +3538,12 @@ func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string)
 }
 
 func (a *App) ConvertGroupMessageToChannel(c request.CTX, userID, groupMessageID, teamID string) (*model.Channel, *model.AppError) {
-	appErr := a.validateForConvertGroupMessageToChannel(c, userID, groupMessageID, teamID)
+	originalChannel, appErr := a.GetChannel(c, groupMessageID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	appErr = a.validateForConvertGroupMessageToChannel(c, userID, groupMessageID, teamID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3548,8 +3553,7 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, userID, groupMessageID
 		return nil, model.NewAppError("ConvertGroupMessageToChannel", "app.channel.convert_gm_to_channel.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.Srv().Platform().InvalidateCacheForChannel()
-
+	a.Srv().Platform().InvalidateCacheForChannel(originalChannel)
 	return a.GetChannel(c, groupMessageID)
 }
 
