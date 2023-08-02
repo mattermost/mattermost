@@ -74,9 +74,10 @@ func ExampleClient4_GetPublicChannelsByIdsForTeam() {
 	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
+	teamId := "team_id"
 	channelIds := []string{"channel_id_1", "channel_id_2"}
 
-	channels, _, err := client.GetPublicChannelsByIdsForTeam(context.Background(), "team_id", channelIds)
+	channels, _, err := client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, channelIds)
 	if err != nil {
 		log.Fatal(err)
 	}
