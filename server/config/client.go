@@ -134,7 +134,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["ExperimentalSharedChannels"] = "false"
 	props["CollapsedThreads"] = *c.ServiceSettings.CollapsedThreads
 	props["EnableCustomGroups"] = "false"
-	props["InsightsEnabled"] = strconv.FormatBool(c.FeatureFlags.InsightsEnabled)
 	props["PostPriority"] = strconv.FormatBool(*c.ServiceSettings.PostPriority)
 	props["AllowPersistentNotifications"] = strconv.FormatBool(*c.ServiceSettings.AllowPersistentNotifications)
 	props["AllowPersistentNotificationsForGuests"] = strconv.FormatBool(*c.ServiceSettings.AllowPersistentNotificationsForGuests)
@@ -272,6 +271,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["AboutLink"] = *c.SupportSettings.AboutLink
 	props["HelpLink"] = *c.SupportSettings.HelpLink
 	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
+	props["ForgotPasswordLink"] = *c.SupportSettings.ForgotPasswordLink
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
 	props["EnableAskCommunityLink"] = strconv.FormatBool(*c.SupportSettings.EnableAskCommunityLink)
 
@@ -295,6 +295,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
 	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
 	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
+	props["PasswordEnableForgotLink"] = strconv.FormatBool(*c.PasswordSettings.EnableForgotLink)
 
 	// Set default values for all options that require a license.
 	props["EnableCustomBrand"] = "false"

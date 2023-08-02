@@ -9468,10 +9468,6 @@
     "translation": "el miembro {{.UsersNum}} del workspace {{.WorkspaceName}} ha solicitado comenzar la prueba Enterprise para acceder a: "
   },
   {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "Intervalo de tiempo inválido."
-  },
-  {
     "id": "app.collection.add_topic.exists.app_error",
     "translation": "El tipo de tema ya existe."
   },
