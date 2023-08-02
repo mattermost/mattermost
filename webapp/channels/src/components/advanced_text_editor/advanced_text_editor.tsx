@@ -43,6 +43,7 @@ import {IconContainer} from './formatting_bar/formatting_icon';
 
 import './advanced_text_editor.scss';
 import ToggleFormattingBar from './toggle_formatting_bar/toggle_formatting_bar';
+import SuggestionList from 'components/suggestion/suggestion_list';
 
 type Props = {
 
@@ -464,7 +465,7 @@ const AdvanceTextEditor = ({
                         {labels}
                         <Textbox
                             hasLabels={Boolean(labels)}
-                            suggestionList={RhsSuggestionList}
+                            suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}
                             onKeyDown={handleKeyDown}
