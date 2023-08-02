@@ -136,7 +136,7 @@ func applyExample(tmpl *template.Template, fileSet *token.FileSet, exampleFuncs 
 		body.String(),
 	}
 
-	// Process the resulting Go file to get the right indention, minial set of imports, etc.
+	// Process the resulting Go file to get the right indention, minimal set of imports, etc.
 	var unformattedExample bytes.Buffer
 	if err := tmpl.Execute(&unformattedExample, data); err != nil {
 		log.Fatalf("failed to render template: %v", err)
