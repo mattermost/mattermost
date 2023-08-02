@@ -93,7 +93,7 @@ func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 	return newS3FileBackend(settings, os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != "")
 }
 
-// NewS3FileBackendWithoutBifrost returns an instance of an S3FileBackend assuming we are not on cloud.
+// NewS3FileBackendWithoutBifrost returns an instance of an S3FileBackend that will not use bifrost.
 func NewS3FileBackendWithoutBifrost(settings FileBackendSettings) (*S3FileBackend, error) {
 	return newS3FileBackend(settings, false)
 }
