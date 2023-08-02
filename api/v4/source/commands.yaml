@@ -169,7 +169,7 @@
 
             // ListAutocompleteCommands
             listCommands, resp := Client.ListAutocompleteCommands(<TEAMID>)
-  '/teams/{team_id}/commands/autocomplete_suggestions':
+  '/api/v4/teams/{team_id}/commands/autocomplete_suggestions':
     get:
       tags:
         - commands
