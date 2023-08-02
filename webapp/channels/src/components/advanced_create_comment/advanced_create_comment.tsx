@@ -19,6 +19,7 @@ import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 import * as GlobalActions from 'actions/global_actions';
 
 import {PostDraft} from 'types/store/draft';
+import {PluginComponent} from 'types/store/plugins';
 import {ModalData} from 'types/actions';
 
 import Constants, {AdvancedTextEditor as AdvancedTextEditorConst, Locations, ModalIdentifiers, Preferences} from 'utils/constants';
