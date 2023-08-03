@@ -95,6 +95,7 @@ export type Props = {
     isLastActiveEnabled: boolean;
     timestampUnits?: string[];
     lastActivityTimestamp?: number;
+    hideGuestTags: boolean;
 };
 
 type State = {
@@ -102,7 +103,6 @@ type State = {
     showChannelHeaderPopover: boolean;
     leftOffset: number;
     topOffset: number;
-    popoverOverlayWidth: number;
 };
 
 class ChannelHeader extends React.PureComponent<Props, State> {
@@ -121,7 +121,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
         this.headerOverlayRef = React.createRef();
 
         this.state = {
-            popoverOverlayWidth: 0,
             showChannelHeaderPopover: false,
             leftOffset: 0,
             topOffset: 0,
@@ -245,12 +244,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
         }
     };
 
-    setPopoverOverlayWidth = () => {
-        const headerDescriptionRect = this.headerDescriptionRef.current?.getBoundingClientRect();
-        const ellipsisWidthAdjustment = 10;
-        this.setState({popoverOverlayWidth: (headerDescriptionRect?.width ?? 0) + ellipsisWidthAdjustment});
-    };
-
     handleFormattedTextClick = (e: MouseEvent<HTMLSpanElement>) => handleFormattedTextClick(e, this.props.currentRelativeTeamUrl);
 
     renderCustomStatus = () => {
@@ -292,12 +285,13 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             rhsState,
             hasGuests,
             teammateNameDisplaySetting,
+            hideGuestTags,
         } = this.props;
         const {formatMessage} = this.props.intl;
         const ariaLabelChannelHeader = localizeMessage('accessibility.sections.channelHeader', 'channel header region');
 
         let hasGuestsText: ReactNode = '';
-        if (hasGuests) {
+        if (hasGuests && !hideGuestTags) {
             hasGuestsText = (
                 <span className='has-guest-header'>
                     <span tabIndex={0}>
@@ -399,7 +393,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                 );
             });
 
-            if (hasGuests) {
+            if (hasGuests && !hideGuestTags) {
                 hasGuestsText = (
                     <span className='has-guest-header'>
                         <FormattedMessage
@@ -534,7 +528,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     id='header-popover'
                     popoverStyle='info'
                     popoverSize='lg'
-                    style={{maxWidth: `${this.state.popoverOverlayWidth}px`, transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`}}
+                    style={{transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`}}
                     placement='bottom'
                     className={classNames('channel-header__popover', {'chanel-header__popover--lhs_offset': this.props.hasMoreThanOneTeam})}
                 >
@@ -602,7 +596,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             rootClose={true}
                             target={this.headerDescriptionRef.current as React.ReactInstance}
                             ref={this.headerOverlayRef}
-                            onEnter={this.setPopoverOverlayWidth}
                             onHide={() => this.setState({showChannelHeaderPopover: false})}
                         >
                             {popoverContent}
@@ -792,7 +785,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             <span
                                 id='channelHeaderDropdownIcon'
                                 className='icon icon-chevron-down header-dropdown-chevron-icon'
-                                aria-label={formatMessage({id: 'generic_icons.dropdown', defaultMessage: 'Dropdown Icon'}).toLowerCase()}
                             />
                         </button>
                     </div>

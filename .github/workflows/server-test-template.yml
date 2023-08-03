@@ -68,10 +68,20 @@ jobs:
           path: |
             server/gotestsum.json
             server/report.xml
-      - name: Publish Test Report
-        uses: mikepenz/action-junit-report@c0e4b81aaa0067314a2d0d06e19b512c9d8af4f5 # v3.7.7
+      - name: Publish test report
+        id: report
+        uses: mikepenz/action-junit-report@dfc44cebdda1e40b1e3c3b244a84dc303b952fb0 # v3.7.7 + count retries + check urls from https://github.com/lieut-data/action-junit-report
         if: success() || failure() # always run even if the previous step fails
         with:
           report_paths: server/report.xml
           check_name: ${{ inputs.name }} (Results)
-          job_name: ${{ inputs.name }}
+          require_tests: true
+      - name: Report retried tests via webhook
+        if: ${{ steps.report.outputs.retried > 0 }}
+        run: |
+          curl \
+            --fail \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"text\":\"#### ⚠️  One or more flaky tests detected ⚠️\\n* Failing job: [github.com/mattermost/mattermost:${{ inputs.name }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\\n* If this is your pull request, double check your code to ensure you haven't introduced a flaky test.\\n* If this occurred on master or a release branch, reply to this message if you're willing to help.\\n* Submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.\\n* Finally, reply to this message with a link to the created JIRA ticket.\\ncc @devs\"}" \
+            ${{ secrets.MM_COMMUNITY_DEVELOPERS_INCOMING_WEBHOOK_FROM_GH_ACTIONS }}

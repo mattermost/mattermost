@@ -7,7 +7,7 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getUsers, getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
-import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
@@ -765,10 +765,7 @@ export function getLimitedViews(state: GlobalState): GlobalState['entities']['po
 }
 
 export function isPostPriorityEnabled(state: GlobalState) {
-    return (
-        getFeatureFlagValue(state, 'PostPriority') === 'true' &&
-        getConfig(state).PostPriority === 'true'
-    );
+    return getConfig(state).PostPriority === 'true';
 }
 
 export function isPostAcknowledgementsEnabled(state: GlobalState) {

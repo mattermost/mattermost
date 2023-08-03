@@ -78,7 +78,6 @@ type Props = {
     handlePostError: (postError: React.ReactNode) => void;
     emitTypingEvent: () => void;
     handleMouseUpKeyUp: (e: React.MouseEvent<TextboxElement> | React.KeyboardEvent<TextboxElement>) => void;
-    handleSelect: (e: React.SyntheticEvent<TextboxElement>) => void;
     handleKeyDown: (e: React.KeyboardEvent<TextboxElement>) => void;
     postMsgKeyPress: (e: React.KeyboardEvent<TextboxElement>) => void;
     handleChange: (e: React.ChangeEvent<TextboxElement>) => void;
@@ -136,7 +135,6 @@ const AdvanceTextEditor = ({
     handlePostError,
     emitTypingEvent,
     handleMouseUpKeyUp,
-    handleSelect,
     handleKeyDown,
     postMsgKeyPress,
     handleChange,
@@ -368,7 +366,6 @@ const AdvanceTextEditor = ({
 
         if (!message) {
             // if we do not have a message we can just render the default state
-            input.style.maxWidth = `${maxWidth}px`;
             setShowFormattingSpacer(false);
             return;
         }
@@ -379,10 +376,8 @@ const AdvanceTextEditor = ({
         const currentWidth = width + inputPaddingX;
 
         if (currentWidth >= maxWidth) {
-            input.style.maxWidth = '100%';
             setShowFormattingSpacer(true);
         } else {
-            input.style.maxWidth = `${maxWidth}px`;
             setShowFormattingSpacer(false);
         }
     }, [message, input]);
@@ -473,7 +468,6 @@ const AdvanceTextEditor = ({
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}
                             onKeyDown={handleKeyDown}
-                            onSelect={handleSelect}
                             onMouseUp={handleMouseUpKeyUp}
                             onKeyUp={handleMouseUpKeyUp}
                             onComposition={emitTypingEvent}

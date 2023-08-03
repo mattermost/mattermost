@@ -131,11 +131,11 @@ const (
 
 	EmailSettingsDefaultFeedbackOrganization = ""
 
-	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/terms-of-use/"
-	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/privacy-policy/"
-	SupportSettingsDefaultAboutLink          = "https://docs.mattermost.com/about/product.html/"
-	SupportSettingsDefaultHelpLink           = "https://mattermost.com/default-help/"
-	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/default-report-a-problem/"
+	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/pl/terms-of-use/"
+	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/pl/privacy-policy/"
+	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermomst"
+	SupportSettingsDefaultHelpLink           = "https://mattermost.com/pl/help/"
+	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/pl/report-a-bug"
 	SupportSettingsDefaultSupportEmail       = ""
 	SupportSettingsDefaultReAcceptancePeriod = 365
 
@@ -171,9 +171,9 @@ const (
 	SamlSettingsCanonicalAlgorithmC14n11  = "Canonical1.1"
 	SamlSettingsDefaultCanonicalAlgorithm = SamlSettingsCanonicalAlgorithmC14n
 
-	NativeappSettingsDefaultAppDownloadLink        = "https://mattermost.com/download/#mattermostApps"
-	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/mattermost-android-app/"
-	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/mattermost-ios-app/"
+	NativeappSettingsDefaultAppDownloadLink        = "https://mattermost.com/pl/download-apps"
+	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/pl/android-app/"
+	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/pl/ios-app/"
 
 	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds = 5000
 
@@ -205,11 +205,12 @@ const (
 	BleveSettingsDefaultIndexDir  = ""
 	BleveSettingsDefaultBatchSize = 10000
 
-	DataRetentionSettingsDefaultMessageRetentionDays = 365
-	DataRetentionSettingsDefaultFileRetentionDays    = 365
-	DataRetentionSettingsDefaultBoardsRetentionDays  = 365
-	DataRetentionSettingsDefaultDeletionJobStartTime = "02:00"
-	DataRetentionSettingsDefaultBatchSize            = 3000
+	DataRetentionSettingsDefaultMessageRetentionDays           = 365
+	DataRetentionSettingsDefaultFileRetentionDays              = 365
+	DataRetentionSettingsDefaultBoardsRetentionDays            = 365
+	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
+	DataRetentionSettingsDefaultBatchSize                      = 3000
+	DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds = 100
 
 	PluginSettingsDefaultDirectory         = "./plugins"
 	PluginSettingsDefaultClientDirectory   = "./client/plugins"
@@ -1486,11 +1487,12 @@ func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
 }
 
 type PasswordSettings struct {
-	MinimumLength *int  `access:"authentication_password"`
-	Lowercase     *bool `access:"authentication_password"`
-	Number        *bool `access:"authentication_password"`
-	Uppercase     *bool `access:"authentication_password"`
-	Symbol        *bool `access:"authentication_password"`
+	MinimumLength    *int  `access:"authentication_password"`
+	Lowercase        *bool `access:"authentication_password"`
+	Number           *bool `access:"authentication_password"`
+	Uppercase        *bool `access:"authentication_password"`
+	Symbol           *bool `access:"authentication_password"`
+	EnableForgotLink *bool `access:"authentication_password"`
 }
 
 func (s *PasswordSettings) SetDefaults() {
@@ -1512,6 +1514,10 @@ func (s *PasswordSettings) SetDefaults() {
 
 	if s.Symbol == nil {
 		s.Symbol = NewBool(false)
+	}
+
+	if s.EnableForgotLink == nil {
+		s.EnableForgotLink = NewBool(true)
 	}
 }
 
@@ -1540,6 +1546,22 @@ type FileSettings struct {
 	AmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	// Export store settings
+	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportDirectory                          *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3AccessKeyId                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3SecretAccessKey            *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3Bucket                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3PathPrefix                 *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3Region                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3Endpoint                   *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3SSL                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportAmazonS3SignV2                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportAmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportAmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportAmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1646,6 +1668,68 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.AmazonS3RequestTimeoutMilliseconds == nil {
 		s.AmazonS3RequestTimeoutMilliseconds = NewInt64(30000)
+	}
+
+	if s.DedicatedExportStore == nil {
+		s.DedicatedExportStore = NewBool(false)
+	}
+
+	if s.ExportDriverName == nil {
+		s.ExportDriverName = NewString(ImageDriverLocal)
+	}
+
+	if s.ExportDirectory == nil || *s.ExportDirectory == "" {
+		s.ExportDirectory = NewString(FileSettingsDefaultDirectory)
+	}
+
+	if s.ExportAmazonS3AccessKeyId == nil {
+		s.ExportAmazonS3AccessKeyId = NewString("")
+	}
+
+	if s.ExportAmazonS3SecretAccessKey == nil {
+		s.ExportAmazonS3SecretAccessKey = NewString("")
+	}
+
+	if s.ExportAmazonS3Bucket == nil {
+		s.ExportAmazonS3Bucket = NewString("")
+	}
+
+	if s.ExportAmazonS3PathPrefix == nil {
+		s.ExportAmazonS3PathPrefix = NewString("")
+	}
+
+	if s.ExportAmazonS3Region == nil {
+		s.ExportAmazonS3Region = NewString("")
+	}
+
+	if s.ExportAmazonS3Endpoint == nil || *s.ExportAmazonS3Endpoint == "" {
+		// Defaults to "s3.amazonaws.com"
+		s.ExportAmazonS3Endpoint = NewString("s3.amazonaws.com")
+	}
+
+	if s.ExportAmazonS3SSL == nil {
+		s.ExportAmazonS3SSL = NewBool(true) // Secure by default.
+	}
+
+	if s.ExportAmazonS3SignV2 == nil {
+		s.ExportAmazonS3SignV2 = new(bool)
+		// Signature v2 is not enabled by default.
+	}
+
+	if s.ExportAmazonS3SSE == nil {
+		s.ExportAmazonS3SSE = NewBool(false) // Not Encrypted by default.
+	}
+
+	if s.ExportAmazonS3Trace == nil {
+		s.ExportAmazonS3Trace = NewBool(false)
+	}
+
+	if s.ExportAmazonS3RequestTimeoutMilliseconds == nil {
+		s.ExportAmazonS3RequestTimeoutMilliseconds = NewInt64(30000)
+	}
+
+	if s.ExportAmazonS3PresignExpiresSeconds == nil {
+		s.ExportAmazonS3PresignExpiresSeconds = NewInt64(21600) // 6h
 	}
 }
 
@@ -1881,6 +1965,7 @@ type SupportSettings struct {
 	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	HelpLink                               *string `access:"site_customization"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	ForgotPasswordLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	SupportEmail                           *string `access:"site_notifications"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
 	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance_custom_terms_of_service"`
@@ -1926,6 +2011,14 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.ReportAProblemLink == nil {
 		s.ReportAProblemLink = NewString(SupportSettingsDefaultReportAProblemLink)
+	}
+
+	if !isSafeLink(s.ForgotPasswordLink) {
+		*s.ForgotPasswordLink = ""
+	}
+
+	if s.ForgotPasswordLink == nil {
+		s.ForgotPasswordLink = NewString("")
 	}
 
 	if s.SupportEmail == nil {
@@ -2765,14 +2858,15 @@ func (bs *BleveSettings) SetDefaults() {
 }
 
 type DataRetentionSettings struct {
-	EnableMessageDeletion *bool   `access:"compliance_data_retention_policy"`
-	EnableFileDeletion    *bool   `access:"compliance_data_retention_policy"`
-	EnableBoardsDeletion  *bool   `access:"compliance_data_retention_policy"`
-	MessageRetentionDays  *int    `access:"compliance_data_retention_policy"`
-	FileRetentionDays     *int    `access:"compliance_data_retention_policy"`
-	BoardsRetentionDays   *int    `access:"compliance_data_retention_policy"`
-	DeletionJobStartTime  *string `access:"compliance_data_retention_policy"`
-	BatchSize             *int    `access:"compliance_data_retention_policy"`
+	EnableMessageDeletion          *bool   `access:"compliance_data_retention_policy"`
+	EnableFileDeletion             *bool   `access:"compliance_data_retention_policy"`
+	EnableBoardsDeletion           *bool   `access:"compliance_data_retention_policy"`
+	MessageRetentionDays           *int    `access:"compliance_data_retention_policy"`
+	FileRetentionDays              *int    `access:"compliance_data_retention_policy"`
+	BoardsRetentionDays            *int    `access:"compliance_data_retention_policy"`
+	DeletionJobStartTime           *string `access:"compliance_data_retention_policy"`
+	BatchSize                      *int    `access:"compliance_data_retention_policy"`
+	TimeBetweenBatchesMilliseconds *int    `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -2806,6 +2900,10 @@ func (s *DataRetentionSettings) SetDefaults() {
 
 	if s.BatchSize == nil {
 		s.BatchSize = NewInt(DataRetentionSettingsDefaultBatchSize)
+	}
+
+	if s.TimeBetweenBatchesMilliseconds == nil {
+		s.TimeBetweenBatchesMilliseconds = NewInt(DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds)
 	}
 }
 
@@ -3055,6 +3153,7 @@ func (s *DisplaySettings) SetDefaults() {
 
 type GuestAccountsSettings struct {
 	Enable                           *bool   `access:"authentication_guest_access"`
+	HideTags                         *bool   `access:"authentication_guest_access"`
 	AllowEmailAccounts               *bool   `access:"authentication_guest_access"`
 	EnforceMultifactorAuthentication *bool   `access:"authentication_guest_access"`
 	RestrictCreationToDomains        *string `access:"authentication_guest_access"`
@@ -3063,6 +3162,10 @@ type GuestAccountsSettings struct {
 func (s *GuestAccountsSettings) SetDefaults() {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
+	}
+
+	if s.HideTags == nil {
+		s.HideTags = NewBool(false)
 	}
 
 	if s.AllowEmailAccounts == nil {

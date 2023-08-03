@@ -1571,68 +1571,6 @@ export function setCSRFFromCookie() {
     }
 }
 
-/**
- * Get closest parent which match selector
- */
-export function getClosestParent(elem: HTMLElement, selector: string) {
-    // Element.matches() polyfill
-    if (!Element.prototype.matches) {
-        Element.prototype.matches =
-            (Element.prototype as any).matchesSelector ||
-            (Element.prototype as any).mozMatchesSelector ||
-            (Element.prototype as any).msMatchesSelector ||
-            (Element.prototype as any).oMatchesSelector ||
-            (Element.prototype as any).webkitMatchesSelector ||
-            ((s) => {
-                // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-                const matches = (this.document || this.ownerDocument).querySelectorAll(s);
-                let i = matches.length - 1;
-
-                // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-                while (i >= 0 && matches.item(i) !== this) {
-                    i--;
-                }
-                return i > -1;
-            });
-    }
-
-    // Get the closest matching element
-    let currentElem = elem;
-
-    // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-    for (; currentElem && currentElem !== document; currentElem = currentElem.parentNode) {
-        if (currentElem.matches(selector)) {
-            return currentElem;
-        }
-    }
-    return null;
-}
-
-/**
- * Adjust selection to correct text when there is Italic markdown (_) around selected text.
- */
-export function adjustSelection(inputBox: HTMLInputElement, e: React.SyntheticEvent<TextboxElement>) {
-    const el = e.target as TextboxElement;
-    const {selectionEnd, selectionStart, value} = el;
-
-    if (selectionStart === selectionEnd) {
-        // nothing selected.
-        return;
-    }
-
-    e.preventDefault();
-
-    const firstUnderscore = value.charAt(selectionStart!) === '_';
-    const lastUnderscore = value.charAt(selectionEnd! - 1) === '_';
-
-    const spaceBefore = value.charAt(selectionStart! - 1) === ' ';
-    const spaceAfter = value.charAt(selectionEnd!) === ' ';
-
-    if (firstUnderscore && lastUnderscore && (spaceBefore || spaceAfter)) {
-        setSelectionRange(inputBox, selectionStart! + 1, selectionEnd! - 1);
-    }
-}
-
 export function getNextBillingDate() {
     const nextBillingDate = moment().add(1, 'months').startOf('month');
     return nextBillingDate.format('MMM D, YYYY');

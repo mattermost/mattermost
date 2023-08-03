@@ -1,0 +1,512 @@
+  /api/v4/commands:
+    post:
+      tags:
+        - commands
+      summary: Create a command
+      description: |
+        Create a command for a team.
+        ##### Permissions
+        `manage_slash_commands` for the team the command is in.
+      operationId: CreateCommand
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - team_id
+                - method
+                - trigger
+                - url
+              properties:
+                team_id:
+                  type: string
+                  description: Team ID to where the command should be created
+                method:
+                  type: string
+                  description: "`'P'` for post request, `'G'` for get request"
+                trigger:
+                  type: string
+                  description: Activation word to trigger the command
+                url:
+                  type: string
+                  description: The URL that the command will make the request
+        description: command to be created
+        required: true
+      responses:
+        "201":
+          description: Command creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Command"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            newCmd := &model.Command {
+              TeamId:       <TEAMID>,
+              URL:          "http://nowhere.com",
+              Method:       model.COMMAND_METHOD_POST,
+              Trigger:      "trigger",
+              AutoComplete: false,
+              Description:  "Description",
+              DisplayName:  "Display name",
+              IconURL:      "IconURL",
+              Username:     "Username"
+            }
+
+            // CreateCommand
+            createdCmd, resp := Client.CreateCommand(newCmd)
+    get:
+      tags:
+        - commands
+      summary: List commands for a team
+      description: |
+        List commands for a team.
+        ##### Permissions
+        `manage_slash_commands` if need list custom commands.
+      operationId: ListCommands
+      parameters:
+        - name: team_id
+          in: query
+          description: The team id.
+          schema:
+            type: string
+        - name: custom_only
+          in: query
+          description: >
+            To get only the custom commands. If set to false will get the custom
+
+            if the user have access plus the system commands, otherwise just the system commands.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: List Commands retrieve successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Command"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: >
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+
+            Client.Login("email@domain.com", "Password1")
+
+
+            // ListCommands
+
+            // The second parameter is to set if you want only custom commands (true) or defaults commands (false)
+
+            listCommands, resp := Client.ListCommands(<TEAMID>, true)
+  "/api/v4/teams/{team_id}/commands/autocomplete":
+    get:
+      tags:
+        - commands
+      summary: List autocomplete commands
+      description: |
+        List autocomplete commands in the team.
+        ##### Permissions
+        `view_team` for the team.
+      operationId: ListAutocompleteCommands
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Autocomplete commands retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Command"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // ListAutocompleteCommands
+            listCommands, resp := Client.ListAutocompleteCommands(<TEAMID>)
+  '/api/v4/teams/{team_id}/commands/autocomplete_suggestions':
+    get:
+      tags:
+        - commands
+      summary: List commands' autocomplete data
+      description: |
+        List commands' autocomplete data for the team.
+        ##### Permissions
+        `view_team` for the team.
+        __Minimum server version__: 5.24
+      operationId: ListCommandAutocompleteSuggestions
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: user_input
+          in: query
+          description: String inputted by the user.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Commands' autocomplete data retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AutocompleteSuggestion"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: 'Go'
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // ListCommandAutocompleteSuggestions
+            teamID := "4xp9fdt77pncbef59f4k1qe83o"
+            userInput := "/jira"
+            listCommands, resp := Client.ListCommandAutocompleteSuggestions(userInput, teamID)
+  "/api/v4/commands/{command_id}":
+    get:
+      tags:
+        - commands
+      summary: Get a command
+      description: >
+        Get a command definition based on command id string.
+
+        ##### Permissions
+
+        Must have `manage_slash_commands` permission for the team the command is in.
+
+
+        __Minimum server version__: 5.22
+      operationId: GetCommandById
+      parameters:
+        - in: path
+          name: command_id
+          description: ID of the command to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Command get successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Command"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // GetCommand
+            cmd, resp := Client.GetCommand(<COMMANDID>)
+    put:
+      tags:
+        - commands
+      summary: Update a command
+      description: >
+        Update a single command based on command id string and Command struct.
+
+        ##### Permissions
+
+        Must have `manage_slash_commands` permission for the team the command is in.
+      operationId: UpdateCommand
+      parameters:
+        - in: path
+          name: command_id
+          description: ID of the command to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Command"
+        required: true
+      responses:
+        "200":
+          description: Command updated successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Command"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            cmdToUpdate := &model.Command{
+              CreatorId: <USERID>,
+              TeamId:    <TEAMID>,
+              URL:       "<http://nowhere.com/change>",
+              Trigger:   <NEWTRIGGERNAME>,
+              Id:        <COMMANDID>,
+            }
+
+            // UpdateCommand
+            listCommands, resp := Client.UpdateCommand(cmdToUpdate)
+    delete:
+      tags:
+        - commands
+      summary: Delete a command
+      description: >
+        Delete a command based on command id string.
+
+        ##### Permissions
+
+        Must have `manage_slash_commands` permission for the team the command is in.
+      operationId: DeleteCommand
+      parameters:
+        - in: path
+          name: command_id
+          description: ID of the command to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Command deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // DeleteCommand
+            ok, resp := Client.DeleteCommand(<COMMANDID>)
+  "/api/v4/commands/{command_id}/move":
+    put:
+      tags:
+        - commands
+      summary: Move a command
+      description: >
+        Move a command to a different team based on command id string.
+
+        ##### Permissions
+
+        Must have `manage_slash_commands` permission for the team the command is currently in and the destination team.
+
+
+        __Minimum server version__: 5.22
+      operationId: MoveCommand
+      parameters:
+        - in: path
+          name: command_id
+          description: ID of the command to move
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                team_id:
+                  type: string
+                  description: Destination teamId
+        required: true
+      responses:
+        "200":
+          description: Command move successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // MoveCommand
+            ok, resp := Client.MoveCommand(<TEAMID>,<COMMANDID>)
+  "/api/v4/commands/{command_id}/regen_token":
+    put:
+      tags:
+        - commands
+      summary: Generate a new token
+      description: >
+        Generate a new token for the command based on command id string.
+
+        ##### Permissions
+
+        Must have `manage_slash_commands` permission for the team the command is in.
+      operationId: RegenCommandToken
+      parameters:
+        - in: path
+          name: command_id
+          description: ID of the command to generate the new token
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Token generation successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    description: The new token
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // RegenCommandToken
+            newToken, resp := Client.RegenCommandToken(<COMMANDID>)
+  /api/v4/commands/execute:
+    post:
+      tags:
+        - commands
+      summary: Execute a command
+      description: >
+        Execute a command on a team.
+
+        ##### Permissions
+
+        Must have `use_slash_commands` permission for the team the command is in.
+      operationId: ExecuteCommand
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel_id
+                - command
+              properties:
+                channel_id:
+                  type: string
+                  description: Channel Id where the command will execute
+                command:
+                  type: string
+                  description: "The slash command to execute, including parameters. Eg, `'/echo bounces around the room'`"
+        description: command to be executed
+        required: true
+      responses:
+        "200":
+          description: Command execution successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommandResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

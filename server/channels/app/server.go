@@ -54,6 +54,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/product_notices"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -250,21 +251,22 @@ func NewServer(options ...Option) (*Server, error) {
 
 	app := New(ServerConnector(s.Channels()))
 	serviceMap := map[product.ServiceKey]any{
-		ServerKey:                s,
-		product.ConfigKey:        s.platform,
-		product.LicenseKey:       s.licenseWrapper,
-		product.FilestoreKey:     s.platform.FileBackend(),
-		product.FileInfoStoreKey: &fileInfoWrapper{srv: s},
-		product.ClusterKey:       s.platform,
-		product.UserKey:          app,
-		product.LogKey:           s.platform.Log(),
-		product.CloudKey:         &cloudWrapper{cloud: s.Cloud},
-		product.KVStoreKey:       s.platform,
-		product.StoreKey:         store.NewStoreServiceAdapter(s.Store()),
-		product.SystemKey:        &systemServiceAdapter{server: s},
-		product.SessionKey:       app,
-		product.FrontendKey:      app,
-		product.CommandKey:       app,
+		ServerKey:                  s,
+		product.ConfigKey:          s.platform,
+		product.LicenseKey:         s.licenseWrapper,
+		product.FilestoreKey:       s.platform.FileBackend(),
+		product.ExportFilestoreKey: s.platform.ExportFileBackend(),
+		product.FileInfoStoreKey:   &fileInfoWrapper{srv: s},
+		product.ClusterKey:         s.platform,
+		product.UserKey:            app,
+		product.LogKey:             s.platform.Log(),
+		product.CloudKey:           &cloudWrapper{cloud: s.Cloud},
+		product.KVStoreKey:         s.platform,
+		product.StoreKey:           store.NewStoreServiceAdapter(s.Store()),
+		product.SystemKey:          &systemServiceAdapter{server: s},
+		product.SessionKey:         app,
+		product.FrontendKey:        app,
+		product.CommandKey:         app,
 	}
 
 	// It is important to initialize the hub only after the global logger is set
@@ -413,7 +415,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if _, err = url.ParseRequestURI(*s.platform.Config().ServiceSettings.SiteURL); err != nil {
-		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://docs.mattermost.com/configure/configuration-settings.html#site-url")
+		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
 	}
 
 	// Start email batching because it's not like the other jobs
@@ -462,12 +464,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// if enabled - perform initial product notices fetch
 	if *s.platform.Config().AnnouncementSettings.AdminNoticesEnabled || *s.platform.Config().AnnouncementSettings.UserNoticesEnabled {
-		go func() {
+		s.platform.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			if err := appInstance.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failed to perform initial product notices fetch", mlog.Err(err))
 			}
-		}()
+		})
 	}
 
 	if s.skipPostInit {
@@ -1476,6 +1478,10 @@ func (s *Server) FileBackend() filestore.FileBackend {
 	return s.platform.FileBackend()
 }
 
+func (s *Server) ExportFileBackend() filestore.FileBackend {
+	return s.platform.ExportFileBackend()
+}
+
 func (s *Server) TotalWebsocketConnections() int {
 	return s.Platform().TotalWebsocketConnections()
 }
@@ -1562,6 +1568,11 @@ func (s *Server) initJobs() {
 		import_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store()),
 		import_delete.MakeScheduler(s.Jobs),
 	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeS3PathMigration,
+		s3_path_migration.MakeWorker(s.Jobs, s.Store(), s.FileBackend()),
+		nil)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeExportDelete,

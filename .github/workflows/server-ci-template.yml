@@ -47,6 +47,8 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
@@ -67,7 +69,7 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
-      - name: Setup go.work
+      - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
         run: make golangci-lint
@@ -87,6 +89,8 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
@@ -107,10 +111,10 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
-      - name: Reset config
-        run: make config-reset
       - name: Run setup-go-work
         run: make setup-go-work
+      - name: Reset config
+        run: make config-reset
       - name: Run plugin-checker
         run: make plugin-checker
       - name: Run mattermost-vet
@@ -128,28 +132,6 @@ jobs:
         run: make migrations-extract
       - name: Check migration files
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
-  build-api-spec:
-    name: Build API specification
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
-        with:
-          go-version: ${{ env.go-version }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
-      - name: Checkout mattermost-api-reference
-        run: |
-          cd ..
-          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
-          cd mattermost-api-reference
-          echo "Trying to checkout the same branch on mattermost-api-reference as mattermost"
-          git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || true
-          make build
-          cd ../mattermost
   check-email-templates:
     name: Generate email templates
     runs-on: ubuntu-22.04
@@ -181,6 +163,8 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
@@ -201,6 +185,8 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Generate app layers
         run: make app-layers
       - name: Check generated code
@@ -208,6 +194,9 @@ jobs:
   check-mmctl-docs:
     name: Check mmctl docs
     runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -218,10 +207,11 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Check docs
         run: |
           echo "Making sure docs are updated"
-          cd server
           make mmctl-docs
           if [[ -n $(git status --porcelain) ]]; then echo "Please update the mmctl docs using make mmctl-docs"; exit 1; fi
   test-postgres-binary:
@@ -234,6 +224,7 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
       drivername: postgres
       logsartifact: postgres-binary-server-test-logs
+    secrets: inherit
   test-postgres-normal:
     name: Postgres
     needs: check-mattermost-vet
@@ -243,6 +234,7 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: postgres-server-test-logs
+    secrets: inherit
   test-mysql:
     name: MySQL
     needs: check-mattermost-vet
@@ -252,6 +244,7 @@ jobs:
       datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304
       drivername: mysql
       logsartifact: mysql-server-test-logs
+    secrets: inherit
   test-mmctl:
     name: Run mmctl tests
     needs: check-mattermost-vet
@@ -278,6 +271,8 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Build
         run: |
           make config-reset
