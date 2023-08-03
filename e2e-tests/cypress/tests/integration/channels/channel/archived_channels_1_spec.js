@@ -147,18 +147,18 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens
-        cy.get('#browseChannelsModal').should('be.visible');
+        cy.get('#browseChannelsModal').should('be.visible').then(() => {
+            // # All channel list opens by default
+            cy.findByText(channelType.all).should('be.visible').click();
 
-        // # All channel list opens by default
-        cy.findByText(channelType.all).should('be.visible').click();
+            // # Click on archived channels
+            cy.findByText('Archived channels').click();
 
-        // # Click on archived channels
-        cy.findByText('Archived channels').click();
-
-        // # Channel list should contain newly created channels
-        cy.get('#moreChannelsList').should('contain', archivedPrivateChannel.name);
-        cy.get('#moreChannelsList').should('contain', archivedPublicChannel.display_name);
-        cy.get('body').typeWithForce('{esc}');
+            // # Channel list should contain newly created channels
+            cy.get('#moreChannelsList').should('contain', archivedPrivateChannel.name);
+            cy.get('#moreChannelsList').should('contain', archivedPublicChannel.display_name);
+            cy.get('body').typeWithForce('{esc}');
+        });
     });
 
     it('MM-T1700 - All archived public channels are shown Important', () => {
@@ -200,19 +200,18 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens
-        cy.get('#browseChannelsModal').should('be.visible');
+        cy.get('#browseChannelsModal').should('be.visible').then(() => {
+            // # All channels are shown by default
+            cy.findByText(channelType.all).should('be.visible').click();
 
-        // # All channels are shown by default
-        cy.findByText(channelType.all).should('be.visible').click();
+            // # Go to archived channels
+            cy.findByText('Archived channels').click();
 
-        // # Go to archived channels
-        cy.findByText('Archived channels').click();
-
-        // # Channel list should contain both archived public channels
-        cy.get('#moreChannelsList').should('contain', archivedPublicChannel1.display_name);
-        cy.get('#moreChannelsList').should('contain', archivedPublicChannel2.display_name);
-
-        cy.get('body').typeWithForce('{esc}');
+            // # Channel list should contain both archived public channels
+            cy.get('#moreChannelsList').should('contain', archivedPublicChannel1.display_name);
+            cy.get('#moreChannelsList').should('contain', archivedPublicChannel2.display_name);
+            cy.get('body').typeWithForce('{esc}');
+        });
     });
 
     it('MM-T1701 - Only Private channels you are a member of are displayed', () => {
@@ -255,18 +254,18 @@ describe('Leave an archived channel', () => {
         cy.get('#showMoreChannels').click();
 
         // # More channels modal opens
-        cy.get('#browseChannelsModal').should('be.visible');
+        cy.get('#browseChannelsModal').should('be.visible').then(() => {
+            // # Show all channels is visible by default
+            cy.findByText(channelType.all).should('be.visible').click();
 
-        // # Show all channels is visible by default
-        cy.findByText(channelType.all).should('be.visible').click();
+            // # Go to archived channels
+            cy.findByText('Archived channels').click();
 
-        // # Go to archived channels
-        cy.findByText('Archived channels').click();
-
-        // # Channel list should contain only the private channel user is a member of
-        cy.get('#moreChannelsList').should('contain', archivedPrivateChannel1.name);
-        cy.get('#moreChannelsList').should('not.contain', archivedPrivateChannel2.name);
-        cy.get('body').typeWithForce('{esc}');
+            // # Channel list should contain only the private channel user is a member of
+            cy.get('#moreChannelsList').should('contain', archivedPrivateChannel1.name);
+            cy.get('#moreChannelsList').should('not.contain', archivedPrivateChannel2.name);
+            cy.get('body').typeWithForce('{esc}');
+        });
     });
 
     it('MM-T1703 - User can open archived channels', () => {
