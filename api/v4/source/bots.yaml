@@ -99,8 +99,8 @@
             type: boolean
         - name: only_orphaned
           in: query
-          description: When true, only orphaned bots will be returned. A bot is consitered
-            orphaned if it's owner has been deactivated.
+          description: When true, only orphaned bots will be returned. A bot is considered
+            orphaned if its owner has been deactivated.
           schema:
             type: boolean
       responses:
