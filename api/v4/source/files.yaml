@@ -380,7 +380,7 @@
             fileID := "4xp9fdt77pncbef59f4k1qe83o"
 
             info, resp := Client.GetFileInfo(fileID)
-  "/api/v4/files/{file_id}/public":
+  "/files/{file_id}/public":
     get:
       tags:
         - files
