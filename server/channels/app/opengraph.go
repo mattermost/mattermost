@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"html"
 	"io"
 	"net/url"
@@ -16,8 +17,9 @@ import (
 )
 
 const (
-	MaxOpenGraphResponseSize   = 1024 * 1024 * 50
-	openGraphMetadataCacheSize = 10000
+	MaxOpenGraphResponseSize             = 1024 * 1024 * 50
+	openGraphMetadataCacheSize           = 10000
+	openGraphMetadataCacheEntrySizeLimit = 1024 * 5
 )
 
 func (a *App) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
@@ -39,6 +41,11 @@ func (a *App) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if len(ogJSON) > openGraphMetadataCacheEntrySizeLimit {
+		return nil, errors.New("opengraph data exceeds cache entry size limit")
+	}
+
 	err = a.Srv().openGraphDataCache.SetWithExpiry(requestURL, ogJSON, 1*time.Hour)
 	if err != nil {
 		return nil, err
