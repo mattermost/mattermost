@@ -18,7 +18,7 @@ require (
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/logr/v2 v2.0.16
-	github.com/mattermost/mattermost/server/v8 v8.0.0-00010101000000-000000000000
+	//github.com/mattermost/mattermost/server/v8 v8.0.0-00010101000000-000000000000
 	github.com/nicksnyder/go-i18n/v2 v2.0.3
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
@@ -35,6 +35,8 @@ require (
 )
 
 //replace github.com/mattermost/mattermost/server/v8 => ../
+
+require github.com/mattermost/mattermost/server/v8 v8.0.0-20230803085432-a76cde47fa47
 
 require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect

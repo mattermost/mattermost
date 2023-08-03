@@ -138,6 +138,8 @@ github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d h1:/RJ/UV7M5c7L2TQ
 github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d/go.mod h1:HLbgMEI5K131jpxGazJ97AxfPDt31osq36YS1oxFQPQ=
 github.com/mattermost/logr/v2 v2.0.16 h1:jnePX4cPskC3WDFvUardh/xZfxNdsFXbEERJQ1kUEDE=
 github.com/mattermost/logr/v2 v2.0.16/go.mod h1:1dm/YhTpozsqANXxo5Pi5zYLBsal2xY0pX+JZNbzYJY=
+github.com/mattermost/mattermost/server/v8 v8.0.0-20230803085432-a76cde47fa47 h1:4TcbVrVdcI2cUVm7jBsj8gSgmkQ20tiqUm5BowHzHM8=
+github.com/mattermost/mattermost/server/v8 v8.0.0-20230803085432-a76cde47fa47/go.mod h1:SSz0yjGFEL0YFj851WOk55Pe+1Z3W1ICtk49R6kCaxg=
 github.com/mattermost/morph v1.0.5-0.20230511171014-e76e25978d56 h1:SjFYbWvmuf73d/KaYlnHosPpB3/k38ebr1WWw9X5XKc=
 github.com/mattermost/morph v1.0.5-0.20230511171014-e76e25978d56/go.mod h1:gD+EaqX2UMyyuzmF4PFh4r33XneQ8Nzi+0E8nXjMa3A=
 github.com/mattermost/squirrel v0.2.0 h1:8ZWeyf+MWQ2cL7hu9REZgLtz2IJi51qqZEovI3T3TT8=
