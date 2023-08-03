@@ -6628,27 +6628,6 @@ func (s *RetryLayerPostStore) Delete(postID string, timestamp int64, deleteByID 
 
 }
 
-func (s *RetryLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
-
-	tries := 0
-	for {
-		result, err := s.PostStore.DeleteOrphanedRows(limit)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
@@ -11566,27 +11545,6 @@ func (s *RetryLayerThreadStore) DeleteMembershipsForChannel(userID string, chann
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerThreadStore) DeleteOrphanedRows(limit int) (int64, error) {
-
-	tries := 0
-	for {
-		result, err := s.ThreadStore.DeleteOrphanedRows(limit)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

@@ -944,66 +944,6 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolici
 	}, s.SqlStore, cursor)
 }
 
-// DeleteOrphanedRows removes orphaned rows from Threads and ThreadMemberships
-func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	var threadsQuery string
-	// We need the extra level of nesting to deal with MySQL's locking
-	if s.DriverName() == model.DatabaseDriverMysql {
-		// MySQL fails to do a proper antijoin if the selecting column
-		// and the joining column are different. In that case, doing a subquery
-		// leads to a faster plan because MySQL materializes the sub-query
-		// and does a covering index scan on Threads table. More details on the PR with
-		// this commit.
-		threadsQuery = `
-	DELETE FROM Threads WHERE PostId IN (
-		SELECT * FROM (
-			SELECT Threads.PostId FROM Threads
-			WHERE Threads.ChannelId NOT IN (SELECT Id FROM Channels USE INDEX(PRIMARY))
-			LIMIT ?
-		) AS A
-	)`
-	} else {
-		threadsQuery = `
-	DELETE FROM Threads WHERE PostId IN (
-        SELECT * FROM (
-			SELECT Threads.PostId FROM Threads
-			LEFT JOIN Channels ON Threads.ChannelId = Channels.Id
-			WHERE Channels.Id IS NULL
-			LIMIT ?
-		) AS A
-	)`
-	}
-	// We only delete a thread membership if the entire thread no longer exists,
-	// not if the root post has been deleted
-	const threadMembershipsQuery = `
-	DELETE FROM ThreadMemberships WHERE PostId IN (
-		SELECT * FROM (
-			SELECT ThreadMemberships.PostId FROM ThreadMemberships
-			LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
-			WHERE Threads.PostId IS NULL
-			LIMIT ?
-		) AS A
-	)`
-	result, err := s.GetMasterX().Exec(threadsQuery, limit)
-	if err != nil {
-		return
-	}
-	rpcDeleted, err := result.RowsAffected()
-	if err != nil {
-		return
-	}
-	result, err = s.GetMasterX().Exec(threadMembershipsQuery, limit)
-	if err != nil {
-		return
-	}
-	rptDeleted, err := result.RowsAffected()
-	if err != nil {
-		return
-	}
-	deleted = rpcDeleted + rptDeleted
-	return
-}
-
 // return number of unread replies for a single thread
 func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error) {
 	query := s.getQueryBuilder().
