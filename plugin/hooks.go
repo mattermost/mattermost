@@ -173,7 +173,7 @@ type Hooks interface {
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
 	//
-	// Minimum server version: 8.1
+	// Minimum server version: 9.0
 	MessagesWillBeConsumed(posts []*model.Post) []*model.Post
 
 	// ChannelHasBeenCreated is invoked after the channel has been committed to the database.
