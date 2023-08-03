@@ -5865,24 +5865,6 @@ func (s *OpenTracingLayerPostStore) DeleteOrphanedRows(limit int) (int64, error)
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.DeleteOrphanedRowsByIds")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.PostStore.DeleteOrphanedRowsByIds(r)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
 func (s *OpenTracingLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.Get")
@@ -10160,24 +10142,6 @@ func (s *OpenTracingLayerThreadStore) DeleteOrphanedRows(limit int) (int64, erro
 
 	defer span.Finish()
 	result, err := s.ThreadStore.DeleteOrphanedRows(limit)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
-func (s *OpenTracingLayerThreadStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.DeleteOrphanedRowsByIds")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.ThreadStore.DeleteOrphanedRowsByIds(r)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

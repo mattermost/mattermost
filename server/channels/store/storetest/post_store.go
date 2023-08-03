@@ -3941,6 +3941,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 0, 1000)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(rows))
+	require.Equal(t, 2, len(rows[0].Ids))
 
 	t.Run("with pagination", func(t *testing.T) {
 		for i := 0; i < 3; i++ {
@@ -3958,9 +3959,17 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, int64(2), deleted)
 
+		rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 0, 1000)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(rows))
+
 		deleted, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
 		require.NoError(t, err)
 		require.Equal(t, int64(1), deleted)
+
+		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 0, 1000)
+		require.NoError(t, err)
+		require.Equal(t, 3, len(rows))
 	})
 
 	t.Run("with data retention policies", func(t *testing.T) {

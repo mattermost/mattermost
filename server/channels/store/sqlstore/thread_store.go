@@ -7,7 +7,6 @@ import (
 	"context"
 	"database/sql"
 	"strconv"
-	"strings"
 	"time"
 
 	sq "github.com/mattermost/squirrel"
@@ -1023,96 +1022,4 @@ func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.Threa
 	}
 
 	return unreadReplies, nil
-}
-
-// Delete the thread memberships by post IDs
-func (s *SqlThreadStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (deleted int64, err error) {
-	txn, err := s.GetMasterX().Beginx()
-	if err != nil {
-		return 0, err
-	}
-	defer finalizeTransactionX(txn, &err)
-
-	// 1. Delete rows from ThreadMemberships
-	result, err := txn.Exec("DELETE FROM ThreadMemberships WHERE PostId IN ?", strings.Join(r.Ids, "', '"))
-	if err != nil {
-		return 0, errors.Wrap(err, "Failed to delete from ThreadMemberships")
-	}
-
-	// 2. Delete row from RetentionIdsForDeletion
-	err = deleteFromRetentionIdsTx(txn, r.Id)
-	if err != nil {
-		return 0, err
-	}
-	if err = txn.Commit(); err != nil {
-		return 0, err
-	}
-	deleted, err = result.RowsAffected()
-	return
-}
-
-func deleteOrphanedThreadsByChannelIdsTx(txn *sqlxTxWrapper, channelIds []string, s *SqlStore) (rowsAffected int64, err error) {
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		rows, err := txn.Query("DELETE FROM Threads WHERE ChannelId IN ? RETURNING PostId as Id", strings.Join(channelIds, "', '"))
-		if err != nil {
-			return 0, errors.Wrap(err, "Failed to delete from Threads")
-		}
-		defer rows.Close()
-		ids := []string{}
-		for rows.Next() {
-			var id string
-			if err = rows.Scan(&id); err != nil {
-				return 0, errors.Wrap(err, "unable to scan from rows")
-			}
-			ids = append(ids, id)
-		}
-		if err = rows.Err(); err != nil {
-			return 0, errors.Wrap(err, "failed while iterating over rows")
-		}
-		rowsAffected = int64(len(ids))
-		if len(ids) > 0 {
-			retentionIdsRow := model.RetentionIdsForDeletion{
-				TableName: "Threads",
-				Ids: ids,
-			}
-			err = insertRetentionIdsForDeletion(txn, &retentionIdsRow, s)
-			if err != nil {
-				return 0, err
-			}
-		}
-	} else {
-		builder := s.getQueryBuilder().
-			Select("PostId").
-			From("Threads").
-			Where(sq.Eq{"ChannelId": channelIds})
-
-		query, args, err := builder.ToSql()
-		if err != nil {
-			return 0, errors.Wrap(err, "Threads_tosql")
-		}
-		retentionIdsRow := model.RetentionIdsForDeletion{
-			TableName: "Threads",
-			Ids: make([]string, 0),
-		}
-		
-		if err = txn.Select(&retentionIdsRow.Ids, query, args...); err != nil {
-			return 0, err
-		}
-		if len(retentionIdsRow.Ids) > 0 {
-			err = insertRetentionIdsForDeletion(txn, &retentionIdsRow, s)
-			if err != nil {
-				return 0, err
-			}
-			rows, err := txn.Exec("DELETE FROM Threads WHERE ChannelId IN ?", strings.Join(channelIds, "', '"))
-			if err != nil {
-				return 0, errors.Wrap(err, "Failed to delete from Threads")
-			}
-			rowsAffected, err = rows.RowsAffected()
-			if err != nil {
-				return 0, errors.Wrap(err, "failed to get rows affected for Threads")
-			}
-		}
-	}
-	
-	return
 }

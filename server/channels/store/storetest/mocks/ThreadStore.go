@@ -67,30 +67,6 @@ func (_m *ThreadStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return r0, r1
 }
 
-// DeleteOrphanedRowsByIds provides a mock function with given fields: r
-func (_m *ThreadStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
-	ret := _m.Called(r)
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.RetentionIdsForDeletion) (int64, error)); ok {
-		return rf(r)
-	}
-	if rf, ok := ret.Get(0).(func(*model.RetentionIdsForDeletion) int64); ok {
-		r0 = rf(r)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(*model.RetentionIdsForDeletion) error); ok {
-		r1 = rf(r)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Get provides a mock function with given fields: id
 func (_m *ThreadStore) Get(id string) (*model.Thread, error) {
 	ret := _m.Called(id)
