@@ -4799,6 +4799,7 @@
   "sidebar_left.sidebar_category.newDropBoxLabel": "Drag channels here...",
   "sidebar_left.sidebar_category.newLabel": "new",
   "sidebar_left.sidebar_channel_menu.addMembers": "Add Members",
+  "sidebar_left.sidebar_channel_menu.channel_count_aria_live": "{count, number} {count, plural, one {channel} other {channels}}",
   "sidebar_left.sidebar_channel_menu.channels": "Channels",
   "sidebar_left.sidebar_channel_menu.copyLink": "Copy Link",
   "sidebar_left.sidebar_channel_menu.dropdownAriaLabel": "Edit channel menu",
