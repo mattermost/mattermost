@@ -4193,6 +4193,13 @@ export default class Client4 {
             {method: 'get'},
         )
     }
+
+    convertGroupMessageToPrivateChannel = (channelId: string, teamId: string) => {
+        return this.doFetchWithResponse<Channel>(
+            `${this.getChannelRoute(channelId)}/convert_to_channel?team_id=${teamId}`,
+            {method: 'post'},
+        )
+    }
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {

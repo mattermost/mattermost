@@ -344,6 +344,34 @@ export function updateChannelPrivacy(channelId: string, privacy: string): Action
     };
 }
 
+export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string): ActionFunc {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        dispatch({type: ChannelTypes.UPDATE_CHANNEL_REQUEST, data: null});
+
+        let updatedChannel;
+        try {
+            updatedChannel = await Client4.convertGroupMessageToPrivateChannel(channelID, teamID);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: ChannelTypes.UPDATE_CHANNEL_FAILURE, error});
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch(batchActions([
+            {
+                type: ChannelTypes.RECEIVED_CHANNEL,
+                data: updatedChannel,
+            },
+            {
+                type: ChannelTypes.UPDATE_CHANNEL_SUCCESS,
+            },
+        ]));
+
+        return {data: updatedChannel};
+    }
+}
+
 export function updateChannelNotifyProps(userId: string, channelId: string, props: Partial<ChannelNotifyProps>): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const notifyProps = {

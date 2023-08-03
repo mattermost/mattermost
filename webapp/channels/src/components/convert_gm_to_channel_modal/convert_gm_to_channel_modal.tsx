@@ -20,6 +20,7 @@ import {useDispatch} from "react-redux";
 import {Client4} from "mattermost-redux/client";
 import {common} from "@mui/material/colors";
 import TeamSelector from "components/convert_gm_to_channel_modal/team_selector/team_selector";
+import {trackEvent} from "actions/telemetry_actions";
 
 export type Props = {
     onExited: () => void,
@@ -56,14 +57,19 @@ const ConvertGmToChannelModal = (props: Props) => {
     }
 
     const [channelName, setChannelName] = useState<string>('');
-
     const handleChannelNameChange = useCallback((newName: string) => {
         setChannelName(newName);
     }, [])
 
+    const [url, setURL]= useState<string>('');
+    const handleChannelURLChange = (newURL: string) => {
+        setURL(newURL);
+    }
+
     const channelMemberNames = props.profilesInChannel.map((user) => displayUsername(user, props.teammateNameDisplaySetting));
 
     const [commonTeamsById, setCommonTeamsById] = useState<{[id: string]: Team}>({});
+    const [selectedTeamId, setSelectedTeamId] = useState<string>()
 
     useEffect(() => {
         const work = async () => {
@@ -73,10 +79,29 @@ const ConvertGmToChannelModal = (props: Props) => {
                 teamsById[team.id] = team;
             })
             setCommonTeamsById(teamsById)
-        }
+
+            // if there is only common team, selected it.
+            if (teams.length === 1) {
+                setSelectedTeamId(teams[0].id);
+            }
+        };
 
         work();
     }, [props.channel.id]);
+
+    const handleTeamChange = (teamId: string) => {
+        setSelectedTeamId(teamId);
+    }
+
+    const handleConfirm = () => {
+        if (!selectedTeamId) {
+            return;
+        }
+
+        const {actions} = props;
+        actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId);
+        trackEvent('actions', 'convert_group_message_to_private_channel', {channel_id: props.channel.id});
+    }
 
     return (
         <GenericModal
@@ -88,25 +113,28 @@ const ConvertGmToChannelModal = (props: Props) => {
             isDeleteModal={true}
             compassDesign={true}
             handleCancel={handleCancel}
-            handleConfirm={() => {}}
+            handleConfirm={handleConfirm}
             onExited={handleCancel}
             autoCloseOnConfirmButton={false}
         >
             <div className='convert-gm-to-channel-modal-body'>
                 <WarningTextSection channelMemberNames={channelMemberNames}/>
+
                 {
                     Object.keys(commonTeamsById).length > 0 &&
                     <TeamSelector
                         teamsById={commonTeamsById}
-                        onChange={() => {}}
+                        onChange={handleTeamChange}
                     />
                 }
+
                 <ChannelNameFormField
                     value={channelName}
                     name='convert-gm-to-channel-modal-channel-name'
                     placeholder={formatMessage({id: 'sidebar_left.sidebar_channel_modal.channel_name_placeholder', defaultMessage: 'Enter a name for the channel'})}
-                    onDisplayNameChange={handleChannelNameChange}
                     autoFocus={false}
+                    onDisplayNameChange={handleChannelNameChange}
+                    onURLChange={handleChannelURLChange}
                 />
             </div>
         </GenericModal>

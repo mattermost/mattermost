@@ -9,6 +9,7 @@ import {
     makeGetProfilesInChannel
 } from "mattermost-redux/selectors/entities/users";
 import {getTeammateNameDisplaySetting} from "mattermost-redux/selectors/entities/preferences";
+import {convertGroupMessageToPrivateChannel} from "mattermost-redux/actions/channels";
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const allProfilesInChannel = makeGetProfilesInChannel()(state, ownProps.channel.id);
@@ -27,12 +28,14 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 
 export type Actions = {
     closeModal: (modalID: string) => void,
+    convertGroupMessageToPrivateChannel: (channelId: string, teamId: string) => void,
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
             closeModal,
+            convertGroupMessageToPrivateChannel,
         }, dispatch)
     }
 }
