@@ -34,7 +34,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-replace github.com/mattermost/mattermost/server/v8 => ../
+//replace github.com/mattermost/mattermost/server/v8 => ../
 
 require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
