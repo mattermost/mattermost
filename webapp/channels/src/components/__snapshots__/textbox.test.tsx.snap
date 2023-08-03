@@ -12,8 +12,23 @@ exports[`components/TextBox should match snapshot with additional, optional prop
     id="someid"
     inputComponent={
       Object {
-        "$$typeof": Symbol(react.forward_ref),
-        "render": [Function],
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": Object {
+          "$$typeof": Symbol(react.forward_ref),
+          "propTypes": Object {
+            "defaultValue": [Function],
+            "disabled": [Function],
+            "id": [Function],
+            "onChange": [Function],
+            "onHeightChange": [Function],
+            "onInput": [Function],
+            "onWidthChange": [Function],
+            "placeholder": [Function],
+            "value": [Function],
+          },
+          "render": [Function],
+        },
       }
     }
     isRHS={true}
@@ -128,8 +143,23 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
     id="someid"
     inputComponent={
       Object {
-        "$$typeof": Symbol(react.forward_ref),
-        "render": [Function],
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": Object {
+          "$$typeof": Symbol(react.forward_ref),
+          "propTypes": Object {
+            "defaultValue": [Function],
+            "disabled": [Function],
+            "id": [Function],
+            "onChange": [Function],
+            "onHeightChange": [Function],
+            "onInput": [Function],
+            "onWidthChange": [Function],
+            "placeholder": [Function],
+            "value": [Function],
+          },
+          "render": [Function],
+        },
       }
     }
     isRHS={false}
@@ -221,8 +251,23 @@ exports[`components/TextBox should throw error when new property is too long 1`]
     id="someid"
     inputComponent={
       Object {
-        "$$typeof": Symbol(react.forward_ref),
-        "render": [Function],
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": Object {
+          "$$typeof": Symbol(react.forward_ref),
+          "propTypes": Object {
+            "defaultValue": [Function],
+            "disabled": [Function],
+            "id": [Function],
+            "onChange": [Function],
+            "onHeightChange": [Function],
+            "onInput": [Function],
+            "onWidthChange": [Function],
+            "placeholder": [Function],
+            "value": [Function],
+          },
+          "render": [Function],
+        },
       }
     }
     isRHS={false}
@@ -314,8 +359,23 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
     id="someid"
     inputComponent={
       Object {
-        "$$typeof": Symbol(react.forward_ref),
-        "render": [Function],
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": Object {
+          "$$typeof": Symbol(react.forward_ref),
+          "propTypes": Object {
+            "defaultValue": [Function],
+            "disabled": [Function],
+            "id": [Function],
+            "onChange": [Function],
+            "onHeightChange": [Function],
+            "onInput": [Function],
+            "onWidthChange": [Function],
+            "placeholder": [Function],
+            "value": [Function],
+          },
+          "render": [Function],
+        },
       }
     }
     isRHS={false}

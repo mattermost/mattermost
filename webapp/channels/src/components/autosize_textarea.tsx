@@ -24,6 +24,7 @@ const styles: { [Key: string]: CSSProperties} = {
 };
 
 const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
+
     // TODO: The provided `id` is sometimes hard-coded and used to interface with the
     // component, e.g. `post_textbox`, so it can't be changed. This would ideally be
     // abstracted to avoid passing in an `id` prop at all, but we intentionally maintain
@@ -61,7 +62,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
 
             onHeightChange?.(scrollHeight, parseInt(style.maxHeight || '0', 10));
         }
-    }
+    };
 
     const recalculateWidth = () => {
         if (!measuringRef.current) {
@@ -74,7 +75,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
                 onWidthChange?.(width);
             });
         }
-    }
+    };
 
     const recalculatePadding = () => {
         if (!referenceRef.current || !textarea.current) {
@@ -87,7 +88,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
         if (paddingRight && paddingRight !== referenceRef.current.style.paddingRight) {
             referenceRef.current.style.paddingRight = paddingRight;
         }
-    }
+    };
 
     const setTextareaRef = useCallback((textareaRef: HTMLTextAreaElement) => {
         if (ref) {
@@ -104,13 +105,13 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
     useEffect(() => {
         recalculateHeight();
         recalculateWidth();
-    }, [])
+    }, []);
 
     useDidUpdate(() => {
         recalculateHeight();
         recalculateWidth();
         recalculatePadding();
-    })
+    });
 
     const heightProps = {
         rows: 0,
@@ -177,6 +178,6 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
             </div>
         </div>
     );
-})
+});
 
 export default React.memo(AutosizeTextarea);
