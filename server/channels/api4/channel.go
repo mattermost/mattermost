@@ -2199,14 +2199,24 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	teamID := r.URL.Query().Get("team_id")
+	var gmConversionRequest *model.GroupMessageConversionRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&gmConversionRequest); err != nil {
+		c.SetInvalidParamWithErr("body", err)
+		return
+	}
+
+	// The channel id the payload must be the same one as indicated in the URL.
+	if gmConversionRequest.ChannelID != c.Params.ChannelId {
+		c.SetInvalidParam("channel_id")
+		return
+	}
 
 	auditRec := c.MakeAuditRecord("convertGroupMessageToChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
-	audit.AddEventParameter(auditRec, "team_id", teamID)
+	audit.AddEventParameter(auditRec, "channel_id", gmConversionRequest.ChannelID)
+	audit.AddEventParameter(auditRec, "team_id", gmConversionRequest.TeamID)
 
-	updatedChannel, appErr := c.App.ConvertGroupMessageToChannel(c.AppContext, c.AppContext.Session().UserId, c.Params.ChannelId, teamID)
+	updatedChannel, appErr := c.App.ConvertGroupMessageToChannel(c.AppContext, c.AppContext.Session().UserId, gmConversionRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return

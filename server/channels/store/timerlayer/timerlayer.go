@@ -720,22 +720,6 @@ func (s *TimerLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamID s
 	return err
 }
 
-func (s *TimerLayerChannelStore) ConvertGroupMessageToChannel(groupMessageID string, teamID string) error {
-	start := time.Now()
-
-	err := s.ChannelStore.ConvertGroupMessageToChannel(groupMessageID, teamID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.ConvertGroupMessageToChannel", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error) {
 	start := time.Now()
 

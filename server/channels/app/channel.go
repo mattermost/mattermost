@@ -3537,37 +3537,38 @@ func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string)
 	return teams, appErr
 }
 
-func (a *App) ConvertGroupMessageToChannel(c request.CTX, userID, groupMessageID, teamID string) (*model.Channel, *model.AppError) {
-	originalChannel, appErr := a.GetChannel(c, groupMessageID)
+func (a *App) ConvertGroupMessageToChannel(c request.CTX, userID string, gmConversionRequest *model.GroupMessageConversionRequestBody) (*model.Channel, *model.AppError) {
+	originalChannel, appErr := a.GetChannel(c, gmConversionRequest.ChannelID)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	appErr = a.validateForConvertGroupMessageToChannel(c, userID, groupMessageID, teamID)
+	appErr = a.validateForConvertGroupMessageToChannel(c, userID, originalChannel, gmConversionRequest)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	err := a.Srv().Store().Channel().ConvertGroupMessageToChannel(groupMessageID, teamID)
-	if err != nil {
-		return nil, model.NewAppError("ConvertGroupMessageToChannel", "app.channel.convert_gm_to_channel.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	toUpdate := originalChannel.DeepCopy()
+	toUpdate.Type = model.ChannelTypePrivate
+	toUpdate.TeamId = gmConversionRequest.TeamID
+	toUpdate.Name = gmConversionRequest.Name
+	toUpdate.DisplayName = gmConversionRequest.DisplayName
+
+	updatedChannel, appErr := a.UpdateChannel(c, toUpdate)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(originalChannel)
-	return a.GetChannel(c, groupMessageID)
+	return updatedChannel, nil
 }
 
-func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, userID, groupMessageID, teamID string) *model.AppError {
-	channel, appErr := a.GetChannel(c, groupMessageID)
-	if appErr != nil {
-		return appErr
-	}
-
-	if channel.Type != model.ChannelTypeGroup {
+func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, userID string, originalChannel *model.Channel, gmConversionRequest *model.GroupMessageConversionRequestBody) *model.AppError {
+	if originalChannel.Type != model.ChannelTypeGroup {
 		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
 	}
 
-	channelMember, appErr := a.GetChannelMember(c, groupMessageID, userID)
+	channelMember, appErr := a.GetChannelMember(c, gmConversionRequest.ChannelID, userID)
 	if appErr != nil {
 		return appErr
 	}
@@ -3576,7 +3577,7 @@ func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, userID, gro
 		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
 	}
 
-	teamMember, appErr := a.GetTeamMember(teamID, userID)
+	teamMember, appErr := a.GetTeamMember(gmConversionRequest.TeamID, userID)
 	if appErr != nil {
 		return appErr
 	}
@@ -3585,7 +3586,12 @@ func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, userID, gro
 		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
 	}
 
-	return nil
+	// apply dummy changes to check validity
+	clone := originalChannel.DeepCopy()
+	clone.Type = model.ChannelTypePrivate
+	clone.Name = gmConversionRequest.Name
+	clone.DisplayName = gmConversionRequest.DisplayName
+	return clone.IsValid()
 }
 
 func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*model.Channel, *model.AppError) {

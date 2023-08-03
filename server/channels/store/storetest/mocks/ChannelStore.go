@@ -182,20 +182,6 @@ func (_m *ChannelStore) ClearSidebarOnTeamLeave(userID string, teamID string) er
 	return r0
 }
 
-// ConvertGroupMessageToChannel provides a mock function with given fields: groupMessageID, teamID
-func (_m *ChannelStore) ConvertGroupMessageToChannel(groupMessageID string, teamID string) error {
-	ret := _m.Called(groupMessageID, teamID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(groupMessageID, teamID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // CountPostsAfter provides a mock function with given fields: channelID, timestamp, userID
 func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error) {
 	ret := _m.Called(channelID, timestamp, userID)

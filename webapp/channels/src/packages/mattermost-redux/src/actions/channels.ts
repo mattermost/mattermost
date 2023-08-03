@@ -368,7 +368,7 @@ export function convertGroupMessageToPrivateChannel(channelID: string, teamID: s
             },
         ]));
 
-        return {data: updatedChannel};
+        return updatedChannel;
     }
 }
 

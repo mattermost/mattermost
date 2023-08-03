@@ -76,6 +76,7 @@ function currentChannelId(state = '', action: GenericAction) {
 function channels(state: IDMappedObjects<Channel> = {}, action: GenericAction) {
     switch (action.type) {
     case ChannelTypes.RECEIVED_CHANNEL: {
+        console.log('AAAAAAA');
         const channel: Channel = toClientChannel(action.data);
 
         if (state[channel.id] && channel.type === General.DM_CHANNEL) {
@@ -256,6 +257,7 @@ function toClientChannel(serverChannel: ServerChannel): Channel {
 function channelsInTeam(state: RelationOneToMany<Team, Channel> = {}, action: GenericAction) {
     switch (action.type) {
     case ChannelTypes.RECEIVED_CHANNEL: {
+        console.log('BBBBBBBB');
         const nextSet = new Set(state[action.data.team_id]);
         nextSet.add(action.data.id);
         return {

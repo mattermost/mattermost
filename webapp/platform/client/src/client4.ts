@@ -4195,7 +4195,7 @@ export default class Client4 {
     }
 
     convertGroupMessageToPrivateChannel = (channelId: string, teamId: string) => {
-        return this.doFetchWithResponse<Channel>(
+        return this.doFetch<Channel>(
             `${this.getChannelRoute(channelId)}/convert_to_channel?team_id=${teamId}`,
             {method: 'post'},
         )
