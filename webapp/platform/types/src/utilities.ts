@@ -24,3 +24,6 @@ export type ValueOf<T> = T[keyof T];
  */
 export type RequireOnlyOne<T, Keys extends keyof T = keyof T> =
 Pick<T, Exclude<keyof T, Keys>> & {[K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, undefined>>}[Keys];
+
+export type Intersection<T1, T2> =
+Omit<Omit<T1&T2, keyof(Omit<T1, keyof(T2)>)>, keyof(Omit<T2, keyof(T1)>)>;

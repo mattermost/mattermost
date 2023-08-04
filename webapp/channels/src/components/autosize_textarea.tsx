@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, FormEvent, CSSProperties, useRef, useEffect, useCallback} from 'react';
+import React, {ChangeEvent, FormEvent, CSSProperties, useRef, useEffect, useCallback, HTMLProps} from 'react';
 import useDidUpdate from './common/hooks/useDidUpdate';
+import {Intersection} from '@mattermost/types/utilities';
 
 type Props = {
     id?: string;
@@ -14,7 +15,7 @@ type Props = {
     onWidthChange?: (width: number) => void;
     onInput?: (e: FormEvent<HTMLTextAreaElement>) => void;
     placeholder?: string;
-}
+} & Intersection<HTMLProps<HTMLTextAreaElement>, HTMLProps<HTMLDivElement>>;
 
 const styles: { [Key: string]: CSSProperties} = {
     container: {height: 0, overflow: 'hidden'},
@@ -38,6 +39,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
     onWidthChange,
     onInput,
     placeholder,
+    ...otherProps
 }: Props, ref) => {
     const height = useRef(0);
     const textarea = useRef<HTMLTextAreaElement>();
@@ -130,6 +132,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
     if (!value && !defaultValue) {
         textareaPlaceholder = (
             <div
+                {...otherProps}
                 id={`${id}_placeholder`}
                 data-testid={`${id}_placeholder`}
                 style={styles.placeholder}
@@ -147,6 +150,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
                 data-testid={id}
                 id={id}
                 {...heightProps}
+                {...otherProps}
                 role='textbox'
                 aria-label={placeholderAriaLabel}
                 dir='auto'
@@ -164,6 +168,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
                     dir='auto'
                     disabled={true}
                     rows={1}
+                    {...otherProps}
                     value={value || defaultValue}
                     aria-hidden={true}
                     onChange={onChange}
