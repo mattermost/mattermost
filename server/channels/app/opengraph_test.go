@@ -4,6 +4,9 @@
 package app
 
 import (
+	"bytes"
+	"github.com/mattermost/mattermost/server/public/model"
+	"html/template"
 	"strings"
 	"testing"
 
@@ -134,4 +137,40 @@ func TestOpenGraphDecodeHTMLEntities(t *testing.T) {
 
 	assert.Equal(t, og.Title, "Test's are the best.©")
 	assert.Equal(t, og.Description, "Test's are the worst.©")
+}
+
+func TestParseOpenGraphMetadata(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	opengraphPage := `<html prefix="og: https://ogp.me/ns#">
+<head>
+    <meta property="og:title" content="{{.Title}}" />
+    <meta property="og:type" content="video.movie" />
+</head></html>
+`
+	sizeOfJsonExceptTitle := 169
+	type Title struct {
+		Title string
+	}
+
+	tmpl, err := template.New("Test").Parse(opengraphPage)
+	assert.NoError(t, err)
+
+	page := new(bytes.Buffer)
+	title := Title{Title: model.NewRandomString(openGraphMetadataCacheEntrySizeLimit - sizeOfJsonExceptTitle + 1)}
+	err = tmpl.Execute(page, title)
+	assert.NoError(t, err)
+
+	_, _, err = th.App.parseOpenGraphMetadata("https://example.com", page, "")
+	assert.Error(t, err)
+	assert.Equal(t, err.Error(), "opengraph data exceeds cache entry size limit")
+
+	page.Reset()
+	title.Title = title.Title[1:]
+	err = tmpl.Execute(page, title)
+	assert.NoError(t, err)
+
+	_, _, err = th.App.parseOpenGraphMetadata("https://example.com", page, "")
+	assert.NoError(t, err)
 }
