@@ -191,7 +191,7 @@ func (a *App) GetEmoji(c request.CTX, emojiId string) (*model.Emoji, *model.AppE
 		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusForbidden)
 	}
 
-	emoji, err := a.Srv().Store().Emoji().Get(context.Background(), emojiId, true)
+	emoji, err := a.Srv().Store().Emoji().Get(c.Context(), emojiId, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -214,7 +214,7 @@ func (a *App) GetEmojiByName(c request.CTX, emojiName string) (*model.Emoji, *mo
 		return nil, model.NewAppError("GetEmojiByName", "api.emoji.storage.app_error", nil, "", http.StatusForbidden)
 	}
 
-	emoji, err := a.Srv().Store().Emoji().GetByName(context.Background(), emojiName, true)
+	emoji, err := a.Srv().Store().Emoji().GetByName(c.Context(), emojiName, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -233,7 +233,21 @@ func (a *App) GetMultipleEmojiByName(c request.CTX, names []string) ([]*model.Em
 		return nil, model.NewAppError("GetMultipleEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
 	}
 
-	emoji, err := a.Srv().Store().Emoji().GetMultipleByName(names)
+	// Filtering out system emojis
+	i := 0
+	for _, n := range names {
+		if _, ok := model.GetSystemEmojiId(n); !ok {
+			names[i] = n
+			i++
+		}
+	}
+	names = names[:i]
+
+	if len(names) == 0 {
+		return []*model.Emoji{}, nil
+	}
+
+	emoji, err := a.Srv().Store().Emoji().GetMultipleByName(c.Context(), names)
 	if err != nil {
 		return nil, model.NewAppError("GetMultipleEmojiByName", "app.emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
 	}
@@ -242,7 +256,7 @@ func (a *App) GetMultipleEmojiByName(c request.CTX, names []string) ([]*model.Em
 }
 
 func (a *App) GetEmojiImage(c request.CTX, emojiId string) ([]byte, string, *model.AppError) {
-	_, storeErr := a.Srv().Store().Emoji().Get(context.Background(), emojiId, true)
+	_, storeErr := a.Srv().Store().Emoji().Get(c.Context(), emojiId, true)
 	if storeErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {

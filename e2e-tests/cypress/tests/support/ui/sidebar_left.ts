@@ -116,11 +116,6 @@ function uiGetSidebarThreadsButton(): ChainableT<JQuery> {
 }
 Cypress.Commands.add('uiGetSidebarThreadsButton', uiGetSidebarThreadsButton);
 
-function uiGetSidebarInsightsButton(): ChainableT<JQuery> {
-    return cy.get('#sidebar-insights-button').should('be.visible');
-}
-Cypress.Commands.add('uiGetSidebarInsightsButton', uiGetSidebarInsightsButton);
-
 Cypress.Commands.add('uiGetChannelSidebarMenu', (channelName, isChannelId = false) => {
     cy.uiGetLHS().within(() => {
         if (isChannelId) {
@@ -273,8 +268,6 @@ declare global {
             uiGetSystemConsoleMenu: typeof uiGetSystemConsoleMenu;
 
             uiGetSidebarThreadsButton: typeof uiGetSidebarThreadsButton;
-
-            uiGetSidebarInsightsButton: typeof uiGetSidebarInsightsButton;
         }
     }
 }
