@@ -308,7 +308,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	// table in CWS. This is then used to calculate how much the customers have to pay in addition for the extra users. If the
 	// workspace is currently on a monthly plan, then this function will not do anything.
 
-	if a.Channels().License().IsCloud() {
+	if a.Channels().License().IsCloud() && !ruser.IsRemote() {
 		go func(userId string) {
 			_, err := a.SendSubscriptionHistoryEvent(userId)
 			if err != nil {
