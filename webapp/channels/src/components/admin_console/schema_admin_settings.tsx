@@ -52,7 +52,7 @@ type Props = {
     isDisabled?: boolean;
     consoleAccess?: ConsoleAccess;
     enterpriseReady?: boolean;
-    license?: Record<string, any>;
+    license?: Record<string, String>;
     config?: DeepPartial<AdminConfig>;
     clientConfig?: ClientConfig;
     environmentConfig?: Partial<EnvironmentConfig>;
@@ -80,11 +80,13 @@ type State = {
 }
 
 export default class SchemaAdminSettings extends React.PureComponent<Props, State> {
-    buildSettingFunctions: any;
-    errorMessageRef: any;
-    handleSaved: any;
+    buildSettingFunctions: {
+        [key in string]: (args: Settings) => JSX.Element | null;
+    };
+    errorMessageRef: React.RefObject<HTMLDivElement>;
+    handleSaved?: ((config: AdminConfig) => React.ReactElement | void);
     isPlugin: boolean;
-    saveActions: any[];
+    saveActions: Array<(saveAction: () => Promise<unknown>) => void>;
     constructor(props: Props) {
         super(props);
         this.isPlugin = false;
@@ -429,8 +431,8 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
                         if (tsetting.type === Constants.SettingsTypes.TYPE_TEXT) {
                             this.setState({[tsetting.key]: inputData, [`${tsetting.key}Error`]: null});
                         } else if (tsetting.type === Constants.SettingsTypes.TYPE_FILE_UPLOAD) {
-                            if (this.buildSettingFunctions[tsetting.type] && this.buildSettingFunctions[tsetting.type](tsetting).props.onSetData) {
-                                this.buildSettingFunctions[tsetting.type](tsetting).props.onSetData(tsetting.key, inputData);
+                            if (this.buildSettingFunctions[tsetting.type] && this.buildSettingFunctions[tsetting.type](tsetting)?.props.onSetData) {
+                                this.buildSettingFunctions[tsetting.type](tsetting)?.props.onSetData(tsetting.key, inputData);
                             }
                         }
                     }
@@ -911,7 +913,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         const schema = this.props.schema;
 
         if (schema.settings) {
-            const settingsList: Setting[] = [];
+            const settingsList: any[] = [];
             if (schema.settings) {
                 schema.settings.forEach((setting: { [key: string]: string}) => {
                     if (this.buildSettingFunctions[setting.type] && !this.isHidden(setting)) {
@@ -1051,10 +1053,10 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
 
         const results = [];
         for (const saveAction of this.saveActions) {
-            results.push(saveAction());
+            results.push(saveAction);
         }
 
-        const hasSaveActionError = await Promise.all(results).then((values) => values.some(((value) => value.error && value.error.message)));
+        const hasSaveActionError = await Promise.all(results).then((values) => values.some(((value: any) => value.error && value.error.message)));
 
         const hasError = this.state.serverError || hasSaveActionError;
         if (hasError) {
@@ -1254,7 +1256,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
                         show={this.state.errorTooltip}
                         delayShow={Constants.OVERLAY_TIME_DELAY}
                         placement='top'
-                        target={this.errorMessageRef.current}
+                        target={this.errorMessageRef.current || undefined}
                     >
                         <Tooltip id='error-tooltip' >
                             {this.state.serverError}

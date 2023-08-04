@@ -231,7 +231,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       placement="top"
       rootClose={false}
       show={false}
-      target={null}
     >
       <Tooltip
         id="error-tooltip"
@@ -301,7 +300,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       placement="top"
       rootClose={false}
       show={false}
-      target={null}
     >
       <Tooltip
         id="error-tooltip"
@@ -542,7 +540,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       placement="top"
       rootClose={false}
       show={false}
-      target={null}
     >
       <Tooltip
         id="error-tooltip"
