@@ -1,0 +1,62 @@
+name: Database Migration Test
+on:
+  workflow_call:
+env:
+  go-version: "1.19.5"
+jobs:
+    test:
+      name: MySQL -> Postgres Migration
+      runs-on: ubuntu-22.04
+      env:
+          COMPOSE_PROJECT_NAME: ghactions
+          BUILD_IMAGE: mattermost/mattermost-build-server:20230118_golang-1.19.5
+      defaults:
+        run:
+          working-directory: server
+      steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
+      - name: Run docker compose
+        run: |
+          cd build
+          docker-compose --ansi never run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker-compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker-compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker-compose --ansi never ps
+      - name: Generate test-data
+        run: |
+          docker run --net ${COMPOSE_PROJECT_NAME}_mm-test \
+            --ulimit nofile=8096:8096 \
+            --env-file=build/dotenv/migration.env \
+            -v $(go env GOCACHE):/go/cache \
+            -e GOCACHE=/go/cache \
+            -v $PWD:/mattermost \
+            -w /mattermost \
+            $BUILD_IMAGE \
+            make test-data
+      - name: Migrate the DB and compare
+        run: |
+           docker run --net ${COMPOSE_PROJECT_NAME}_mm-test \
+           --ulimit nofile=8096:8096 \
+           --env-file=build/dotenv/migration.env \
+           -v $(go env GOCACHE):/go/cache \
+           -e GOCACHE=/go/cache \
+           -v $PWD:/mattermost \
+           -w /mattermost \
+           $BUILD_IMAGE \
+           make test-migration
+      - name: Upload artifacts
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+            name: Migration logs
+            path: migration.log
+            retention-days: 7
+      - name: Stop docker compose
+        run: |
+          cd build
+          docker-compose --ansi never stop
