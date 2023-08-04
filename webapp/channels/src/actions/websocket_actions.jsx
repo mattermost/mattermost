@@ -1381,7 +1381,6 @@ function handleGroupAddedMemberEvent(msg) {
                 dispatch(
                     {
                         type: GroupTypes.ADD_MY_GROUP,
-                        data: group,
                         id: groupInfo.group_id,
                     },
                 );
@@ -1391,7 +1390,6 @@ function handleGroupAddedMemberEvent(msg) {
                     dispatch(
                         {
                             type: GroupTypes.ADD_MY_GROUP,
-                            data,
                             id: groupInfo.group_id,
                         },
                     );
