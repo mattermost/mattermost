@@ -597,11 +597,12 @@ func (a *App) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil, "")
 	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
-
-	appErr := a.publishWebsocketEventForPost(c, post, message)
-	if appErr != nil {
-		mlog.Warn("Failed to send websocket event for ephemeral post", mlog.Err(appErr))
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
+	message.Add("post", postJSON)
+	a.Publish(message)
 
 	return post
 }
@@ -741,10 +742,18 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
+	postJSON, jsonErr := rpost.ToJSON()
+	if jsonErr != nil {
+		return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+	message.Add("post", postJSON)
 
-	err = a.publishWebsocketEventForPost(c, rpost, message)
+	published, err := a.publishWebsocketEventForPermalinkPost(c, rpost, message)
 	if err != nil {
 		return nil, err
+	}
+	if !published {
+		a.Publish(message)
 	}
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
@@ -752,84 +761,66 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	return rpost, nil
 }
 
-// publishWebsocketEventForPost publishes the websocket event only for post create/edit.
-// The cases of post delete/unread does not need special handling as they don't bother
-// with the post content.
-//
-// This method assumes that if there's a permalink, it's already attached to the post.
-// If the user doesn't have access then this method will wipe that off.
-func (a *App) publishWebsocketEventForPost(c request.CTX, post *model.Post, message *model.WebSocketEvent) (appErr *model.AppError) {
-	postJSON, jsonErr := post.ToJSON()
-	if jsonErr != nil {
-		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.Post, message *model.WebSocketEvent) (published bool, err *model.AppError) {
+	var previewedPostID string
+	if val, ok := post.GetProp(model.PostPropsPreviewedPost).(string); ok {
+		previewedPostID = val
+	} else {
+		return false, nil
 	}
-	message.Add("post", postJSON)
 
-	defer func() {
-		if appErr == nil {
-			a.Publish(message)
+	if !model.IsValidId(previewedPostID) {
+		mlog.Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewedPostID))
+		return false, nil
+	}
+
+	previewedPost, err := a.GetSinglePost(previewedPostID, false)
+	if err != nil {
+		if err.StatusCode == http.StatusNotFound {
+			mlog.Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))
+			return false, nil
 		}
-	}()
+		return false, err
+	}
+
+	channelMembers, err := a.GetChannelMembersPage(c, post.ChannelId, 0, 10000000)
+	if err != nil {
+		return false, err
+	}
+
+	permalinkPreviewedChannel, err := a.GetChannel(c, previewedPost.ChannelId)
+	if err != nil {
+		if err.StatusCode == http.StatusNotFound {
+			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
+			return false, nil
+		}
+		return false, err
+	}
 
 	permalinkPreviewedPost := post.GetPreviewPost()
-	if permalinkPreviewedPost == nil {
-		return nil
-	}
-
-	if !model.IsValidId(permalinkPreviewedPost.PostID) {
-		mlog.Warn("invalid preview post ID", mlog.String("prop_value", permalinkPreviewedPost.PostID))
-		return nil
-	}
-
-	// To remain secure by default, we wipe out the metadata unconditionally.
-	post.Metadata.Embeds[0].Data = nil
-	postWithoutPermalinkPreviewJSON, err := post.ToJSON()
-	if err != nil {
-		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-	}
-
-	var previewedPost *model.Post
-	previewedPost, appErr = a.GetSinglePost(permalinkPreviewedPost.PostID, false)
-	if appErr != nil {
-		if appErr.StatusCode == http.StatusNotFound {
-			mlog.Warn("permalinked post not found", mlog.String("referenced_post_id", permalinkPreviewedPost.PostID))
-			return nil
-		}
-		return appErr
-	}
-
-	var permalinkPreviewedChannel *model.Channel
-	permalinkPreviewedChannel, appErr = a.GetChannel(c, previewedPost.ChannelId)
-	if appErr != nil {
-		if appErr.StatusCode == http.StatusNotFound {
-			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
-			return nil
-		}
-		return appErr
-	}
-
-	// In case the user does have permission to read, we set the metadata back.
-	// Note that this is the return value to the post creator, and has nothing to do
-	// with the content of the websocket broadcast to that user or any other.
-	if a.HasPermissionToReadChannel(c, post.UserId, permalinkPreviewedChannel) {
-		post.Metadata.Embeds[0].Data = permalinkPreviewedPost
-	}
-
-	broadcastCopy := message.GetBroadcast()
-	broadcastCopy.ChannelHook = func(userID string, ev *model.WebSocketEvent) bool {
-		if a.HasPermissionToReadChannel(c, userID, permalinkPreviewedChannel) {
-			// If there is no change, then the original post which was attached
-			// (at the start of the method) will get sent.
-			return false
+	for _, cm := range channelMembers {
+		if permalinkPreviewedPost != nil {
+			post.Metadata.Embeds[0].Data = permalinkPreviewedPost
 		}
 
-		ev.AddWithCopy("post", postWithoutPermalinkPreviewJSON)
-		return true
+		postForUser := a.sanitizePostMetadataForUserAndChannel(c, post, permalinkPreviewedPost, permalinkPreviewedChannel, cm.UserId)
 
+		// Using DeepCopy here to avoid a race condition
+		// between publishing the event and setting the "post" data value below.
+		messageCopy := message.DeepCopy()
+		broadcastCopy := messageCopy.GetBroadcast()
+		broadcastCopy.UserId = cm.UserId
+		messageCopy.SetBroadcast(broadcastCopy)
+
+		postJSON, jsonErr := postForUser.ToJSON()
+		if jsonErr != nil {
+			mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+		}
+		messageCopy.Add("post", postJSON)
+		a.Publish(messageCopy)
 	}
-	message.SetBroadcast(broadcastCopy)
 
-	return nil
+	return true, nil
 }
 
 func (a *App) PatchPost(c *request.Context, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
@@ -2054,49 +2045,6 @@ func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppErr
 	return posts, nil
 }
 
-func (a *App) GetTopThreadsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topThreads, err := a.Srv().Store().Thread().GetTopThreadsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	topThreadsWithEmbedAndImage, err := includeEmbedsAndImages(a, c, topThreads, userID)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topThreadsWithEmbedAndImage, nil
-}
-
-func (a *App) GetTopThreadsForUserSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	topThreads, err := a.Srv().Store().Thread().GetTopThreadsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	topThreadsWithEmbedAndImage, err := includeEmbedsAndImages(a, c, topThreads, userID)
-	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.post.get_top_threads_for_user_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topThreadsWithEmbedAndImage, nil
-}
-
-func (a *App) GetTopDMsForUserSince(userID string, opts *model.InsightsOpts) (*model.TopDMList, *model.AppError) {
-	if !a.Config().FeatureFlags.InsightsEnabled {
-		return nil, model.NewAppError("GetTopDMsForUserSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-	topDMs, err := a.Srv().Store().Post().GetTopDMsForUserSince(userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
-	if err != nil {
-		return nil, model.NewAppError("GetTopDMsForUserSince", "app.post.get_top_dms_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return topDMs, nil
-}
-
 func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.AppError {
 	// Store the reminder in the DB
 	reminder := &model.PostReminder{
@@ -2293,16 +2241,4 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 		info.HasJoinedTeam = teamMemberErr == nil
 	}
 	return &info, nil
-}
-
-func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThreadList, userID string) (*model.TopThreadList, error) {
-	for _, topThread := range topThreadList.Items {
-		topThread.Post = a.PreparePostForClientWithEmbedsAndImages(c, topThread.Post, false, false, true)
-		sanitizedPost, err := a.SanitizePostMetadataForUser(c, topThread.Post, userID)
-		if err != nil {
-			return nil, err
-		}
-		topThread.Post = sanitizedPost
-	}
-	return topThreadList, nil
 }
