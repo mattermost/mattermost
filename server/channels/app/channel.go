@@ -2972,7 +2972,12 @@ func (a *App) SearchChannelsUserNotIn(c request.CTX, teamID string, userID strin
 func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError) {
 	var err error
 
-	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetChannelsWithUnreadsAndWithMentions(c.Context(), channelIDs, userID)
+	user, err := a.Srv().Store().User().Get(c.Context(), userID)
+	if err != nil {
+		return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetChannelsWithUnreadsAndWithMentions(c.Context(), channelIDs, userID, user.NotifyProps)
 	if err != nil {
 		return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

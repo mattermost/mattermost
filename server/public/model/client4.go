@@ -3556,7 +3556,7 @@ func (c *Client4) ViewManyChannels(ctx context.Context, userId string, channelId
 	var ch *ChannelViewResponse
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
-		return nil, BuildResponse(r), NewAppError("ViewManyChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, BuildResponse(r), NewAppError("ViewManyChannel", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ch, BuildResponse(r), nil
 }

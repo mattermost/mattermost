@@ -1322,7 +1322,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds [
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string) ([]string, []string, map[string]int64, error) {
+func (s *OpenTracingLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelsWithUnreadsAndWithMentions")
 	s.Root.Store.SetContext(newCtx)
@@ -1331,7 +1331,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx
 	}()
 
 	defer span.Finish()
-	result, resultVar1, resultVar2, err := s.ChannelStore.GetChannelsWithUnreadsAndWithMentions(ctx, channelIDs, userID)
+	result, resultVar1, resultVar2, err := s.ChannelStore.GetChannelsWithUnreadsAndWithMentions(ctx, channelIDs, userID, userNotifyProps)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

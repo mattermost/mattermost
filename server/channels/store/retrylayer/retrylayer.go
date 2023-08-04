@@ -1468,11 +1468,11 @@ func (s *RetryLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []strin
 
 }
 
-func (s *RetryLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string) ([]string, []string, map[string]int64, error) {
+func (s *RetryLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, resultVar2, err := s.ChannelStore.GetChannelsWithUnreadsAndWithMentions(ctx, channelIDs, userID)
+		result, resultVar1, resultVar2, err := s.ChannelStore.GetChannelsWithUnreadsAndWithMentions(ctx, channelIDs, userID, userNotifyProps)
 		if err == nil {
 			return result, resultVar1, resultVar2, nil
 		}

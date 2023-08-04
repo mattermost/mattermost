@@ -2020,7 +2020,18 @@ func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) ([]model.S
 	return dbMembersTimezone, nil
 }
 
-func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string) ([]string, []string, map[string]int64, error) {
+type channelsWithUnreadsAndWithMentionsQueryResult struct {
+	Id            string
+	Type          string
+	TotalMsgCount int
+	LastPostAt    int64
+	MsgCount      int
+	MentionCount  int
+	NotifyProps   model.StringMap
+	LastViewedAt  int64
+}
+
+func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
 	query := s.getQueryBuilder().Select(
 		"Channels.Id",
 		"Channels.Type",
@@ -2030,11 +2041,9 @@ func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Conte
 		"ChannelMembers.MentionCount",
 		"ChannelMembers.NotifyProps",
 		"ChannelMembers.LastViewedAt",
-		"Users.NotifyProps",
 	).
 		From("ChannelMembers").
 		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
-		InnerJoin("Users ON ChannelMembers.UserId = Users.Id").
 		Where(sq.Eq{
 			"ChannelMembers.ChannelId": channelIDs,
 			"ChannelMembers.UserId":    userID,
@@ -2045,62 +2054,44 @@ func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Conte
 		return nil, nil, nil, errors.Wrap(err, "channel_tosql")
 	}
 
-	rows, err := s.GetReplicaX().DB.Query(queryString, args...)
+	var channels []channelsWithUnreadsAndWithMentionsQueryResult
+	err = s.GetReplicaX().Select(&channels, queryString, args...)
 	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to find ChannelMembers, TeamScheme and ChannelScheme data")
+		return nil, nil, nil, errors.Wrap(err, "failed to find channels with unreads and with mentions data")
 	}
-	defer deferClose(rows, &err)
 
 	channelsWithUnreads := []string{}
 	channelsWithMentions := []string{}
 	readTimes := map[string]int64{}
 
-	for rows.Next() {
-		var id string
-		var channelType string
-		var totalMsgCount int
-		var lastPostAt int64
-		var msgCount int
-		var mentionCount int
-		var channelNotifyProps model.StringMap
-		var lastViewedAt int64
-		var userNotifyProps model.StringMap
-
-		err = rows.Scan(&id, &channelType, &totalMsgCount, &lastPostAt, &msgCount, &mentionCount, &channelNotifyProps, &lastViewedAt, &userNotifyProps)
-		if err != nil {
-			return nil, nil, nil, errors.Wrap(err, "unable to scan columns")
-		}
-
-		hasMentions := (mentionCount > 0)
-		hasUnreads := (totalMsgCount-msgCount > 0) || hasMentions
+	for i := range channels {
+		channel := channels[i]
+		hasMentions := (channel.MentionCount > 0)
+		hasUnreads := (channel.TotalMsgCount-channel.MsgCount > 0) || hasMentions
 
 		if hasUnreads {
-			channelsWithUnreads = append(channelsWithUnreads, id)
+			channelsWithUnreads = append(channelsWithUnreads, channel.Id)
 		}
 
-		notify := channelNotifyProps[model.PushNotifyProp]
+		notify := channel.NotifyProps[model.PushNotifyProp]
 		if notify == model.ChannelNotifyDefault {
 			notify = userNotifyProps[model.PushNotifyProp]
 		}
-		if notify == model.UserNotifyAll || channelType == string(model.ChannelTypeDirect) {
+		if notify == model.UserNotifyAll || channel.Type == string(model.ChannelTypeDirect) {
 			if hasUnreads {
-				channelsWithMentions = append(channelsWithMentions, id)
+				channelsWithMentions = append(channelsWithMentions, channel.Id)
 			}
 		} else if notify == model.UserNotifyMention {
 			if hasMentions {
-				channelsWithMentions = append(channelsWithMentions, id)
+				channelsWithMentions = append(channelsWithMentions, channel.Id)
 			}
 		}
 
-		if lastPostAt > lastViewedAt {
-			readTimes[id] = lastPostAt
+		if channel.LastPostAt > channel.LastViewedAt {
+			readTimes[channel.Id] = channel.LastPostAt
 		} else {
-			readTimes[id] = lastViewedAt
+			readTimes[channel.Id] = channel.LastViewedAt
 		}
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, nil, nil, errors.Wrap(err, "error while iterating over rows")
 	}
 
 	return channelsWithUnreads, channelsWithMentions, readTimes, nil
