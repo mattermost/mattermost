@@ -173,6 +173,17 @@ func TestCreatePost(t *testing.T) {
 		}
 	})
 
+	t.Run("err with integrations-reserved props", func(t *testing.T) {
+		_, postResp, postErr := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with props",
+			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
+		})
+
+		require.Error(t, postErr)
+		CheckBadRequestStatus(t, postResp)
+	})
+
 	post.RootId = ""
 	post.Type = model.PostTypeSystemGeneric
 	_, resp, err := client.CreatePost(context.Background(), post)
@@ -1085,6 +1096,17 @@ func TestUpdatePost(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("err with integrations-reserved props", func(t *testing.T) {
+		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with props",
+			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
+		})
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("logged out", func(t *testing.T) {
 		client.Logout(context.Background())
 		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, rpost)
@@ -1294,6 +1316,17 @@ func TestPatchPost(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id, "should be time limit error")
+	})
+
+	t.Run("err with integrations-reserved props", func(t *testing.T) {
+		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with props",
+			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
+		})
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 }
 

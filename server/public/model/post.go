@@ -62,10 +62,13 @@ const (
 
 	PropsAddChannelMember = "add_channel_member"
 
-	PostPropsAddedUserId       = "addedUserId"
-	PostPropsDeleteBy          = "deleteBy"
-	PostPropsOverrideIconURL   = "override_icon_url"
-	PostPropsOverrideIconEmoji = "override_icon_emoji"
+	PostPropsAddedUserId        = "addedUserId"
+	PostPropsDeleteBy           = "deleteBy"
+	PostPropsOverrideIconURL    = "override_icon_url"
+	PostPropsOverrideIconEmoji  = "override_icon_emoji"
+	PostPropsOverrideUsername   = "override_username"
+	PostPropsFromWebhook        = "from_webhook"
+	PostPropsWebhookDisplayName = "webhook_display_name"
 
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
@@ -466,6 +469,36 @@ func (o *Post) SanitizeProps() {
 	for _, p := range o.Participants {
 		p.Sanitize(map[string]bool{})
 	}
+}
+
+func (o *Post) ContainsIntegrationsReservedProps() []string {
+	return containsIntegrationsReservedProps(o.GetProps())
+}
+
+func (o *PostPatch) ContainsIntegrationsReservedProps() []string {
+	return containsIntegrationsReservedProps(*o.Props)
+}
+
+func containsIntegrationsReservedProps(props StringInterface) []string {
+	foundProps := []string{}
+
+	if props != nil {
+		reservedProps := []string{
+			PostPropsFromWebhook,
+			PostPropsOverrideUsername,
+			PostPropsWebhookDisplayName,
+			PostPropsOverrideIconURL,
+			PostPropsOverrideIconEmoji,
+		}
+
+		for _, key := range reservedProps {
+			if _, ok := props[key]; ok {
+				foundProps = append(foundProps, key)
+			}
+		}
+	}
+
+	return foundProps
 }
 
 func (o *Post) PreSave() {
