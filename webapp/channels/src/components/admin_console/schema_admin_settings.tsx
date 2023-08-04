@@ -52,7 +52,7 @@ type Props = {
     isDisabled?: boolean;
     consoleAccess?: ConsoleAccess;
     enterpriseReady?: boolean;
-    license?: Record<string, String>;
+    license?: Record<string, string>;
     config?: DeepPartial<AdminConfig>;
     clientConfig?: ClientConfig;
     environmentConfig?: Partial<EnvironmentConfig>;
