@@ -5,7 +5,10 @@ import React from 'react';
 
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
+import {
+    PostAction,
+    PostActionOption,
+} from '@mattermost/types/integration_actions';
 
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import Markdown from 'components/markdown';
@@ -17,7 +20,7 @@ type Props = {
     theme: Theme;
     actionExecuting?: boolean;
     actionExecutingMessage?: string;
-}
+};
 
 export default class ActionButton extends React.PureComponent<Props> {
     getStatusColors(theme: Theme) {
@@ -34,21 +37,20 @@ export default class ActionButton extends React.PureComponent<Props> {
     render() {
         const {action, handleAction, disabled, theme} = this.props;
         let customButtonStyle;
+        const actionStyle = action.style || 'primary';
 
-        if (action.style) {
-            const STATUS_COLORS = this.getStatusColors(theme);
-            const hexColor =
-                STATUS_COLORS[action.style] ||
-                theme[action.style] ||
-                (action.style.match('^#(?:[0-9a-fA-F]{3}){1,2}$') && action.style);
+        const STATUS_COLORS = this.getStatusColors(theme);
+        const hexColor =
+            STATUS_COLORS[actionStyle] ||
+            theme[actionStyle] ||
+            (actionStyle.match('^#(?:[0-9a-fA-F]{3}){1,2}$') && actionStyle);
 
-            if (hexColor) {
-                customButtonStyle = {
-                    borderColor: changeOpacity(hexColor, 0.25),
-                    color: hexColor,
-                    borderWidth: 2,
-                };
-            }
+        if (hexColor) {
+            customButtonStyle = {
+                borderColor: changeOpacity(hexColor, 0.25),
+                backgroundColor: hexColor,
+                borderWidth: 2,
+            };
         }
 
         return (
