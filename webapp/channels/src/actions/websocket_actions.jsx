@@ -1369,14 +1369,14 @@ function handleGroupUpdatedEvent(msg) {
     );
 }
 
-function handleGroupAddedMemberEvent(msg) {
+export function handleGroupAddedMemberEvent(msg) {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const currentUserId = getCurrentUserId(state);
         const groupInfo = JSON.parse(msg.data.group_member);
 
         if (currentUserId === groupInfo.user_id) {
-            const group = getGroup(state, groupInfo.group_id)
+            const group = getGroup(state, groupInfo.group_id);
             if (group) {
                 dispatch(
                     {
@@ -1385,7 +1385,7 @@ function handleGroupAddedMemberEvent(msg) {
                     },
                 );
             } else {
-                const {data, error} = await doDispatch(fetchGroup(groupInfo.group_id, true))
+                const {error} = await doDispatch(fetchGroup(groupInfo.group_id, true));
                 if (!error) {
                     dispatch(
                         {
@@ -1395,7 +1395,6 @@ function handleGroupAddedMemberEvent(msg) {
                     );
                 }
             }
-            
         }
     };
 }
