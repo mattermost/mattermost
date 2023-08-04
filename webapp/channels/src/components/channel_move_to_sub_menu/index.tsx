@@ -57,6 +57,7 @@ const ChannelMoveToSubMenu = (props: Props) => {
     });
 
     function handleMoveToCategory(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>, categoryId: string) {
+        console.log(`handleMoveToCategory categoryId: ${categoryId}`);
         event.preventDefault();
 
         if (currentCategory?.id !== categoryId) {

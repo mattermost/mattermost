@@ -54,12 +54,14 @@ export function createCategory(teamId: string, displayName: string, channelIds?:
 // addChannelsInSidebar moves channels to a given category without specifying the order in the sidebar, so the channels
 // will always go to the first position in the category
 export function addChannelsInSidebar(categoryId: string, channelId: string) {
+    console.log(`addChannelsInSidebar categoryId: ${categoryId} channelId: ${channelId}`);
     return moveChannelsInSidebar(categoryId, 0, channelId, false);
 }
 
 // moveChannelsInSidebar moves channels to a given category in the sidebar, but it accounts for when the target index
 // may have changed due to archived channels not being shown in the sidebar.
 export function moveChannelsInSidebar(categoryId: string, targetIndex: number, draggableChannelId: string, setManualSorting = true) {
+    console.log(`moveChannelsInSidebar categoryId: ${categoryId}`);
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
         const multiSelectedChannelIds = state.views.channelSidebar.multiSelectedChannelIds;

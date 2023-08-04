@@ -61,9 +61,9 @@ const ConvertGmToChannelModal = (props: Props) => {
         setChannelName(newName);
     }, [])
 
-    const [url, setURL]= useState<string>('');
+    const [channelURL, setChannelChannelURL]= useState<string>('');
     const handleChannelURLChange = (newURL: string) => {
-        setURL(newURL);
+        setChannelChannelURL(newURL);
     }
 
     const channelMemberNames = props.profilesInChannel.map((user) => displayUsername(user, props.teammateNameDisplaySetting));
@@ -99,8 +99,10 @@ const ConvertGmToChannelModal = (props: Props) => {
         }
 
         const {actions} = props;
-        actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId);
+        actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, channelName, channelURL);
         trackEvent('actions', 'convert_group_message_to_private_channel', {channel_id: props.channel.id});
+
+        props.actions.closeModal(ModalIdentifiers.CONVERT_GM_TO_CHANNEL);
     }
 
     return (

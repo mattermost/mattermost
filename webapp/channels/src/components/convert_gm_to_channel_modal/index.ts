@@ -28,7 +28,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 
 export type Actions = {
     closeModal: (modalID: string) => void,
-    convertGroupMessageToPrivateChannel: (channelId: string, teamId: string) => void,
+    convertGroupMessageToPrivateChannel: (channelID: string, teamID: string, displayName: string, name: string) => void,
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {

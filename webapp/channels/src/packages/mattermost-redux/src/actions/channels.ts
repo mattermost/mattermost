@@ -46,6 +46,7 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 import {savePreferences} from './preferences';
 import {loadRolesIfNeeded} from './roles';
 import {getMissingProfilesByIds} from './users';
+import {addChannelsInSidebar} from "actions/views/channel_sidebar";
 
 export function selectChannel(channelId: string) {
     return {
@@ -344,13 +345,13 @@ export function updateChannelPrivacy(channelId: string, privacy: string): Action
     };
 }
 
-export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string): ActionFunc {
+export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string, displayName: string, name: string): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         dispatch({type: ChannelTypes.UPDATE_CHANNEL_REQUEST, data: null});
 
         let updatedChannel;
         try {
-            updatedChannel = await Client4.convertGroupMessageToPrivateChannel(channelID, teamID);
+            updatedChannel = await Client4.convertGroupMessageToPrivateChannel(channelID, teamID, displayName, name);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: ChannelTypes.UPDATE_CHANNEL_FAILURE, error});
