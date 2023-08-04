@@ -845,10 +845,16 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
-		require.Len(t, plugins, 1)
-		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
-		require.Empty(t, plugins[0].Signature, 0)
+		plugins, transitionalPlugins, err := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		require.NoError(t, err)
+
+		var pluginIDs []string
+		for _, p := range plugins {
+			pluginIDs = append(pluginIDs, p.Manifest.Id)
+		}
+		require.ElementsMatch(t, []string{"testplugin"}, pluginIDs)
+		require.Empty(t, plugins[0].Signature)
+		require.Empty(t, transitionalPlugins)
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
@@ -872,10 +878,16 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		env := th.App.GetPluginsEnvironment()
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
-		require.Len(t, plugins, 1)
-		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
-		require.Empty(t, plugins[0].Signature, 0)
+		plugins, transitionalPlugins, err := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		require.NoError(t, err)
+
+		var pluginIDs []string
+		for _, p := range plugins {
+			pluginIDs = append(pluginIDs, p.Manifest.Id)
+		}
+		require.ElementsMatch(t, []string{"testplugin"}, pluginIDs)
+		require.Empty(t, plugins[0].Signature)
+		require.Empty(t, transitionalPlugins)
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
@@ -905,12 +917,17 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
-		require.Len(t, plugins, 2)
-		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
+		plugins, transitionalPlugins, err := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		require.NoError(t, err)
+
+		var pluginIDs []string
+		for _, p := range plugins {
+			pluginIDs = append(pluginIDs, p.Manifest.Id)
+		}
+		require.ElementsMatch(t, []string{"testplugin", "testplugin2"}, pluginIDs)
 		require.NotEmpty(t, plugins[0].Signature)
-		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[1].Manifest.Id)
 		require.NotEmpty(t, plugins[1].Signature)
+		require.Empty(t, transitionalPlugins)
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
@@ -954,12 +971,17 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
-		require.Len(t, plugins, 2)
-		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
+		plugins, transitionalPlugins, err := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		require.NoError(t, err)
+
+		var pluginIDs []string
+		for _, p := range plugins {
+			pluginIDs = append(pluginIDs, p.Manifest.Id)
+		}
+		require.ElementsMatch(t, []string{"testplugin", "testplugin2"}, pluginIDs)
 		require.NotEmpty(t, plugins[0].Signature)
-		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[1].Manifest.Id)
 		require.NotEmpty(t, plugins[1].Signature)
+		require.Empty(t, transitionalPlugins)
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
@@ -991,12 +1013,17 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
-		require.Len(t, plugins, 2)
-		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
+		plugins, transitionalPlugins, err := th.App.ch.processPrepackagedPlugins(prepackagedPluginsDir)
+		require.NoError(t, err)
+
+		var pluginIDs []string
+		for _, p := range plugins {
+			pluginIDs = append(pluginIDs, p.Manifest.Id)
+		}
+		require.ElementsMatch(t, []string{"testplugin", "testplugin2"}, pluginIDs)
 		require.NotEmpty(t, plugins[0].Signature)
-		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[1].Manifest.Id)
 		require.NotEmpty(t, plugins[1].Signature)
+		require.Empty(t, transitionalPlugins)
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
@@ -1090,3 +1117,22 @@ func TestGetPluginStateOverride(t *testing.T) {
 		})
 	})
 }
+
+// func TestShouldPersistTransitionallyPrepackagedPlugin(t *testing.T) {
+// 	th := Setup(t)
+// 	defer th.TearDown()
+
+// 	env := th.App.GetPluginsEnvironment()
+// 	require.NotNil(t, env)
+
+// 	p := &plugin.PrepackagedPlugin{
+// 		Path:     "",
+// 		IconData: "",
+// 		Manifest: &model.Manifest{
+// 			Id: "id1",
+// 		},
+// 		Signature: nil,
+// 	}
+// 	shouldPersist := th.App.ch.shouldPersistTransitionallyPrepackagedPlugin(pluginsEnvironment, p)
+// 	require.True(t, shouldPersist)
+// }

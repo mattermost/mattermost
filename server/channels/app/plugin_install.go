@@ -406,7 +406,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 			}
 
 			if version.LTE(existingVersion) {
-				logger.Warn("Skipping local installation of plugin since existing version is newer", mlog.String("version", version.String()), mlog.String("existing_version", existingVersion.String()))
+				logger.Warn("Skipping local installation of plugin since not a newer version", mlog.String("version", version.String()), mlog.String("existing_version", existingVersion.String()))
 				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.skip_installation.app_error", map[string]any{"Id": manifest.Id}, "", http.StatusInternalServerError)
 			}
 		}
