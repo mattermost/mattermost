@@ -69,7 +69,7 @@ type Settings = {
 type State = {
     saveNeeded: boolean | string;
     saving: boolean;
-    serverError: null;
+    serverError: null | string;
     errorTooltip: boolean;
     customComponentWrapperClass: string;
     confirmNeededId: string;
@@ -214,7 +214,8 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
                 }
 
                 if (setting.type === Constants.SettingsTypes.TYPE_PERMISSION) {
-                    this.setConfigValue(config, setting.key, null);
+                    const config: DeepPartial<AdminConfig> = {};
+                    this.setConfigValue(config, setting.key, config);
                     return;
                 }
 
@@ -913,7 +914,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         const schema = this.props.schema;
 
         if (schema.settings) {
-            const settingsList: any[] = [];
+            const settingsList: Array<JSX.Element | null> = [];
             if (schema.settings) {
                 schema.settings.forEach((setting: { [key: string]: string}) => {
                     if (this.buildSettingFunctions[setting.type] && !this.isHidden(setting)) {
@@ -1025,25 +1026,29 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         this.setState({errorTooltip: false});
     };
 
-    openTooltip = (e: React.MouseEvent<any>) => {
-        const elm = e.currentTarget.querySelector('.control-label');
-        const isElipsis = elm.offsetWidth < elm.scrollWidth;
-        this.setState({errorTooltip: isElipsis});
+    openTooltip = (e: React.MouseEvent<HTMLDivElement>) => {
+        const elm = e.currentTarget.querySelector('.control-label')as HTMLElement | null;
+        if (elm) {
+            const isElipsis = elm.offsetWidth < elm.scrollWidth;
+            this.setState({errorTooltip: isElipsis});
+        }
     };
 
-    doSubmit = async (getStateFromConfig: any) => {
+    doSubmit = async (getStateFromConfig: (config: DeepPartial<AdminConfig>, schema: Record<string, any>, roles: Record<string, Role>) => Record<string, boolean>) => {
         // clone config so that we aren't modifying data in the stores
         let config = JSON.parse(JSON.stringify(this.props.config));
+        const schema = JSON.parse(JSON.stringify(this.props.schema));
+        const roles = JSON.parse(JSON.stringify(this.props.roles));
         config = this.getConfigFromState(config);
         if (this.props.updateConfig) {
-            const {error} = await this.props.updateConfig(config);
+            const error = await this.props.updateConfig(config);
             if (error) {
                 this.setState({
                     serverError: error.message,
                     serverErrorId: error.id,
                 });
             } else {
-                this.setState(getStateFromConfig(config));
+                this.setState(getStateFromConfig(config, schema, roles));
             }
         }
 
@@ -1099,7 +1104,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         }, config);
     }
 
-    setConfigValue(config: DeepPartial<AdminConfig>, path: string, value: any) {
+    setConfigValue(config: DeepPartial<AdminConfig>, path: string, value: DeepPartial<AdminConfig>) {
         function setValue(obj: object, pathParts: string[]) {
             const part = SchemaAdminSettings.unescapePathPart(pathParts[0]) as keyof object;
 
