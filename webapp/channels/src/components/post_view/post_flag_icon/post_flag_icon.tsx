@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import classNames from 'classnames';
 
@@ -19,115 +19,98 @@ export type Actions = {
     unflagPost: typeof unflagPost;
 }
 
-interface Props {
+type Props = {
     location?: keyof typeof Locations;
     postId: string;
     isFlagged: boolean;
     actions: Actions;
 }
 
-interface State {
-    a11yActive: boolean;
-}
+const PostFlagIcon = ({
+    actions: {
+        flagPost,
+        unflagPost,
+    },
+    isFlagged,
+    postId,
+    location = Locations.CENTER,
+}: Props) => {
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    const [a11yActive, setA11yActive] = useState(false);
 
-export default class PostFlagIcon extends React.PureComponent<Props, State> {
-    static defaultProps = {
-        location: Locations.CENTER,
-    };
-
-    private buttonRef: React.RefObject<HTMLButtonElement>;
-
-    constructor(props: Props) {
-        super(props);
-
-        this.buttonRef = React.createRef();
-
-        this.state = {
-            a11yActive: false,
-        };
-    }
-
-    componentDidMount() {
-        if (this.buttonRef.current) {
-            this.buttonRef.current.addEventListener(A11yCustomEventTypes.ACTIVATE, this.handleA11yActivateEvent);
-            this.buttonRef.current.addEventListener(A11yCustomEventTypes.DEACTIVATE, this.handleA11yDeactivateEvent);
-        }
-    }
-    componentWillUnmount() {
-        if (this.buttonRef.current) {
-            this.buttonRef.current.removeEventListener(A11yCustomEventTypes.ACTIVATE, this.handleA11yActivateEvent);
-            this.buttonRef.current.removeEventListener(A11yCustomEventTypes.DEACTIVATE, this.handleA11yDeactivateEvent);
-        }
-    }
-
-    componentDidUpdate() {
-        if (this.state.a11yActive && this.buttonRef.current) {
-            this.buttonRef.current.dispatchEvent(new Event(A11yCustomEventTypes.UPDATE));
-        }
-    }
-
-    handlePress = (e: React.MouseEvent) => {
+    const handlePress = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
-        const {
-            actions,
-            isFlagged,
-            postId,
-        } = this.props;
-
         if (isFlagged) {
-            actions.unflagPost(postId);
+            unflagPost(postId);
         } else {
-            actions.flagPost(postId);
+            flagPost(postId);
         }
+    }, [flagPost, unflagPost, postId, isFlagged]);
+
+    const handleA11yActivateEvent = () => {
+        setA11yActive(true);
     };
 
-    handleA11yActivateEvent = () => {
-        this.setState({a11yActive: true});
+    const handleA11yDeactivateEvent = () => {
+        setA11yActive(false);
     };
 
-    handleA11yDeactivateEvent = () => {
-        this.setState({a11yActive: false});
-    };
-
-    render() {
-        const isFlagged = this.props.isFlagged;
-
-        let flagIcon;
-        if (isFlagged) {
-            flagIcon = <FlagIconFilled className={classNames('icon', 'icon--small', 'icon--small-filled', {'post-menu__item--selected': isFlagged})}/>;
-        } else {
-            flagIcon = <FlagIcon className={classNames('icon', 'icon--small')}/>;
+    useEffect(() => {
+        if (buttonRef.current) {
+            buttonRef.current.addEventListener(A11yCustomEventTypes.ACTIVATE, handleA11yActivateEvent);
+            buttonRef.current.addEventListener(A11yCustomEventTypes.DEACTIVATE, handleA11yDeactivateEvent);
         }
+        return () => {
+            if (buttonRef.current) {
+                buttonRef.current.removeEventListener(A11yCustomEventTypes.ACTIVATE, handleA11yActivateEvent);
+                buttonRef.current.removeEventListener(A11yCustomEventTypes.DEACTIVATE, handleA11yDeactivateEvent);
+            }
+        };
+    }, []);
 
-        return (
-            <OverlayTrigger
-                className='hidden-xs'
-                key={`flagtooltipkey${isFlagged ? 'flagged' : ''}`}
-                delayShow={Constants.OVERLAY_TIME_DELAY}
-                placement='top'
-                overlay={
-                    <Tooltip
-                        id='flagTooltip'
-                        className='hidden-xs'
-                    >
-                        <FormattedMessage
-                            id={isFlagged ? t('flag_post.unflag') : t('flag_post.flag')}
-                            defaultMessage={isFlagged ? 'Remove from Saved' : 'Save'}
-                        />
-                    </Tooltip>
-                }
-            >
-                <button
-                    ref={this.buttonRef}
-                    id={`${this.props.location}_flagIcon_${this.props.postId}`}
-                    aria-label={isFlagged ? localizeMessage('flag_post.unflag', 'Remove from Saved').toLowerCase() : localizeMessage('flag_post.flag', 'Save').toLowerCase()}
-                    className='post-menu__item'
-                    onClick={this.handlePress}
-                >
-                    {flagIcon}
-                </button>
-            </OverlayTrigger>
-        );
+    useEffect(() => {
+        if (a11yActive && buttonRef.current) {
+            buttonRef.current.dispatchEvent(new Event(A11yCustomEventTypes.UPDATE));
+        }
+    }, [a11yActive]);
+
+    let flagIcon;
+    if (isFlagged) {
+        flagIcon = <FlagIconFilled className={classNames('icon', 'icon--small', 'icon--small-filled', {'post-menu__item--selected': isFlagged})}/>;
+    } else {
+        flagIcon = <FlagIcon className={classNames('icon', 'icon--small')}/>;
     }
-}
+
+    return (
+        <OverlayTrigger
+            className='hidden-xs'
+            key={`flagtooltipkey${isFlagged ? 'flagged' : ''}`}
+            delayShow={Constants.OVERLAY_TIME_DELAY}
+            placement='top'
+            overlay={
+                <Tooltip
+                    id='flagTooltip'
+                    className='hidden-xs'
+                >
+                    <FormattedMessage
+                        id={isFlagged ? t('flag_post.unflag') : t('flag_post.flag')}
+                        defaultMessage={isFlagged ? 'Remove from Saved' : 'Save'}
+                    />
+                </Tooltip>
+            }
+        >
+            <button
+                ref={buttonRef}
+                id={`${location}_flagIcon_${postId}`}
+                aria-label={isFlagged ? localizeMessage('flag_post.unflag', 'Remove from Saved').toLowerCase() : localizeMessage('flag_post.flag', 'Save').toLowerCase()}
+                className='post-menu__item'
+                onClick={handlePress}
+            >
+                {flagIcon}
+            </button>
+        </OverlayTrigger>
+    );
+};
+
+export default React.memo(PostFlagIcon);
