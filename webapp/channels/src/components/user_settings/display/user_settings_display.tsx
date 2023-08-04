@@ -89,7 +89,7 @@ type Props = {
     lastActiveDisplay: boolean;
     lastActiveTimeEnabled: boolean;
     actions: {
-        savePreferences: (userId: string, preferences: PreferenceType[]) => void;
+        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<void>;
         autoUpdateTimezone: (deviceTimezone: string) => void;
         updateMe: (user: UserProfile) => Promise<ActionResult>;
     };

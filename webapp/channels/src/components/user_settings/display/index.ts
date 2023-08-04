@@ -29,7 +29,7 @@ import UserSettingsDisplay from './user_settings_display';
 
 type Actions = {
     autoUpdateTimezone: (deviceTimezone: string) => void;
-    savePreferences: (userId: string, preferences: PreferenceType[]) => void;
+    savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<void>;
     updateMe: (user: UserProfile) => Promise<ActionResult>;
 }
 
