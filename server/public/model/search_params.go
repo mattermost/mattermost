@@ -114,14 +114,17 @@ func (p *SearchParams) GetExcludedDateMillis() (int64, int64) {
 	return GetStartOfDayMillis(date, p.TimeZoneOffset), GetEndOfDayMillis(date, p.TimeZoneOffset)
 }
 
-// Returns only the quoted terms in Terms
+// GetExactPhraseTerms returns a space-separated string with only the quoted terms in Terms.
+// For example: '"one" two "three" four' returns '"one" "three"'
 func (p *SearchParams) GetExactPhraseTerms() string {
 	exactPhraseTerms := strings.Join(exactPhraseRegExpForFileSearch.FindAllString(p.Terms, -1), " ")
 
 	return exactPhraseTerms
 }
 
-// Returns only the non-quoted terms in Terms with an asterisk character at the end
+// GetWildcardAddedNormalTerms returns a space-separated string with only the non-quoted
+// terms in Terms, with an additional asterisk character at the end.
+// For example: '"one" two "three" four' returns 'two* four*'
 func (p *SearchParams) GetWildcardAddedNormalTerms() string {
 	// Filter the quoted terms
 	normalTerms := exactPhraseRegExpForFileSearch.ReplaceAllLiteralString(p.Terms, "")
