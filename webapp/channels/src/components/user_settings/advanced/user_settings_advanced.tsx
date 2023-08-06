@@ -105,31 +105,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         a11yFocus(e?.currentTarget as HTMLElement);
     };
 
-    toggleFeature = (feature: string, checked: boolean): void => {
-        const {settings} = this.state;
-        settings[Constants.FeatureTogglePrefix + feature] = String(checked);
-
-        let enabledFeatures = 0;
-        Object.keys(this.state.settings).forEach((setting) => {
-            if (setting.lastIndexOf(Constants.FeatureTogglePrefix) === 0 && this.state.settings[setting] === 'true') {
-                enabledFeatures++;
-            }
-        });
-
-        this.setState({settings, enabledFeatures});
-    };
-
-    saveEnabledFeatures = (): void => {
-        const features: string[] = [];
-        Object.keys(this.state.settings).forEach((setting) => {
-            if (setting.lastIndexOf(Constants.FeatureTogglePrefix) === 0) {
-                features.push(setting);
-            }
-        });
-
-        this.handleSubmit(features);
-    };
-
     handleSubmit = async (settings: string[]): Promise<void> => {
         const preferences: PreferenceType[] = [];
         const {actions, currentUser} = this.props;
