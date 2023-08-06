@@ -420,6 +420,10 @@
     "translation": "{{.Username}} unarchived the channel."
   },
   {
+    "id": "api.channel.update_channel.cant_update_direct_or_group_messages.app_error",
+    "translation": "Unable to update the name, display_name, and purpose of a direct or group messages."
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "The channel has been archived or deleted."
   },
