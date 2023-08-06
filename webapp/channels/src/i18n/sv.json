@@ -5049,8 +5049,6 @@
   "user.settings.advance.performance.noneEnabled": "Inga inställningar aktiverade",
   "user.settings.advance.performance.settingsEnabled": "{count, number} {count, plural, one {inställning aktiverad} other {inställningar aktiverade}}",
   "user.settings.advance.performance.title": "Prestandafelsökning",
-  "user.settings.advance.preReleaseDesc": "Markera de pre-release-funktioner du vill förhandsgranska. Du kan behöva hämta om sidan för att ändringen ska aktiveras.",
-  "user.settings.advance.preReleaseTitle": "Förhandsgranska kommande funktioner",
   "user.settings.advance.sendDesc": "När aktiverad så publiceras meddelandet med CTRL + ENTER och endast ENTER ger en ny rad.",
   "user.settings.advance.sendDesc.mac": "När aktiverad så publiceras meddelandet med ⌘ + ENTER och endast ENTER ger en ny rad.",
   "user.settings.advance.sendTitle": "Skickar meddelandet med CTRL + RETUR",

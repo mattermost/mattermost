@@ -3207,8 +3207,6 @@
   "user.settings.advance.joinLeaveTitle": "입장/퇴장 메시지 표시",
   "user.settings.advance.off": "끄기",
   "user.settings.advance.on": "켜기",
-  "user.settings.advance.preReleaseDesc": "사용하고 싶은 시험판 기능을 선택하세요. 기능 활성화를 위해 페이지 새로고침이 필요할 수도 있습니다.",
-  "user.settings.advance.preReleaseTitle": "시험판 기능 미리보기",
   "user.settings.advance.sendTitle": "Ctrl + Enter로 메시지 보내기",
   "user.settings.advance.sendTitle.mac": "Ctrl + Enter로 메시지 보내기",
   "user.settings.advance.title": "고급 설정",

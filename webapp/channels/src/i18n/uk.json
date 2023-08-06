@@ -2526,8 +2526,6 @@
   "user.settings.advance.joinLeaveTitle": "Включити повідомлення входу/виходу",
   "user.settings.advance.off": "Вимкнено",
   "user.settings.advance.on": "На",
-  "user.settings.advance.preReleaseDesc": "Перевірте будь-які попередньо випущені функції, які потрібно переглянути. Вам також може знадобитися оновити сторінку до набуття чинності.",
-  "user.settings.advance.preReleaseTitle": "Попередній перегляд функцій попереднього випуску",
   "user.settings.advance.sendTitle": "Надіслати повідомлення сполученням клавіш CTRL + ENTER",
   "user.settings.advance.sendTitle.mac": "Надіслати повідомлення сполученням клавіш CTRL + ENTER",
   "user.settings.advance.title": "Додаткові параметри",

@@ -4642,8 +4642,6 @@
   "user.settings.advance.performance.noneEnabled": "Nincs beállítás engedélyezve",
   "user.settings.advance.performance.settingsEnabled": "{count, number} beállítás engedélyezve",
   "user.settings.advance.performance.title": "Teljesítmény hibakeresés",
-  "user.settings.advance.preReleaseDesc": "Ellenőrizze azokat az kiadás elötti funkciókat, amelyeket meg szeretne tekinteni. Előfordulhat, hogy a beállítás életbe lépése előtt frissítenie kell az oldalt.",
-  "user.settings.advance.preReleaseTitle": "A kiadás előtti funkciók előnézete",
   "user.settings.advance.sendDesc": "Ha engedélyezve van, a CTRL + ENTER elküldi az üzenetet, és az ENTER új sort ír be.",
   "user.settings.advance.sendDesc.mac": "Ha engedélyezve van, a ⌘ + ENTER elküldi az üzenetet, és az ENTER új sort ír be.",
   "user.settings.advance.sendTitle": "Üzenetek küldése a CTRL + ENTER billentyű kombinációval",

@@ -5193,8 +5193,6 @@
   "user.settings.advance.performance.noneEnabled": "Настройки не включены",
   "user.settings.advance.performance.settingsEnabled": "{count, number} {count, plural, one {настройка включена} few {настройки включены} other {настроек включено}}",
   "user.settings.advance.performance.title": "Отладка производительности",
-  "user.settings.advance.preReleaseDesc": "Выберите функции, которые хотели бы протестировать. Может потребоваться перезагрузка страницы для вступления изменений в силу.",
-  "user.settings.advance.preReleaseTitle": "Просмотр предрелизных функций",
   "user.settings.advance.sendDesc": "Когда включено, CTRL + ENTER отправит сообщение, а ENTER вставит новую строку.",
   "user.settings.advance.sendDesc.mac": "Когда включено, ⌘ + ENTER отправит сообщение, а ENTER вставит новую строку.",
   "user.settings.advance.sendTitle": "Отправлять сообщения сочетанием клавиш CTRL+ENTER",

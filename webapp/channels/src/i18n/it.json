@@ -3335,8 +3335,6 @@
   "user.settings.advance.on": "Attivo",
   "user.settings.advance.onForAllMessages": "Attivo per tutti i messaggi",
   "user.settings.advance.onForCode": "Attivo solo per i blocchi di codice che iniziano con ```",
-  "user.settings.advance.preReleaseDesc": "Funzioni prerilascio. Può servire un aggiornamento della pagina affinché questa modifica abbia effetto.",
-  "user.settings.advance.preReleaseTitle": "Funzioni prerilascio",
   "user.settings.advance.sendDesc": "Se attivo, CTRL + ENTER invierà il messaggio e ENTER inserirà una nuova linea.",
   "user.settings.advance.sendDesc.mac": "Se attivo, ⌘ + ENTER invierà il messaggio e ENTER inserirà una nuova linea.",
   "user.settings.advance.sendTitle": "Invia messaggi con CTRL+INVIO",

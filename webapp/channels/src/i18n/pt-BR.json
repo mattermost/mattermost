@@ -3602,8 +3602,6 @@
   "user.settings.advance.on": "Ligado",
   "user.settings.advance.onForAllMessages": "Ativado para todas as mensagens",
   "user.settings.advance.onForCode": "Ativado somente para block de código começado com ```",
-  "user.settings.advance.preReleaseDesc": "Verifique todos os recursos de pré-lançamento que você gostaria de visualizar.  Você também pode precisar atualizar a página antes das configuração terem efeito.",
-  "user.settings.advance.preReleaseTitle": "Visualizar Recursos de Pré-lançamento",
   "user.settings.advance.sendDesc": "Quando ativo, CTRL + ENTER irá enviar a mensagem e ENTER insere uma nova linha.",
   "user.settings.advance.sendDesc.mac": "Quando ativo, ⌘ + ENTER irá enviar a mensagem e ENTER insere uma nova linha.",
   "user.settings.advance.sendTitle": "Enviar mensagens com CTRL+ENTER",

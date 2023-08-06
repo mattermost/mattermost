@@ -4531,8 +4531,6 @@
   "user.settings.advance.performance.noneEnabled": "Sin ajustes habilitados",
   "user.settings.advance.performance.settingsEnabled": "{count, number} {count, plural, uno {setting} unos {settings}} enabled",
   "user.settings.advance.performance.title": "Depuración de Rendimiento",
-  "user.settings.advance.preReleaseDesc": "Marca las características de pre-lanzamiento que quieras previsualizar.  Es posible que necesites refrescar la página antes de que los cambios se vean reflejados.",
-  "user.settings.advance.preReleaseTitle": "Previsualizar características de pre-lanzamiento",
   "user.settings.advance.sendDesc": "Cuando está habilitado, CTRL + RETORNO enviará el mensaje y RETORNO inserta una nueva linea.",
   "user.settings.advance.sendDesc.mac": "Cuando está habilitado, ⌘ + RETORNO enviará el mensaje y RETORNO inserta una nueva linea.",
   "user.settings.advance.sendTitle": "Enviar mensajes con CTRL+RETORNO",

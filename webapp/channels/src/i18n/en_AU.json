@@ -5086,8 +5086,6 @@
   "user.settings.advance.performance.noneEnabled": "No settings enabled",
   "user.settings.advance.performance.settingsEnabled": "{count, number} {count, plural, one {setting} other {settings}} enabled",
   "user.settings.advance.performance.title": "Performance Debugging",
-  "user.settings.advance.preReleaseDesc": "Check any pre-released features you'd like to preview. You may also need to refresh the page before the setting will take effect.",
-  "user.settings.advance.preReleaseTitle": "Preview Pre-release Features",
   "user.settings.advance.sendDesc": "When enabled, CTRL + ENTER will send the message and ENTER inserts a new line.",
   "user.settings.advance.sendDesc.mac": "When enabled, ⌘ + ENTER will send the message and ENTER inserts a new line.",
   "user.settings.advance.sendTitle": "Send Messages on CTRL+ENTER",

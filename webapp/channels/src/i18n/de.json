@@ -5193,8 +5193,6 @@
   "user.settings.advance.performance.noneEnabled": "Keine Einstellungen aktiviert",
   "user.settings.advance.performance.settingsEnabled": "{count, number} {count, plural, one {Einstellung} other {Einstellungen}} aktiviert",
   "user.settings.advance.performance.title": "Performance Debugging",
-  "user.settings.advance.preReleaseDesc": "Markiere jede Pre-Release-Funktionen, die du testen möchtest. Eventuell musst du die Seite neu laden, bevor die Änderung wirksam wird.",
-  "user.settings.advance.preReleaseTitle": "Vorschau auf Funktionen der neuen Version",
   "user.settings.advance.sendDesc": "Wenn aktiviert, sendet STRG + ENTER die Nachricht und ENTER fügt eine neue Zeile ein.",
   "user.settings.advance.sendDesc.mac": "Wenn aktiviert, sendet ⌘ + ENTER die Nachricht und ENTER fügt eine neue Zeile ein.",
   "user.settings.advance.sendTitle": "Sende Nachrichten mit STRG+ENTER",

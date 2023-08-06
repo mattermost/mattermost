@@ -5113,8 +5113,6 @@
   "user.settings.advance.performance.noneEnabled": "有効な設定がありません",
   "user.settings.advance.performance.settingsEnabled": "{count, number} {count, plural, one {設定} other {設定}} が有効",
   "user.settings.advance.performance.title": "パフォーマンスデバッグ",
-  "user.settings.advance.preReleaseDesc": "プレビューしたいプリリリース機能をチェックしてください。 有効になるのはページを再読み込みした後からです。",
-  "user.settings.advance.preReleaseTitle": "プリリリース機能をプレビューする",
   "user.settings.advance.sendDesc": "有効な場合、CTRL + ENTERでメッセージが送信され、ENTERで改行が入力されます。",
   "user.settings.advance.sendDesc.mac": "有効な場合、⌘ + ENTERでメッセージが送信され、ENTERで改行が入力されます。",
   "user.settings.advance.sendTitle": "CTRL + ENTER でメッセージを投稿する",

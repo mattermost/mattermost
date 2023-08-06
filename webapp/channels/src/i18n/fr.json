@@ -4307,8 +4307,6 @@
   "user.settings.advance.performance.info2": "Vous pouvez avoir besoin de rafraîchir la page avant que ces changements prennent effet.",
   "user.settings.advance.performance.noneEnabled": "Aucun paramètre activé",
   "user.settings.advance.performance.settingsEnabled": "{count, number} {count, plural, one {paramètre activé} other {paramètres activés}}",
-  "user.settings.advance.performance.title": "Débogage des performances",
-  "user.settings.advance.preReleaseDesc": "Testez des fonctionnalités en avant-première. Vous devrez peut-être rafraîchir la page pour que ce paramètre soit activé.",
   "user.settings.advance.preReleaseTitle": "Aperçu des fonctionnalités expérimentales",
   "user.settings.advance.sendDesc": "Si activé, CTRL + ENTRÉE envoie le message et ENTRÉE insère une nouvelle ligne.",
   "user.settings.advance.sendDesc.mac": "Si activé, ⌘ + ENTRÉE envoie le message et ENTRÉE insère une nouvelle ligne.",

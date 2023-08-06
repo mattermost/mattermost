@@ -5102,8 +5102,6 @@
   "user.settings.advance.performance.noneEnabled": "Herhangi bir ayar etkinleştirilmemiş",
   "user.settings.advance.performance.settingsEnabled": "{count, number} {count, plural, one {ayar} other {ayar}} etkinleştirildi",
   "user.settings.advance.performance.title": "Başarım hata ayıklaması",
-  "user.settings.advance.preReleaseDesc": "Ön izlemesini denemek istediğiniz özellikleri işaretleyin. Ayarların etkili olması için sayfayı yeniden yüklemelisiniz.",
-  "user.settings.advance.preReleaseTitle": "Henüz yayınlanmamış özellikleri ön izle",
   "user.settings.advance.sendDesc": "Bu seçenek etkinleştirildiğinde, iletiler CTRL + ENTER tuşları ile gönderilir. ENTER tuşu yeni bir satıra geçer.",
   "user.settings.advance.sendDesc.mac": "Bu seçenek etkinleştirildiğinde, iletiler ⌘ + ENTER tuşları ile gönderilir. ENTER tuşu yeni bir satıra geçer.",
   "user.settings.advance.sendTitle": "İletiler CTRL+ENTER ile gönderilsin",

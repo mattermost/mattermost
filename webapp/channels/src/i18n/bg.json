@@ -3912,8 +3912,6 @@
   "user.settings.advance.on": "Вкл.",
   "user.settings.advance.onForAllMessages": "Включено за всички съобщения",
   "user.settings.advance.onForCode": "Само за кодови блокове, започващи с ```",
-  "user.settings.advance.preReleaseDesc": "Проверете всички предварително пуснати функции, които искате да визуализирате. Може също да се наложи да обновите страницата, преди настройката да влезе в сила.",
-  "user.settings.advance.preReleaseTitle": "Преглед на предварително пуснатите функции",
   "user.settings.advance.sendDesc": "Когато е разрешено, CTRL + ENTER ще изпрати съобщението, а ENTER вмъква нов ред.",
   "user.settings.advance.sendDesc.mac": "Когато е разрешено, ⌘ + ENTER ще изпрати съобщението, а ENTER вмъква нов ред.",
   "user.settings.advance.sendTitle": "Изпращане на съобщения с CTRL + ENTER",

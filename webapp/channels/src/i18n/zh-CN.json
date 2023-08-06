@@ -4097,8 +4097,6 @@
   "user.settings.advance.on": "开启",
   "user.settings.advance.onForAllMessages": "对所有消息开启",
   "user.settings.advance.onForCode": "只对以 ``` 开头的代码块开启",
-  "user.settings.advance.preReleaseDesc": "检查您想预览的任何预发布功能。在设置生效前，您可能还需要刷新页面。",
-  "user.settings.advance.preReleaseTitle": "预览预发布功能",
   "user.settings.advance.sendDesc": "当开启时，CTRL + ENTER 将发送消息，ENTER 换行。",
   "user.settings.advance.sendDesc.mac": "当开启时，⌘ + ENTER 将发送消息，ENTER 换行。",
   "user.settings.advance.sendTitle": "按 CTRL+ENTER 发送消息",

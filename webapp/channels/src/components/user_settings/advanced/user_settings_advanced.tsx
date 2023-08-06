@@ -11,7 +11,7 @@ import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isMac} from 'utils/user_agent';
-import {a11yFocus, localizeMessage} from 'utils/utils';
+import {a11yFocus} from 'utils/utils';
 
 import SettingItemMax from 'components/setting_item_max';
 import ConfirmModal from 'components/confirm_modal';
@@ -74,7 +74,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     }
 
     getStateFromProps = (): State => {
-        const advancedSettings = this.props.advancedSettingsCategory;
         const settings: Settings = {
             send_on_ctrl_enter: this.props.sendOnCtrlEnter,
             code_block_ctrl_enter: this.props.codeBlockOnCtrlEnter,
@@ -84,11 +83,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             [Preferences.UNREAD_SCROLL_POSITION]: this.props.unreadScrollPosition,
         };
 
-
-
-        let enabledFeatures = 0;
-
-
+        const enabledFeatures = 0;
         const isSaving = false;
 
         const showDeactivateAccountModal = false;

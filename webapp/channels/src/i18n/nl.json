@@ -5117,8 +5117,6 @@
   "user.settings.advance.performance.noneEnabled": "Geen instellingen ingeschakeld",
   "user.settings.advance.performance.settingsEnabled": "{count, number} {count, plural, one {instelling} other {instellingen}} ingeschakeld",
   "user.settings.advance.performance.title": "Uitvoering debuggen",
-  "user.settings.advance.preReleaseDesc": "Selecteer een pre-released feature die je wilt bekijken. Je moet waarschijnlijk de pagina herladen voordat de veranderingen zichtbaar zijn.",
-  "user.settings.advance.preReleaseTitle": "Preview Pre-release Features",
   "user.settings.advance.sendDesc": "Als deze optie is ingeschakeld, CTRL + ENTER zal het bericht verzenden en ENTER nieuwe regel invoegen.",
   "user.settings.advance.sendDesc.mac": "Als deze optie is ingeschakeld, ⌘ + ENTER zal het bericht verzenden en ENTER nieuwe regel invoegen.",
   "user.settings.advance.sendTitle": "Berichten verzenden met CTRL+ENTER",

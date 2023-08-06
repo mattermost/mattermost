@@ -5113,8 +5113,6 @@
   "user.settings.advance.performance.noneEnabled": "Brak włączonych ustawień",
   "user.settings.advance.performance.settingsEnabled": "{count, number} {count, plural, one {ustawienie} other {ustawienia}} włączone",
   "user.settings.advance.performance.title": "Debugowanie Wydajności",
-  "user.settings.advance.preReleaseDesc": "Sprawdź wszystkie wstępnie udostępnione funkcje, które chcesz włączyć. Może również zajść konieczność odświeżenia strony, zanim ustawienie zacznie obowiązywać.",
-  "user.settings.advance.preReleaseTitle": "Podgląd funkcji w wersji wstępnej",
   "user.settings.advance.sendDesc": "Jeśli włączone, CTRL + ENTER wyśle wiadomość a sam ENTER utworzy nową linię.",
   "user.settings.advance.sendDesc.mac": "Jeśli włączone, CTRL + ENTER wyśle wiadomość a sam ENTER utworzy nową linię.",
   "user.settings.advance.sendTitle": "Wysyłaj wiadomość przy użyciu Ctrl+Enter",

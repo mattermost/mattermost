@@ -1158,7 +1158,6 @@ func TestImportImportUser(t *testing.T) {
 		ColorizeUsernames:  ptrStr("true"),
 		ChannelDisplayMode: ptrStr("centered"),
 		TutorialStep:       ptrStr("3"),
-		UseMarkdownPreview: ptrStr("true"),
 		UseFormatting:      ptrStr("true"),
 		ShowUnreadSection:  ptrStr("true"),
 		EmailInterval:      ptrStr("immediately"),

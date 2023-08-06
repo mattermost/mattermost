@@ -4310,8 +4310,6 @@
   "user.settings.advance.onForAllMessages": "برای همه پیام ها روشن است",
   "user.settings.advance.onForCode": "فقط برای بلوک‌های کدی که با «`» شروع می‌شوند روشن است",
   "user.settings.advance.performance.title": "عیب یابی کارایی",
-  "user.settings.advance.preReleaseDesc": "ویژگی‌های از پیش منتشر شده‌ای را که می‌خواهید پیش‌نمایش کنید، بررسی کنید. همچنین ممکن است لازم باشد قبل از اعمال تنظیمات، صفحه را بازخوانی کنید.",
-  "user.settings.advance.preReleaseTitle": "پیش نمایش ویژگی های پیش از انتشار",
   "user.settings.advance.sendDesc": "هنگامی که فعال باشد، CTRL + ENTER پیام را ارسال می کند و ENTER یک خط جدید درج می کند.",
   "user.settings.advance.sendDesc.mac": "وقتی فعال باشد، ⌘ + ENTER پیام را ارسال می کند و ENTER یک خط جدید درج می کند.",
   "user.settings.advance.sendTitle": "با CTRL+ENTER پیام ارسال کنید",

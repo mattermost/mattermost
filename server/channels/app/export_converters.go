@@ -80,7 +80,6 @@ func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *imp
 			Position:           &user.Position,
 			Roles:              &user.Roles,
 			Locale:             &user.Locale,
-			UseMarkdownPreview: exportedPrefs["UseMarkdownPreview"],
 			UseFormatting:      exportedPrefs["UseFormatting"],
 			ShowUnreadSection:  exportedPrefs["ShowUnreadSection"],
 			Theme:              exportedPrefs["Theme"],

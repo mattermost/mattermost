@@ -9,8 +9,6 @@ import {Channel} from '@mattermost/types/channels';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {patchChannel} from 'mattermost-redux/actions/channels';
 import {Preferences} from 'mattermost-redux/constants';
-import {Constants} from 'utils/constants';
-import {isFeatureEnabled} from 'utils/utils';
 
 import {GlobalState} from 'types/store';
 

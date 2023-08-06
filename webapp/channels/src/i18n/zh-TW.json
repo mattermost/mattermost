@@ -3254,8 +3254,6 @@
   "user.settings.advance.on": "啟用",
   "user.settings.advance.onForAllMessages": "對所有訊息",
   "user.settings.advance.onForCode": "只對以 ``` 開始的程式碼區塊",
-  "user.settings.advance.preReleaseDesc": "選用任何想預覽的預先發佈功能。更改後可能需要重新讀取頁面以生效。",
-  "user.settings.advance.preReleaseTitle": "預覽預先發佈功能",
   "user.settings.advance.sendDesc": "啟用時，用 CTRL + ENTER 發送訊息、ENTER 增加新行",
   "user.settings.advance.sendDesc.mac": "啟用時，用 ⌘ + ENTER 發送訊息、ENTER 增加新行",
   "user.settings.advance.sendTitle": "用 Ctrl + Enter 貼文",

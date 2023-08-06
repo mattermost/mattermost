@@ -3729,8 +3729,6 @@
   "user.settings.advance.on": "Deschis",
   "user.settings.advance.onForAllMessages": "Pornit pentru toate mesajele",
   "user.settings.advance.onForCode": "Numai pentru blocurile de cod care încep cu ```",
-  "user.settings.advance.preReleaseDesc": "Verificați toate funcțiile pre-lansate pe care doriți să le previzualizați. Poate fi necesar să actualizați pagina înainte ca setarea să aibă efect.",
-  "user.settings.advance.preReleaseTitle": "Previzualizați funcțiile pre-lansare",
   "user.settings.advance.sendDesc": "Dacă este activată, ENTER introduce o nouă linie și CTRL + ENTER transmite mesajul.",
   "user.settings.advance.sendDesc.mac": "Când este activat, ⌘ + ENTER va trimite mesajul și ENTER introduce o nouă linie.",
   "user.settings.advance.sendTitle": "Trimiteți mesaje pe CTRL + ENTER",
