@@ -84,7 +84,6 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
         <Connect(TextboxLinks)
           hasExceededCharacterLimit={false}
           hasText={true}
-          isMarkdownPreviewEnabled={false}
           previewMessageLink="Edit Header"
           showPreview={false}
           updatePreview={[Function]}
@@ -211,7 +210,6 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
         <Connect(TextboxLinks)
           hasExceededCharacterLimit={false}
           hasText={true}
-          isMarkdownPreviewEnabled={false}
           previewMessageLink="Edit Header"
           showPreview={false}
           updatePreview={[Function]}
@@ -356,7 +354,6 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
         <Connect(TextboxLinks)
           hasExceededCharacterLimit={false}
           hasText={true}
-          isMarkdownPreviewEnabled={false}
           previewMessageLink="Edit Header"
           showPreview={false}
           updatePreview={[Function]}
@@ -493,7 +490,6 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
         <Connect(TextboxLinks)
           hasExceededCharacterLimit={false}
           hasText={true}
-          isMarkdownPreviewEnabled={false}
           previewMessageLink="Edit Header"
           showPreview={false}
           updatePreview={[Function]}
@@ -620,7 +616,6 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
         <Connect(TextboxLinks)
           hasExceededCharacterLimit={false}
           hasText={true}
-          isMarkdownPreviewEnabled={false}
           previewMessageLink="Edit Header"
           showPreview={false}
           updatePreview={[Function]}

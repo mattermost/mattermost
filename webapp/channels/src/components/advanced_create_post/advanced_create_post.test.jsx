@@ -109,7 +109,6 @@ function advancedCreatePost({
     useLDAPGroupMentions = true,
     useCustomGroupMentions = true,
     canPost = true,
-    isMarkdownPreviewEnabled = false,
     isPostPriorityEnabled = false,
 } = {}) {
     return (
@@ -145,7 +144,6 @@ function advancedCreatePost({
             useChannelMentions={true}
             useLDAPGroupMentions={useLDAPGroupMentions}
             useCustomGroupMentions={useCustomGroupMentions}
-            isMarkdownPreviewEnabled={isMarkdownPreviewEnabled}
             isFormattingBarHidden={false}
             isPostPriorityEnabled={isPostPriorityEnabled}
         />
@@ -1456,30 +1454,6 @@ describe('components/advanced_create_post', () => {
         false,
         'post_textbox',
     );
-
-    it('should match snapshot, can post; preview enabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: true, isMarkdownPreviewEnabled: true}));
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    it('should match snapshot, can post; preview disabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: true, isMarkdownPreviewEnabled: false}));
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    it('should match snapshot, cannot post; preview enabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: false, isMarkdownPreviewEnabled: true}));
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    it('should match snapshot, cannot post; preview disabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: false, isMarkdownPreviewEnabled: false}));
-
-        expect(wrapper).toMatchSnapshot();
-    });
 
     it('should match snapshot, post priority enabled', () => {
         const wrapper = shallow(advancedCreatePost({isPostPriorityEnabled: true}));
