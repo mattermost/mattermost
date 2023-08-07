@@ -874,17 +874,7 @@ func (ch *Channels) getPluginsFromFolder() (map[string]*pluginSignaturePath, *mo
 
 func (ch *Channels) getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignaturePath {
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
-
-	fsPrefix := ""
-	if *ch.cfgSvc.Config().FileSettings.DriverName == model.ImageDriverS3 {
-		ptr := ch.cfgSvc.Config().FileSettings.AmazonS3PathPrefix
-		if ptr != nil && *ptr != "" {
-			fsPrefix = *ptr + "/"
-		}
-	}
-
 	for _, path := range fileStorePaths {
-		path = strings.TrimPrefix(path, fsPrefix)
 		if strings.HasSuffix(path, ".tar.gz") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
 			helper := &pluginSignaturePath{
@@ -896,7 +886,6 @@ func (ch *Channels) getPluginsFromFilePaths(fileStorePaths []string) map[string]
 		}
 	}
 	for _, path := range fileStorePaths {
-		path = strings.TrimPrefix(path, fsPrefix)
 		if strings.HasSuffix(path, ".tar.gz.sig") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz.sig")
 			if val, ok := pluginSignaturePathMap[id]; !ok {
