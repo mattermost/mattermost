@@ -43,7 +43,9 @@ jest.mock('mattermost-redux/actions/channels', () => ({
             name: 'other_user',
             display_name: 'other_user',
             delete_at: 0,
-        }],
+            team_id: 'currentTeamId',
+        },
+        ],
     })),
 }));
 
@@ -119,6 +121,7 @@ describe('components/SwitchChannelProvider', () => {
                         id: 'currentTeamId',
                         display_name: 'test',
                         type: 'O',
+                        delete_at: 0,
                     },
                 },
             },
@@ -825,6 +828,59 @@ describe('components/SwitchChannelProvider', () => {
         ];
 
         expect(results.terms).toEqual(expectedOrder);
+    });
+
+    it('should filter out channels belonging to archived teams', async () => {
+        const modifiedState = {
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    myMembers: {
+                        channel_1: {},
+                        channel_2: {},
+                    },
+                    channels: {
+                        channel_1: {
+                            id: 'channel_1',
+                            type: 'O',
+                            name: 'channel_1',
+                            display_name: 'channel 1',
+                            delete_at: 0,
+                            team_id: 'currentTeamId',
+                        },
+                        channel_2: {
+                            id: 'channel_2',
+                            type: 'O',
+                            name: 'channel_2',
+                            display_name: 'channel 2',
+                            delete_at: 0,
+                            team_id: 'archivedTeam',
+                        },
+                    },
+                },
+            },
+        };
+
+        getState.mockClear();
+
+        const switchProvider = new SwitchChannelProvider();
+        const store = mockStore(modifiedState);
+
+        getState.mockImplementation(store.getState);
+        const searchText = 'chan';
+        const resultsCallback = jest.fn();
+
+        switchProvider.startNewRequest();
+        await switchProvider.fetchUsersAndChannels(searchText, resultsCallback);
+        const channelsFromActiveTeams = [
+            'channel_1',
+        ];
+
+        expect(resultsCallback).toBeCalledWith(expect.objectContaining({
+            terms: channelsFromActiveTeams,
+        }));
     });
 
     it('Should show threads as the first item in the list if search term matches', async () => {
