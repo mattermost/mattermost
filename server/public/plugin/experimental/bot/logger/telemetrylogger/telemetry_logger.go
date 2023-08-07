@@ -3,9 +3,9 @@ package telemetrylogger
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-plugin-api/experimental/bot/logger"
-	"github.com/mattermost/mattermost-plugin-api/experimental/common"
-	"github.com/mattermost/mattermost-plugin-api/experimental/telemetry"
+	"github.com/mattermost/mattermost/server/public/plugin/experimental/bot/logger"
+	"github.com/mattermost/mattermost/server/public/plugin/experimental/common"
+	"github.com/mattermost/mattermost/server/public/plugin/experimental/telemetry"
 )
 
 type telemetryLogger struct {

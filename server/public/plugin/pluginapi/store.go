@@ -9,7 +9,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"github.com/mattermost/mattermost/server/public/plugin"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/driver"
+	"github.com/mattermost/mattermost/server/public/shared/driver"
 	"github.com/pkg/errors"
 )
 

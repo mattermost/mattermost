@@ -1,6 +1,8 @@
 package settings
 
-import "github.com/mattermost/mattermost/server/public/model"
+import (
+	"github.com/mattermost/mattermost/server/public/model"
+)
 
 func stringsToOptions(in []string) []*model.PostActionOptions {
 	out := make([]*model.PostActionOptions, len(in))

@@ -1,6 +1,8 @@
 package poster
 
-import "github.com/mattermost/mattermost/server/public/model"
+import (
+	"github.com/mattermost/mattermost/server/public/model"
+)
 
 // PostAPI defines the portion of the Post Service used by the poster
 type PostAPI interface {

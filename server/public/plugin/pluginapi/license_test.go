@@ -3,8 +3,9 @@ package pluginapi
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestIsEnterpriseLicensedOrDevelopment(t *testing.T) {

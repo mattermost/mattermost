@@ -1,9 +1,10 @@
 package pluginapi
 
 import (
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
-	"github.com/pkg/errors"
 )
 
 // PostService exposes methods to manipulate posts.

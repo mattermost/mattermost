@@ -4,10 +4,10 @@ import (
 	"os"
 	"sync"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-plugin-api/experimental/bot/logger"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/experimental/bot/logger"
 )
 
 type TrackerConfig struct {

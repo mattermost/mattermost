@@ -3,7 +3,7 @@ package panel
 import (
 	"errors"
 
-	pluginapi "github.com/mattermost/mattermost-plugin-api"
+	"github.com/mattermost/mattermost/server/public/plugin/pluginapi"
 )
 
 type Store interface {

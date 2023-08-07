@@ -7,9 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/pluginapi"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
-
-	pluginapi "github.com/mattermost/mattermost-plugin-api"
 )
 
 func TestPublishPluginClusterEvent(t *testing.T) {

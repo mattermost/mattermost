@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mattermost/mattermost-plugin-api/experimental/common"
+	"github.com/mattermost/mattermost/server/public/plugin/experimental/common"
 )
 
 type defaultLogger struct {

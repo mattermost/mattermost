@@ -6,10 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/pkg/errors"
 	"golang.org/x/text/language"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // PluginAPI is the plugin API interface required to manage translations.

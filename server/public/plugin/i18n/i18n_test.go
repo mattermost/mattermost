@@ -5,17 +5,18 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/plugin"
-	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/language"
 
-	"github.com/mattermost/mattermost-plugin-api/i18n"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin/i18n"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 )
 
+//nolint:govet
 func ExampleInitBundle() {
 	type Plugin struct {
 		plugin.MattermostPlugin

@@ -1,7 +1,7 @@
 package pluginapi_test
 
 import (
-	pluginapi "github.com/mattermost/mattermost-plugin-api"
+	"github.com/mattermost/mattermost/server/public/plugin/pluginapi"
 
 	"github.com/mattermost/mattermost/server/public/plugin"
 )

@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	logger "github.com/mattermost/mattermost-plugin-api/experimental/bot/logger"
+	logger "github.com/mattermost/mattermost/server/public/plugin/experimental/bot/logger"
 )
 
 // MockLogger is a mock of Logger interface.
