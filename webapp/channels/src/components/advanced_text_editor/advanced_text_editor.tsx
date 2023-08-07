@@ -682,10 +682,14 @@ const AdvanceTextEditor = ({
                         className='AdvancedTextEditor__cell a11y__region'
                     >
                         {labels}
-                        <label id="advancedTextEditorCellAriaLabel" style={{ display: "none", visibility: "hidden", height: 0 }}>{Utils.localizeMessage(
-                            'channelView.login.successfull',
-                            'Login Successfull',
-                        ) + ' ' + ariaLabelMessageInput}</label>
+                        <label
+                            id='advancedTextEditorCellAriaLabel'
+                            style={{display: 'none', visibility: 'hidden', height: 0}}
+                        >
+                            {Utils.localizeMessage(
+                                'channelView.login.successfull',
+                                'Login Successfull',
+                            ) + ' ' + ariaLabelMessageInput}</label>
                         <Textbox
                             hasLabels={Boolean(labels)}
                             suggestionList={RhsSuggestionList}
