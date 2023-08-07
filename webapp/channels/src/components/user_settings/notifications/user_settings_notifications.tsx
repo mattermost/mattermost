@@ -162,13 +162,8 @@ function getNotificationsStateFromProps(props: Props): State {
             isCustomKeysWithNotificationInputChecked = customKeysWithNotification.length > 0;
         }
 
-        if (props.user.notify_props.first_name) {
-            firstNameKey = props.user.notify_props.first_name === 'true';
-        }
-
-        if (props.user.notify_props.channel) {
-            channelKey = props.user.notify_props.channel === 'true';
-        }
+        firstNameKey = props.user.notify_props?.first_name === 'true';
+        channelKey = props.user.notify_props?.channel === 'true';
     }
 
     return {
@@ -228,10 +223,10 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         data.push = this.state.pushActivity;
         data.push_status = this.state.pushStatus;
         data.comments = this.state.notifyCommentsLevel;
-        data.auto_responder_active = this.state.autoResponderActive.toString() as UserNotifyProps['auto_responder_active'];
+        data.auto_responder_active = this.state.autoResponderActive ? 'true' : 'false';
         data.auto_responder_message = this.state.autoResponderMessage;
-        data.first_name = this.state.firstNameKey.toString() as UserNotifyProps['first_name'];
-        data.channel = this.state.channelKey.toString() as UserNotifyProps['channel'];
+        data.first_name = this.state.firstNameKey ? 'true' : 'false';
+        data.channel = this.state.channelKey ? 'true' : 'false';
 
         if (!data.auto_responder_message || data.auto_responder_message === '') {
             data.auto_responder_message = this.props.intl.formatMessage({
@@ -254,7 +249,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.setState({isSaving: true});
         stopTryNotificationRing();
 
-        const {data: updatedUser, error} = await this.props.updateMe({notify_props: data}) as ActionResult<Partial<UserProfile>, ServerError>;
+        const {data: updatedUser, error} = await this.props.updateMe({notify_props: data}) as ActionResult<Partial<UserProfile>, ServerError>; // Fix in MM-46907
         if (updatedUser) {
             this.handleUpdateSection('');
             this.setState(getNotificationsStateFromProps(this.props));
