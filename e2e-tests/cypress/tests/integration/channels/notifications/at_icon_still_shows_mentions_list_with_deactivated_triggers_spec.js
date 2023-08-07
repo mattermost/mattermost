@@ -23,12 +23,12 @@ describe('Notifications', () => {
 
             // # Open 'Settings' modal
             cy.uiOpenSettingsModal().within(() => {
-                // # Open 'Words That Trigger Mentions' setting and uncheck all the checkboxes
-                cy.findByRole('heading', {name: 'Words That Trigger Mentions'}).should('be.visible').click();
+                // # Open 'Keywords that trigger Notifications' setting and uncheck all the checkboxes
+                cy.findByRole('heading', {name: 'Keywords that trigger Notifications'}).should('be.visible').click();
                 cy.findByRole('checkbox', {name: `Your case-sensitive first name "${otherUser.first_name}"`}).should('not.be.checked');
                 cy.findByRole('checkbox', {name: `Your non case-sensitive username "${otherUser.username}"`}).should('not.be.checked');
                 cy.findByRole('checkbox', {name: 'Channel-wide mentions "@channel", "@all", "@here"'}).click().should('not.be.checked');
-                cy.findByRole('checkbox', {name: 'Other non case-sensitive words, separated by commas:'}).should('not.be.checked');
+                cy.findByRole('checkbox', {name: 'Other non case-sensitive words, press TAB to seperate keywords:'}).should('not.be.checked');
 
                 // # Save then close the modal
                 cy.uiSaveAndClose();
