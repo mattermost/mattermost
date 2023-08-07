@@ -46,7 +46,7 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 import {savePreferences} from './preferences';
 import {loadRolesIfNeeded} from './roles';
 import {getMissingProfilesByIds} from './users';
-import {addChannelsInSidebar} from "actions/views/channel_sidebar";
+import {addChannelsInSidebar, moveChannelsInSidebar} from "actions/views/channel_sidebar";
 
 export function selectChannel(channelId: string) {
     return {
@@ -368,6 +368,13 @@ export function convertGroupMessageToPrivateChannel(channelID: string, teamID: s
                 type: ChannelTypes.UPDATE_CHANNEL_SUCCESS,
             },
         ]));
+
+        // move the channel from direct message category to the default "channels" category
+        const channelsCategory = getCategoryInTeamByType(getState(), teamID, CategoryTypes.CHANNELS);
+        if (!channelsCategory) {
+            return
+        }
+        dispatch(moveChannelsInSidebar(channelsCategory.id, 0, channelID, false));
 
         return updatedChannel;
     }

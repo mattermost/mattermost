@@ -61,7 +61,7 @@ export function addChannelsInSidebar(categoryId: string, channelId: string) {
 // moveChannelsInSidebar moves channels to a given category in the sidebar, but it accounts for when the target index
 // may have changed due to archived channels not being shown in the sidebar.
 export function moveChannelsInSidebar(categoryId: string, targetIndex: number, draggableChannelId: string, setManualSorting = true) {
-    console.log(`moveChannelsInSidebar categoryId: ${categoryId}`);
+    console.log(`moveChannelsInSidebar categoryId: ${categoryId} targetIndex: ${targetIndex}, draggableChannelId: ${draggableChannelId}, setManualSorting: ${setManualSorting}`);
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
         const multiSelectedChannelIds = state.views.channelSidebar.multiSelectedChannelIds;
