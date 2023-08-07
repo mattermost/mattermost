@@ -4,11 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       semver_bump:
-        type: string
+        type: choice
         required: false
-        default: patch # https://github.com/actions-ecosystem/action-bump-semver/tree/34e334551143a5301f38c830e44a22273c6ff5c5/#inputs
+        description: The semver update level
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
       commit_sha:
         type: string
+        description: The commit sha to tag. Defaults to HEAD master
         required: false
 
 jobs:
@@ -20,7 +26,6 @@ jobs:
       - name: release/checkout-mattermost
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
         with:
-          ref: ${{ inputs.commit_sha || github.ref_name }}
           fetch-depth: 0
 
       - name: release/find-latest-public-module-tags
@@ -29,20 +34,27 @@ jobs:
 
       - name: release/generate-module-release-notes
         run: |
-          git log --oneline --graph --decorate --abbrev-commit server/public/${{ env.LATEST_MODULE_TAG }}...$(git rev-parse HEAD) server/public
           echo "RELEASE_NOTES<<EOF" >> ${GITHUB_ENV}
-          echo '$(git log --oneline --graph --decorate --abbrev-commit server/public/${{ env.LATEST_MODULE_TAG }}...$(git rev-parse HEAD) server/public)' >> ${GITHUB_ENV}
+          if [ "${{ inputs.commit_sha }}" = "" ]; 
+            then
+              echo "$(git log --oneline --graph --decorate --abbrev-commit server/public/${{ env.LATEST_MODULE_TAG }}...$(git rev-parse HEAD) server/public)" >> ${GITHUB_ENV}
+            else
+              echo "$(git log --oneline --graph --decorate --abbrev-commit server/public/${{ env.LATEST_MODULE_TAG }}...${{ inputs.commit_sha }} server/public)" >> ${GITHUB_ENV}
+          fi
           echo "EOF" >> ${GITHUB_ENV}
 
       - name: release/semver-bump
-        uses: actions-ecosystem/action-bump-semver@34e334551143a5301f38c830e44a22273c6ff5c5 # v1.0.0
+        uses: mattermost/action-bump-semver@51a0e77acb7b1769f17ce3e0ee89f0a3b0978d51
         id: bump-semver
         with:
           current_version: ${{ env.LATEST_MODULE_TAG }}
           level: ${{ inputs.semver_bump }}
 
-      - name: release/create-tag
-        uses: actions-ecosystem/action-push-tag@6e82caefe706f5a729e354df7443dc82f98a414f # v1.0.0
+      - name: release/create-annotated-tag
+        uses: mattermost/actions/delivery/create-tag@93502485eec8db2fd67b54c71a02462e06d0fa46
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag: "server/public/${{ steps.bump-semver.outputs.new_version }}"
+          tag: server/public/${{ steps.bump-semver.outputs.new_version }}
           message: ${{ env.RELEASE_NOTES }}
+          commit_sha: ${{ inputs.commit_sha || github.sha }}
