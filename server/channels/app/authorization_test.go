@@ -185,6 +185,25 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
 	})
 
+	t.Run("test user manager access", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserManagerRoleId,
+		}
+
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.NotNil(t, err)
+		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+		assert.NoError(t, err.Unwrap())
+
+		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.SystemUserManagerRoleId)
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.Nil(t, err)
+
+		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser.Id))
+		th.RemovePermissionFromRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+	})
+
 	t.Run("test sysadmin role", func(t *testing.T) {
 		session := model.Session{
 			UserId: th.SystemAdminUser.Id,
