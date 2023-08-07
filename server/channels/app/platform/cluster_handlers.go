@@ -159,11 +159,11 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 }
 
 func (ps *PlatformService) LoadLicenseClusterHandler(_ *model.ClusterMessage) {
-	ps.LoadLicense()
+	ps.loadLicense()
 }
 
 func (ps *PlatformService) TriggerLoadLicense() {
-	ps.LoadLicense()
+	ps.loadLicense()
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{

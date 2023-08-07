@@ -46,7 +46,7 @@ func (ps *PlatformService) License() *model.License {
 	return ps.licenseValue.Load()
 }
 
-func (ps *PlatformService) LoadLicense() {
+func (ps *PlatformService) loadLicense() {
 	// ENV var overrides all other sources of license.
 	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
