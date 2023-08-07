@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUpAndDownMigrations(t *testing.T) {
@@ -23,7 +24,8 @@ func TestUpAndDownMigrations(t *testing.T) {
 				t.Skip(err)
 			}
 
-			store := New(*settings, nil)
+			store, err := New(*settings, nil)
+			require.NoError(t, err)
 			defer store.Close()
 
 			err = store.migrate(migrationsDirectionDown, false)

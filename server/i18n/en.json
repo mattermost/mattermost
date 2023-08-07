@@ -812,6 +812,46 @@
     "translation": "An error occurred while expanding previews."
   },
   {
+    "id": "api.command_exportlink.desc",
+    "translation": "Generate a link to download a export."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "The file store driver does not support link generation."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "No export file has been found."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip filename|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Unable to find the file you requested."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "You can download your file here: {{.Link}}.\nThis link will expire in {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Unable to retrieve the export list."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "You don't have enough permissions to run this command."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Unable to generate presign url."
+  },
+  {
     "id": "api.command_groupmsg.desc",
     "translation": "Sends a Group Message to the specified users"
   },
@@ -1936,10 +1976,6 @@
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
     "translation": "Invalid username."
-  },
-  {
-    "id": "api.insights.feature_disabled",
-    "translation": "Insights is behind a feature flag which is not enabled."
   },
   {
     "id": "api.invalid_channel",
@@ -5108,6 +5144,30 @@
     "translation": "Unable to get the emoji."
   },
   {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "This actions requires the use of a dedicated export store."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Your export store driver does not support presign url generation."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "This feature is restricted by a feature flag."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Unable to check if the file exists."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Unable to generate the presigned url."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "The export file was not found."
+  },
+  {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Failed to copy file during export."
   },
@@ -5768,10 +5828,6 @@
     "translation": "insert error"
   },
   {
-    "id": "app.insights.feature_disabled",
-    "translation": "Insights feature is disabled."
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
@@ -6232,18 +6288,6 @@
     "translation": "Unable to get the posts for the channel."
   },
   {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "Unable to get top DMs for user."
-  },
-  {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "Unable to get top threads for team."
-  },
-  {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "Unable to get top threads for user."
-  },
-  {
     "id": "app.post.marshal.app_error",
     "translation": "Failed to marshal post."
   },
@@ -6338,10 +6382,6 @@
   {
     "id": "app.reaction.save.save.app_error",
     "translation": "Unable to save reaction."
-  },
-  {
-    "id": "app.recent_searches.app_error",
-    "translation": "Error fetching recent searches"
   },
   {
     "id": "app.recover.delete.app_error",
@@ -9012,10 +9052,6 @@
     "translation": "Invalid username."
   },
   {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "Invalid time range."
-  },
-  {
     "id": "model.job.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
@@ -9757,7 +9793,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 110+"
+    "translation": "Version 112+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

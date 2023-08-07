@@ -127,21 +127,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            client.Login("email@domain.com", "Password1")
-
-            ephemeralPost := &model.PostEphemeral{
-              UserID: "<ID OF THE USER THAT WOULD RECEIVE THE POST>",
-              Post: &model.Post{
-                ChannelId: "<ID OF CHANNEL>",
-                Message:   "<YOUR MESSAGE>",
-              },
-            }
-
-            createdPost, response := client.CreatePostEphemeral(ephemeralPost)
   "/api/v4/posts/{post_id}":
     get:
       tags:

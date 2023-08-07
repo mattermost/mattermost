@@ -41,10 +41,6 @@ type FeatureFlags struct {
 	// Enable GraphQL feature
 	GraphQL bool
 
-	InsightsEnabled bool
-
-	CommandPalette bool
-
 	PostPriority bool
 
 	// Enable WYSIWYG text editor
@@ -57,6 +53,8 @@ type FeatureFlags struct {
 	DeprecateCloudFree bool
 
 	CloudReverseTrial bool
+
+	EnableExportDirectDownload bool
 
 	DataRetentionConcurrencyEnabled bool
 }
@@ -71,14 +69,13 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.GraphQL = false
-	f.InsightsEnabled = false
-	f.CommandPalette = false
 	f.CallsEnabled = true
 	f.PeopleProduct = false
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
+	f.EnableExportDirectDownload = false
 	f.DataRetentionConcurrencyEnabled = true
 }
 
