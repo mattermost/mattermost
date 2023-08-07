@@ -142,13 +142,11 @@ func TestPostSanitizeProps(t *testing.T) {
 	require.NotNil(t, post3.GetProp("attachments"))
 }
 
-func TestPostContainsWebhookReservedProps(t *testing.T) {
+func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
 	post1 := &Post{
 		Message: "test",
 	}
-
 	keys1 := post1.ContainsIntegrationsReservedProps()
-
 	require.Len(t, keys1, 0)
 
 	post2 := &Post{
@@ -161,19 +159,22 @@ func TestPostContainsWebhookReservedProps(t *testing.T) {
 			"override_icon_emoji":  ":custom_emoji_name:",
 		},
 	}
-
 	keys2 := post2.ContainsIntegrationsReservedProps()
-
 	require.Len(t, keys2, 5)
+}
 
-	postPatch := &PostPatch{
+func TestPostPatch_ContainsIntegrationsReservedProps(t *testing.T) {
+	postPatch1 := &PostPatch{
 		Props: &StringInterface{
 			"from_webhook": "true",
 		},
 	}
-	keys3 := postPatch.ContainsIntegrationsReservedProps()
+	keys1 := postPatch1.ContainsIntegrationsReservedProps()
+	require.Len(t, keys1, 1)
 
-	require.Len(t, keys3, 1)
+	postPatch2 := &PostPatch{}
+	keys2 := postPatch2.ContainsIntegrationsReservedProps()
+	require.Len(t, keys2, 0)
 }
 
 func TestPost_AttachmentsEqual(t *testing.T) {

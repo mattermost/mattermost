@@ -476,6 +476,9 @@ func (o *Post) ContainsIntegrationsReservedProps() []string {
 }
 
 func (o *PostPatch) ContainsIntegrationsReservedProps() []string {
+	if o == nil || o.Props == nil {
+		return nil
+	}
 	return containsIntegrationsReservedProps(*o.Props)
 }
 
