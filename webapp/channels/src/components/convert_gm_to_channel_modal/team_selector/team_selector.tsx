@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from "react";
-import DropdownInput, {ValueType} from "components/dropdown_input";
-import {Team} from "@mattermost/types/teams";
-import {useIntl} from "react-intl";
-import {OptionType} from "@mui/base";
+import React, {useCallback, useEffect, useState} from 'react';
+import DropdownInput, {ValueType} from 'components/dropdown_input';
+import {Team} from '@mattermost/types/teams';
+import {useIntl} from 'react-intl';
 
 export type Props = {
-    teamsById: {[id: string]: Team}
-    onChange: (teamId: string) => void
+    teamsById: {[id: string]: Team};
+    onChange: (teamId: string) => void;
 }
 
 const TeamSelector = (props: Props): JSX.Element => {
@@ -18,18 +17,17 @@ const TeamSelector = (props: Props): JSX.Element => {
     const {formatMessage} = intl;
 
     const handleTeamChange = useCallback((e) => {
-        console.log('handleTeamChange');
-        const teamId = e.value as string
+        const teamId = e.value as string;
 
         setValue(props.teamsById[teamId]);
         props.onChange(teamId);
-    }, [])
+    }, []);
 
-    const [options, setOptions]= useState<ValueType[]>([])
+    const [options, setOptions] = useState<ValueType[]>([]);
 
     useEffect(() => {
-        setOptions(Object.values(props.teamsById).map(team => ({value: team.id, label: team.display_name})))
-    }, [props.teamsById])
+        setOptions(Object.values(props.teamsById).map((team) => ({value: team.id, label: team.display_name})));
+    }, [props.teamsById]);
 
     return (
         <DropdownInput
@@ -42,7 +40,7 @@ const TeamSelector = (props: Props): JSX.Element => {
             placeholder={formatMessage({id: 'sidebar_left.sidebar_channel_modal.select_team_placeholder', defaultMessage: 'Select Team'})}
             name='team_selector'
         />
-    )
-}
+    );
+};
 
 export default TeamSelector;

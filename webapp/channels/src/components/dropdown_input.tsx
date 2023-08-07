@@ -6,9 +6,9 @@ import ReactSelect, {Props as SelectProps, ActionMeta, components} from 'react-s
 import classNames from 'classnames';
 
 import './dropdown_input.scss';
-import {useIntl} from "react-intl";
-import {CustomMessageInputType} from "components/widgets/inputs/input/input";
-import {ItemStatus} from "utils/constants";
+import {useIntl} from 'react-intl';
+import {CustomMessageInputType} from 'components/widgets/inputs/input/input';
+import {ItemStatus} from 'utils/constants';
 
 // TODO: This component needs work, should not be used outside of AddressInfo until this comment is removed.
 
@@ -107,20 +107,19 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
     const [customInputLabel, setCustomInputLabel] = useState<CustomMessageInputType>(null);
     const [ownValue, setOwnValue] = useState<T>();
 
-    const ownOnChange =  (value: T, action: ActionMeta<T>) => {
+    const ownOnChange = (value: T, action: ActionMeta<T>) => {
         setOwnValue(value);
         onChange(value, action);
-
-    }
+    };
     const validateInput = () => {
-        if (!props.required || ownValue !== null && ownValue) {
+        if (!props.required || (ownValue !== null && ownValue)) {
             setCustomInputLabel(null);
             return;
         }
 
         const validationErrorMsg = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
         setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
-    }
+    };
 
     const onInputBlur = (event: React.FocusEvent<HTMLElement>) => {
         const {onBlur} = props;
@@ -168,6 +167,7 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
                         className={classNames('Input', className, {Input__focus: showLegend})}
                         classNamePrefix={'DropDown'}
                         value={value}
+
                         // onChange={onChange as any} // types are not working correctly for multiselect
                         onChange={ownOnChange as any} // types are not working correctly for multiselect
                         styles={{...baseStyles, ...styles}}

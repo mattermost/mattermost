@@ -1,15 +1,22 @@
-import {GlobalState} from "types/store";
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from "redux";
-import {connect} from "react-redux";
-import ConvertGmToChannelModal, { Props } from "components/convert_gm_to_channel_modal/convert_gm_to_channel_modal";
-import {Action} from "mattermost-redux/types/actions";
-import {closeModal} from "actions/views/modals";
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {GlobalState} from 'types/store';
+import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {connect} from 'react-redux';
+import ConvertGmToChannelModal, {Props} from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
+import {Action} from 'mattermost-redux/types/actions';
+import {closeModal} from 'actions/views/modals';
 import {
     getCurrentUserId,
-    makeGetProfilesInChannel
-} from "mattermost-redux/selectors/entities/users";
-import {getTeammateNameDisplaySetting} from "mattermost-redux/selectors/entities/preferences";
-import {convertGroupMessageToPrivateChannel} from "mattermost-redux/actions/channels";
+    makeGetProfilesInChannel,
+} from 'mattermost-redux/selectors/entities/users';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {convertGroupMessageToPrivateChannel} from 'mattermost-redux/actions/channels';
+import {moveChannelsInSidebar} from 'actions/views/channel_sidebar';
+import {getCategoryInTeamByType} from 'mattermost-redux/selectors/entities/channel_categories';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const allProfilesInChannel = makeGetProfilesInChannel()(state, ownProps.channel.id);
@@ -18,17 +25,21 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         (user) => user.id !== currentUserId && user.delete_at === 0,
     );
 
-    const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state)
+    const currentTeamId = getCurrentTeamId(state);
+    const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state);
+    const channelsCategoryId = getCategoryInTeamByType(state, currentTeamId, CategoryTypes.CHANNELS);
 
     return {
         profilesInChannel: validProfilesInChannel,
-        teammateNameDisplaySetting: teammateNameDisplaySetting,
-    }
+        teammateNameDisplaySetting,
+        channelsCategoryId,
+    };
 }
 
 export type Actions = {
-    closeModal: (modalID: string) => void,
-    convertGroupMessageToPrivateChannel: (channelID: string, teamID: string, displayName: string, name: string) => void,
+    closeModal: (modalID: string) => void;
+    convertGroupMessageToPrivateChannel: (channelID: string, teamID: string, displayName: string, name: string) => void;
+    moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string, setManualSorting?: boolean) => void;
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
@@ -36,8 +47,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
             closeModal,
             convertGroupMessageToPrivateChannel,
-        }, dispatch)
-    }
+            moveChannelsInSidebar,
+        }, dispatch),
+    };
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(ConvertGmToChannelModal);

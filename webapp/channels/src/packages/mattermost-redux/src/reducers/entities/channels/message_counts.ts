@@ -21,7 +21,6 @@ import {RelationOneToOne} from '@mattermost/types/utilities';
 export default function messageCounts(state: RelationOneToOne<Channel, ChannelMessageCount> = {}, action: GenericAction): RelationOneToOne<Channel, ChannelMessageCount> {
     switch (action.type) {
     case ChannelTypes.RECEIVED_CHANNEL: {
-        console.log('CCCCCCC');
         const channel: ServerChannel = action.data;
 
         return updateMessageCount(state, channel);

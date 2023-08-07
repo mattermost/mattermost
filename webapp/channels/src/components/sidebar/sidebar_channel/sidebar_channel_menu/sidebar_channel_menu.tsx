@@ -26,7 +26,7 @@ import Constants, {ModalIdentifiers} from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
 
 import type {PropsFromRedux, OwnProps} from './index';
-import ConvertGmToChannelModal from "components/convert_gm_to_channel_modal";
+import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal';
 
 type Props = PropsFromRedux & OwnProps;
 
@@ -269,7 +269,7 @@ const SidebarChannelMenu = (props: Props) => {
 
     let convertToChannelMenuItem: JSX.Element | null = null;
     if (props.channel.type === Constants.GM_CHANNEL) {
-        let convertToChannelText = (
+        const convertToChannelText = (
             <FormattedMessage
                 id='sidebar_left.sidebar_channel_menu_convert_to_channel'
                 defaultMessage='Convert to Private Channel'
@@ -287,12 +287,12 @@ const SidebarChannelMenu = (props: Props) => {
 
         convertToChannelMenuItem = (
             <Menu.Item
-                id={`sidebar_left.sidebar_channel_menu_convert_to_channel`}
+                id={'sidebar_left.sidebar_channel_menu_convert_to_channel'}
                 aria-haspopup='true'
                 labels={convertToChannelText}
                 onClick={handleConvertGmToChannel}
             />
-        )
+        );
     }
 
     return (

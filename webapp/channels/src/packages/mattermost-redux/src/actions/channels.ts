@@ -46,7 +46,6 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 import {savePreferences} from './preferences';
 import {loadRolesIfNeeded} from './roles';
 import {getMissingProfilesByIds} from './users';
-import {addChannelsInSidebar, moveChannelsInSidebar} from "actions/views/channel_sidebar";
 
 export function selectChannel(channelId: string) {
     return {
@@ -372,12 +371,11 @@ export function convertGroupMessageToPrivateChannel(channelID: string, teamID: s
         // move the channel from direct message category to the default "channels" category
         const channelsCategory = getCategoryInTeamByType(getState(), teamID, CategoryTypes.CHANNELS);
         if (!channelsCategory) {
-            return
+            return {};
         }
-        dispatch(moveChannelsInSidebar(channelsCategory.id, 0, channelID, false));
 
         return updatedChannel;
-    }
+    };
 }
 
 export function updateChannelNotifyProps(userId: string, channelId: string, props: Partial<ChannelNotifyProps>): ActionFunc {

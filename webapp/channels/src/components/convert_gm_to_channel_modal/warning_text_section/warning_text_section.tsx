@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FormattedMessage, useIntl} from "react-intl";
-import React from "react";
+import {FormattedMessage, useIntl} from 'react-intl';
+import React from 'react';
 
 import 'components/convert_gm_to_channel_modal/warning_text_section/warning_text_section.scss';
 
 export type Props = {
-    channelMemberNames: string[]
+    channelMemberNames: string[];
 }
 const WarningTextSection = (props: Props): JSX.Element => {
-    const intl = useIntl()
+    const intl = useIntl();
 
     return (
         <div className='warning-section'>
@@ -33,6 +33,6 @@ const WarningTextSection = (props: Props): JSX.Element => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 export default WarningTextSection;

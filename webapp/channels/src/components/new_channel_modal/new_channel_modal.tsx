@@ -7,13 +7,10 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
 
 import classNames from 'classnames';
-import crypto from 'crypto';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import {GenericModal} from '@mattermost/components';
-import Input from 'components/widgets/inputs/input/input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
-import URLInput from 'components/widgets/inputs/url_input/url_input';
 
 import Pluggable from 'plugins/pluggable';
 
@@ -31,8 +28,7 @@ import {closeModal} from 'actions/views/modals';
 
 import {GlobalState} from 'types/store';
 
-import Constants, {ItemStatus, ModalIdentifiers} from 'utils/constants';
-import {cleanUpUrlable, validateChannelUrl, getSiteURL} from 'utils/url';
+import Constants, {ModalIdentifiers} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
 import {Board} from '@mattermost/types/boards';
@@ -40,7 +36,7 @@ import {ChannelType, Channel} from '@mattermost/types/channels';
 import {ServerError} from '@mattermost/types/errors';
 
 import './new_channel_modal.scss';
-import ChannelNameFormField from "components/channel_name_form_field/chanenl_name_form_field";
+import ChannelNameFormField from 'components/channel_name_form_field/chanenl_name_form_field';
 
 export function getChannelTypeFromPermissions(canCreatePublicChannel: boolean, canCreatePrivateChannel: boolean) {
     let channelType = Constants.OPEN_CHANNEL;
@@ -81,7 +77,7 @@ const NewChannelModal = () => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
-    const {id: currentTeamId, name: currentTeamName} = useSelector((state: GlobalState) => getCurrentTeam(state));
+    const {id: currentTeamId} = useSelector((state: GlobalState) => getCurrentTeam(state));
 
     const canCreatePublicChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PUBLIC_CHANNEL) : false));
     const canCreatePrivateChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PRIVATE_CHANNEL) : false));
@@ -91,9 +87,6 @@ const NewChannelModal = () => {
     const [displayName, setDisplayName] = useState('');
     const [url, setURL] = useState('');
     const [purpose, setPurpose] = useState('');
-    // const [displayNameModified, setDisplayNameModified] = useState(false);
-    const [urlModified, setURLModified] = useState(false);
-    const [displayNameError, setDisplayNameError] = useState('');
     const [urlError, setURLError] = useState('');
     const [purposeError, setPurposeError] = useState('');
     const [serverError, setServerError] = useState('');
@@ -258,7 +251,7 @@ const NewChannelModal = () => {
 
     const handleOnURLChange = (updatedURL: string) => {
         setURL(updatedURL);
-    }
+    };
 
     const handleOnTypeChange = (channelType: ChannelType) => {
         setType(channelType);
@@ -279,7 +272,7 @@ const NewChannelModal = () => {
         e.stopPropagation();
     };
 
-    const canCreate = displayName && !displayNameError && !urlError && type && !purposeError && !serverError && canCreateFromPluggable;
+    const canCreate = displayName && !urlError && type && !purposeError && !serverError && canCreateFromPluggable;
 
     const newBoardInfoIcon = (
         <OverlayTrigger
@@ -309,8 +302,8 @@ const NewChannelModal = () => {
     );
 
     const onChannelDisplayNameChanged = useCallback((newName: string) => {
-        setDisplayName(newName)
-    }, [])
+        setDisplayName(newName);
+    }, []);
 
     return (
         <GenericModal

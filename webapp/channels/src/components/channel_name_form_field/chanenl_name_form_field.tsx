@@ -1,27 +1,28 @@
-import Input from "components/widgets/inputs/input/input";
-import Constants, {ItemStatus} from "utils/constants";
-import React, {useState} from "react";
-import {cleanUpUrlable, getSiteURL, validateChannelUrl} from "utils/url";
-import {validateDisplayName} from "components/new_channel_modal/new_channel_modal";
-import crypto from "crypto";
-import URLInput from "components/widgets/inputs/url_input/url_input";
-import {useSelector} from "react-redux";
-import {GlobalState} from "types/store";
-import {getCurrentTeam} from "mattermost-redux/selectors/entities/teams";
-import {useIntl} from "react-intl";
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import Input from 'components/widgets/inputs/input/input';
+import Constants, {ItemStatus} from 'utils/constants';
+import React, {useState} from 'react';
+import {cleanUpUrlable, getSiteURL, validateChannelUrl} from 'utils/url';
+import {validateDisplayName} from 'components/new_channel_modal/new_channel_modal';
+import crypto from 'crypto';
+import URLInput from 'components/widgets/inputs/url_input/url_input';
+import {useSelector} from 'react-redux';
+import {GlobalState} from 'types/store';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {useIntl} from 'react-intl';
 
 export type Props = {
-    value: string
-    name: string
-    placeholder: string
-    onDisplayNameChange: (name: string) => void
-    onURLChange: (url: string) => void
-    autoFocus?: boolean
+    value: string;
+    name: string;
+    placeholder: string;
+    onDisplayNameChange: (name: string) => void;
+    onURLChange: (url: string) => void;
+    autoFocus?: boolean;
 }
 
 import './channel_name_form_field.scss';
-import {bool} from "yup";
-import {clean} from "semver";
 
 const ChannelNameFormField = (props: Props): JSX.Element => {
     const {value, name, placeholder, onDisplayNameChange} = props;
@@ -32,12 +33,11 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
     const [displayNameModified, setDisplayNameModified] = useState(false);
     const [displayNameError, setDisplayNameError] = useState('');
     const [displayName, setDisplayName] = useState('');
-    const [serverError, setServerError] = useState('');
     const [urlModified, setURLModified] = useState(false);
     const [url, setURL] = useState('');
     const [urlError, setURLError] = useState('');
 
-    const {id: currentTeamId, name: currentTeamName} = useSelector((state: GlobalState) => getCurrentTeam(state));
+    const {name: currentTeamName} = useSelector((state: GlobalState) => getCurrentTeam(state));
 
     const handleOnDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
@@ -47,11 +47,10 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
 
         setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
         setDisplayName(displayName);
-        setServerError('');
         onDisplayNameChange(displayName);
 
         if (!urlModified) {
-            const cleanURL = cleanUpUrlable(displayName)
+            const cleanURL = cleanUpUrlable(displayName);
             setURL(cleanURL);
             setURLError('');
             props.onURLChange(cleanURL);
@@ -77,7 +76,6 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
         setURL(cleanURL);
         setURLModified(true);
-        setServerError('');
         props.onURLChange(cleanURL);
     };
 
@@ -112,6 +110,6 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         </React.Fragment>
 
     );
-}
+};
 
 export default ChannelNameFormField;
