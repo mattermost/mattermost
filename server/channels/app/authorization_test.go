@@ -191,6 +191,11 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 			Roles:  model.SystemUserManagerRoleId,
 		}
 
+		err = th.App.SessionHasPermissionToManageBot(session, "12345")
+		assert.NotNil(t, err)
+		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+		assert.Error(t, err.Unwrap())
+
 		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
 		assert.NotNil(t, err)
 		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
