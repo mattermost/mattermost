@@ -48,15 +48,14 @@ const PostFlagIcon = ({
         }
     }, [flagPost, unflagPost, postId, isFlagged]);
 
-    const handleA11yActivateEvent = () => {
-        setA11yActive(true);
-    };
-
-    const handleA11yDeactivateEvent = () => {
-        setA11yActive(false);
-    };
-
     useEffect(() => {
+        const handleA11yActivateEvent = () => {
+            setA11yActive(true);
+        };
+        const handleA11yDeactivateEvent = () => {
+            setA11yActive(false);
+        };
+
         if (buttonRef.current) {
             buttonRef.current.addEventListener(A11yCustomEventTypes.ACTIVATE, handleA11yActivateEvent);
             buttonRef.current.addEventListener(A11yCustomEventTypes.DEACTIVATE, handleA11yDeactivateEvent);
