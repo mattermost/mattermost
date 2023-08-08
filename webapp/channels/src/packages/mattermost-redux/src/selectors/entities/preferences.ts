@@ -5,8 +5,6 @@ import {General, Preferences} from 'mattermost-redux/constants';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {PreferenceType} from '@mattermost/types/preferences';
 import {GlobalState} from '@mattermost/types/store';
@@ -248,13 +246,6 @@ export function getIsOnboardingFlowEnabled(state: GlobalState): boolean {
     return getConfig(state).EnableOnboardingFlow === 'true';
 }
 
-export function insightsAreEnabled(state: GlobalState): boolean {
-    const isConfiguredForFeature = getConfig(state).InsightsEnabled === 'true';
-    const featureIsEnabled = getFeatureFlagValue(state, 'InsightsEnabled') === 'true';
-    const currentUserIsGuest = isGuest(getCurrentUser(state).roles);
-    return featureIsEnabled && isConfiguredForFeature && !currentUserIsGuest;
-}
-
 export function isGraphQLEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'GraphQL') === 'true';
 }
@@ -264,22 +255,14 @@ export function getHasDismissedSystemConsoleLimitReached(state: GlobalState): bo
 }
 
 export function syncedDraftsAreAllowed(state: GlobalState): boolean {
-    const isFeatureEnabled = getFeatureFlagValue(state, 'GlobalDrafts') === 'true';
-    const isConfiguredForFeature = getConfig(state).AllowSyncedDrafts === 'true';
-
-    return isFeatureEnabled && isConfiguredForFeature;
+    return getConfig(state).AllowSyncedDrafts === 'true';
 }
 
 export function syncedDraftsAreAllowedAndEnabled(state: GlobalState): boolean {
-    const isFeatureEnabled = getFeatureFlagValue(state, 'GlobalDrafts') === 'true';
     const isConfiguredForFeature = getConfig(state).AllowSyncedDrafts === 'true';
     const isConfiguredForUser = getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_SYNC_DRAFTS, true);
 
-    return isFeatureEnabled && isConfiguredForFeature && isConfiguredForUser;
-}
-
-export function localDraftsAreEnabled(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'GlobalDrafts') === 'true';
+    return isConfiguredForFeature && isConfiguredForUser;
 }
 
 export function getVisibleDmGmLimit(state: GlobalState) {

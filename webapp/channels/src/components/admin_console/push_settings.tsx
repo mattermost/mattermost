@@ -359,7 +359,6 @@ export default class PushSettings extends AdminSettings<Props, State> {
                     onChange={this.handleChange}
                     disabled={this.props.isDisabled || this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_CUSTOM}
                     setByEnv={this.isSetByEnv('EmailSettings.PushNotificationServer')}
-                    type='input'
                 />
                 <TextSetting
                     id='maxNotificationsPerChannel'

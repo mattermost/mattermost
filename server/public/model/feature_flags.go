@@ -33,9 +33,6 @@ type FeatureFlags struct {
 	// CallsEnabled controls whether or not the Calls plugin should be enabled
 	CallsEnabled bool
 
-	// A dash separated list for feature flags to turn on for Boards
-	BoardsFeatureFlags string
-
 	// Enable DataRetention for Boards
 	BoardsDataRetention bool
 
@@ -44,10 +41,6 @@ type FeatureFlags struct {
 	// Enable GraphQL feature
 	GraphQL bool
 
-	InsightsEnabled bool
-
-	CommandPalette bool
-
 	PostPriority bool
 
 	// Enable WYSIWYG text editor
@@ -55,13 +48,15 @@ type FeatureFlags struct {
 
 	PeopleProduct bool
 
-	GlobalDrafts bool
-
 	OnboardingTourTips bool
 
 	DeprecateCloudFree bool
 
 	CloudReverseTrial bool
+
+	EnableExportDirectDownload bool
+
+	DataRetentionConcurrencyEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -71,20 +66,17 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = true
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
-	f.BoardsFeatureFlags = ""
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.GraphQL = false
-	f.InsightsEnabled = false
-	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.PostPriority = true
 	f.PeopleProduct = false
-	f.GlobalDrafts = true
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
+	f.EnableExportDirectDownload = false
+	f.DataRetentionConcurrencyEnabled = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

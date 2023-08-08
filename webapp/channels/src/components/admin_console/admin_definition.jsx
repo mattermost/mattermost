@@ -55,14 +55,14 @@ import TeamSettings from './team_channel_settings/team';
 import TeamDetails from './team_channel_settings/team/details';
 import ChannelSettings from './team_channel_settings/channel';
 import ChannelDetails from './team_channel_settings/channel/details';
-import PasswordSettings from './password_settings.jsx';
+import PasswordSettings from './password_settings';
 import PushNotificationsSettings from './push_settings';
 import DataRetentionSettings from './data_retention_settings';
 import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
 import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
 import MessageExportSettings from './message_export_settings.jsx';
 import DatabaseSettings from './database_settings.jsx';
-import ElasticSearchSettings from './elasticsearch_settings.jsx';
+import ElasticSearchSettings from './elasticsearch_settings';
 import BleveSettings from './bleve_settings';
 import FeatureFlags from './feature_flags.tsx';
 import ClusterSettings from './cluster_settings.jsx';
@@ -2137,6 +2137,16 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_TEXT,
+                        key: 'SupportSettings.ForgotPasswordLink',
+                        label: t('admin.support.forgotPasswordTitle'),
+                        label_default: 'Forgot Password Custom Link:',
+                        help_text: t('admin.support.forgotPasswordDesc'),
+                        help_text_default: 'The URL for the Forgot Password link on the Mattermost login page. If this field is empty the Forgot Password link takes users to the Password Reset page.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_TEXT,
                         key: 'SupportSettings.ReportAProblemLink',
                         label: t('admin.support.problemTitle'),
                         label_default: 'Report a Problem Link:',
@@ -3068,12 +3078,6 @@ const AdminDefinition = {
                         help_text: t('admin.customization.allowSyncedDraftsDesc'),
                         help_text_default: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.',
                         help_text_markdown: false,
-                        isHidden: it.any(
-                            it.configIsFalse('FeatureFlags', 'GlobalDrafts'),
-                        ),
-                        isDisabled: it.any(
-                            it.configIsFalse('FeatureFlags', 'GlobalDrafts'),
-                        ),
                     },
                 ],
             },

@@ -64,5 +64,5 @@ func initStoreCommandContextCobra(command *cobra.Command) (store.Store, error) {
 	}
 
 	config := cfgStore.Get()
-	return sqlstore.New(config.SqlSettings, nil), nil
+	return sqlstore.New(config.SqlSettings, nil)
 }

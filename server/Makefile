@@ -161,13 +161,13 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.16.1
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.18.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.6
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.37.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.38.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
@@ -177,7 +177,7 @@ PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.2
-PLUGIN_PACKAGES += focalboard-v7.11.0
+PLUGIN_PACKAGES += focalboard-v7.11.2
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -332,11 +332,11 @@ app-layers: ## Extract interface from App struct
 	$(GO) run ./channels/app/layer_generators -in ./channels/app/app_iface.go -out ./channels/app/opentracing/opentracing_layer.go -template ./channels/app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
-	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@mono-repo
+	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
 
 i18n-check: ## Exit on empty translation strings and translation source strings
-	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@mono-repo
+	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
 	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 
