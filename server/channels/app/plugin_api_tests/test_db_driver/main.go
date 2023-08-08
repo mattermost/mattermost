@@ -31,7 +31,10 @@ func (p *MyPlugin) OnConfigurationChange() error {
 func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
 	settings := p.API.GetUnsanitizedConfig().SqlSettings
 	settings.Trace = model.NewBool(false)
-	store := sqlstore.New(settings, nil)
+	store, err := sqlstore.New(settings, nil)
+	if err != nil {
+		panic(err)
+	}
 	store.GetMasterX().Close()
 
 	for _, isMaster := range []bool{true, false} {
