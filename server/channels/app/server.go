@@ -1235,6 +1235,7 @@ func runConfigCleanupJob(s *Server) {
 }
 
 func (s *Server) runLicenseExpirationCheckJob() {
+	s.doLicenseExpirationCheck()
 	model.CreateRecurringTask("License Expiration Check", func() {
 		s.doLicenseExpirationCheck()
 	}, time.Hour*24)
@@ -1376,8 +1377,6 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 }
 
 func (s *Server) doLicenseExpirationCheck() {
-	s.platform.TriggerLoadLicense()
-
 	// This takes care of a rare edge case reported here https://mattermost.atlassian.net/browse/MM-40962
 	// To reproduce that case locally, attach a license to a server that was started with enterprise enabled
 	// Then restart using BUILD_ENTERPRISE=false make restart-server to enter Team Edition
@@ -1387,7 +1386,6 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 
 	license := s.License()
-
 	if license == nil {
 		mlog.Debug("License cannot be found.")
 		return
