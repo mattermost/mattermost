@@ -259,6 +259,58 @@ func TestUpdateChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+	t.Run("Should block changes to name, display name or purpose for group messages", func(t *testing.T) {
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		user3 := th.CreateUser()
+
+		client.Logout(context.Background())
+		client.Login(context.Background(), user1.Email, user1.Password)
+
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{user1.Id, user2.Id, user3.Id})
+		require.NoError(t, err)
+
+		updatedChannel := &model.Channel{Id: groupChannel.Id, Name: "test name"}
+		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		updatedChannel2 := &model.Channel{Id: groupChannel.Id, DisplayName: "test display name"}
+		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel2)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		updatedChannel3 := &model.Channel{Id: groupChannel.Id, Purpose: "test purpose"}
+		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel3)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Should block changes to name, display name or purpose for direct messages", func(t *testing.T) {
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+
+		client.Logout(context.Background())
+		client.Login(context.Background(), user1.Email, user1.Password)
+
+		directChannel, _, err := client.CreateDirectChannel(context.Background(), user1.Id, user2.Id)
+		require.NoError(t, err)
+
+		updatedChannel := &model.Channel{Id: directChannel.Id, Name: "test name"}
+		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		updatedChannel2 := &model.Channel{Id: directChannel.Id, DisplayName: "test display name"}
+		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel2)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		updatedChannel3 := &model.Channel{Id: directChannel.Id, Purpose: "test purpose"}
+		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel3)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestPatchChannel(t *testing.T) {
