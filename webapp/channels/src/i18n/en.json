@@ -4194,8 +4194,6 @@
   "onboardingTask.completeYourProfileTour.title": "Edit your profile",
   "onboardingTask.visitSystemConsole.Description": "More detailed configuration settings for your workspace can be accessed here.",
   "onboardingTask.visitSystemConsole.title": "Visit the System Console",
-  "onboardingTour.BoardsTourTip.Boards": "Keep every project organized with kanban-style boards that integrate tightly with channel-based collaboration.",
-  "onboardingTour.BoardsTourTip.title": "Manage tasks with Boards",
   "onboardingTour.ChannelsAndDirectMessagesTour.channels": "Channels are where you can communicate with your team about a topic or project.",
   "onboardingTour.ChannelsAndDirectMessagesTour.directMessages": "<b>Direct messages</b> are for private conversations between individuals or small groups.",
   "onboardingTour.ChannelsAndDirectMessagesTour.firstChannel": "Hey look, there’s your **{firstChannelName}** channel! ",
