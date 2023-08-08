@@ -161,7 +161,7 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.17.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.18.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
@@ -813,7 +813,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 mmctl-build: ## Compiles and generates the mmctl binary
-	GOOS=linux go build -trimpath -ldflags '$(LDFLAGS)' -o bin/mmctl ./cmd/mmctl
+	go build -trimpath -ldflags '$(LDFLAGS)' -o bin/mmctl ./cmd/mmctl
 
 mmctl-docs: ## Generate the mmctl docs
 	rm -rf ./cmd/mmctl/docs
