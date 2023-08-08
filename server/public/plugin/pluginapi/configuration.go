@@ -1,13 +1,8 @@
 package pluginapi
 
 import (
-	"bytes"
-	"encoding/json"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
-	"github.com/mattermost/mattermost/server/v8/config"
-	"github.com/pkg/errors"
 )
 
 // ConfigurationService exposes methods to manipulate the server and plugin configuration.
@@ -57,37 +52,4 @@ func (c *ConfigurationService) GetPluginConfig() map[string]interface{} {
 // Minimum server version: 5.6
 func (c *ConfigurationService) SavePluginConfig(cfg map[string]interface{}) error {
 	return normalizeAppErr(c.api.SavePluginConfig(cfg))
-}
-
-// CheckRequiredServerConfiguration checks if the server is configured according to
-// plugin requirements.
-//
-// Minimum server version: 5.2
-func (c *ConfigurationService) CheckRequiredServerConfiguration(req *model.Config) (bool, error) {
-	if req == nil {
-		return true, nil
-	}
-
-	cfg := c.api.GetConfig()
-
-	mergedCfg, err := config.Merge(cfg, req, nil)
-	if err != nil {
-		return false, errors.Wrap(err, "could not merge configurations")
-	}
-
-	mergedCfgJSON, err := json.Marshal(mergedCfg)
-	if err != nil {
-		return false, errors.Wrap(err, "failed to marshal merged config")
-	}
-
-	cjfJSON, err := json.Marshal(cfg)
-	if err != nil {
-		return false, errors.Wrap(err, "failed to marshal config")
-	}
-
-	if !bytes.Equal(mergedCfgJSON, cjfJSON) {
-		return false, nil
-	}
-
-	return true, nil
 }
