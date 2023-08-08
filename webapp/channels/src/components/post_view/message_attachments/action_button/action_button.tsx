@@ -25,7 +25,7 @@ export default class ActionButton extends React.PureComponent<Props> {
             good: '#00c100',
             warning: '#dede01',
             danger: theme.errorTextColor,
-            default: theme.centerChannelColor,
+            default: theme.centerChannelBg,
             primary: theme.buttonBg,
             success: theme.onlineIndicator,
         } as Record<string, string>;
