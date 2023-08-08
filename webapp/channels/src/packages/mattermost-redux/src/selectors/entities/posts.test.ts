@@ -807,6 +807,9 @@ describe('Selectors.Posts', () => {
 
             const state = {
                 entities: {
+                    general: {
+                        config: {},
+                    },
                     users: {
                         currentUserId: user1.id,
                         profiles,
@@ -838,6 +841,9 @@ describe('Selectors.Posts', () => {
 
             const state = {
                 entities: {
+                    general: {
+                        config: {},
+                    },
                     users: {
                         currentUserId: user1.id,
                         profiles,
@@ -869,6 +875,9 @@ describe('Selectors.Posts', () => {
 
             let state = {
                 entities: {
+                    general: {
+                        config: {},
+                    },
                     users: {
                         currentUserId: user1.id,
                         profiles,
@@ -988,6 +997,9 @@ describe('Selectors.Posts', () => {
 
             const state = {
                 entities: {
+                    general: {
+                        config: {},
+                    },
                     users: {
                         currentUserId: user1.id,
                         profiles,

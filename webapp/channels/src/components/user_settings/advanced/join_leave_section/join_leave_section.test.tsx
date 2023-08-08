@@ -130,7 +130,7 @@ describe('mapStateToProps', () => {
         entities: {
             general: {
                 config: {
-                    EnableJoinDefault: 'true',
+                    EnableJoinLeaveMessageByDefault: 'true',
                 },
             },
             preferences: {
@@ -158,13 +158,13 @@ describe('mapStateToProps', () => {
             entities: {
                 general: {
                     config: {
-                        EnableJoinDefault: 'true',
+                        EnableJoinLeaveMessageByDefault: 'false',
                     },
                 },
             },
         });
         const props = mapStateToProps(testState);
-        expect(props.joinLeave).toEqual('true');
+        expect(props.joinLeave).toEqual('false');
     });
 
     test('user setting takes presidence', () => {
