@@ -36,7 +36,7 @@ import {setCategoryMuted, setCategorySorting} from 'mattermost-redux/actions/cha
 import {openModal} from 'actions/views/modals';
 import {makeGetUnreadIdsForCategory} from 'selectors/views/channel_sidebar';
 import {GlobalState} from 'types/store';
-import {viewMultipleChannels} from 'mattermost-redux/actions/channels';
+import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 
 type Props = {
     category: ChannelCategory;
@@ -220,7 +220,7 @@ const SidebarCategoryMenu = ({
     );
 
     const handleViewCategory = useCallback(() => {
-        dispatch(viewMultipleChannels(unreadsIds));
+        dispatch(readMultipleChannels(unreadsIds));
         trackEvent('ui', 'ui_sidebar_category_menu_viewCategory');
     }, [dispatch, unreadsIds]);
 

@@ -1783,9 +1783,9 @@ export default class Client4 {
         );
     };
 
-    viewMultipleChannels = (channelIds: string[]) => {
+    readMultipleChannels = (channelIds: string[]) => {
         return this.doFetch<ChannelViewResponse>(
-            `${this.getChannelsRoute()}/members/me/view_many`,
+            `${this.getChannelsRoute()}/members/me/mark_read`,
             {method: 'post', body: JSON.stringify(channelIds)},
         );
     };

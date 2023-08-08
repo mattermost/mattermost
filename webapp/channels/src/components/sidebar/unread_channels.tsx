@@ -13,7 +13,7 @@ import CreateNewCategoryMenuItem from './sidebar_category/sidebar_category_menu/
 import {trackEvent} from 'actions/telemetry_actions';
 import {useDispatch, useSelector} from 'react-redux';
 import {getUnreadChannels} from 'selectors/views/channel_sidebar';
-import {viewMultipleChannels} from 'mattermost-redux/actions/channels';
+import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 
 type Props = {
     setChannelRef: (channelId: string, ref: HTMLLIElement) => void;
@@ -31,8 +31,8 @@ export default function UnreadChannels({
             return;
         }
 
-        dispatch(viewMultipleChannels(unreadChannels.map((v) => v.id)));
-        trackEvent('ui', 'ui_sidebar_category_menu_viewCategory');
+        dispatch(readMultipleChannels(unreadChannels.map((v) => v.id)));
+        trackEvent('ui', 'ui_sidebar_category_menu_viewUnreadCategory');
     }, [unreadChannels, dispatch]);
 
     return (

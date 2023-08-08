@@ -14,6 +14,8 @@ type Props = {
     onExited: () => void;
 };
 
+const handleCancel = () => null;
+
 const MarkAsReadConfirmModal = ({
     handleConfirm,
     numChannels,
@@ -22,7 +24,7 @@ const MarkAsReadConfirmModal = ({
     const intl = useIntl();
 
     const header = intl.formatMessage({id: 'mark_as_read_confirm_modal.header', defaultMessage: 'Mark as read'});
-    const body = intl.formatMessage({id: 'mark_as_read_confirm_modal.body', defaultMessage: 'You are about to mark as read {numChannels, plural, =1 {one channel} other {# channels}}.'}, {numChannels});
+    const body = intl.formatMessage({id: 'mark_as_read_confirm_modal.body', defaultMessage: 'Are you sure you want to mark {numChannels} channels as read?'}, {numChannels});
     const confirm = intl.formatMessage({id: 'mark_as_read_confirm_modal.confirm', defaultMessage: 'Mark as read'});
 
     return (
@@ -30,6 +32,7 @@ const MarkAsReadConfirmModal = ({
             ariaLabel={header}
             modalHeaderText={header}
             handleConfirm={handleConfirm}
+            handleCancel={handleCancel}
             onExited={onExited}
             confirmButtonText={confirm}
         >

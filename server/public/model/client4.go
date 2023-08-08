@@ -3540,12 +3540,12 @@ func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelV
 	return ch, BuildResponse(r), nil
 }
 
-// ViewManyChannel performs a view action on several channels at the same time for a user.
-func (c *Client4) ViewManyChannels(ctx context.Context, userId string, channelIds []string) (*ChannelViewResponse, *Response, error) {
-	url := fmt.Sprintf(c.channelsRoute()+"/members/%v/view_many", userId)
+// ReadMultipleChannels performs a view action on several channels at the same time for a user.
+func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, channelIds []string) (*ChannelViewResponse, *Response, error) {
+	url := fmt.Sprintf(c.channelsRoute()+"/members/%v/mark_read", userId)
 	buf, err := json.Marshal(channelIds)
 	if err != nil {
-		return nil, nil, NewAppError("ViewManyChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("ReadMultipleChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	r, err := c.DoAPIPostBytes(ctx, url, buf)
 	if err != nil {
@@ -3556,7 +3556,7 @@ func (c *Client4) ViewManyChannels(ctx context.Context, userId string, channelId
 	var ch *ChannelViewResponse
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
-		return nil, BuildResponse(r), NewAppError("ViewManyChannel", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, BuildResponse(r), NewAppError("ReadMultipleChannels", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ch, BuildResponse(r), nil
 }

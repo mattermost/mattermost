@@ -24,7 +24,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("/group/search", api.APISessionRequiredDisableWhenBusy(searchGroupChannels)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/group", api.APISessionRequired(createGroupChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.APISessionRequired(viewChannel)).Methods("POST")
-	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view_many", api.APISessionRequired(viewMultipleChannels)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/mark_read", api.APISessionRequired(readMultipleChannels)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateChannelScheme)).Methods("PUT")
 	api.BaseRoutes.Channels.Handle("/stats/member_count", api.APISessionRequired(getChannelsMemberCount)).Methods("POST")
 
@@ -1538,11 +1538,8 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func viewMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+func readMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
-
-	auditRec := c.MakeAuditRecord("viewMultipleChannels", audit.Fail)
-	defer c.LogAuditRec(auditRec)
 
 	var channelIDs []string
 	err := json.NewDecoder(r.Body).Decode(&channelIDs)
@@ -1561,8 +1558,6 @@ func viewMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		Status:            "OK",
 		LastViewedAtTimes: times,
 	}
-
-	auditRec.Success()
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))

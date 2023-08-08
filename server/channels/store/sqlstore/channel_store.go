@@ -2020,17 +2020,6 @@ func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) ([]model.S
 	return dbMembersTimezone, nil
 }
 
-type channelsWithUnreadsAndWithMentionsQueryResult struct {
-	Id            string
-	Type          string
-	TotalMsgCount int
-	LastPostAt    int64
-	MsgCount      int
-	MentionCount  int
-	NotifyProps   model.StringMap
-	LastViewedAt  int64
-}
-
 func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
 	query := s.getQueryBuilder().Select(
 		"Channels.Id",
@@ -2054,7 +2043,17 @@ func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Conte
 		return nil, nil, nil, errors.Wrap(err, "channel_tosql")
 	}
 
-	var channels []channelsWithUnreadsAndWithMentionsQueryResult
+	var channels []struct {
+		Id            string
+		Type          string
+		TotalMsgCount int
+		LastPostAt    int64
+		MsgCount      int
+		MentionCount  int
+		NotifyProps   model.StringMap
+		LastViewedAt  int64
+	}
+
 	err = s.GetReplicaX().Select(&channels, queryString, args...)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to find channels with unreads and with mentions data")

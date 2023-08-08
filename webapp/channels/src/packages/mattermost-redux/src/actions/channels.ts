@@ -746,11 +746,11 @@ export function updateApproximateViewTime(channelId: string): ActionFunc {
     };
 }
 
-export function viewMultipleChannels(channelIds: string[]): ActionFunc {
+export function readMultipleChannels(channelIds: string[]): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let response;
         try {
-            response = await Client4.viewMultipleChannels(channelIds);
+            response = await Client4.readMultipleChannels(channelIds);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
