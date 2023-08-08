@@ -354,7 +354,7 @@ func (ps *PlatformService) GenerateRenewalToken(expiration time.Duration) (strin
 		LicenseID:   license.Id,
 		ActiveUsers: activeUsers,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: expirationTime.Unix(),
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 
