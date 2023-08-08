@@ -174,7 +174,7 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("err with integrations-reserved props", func(t *testing.T) {
-		_, postResp, postErr := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
+		_, postResp, postErr := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with props",
 			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
@@ -429,7 +429,7 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 		Message:   "test message",
 	})
 	require.NoError(t, err)
-	assert.NotContains(t, post.GetProps(), "from_oauth_app", "contains from_oauth_app prop when not using OAuth client")
+	assert.NotContains(t, post.GetProps(), model.PostPropsFromOAuthApp, fmt.Sprintf("contains %s prop when not using OAuth client", model.PostPropsOverrideUsername))
 
 	client := th.CreateClient()
 	client.SetOAuthToken(session.Token)
@@ -439,7 +439,19 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	assert.Contains(t, post.GetProps(), "from_oauth_app", "missing from_oauth_app prop when using OAuth client")
+	assert.Contains(t, post.GetProps(), model.PostPropsFromOAuthApp, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
+
+	t.Run("allow username and icon overrides", func(t *testing.T) {
+		post, _, err = th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test message",
+			Props:     model.StringInterface{model.PostPropsOverrideUsername: "newUsernameValue", model.PostPropsOverrideIconURL: "iconUrlOverrideValue"},
+		})
+
+		require.NoError(t, err)
+		assert.Contains(t, post.GetProps(), model.PostPropsOverrideUsername, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
+		assert.Contains(t, post.GetProps(), model.PostPropsOverrideIconURL, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideIconURL))
+	})
 }
 
 func TestCreatePostEphemeral(t *testing.T) {
@@ -1319,14 +1331,21 @@ func TestPatchPost(t *testing.T) {
 	})
 
 	t.Run("err with integrations-reserved props", func(t *testing.T) {
-		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			Message:   "with props",
-			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
-		})
 
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+		}
+		post, _, createErr := th.SystemAdminClient.CreatePost(context.Background(), post)
+		require.NoError(t, createErr)
+
+		patch := &model.PostPatch{}
+		patch.Props = &model.StringInterface{model.PostPropsFromWebhook: "true"}
+		_, patchResp, patchErr := client.PatchPost(context.Background(), post.Id, patch)
+
+		require.Error(t, patchErr)
+		CheckBadRequestStatus(t, patchResp)
 	})
 }
 

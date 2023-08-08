@@ -77,12 +77,9 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 {
-		if c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeUserAccessToken &&
-			c.AppContext.Session().Props[model.SessionPropIsBot] != model.SessionPropIsBotValue {
-			c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use integrations-reserved props: %v", reservedProps))
-			return
-		}
+	if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 && !c.AppContext.Session().IsIntegration() {
+		c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps))
+		return
 	}
 
 	if post.CreateAt != 0 && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -835,12 +832,9 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 {
-		if c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeUserAccessToken &&
-			c.AppContext.Session().Props[model.SessionPropIsBot] != model.SessionPropIsBotValue {
-			c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use integrations-reserved props: %v", reservedProps))
-			return
-		}
+	if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 && !c.AppContext.Session().IsIntegration() {
+		c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps))
+		return
 	}
 
 	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionEditPost) {
@@ -904,12 +898,9 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameterAuditable(auditRec, "patch", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 {
-		if c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeUserAccessToken &&
-			c.AppContext.Session().Props[model.SessionPropIsBot] != model.SessionPropIsBotValue {
-			c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use integrations-reserved props: %v", reservedProps))
-			return
-		}
+	if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 && !c.AppContext.Session().IsIntegration() {
+		c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps))
+		return
 	}
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored

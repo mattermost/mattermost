@@ -62,18 +62,18 @@ const (
 
 	PropsAddChannelMember = "add_channel_member"
 
-	PostPropsAddedUserId        = "addedUserId"
-	PostPropsDeleteBy           = "deleteBy"
-	PostPropsOverrideIconURL    = "override_icon_url"
-	PostPropsOverrideIconEmoji  = "override_icon_emoji"
-	PostPropsOverrideUsername   = "override_username"
-	PostPropsFromWebhook        = "from_webhook"
-	PostPropsWebhookDisplayName = "webhook_display_name"
-
+	PostPropsAddedUserId              = "addedUserId"
+	PostPropsDeleteBy                 = "deleteBy"
+	PostPropsOverrideIconURL          = "override_icon_url"
+	PostPropsOverrideIconEmoji        = "override_icon_emoji"
+	PostPropsOverrideUsername         = "override_username"
+	PostPropsFromWebhook              = "from_webhook"
+	PostPropsFromBot                  = "from_bot"
+	PostPropsFromOAuthApp             = "from_oauth_app"
+	PostPropsWebhookDisplayName       = "webhook_display_name"
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
-
-	PostPropsPreviewedPost = "previewed_post"
+	PostPropsPreviewedPost            = "previewed_post"
 
 	PostPriorityUrgent               = "urgent"
 	PostPropsRequestedAck            = "requested_ack"
