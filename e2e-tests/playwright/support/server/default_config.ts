@@ -673,7 +673,6 @@ const defaultServerConfig: AdminConfig = {
         BoardsDataRetention: false,
         NormalizeLdapDNs: false,
         GraphQL: false,
-        InsightsEnabled: true,
         CommandPalette: false,
         SendWelcomePost: true,
         PostPriority: true,

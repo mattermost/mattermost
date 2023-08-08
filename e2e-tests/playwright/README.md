@@ -45,7 +45,7 @@ npm run test
 Change to root directory, run docker container
 
 ```
-docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.32.0-focal /bin/bash
+docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.36.0-focal /bin/bash
 ```
 
 #### 2. Inside the docker container
