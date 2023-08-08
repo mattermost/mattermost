@@ -8076,26 +8076,46 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, ss store.Store) {
 		isDirect bool,
 		userId string,
 	) (model.Channel, model.ChannelMember) {
-		o1 := model.Channel{}
-		o1.TeamId = model.NewId()
-		o1.DisplayName = "Channel1"
-		o1.Name = NewTestId()
-		o1.Type = model.ChannelTypeOpen
-		if isDirect {
-			o1.Type = model.ChannelTypeDirect
-		}
-		o1.TotalMsgCount = 25
-		o1.LastPostAt = 12345
-		o1.LastRootPostAt = 12345
-		_, nErr := ss.Channel().Save(&o1, -1)
-		require.NoError(t, nErr)
+		if !isDirect {
+			o1 := model.Channel{}
+			o1.TeamId = model.NewId()
+			o1.DisplayName = "Channel1"
+			o1.Name = NewTestId()
+			o1.Type = model.ChannelTypeOpen
+			o1.TotalMsgCount = 25
+			o1.LastPostAt = 12345
+			o1.LastRootPostAt = 12345
+			_, nErr := ss.Channel().Save(&o1, -1)
+			require.NoError(t, nErr)
 
-		m1 := model.ChannelMember{}
-		m1.ChannelId = o1.Id
-		m1.UserId = userId
-		m1.NotifyProps = model.GetDefaultChannelNotifyProps()
-		m1.NotifyProps[model.PushNotifyProp] = pushProp
-		_, err := ss.Channel().SaveMember(&m1)
+			m1 := model.ChannelMember{}
+			m1.ChannelId = o1.Id
+			m1.UserId = userId
+			m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+			m1.NotifyProps[model.PushNotifyProp] = pushProp
+			if !withUnreads {
+				m1.MsgCount = o1.TotalMsgCount
+				m1.LastViewedAt = o1.LastPostAt
+			}
+			if withMentions {
+				m1.MentionCount = 5
+			}
+			_, err := ss.Channel().SaveMember(&m1)
+			require.NoError(t, err)
+
+			return o1, m1
+		}
+
+		o1, err := ss.Channel().CreateDirectChannel(&model.User{Id: userId}, &model.User{Id: model.NewId()}, func(channel *model.Channel) {
+			channel.TotalMsgCount = 25
+			channel.LastPostAt = 12345
+			channel.LastRootPostAt = 12345
+		})
+		require.NoError(t, err)
+
+		m1, err := ss.Channel().GetMember(context.Background(), o1.Id, userId)
+		require.NoError(t, err)
+
 		if !withUnreads {
 			m1.MsgCount = o1.TotalMsgCount
 			m1.LastViewedAt = o1.LastPostAt
@@ -8103,9 +8123,11 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, ss store.Store) {
 		if withMentions {
 			m1.MentionCount = 5
 		}
+
+		m1, err = ss.Channel().UpdateMember(m1)
 		require.NoError(t, err)
 
-		return o1, m1
+		return *o1, *m1
 	}
 
 	type TestCase struct {
@@ -8118,8 +8140,8 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, ss store.Store) {
 	}
 	ttcc := []TestCase{}
 
-	channelNotifyProps := []string{model.ChannelNotifyDefault, "other"}
-	userNotifyProps := []string{model.UserNotifyAll, model.UserNotifyMention, "other"}
+	channelNotifyProps := []string{model.ChannelNotifyDefault, model.ChannelNotifyAll, model.ChannelNotifyMention, model.ChannelNotifyNone}
+	userNotifyProps := []string{model.UserNotifyAll, model.UserNotifyMention, model.UserNotifyHere, model.UserNotifyNone}
 	boolRange := []bool{true, false}
 
 	nameTemplate := "pushProp: %s, userPushProp: %s, direct: %t, unreads: %t, mentions: %t"
