@@ -6,7 +6,6 @@ package model
 type GlobalRetentionPolicy struct {
 	MessageDeletionEnabled bool  `json:"message_deletion_enabled"`
 	FileDeletionEnabled    bool  `json:"file_deletion_enabled"`
-	BoardsDeletionEnabled  bool  `json:"boards_deletion_enabled"`
 	MessageRetentionCutoff int64 `json:"message_retention_cutoff"`
 	FileRetentionCutoff    int64 `json:"file_retention_cutoff"`
 }
