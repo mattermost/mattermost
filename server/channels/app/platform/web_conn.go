@@ -27,16 +27,15 @@ import (
 )
 
 const (
-	sendQueueSize                  = 256
-	sendSlowWarn                   = (sendQueueSize * 50) / 100
-	sendFullWarn                   = (sendQueueSize * 95) / 100
-	writeWaitTime                  = 30 * time.Second
-	pongWaitTime                   = 100 * time.Second
-	pingInterval                   = (pongWaitTime * 6) / 10
-	authCheckInterval              = 5 * time.Second
-	webConnMemberCacheTime         = 1000 * 60 * 30 // 30 minutes
-	deadQueueSize                  = 128            // Approximated from /proc/sys/net/core/wmem_default / 2048 (avg msg size)
-	websocketSuppressWarnThreshold = time.Minute
+	sendQueueSize          = 256
+	sendSlowWarn           = (sendQueueSize * 50) / 100
+	sendFullWarn           = (sendQueueSize * 95) / 100
+	writeWaitTime          = 30 * time.Second
+	pongWaitTime           = 100 * time.Second
+	pingInterval           = (pongWaitTime * 6) / 10
+	authCheckInterval      = 5 * time.Second
+	webConnMemberCacheTime = 1000 * 60 * 30 // 30 minutes
+	deadQueueSize          = 128            // Approximated from /proc/sys/net/core/wmem_default / 2048 (avg msg size)
 )
 
 const (
@@ -113,13 +112,6 @@ type WebConn struct {
 	endWritePump chan struct{}
 	pumpFinished chan struct{}
 	pluginPosted chan pluginWSPostedHook
-
-	// These counters are to suppress spammy websocket.slow
-	// and websocket.full logs which happen continuously, if they
-	// do happen. To improve the situation, we log them only once
-	// per minute.
-	lastLogTimeSlow time.Time
-	lastLogTimeFull time.Time
 }
 
 // CheckConnResult indicates whether a connectionID was present in the hub or not.
@@ -225,8 +217,6 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
 		pluginPosted:       make(chan pluginWSPostedHook, 10),
-		lastLogTimeSlow:    time.Now(),
-		lastLogTimeFull:    time.Now(),
 	}
 
 	wc.SetSession(&cfg.Session)
@@ -474,7 +464,7 @@ func (wc *WebConn) writePump() {
 				continue
 			}
 
-			if len(wc.send) >= sendFullWarn && time.Since(wc.lastLogTimeFull) > websocketSuppressWarnThreshold {
+			if len(wc.send) >= sendFullWarn {
 				logData := []mlog.Field{
 					mlog.String("user_id", wc.UserId),
 					mlog.String("conn_id", wc.GetConnectionID()),
@@ -485,8 +475,7 @@ func (wc *WebConn) writePump() {
 					logData = append(logData, mlog.String("channel_id", evt.GetBroadcast().ChannelId))
 				}
 
-				mlog.Warn("websocket.full", logData...)
-				wc.lastLogTimeFull = time.Now()
+				mlog.Debug("websocket.full", logData...)
 			}
 
 			if evtOk {
@@ -727,16 +716,13 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		case model.WebsocketEventTyping,
 			model.WebsocketEventStatusChange,
 			model.WebsocketEventChannelViewed:
-			if time.Since(wc.lastLogTimeSlow) > websocketSuppressWarnThreshold {
-				mlog.Warn(
-					"websocket.slow: dropping message",
-					mlog.String("user_id", wc.UserId),
-					mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.Debug(
+				"websocket.slow: dropping message",
+				mlog.String("user_id", wc.UserId),
+				mlog.String("conn_id", wc.GetConnectionID()),
 					mlog.String("type", msg.EventType()),
 				)
-				// Reset timer to now.
-				wc.lastLogTimeSlow = time.Now()
-			}
+
 			return false
 		}
 	}
