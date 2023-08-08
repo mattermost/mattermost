@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/i18n"
 )
 
+//nolint:govet
 func ExampleInitBundle() {
 	type Plugin struct {
 		plugin.MattermostPlugin

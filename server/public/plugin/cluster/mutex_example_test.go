@@ -5,6 +5,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/cluster"
 )
 
+//nolint:staticcheck
 func ExampleMutex() {
 	// Use p.API from your plugin instead.
 	pluginAPI := plugin.API(nil)

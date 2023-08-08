@@ -202,7 +202,7 @@ func processButtons(in []Button, state State) []Button {
 	for _, b := range in {
 		button := b
 		button.Name = formatState(b.Name, state)
-		out = append(out, b)
+		out = append(out, button)
 	}
 	return out
 }
