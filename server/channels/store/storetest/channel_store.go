@@ -8191,7 +8191,7 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, ss store.Store) {
 				propToUse = tc.userNotifyProp
 			}
 			expectedMentionsLength := 0
-			if tc.isDirect || (propToUse == model.UserNotifyAll && tc.withUnreads) || (propToUse == model.UserNotifyMention && tc.withMentions) {
+			if (tc.isDirect && tc.withUnreads) || (propToUse == model.UserNotifyAll && tc.withUnreads) || (propToUse == model.UserNotifyMention && tc.withMentions) {
 				expectedMentionsLength = 1
 			}
 
