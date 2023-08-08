@@ -437,21 +437,17 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 		ChannelId: th.BasicPost.ChannelId,
 		Message:   "test message",
 	})
-
 	require.NoError(t, err)
 	assert.Contains(t, post.GetProps(), model.PostPropsFromOAuthApp, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
 
-	t.Run("allow username and icon overrides", func(t *testing.T) {
-		post, _, err = th.Client.CreatePost(context.Background(), &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			Message:   "test message",
-			Props:     model.StringInterface{model.PostPropsOverrideUsername: "newUsernameValue", model.PostPropsOverrideIconURL: "iconUrlOverrideValue"},
-		})
-
-		require.NoError(t, err)
-		assert.Contains(t, post.GetProps(), model.PostPropsOverrideUsername, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
-		assert.Contains(t, post.GetProps(), model.PostPropsOverrideIconURL, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideIconURL))
+	post, _, err = th.Client.CreatePost(context.Background(), &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "test message",
+		Props:     model.StringInterface{model.PostPropsOverrideUsername: "newUsernameValue", model.PostPropsOverrideIconURL: "iconUrlOverrideValue"},
 	})
+	require.NoError(t, err)
+	assert.Contains(t, post.GetProps(), model.PostPropsOverrideUsername, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
+	assert.Contains(t, post.GetProps(), model.PostPropsOverrideIconURL, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideIconURL))
 }
 
 func TestCreatePostEphemeral(t *testing.T) {
