@@ -151,6 +151,7 @@ const HEADER_USER_AGENT = 'User-Agent';
 export const HEADER_X_CLUSTER_ID = 'X-Cluster-Id';
 const HEADER_X_CSRF_TOKEN = 'X-CSRF-Token';
 export const HEADER_X_VERSION_ID = 'X-Version-Id';
+const HEADER_X_PAGE_LOAD_CONTEXT = 'X-Page-Load-Context';
 const LOGS_PER_PAGE_DEFAULT = 10000;
 const AUTOCOMPLETE_LIMIT_DEFAULT = 25;
 const PER_PAGE_DEFAULT = 60;
@@ -173,7 +174,6 @@ export default class Client4 {
     url = '';
     urlVersion = '/api/v4';
     userAgent: string|null = null;
-    pageLoadContext: PageLoadContext|null = null;
     enableLogging = false;
     defaultHeaders: {[x: string]: string} = {};
     userId = '';
@@ -186,6 +186,7 @@ export default class Client4 {
     };
     userRoles = '';
     telemetryHandler?: TelemetryHandler;
+    private pageLoadContext: PageLoadContext|null = null;
 
     getUrl() {
         return this.url;
@@ -528,7 +529,7 @@ export default class Client4 {
         }
 
         if (this.pageLoadContext) {
-            headers.PAGE_LOAD_CONTEXT = this.pageLoadContext;
+            headers[HEADER_X_PAGE_LOAD_CONTEXT] = this.pageLoadContext;
         }
 
         return {
@@ -4195,6 +4196,17 @@ export default class Client4 {
             `${this.getCloudRoute()}/delete-workspace`,
             {method: 'delete', body: JSON.stringify(deletionRequest)},
         );
+    }
+
+    // This allows the server to know that a given HTTP request occurred during page load or reconnect.
+    // The server then uses this information to store metrics fields based on the request context.
+    // The setTimeout approach is a "best effort" approach that will produce false positives.
+    // A more accurate approach will result in more obtrusive code, which would add risk and maintenance cost.
+    temporarilySetPageLoadContext = (pageLoadContext: PageLoadContext | null) => {
+        this.pageLoadContext = pageLoadContext;
+        setTimeout(() => {
+            this.pageLoadContext = null;
+        }, 5000);
     }
 }
 

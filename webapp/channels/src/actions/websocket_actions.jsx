@@ -209,10 +209,7 @@ export function reconnect() {
     // eslint-disable-next-line
     console.log('Reconnecting WebSocket');
 
-    Client4.pageLoadContext = PageLoadContext.RECONNECT;
-    setTimeout(() => {
-        Client4.pageLoadContext = null;
-    }, 3000);
+    Client4.temporarilySetPageLoadContext(PageLoadContext.RECONNECT);
 
     dispatch({
         type: GeneralTypes.WEBSOCKET_SUCCESS,

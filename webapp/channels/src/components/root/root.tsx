@@ -434,10 +434,7 @@ export default class Root extends React.PureComponent<Props, State> {
     };
 
     componentDidMount() {
-        Client4.pageLoadContext = PageLoadContext.PAGE_LOAD;
-        setTimeout(() => {
-            Client4.pageLoadContext = null;
-        }, 3000);
+        Client4.temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
 
         this.mounted = true;
 
