@@ -36,7 +36,6 @@ import {
 
 import {ModalIdentifiers, TELEMETRY_CATEGORIES, ExploreOtherToolsTourSteps} from 'utils/constants';
 
-import BullsEye from 'components/common/svg_images_components/bulls_eye_svg';
 import Channels from 'components/common/svg_images_components/channels_svg';
 import Clipboard from 'components/common/svg_images_components/clipboard_svg';
 import Gears from 'components/common/svg_images_components/gears_svg';
