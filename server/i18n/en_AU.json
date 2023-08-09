@@ -77,7 +77,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 110+"
+    "translation": "Version 112+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
@@ -9143,10 +9143,6 @@
     "translation": "Invalid decoder concurrency {{.Value}}. Should be a positive number or -1."
   },
   {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "Unable to retrieve top threads for team."
-  },
-  {
     "id": "api.insights.feature_disabled",
     "translation": "Insights is behind a feature flag which is not enabled."
   },
@@ -9451,10 +9447,6 @@
     "translation": "Guest accounts are disabled"
   },
   {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Collection type already exists."
-  },
-  {
     "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
     "translation": "not an LDAP user"
   },
@@ -9551,10 +9543,6 @@
     "translation": "You cannot remove an acknowledgment in an archived channel."
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Increase productivity in your channel by integrating a Jira bot and GitHub bot. These will be downloaded for you."
-  },
-  {
     "id": "worktemplate.category.product_teams",
     "translation": "Product"
   },
@@ -9601,10 +9589,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_malformed",
     "translation": "Decoding of the CA for Elasticsearch failed"
-  },
-  {
-    "id": "app.worktemplates.get_categories.app_error",
-    "translation": "Unable to retrieve categories for work templates"
   },
   {
     "id": "app.channel.count_urgent_posts_since.app_error",
@@ -9663,32 +9647,16 @@
     "translation": "You cannot delete an acknowledgment after 5 minutes has elapsed."
   },
   {
-    "id": "worktemplate.category.devops",
-    "translation": "DevOps"
-  },
-  {
     "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
     "translation": "Unable to find channel associated with a playbook."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.channels.create_error",
-    "translation": "Error while creating a channel."
   },
   {
     "id": "app.worktemplates.execute_work_template.app_error",
     "translation": "Error while executing a work template."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
-    "translation": "You don't have permission to create a public playbook."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "You don't have permission to create a public board."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
-    "translation": "You don't have permission to create a private channel."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -9707,24 +9675,12 @@
     "translation": "Failed to update server translations."
   },
   {
-    "id": "api.command_templates.name",
-    "translation": "templates"
-  },
-  {
     "id": "app.worktemplates.execute_work_template.name_too_long",
     "translation": "The name field cannot contain more than 64 characters."
   },
   {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "interface not of expected type"
-  },
-  {
     "id": "app.team.create_onboarding_linked_board.error_patching_board",
     "translation": "error while patching board"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "error duplicating board"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9739,64 +9695,32 @@
     "translation": "Contact Sales"
   },
   {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
-  },
-  {
     "id": "worktemplate.product_teams.product_roadmap.channel",
     "translation": "Chat with your team about your customers' feedback, prioritisation and get aligned on progress together."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools such as Zoom to facilitate easy collaboration. These will be downloaded for you."
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.board",
     "translation": "Track your team's progress toward organisational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
   },
   {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time."
-  },
-  {
     "id": "worktemplate.product_teams.bug_bash.channel",
     "translation": "Plan and manage bug reports and resolutions in a single channel that’s easily accessible to your team and organisation."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Chat about your goals and progress with your team, async or real-time and stay up to date with changes in a single channel."
   },
   {
     "id": "worktemplate.devops.product_release.playbook",
     "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
   },
   {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
-  },
-  {
     "id": "worktemplate.devops.incident_resolution.description.channel",
     "translation": "Chat with your team about priorities, add stakeholders, provide updates and work toward a resolution in a single channel."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools such as Zoom to facilitate easy collaboration. These will be downloaded for you."
   },
   {
     "id": "worktemplate.companywide.goals_and_okrs.board",
     "translation": "Track your team's progress toward organisational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
   },
   {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "Chat with your team about your new project and decide how you’re going to structure it in a collaborative channel."
-  },
-  {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Invalid value for bytes when uploading a licence."
-  },
-  {
-    "id": "app.user.run.update_status.submit_label",
-    "translation": "Update status"
   },
   {
     "id": "app.user.run.update_status.num_channel",
@@ -9806,59 +9730,28 @@
     }
   },
   {
-    "id": "app.user.run.update_status.finish_run",
-    "translation": "Finish run"
-  },
-  {
     "id": "app.user.run.status_enable",
     "translation": "@{{.Username}} enabled the status updates for [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "app.user.run.request_update",
-    "translation": "@here — @{{.Name}} requested a status update for [{{.RunName}}]({{.RunURL}}). \n"
   },
   {
     "id": "app.user.run.confirm_finish.title",
     "translation": "Confirm finish run"
   },
   {
-    "id": "app.user.run.confirm_finish.num_outstanding",
-    "translation": {
-      "one": "There is **{{.Count}} outstanding task**. Are you sure you want to finish the run *{{.RunName}}* for all participants?",
-      "other": "There are **{{.Count}} outstanding tasks**. Are you sure you want to finish the run *{{.RunName}}* for all participants?"
-    }
-  },
-  {
     "id": "app.user.run.add_to_timeline.summary.placeholder",
     "translation": "Short summary shown in the timeline"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary",
-    "translation": "Summary"
   },
   {
     "id": "app.user.run.add_to_timeline.playbook_run",
     "translation": "Playbook Run"
   },
   {
-    "id": "app.user.run.add_checklist_item.submit_label",
-    "translation": "Add task"
-  },
-  {
     "id": "app.user.run.add_checklist_item.description",
     "translation": "Description"
   },
   {
-    "id": "app.user.new_run.submit_label",
-    "translation": "Start run"
-  },
-  {
     "id": "app.user.new_run.playbook",
     "translation": "Playbook"
-  },
-  {
-    "id": "app.user.digest.tasks.zero_assigned",
-    "translation": "You have 0 assigned tasks."
   },
   {
     "id": "app.user.digest.tasks.num_assigned",
@@ -9868,27 +9761,12 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.due_yesterday",
-    "translation": "Due yesterday"
-  },
-  {
     "id": "app.user.digest.tasks.due_today",
     "translation": "Due today"
   },
   {
-    "id": "app.user.digest.tasks.due_after_today",
-    "translation": {
-      "one": "You have **{{.Count}} assigned task due after today**.",
-      "other": "You have **{{.Count}} assigned tasks due after today**."
-    }
-  },
-  {
     "id": "app.user.digest.runs_in_progress.zero_in_progress",
     "translation": "You have 0 runs currently in progress."
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.heading",
-    "translation": "Runs in Progress"
   },
   {
     "id": "app.user.digest.overdue_status_updates.num_overdue",
@@ -9908,5 +9786,193 @@
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Invalid business email for trial"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ignored indexes for purge should not start with dash."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "An error occurred running the plugin hook on configuration save."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Unable to remove token when invalidating password recovery tokens"
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Plugin {{.Id}} is on the block list. Some plugins are blocked because they are built into this version of Mattermost."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Unable to locate local socket file directory."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "User is not allowed to create priority post or persistent notification."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Only root posts are allowed to have priority."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Unable to parse token when invalidating password recovery tokens"
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Failed to delete persistent notification post"
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Error: no organisation name provided for self hosted onboarding."
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Could not decode gif."
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Skipping installation of plugin {{.Id}} since existing version is equal or newer."
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Failed to submit true up review profile to CWS."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Persistent notification post allows maximum of {{.MaxRecipients}} recipients."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Persistent notification post must have at minimum 1 recipient."
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Generate a link to download a export."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "The file store driver does not support link generation."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "No export file has been found."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip filename|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Unable to locate the file you requested."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "You can download your file here: {{.Link}}.\nThis link will expire in {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Unable to retrieve the export list."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "You don't have the correct permissions to run this command."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Unable to generate presign URL."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Unable to find member count for given channels."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Unable to find member count."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Unable to update the channel member."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Unable to update the channel member, notify props size limit exceeded."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "This action requires the use of a dedicated export store."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Your export store driver does not support presign URL generation."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "This feature is restricted by a feature flag."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Unable to check if the file exists."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Unable to generate the presigned URL."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "The export file was not found."
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Notify props size limit exceeded."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Invalid maximum number of recipients for persistent notifications. Must be a positive number."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Persistent notification validation failed."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Persistent notification posts must have the Urgent Priority."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Unable to get tokens by type when invalidating password recovery tokens"
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "An error occurred getting the team."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Unable to delete the persistent notifications by channel."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Unable to delete the persistent notifications by team."
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Invalid channel-auto-follow-threads value."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Invalid total number of persistent notification per post. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Invalid frequency of persistent notifications. Must be at least two minutes."
   }
 ]
