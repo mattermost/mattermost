@@ -9643,10 +9643,6 @@
     "translation": "Det gick inte att skapa en statuspost för true up"
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_public_board",
-    "translation": "Du har inte behörighet att skapa en publik tavla."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "Användaren med användarnamn \"{{.Username}}\" finns redan."
   },
@@ -9661,10 +9657,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Tjänsten är endast tillgänglig i Mattermost Enterprise-edition"
-  },
-  {
-    "id": "api.command_templates.unsupported.app_error",
-    "translation": "Kommandot för mallar stöds inte på din enhet."
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9683,31 +9675,11 @@
     "translation": "Kunde inte rensa oauth-information."
   },
   {
-    "id": "app.user.run.status_enable",
-    "translation": "@{{.Username}} aktiverade statusuppdateringar för [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "Kort sammanfattning som visas i tidslinjen"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.description",
-    "translation": "Beskrivning"
-  },
-  {
     "id": "app.user.digest.tasks.num_assigned",
     "translation": {
       "one": "Du har {{.Count}} tilldelad uppgift:",
       "other": "Du har {{.Count}} tilldelade uppgifter:"
     }
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.zero_in_progress",
-    "translation": "Du har 0 pågående körningar."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "Använd Incident Resolution tavlan för att stödja upprepbara processer och fördela definierade uppgifter i hela teamet."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
@@ -9720,10 +9692,6 @@
   {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "Hoppar över installationen av plugin {{.Id}} eftersom den befintliga versionen är samma eller nyare."
-  },
-  {
-    "id": "app.plugin.blocked.app_error",
-    "translation": "Plugin {{.Id}} finns på blocklistan. Vissa plugins är blockerade eftersom de är inbyggda i den här versionen av Mattermost."
   },
   {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
