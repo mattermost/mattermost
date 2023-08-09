@@ -239,9 +239,9 @@ func (_m *MetricsInterface) IncrementWebsocketReconnectEvent(eventType string) {
 	_m.Called(eventType)
 }
 
-// ObserveAPIEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, elapsed
-func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method string, statusCode string, elapsed float64) {
-	_m.Called(endpoint, method, statusCode, elapsed)
+// ObserveAPIEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, elapsed, pageLoadContext
+func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method string, statusCode string, elapsed float64, pageLoadContext string) {
+	_m.Called(endpoint, method, statusCode, elapsed, pageLoadContext)
 }
 
 // ObserveClusterRequestDuration provides a mock function with given fields: elapsed

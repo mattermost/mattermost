@@ -146,14 +146,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w = newWrappedWriter(w)
 	now := time.Now()
 
-	pageLoadContext := r.Header.Get("PAGE_LOAD_CONTEXT")
-	if pageLoadContext == "" {
-		pageLoadContext = "unknown"
-	}
-
-	// Just for POC
-	w.Header().Add("RECEIVED_PAGE_LOAD_CONTEXT", pageLoadContext)
-
 	appInstance := app.New(app.ServerConnector(h.Srv.Channels()))
 
 	requestID := model.NewId()
@@ -404,11 +396,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHTTPRequest()
-		if pageLoadContext == "page_load" {
-			// c.App.Metrics().IncrementPageLoadHTTPRequest()
-		} else if pageLoadContext == "reconnect" {
-			// c.App.Metrics().IncrementReconnectHTTPRequest()
-		}
 
 		if r.URL.Path != model.APIURLSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
@@ -419,7 +406,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			} else {
 				endpoint = h.HandlerName
 			}
-			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, elapsed)
+
+			pageLoadContext := r.Header.Get("X-Page-Load-Context")
+			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, elapsed, pageLoadContext)
 		}
 	}
 }
