@@ -937,7 +937,7 @@ func (ch *Channels) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepa
 				if errors.As(err, &appErr) && appErr.Id == "app.plugin.skip_installation.app_error" {
 					return
 				}
-				ch.srv.Log().Error("Failed to install prepackaged plugin", mlog.String("plugin_id", p.Manifest.Id), mlog.String("bundle_path", psPath.bundlePath), mlog.Err(err))
+				ch.srv.Log().Error("Failed to install prepackaged plugin", mlog.String("bundle_path", psPath.bundlePath), mlog.Err(err))
 				return
 			}
 			prepackagedPlugins <- p
