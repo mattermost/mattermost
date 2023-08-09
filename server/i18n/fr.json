@@ -8672,10 +8672,6 @@
     "translation": "Impossible d'obtenir tous les rôles."
   },
   {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "Impossible d'obtenir le fils supérieurs pour l'équipe."
-  },
-  {
     "id": "app.post.analytics_teams_count.app_error",
     "translation": "Impossible d'obtenir l'utilisation des équipes"
   },

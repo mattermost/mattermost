@@ -51,7 +51,6 @@
   "accessibility.sidebar.types.private": "私人頻道",
   "accessibility.sidebar.types.public": "公開頻道",
   "accessibility.sidebar.types.unread": "未讀",
-  "activityAndInsights.tutorial_tip.viewInsights": "檢視深入解析",
   "activity_log.activeSessions": "使用中的工作階段",
   "activity_log.browser": "瀏覽器：{browser}",
   "activity_log.firstTime": "第一次活動：{date}, {time}",
