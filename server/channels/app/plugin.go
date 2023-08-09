@@ -1050,10 +1050,31 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	return plugin, nil
 }
 
+var transitionallyPrepackagedPlugins = []string{
+	"antivirus",
+	"focalboard",
+	"mattermost-autolink",
+	"com.mattermost.aws-sns",
+	"com.mattermost.plugin-channel-export",
+	"com.mattermost.confluence",
+	"com.mattermost.custom-attributes",
+	"jenkins",
+	"jitsi",
+	"com.mattermost.plugin-todo",
+	"com.mattermost.welcomebot",
+	"com.mattermost.apps",
+}
+
 // pluginIsTransitionallyPrepackaged identifies plugin ids that are currently prepackaged but
 // slated for future removal.
 func (ch *Channels) pluginIsTransitionallyPrepackaged(pluginID string) bool {
-	return pluginID == "focalboard"
+	for _, id := range transitionallyPrepackagedPlugins {
+		if id == pluginID {
+			return true
+		}
+	}
+
+	return false
 }
 
 // shouldPersistTransitionallyPrepackagedPlugin determines if a transitionally prepackaged plugin
