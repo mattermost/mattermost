@@ -9140,10 +9140,6 @@
     "translation": "Érvénytelen dekódoló párhuzamosság {{.Value}}. Pozitív számnak vagy -1-nek kell lennie."
   },
   {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "A felhasználó legnépszerűbb szálai nem érhetők el."
-  },
-  {
     "id": "app.post.cloud.get.app_error",
     "translation": "Nem lehetséges a bejegyzés lekérése, mivel a felhő csomagjának korlátján túl van."
   },
