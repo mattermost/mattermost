@@ -4040,10 +4040,6 @@
     "translation": "Ungültige Ersteller-ID."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Konnte GIF nicht dekodieren."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Ungültiger Wert für create_at."
   },
@@ -4797,7 +4793,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 110+"
+    "translation": "Version 112+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
@@ -5541,7 +5537,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_username",
-    "translation": "Gültige E-Mail und/oder Passwort eingeben."
+    "translation": "Gültigen Benutzernamen und/oder Passwort eingeben."
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
@@ -5549,7 +5545,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
-    "translation": "Gültige E-Mail und/oder Passwort eingeben."
+    "translation": "Gültige E-Mail-Adresse oder Benutzername und/oder Passwort eingeben."
   },
   {
     "id": "api.user.login.invalid_credentials_email",
@@ -9107,10 +9103,6 @@
     "translation": "Ungültiger Request Body."
   },
   {
-    "id": "api.insights.feature_disabled",
-    "translation": "Insights wird durch ein Feature-Flag verborgen, das nicht aktiviert ist."
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.title",
     "translation": "Du bist jetzt upgegraded worden!"
   },
@@ -9125,10 +9117,6 @@
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Hochladen über mmctl zu einer Cloud Instanz wird nicht unterstützt. Bitte prüfe die Dokumentation: https://docs.mattermost.com/manage/cloud-data-export.html."
-  },
-  {
-    "id": "app.recent_searches.app_error",
-    "translation": "Fehler beim Holen der letzten Suchen"
   },
   {
     "id": "app.teams.analytics_teams_count.app_error",
@@ -9155,16 +9143,8 @@
     "translation": "Ungültig Decoder Nebenläufigkeit {{.Value}}. Sollte eine positive Zahl oder -1 sein."
   },
   {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "Es ist nicht möglich, die Top-Threads für einen Benutzer zu erhalten."
-  },
-  {
     "id": "app.post.get_top_threads_for_team_since.app_error",
     "translation": "Es ist nicht möglich, Top-Threads für das Team zu erhalten."
-  },
-  {
-    "id": "app.insights.feature_disabled",
-    "translation": "Die Insights Funktion ist deaktiviert."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
@@ -9197,10 +9177,6 @@
   {
     "id": "app.team.clear_cache.app_error",
     "translation": "Fehler beim Löschen des Team Mitglieder Cache"
-  },
-  {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "Kann die Top DM für den Benutzer nicht holen."
   },
   {
     "id": "api.command_marketplace.unsupported.app_error",
@@ -9467,10 +9443,6 @@
     "translation": "Gastkonten sind deaktiviert"
   },
   {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Thementyp existiert schon."
-  },
-  {
     "id": "app.collection.add_collection.exists.app_error",
     "translation": "Collection Typ existiert schon."
   },
@@ -9599,24 +9571,12 @@
     "translation": "Du kannst eine Bestätigung in einem archivierten Kanal nicht entfernen."
   },
   {
-    "id": "worktemplate.category.product_teams",
-    "translation": "Produkt"
-  },
-  {
     "id": "model.draft.is_valid.priority.app_error",
     "translation": "Ungültige Priorität"
   },
   {
-    "id": "app.worktemplates.get_templates.app_error",
-    "translation": "Arbeitsvorlagen können nicht abgerufen werden"
-  },
-  {
     "id": "app.worktemplates.get_categories.app_error",
     "translation": "Arbeitsvorlagenkategorien können nicht abgerufen werden"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Steigere die Produktivität in deinem Kanal durch die Integration deiner am meistern verwendeten Tools, wie GitHub oder Jira. Diese werden für dich heruntergeladen."
   },
   {
     "id": "api.templates.cloud_welcome_email.yearly_plan_button",
@@ -9695,24 +9655,12 @@
     "translation": "Ein herabgestufter Arbeitsbereich kann sich negativ auf kritische Arbeitsabläufe und andere geschäftskritische Aktivitäten auswirken, die in deinem Arbeitsbereich durchgeführt werden."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
-    "translation": "Du hast nicht die Berechtigung, ein öffentliches Playbook zu erstellen."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_channel",
     "translation": "Du hast keine Berechtigung, einen öffentlichen Kanal zu erstellen."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_public_board",
-    "translation": "Du hast keine Berechtigung, ein öffentliches Board zu erstellen."
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
     "translation": "Du hast keine Berechtigung, ein privates Playbook zu erstellen."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
-    "translation": "Du hast keine Berechtigung, einen privaten Kanal zu erstellen."
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_private_board",
@@ -9723,48 +9671,24 @@
     "translation": "Benutzer mit dem Benutzernamen \"{{.Benutzername}}\" existiert bereits."
   },
   {
-    "id": "api.work_templates.disabled",
-    "translation": "Die Arbeitsvorlagen sind deaktiviert."
-  },
-  {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Die Serverübersetzungen konnten nicht aktualisiert werden."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
-    "translation": "Kanal, der mit einem Playbook verbunden ist, kann nicht gefunden werden."
   },
   {
     "id": "worktemplate.category.leadership",
     "translation": "Führung"
   },
   {
-    "id": "worktemplate.category.devops",
-    "translation": "DevOps"
-  },
-  {
     "id": "worktemplate.category.companywide",
     "translation": "Unternehmensweit"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
-    "translation": "Fehler beim Erstellen eines Playbooks."
   },
   {
     "id": "app.worktemplates.execute_work_template.channels.create_error",
     "translation": "Fehler beim Erstellen eines Kanals."
   },
   {
-    "id": "app.worktemplates.execute_work_template.boards.create_error",
-    "translation": "Fehler beim Erstellen eines Boards."
-  },
-  {
     "id": "app.worktemplates.execute_work_template.app_error",
     "translation": "Fehler beim Ausführen einer Arbeitsvorlage."
-  },
-  {
-    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
-    "translation": "Deine Lizenz unterstützt keine privaten Playbooks."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -9775,40 +9699,20 @@
     "translation": "Dienst nur in der Mattermost Enterprise Edition verfügbar"
   },
   {
-    "id": "api.command_templates.unsupported.app_error",
-    "translation": "Der Befehl Vorlagen wird von deinem Gerät nicht unterstützt."
-  },
-  {
     "id": "api.command_templates.name",
     "translation": "Vorlagen"
-  },
-  {
-    "id": "api.command_templates.desc",
-    "translation": "Öffne das Fenster \"Aus Vorlage erstellen\""
   },
   {
     "id": "app.team.create_onboarding_linked_board.product_key_not_found",
     "translation": "Produktschlüssel nicht gefunden"
   },
   {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "Schnittstelle nicht vom erwarteten Typ"
-  },
-  {
     "id": "app.team.create_onboarding_linked_board.error_patching_board",
     "translation": "Fehler beim Patchen des Boards"
   },
   {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "Fehler kein Board erstellt"
-  },
-  {
     "id": "app.team.create_onboarding_linked_board.error_getting_templates",
     "translation": "Fehler beim Abrufen von Board-Templates"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "Fehler beim Duplizieren des Boards"
   },
   {
     "id": "app.worktemplates.execute_work_template.name_too_long",
@@ -9831,16 +9735,8 @@
     "translation": "Oauth-Daten können nicht entfernt werden."
   },
   {
-    "id": "app.user.run.update_status.title",
-    "translation": "Aktueller Stand"
-  },
-  {
     "id": "app.user.run.update_status.submit_label",
     "translation": "Status aktualisieren"
-  },
-  {
-    "id": "app.user.run.update_status.reminder_for_next_update",
-    "translation": "Erinnerung an das nächste Update"
   },
   {
     "id": "app.user.run.update_status.num_channel",
@@ -9850,40 +9746,20 @@
     }
   },
   {
-    "id": "app.user.run.update_status.finish_run.placeholder",
-    "translation": "Markiere den Durchlauf auch als beendet"
-  },
-  {
     "id": "app.user.run.update_status.finish_run",
     "translation": "Durchlauf beenden"
-  },
-  {
-    "id": "app.user.run.update_status.change_since_last_update",
-    "translation": "Änderung seit der letzten Aktualisierung"
   },
   {
     "id": "app.user.run.status_enable",
     "translation": "@{{.Username}} hat die Statusaktualisierungen für [{{.RunName}}]({{.RunURL}}) aktiviert"
   },
   {
-    "id": "app.user.run.status_disable",
-    "translation": "@{{.Username}} hat die Statusaktualisierungen für [{{.RunName}}]({{.RunURL}}) deaktiviert"
-  },
-  {
     "id": "app.user.run.request_update",
     "translation": "@here — @{{.Name}} hat eine Statusaktualisierung für [{{.RunName}}]({{.RunURL}}) angefordert. \n"
   },
   {
-    "id": "app.user.run.request_join_channel",
-    "translation": "@{{.Name}} ist ein Teilnehmer und möchte diesem Kanal beitreten. Jedes Mitglied des Kanals kann ihn einladen.\n"
-  },
-  {
     "id": "app.user.run.confirm_finish.title",
     "translation": "Beenden des Durchlaufs bestätigen"
-  },
-  {
-    "id": "app.user.run.confirm_finish.submit_label",
-    "translation": "Durchlauf beenden"
   },
   {
     "id": "app.user.run.confirm_finish.num_outstanding",
@@ -9893,75 +9769,36 @@
     }
   },
   {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "Zur Zeitleiste hinzufügen"
-  },
-  {
     "id": "app.user.run.add_to_timeline.summary.placeholder",
     "translation": "Kurze Zusammenfassung auf der Zeitachse"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.help",
-    "translation": "Max. 64 Zeichen"
   },
   {
     "id": "app.user.run.add_to_timeline.summary",
     "translation": "Zusammenfassung"
   },
   {
-    "id": "app.user.run.add_to_timeline.submit_label",
-    "translation": "Zur Zeitleiste hinzufügen"
-  },
-  {
     "id": "app.user.run.add_to_timeline.playbook_run",
     "translation": "Playbook-Durchlauf"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.title",
-    "translation": "Neue Aufgabe hinzufügen"
   },
   {
     "id": "app.user.run.add_checklist_item.submit_label",
     "translation": "Aufgabe hinzufügen"
   },
   {
-    "id": "app.user.run.add_checklist_item.name",
-    "translation": "Name"
-  },
-  {
     "id": "app.user.run.add_checklist_item.description",
     "translation": "Beschreibung"
-  },
-  {
-    "id": "app.user.new_run.title",
-    "translation": "Playbook starten"
   },
   {
     "id": "app.user.new_run.submit_label",
     "translation": "Starte Durchlauf"
   },
   {
-    "id": "app.user.new_run.run_name",
-    "translation": "Name des Durchlaufs"
-  },
-  {
     "id": "app.user.new_run.playbook",
     "translation": "Playbook"
   },
   {
-    "id": "app.user.new_run.intro",
-    "translation": "**Eigentümer** {{.Username}}"
-  },
-  {
     "id": "app.user.digest.tasks.zero_assigned",
     "translation": "Du hast keine zugewiesene Aufgabe."
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "one": "Du hast eine zugewiesene Aufgabe, die jetzt fällig ist:",
-      "other": "Du hast {{.Count}} zugewiesene Aufgaben, die jetzt fällig sind:"
-    }
   },
   {
     "id": "app.user.digest.tasks.num_assigned",
@@ -9971,27 +9808,12 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.heading",
-    "translation": "Deine zugewiesenen Aufgaben"
-  },
-  {
     "id": "app.user.digest.tasks.due_yesterday",
     "translation": "Gestern fällig"
   },
   {
-    "id": "app.user.digest.tasks.due_x_days_ago",
-    "translation": "Fällig vor {{.Count}} Tagen"
-  },
-  {
     "id": "app.user.digest.tasks.due_today",
     "translation": "Heute fällig"
-  },
-  {
-    "id": "app.user.digest.tasks.due_in_x_days",
-    "translation": {
-      "one": "Fällig in einem Tag",
-      "other": "Fällig in {{.Count}} Tagen"
-    }
   },
   {
     "id": "app.user.digest.tasks.due_after_today",
@@ -10001,27 +9823,12 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.all_tasks_command",
-    "translation": "Bitte benutze `/playbook todo` um alle deine Aufgaben anzuzeigen."
-  },
-  {
     "id": "app.user.digest.runs_in_progress.zero_in_progress",
     "translation": "Du hast keinen aktiven Durchlauf."
   },
   {
-    "id": "app.user.digest.runs_in_progress.num_in_progress",
-    "translation": {
-      "one": "Du hast einen aktiven Durchlauf:",
-      "other": "Du hast {{.Count}} aktive Durchläufe:"
-    }
-  },
-  {
     "id": "app.user.digest.runs_in_progress.heading",
     "translation": "Aktive Durchläufe"
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.zero_overdue",
-    "translation": "Du hast keine überfälligen Durchläufe."
   },
   {
     "id": "app.user.digest.overdue_status_updates.num_overdue",
@@ -10029,10 +9836,6 @@
       "one": "Du hast einen überfälligen Durchlauf für ein Statusupdate:",
       "other": "Du hast {{.Count}} überfällige Durchläufe für ein Statusupdate:"
     }
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.heading",
-    "translation": "Überfällige Statusaktualisierungen"
   },
   {
     "id": "app.command.execute.error",
@@ -10043,120 +9846,60 @@
     "translation": "Ungültige geschäftliche E-Mail für den Test"
   },
   {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Steigere die Produktivität deines Kanals, indem du die am häufigsten verwendeten Tools wie z. B. Zoom integrierst. Diese werden für dich heruntergeladen."
-  },
-  {
     "id": "worktemplate.product_teams.sprint_planning.channel",
     "translation": "Chatte mit deinem Team in einem Kanal, der sich leicht mit deinen Boards und Integrationen verbinden lässt."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Verfolge den Fortschritt deines Teams bei der Erreichung der wöchentlichen Ziele mit Sprintaufteilung, Priorisierung, Zuweisung von Verantwortlichen und Kommentaren."
   },
   {
     "id": "worktemplate.product_teams.product_roadmap.channel",
     "translation": "Chatte mit deinem Team über das Feedback deiner Kunden, setze Prioritäten und stimmt euch gemeinsam über den Fortschritt ab."
   },
   {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Verwende das Produkt-Roadmap-Board, um Benutzer-Feedback zu verwalten, Ressourcen zuzuweisen, Ergebnisse in einer Kalenderansicht anzuzeigen und Probleme nach Priorität zu ordnen."
-  },
-  {
     "id": "worktemplate.product_teams.goals_and_okrs.integration",
     "translation": "Steigere die Produktivität in deinem Kanal, indem du die am häufigsten verwendeten Tools wie Zoom integrierst, um die Zusammenarbeit zu erleichtern. Diese werden für dich heruntergeladen."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Chatte mit deinem Team über Ziele und Fortschritte, asynchron oder in Echtzeit, und bleibe über Änderungen in einem einzigen Kanal auf dem Laufenden."
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.board",
     "translation": "Verfolge den Fortschritt deines Teams auf dem Weg zu den Unternehmenszielen mit dem Ziele und OKR Board. Halten Besprechungen mit der Besprechungsagenda auf Kurs."
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Fördere die funktionsübergreifende Zusammenarbeit im Team mit Aufgaben-Checklisten und Automatisierungen, die deinen Entwicklungsprozess unterstützen. Führe anschließend eine Retrospektive durch und nimm Verbesserungen für deine nächste Version vor."
-  },
-  {
     "id": "worktemplate.product_teams.feature_release.description.channel",
     "translation": "Chatte mit deinem Team über alle Release-Blocker und Änderungen in einem Kanal, der sich leicht mit deinen Boards, Playbooks und anderen Integrationen verbinden lässt."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Halte Besprechungen mit der Besprechungsagenda auf dem Laufenden. Verwalte dein Arbeitspensum mit dem Projektaufgabenboard."
   },
   {
     "id": "worktemplate.product_teams.bug_bash.playbook",
     "translation": "Verwende Checklisten, um Testbereiche zuzuweisen, und automatisierte Aufgaben, um einen umfassenden Fehlerbehebungsprozess durchzuführen. Nutze eine Retrospektive, um deinen Prozess zu überprüfen und ihn für das nächste Mal zu verbessern."
   },
   {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Steigere die Produktivität in deinem Kanal, indem du die am häufigsten verwendeten Tools, wie z. B. Jira, integrierst, um den Fortschritt bei der Fehlerbehebung zu verfolgen. Diese werden für dich heruntergeladen."
-  },
-  {
     "id": "worktemplate.product_teams.bug_bash.channel",
     "translation": "Plane und verwalte Fehlerberichte und -behebungen in einem einzigen Kanal, der für dein Team und deine Organisation leicht zugänglich ist."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Steigere die Produktivität in deinem Kanal, indem du die am häufigsten verwendeten Tools wie Zoom integrierst, um die Zusammenarbeit zu erleichtern. Diese werden für dich heruntergeladen."
   },
   {
     "id": "worktemplate.leadership.goals_and_okrs.channel",
     "translation": "Chatte mit deinem Team über Ziele und Fortschritte, asynchron oder in Echtzeit, und bleibe über Änderungen in einem einzigen Kanal auf dem Laufenden."
   },
   {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "Verfolge den Fortschritt deines Teams auf dem Weg zu den Unternehmenszielen mit dem Ziele und OKR Board. Halten Besprechungen mit der Besprechungsagenda auf Kurs."
-  },
-  {
     "id": "worktemplate.devops.product_release.playbook",
     "translation": "Erstelle wiederholbare Arbeitsabläufe, die einfach zu befolgen und zu implementieren sind, damit die Produktveröffentlichungen zuverlässig und pünktlich erfolgen."
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "Chatte einfach und schnell mit deinem Team über tägliche Meilensteine, eventuelle Hindernisse und Änderungen an den zu erbringenden Leistungen."
   },
   {
     "id": "worktemplate.devops.product_release.board",
     "translation": "Verwende das Product Release Board, um den Zeitrahmen und den Prozess für die Freigabe zu unterstützen und sicherzustellen, dass jeder weiß, welche Aufgaben fällig sind."
   },
   {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "Nutze Checklisten und Automatisierungen, um wichtige Teammitglieder einzubeziehen, und teile mit, wie der Vorfall gelöst wird."
-  },
-  {
     "id": "worktemplate.devops.incident_resolution.description.channel",
     "translation": "Chatte mit deinem Team über Prioritäten, füge Beteiligte hinzu, liefere Updates und arbeite an einer Lösung in einem einzigen Kanal."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "Verwende das Incident Resolution Board, um wiederholbare Prozesse zu unterstützen und definierte Aufgaben im Team zuzuweisen."
   },
   {
     "id": "worktemplate.companywide.goals_and_okrs.integration",
     "translation": "Steigere die Produktivität in deinem Kanal, indem du die am häufigsten verwendeten Tools wie Zoom integrierst, um die Zusammenarbeit zu erleichtern. Diese werden für dich heruntergeladen."
   },
   {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Chatte mit deinem Team über Ziele und Fortschritte, asynchron oder in Echtzeit, und bleibe über Änderungen in einem einzigen Kanal auf dem Laufenden."
-  },
-  {
     "id": "worktemplate.companywide.goals_and_okrs.board",
     "translation": "Verfolge den Fortschritt deines Teams auf dem Weg zu den Unternehmenszielen mit dem Ziele und OKR Board. Halten Besprechungen mit der Besprechungsagenda auf Kurs."
   },
   {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Steigere die Produktivität deines Kanals durch die Integration am deiner am häufigsten verwendeten Tools. Diese werden für dich heruntergeladen."
-  },
-  {
     "id": "worktemplate.companywide.create_project.channel",
     "translation": "Chatte mit deinem Team über ein neues Projekt und entscheide, wie es strukturiert werden soll, und zwar in einem Kanal zur Zusammenarbeit."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Verwend eine Kanban-Board, um deine Projektaufgaben und -fortschritte zu definieren und zu verfolgen."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
@@ -10177,5 +9920,181 @@
   {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
     "translation": "CWS Server kann den Newsletter nicht abonnieren."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Das Prüfen einer dauerhaften Benachrichtigung ist fehlgeschlagen."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "Der Benutzer darf keine Prioritätsnachrichten oder dauerhafte Benachrichtigungen erstellen."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Es ist nicht möglich, die dauerhaften Benachrichtigungen nach Kanal zu löschen."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Ungültige Gesamtzahl der dauerhaften Benachrichtigungen pro Beitrag. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Nur Hauptnachrichten dürfen Priorität haben."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Dauerhafte Benachrichtigungen müssen die Priorität \"Dringend\" haben."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Ungültige maximale Anzahl von Empfängern für dauerhafte Benachrichtigungen. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Eine dauerhafte Benachrichtigung muss mindestens einen Empfänger haben."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Nachricht von dauerhafter Benachrichtigung konnte nicht gelöscht werden"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Überschreitung der Benachrichtigungseigenschaftsgröße melden."
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Fehler bei der Übermittlung eines True Up Überprüfungsprofils an CWS."
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Erzeuge einen Link zum Herunterladen eines Exports."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "Der Dateispeichertreiber unterstützt die Linkerzeugung nicht."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Es wurde keine Exportdatei gefunden."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip filename|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Die von dir angeforderte Datei konnte nicht gefunden werden."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Du kannst deine Datei hier herunterladen: {{.Link}}.\nDieser Link wird in {{.Expiration}} ablaufen."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Kann die Exportliste nicht abrufen."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "Exportlink"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Du hast nicht genügend Berechtigungen, um diesen Befehl auszuführen."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Die Presign-URL kann nicht generiert werden."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Dauerhafte Benachrichtigungen erlauben maximal {{.MaxRecipients}} Empfänger."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Es ist nicht möglich, die Anzahl der Mitglieder für die angegebenen Kanäle zu ermitteln."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Die Anzahl der Mitglieder kann nicht ermittelt werden."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Die Aktualisierung des Kanalmitglieds ist nicht möglich."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Das Kanalmitglied kann nicht aktualisiert werden, da das Größenlimit für die Benachrichtigungseigenschaften überschritten wurde."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "Diese Aktion erfordert die Verwendung eines speziellen Exportspeichers."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Ihr Exportspeicher-Treiber unterstützt die Erstellung von Vorgabe-URLs nicht."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "Diese Funktion wird durch ein Feature Flag eingeschränkt."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Es konnte nicht geprüft werden, ob die Datei existiert."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Die vordefinierte URL kann nicht generiert werden."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "Die Exportdatei wurde nicht gefunden."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Ungültige Häufigkeit der dauerhaften Benachrichtigungen. Muss mindestens zwei Minuten betragen."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Token nach Typ konnten nicht geholt werden, wenn Passwort-Wiederherstellungstoken ungültig gemacht werden"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Token kann nicht entfernt werden, wenn Passwortwiederherstellungstoken ungültig gemacht werden"
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Fehler: Kein Organisationsname für selbst gehostetes Onboarding angegeben."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Token kann beim Ungültigmachen von Kennwortwiederherstellungstoken nicht analysiert werden"
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Konnte GIF nicht dekodieren."
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Ein Fehler ist beim Aufrufen des Teams aufgetreten"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Es ist nicht möglich, die dauerhaften Benachrichtigungen nach Team zu löschen."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Bei der Ausführung des Plugin-Hooks beim Speichern der Konfiguration ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Ungültiger channel-auto-follow-threads Wert."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ignorierte Indizes für Bereinigung dürfen nicht mit einem Bindestrich beginnen."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Das Verzeichnis der lokalen Socket-Dateien kann nicht gefunden werden."
   }
 ]
