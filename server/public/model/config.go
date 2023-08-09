@@ -2714,7 +2714,7 @@ type ElasticsearchSettings struct {
 	EnableIndexing                *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableSearching               *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableAutocomplete            *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Sniff                         *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Sniff                         *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // Deprecated: sniffing is now enabled by default.
 	PostIndexReplicas             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	PostIndexShards               *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	ChannelIndexReplicas          *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`

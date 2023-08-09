@@ -8,6 +8,7 @@ package commands
 
 import (
 	// Enterprise Deps
+	_ "github.com/elastic/go-elasticsearch/v8"
 	_ "github.com/gorilla/handlers"
 	_ "github.com/hako/durafmt"
 	_ "github.com/hashicorp/memberlist"
@@ -20,5 +21,4 @@ import (
 	_ "github.com/prometheus/client_golang/prometheus/collectors"
 	_ "github.com/prometheus/client_golang/prometheus/promhttp"
 	_ "github.com/tylerb/graceful"
-	_ "gopkg.in/olivere/elastic.v6"
 )
