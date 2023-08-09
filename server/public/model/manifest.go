@@ -210,18 +210,6 @@ type ManifestServer struct {
 	Executable string `json:"executable" yaml:"executable"`
 }
 
-// Deprecated: ManifestExecutables is a legacy structure capturing a subset of the known platform executables.
-// It will be remove in v7.0: https://mattermost.atlassian.net/browse/MM-40531
-type ManifestExecutables struct {
-	// LinuxAmd64 is the path to your executable binary for the corresponding platform
-	LinuxAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
-	// DarwinAmd64 is the path to your executable binary for the corresponding platform
-	DarwinAmd64 string `json:"darwin-amd64,omitempty" yaml:"darwin-amd64,omitempty"`
-	// WindowsAmd64 is the path to your executable binary for the corresponding platform
-	// This file must have a ".exe" extension
-	WindowsAmd64 string `json:"windows-amd64,omitempty" yaml:"windows-amd64,omitempty"`
-}
-
 type ManifestWebapp struct {
 	// The path to your webapp bundle. This should be relative to the root of your bundle and the
 	// location of the manifest file.
