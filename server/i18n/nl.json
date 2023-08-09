@@ -4773,7 +4773,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 110+"
+    "translation": "Versie 112+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
@@ -9647,16 +9647,8 @@
     "translation": "Fout bij het bijwerken van de serververtalingen."
   },
   {
-    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
-    "translation": "Kan kanaal verbonden met een playbook niet vinden."
-  },
-  {
     "id": "app.worktemplates.execute_work_template.app_error",
     "translation": "Fout bij het uitvoeren van een werksjabloon."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_board",
-    "translation": "Je hebt geen rechten om een openbaar bord aan te maken."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -9665,10 +9657,6 @@
   {
     "id": "app.group.username_conflict",
     "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Gebruikersnaam}}\"."
-  },
-  {
-    "id": "api.command_templates.desc",
-    "translation": "Open het venster Aanmaken van sjabloon"
   },
   {
     "id": "app.team.create_onboarding_linked_board.error_patching_board",
@@ -9691,10 +9679,6 @@
     "translation": "Contacteer de verkoopsafdeling"
   },
   {
-    "id": "app.user.digest.runs_in_progress.heading",
-    "translation": "Runs in uitvoering"
-  },
-  {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
     "translation": "CWS-server kan zich niet abonneren op nieuwsbrief."
   },
@@ -9707,30 +9691,12 @@
     "translation": "Ongeldig zakelijk e-mailadres voor proefperiode"
   },
   {
-    "id": "app.user.run.add_checklist_item.name",
-    "translation": "Naam"
-  },
-  {
     "id": "app.user.new_run.run_name",
     "translation": "Naam van de uitvoering"
   },
   {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "one": "Je hebt {{.Count}} taak toegewezen gekregen die nu verloopt:",
-      "other": "Je hebt {{.Count}} taken toegewezen gekregen die nu verlopen:"
-    }
-  },
-  {
     "id": "app.user.digest.tasks.due_x_days_ago",
     "translation": "Verliep {{.Count}} dagen geleden"
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.num_overdue",
-    "translation": {
-      "one": "Je hebt {{.Count}} uitvoering die een statusupdate nodig hebben:",
-      "other": "Je hebt {{.Count}} uitvoeringen die een statusupdate nodig hebben:"
-    }
   },
   {
     "id": "app.plugin.skip_installation.app_error",
@@ -9741,22 +9707,195 @@
     "translation": "Plugin {{.Id}} staat op de lijst met geblokkeerde apps. Sommige plugins worden geblokkeerd omdat ze nu ingebouwd zijn in deze versie van Mattermost."
   },
   {
-    "id": "app.user.run.update_status.num_channel",
-    "translation": {
-      "one": "Geef een update aan de belanghebbenden. Dit bericht zal verstuurd worden naar {{.Count}} kanaal.",
-      "other": "Geef een update aan de belanghebbenden. Dit bericht zal verstuurd worden naar {{.Count}} kanalen."
-    }
-  },
-  {
     "id": "app.user.run.status_enable",
     "translation": "@{.Username}} heeft de statusupdates voor [{{.RunName}}]({{.RunURL}}) uitgeschakeld"
   },
   {
-    "id": "app.user.run.confirm_finish.title",
-    "translation": "Bevestig beëindigen uitvoering"
-  },
-  {
     "id": "app.user.run.add_to_timeline.summary.placeholder",
     "translation": "Korte samenvatting weergeven in de tijdlijn"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Genegeerde indexen voor purge mogen niet beginnen met een streepje."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Validatie van blijvende meldingen is mislukt."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "Gebruiker mag geen prioriteitspost of blijvende melding aanmaken."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Alleen berichten die een draadje beginnen mogen prioriteit hebben."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Blijvende berichten moeten de prioriteit Dringend hebben."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "Het stuurprogramma voor bestandsopslag ondersteunt het genereren van snelkoppelingen niet."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Je kan jouw bestand hier downloaden: {{.Link}}.\nDeze link verloopt over {{.Expiration}}."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Kan de blijvende meldingen per kanaal niet verwijderen."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Blijvend bericht kon niet worden verwijderd"
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Berichten met een blijvende meldingen laten maximaal {{.MaxRecipients}} ontvangers toe."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Ongeldig totaal aantal blijvende meldingen per bericht. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Ongeldige frequentie van blijvende meldingen. Moet minstens twee minuten zijn."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch versie {{.Version}} is hoger dan de maximaal ondersteunde versie van {{.MaxVersion}}"
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Kon geen profiel met actueel aantal gebruikers versturen naar CWS."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Ongeldig maximum aantal ontvangers voor blijvende meldingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Kan de blijvende meldingen per team niet verwijderen."
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "De limiet voor de grootte van props is overschreden."
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Genereer een link om een export te downloaden."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Er is geen exportbestand gevonden."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip bestandsnaam|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Het gevraagde bestand kon niet worden gevonden."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Kan de exportlijst niet ophalen."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Je hebt niet genoeg rechten om dit commando uit te voeren."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Kan geen presign-url genereren."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Kan geen tokens per type krijgen bij het ongeldig maken van wachtwoordherstel tokens"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Kan token niet parsen bij het ongeldig maken van tokens voor wachtwoordherstel"
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Kan aantal leden voor opgegeven kanalen niet ophalen."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Fout bij het ophalen van het aantal leden."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Kan het kanaallid niet bijwerken."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Kan kanaallid niet bijwerken, meldings propsgroottte limiet overschreden."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "Deze actie vereist het gebruik van een speciale exportstore."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Het stuurprogramma van je exportwinkel ondersteunt het genereren van presign-url's niet."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "Deze functie wordt beperkt door een feature flag."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Kon niet controleren of het bestand bestaat."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Kan de presigned url niet genereren."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "Het exportbestand is niet gevonden."
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Er is een fout opgetreden bij het ophalen van het team."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Kan lokale socket-bestandsmap niet vinden."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Fout geen organisatienaam opgegeven bij self hosted introductie."
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Kan gif niet decoderen."
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Ongeldige kanaal-automatisch-draadjes-volgen-waarde."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Ongeldige waarde voor bytes bij het uploaden van een licentie."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Er is een fout opgetreden bij het uitvoeren van de pluginhook bij het opslaan van de configuratie."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Kan token niet verwijderen bij het ongeldig maken van tokens voor wachtwoordherstel"
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Berichten met een blijvende meldingen moeten minimaal {{.MaxRecipients}} 1 ontvanger hebben."
   }
 ]
