@@ -1785,7 +1785,7 @@
   },
   {
     "id": "api.templates.email_info1",
-    "translation": "如有任何问题，请随时给我们发邮件："
+    "translation": "如有任何问题，请随时给我们发邮件： "
   },
   {
     "id": "api.templates.email_info2",
@@ -3297,7 +3297,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "未在 AD/LDAP 服务器上找到用户："
+    "translation": "未在 AD/LDAP 服务器上找到用户： "
   },
   {
     "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
@@ -4034,10 +4034,6 @@
   {
     "id": "model.emoji.user_id.app_error",
     "translation": "无效创建者 id。"
-  },
-  {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "无法解码 gif。"
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
@@ -5825,7 +5821,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 110+"
+    "translation": "版本 112+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
@@ -9044,10 +9040,6 @@
     "translation": "由于对禁运国家的限制，我们无法处理请求。[在我们的文档中了解更多信息](https://mattermost.com/pl/limitations-for-embargoed-countries)，或联系legal@mattermost.com了解有关出口限制的问题。"
   },
   {
-    "id": "api.insights.feature_disabled",
-    "translation": "Insights 位于未启用的特性标志后面。"
-  },
-  {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "参数 getThreadsForUser 的 OnlyThreads 和 OnlyTotals 是相互排斥的(互诉的)"
   },
@@ -9112,16 +9104,8 @@
     "translation": "无效的 post_id"
   },
   {
-    "id": "app.recent_searches.app_error",
-    "translation": "获取最近搜索错误"
-  },
-  {
     "id": "app.post.analytics_teams_count.app_error",
     "translation": "无法获取团队使用情况"
-  },
-  {
-    "id": "app.insights.feature_disabled",
-    "translation": "Insights 功能已禁用。"
   },
   {
     "id": "api.file.cloud_upload.app_error",
@@ -9176,16 +9160,8 @@
     "translation": "清除团队成员缓存时出错"
   },
   {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "无法为用户获取顶级线程。"
-  },
-  {
     "id": "app.post.get_top_threads_for_team_since.app_error",
     "translation": "无法为团队获取顶级线程。"
-  },
-  {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "无法为用户获取顶级 DMs。"
   },
   {
     "id": "app.post.cloud.get.app_error",
@@ -9440,10 +9416,6 @@
     "translation": "这是自 {{.DelinquencyDate}} 后我们尚未收到您的 Mattermost Cloud 工作区付款的最后提醒。"
   },
   {
-    "id": "api.command_templates.name",
-    "translation": "模板"
-  },
-  {
     "id": "api.command_templates.desc",
     "translation": "打开从模板创建窗口"
   },
@@ -9452,16 +9424,8 @@
     "translation": "您还有时间保持您的 Mattermost {{.Plan}} 可用，但是在那之前您需要解决一些与支付有关的问题。"
   },
   {
-    "id": "worktemplate.category.product_teams",
-    "translation": "产品"
-  },
-  {
     "id": "worktemplate.category.leadership",
     "translation": "领导"
-  },
-  {
-    "id": "worktemplate.category.devops",
-    "translation": "DevOps"
   },
   {
     "id": "worktemplate.category.companywide",
@@ -9540,88 +9504,44 @@
     "translation": "解码 Elasticsearch CA 失败"
   },
   {
-    "id": "app.worktemplates.get_templates.app_error",
-    "translation": "无法取得作业模板"
-  },
-  {
     "id": "app.worktemplates.get_categories.app_error",
     "translation": "无法取得作业模板目录"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
-    "translation": "找不到与 Playbook 关联的频道。"
   },
   {
     "id": "app.worktemplates.execute_work_template.playbooks.create_error",
     "translation": "创建 Playbook 时发生错误。"
   },
   {
-    "id": "app.worktemplates.execute_work_template.name_too_long",
-    "translation": "名称栏目中无法输入超过 64 个字符的内容。"
-  },
-  {
     "id": "app.worktemplates.execute_work_template.channels.create_error",
     "translation": "在创建频道时发生错误。"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.boards.create_error",
-    "translation": "在创建 Board 时发生错误。"
   },
   {
     "id": "app.worktemplates.execute_work_template.app_error",
     "translation": "在执行作业模板时发生错误。"
   },
   {
-    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
-    "translation": "您的授权不支持私密 Playbook。"
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
     "translation": "您没有创建公开 Playbook 的权限。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
-    "translation": "您没有创建公开频道的权限。"
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "您没有创建公开 Board 的权限。"
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
-    "translation": "您没有创建私密 Playbook 的权限。"
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_private_channel",
     "translation": "您没有创建私密频道的权限。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_board",
-    "translation": "您没有创建私密 Board 的权限。"
   },
   {
     "id": "app.user.get_badge_count.app_error",
     "translation": "无法获取用户的奖章数目。"
   },
   {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "未找到产品密钥"
-  },
-  {
     "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
     "translation": "接口不是预期的类型"
   },
   {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "更新 Board 时发生错误"
-  },
-  {
     "id": "app.team.create_onboarding_linked_board.error_no_board",
     "translation": "在创建 Board 时发生错误"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "在取得 Board 模板时发生错误"
   },
   {
     "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
@@ -9684,10 +9604,6 @@
     "translation": "无法删除草稿。"
   },
   {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Topic 类型已存在。"
-  },
-  {
     "id": "app.collection.add_collection.exists.app_error",
     "translation": "Collection 类型已存在。"
   },
@@ -9748,10 +9664,6 @@
     "translation": "无法删除已读确认。"
   },
   {
-    "id": "api.work_templates.disabled",
-    "translation": "工作模板已被禁用。"
-  },
-  {
     "id": "api.user.get_users.validation.app_error",
     "translation": "在获取用户权限的过程中发生错误。"
   },
@@ -9792,132 +9704,64 @@
     "translation": "CWS 服务器删除工作区时失败。"
   },
   {
-    "id": "api.command_templates.unsupported.app_error",
-    "translation": "您的设备不支持模板命令。"
-  },
-  {
     "id": "app.user.run.update_status.title",
     "translation": "状态更新"
-  },
-  {
-    "id": "app.user.run.update_status.submit_label",
-    "translation": "更新状态"
   },
   {
     "id": "app.user.run.update_status.reminder_for_next_update",
     "translation": "下次更新的提醒"
   },
   {
-    "id": "app.user.run.update_status.num_channel",
-    "translation": {
-      "other": "为利益相关者提供一次更新提醒。这条提醒将被广播到{{.Count}} 个频道。"
-    }
-  },
-  {
     "id": "app.user.run.update_status.finish_run.placeholder",
     "translation": "并且标记此运行为已结束"
-  },
-  {
-    "id": "app.user.run.update_status.finish_run",
-    "translation": "结束运行"
   },
   {
     "id": "app.user.run.update_status.change_since_last_update",
     "translation": "对比上次存在更改"
   },
   {
-    "id": "app.user.run.status_enable",
-    "translation": "@{{.Username}} 启用了对 [{{.RunName}}]({{.RunURL}})的状态更新"
-  },
-  {
     "id": "app.user.run.status_disable",
     "translation": "@{{.Username}} 停止用了 [{{.RunName}}]({{.RunURL}})的状态更新。"
-  },
-  {
-    "id": "app.user.run.request_update",
-    "translation": "@here — @{{.Name}} 请求对 [{{.RunName}}]({{.RunURL}}) 进行状态更新。 \n"
   },
   {
     "id": "app.user.run.request_join_channel",
     "translation": "@{{.Name}} 是一个运行的参与者，并且希望要参加这个频道。任何的频道成员都可以邀请他们。\n"
   },
   {
-    "id": "app.user.run.confirm_finish.title",
-    "translation": "确认完成运行"
-  },
-  {
     "id": "app.user.run.confirm_finish.submit_label",
     "translation": "完成运行"
-  },
-  {
-    "id": "app.user.run.confirm_finish.num_outstanding",
-    "translation": {
-      "other": "一共有 **{{.Count}} 未完成的任务**. 您确定想为所有的参与者结束*{{.RunName}}*吗？"
-    }
   },
   {
     "id": "app.user.run.add_to_timeline.title",
     "translation": "添加到运行队列"
   },
   {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "时间表里显示的简单概要"
-  },
-  {
     "id": "app.user.run.add_to_timeline.summary.help",
     "translation": "最大64个字符"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary",
-    "translation": "概要"
   },
   {
     "id": "app.user.run.add_to_timeline.submit_label",
     "translation": "添加到运行队列"
   },
   {
-    "id": "app.user.run.add_to_timeline.playbook_run",
-    "translation": "Playbook运行"
-  },
-  {
     "id": "app.user.run.add_checklist_item.title",
     "translation": "添加新任务"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.submit_label",
-    "translation": "添加任务"
   },
   {
     "id": "app.user.run.add_checklist_item.name",
     "translation": "名字"
   },
   {
-    "id": "app.user.run.add_checklist_item.description",
-    "translation": "描述"
-  },
-  {
     "id": "app.user.new_run.title",
     "translation": "运行playbook"
-  },
-  {
-    "id": "app.user.new_run.submit_label",
-    "translation": "开始运行"
   },
   {
     "id": "app.user.new_run.run_name",
     "translation": "运行名"
   },
   {
-    "id": "app.user.new_run.playbook",
-    "translation": "Playbook"
-  },
-  {
     "id": "app.user.new_run.intro",
     "translation": "**所有者** {{.Username}}"
-  },
-  {
-    "id": "app.user.digest.tasks.zero_assigned",
-    "translation": "您没有任务。"
   },
   {
     "id": "app.user.digest.tasks.num_assigned_due_until_today",
@@ -9926,26 +9770,12 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "other": "您一共有{{.Count}}个任务："
-    }
-  },
-  {
     "id": "app.user.digest.tasks.heading",
     "translation": "您的任务"
   },
   {
-    "id": "app.user.digest.tasks.due_yesterday",
-    "translation": "于昨天过期"
-  },
-  {
     "id": "app.user.digest.tasks.due_x_days_ago",
     "translation": "{{.Count}}天已过期"
-  },
-  {
-    "id": "app.user.digest.tasks.due_today",
-    "translation": "将于今天过期"
   },
   {
     "id": "app.user.digest.tasks.due_in_x_days",
@@ -9954,18 +9784,8 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.due_after_today",
-    "translation": {
-      "other": "您有 **{{.Count}} 项目任务今天之后将要过期**."
-    }
-  },
-  {
     "id": "app.user.digest.tasks.all_tasks_command",
     "translation": "请使用`/playbook todo`来查看您所有的任务。"
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.zero_in_progress",
-    "translation": "您有0项正在运行。"
   },
   {
     "id": "app.user.digest.runs_in_progress.num_in_progress",
@@ -9974,18 +9794,8 @@
     }
   },
   {
-    "id": "app.user.digest.runs_in_progress.heading",
-    "translation": "正在运行"
-  },
-  {
     "id": "app.user.digest.overdue_status_updates.zero_overdue",
     "translation": "您没有逾期。"
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.num_overdue",
-    "translation": {
-      "other": "您有 {{.Count}} 过期需要状态更新："
-    }
   },
   {
     "id": "app.user.digest.overdue_status_updates.heading",
@@ -9994,10 +9804,6 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "不能删除oauth认证信息。"
-  },
-  {
-    "id": "app.command.execute.error",
-    "translation": "无法执行命令。"
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
@@ -10024,63 +9830,227 @@
     "translation": "无效的商务试用邮箱"
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "通过集成大多您使用过的工具（比如 GitHub）在您的频道里提高生产力，实现你的功能发布。这些工具将为你下载。"
-  },
-  {
     "id": "worktemplate.product_teams.feature_release.description.channel",
     "translation": "在一个频道与你的团队讨论任何的发布障碍和变动，并很容易的与你的面板，Playbook或者其他的集成功能连接。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "使用会议安排面板保持会议一起正常。使用项目任务面板管理你的工作量。"
   },
   {
     "id": "worktemplate.product_teams.bug_bash.integration",
     "translation": "通过集成大多您使用过的工具（比如Jira）在您的频道里提高生产力，跟踪你的Bug解决过程。这些工具将为你下载。"
   },
   {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "通过集成大多您使用过的工具（比如 Zoom）在您的频道里提高生产力，实行更容易的协作。这些工具将为你下载。"
-  },
-  {
     "id": "worktemplate.leadership.goals_and_okrs.channel",
     "translation": "和您的团队讨论目标和进度，以异步或者同步的方式，在同一个频道中保持跟上任何发生的变化。"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "使用目标和OKR面板跟踪您的团队进度向组织目标推进。使用会议安排面板保持会议一起正常。"
   },
   {
     "id": "worktemplate.devops.incident_resolution.description.channel",
     "translation": "在一单独频道与您的团队讨论优先级、添加利益相关者，提供更新，向解决的方向努力。"
   },
   {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "使用事故解决面板来实现重复性的流程和分配跨越整个团队的任务。"
-  },
-  {
     "id": "worktemplate.companywide.goals_and_okrs.integration",
     "translation": "通过集成大多您使用过的工具（比如 Zoom）在您的频道里提高生产力，实行更容易的协作。这些工具将为你下载。"
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "和您的团队讨论目标和进度，以异步或者同步的方式，在同一个频道中保持跟上任何发生的变化。"
   },
   {
     "id": "worktemplate.companywide.goals_and_okrs.board",
     "translation": "使用目标和OKR面板跟踪您的团队进度向组织目标推进。使用会议安排面板保持会议一起正常。"
   },
   {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "通过集成大多您使用过的工具在您的频道里提高生产力。这些工具将为你下载。"
-  },
-  {
     "id": "worktemplate.companywide.create_project.channel",
     "translation": "与您的团队在一个协作频道里讨论新的项目并且决定如何你们将如此组织。"
   },
   {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "使用看板面板定义和跟踪您的项目任务列表和进度。"
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "未提供自助托管引导的组织名称。"
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "向 CWS 提交 true up 评审配置文件失败。"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "由于现有版本相等或更新，跳过插件 {{.Id}} 的安装。"
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "获取团队时发生错误。"
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch 版本 {{.Version}} 高于最大支持版本 {{.MaxVersion}}"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "持久通知的最大收件人数无效。必须是正数。"
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "生成一个下载导出文件的链接。"
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "文件存储驱动程序不支持链接生成。"
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "未找到导出文件。"
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip 文件名|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "无法找到您请求的文件。"
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "您可以在此处下载您的文件：{{.Link}}。\n此链接将在 {{.Expiration}} 后过期。"
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "无法检索导出列表。"
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "您没有足够的权限运行此命令。"
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "无法生成预签名 URL。"
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "无法找到给定频道的成员计数。"
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "无法找到成员计数。"
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "删除持久通知帖子失败"
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "无法更新频道成员。"
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "无法更新频道成员，通知属性大小超过限制。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "此操作需要使用专用的导出存储。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "您的导出存储驱动程序不支持预签名 URL 生成。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "此功能受功能标志限制。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "无法检查文件是否存在。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "无法生成预签名 URL。"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "未找到导出文件。"
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "无法解码 GIF。"
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "上传许可证时字节的值无效。"
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "无法找到本地套接字文件目录。"
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "插件 {{.Id}} 在阻止列表中。某些插件由于内置在此版本的 Mattermost 中而被阻止。"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "无法通过频道删除持久通知。"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "无法通过团队删除持久通知。"
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "在保存配置时运行插件钩子时发生错误。"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "channel-auto-follow-threads 值无效。"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "超过通知属性大小限制。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "忽略的索引清除不应以破折号开头。"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "持久通知每个帖子的总数无效。必须是正数。"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "持久通知的频率无效。必须至少为两分钟。"
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWS 服务器订阅通讯失败。"
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "持久通知帖子最多允许 {{.MaxRecipients}} 个收件人。"
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "持久通知帖子必须至少有 1 个收件人。"
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "持久通知验证失败。"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "用户不允许创建优先级帖子或持久通知。"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "只有根帖子可以具有优先级。"
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "持久通知帖子必须具有紧急优先级。"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "在使密码恢复令牌失效时无法按类型获取令牌"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "在使密码恢复令牌失效时无法删除令牌"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "在使密码恢复令牌失效时无法解析令牌"
   }
 ]
