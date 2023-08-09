@@ -180,7 +180,6 @@ const defaultServerConfig: AdminConfig = {
     TeamSettings: {
         SiteName: 'Mattermost',
         MaxUsersPerTeam: 50,
-        EnableJoinLeaveMessageByDefault: true,
         EnableUserCreation: true,
         EnableOpenServer: false,
         EnableUserDeactivation: false,
