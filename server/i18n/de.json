@@ -9651,20 +9651,12 @@
     "translation": "Die Serverübersetzungen konnten nicht aktualisiert werden."
   },
   {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "Fehler beim Ausführen einer Arbeitsvorlage."
-  },
-  {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
     "translation": "Ungültiger AuthService: {{.AuthService}}"
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Dienst nur in der Mattermost Enterprise Edition verfügbar"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "Fehler beim Abrufen von Board-Templates"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9683,18 +9675,6 @@
     "translation": "Oauth-Daten können nicht entfernt werden."
   },
   {
-    "id": "app.user.run.status_enable",
-    "translation": "@{{.Username}} hat die Statusaktualisierungen für [{{.RunName}}]({{.RunURL}}) aktiviert"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "Kurze Zusammenfassung auf der Zeitachse"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.description",
-    "translation": "Beschreibung"
-  },
-  {
     "id": "app.user.digest.tasks.num_assigned",
     "translation": {
       "one": "Du hast eine zugewiesene Aufgabe:",
@@ -9702,24 +9682,8 @@
     }
   },
   {
-    "id": "app.user.digest.runs_in_progress.zero_in_progress",
-    "translation": "Du hast keinen aktiven Durchlauf."
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Ungültige geschäftliche E-Mail für den Test"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Verfolge den Fortschritt deines Teams auf dem Weg zu den Unternehmenszielen mit dem Ziele und OKR Board. Halten Besprechungen mit der Besprechungsagenda auf Kurs."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Chatte mit deinem Team über Ziele und Fortschritte, asynchron oder in Echtzeit, und bleibe über Änderungen in einem einzigen Kanal auf dem Laufenden."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Steigere die Produktivität in deinem Kanal, indem du die am häufigsten verwendeten Tools wie Zoom integrierst, um die Zusammenarbeit zu erleichtern. Diese werden für dich heruntergeladen."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
@@ -9732,10 +9696,6 @@
   {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "Überspringe die Installation des Plugins {{.Id}}, da die vorhandene Version gleich oder neuer ist."
-  },
-  {
-    "id": "app.plugin.blocked.app_error",
-    "translation": "Das Plugin {{.Id}} steht auf der Blockierliste. Einige Plugins sind blockiert, weil sie in diese Version von Mattermost eingebaut sind."
   },
   {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",

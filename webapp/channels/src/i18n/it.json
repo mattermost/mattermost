@@ -51,7 +51,6 @@
   "accessibility.sidebar.types.private": "canale privato",
   "accessibility.sidebar.types.public": "canale pubblico",
   "accessibility.sidebar.types.unread": "non letto",
-  "activityAndInsights.tutorialTip.title": "Si introduce: Informazioni utili",
   "activity_log.activeSessions": "Sessioni attive",
   "activity_log.browser": "Browser: {browser}",
   "activity_log.firstTime": "Prima data attivo: {date}, {time}",

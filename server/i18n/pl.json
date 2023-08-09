@@ -9648,14 +9648,6 @@
     "translation": "użytkownik o nazwie \"{{.Username}}\" już istnieje."
   },
   {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "Błąd podczas wykonywania szablonu roboczego."
-  },
-  {
-    "id": "api.work_templates.disabled",
-    "translation": "Szablony robocze są wyłączone."
-  },
-  {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Nie udało się zaktualizować tłumaczeń serwera."
   },
@@ -9666,10 +9658,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Usługa dostępna tylko w edycji Mattermost Enterprise"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "błąd nie utworzono tablicy"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9688,28 +9676,8 @@
     "translation": "Nie można usunąć danych oauth."
   },
   {
-    "id": "app.user.digest.tasks.heading",
-    "translation": "Twoje przydzielone zadania"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.playbook_run",
-    "translation": "Uruchomienie Playbooka"
-  },
-  {
-    "id": "app.user.run.update_status.submit_label",
-    "translation": "Status aktualizacji"
-  },
-  {
     "id": "app.user.new_run.intro",
     "translation": "**Właściciel** {{.Username}}"
-  },
-  {
-    "id": "app.user.run.status_enable",
-    "translation": "@{.Username}} włączył aktualizacje statusu dla [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Zwiększ produktywność na swoim kanale, integrując najczęściej używane narzędzia. Zostaną one pobrane za Ciebie."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
@@ -9724,28 +9692,12 @@
     "translation": "Pomijanie instalacji wtyczki {{.Id}}, ponieważ istniejąca wersja jest równa lub nowsza."
   },
   {
-    "id": "app.plugin.blocked.app_error",
-    "translation": "Wtyczka {{.Id}} jest na liście blokowanych. Niektóre wtyczki są zablokowane, ponieważ są wbudowane w tę wersję Mattermost."
-  },
-  {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
     "translation": "Serwer CWS nie zdołał zapisać się do newslettera."
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Nieprawidłowy e-mail służbowy dla wersji testowej"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Śledź postępy swojego zespołu w realizacji celów organizacyjnych dzięki tablicy Cele i OKR. Utrzymuj spotkania na właściwym torze dzięki tablicy Agenda spotkań."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Zwiększ produktywność swojego kanału, integrując najczęściej używane narzędzia, takie jak Zoom, aby ułatwić współpracę. Zostaną one pobrane za Ciebie."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "Użyj tablicy rozwiązywania incydentów, aby wspierać powtarzalne procesy i przypisywać zdefiniowane zadania w całym zespole."
   },
   {
     "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
