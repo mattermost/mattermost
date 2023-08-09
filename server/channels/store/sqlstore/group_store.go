@@ -215,11 +215,16 @@ func (s *SqlGroupStore) buildInsertGroupUsersQuery(groupId string, userIds []str
 
 func (s *SqlGroupStore) Get(groupId string) (*model.Group, error) {
 	var group model.Group
-	query, args, _ := s.getQueryBuilder().
+	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("UserGroups").
 		Where(sq.Eq{"Id": groupId}).
 		ToSql()
+
+	if err != nil {
+		return nil, err
+	}
+
 	if err := s.GetReplicaX().Get(&group, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupId)
@@ -266,7 +271,7 @@ func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
 
 func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error) {
 	var group model.Group
-	query, args, _ := s.getQueryBuilder().
+	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("UserGroups").
 		Where(sq.Eq{
@@ -274,6 +279,11 @@ func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSo
 			"Source":   groupSource,
 		}).
 		ToSql()
+
+	if err != nil {
+		return nil, err
+	}
+
 	if err := s.GetReplicaX().Get(&group, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", fmt.Sprintf("remoteId=%s", remoteID))
@@ -286,7 +296,7 @@ func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSo
 
 func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error) {
 	groups := []*model.Group{}
-	query, args, _ := s.getQueryBuilder().
+	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("UserGroups").
 		Where(sq.Eq{
@@ -294,6 +304,10 @@ func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.
 			"Source":   groupSource,
 		}).
 		ToSql()
+
+	if err != nil {
+		return nil, err
+	}
 
 	if err := s.GetReplicaX().Select(&groups, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Groups by groupSource=%v", groupSource)
@@ -324,11 +338,16 @@ func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, error) {
 
 func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 	var retrievedGroup model.Group
-	query, args, _ := s.getQueryBuilder().
+	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("UserGroups").
 		Where(sq.Eq{"Id": group.Id}).
 		ToSql()
+
+	if err != nil {
+		return nil, err
+	}
+
 	if err := s.GetReplicaX().Get(&retrievedGroup, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", group.Id)
@@ -369,7 +388,7 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 
 func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 	var group model.Group
-	query, args, _ := s.getQueryBuilder().
+	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("UserGroups").
 		Where(sq.Eq{
@@ -377,6 +396,11 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 			"DeleteAt": 0,
 		}).
 		ToSql()
+
+	if err != nil {
+		return nil, err
+	}
+
 	if err := s.GetReplicaX().Get(&group, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupID)
@@ -396,12 +420,17 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 
 func (s *SqlGroupStore) Restore(groupID string) (*model.Group, error) {
 	var group model.Group
-	query, args, _ := s.getQueryBuilder().
+	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("UserGroups").
 		Where(sq.Eq{"Id": groupID}).
 		Where(sq.NotEq{"DeleteAt": 0}).
 		ToSql()
+
+	if err != nil {
+		return nil, err
+	}
+
 	if err := s.GetReplicaX().Get(&group, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupID)
