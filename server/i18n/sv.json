@@ -9143,10 +9143,6 @@
     "translation": "Ogiltig värde {{.Value}} på antal samtidiga dekoder. Måste vara ett positivt tal eller -1."
   },
   {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "Det går inte att få fram teamets topp-trådar."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Har redan notifierat systemadministratören"
   },
@@ -9443,10 +9439,6 @@
     "translation": "Gäståtkomst har inaktiverats"
   },
   {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Ämnestypen finns redan."
-  },
-  {
     "id": "app.draft.delete.app_error",
     "translation": "Kunde inte att radera utkastet."
   },
@@ -9533,10 +9525,6 @@
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
     "translation": "Ogiltigt meddelande-id."
-  },
-  {
-    "id": "app.worktemplates.get_categories.app_error",
-    "translation": "Det går inte att få fram kategorier för arbetsmallar"
   },
   {
     "id": "app.post_prority.get_for_post.app_error",
@@ -9655,32 +9643,16 @@
     "translation": "Det gick inte att skapa en statuspost för true up"
   },
   {
-    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
-    "translation": "Fel vid skapandet av en playbook."
-  },
-  {
     "id": "app.worktemplates.execute_work_template.boards.create_error",
     "translation": "Fel vid skapandet av en tavla."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
-    "translation": "Du har inte behörighet att skapa en publik playbook."
   },
   {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "Du har inte behörighet att skapa en publik tavla."
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
-    "translation": "Du har inte behörighet att skapa en privat kanal."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "Användaren med användarnamn \"{{.Username}}\" finns redan."
-  },
-  {
-    "id": "worktemplate.category.leadership",
-    "translation": "Ledarskap"
   },
   {
     "id": "worktemplate.category.companywide",
@@ -9699,24 +9671,12 @@
     "translation": "Tjänsten är endast tillgänglig i Mattermost Enterprise-edition"
   },
   {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "hittade inte produktnyckeln"
-  },
-  {
     "id": "app.team.create_onboarding_linked_board.error_patching_board",
     "translation": "error när tavlan uppdaterades"
   },
   {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "fel när mallar för tavlor hämtades"
-  },
-  {
     "id": "api.command_templates.unsupported.app_error",
     "translation": "Kommandot för mallar stöds inte på din enhet."
-  },
-  {
-    "id": "api.command_templates.desc",
-    "translation": "Öppna fönstret Skapa från mall"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9735,10 +9695,6 @@
     "translation": "Kunde inte rensa oauth-information."
   },
   {
-    "id": "app.user.run.update_status.submit_label",
-    "translation": "Uppdatera status"
-  },
-  {
     "id": "app.user.run.update_status.num_channel",
     "translation": {
       "one": "Ge en uppdatering till intressenterna. Detta inlägg kommer att publiceras i {{.Count}} kanal.",
@@ -9746,59 +9702,28 @@
     }
   },
   {
-    "id": "app.user.run.update_status.finish_run",
-    "translation": "Slutför körningen"
-  },
-  {
     "id": "app.user.run.status_enable",
     "translation": "@{{.Username}} aktiverade statusuppdateringar för [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "app.user.run.request_update",
-    "translation": "@here - @{{.Name}} begärde en statusuppdatering för [{{.RunName}}]({{.RunURL}}). \n"
   },
   {
     "id": "app.user.run.confirm_finish.title",
     "translation": "Bekräfta att avsluta körningen"
   },
   {
-    "id": "app.user.run.confirm_finish.num_outstanding",
-    "translation": {
-      "one": "Det finns **{{.Count}} utestående uppgift**. Är du säker på att du vill avsluta körningen *{{.RunName}}* för alla deltagare?",
-      "other": "Det finns **{{.Count}} utestående uppgifter**. Är du säker på att du vill avsluta körningen *{{.RunName}}* för alla deltagare?"
-    }
-  },
-  {
     "id": "app.user.run.add_to_timeline.summary.placeholder",
     "translation": "Kort sammanfattning som visas i tidslinjen"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary",
-    "translation": "Sammanfattning"
   },
   {
     "id": "app.user.run.add_to_timeline.playbook_run",
     "translation": "Kör Playbook"
   },
   {
-    "id": "app.user.run.add_checklist_item.submit_label",
-    "translation": "Lägg till en uppgift"
-  },
-  {
     "id": "app.user.run.add_checklist_item.description",
     "translation": "Beskrivning"
   },
   {
-    "id": "app.user.new_run.submit_label",
-    "translation": "Starta körning"
-  },
-  {
     "id": "app.user.new_run.playbook",
     "translation": "Playbook"
-  },
-  {
-    "id": "app.user.digest.tasks.zero_assigned",
-    "translation": "Du har 0 tilldelade uppgifter."
   },
   {
     "id": "app.user.digest.tasks.num_assigned",
@@ -9808,10 +9733,6 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.due_yesterday",
-    "translation": "Skulle utförts igår"
-  },
-  {
     "id": "app.user.digest.tasks.due_in_x_days",
     "translation": {
       "one": "Ska utföras inom {{.Count}} dag",
@@ -9819,19 +9740,8 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.due_after_today",
-    "translation": {
-      "one": "Du har **{{.Count}} tilldelad uppgift som ska utföras idag**.",
-      "other": "Du har **{{.Count}} tilldelade uppgifter som ska utföras idag**."
-    }
-  },
-  {
     "id": "app.user.digest.runs_in_progress.zero_in_progress",
     "translation": "Du har 0 pågående körningar."
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.heading",
-    "translation": "Körningar som pågår"
   },
   {
     "id": "app.user.digest.overdue_status_updates.num_overdue",
@@ -9841,24 +9751,12 @@
     }
   },
   {
-    "id": "app.command.execute.error",
-    "translation": "Kunde inte utföra kommandot."
-  },
-  {
     "id": "worktemplate.devops.incident_resolution.description.board",
     "translation": "Använd Incident Resolution tavlan för att stödja upprepbara processer och fördela definierade uppgifter i hela teamet."
   },
   {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Chatta om dina mål och framsteg med ditt team, asynkront eller i realtid, och håll dig uppdaterad om förändringar i en och samma kanal."
-  },
-  {
     "id": "worktemplate.companywide.create_project.integration",
     "translation": "Öka produktiviteten i din kanal genom att integrera dina mest använda verktyg. Dessa kommer att laddas ner åt dig."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Använd en Kanban-tavla för att definiera och hålla koll på dina uppgifter och framsteg i projekt."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
