@@ -550,6 +550,7 @@
   "admin.cluster.status_table.config_hash": "Config File MD5",
   "admin.cluster.status_table.hostname": "Hostname",
   "admin.cluster.status_table.reload": " Reload Cluster Status",
+  "admin.cluster.status_table.schema_version": "DB Schema Version",
   "admin.cluster.status_table.status": "Status",
   "admin.cluster.status_table.url": "Gossip Address",
   "admin.cluster.status_table.version": "Version",
