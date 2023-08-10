@@ -192,7 +192,7 @@ type Manifest struct {
 	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
 	//
 	// Deprecated: The required server configuration fields should be checked using custom code.
-	// This field will get removed in the next majour release.
+	// This field will get removed in the next major release.
 	RequiredConfig *Config `json:"required_configuration,omitempty" yaml:"required_configuration,omitempty"`
 }
 
