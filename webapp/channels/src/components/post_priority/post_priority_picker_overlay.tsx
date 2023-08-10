@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useCallback, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {useIntl} from 'react-intl';
 import classNames from 'classnames';
 import {
     FloatingFocusManager,
@@ -41,19 +41,16 @@ function PostPriorityPickerOverlay({
     onClose,
 }: Props) {
     const [pickerOpen, setPickerOpen] = useState(false);
+    const {formatMessage} = useIntl();
 
+    const messagePriority = formatMessage({id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority'});
     const {
         reference: tooltipRef,
         getReferenceProps: getTooltipReferenceProps,
         tooltip,
     } = useTooltip({
         placement: 'top',
-        message: (
-            <FormattedMessage
-                id='shortcuts.msgs.formatting_bar.post_priority'
-                defaultMessage={'Message priority'}
-            />
-        ),
+        message: messagePriority,
     });
 
     const handleClose = useCallback(() => {
@@ -100,10 +97,12 @@ function PostPriorityPickerOverlay({
                 {...getTooltipReferenceProps()}
             >
                 <IconContainer
+                    id='messagePriority'
                     ref={pickerRef}
                     className={classNames({control: true, active: pickerOpen})}
                     disabled={disabled}
                     type='button'
+                    aria-label={messagePriority}
                     {...getPickerReferenceProps()}
                 >
                     <AlertCircleOutlineIcon
