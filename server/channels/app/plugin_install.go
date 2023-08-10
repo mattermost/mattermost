@@ -213,7 +213,7 @@ func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationS
 	}
 
 	if err := ch.notifyPluginEnabled(manifest); err != nil {
-		logger.Warn("Failed notify plugin enabled", mlog.Err(err))
+		logger.Warn("Failed to notify plugin enabled", mlog.Err(err))
 	}
 
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
@@ -226,20 +226,33 @@ func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationS
 // installPluginToFilestore saves the given plugin bundle (optionally signed) to the filestore,
 // notifying cluster peers accordingly.
 func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, signature io.ReadSeeker) *model.AppError {
-	if signature != nil {
+	logger := ch.srv.Log().With(mlog.String("plugin_id", manifest.Id))
+	logger.Info("Persisting plugin to filestore")
+
+	if signature == nil {
+		logger.Warn("No signature when persisting plugin to filestore")
+	} else {
+		signatureStorePath := getSignatureStorePath(manifest.Id)
 		_, err := signature.Seek(0, 0)
 		if err != nil {
 			return model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		if _, appErr := ch.srv.writeFile(signature, getSignatureStorePath(manifest.Id)); appErr != nil {
+		logger.Debug("Persisting plugin signature to filestore", mlog.String("path", signatureStorePath))
+		if _, appErr := ch.srv.writeFile(signature, signatureStorePath); appErr != nil {
 			return model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
 	}
 
 	// Store bundle in the file store to allow access from other servers.
-	bundle.Seek(0, 0)
-	if _, appErr := ch.srv.writeFile(bundle, getBundleStorePath(manifest.Id)); appErr != nil {
+	bundleStorePath := getBundleStorePath(manifest.Id)
+	_, err := bundle.Seek(0, 0)
+	if err != nil {
+		return model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	logger.Debug("Persisting plugin bundle to filestore", mlog.String("path", bundleStorePath))
+	if _, appErr := ch.srv.writeFile(bundle, bundleStorePath); appErr != nil {
 		return model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
