@@ -159,7 +159,6 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 }
 
 func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
-	debug.FreeOSMemory()
 	ps.InvalidateAllCachesSkipSend()
 
 	if ps.clusterIFace != nil {
