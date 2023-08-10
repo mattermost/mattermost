@@ -240,7 +240,7 @@ const MenuItemStyled = styled(MuiMenuItem, {
                 '&.Mui-focusVisible .label-elements>:last-child, &.Mui-focusVisible .label-elements>:first-child, &.Mui-focusVisible .label-elements>:only-child': {
                     color: isDestructive && 'var(--button-color)',
                 },
-                '&.Mui-focusVisible .leading-element': {
+                '&.Mui-focusVisible .leading-element, &.Mui-focusVisible .trailing-elements': {
                     color: isDestructive && 'var(--button-color)',
                 },
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {KeyboardEvent, memo} from 'react';
 import {useDispatch} from 'react-redux';
 
 import {FormattedMessage, FormattedDate, FormattedTime, useIntl} from 'react-intl';
@@ -10,8 +10,9 @@ import {ChevronRightIcon, ClockOutlineIcon} from '@mattermost/compass-icons/comp
 import * as Menu from 'components/menu';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 import {openModal} from 'actions/views/modals';
-import {ModalIdentifiers} from 'utils/constants';
+import Constants, {ModalIdentifiers} from 'utils/constants';
 import {toUTCUnix} from 'utils/datetime';
+import {isKeyPressed} from 'utils/keyboard';
 import PostReminderCustomTimePicker from 'components/post_reminder_custom_time_picker_modal';
 import {addPostReminder} from 'mattermost-redux/actions/posts';
 
@@ -36,7 +37,7 @@ function PostReminderSubmenu(props: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
-    function handlePostReminderMenuClick(id: string) {
+    function handlePostReminder(id: string) {
         if (id === PostReminders.CUSTOM) {
             const postReminderCustomTimePicker = {
                 modalId: ModalIdentifiers.POST_REMINDER_CUSTOM_TIME_PICKER,
@@ -66,6 +67,12 @@ function PostReminderSubmenu(props: Props) {
             }
 
             dispatch(addPostReminder(props.userId, props.post.id, toUTCUnix(endTime.toDate())));
+        }
+    }
+
+    function handleKeydown(event: KeyboardEvent<HTMLLIElement>, postReminder: string) {
+        if (isKeyPressed(event, Constants.KeyCodes.ENTER) || isKeyPressed(event, Constants.KeyCodes.SPACE)) {
+            handlePostReminder(postReminder);
         }
     }
 
@@ -136,14 +143,18 @@ function PostReminderSubmenu(props: Props) {
                 key={`remind_post_options_${postReminder}`}
                 labels={labels}
                 trailingElements={trailingElements}
-                onClick={() => handlePostReminderMenuClick(postReminder)}
+                onClick={() => handlePostReminder(postReminder)}
+                onKeyDown={(event) => handleKeydown(event, postReminder)}
             />
         );
     });
 
+    const header = formatMessage({id: 'post_info.post_reminder.sub_menu.header', defaultMessage: 'Set a reminder for:'});
+
     return (
         <Menu.SubMenu
             id={`remind_post_${props.post.id}`}
+            menuAriaLabel={header.replace(':', '')}
             labels={
                 <FormattedMessage
                     id='post_info.post_reminder.menu'

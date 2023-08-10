@@ -160,7 +160,7 @@ export function Menu(props: Props) {
     }
 
     // Function to prevent focus-visible from being set on clicking menu items with the mouse
-    function handleMenuButtonMouseDown() {
+    function handleDownEvent() {
         setDisableAutoFocusItem(true);
     }
 
@@ -176,7 +176,8 @@ export function Menu(props: Props) {
                 aria-label={props.menuButton?.['aria-label'] ?? ''}
                 className={props.menuButton?.class ?? ''}
                 onClick={handleMenuButtonClick}
-                onMouseDown={handleMenuButtonMouseDown}
+                onMouseDown={handleDownEvent}
+                onKeyDown={handleDownEvent}
             >
                 {props.menuButton.children}
             </button>
