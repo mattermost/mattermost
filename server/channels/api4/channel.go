@@ -169,7 +169,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("updateChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
-		if channel.Name != "" || channel.DisplayName != "" || channel.Purpose != "" {
+		if (channel.Name != "" && channel.Name != oldChannel.Name) || (channel.DisplayName != "" && channel.DisplayName != oldChannel.DisplayName) || (channel.Purpose != oldChannel.Purpose) {
 			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.cant_update_direct_or_group_messages.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
