@@ -33,7 +33,7 @@ Table of contents
 ## Install Mattermost
 
 - [Download and Install Mattermost Self-Hosted](https://docs.mattermost.com/guides/deployment.html) - Deploy a Mattermost Self-hosted instance in minutes via Docker, Ubuntu, or tar.
-- [Get started with Mattermost Cloud](https://mattermost.com/sign-up/?utm_source=github-mattermost-server-readme) to try Mattermost instantly.
+- [Get started in the cloud](https://mattermost.com/sign-up/?utm_source=github-mattermost-server-readme) to try Mattermost today.
 - [Developer machine setup](https://developers.mattermost.com/contribute/server/developer-setup) - Follow this guide if you want to write code for Mattermost.
 
 
