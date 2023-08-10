@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GroupChannel, GroupSyncablesState, GroupTeam, Group} from '@mattermost/types/groups';
 import {combineReducers} from 'redux';
 
 import {GroupTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import type {GroupChannel, GroupSyncablesState, GroupTeam, Group} from '@mattermost/types/groups';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function syncables(state: Record<string, GroupSyncablesState> = {}, action: GenericAction) {
     switch (action.type) {

@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Group} from '@mattermost/types/groups';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import UserGroupsModal from './user_groups_modal';
+
+import type {Group} from '@mattermost/types/groups';
 
 describe('component/user_groups_modal', () => {
     const baseProps = {

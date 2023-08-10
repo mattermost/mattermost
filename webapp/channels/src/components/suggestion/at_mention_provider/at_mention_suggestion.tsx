@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
-import React, {ReactNode} from 'react';
+import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {isGuest} from 'mattermost-redux/utils/user_utils';
@@ -15,9 +14,14 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 import Tag from 'components/widgets/tag/tag';
 import Avatar from 'components/widgets/users/avatar';
 
-import {SuggestionContainer, SuggestionProps} from '../suggestion';
 import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import {SuggestionContainer} from '../suggestion';
+
+import type {SuggestionProps} from '../suggestion';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ReactNode} from 'react';
 
 export interface Item extends UserProfile {
     display_name: string;

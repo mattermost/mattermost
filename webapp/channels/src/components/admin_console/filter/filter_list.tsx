@@ -3,8 +3,9 @@
 
 import React from 'react';
 
-import {FilterOption, FilterValues} from './filter';
 import FilterCheckbox from './filter_checkbox';
+
+import type {FilterOption, FilterValues} from './filter';
 import './filter.scss';
 
 type Props = {

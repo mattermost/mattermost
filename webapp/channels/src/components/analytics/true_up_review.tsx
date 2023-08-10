@@ -1,15 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import classNames from 'classnames';
 import moment from 'moment';
 import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {submitTrueUpReview, getTrueUpReviewStatus} from 'actions/hosted_customer';
-import {pageVisited} from 'actions/telemetry_actions';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
@@ -19,6 +16,9 @@ import {
 } from 'mattermost-redux/selectors/entities/hosted_customer';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {submitTrueUpReview, getTrueUpReviewStatus} from 'actions/hosted_customer';
+import {pageVisited} from 'actions/telemetry_actions';
+
 import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
 import ExternalLink from 'components/external_link';
 import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
@@ -26,6 +26,8 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import {DocLinks, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {getIsStarterLicense, getIsGovSku} from 'utils/license_utils';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import './true_up_review.scss';
 

@@ -11,7 +11,7 @@ import {makeGetCustomStatus, showPostHeaderUpdateStatusButton, isCustomStatusEna
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 interface ComponentProps {
     userId: string;

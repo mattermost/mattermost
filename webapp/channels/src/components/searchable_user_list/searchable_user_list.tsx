@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {TeamMembership} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import Scrollbars from 'react-custom-scrollbars';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
 import LocalizedInput from 'components/localized_input/localized_input';
 import QuickInput from 'components/quick_input';
 import UserList from 'components/user_list';
 
 import {t} from 'utils/i18n';
+
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IntlShape} from 'react-intl';
 
 const NEXT_BUTTON_TIMEOUT = 500;
 

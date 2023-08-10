@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
-import {IDMappedObjects} from '@mattermost/types/utilities';
 import {cloneDeep, set} from 'lodash';
 import {batchActions} from 'redux-batched-actions';
-import {MockStoreEnhanced} from 'redux-mock-store';
+
+import {SearchTypes} from 'mattermost-redux/action_types';
+import * as PostActions from 'mattermost-redux/actions/posts';
+import * as SearchActions from 'mattermost-redux/actions/search';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {
@@ -34,18 +34,20 @@ import {
     showChannelMembers,
     openShowEditHistory,
 } from 'actions/views/rhs';
-import {SearchTypes} from 'mattermost-redux/action_types';
-import * as PostActions from 'mattermost-redux/actions/posts';
-import * as SearchActions from 'mattermost-redux/actions/search';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import mockStore from 'tests/test_store';
-import {GlobalState} from 'types/store';
-import {RhsState} from 'types/store/rhs';
-import {ViewsState} from 'types/store/views';
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {getBrowserUtcOffset} from 'utils/timezone';
+
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {MockStoreEnhanced} from 'redux-mock-store';
+import type {GlobalState} from 'types/store';
+import type {RhsState} from 'types/store/rhs';
+import type {ViewsState} from 'types/store/views';
 
 const currentChannelId = '123';
 const currentTeamId = '321';

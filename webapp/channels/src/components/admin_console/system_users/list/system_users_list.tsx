@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -17,9 +15,13 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list';
 import UserListRowWithError from 'components/user_list_row_with_error';
 
-import SystemUsersDropdown from '../system_users_dropdown';
 import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import SystemUsersDropdown from '../system_users_dropdown';
+
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
     users: UserProfile[];

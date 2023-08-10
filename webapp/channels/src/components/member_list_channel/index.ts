@@ -1,10 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+
+import {getChannelStats, getChannelMembers} from 'mattermost-redux/actions/channels';
+import {searchProfiles} from 'mattermost-redux/actions/users';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getMembersInCurrentChannel, getCurrentChannelStats, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getMembersInCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {searchProfilesInCurrentChannel, getProfilesInCurrentChannel} from 'mattermost-redux/selectors/entities/users';
+import {sortByUsername} from 'mattermost-redux/utils/user_utils';
 
 import {loadStatusesForProfilesList} from 'actions/status_actions';
 import {
@@ -12,18 +18,15 @@ import {
     loadTeamMembersAndChannelMembersForProfilesList,
 } from 'actions/user_actions';
 import {setModalSearchTerm} from 'actions/views/search';
-import {getChannelStats, getChannelMembers} from 'mattermost-redux/actions/channels';
-import {searchProfiles} from 'mattermost-redux/actions/users';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getMembersInCurrentChannel, getCurrentChannelStats, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getMembersInCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {searchProfilesInCurrentChannel, getProfilesInCurrentChannel} from 'mattermost-redux/selectors/entities/users';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {sortByUsername} from 'mattermost-redux/utils/user_utils';
 
-import {GlobalState} from 'types/store';
+import MemberListChannel from './member_list_channel';
 
-import MemberListChannel, {Props} from './member_list_channel';
+import type {Props} from './member_list_channel';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {GlobalState} from 'types/store';
 
 const getUsersAndActionsToDisplay = createSelector(
     'getUsersAndActionsToDisplay',

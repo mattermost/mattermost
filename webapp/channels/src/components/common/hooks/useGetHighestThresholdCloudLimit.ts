@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CloudUsage, Limits} from '@mattermost/types/cloud';
 import {useMemo} from 'react';
 
 import {limitThresholds, LimitTypes} from 'utils/limits';
+
+import type {CloudUsage, Limits} from '@mattermost/types/cloud';
 
 interface MaybeLimitSummary {
     id: typeof LimitTypes[keyof typeof LimitTypes];

@@ -12,8 +12,9 @@ import {isModalOpen} from 'selectors/views/modals';
 import ExternalLink from 'components/external_link';
 import PDFPreview from 'components/pdf_preview';
 
-import {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import './cloud_invoice_preview.scss';
 

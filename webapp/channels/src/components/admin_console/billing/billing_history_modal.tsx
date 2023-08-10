@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Invoice} from '@mattermost/types/cloud';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
@@ -10,12 +9,14 @@ import {useDispatch, useSelector} from 'react-redux';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 
 import './billing_history_modal.scss';
 
 import BillingHistoryTable from './billing_history_table';
+
+import type {Invoice} from '@mattermost/types/cloud';
+import type {GlobalState} from 'types/store';
 
 import './billing_history.scss';
 

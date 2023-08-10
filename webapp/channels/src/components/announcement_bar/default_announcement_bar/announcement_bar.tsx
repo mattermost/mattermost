@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {WarnMetricStatus} from '@mattermost/types/config';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -15,6 +14,8 @@ import WarnMetricAckModal from 'components/warn_metric_ack_modal';
 
 import {Constants, AnnouncementBarTypes, ModalIdentifiers} from 'utils/constants';
 import {isStringContainingUrl} from 'utils/url';
+
+import type {WarnMetricStatus} from '@mattermost/types/config';
 
 type Props = {
     id?: string;

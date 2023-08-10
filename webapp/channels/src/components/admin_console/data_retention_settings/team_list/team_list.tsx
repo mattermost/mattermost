@@ -1,18 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team, TeamSearchOpts} from '@mattermost/types/teams';
 import {debounce} from 'lodash';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import DataGrid, {Column, Row} from 'components/admin_console/data_grid/data_grid';
+import DataGrid from 'components/admin_console/data_grid/data_grid';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
+import type {Column, Row} from 'components/admin_console/data_grid/data_grid';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import './team_list.scss';
 

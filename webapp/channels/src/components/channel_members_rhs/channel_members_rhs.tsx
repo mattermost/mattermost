@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 import {debounce} from 'lodash';
 import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -16,13 +14,16 @@ import ChannelInviteModal from 'components/channel_invite_modal';
 import ExternalLink from 'components/external_link';
 import MoreDirectChannels from 'components/more_direct_channels';
 
-import {ModalData} from 'types/actions';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import ActionBar from './action_bar';
 import Header from './header';
 import MemberList from './member_list';
 import SearchBar from './search';
+
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ModalData} from 'types/actions';
 
 const USERS_PER_PAGE = 100;
 export interface ChannelMember {

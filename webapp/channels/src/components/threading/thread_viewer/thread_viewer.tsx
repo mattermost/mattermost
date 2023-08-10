@@ -1,20 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-import {UserThread} from '@mattermost/types/threads';
 import classNames from 'classnames';
-import React, {HTMLAttributes} from 'react';
-
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import React from 'react';
 
 import deferComponentRender from 'components/deferComponentRender';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
 
 import ThreadViewerVirtualized from '../virtualized_thread_viewer';
-import {FakePost} from 'types/store/rhs';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {UserThread} from '@mattermost/types/threads';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {HTMLAttributes} from 'react';
+import type {FakePost} from 'types/store/rhs';
 
 import './thread_viewer.scss';
 

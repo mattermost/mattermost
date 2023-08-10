@@ -2,17 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {openMenu as openRhsMenu} from 'actions/views/rhs';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import {openMenu as openRhsMenu} from 'actions/views/rhs';
 import {getIsRhsMenuOpen} from 'selectors/rhs';
 
-import {GlobalState} from 'types/store';
-
 import SidebarRightMenu from './sidebar_right_menu';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

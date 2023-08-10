@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 import {Provider} from 'react-redux';
 
@@ -9,6 +8,8 @@ import {renderWithIntl, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import AboutAreaChannel from './about_area_channel';
+
+import type {Channel} from '@mattermost/types/channels';
 
 const initialState = {
     entities: {

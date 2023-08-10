@@ -3,10 +3,11 @@
 
 import React from 'react';
 
-import Button from '../button';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import FollowButton from './follow_button';
+
+import Button from '../button';
 
 describe('components/threading/common/follow_button', () => {
     test('should say follow', () => {

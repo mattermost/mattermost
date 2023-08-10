@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ClientLicense} from '@mattermost/types/config';
 import moment from 'moment';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -13,6 +12,8 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {daysToLicenseExpire} from 'utils/license_utils';
 import {getBrowserTimezone} from 'utils/timezone';
+
+import type {ClientLicense} from '@mattermost/types/config';
 
 import './trial_license_card.scss';
 

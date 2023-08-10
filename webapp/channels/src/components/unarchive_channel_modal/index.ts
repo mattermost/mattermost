@@ -2,12 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {unarchiveChannel} from 'mattermost-redux/actions/channels';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
-import UnarchiveChannelModal, {ChannelDetailsActions} from './unarchive_channel_modal';
+import UnarchiveChannelModal from './unarchive_channel_modal';
+
+import type {ChannelDetailsActions} from './unarchive_channel_modal';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {

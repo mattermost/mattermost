@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserNotifyProps} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
+import React from 'react';
 
 import {TestHelper} from 'utils/test_helper';
 
 import UserSettingsNotifications from './user_settings_notifications';
+
+import type {UserNotifyProps} from '@mattermost/types/users';
+import type {ComponentProps} from 'react';
 
 describe('components/user_settings/display/UserSettingsDisplay', () => {
     const user = TestHelper.getUserMock({

@@ -1,17 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminConfig} from '@mattermost/types/config';
-import {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
-import {JobTypeBase, JobType} from '@mattermost/types/jobs';
-import {DeepPartial} from '@mattermost/types/utilities';
-import React, {createRef, RefObject} from 'react';
+import React, {createRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import DataGrid from 'components/admin_console/data_grid/data_grid';
 import JobsTable from 'components/admin_console/jobs';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
@@ -22,6 +16,14 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import {getHistory} from 'utils/browser_history';
 import {JobTypes} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {AdminConfig} from '@mattermost/types/config';
+import type {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+import type {JobTypeBase, JobType} from '@mattermost/types/jobs';
+import type {DeepPartial} from '@mattermost/types/utilities';
+import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import type {RefObject} from 'react';
 
 import './data_retention_settings.scss';
 

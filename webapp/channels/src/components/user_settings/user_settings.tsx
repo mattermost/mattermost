@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
 import AdvancedTab from './advanced';
@@ -10,6 +9,8 @@ import GeneralTab from './general';
 import NotificationsTab from './notifications';
 import SecurityTab from './security';
 import SidebarTab from './sidebar';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 export type Props = {
     user: UserProfile;

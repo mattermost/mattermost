@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {LicenseSelfServeStatusReducer} from '@mattermost/types/cloud';
 import {useEffect, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getLicenseSelfServeStatus} from 'mattermost-redux/actions/cloud';
+
+import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getExpandSeatsLink} from 'selectors/cloud';
 
-import {GlobalState} from 'types/store';
+import type {LicenseSelfServeStatusReducer} from '@mattermost/types/cloud';
+import type {GlobalState} from 'types/store';
 
 type UseExpandOverageUsersCheckArgs = {
     isWarningState: boolean;

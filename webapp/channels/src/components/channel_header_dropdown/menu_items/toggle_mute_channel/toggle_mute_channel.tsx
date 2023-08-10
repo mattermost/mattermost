@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
-
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import Menu from 'components/widgets/menu/menu';
 
 import {Constants, NotificationLevels} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
+
+import type {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 export type Actions = {
     updateChannelNotifyProps(userId: string, channelId: string, props: Partial<ChannelNotifyProps>): ActionFunc;

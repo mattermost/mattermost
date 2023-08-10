@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Product} from '@mattermost/types/cloud';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -10,6 +9,8 @@ import {trackEvent} from 'actions/telemetry_actions';
 import ExternalLink from 'components/external_link';
 
 import {BillingSchemes, CloudProducts, CloudLinks, RecurringIntervals} from 'utils/constants';
+
+import type {Product} from '@mattermost/types/cloud';
 
 import './plan_pricing.scss';
 

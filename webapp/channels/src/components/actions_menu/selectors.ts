@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppBinding} from '@mattermost/types/apps';
-
 import {AppBindingLocations} from 'mattermost-redux/constants/apps';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeAppBindingsSelector, makeRHSAppBindingSelector} from 'mattermost-redux/selectors/entities/apps';
 
-import {GlobalState} from 'types/store';
 import {Locations} from 'utils/constants';
+
+import type {AppBinding} from '@mattermost/types/apps';
+import type {GlobalState} from 'types/store';
 
 export function makeGetPostOptionBinding(): (state: GlobalState, location?: string) => AppBinding[] | null {
     const centerBindingsSelector = makeAppBindingsSelector(AppBindingLocations.POST_MENU_ITEM);

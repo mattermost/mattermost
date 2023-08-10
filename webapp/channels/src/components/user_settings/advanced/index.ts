@@ -2,19 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {updateUserActive, revokeAllSessionsForUser} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get, getUnreadScrollPositionPreference, makeGetCategory, syncedDraftsAreAllowed} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
 
-import AdvancedSettingsDisplay, {Props} from './user_settings_advanced';
+import AdvancedSettingsDisplay from './user_settings_advanced';
+
+import type {Props} from './user_settings_advanced';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function makeMapStateToProps() {
     const getAdvancedSettingsCategory = makeGetCategory();

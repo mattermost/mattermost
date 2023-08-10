@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostAction} from '@mattermost/types/integration_actions';
-import {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
-import {PostImage} from '@mattermost/types/posts';
 import {shallow} from 'enzyme';
 import React from 'react';
 
@@ -11,6 +8,10 @@ import ExternalImage from 'components/external_image';
 import MessageAttachment from 'components/post_view/message_attachments/message_attachment/message_attachment';
 
 import {Constants} from 'utils/constants';
+
+import type {PostAction} from '@mattermost/types/integration_actions';
+import type {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
+import type {PostImage} from '@mattermost/types/posts';
 
 describe('components/post_view/MessageAttachment', () => {
     const attachment = {

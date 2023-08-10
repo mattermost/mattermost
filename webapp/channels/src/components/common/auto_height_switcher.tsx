@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, useRef, CSSProperties} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {Transition} from 'react-transition-group';
 import scrollIntoView from 'smooth-scroll-into-view-if-needed';
+
+import type {CSSProperties} from 'react';
 
 import './auto_height_switcher.scss';
 

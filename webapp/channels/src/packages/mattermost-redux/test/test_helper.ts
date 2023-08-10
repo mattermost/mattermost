@@ -1,23 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from '@mattermost/client';
-import {Bot} from '@mattermost/types/bots';
-import {Channel, ChannelNotifyProps, ChannelMembership} from '@mattermost/types/channels';
-import {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
-import {FileInfo} from '@mattermost/types/files';
-import {Group} from '@mattermost/types/groups';
-import {Command, DialogElement, OAuthApp} from '@mattermost/types/integrations';
-import {Post, PostMetadata} from '@mattermost/types/posts';
-import {Role} from '@mattermost/types/roles';
-import {Scheme} from '@mattermost/types/schemes';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {UserProfile, UserNotifyProps} from '@mattermost/types/users';
 import {randomUUID} from 'crypto';
 import nock from 'nock';
 
+import {Client4} from '@mattermost/client';
+
 import General from 'mattermost-redux/constants/general';
 import {generateId} from 'mattermost-redux/utils/helpers';
+
+import type {Bot} from '@mattermost/types/bots';
+import type {Channel, ChannelNotifyProps, ChannelMembership} from '@mattermost/types/channels';
+import type {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
+import type {FileInfo} from '@mattermost/types/files';
+import type {Group} from '@mattermost/types/groups';
+import type {Command, DialogElement, OAuthApp} from '@mattermost/types/integrations';
+import type {Post, PostMetadata} from '@mattermost/types/posts';
+import type {Role} from '@mattermost/types/roles';
+import type {Scheme} from '@mattermost/types/schemes';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile, UserNotifyProps} from '@mattermost/types/users';
 
 export const DEFAULT_SERVER = 'http://localhost:8065';
 const PASSWORD = 'password1';

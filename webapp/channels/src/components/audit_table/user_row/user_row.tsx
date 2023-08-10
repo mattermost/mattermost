@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Audit} from '@mattermost/types/audits';
 import React from 'react';
 import {useIntl} from 'react-intl';
+
+import UserUpdateActiveSessionRow from './user_update_active_session_row';
 
 import AuditRow from '../audit_row/audit_row';
 import holders from '../holders';
 
-import UserUpdateActiveSessionRow from './user_update_active_session_row';
+import type {Audit} from '@mattermost/types/audits';
 
 type Props = {
     audit: Audit;

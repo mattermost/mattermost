@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Emoji} from '@mattermost/types/emojis';
 import memoize from 'memoize-one';
-import React, {ReactNode} from 'react';
+import React from 'react';
 import {Overlay} from 'react-bootstrap';
 
-import EmojiPickerTabs from '../emoji_picker_tabs';
 import {Constants} from 'utils/constants';
 import {popOverOverlayPosition} from 'utils/position_utils';
 
+import EmojiPickerTabs from '../emoji_picker_tabs';
+
 import type {PropsFromRedux} from './index';
+import type {Emoji} from '@mattermost/types/emojis';
+import type {ReactNode} from 'react';
 
 export interface Props extends PropsFromRedux {
     container?: () => ReactNode;

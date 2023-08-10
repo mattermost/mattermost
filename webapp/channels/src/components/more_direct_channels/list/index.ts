@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -10,11 +9,13 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 import {filterProfilesStartingWithTerm} from 'mattermost-redux/utils/user_utils';
 
-import {Option, OptionValue} from '../types';
-import {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 
 import List from './list';
+
+import type {Option, OptionValue} from '../types';
+import type {UserProfile} from '@mattermost/types/users';
+import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     users: UserProfile[];

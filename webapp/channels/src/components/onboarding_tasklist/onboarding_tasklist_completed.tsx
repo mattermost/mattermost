@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
@@ -17,6 +16,8 @@ import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
 import completedImg from 'images/completed.svg';
 import {AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 const CompletedWrapper = styled.div`
     display: flex;

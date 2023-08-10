@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ReactWrapper} from 'enzyme';
 import React from 'react';
 import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
@@ -12,6 +11,8 @@ import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
 import RenewalLicenseCard from './renew_license_card';
+
+import type {ReactWrapper} from 'enzyme';
 
 const initialState = {
     views: {

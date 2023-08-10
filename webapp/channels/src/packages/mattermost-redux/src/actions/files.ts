@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileSearchResultItem} from '@mattermost/types/files';
-import {Post} from '@mattermost/types/posts';
-
 import {FileTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {DispatchFunc, GetStateFunc, ActionFunc} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
+
+import type {FileSearchResultItem} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
+import type {DispatchFunc, GetStateFunc, ActionFunc} from 'mattermost-redux/types/actions';
 
 export function receivedFiles(files: Map<string, FileSearchResultItem>) {
     return {

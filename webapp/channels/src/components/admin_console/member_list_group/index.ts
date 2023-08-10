@@ -2,18 +2,21 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {setModalSearchTerm} from 'actions/views/search';
 import {getGroupStats} from 'mattermost-redux/actions/groups';
 import {searchProfiles, getProfilesInGroup} from 'mattermost-redux/actions/users';
 import {getGroupMemberCount} from 'mattermost-redux/selectors/entities/groups';
 import {getProfilesInGroup as selectProfiles, searchProfilesInGroup} from 'mattermost-redux/selectors/entities/users';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
+import {setModalSearchTerm} from 'actions/views/search';
 
-import MemberListGroup, {Props as MemberListGroupProps} from './member_list_group';
+import MemberListGroup from './member_list_group';
+
+import type {Props as MemberListGroupProps} from './member_list_group';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type Props = {
     groupID: string;

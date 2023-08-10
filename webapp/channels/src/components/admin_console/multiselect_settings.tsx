@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import ReactSelect, {ValueType} from 'react-select';
+import ReactSelect from 'react-select';
 
 import FormError from 'components/form_error';
 
 import Setting from './setting';
+
+import type {ValueType} from 'react-select';
 
 interface Option {
     value: string;

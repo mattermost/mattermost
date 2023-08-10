@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CustomStatusDuration} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
 import React from 'react';
+
+import {CustomStatusDuration} from '@mattermost/types/users';
 
 import CustomStatusSuggestion from './custom_status_suggestion';
 

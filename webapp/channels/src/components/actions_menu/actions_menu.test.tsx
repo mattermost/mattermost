@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostType} from '@mattermost/types/posts';
 import React from 'react';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {PluginComponent} from 'types/store/plugins';
 import {TestHelper} from 'utils/test_helper';
 
-import ActionsMenu, {PLUGGABLE_COMPONENT, Props} from './actions_menu';
+import ActionsMenu, {PLUGGABLE_COMPONENT} from './actions_menu';
+
+import type {Props} from './actions_menu';
+import type {PostType} from '@mattermost/types/posts';
+import type {PluginComponent} from 'types/store/plugins';
 
 jest.mock('utils/utils', () => {
     const original = jest.requireActual('utils/utils');

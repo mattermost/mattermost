@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import React from 'react';
 
 import Preferences from 'mattermost-redux/constants/preferences';
 import {DATE_LINE} from 'mattermost-redux/utils/post_list';
@@ -10,7 +10,10 @@ import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {getHistory} from 'utils/browser_history';
 import {PostListRowListIds} from 'utils/constants';
 
-import ToastWrapper, {Props, ToastWrapperClass} from './toast_wrapper';
+import ToastWrapper from './toast_wrapper';
+
+import type {Props, ToastWrapperClass} from './toast_wrapper';
+import type {ComponentProps} from 'react';
 
 describe('components/ToastWrapper', () => {
     const baseProps: ComponentProps<typeof ToastWrapper> = {

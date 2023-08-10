@@ -1,21 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
-import {Team, TeamSearchOpts} from '@mattermost/types/teams';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {setTeamListSearch} from 'actions/views/search';
 import {getDataRetentionCustomPolicyTeams, searchDataRetentionCustomPolicyTeams as searchTeams} from 'mattermost-redux/actions/admin';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
 import {getTeamsInPolicy, searchTeamsInPolicy} from 'mattermost-redux/selectors/entities/teams';
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 import {teamListToMap, filterTeamsStartingWithTerm} from 'mattermost-redux/utils/team_utils';
 
-import {GlobalState} from 'types/store';
+import {setTeamListSearch} from 'actions/views/search';
 
 import TeamList from './team_list';
+
+import type {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     policyId?: string;

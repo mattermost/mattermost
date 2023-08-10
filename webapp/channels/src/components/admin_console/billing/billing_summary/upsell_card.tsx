@@ -11,7 +11,9 @@ import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/w
 import StartTrialCaution from 'components/pricing_modal/start_trial_caution';
 
 import {openExternalPricingLink, FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
-import {Message, t} from 'utils/i18n';
+import {t} from 'utils/i18n';
+
+import type {Message} from 'utils/i18n';
 
 import './upsell_card.scss';
 

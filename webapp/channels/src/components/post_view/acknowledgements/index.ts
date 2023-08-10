@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
 import {connect} from 'react-redux';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getHasReactions, makeGetPostAcknowledgementsWithProfiles} from 'mattermost-redux/selectors/entities/posts';
 
-import {GlobalState} from 'types/store';
-
 import PostAcknowledgements from './post_acknowledgements';
+
+import type {Post} from '@mattermost/types/posts';
+import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     postId: Post['id'];

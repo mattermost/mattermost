@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from '@mattermost/types/errors';
-import React, {MouseEventHandler} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {MouseEventHandler} from 'react';
 
 interface Props {
     error: ServerError;

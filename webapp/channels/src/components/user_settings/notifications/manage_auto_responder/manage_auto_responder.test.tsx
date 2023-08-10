@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import React from 'react';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import ManageAutoResponder from './manage_auto_responder';
+
+import type {ComponentProps} from 'react';
 
 describe('components/user_settings/notifications/ManageAutoResponder', () => {
     const requiredProps: ComponentProps<typeof ManageAutoResponder> = {

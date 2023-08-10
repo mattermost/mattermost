@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SchemaMigration} from '@mattermost/types/admin';
 import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import './migrations_table.scss';
+import type {SchemaMigration} from '@mattermost/types/admin';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import './migrations_table.scss';
 
 export type Props = {
     createHelpText: React.ReactElement;

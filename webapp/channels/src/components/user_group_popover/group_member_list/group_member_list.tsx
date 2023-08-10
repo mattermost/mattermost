@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SendIcon} from '@mattermost/compass-icons/components';
-import {ServerError} from '@mattermost/types/errors';
-import {Group} from '@mattermost/types/groups';
-import {UserProfile} from '@mattermost/types/users';
 import React, {useEffect, useState, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import {VariableSizeList, ListChildComponentProps} from 'react-window';
+import {VariableSizeList} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 import styled, {css} from 'styled-components';
+
+import {SendIcon} from '@mattermost/compass-icons/components';
 
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
@@ -19,8 +17,14 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Avatar from 'components/widgets/users/avatar';
 
-import {Load} from '../user_group_popover';
 import * as Utils from 'utils/utils';
+
+import {Load} from '../user_group_popover';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ListChildComponentProps} from 'react-window';
 
 const USERS_PER_PAGE = 100;
 

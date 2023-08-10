@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -9,6 +9,8 @@ import {act, renderWithIntlAndStore} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import PostEditHistory from './post_edit_history';
+
+import type {ComponentProps} from 'react';
 
 describe('components/post_edit_history', () => {
     const baseProps: ComponentProps<typeof PostEditHistory> = {

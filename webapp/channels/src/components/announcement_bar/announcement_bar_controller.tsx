@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
 import React from 'react';
 
 import {ToPaidPlanBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_paid_plan_nudge_banner';
 import {ToYearlyNudgeBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_yearly_nudge_banner';
-
-import withGetCloudSubscription from '../common/hocs/cloud/with_get_cloud_subscription';
+import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 
 import CloudDelinquencyAnnouncementBar from './cloud_delinquency';
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
@@ -21,6 +19,8 @@ import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal
 import ShowThreeDaysLeftTrialModal from './show_tree_days_left_trial_modal/show_three_days_left_trial_modal';
 import TextDismissableBar from './text_dismissable_bar';
 import VersionBar from './version_bar';
+
+import type {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
 
 type Props = {
     license?: ClientLicense;

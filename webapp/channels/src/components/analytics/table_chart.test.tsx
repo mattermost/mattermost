@@ -4,7 +4,9 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import TableChart, {TableItem} from 'components/analytics/table_chart';
+import TableChart from 'components/analytics/table_chart';
+
+import type {TableItem} from 'components/analytics/table_chart';
 
 describe('components/analytics/table_chart.tsx', () => {
     test('should match snapshot, loaded without data', () => {

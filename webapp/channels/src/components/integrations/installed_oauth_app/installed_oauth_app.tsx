@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {OAuthApp} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
@@ -11,8 +9,12 @@ import CopyText from 'components/copy_text';
 import FormError from 'components/form_error';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
-import DeleteIntegrationLink from '../delete_integration_link';
 import * as Utils from 'utils/utils';
+
+import DeleteIntegrationLink from '../delete_integration_link';
+
+import type {OAuthApp} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
 const FAKE_SECRET = '***************';
 

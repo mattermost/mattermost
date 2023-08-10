@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostPriority} from '@mattermost/types/posts';
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import Tag, {TagSize} from 'components/widgets/tag/tag';
+import {PostPriority} from '@mattermost/types/posts';
+
+import Tag from 'components/widgets/tag/tag';
+
+import type {TagSize} from 'components/widgets/tag/tag';
 
 type Props = {
     priority?: PostPriority|'';

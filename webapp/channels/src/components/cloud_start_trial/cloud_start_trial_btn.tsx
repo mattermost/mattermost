@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, ReactNode} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {requestCloudTrial, validateWorkspaceBusinessEmail, getCloudLimits} from 'actions/cloud';
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal, closeModal} from 'actions/views/modals';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import ExternalLink from 'components/external_link';
@@ -17,6 +16,9 @@ import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_m
 import {ModalIdentifiers, TELEMETRY_CATEGORIES, LicenseLinks} from 'utils/constants';
 
 import RequestBusinessEmailModal from './request_business_email_modal';
+
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {ReactNode} from 'react';
 import './cloud_start_trial_btn.scss';
 
 export type CloudStartTrialBtnProps = {

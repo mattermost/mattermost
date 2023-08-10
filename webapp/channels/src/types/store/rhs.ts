@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Post, PostType} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
-
-import {RHSStates} from 'utils/constants';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post, PostType} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RHSStates} from 'utils/constants';
 
 export type SearchType = '' | 'files' | 'messages';
 

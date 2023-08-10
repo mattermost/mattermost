@@ -3,12 +3,13 @@
 
 import {memo} from 'react';
 import {connect} from 'react-redux';
-import {withRouter, RouteComponentProps} from 'react-router-dom';
-import {bindActionCreators, Dispatch} from 'redux';
+import {withRouter} from 'react-router-dom';
+import {bindActionCreators} from 'redux';
 
-import {setRhsExpanded, showChannelInfo, showPinnedPosts, showChannelFiles, openRHSSearch, closeRightHandSide, openAtPrevious, updateSearchTerms} from 'actions/views/rhs';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+
+import {setRhsExpanded, showChannelInfo, showPinnedPosts, showChannelFiles, openRHSSearch, closeRightHandSide, openAtPrevious, updateSearchTerms} from 'actions/views/rhs';
 import {selectCurrentProductId} from 'selectors/products';
 import {
     getIsRhsExpanded,
@@ -20,10 +21,13 @@ import {
     getPreviousRhsState,
 } from 'selectors/rhs';
 
-import {GlobalState} from 'types/store';
 import {RHSStates} from 'utils/constants';
 
 import SidebarRight from './sidebar_right';
+
+import type {RouteComponentProps} from 'react-router-dom';
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState, props: RouteComponentProps) {
     const rhsState = getRhsState(state);

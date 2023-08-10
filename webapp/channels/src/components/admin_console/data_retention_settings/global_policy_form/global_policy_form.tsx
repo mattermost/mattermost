@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminConfig} from '@mattermost/types/config';
-import {ServerError} from '@mattermost/types/errors';
-import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -16,6 +13,10 @@ import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid
 
 import {getHistory} from 'utils/browser_history';
 import * as Utils from 'utils/utils';
+
+import type {AdminConfig} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import './global_policy_form.scss';
 

@@ -18,10 +18,11 @@ jest.mock('mattermost-redux/actions/users', () => {
 
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 
-import Avatar from '../avatar';
 import {mockStore} from 'tests/test_store';
 
 import Avatars from './avatars';
+
+import Avatar from '../avatar';
 
 describe('components/widgets/users/Avatars', () => {
     const state = {

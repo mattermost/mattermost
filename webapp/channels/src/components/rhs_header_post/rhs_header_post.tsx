@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -15,10 +14,12 @@ import Tooltip from 'components/tooltip';
 import CRTThreadsPaneTutorialTip
     from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
 
-import {RhsState} from 'types/store/rhs';
 import {getHistory} from 'utils/browser_history';
 import Constants, {RHSStates} from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {RhsState} from 'types/store/rhs';
 
 interface RhsHeaderPostProps {
     isExpanded: boolean;

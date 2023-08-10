@@ -1,25 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PluginRedux} from '@mattermost/types/plugins';
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
+
 import {getAdminConsoleCustomComponents} from 'selectors/admin_console';
 
-import {it} from '../admin_definition';
-import SchemaAdminSettings from '../schema_admin_settings';
-import {AdminConsolePluginComponent} from 'types/store/plugins';
 import {appsPluginID} from 'utils/apps';
 import {Constants} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
 import CustomPluginSettings from './custom_plugin_settings';
 import getEnablePluginSetting from './enable_plugin_setting';
+
+import {it} from '../admin_definition';
+import SchemaAdminSettings from '../schema_admin_settings';
+
+import type {PluginRedux} from '@mattermost/types/plugins';
+import type {GlobalState} from '@mattermost/types/store';
+import type {AdminConsolePluginComponent} from 'types/store/plugins';
 
 type OwnProps = { match: { params: { plugin_id: string } } }
 

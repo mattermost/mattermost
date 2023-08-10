@@ -1,25 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from '@mattermost/types/errors';
-import {Group} from '@mattermost/types/groups';
-import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {openDirectChannelToUserId} from 'actions/channel_actions';
-import {closeRightHandSide} from 'actions/views/rhs';
 import {getProfilesInGroup as getUsersInGroup} from 'mattermost-redux/actions/users';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getProfilesInGroupWithoutSorting, searchProfilesInGroupWithoutSorting} from 'mattermost-redux/selectors/entities/users';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import {GlobalState} from 'types/store';
+import {openDirectChannelToUserId} from 'actions/channel_actions';
+import {closeRightHandSide} from 'actions/views/rhs';
 
-import GroupMemberList, {GroupMember} from './group_member_list';
+import GroupMemberList from './group_member_list';
+
+import type {GroupMember} from './group_member_list';
+import type {ServerError} from '@mattermost/types/errors';
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type Actions = {
     getUsersInGroup: (groupId: string, page: number, perPage: number) => Promise<{data: UserProfile[]}>;

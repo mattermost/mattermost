@@ -4,14 +4,15 @@
 import {mount, shallow} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
-import {DeepPartial} from 'redux';
 
 import ExternalImage from 'components/external_image';
 
 import mockStore from 'tests/test_store';
-import {GlobalState} from 'types/store';
 
 import YoutubeVideo from './youtube_video';
+
+import type {DeepPartial} from 'redux';
+import type {GlobalState} from 'types/store';
 
 jest.mock('actions/integration_actions');
 

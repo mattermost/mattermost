@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -11,6 +10,8 @@ import ToggleModalButton from 'components/toggle_modal_button';
 import {ModalIdentifiers} from 'utils/constants';
 
 import UsersToBeRemovedModal from './users_to_be_removed_modal';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 type NeedGroupsErrorProps = {
     warning?: boolean;

@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {deleteCommand, regenCommandToken} from 'mattermost-redux/actions/integrations';
 import {Permissions} from 'mattermost-redux/constants';
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import {GenericAction, ActionResult, ActionFunc} from 'mattermost-redux/types/actions';
 
 import InstalledCommands from './installed_commands';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {GenericAction, ActionResult, ActionFunc} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 type Props = {
     team: {

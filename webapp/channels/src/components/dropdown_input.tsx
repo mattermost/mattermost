@@ -2,8 +2,11 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState, CSSProperties} from 'react';
-import ReactSelect, {Props as SelectProps, ActionMeta, components} from 'react-select';
+import React, {useState} from 'react';
+import ReactSelect, {components} from 'react-select';
+
+import type {CSSProperties} from 'react';
+import type {Props as SelectProps, ActionMeta} from 'react-select';
 
 import './dropdown_input.scss';
 

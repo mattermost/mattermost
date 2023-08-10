@@ -1,13 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import {Role} from '@mattermost/types/roles';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import GeneralConstants from 'mattermost-redux/constants/general';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
@@ -18,12 +15,17 @@ import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_togglable';
 
-import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
-import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
-import PermissionsTreePlaybooks from '../permissions_tree_playbooks';
 import {PermissionsScope, DefaultRolePermissions, DocLinks} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
+
+import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
+import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
+import PermissionsTreePlaybooks from '../permissions_tree_playbooks';
+
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import type {Role} from '@mattermost/types/roles';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 type Props = {
     config: Partial<ClientConfig>;

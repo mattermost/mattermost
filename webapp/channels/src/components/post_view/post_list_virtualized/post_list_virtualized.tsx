@@ -3,12 +3,10 @@
 
 /* eslint-disable max-lines */
 
-import {DynamicSizeList, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
+import {DynamicSizeList} from 'dynamic-virtualized-list';
 import React from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
-import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
-import type {CanLoadMorePosts} from 'actions/views/channel';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 import {isDateLine, isStartOfNewMessages} from 'mattermost-redux/utils/post_list';
 
@@ -24,6 +22,10 @@ import {getPreviousPostId, getLatestPostId, getNewMessageIndex} from 'utils/post
 import * as Utils from 'utils/utils';
 
 import LatestPostReader from './latest_post_reader';
+
+import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
+import type {CanLoadMorePosts} from 'actions/views/channel';
+import type {OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 
 const OVERSCAN_COUNT_BACKWARD = 80;
 const OVERSCAN_COUNT_FORWARD = 80;

@@ -11,9 +11,10 @@ import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/tea
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
+import ThreadItem from './thread_item';
 
-import ThreadItem, {OwnProps} from './thread_item';
+import type {OwnProps} from './thread_item';
+import type {GlobalState} from 'types/store';
 
 function makeMapStateToProps() {
     const getPostsForThread = makeGetPostsForThread();

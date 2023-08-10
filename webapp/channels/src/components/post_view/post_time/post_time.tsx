@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import React from 'react';
 import {Link} from 'react-router-dom';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -12,6 +12,8 @@ import Tooltip from 'components/tooltip';
 
 import {Locations} from 'utils/constants';
 import {isMobile} from 'utils/user_agent';
+
+import type {ComponentProps} from 'react';
 
 const POST_TOOLTIP_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,

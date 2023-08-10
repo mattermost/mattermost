@@ -5,9 +5,9 @@ import {connect} from 'react-redux';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
-import {GlobalState} from 'types/store';
-
 import Pluggable from './pluggable';
+
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     return {

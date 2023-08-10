@@ -5,8 +5,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 
 import GroupRow from 'components/admin_console/group_settings/group_row';
-
-import LoadingSpinner from '../../widgets/loading/loading_spinner';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 describe('components/admin_console/group_settings/GroupRow', () => {
     test('should match snapshot, on linked and configured row', () => {

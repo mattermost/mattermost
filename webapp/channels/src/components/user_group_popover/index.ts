@@ -2,18 +2,20 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+
+import {searchProfiles} from 'mattermost-redux/actions/users';
 
 import {openModal} from 'actions/views/modals';
 import {setPopoverSearchTerm} from 'actions/views/search';
-import {searchProfiles} from 'mattermost-redux/actions/users';
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
-
 import UserGroupPopover from './user_group_popover';
+
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 type Actions = {
     setPopoverSearchTerm: (term: string) => void;

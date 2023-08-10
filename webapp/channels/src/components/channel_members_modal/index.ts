@@ -2,16 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+
+import {canManageChannelMembers} from 'mattermost-redux/selectors/entities/channels';
 
 import {openModal} from 'actions/views/modals';
-import {canManageChannelMembers} from 'mattermost-redux/selectors/entities/channels';
-import {Action} from 'mattermost-redux/types/actions';
-
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
 
 import ChannelMembersModal from './channel_members_modal';
+
+import type {Action} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 const mapStateToProps = (state: GlobalState) => ({
     canManageChannelMembers: canManageChannelMembers(state),

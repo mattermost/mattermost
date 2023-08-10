@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
+import {getLicense} from './general';
+
+import type {
     Limits,
     Subscription,
     Product,
     CloudCustomer,
     CloudState,
 } from '@mattermost/types/cloud';
-import {GlobalState} from '@mattermost/types/store';
-
-import {getLicense} from './general';
+import type {GlobalState} from '@mattermost/types/store';
 
 export function getCloudLimits(state: GlobalState): Limits {
     return state.entities.cloud.limits.limits;

@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ClientLicense} from '@mattermost/types/config';
-import {Role} from '@mattermost/types/roles';
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -11,7 +9,10 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import EditPostTimeLimitButton from '../edit_post_time_limit_button';
 import EditPostTimeLimitModal from '../edit_post_time_limit_modal';
 import PermissionGroup from '../permission_group';
-import {Permissions as PermissionsType} from '../permissions_tree/types';
+
+import type {Permissions as PermissionsType} from '../permissions_tree/types';
+import type {ClientLicense} from '@mattermost/types/config';
+import type {Role} from '@mattermost/types/roles';
 
 type Props = {
     license: ClientLicense;

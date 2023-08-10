@@ -3,9 +3,10 @@
 
 import {useDispatch, useSelector} from 'react-redux';
 
+import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 
 import PricingModal from 'components/pricing_modal';
 

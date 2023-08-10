@@ -1,12 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Job, JobType} from '@mattermost/types/jobs';
 import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import {JobTypes} from 'utils/constants';
 
@@ -15,6 +12,9 @@ import JobDownloadLink from './job_download_link';
 import JobFinishAt from './job_finish_at';
 import JobRunLength from './job_run_length';
 import JobStatus from './job_status';
+
+import type {Job, JobType} from '@mattermost/types/jobs';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import './table.scss';
 

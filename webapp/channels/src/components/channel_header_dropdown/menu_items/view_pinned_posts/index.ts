@@ -2,16 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {closeRightHandSide, showPinnedPosts} from 'actions/views/rhs';
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {getRhsState} from 'selectors/rhs';
 
-import {GlobalState} from 'types/store';
 import {RHSStates} from 'utils/constants';
 
 import ViewPinnedPosts from './view_pinned_posts';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 const mapStateToProps = (state: GlobalState) => ({
     hasPinnedPosts: getRhsState(state) === RHSStates.PIN,

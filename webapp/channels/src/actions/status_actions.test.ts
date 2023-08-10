@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {cloneDeep} from 'lodash';
 
-import * as Actions from 'actions/status_actions';
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 
+import * as Actions from 'actions/status_actions';
+
 import mockStore from 'tests/test_store';
-import {GlobalState} from 'types/store';
+
+import type {UserProfile} from '@mattermost/types/users';
+import type {GlobalState} from 'types/store';
 
 jest.mock('mattermost-redux/actions/users', () => ({
     getStatusesByIds: jest.fn(() => {

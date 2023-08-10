@@ -1,19 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CustomGroupPatch} from '@mattermost/types/groups';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {openModal} from 'actions/views/modals';
 import {patchGroup} from 'mattermost-redux/actions/groups';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
-import {Action, ActionResult} from 'mattermost-redux/types/actions';
 
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
+import {openModal} from 'actions/views/modals';
 
 import UpdateUserGroupModal from './update_user_group_modal';
+
+import type {CustomGroupPatch} from '@mattermost/types/groups';
+import type {Action, ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     groupId: string;

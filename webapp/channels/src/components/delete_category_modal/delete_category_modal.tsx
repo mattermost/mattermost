@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GenericModal} from '@mattermost/components';
-import {ChannelCategory} from '@mattermost/types/channel_categories';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {GenericModal} from '@mattermost/components';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {t} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
+
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
 
 import '../category_modal.scss';
 

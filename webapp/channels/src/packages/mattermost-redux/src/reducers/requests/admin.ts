@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
 import {combineReducers} from 'redux';
 
 import {AdminTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
 import {handleRequest, initialRequestState} from './helpers';
+
+import type {AdminRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function createCompliance(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
     return handleRequest(

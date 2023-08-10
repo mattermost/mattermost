@@ -6,8 +6,9 @@ import React from 'react';
 
 import * as ChannelSelectors from 'mattermost-redux/selectors/entities/channels';
 
-import NotifyCounts from '../notify_counts';
 import {mockStore} from 'tests/test_store';
+
+import NotifyCounts from './';
 
 describe('components/notify_counts', () => {
     const getUnreadStatusInCurrentTeam = jest.spyOn(ChannelSelectors, 'getUnreadStatusInCurrentTeam');

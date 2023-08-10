@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CloudUsage} from '@mattermost/types/cloud';
-import {Team} from '@mattermost/types/teams';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import SelectTeam, {TEAMS_PER_PAGE} from 'components/select_team/select_team';
+
+import type {CloudUsage} from '@mattermost/types/cloud';
+import type {Team} from '@mattermost/types/teams';
 
 jest.mock('actions/global_actions', () => ({
     emitUserLoggedOutEvent: jest.fn(),

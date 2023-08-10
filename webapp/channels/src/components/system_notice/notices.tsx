@@ -6,12 +6,13 @@ import {FormattedMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import {Notice} from 'components/system_notice/types';
 
 import mattermostIcon from 'images/icon50x50.png';
 import {DocLinks} from 'utils/constants';
 import * as ServerVersion from 'utils/server_version';
 import * as UserAgent from 'utils/user_agent';
+
+import type {Notice} from 'components/system_notice/types';
 
 // Notices are objects with the following fields:
 //  - name - string identifier

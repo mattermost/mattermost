@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {getUser} from 'mattermost-redux/actions/users';
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import {getNonBotUsers} from './selectors';
 import SystemUsersList from './system_users_list';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
+import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 type Actions = {
     getUser: (id: string) => UserProfile;

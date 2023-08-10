@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
-import {CheckIcon} from '@mattermost/compass-icons/components';
-import {Post} from '@mattermost/types/posts';
 import classNames from 'classnames';
 import React, {memo, useCallback, useState} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
+import {CheckIcon} from '@mattermost/compass-icons/components';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import InfoToast from 'components/info_toast/info_toast';
@@ -20,11 +18,14 @@ import Tooltip from 'components/tooltip';
 import UserProfileComponent from 'components/user_profile';
 import Avatar from 'components/widgets/users/avatar';
 
-import RestorePostModal from '../restore_post_modal';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';
 
+import RestorePostModal from '../restore_post_modal';
+
 import type {PropsFromRedux} from './index';
+import type {Post} from '@mattermost/types/posts';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,

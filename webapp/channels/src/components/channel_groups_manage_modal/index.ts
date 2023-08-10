@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {closeModal, openModal} from 'actions/views/modals';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 import {getGroupsAssociatedToChannel, unlinkGroupSyncable, patchGroupSyncable} from 'mattermost-redux/actions/groups';
-import {Action} from 'mattermost-redux/types/actions';
 
-import {ModalData} from 'types/actions';
+import {closeModal, openModal} from 'actions/views/modals';
 
 import ChannelGroupsManageModal from './channel_groups_manage_modal';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {Action} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {ModalData} from 'types/actions';
 
 const mapStateToProps = (state: GlobalState, ownProps: any) => {
     return {

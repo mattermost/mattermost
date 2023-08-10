@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {ReactNode, CSSProperties} from 'react';
-import {FormattedMessage, MessageDescriptor} from 'react-intl';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import FlagIcon from 'components/widgets/icons/flag_icon';
 import MentionsIcon from 'components/widgets/icons/mentions_icon';
@@ -13,6 +13,9 @@ import SearchIcon from 'components/widgets/icons/search_icon';
 import {t} from 'utils/i18n';
 
 import {NoResultsVariant, NoResultsLayout} from './types';
+
+import type {ReactNode, CSSProperties} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 
 interface Props {
     expanded?: boolean;

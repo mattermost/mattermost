@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AnalyticsRow, PluginAnalyticsRow, IndexedPluginAnalyticsRow} from '@mattermost/types/admin';
-import {ClientLicense} from '@mattermost/types/config';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -12,6 +10,8 @@ import {ActivatedUserCard} from 'components/analytics/activated_users_card';
 import TrueUpReview from 'components/analytics/true_up_review';
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+
+import Constants from 'utils/constants';
 
 import DoughnutChart from '../doughnut_chart';
 import {
@@ -23,8 +23,10 @@ import {
 } from '../format';
 import LineChart from '../line_chart';
 import StatisticCount from '../statistic_count';
-import {GlobalState} from 'types/store';
-import Constants from 'utils/constants';
+
+import type {AnalyticsRow, PluginAnalyticsRow, IndexedPluginAnalyticsRow} from '@mattermost/types/admin';
+import type {ClientLicense} from '@mattermost/types/config';
+import type {GlobalState} from 'types/store';
 
 const StatTypes = Constants.StatTypes;
 

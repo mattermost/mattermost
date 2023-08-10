@@ -1,13 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import {openDirectChannelToUserId} from 'actions/channel_actions';
-import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
-import {closeRightHandSide} from 'actions/views/rhs';
 import {TeamTypes} from 'mattermost-redux/action_types';
 import {
     leaveChannel as leaveChannelRedux,
@@ -43,20 +38,27 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUserByUsername} from 'mattermost-redux/selectors/entities/users';
 import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/utils';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
+
+import {openDirectChannelToUserId} from 'actions/channel_actions';
+import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
+import {closeRightHandSide} from 'actions/views/rhs';
 import {getLastViewedChannelName} from 'selectors/local_storage';
 import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
 import {getLastPostsApiTimeForChannel} from 'selectors/views/channel';
 import {getSocketStatus} from 'selectors/views/websocket';
 import LocalStorageStore from 'stores/local_storage_store';
 
-import type {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
 import {isMobile} from 'utils/utils';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {AnyAction} from 'redux';
+import type {GlobalState} from 'types/store';
 
 export function checkAndSetMobileView() {
     return (dispatch: DispatchFunc) => {

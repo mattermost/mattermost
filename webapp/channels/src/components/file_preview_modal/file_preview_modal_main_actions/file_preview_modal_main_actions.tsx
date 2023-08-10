@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileInfo} from '@mattermost/types/files';
 import React, {memo, useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -14,10 +13,14 @@ import ExternalLink from 'components/external_link';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
-import {isFileInfo, LinkInfo} from '../types';
-import {GlobalState} from 'types/store';
 import Constants, {FileTypes} from 'utils/constants';
 import {copyToClipboard, getFileType} from 'utils/utils';
+
+import {isFileInfo} from '../types';
+
+import type {LinkInfo} from '../types';
+import type {FileInfo} from '@mattermost/types/files';
+import type {GlobalState} from 'types/store';
 
 import './file_preview_modal_main_actions.scss';
 

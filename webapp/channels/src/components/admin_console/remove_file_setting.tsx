@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent, MouseEvent} from 'react';
+import React, {PureComponent} from 'react';
 
-import Setting, {Props as SettingsProps} from './setting';
+import Setting from './setting';
+
+import type {Props as SettingsProps} from './setting';
+import type {MouseEvent} from 'react';
 
 type Props = SettingsProps & {
     id: string;

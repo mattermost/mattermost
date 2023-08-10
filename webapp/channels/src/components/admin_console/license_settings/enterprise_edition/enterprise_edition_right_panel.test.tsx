@@ -8,7 +8,9 @@ import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 import {LicenseSkus} from 'utils/constants';
 
-import EnterpriseEditionRightPanel, {EnterpriseEditionProps} from './enterprise_edition_right_panel';
+import EnterpriseEditionRightPanel from './enterprise_edition_right_panel';
+
+import type {EnterpriseEditionProps} from './enterprise_edition_right_panel';
 
 const initialState = {
     views: {

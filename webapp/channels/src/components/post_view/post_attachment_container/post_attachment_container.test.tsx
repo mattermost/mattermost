@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 
 import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 
-import PostAttachmentContainer, {Props} from './post_attachment_container';
+import PostAttachmentContainer from './post_attachment_container';
+
+import type {Props} from './post_attachment_container';
+import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 describe('PostAttachmentContainer', () => {
     const baseProps: Props = {

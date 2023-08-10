@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {
@@ -13,9 +12,13 @@ import {
     uploadProfileImage,
 } from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
-import UserSettingsGeneralTab, {Props} from './user_settings_general';
+import UserSettingsGeneralTab from './user_settings_general';
+
+import type {Props} from './user_settings_general';
+import type {GlobalState} from '@mattermost/types/store';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

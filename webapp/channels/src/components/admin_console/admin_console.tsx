@@ -1,15 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CloudState, Product} from '@mattermost/types/cloud';
-import {AdminConfig, EnvironmentConfig, ClientLicense} from '@mattermost/types/config';
-import {Role} from '@mattermost/types/roles';
-import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
-
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import SchemaAdminSettings from 'components/admin_console/schema_admin_settings';
 import AnnouncementBarController from 'components/announcement_bar';
@@ -26,6 +19,12 @@ import AdminSidebar from './admin_sidebar';
 import Highlight from './highlight';
 
 import type {PropsFromRedux} from './index';
+import type {CloudState, Product} from '@mattermost/types/cloud';
+import type {AdminConfig, EnvironmentConfig, ClientLicense} from '@mattermost/types/config';
+import type {Role} from '@mattermost/types/roles';
+import type {DeepPartial} from '@mattermost/types/utilities';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 export interface Props extends PropsFromRedux {
     match: {url: string};

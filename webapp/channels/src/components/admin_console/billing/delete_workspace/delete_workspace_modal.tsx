@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GenericModal} from '@mattermost/components';
-import {Feedback} from '@mattermost/types/cloud';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {subscribeCloudSubscription, deleteWorkspace as deleteWorkspaceRequest} from 'actions/cloud';
-import {closeModal, openModal} from 'actions/views/modals';
+import {GenericModal} from '@mattermost/components';
+
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {subscribeCloudSubscription, deleteWorkspace as deleteWorkspaceRequest} from 'actions/cloud';
+import {closeModal, openModal} from 'actions/views/modals';
 
 import DeleteFeedbackModal from 'components/admin_console/billing/delete_workspace/delete_feedback';
 import DeleteWorkspaceProgressModal from 'components/admin_console/billing/delete_workspace/progress_modal';
@@ -23,13 +23,16 @@ import useOpenDowngradeModal from 'components/common/hooks/useOpenDowngradeModal
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import DowngradeFeedbackModal from 'components/feedback_modal/downgrade_feedback';
 
-import {GlobalState} from 'types/store';
 import {CloudProducts, ModalIdentifiers, StatTypes} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 import {fileSizeToString} from 'utils/utils';
 
 import DeleteWorkspaceFailureModal from './failure_modal';
 import DeleteWorkspaceSuccessModal from './success_modal';
+
+import type {Feedback} from '@mattermost/types/cloud';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {GlobalState} from 'types/store';
 
 import './delete_workspace_modal.scss';
 

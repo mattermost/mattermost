@@ -5,10 +5,11 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     isCollapsedThreadsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
+
 import {makeGetDraftsCount} from 'selectors/drafts';
 
-import {GlobalState} from 'types/store';
-import {StaticPage} from 'types/store/lhs';
+import type {GlobalState} from 'types/store';
+import type {StaticPage} from 'types/store/lhs';
 
 export function getIsLhsOpen(state: GlobalState): boolean {
     return state.views.lhs.isOpen;

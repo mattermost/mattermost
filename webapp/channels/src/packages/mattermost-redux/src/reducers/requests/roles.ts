@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {RolesRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
 import {combineReducers} from 'redux';
 
 import {RoleTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
 import {handleRequest, initialRequestState} from './helpers';
+
+import type {RolesRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function getRolesByNames(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
     return handleRequest(

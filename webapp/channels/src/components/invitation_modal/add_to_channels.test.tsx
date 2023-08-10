@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
@@ -11,7 +10,10 @@ import CloseCircleIcon from 'components/widgets/icons/close_circle_icon';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithIntl, screen} from 'tests/react_testing_utils';
 
-import AddToChannels, {Props} from './add_to_channels';
+import AddToChannels from './add_to_channels';
+
+import type {Props} from './add_to_channels';
+import type {Channel} from '@mattermost/types/channels';
 
 const defaultProps: Props = deepFreeze({
     customMessage: {

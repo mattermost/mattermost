@@ -1,15 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import AddChannelDropdown from '../add_channel_dropdown';
+import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
+
 import {CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 
-import SidebarHeader, {Props} from './sidebar_header';
+import SidebarHeader from './sidebar_header';
+
+import AddChannelDropdown from '../add_channel_dropdown';
+
+import type {Props} from './sidebar_header';
 
 let props: Props;
 

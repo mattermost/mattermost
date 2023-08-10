@@ -2,11 +2,14 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, ComponentProps} from 'react';
+import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 
-import Button from '../button';
 import {t} from 'utils/i18n';
+
+import Button from '../button';
+
+import type {ComponentProps} from 'react';
 
 type Props = {
     isFollowing: boolean | null | undefined;

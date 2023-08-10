@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileInfo} from '@mattermost/types/files';
-import {Post} from '@mattermost/types/posts';
 import classNames from 'classnames';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
@@ -15,7 +13,6 @@ import CodePreview from 'components/code_preview';
 import FileInfoPreview from 'components/file_info_preview';
 import LoadingImagePreview from 'components/loading_image_preview';
 
-import {FilePreviewComponent} from 'types/store/plugins';
 import Constants, {FileTypes, ZoomSettings} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
@@ -24,7 +21,12 @@ import FilePreviewModalFooter from './file_preview_modal_footer/file_preview_mod
 import FilePreviewModalHeader from './file_preview_modal_header/file_preview_modal_header';
 import ImagePreview from './image_preview';
 import PopoverBar from './popover_bar';
-import {LinkInfo, isFileInfo} from './types';
+import {isFileInfo} from './types';
+
+import type {LinkInfo} from './types';
+import type {FileInfo} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
+import type {FilePreviewComponent} from 'types/store/plugins';
 
 import './file_preview_modal.scss';
 

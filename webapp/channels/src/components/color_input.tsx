@@ -2,8 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {ChromePicker, ColorResult} from 'react-color';
+import {ChromePicker} from 'react-color';
 import tinycolor from 'tinycolor2';
+
+import type {ColorResult} from 'react-color';
 
 type Props = {
     id: string;

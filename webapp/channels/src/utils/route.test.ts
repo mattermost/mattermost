@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ClientLicense} from '@mattermost/types/config';
-import {UserProfile} from '@mattermost/types/users';
+import {checkIfMFARequired} from './route';
 
-import {checkIfMFARequired, ConfigOption} from './route';
+import type {ConfigOption} from './route';
+import type {ClientLicense} from '@mattermost/types/config';
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('Utils.Route', () => {
     describe('checkIfMFARequired', () => {

@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelNotifyProps} from '@mattermost/types/channels';
-import {connect, ConnectedProps} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 
 import {updateChannelNotifyProps} from 'mattermost-redux/actions/channels';
 import {getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from 'types/store/index';
 
 import ChannelNotificationsModal from './channel_notifications_modal';
+
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import type {ConnectedProps} from 'react-redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store/index';
 
 const mapStateToProps = (state: GlobalState) => ({
     channelMember: getMyCurrentChannelMembership(state),

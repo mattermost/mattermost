@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Limits} from '@mattermost/types/cloud';
 import {useState, useEffect, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getCloudLimits as getCloudLimitsAction} from 'actions/cloud';
 import {getSubscriptionProduct, getCloudLimits, getCloudLimitsLoaded, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 
+import {getCloudLimits as getCloudLimitsAction} from 'actions/cloud';
+
 import {useIsLoggedIn} from 'components/global_header/hooks';
+
+import type {Limits} from '@mattermost/types/cloud';
 
 export default function useGetLimits(): [Limits, boolean] {
     const isCloud = useSelector(isCurrentLicenseCloud);

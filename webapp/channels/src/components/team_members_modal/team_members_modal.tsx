@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -12,8 +11,10 @@ import InvitationModal from 'components/invitation_modal';
 import MemberListTeam from 'components/member_list_team';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 
-import {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {Team} from '@mattermost/types/teams';
+import type {ModalData} from 'types/actions';
 
 type Props = {
     currentTeam: Team;

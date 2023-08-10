@@ -1,30 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CloudUsage} from '@mattermost/types/cloud';
-import {Team} from '@mattermost/types/teams';
-import React, {ReactNode, MouseEvent} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Permissions} from 'mattermost-redux/constants';
+
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-import {Permissions} from 'mattermost-redux/constants';
 
 import AnnouncementBar from 'components/announcement_bar';
 import BackButton from 'components/common/back_button';
+import InfiniteScroll from 'components/common/infinite_scroll';
 import SiteNameAndDescription from 'components/common/site_name_and_description';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 
-import InfiniteScroll from '../common/infinite_scroll';
 import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
 import SelectTeamItem from './components/select_team_item';
+
+import type {CloudUsage} from '@mattermost/types/cloud';
+import type {Team} from '@mattermost/types/teams';
+import type {ReactNode, MouseEvent} from 'react';
 
 export const TEAMS_PER_PAGE = 30;
 const TEAM_MEMBERSHIP_DENIAL_ERROR_ID = 'api.team.add_members.user_denied';

@@ -1,20 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AlertCircleOutlineIcon, AlertOutlineIcon} from '@mattermost/compass-icons/components';
-import {Subscription} from '@mattermost/types/cloud';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {UserProfile} from '@mattermost/types/users';
 import {isEmpty} from 'lodash';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {AlertCircleOutlineIcon, AlertOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
 import PricingModal from 'components/pricing_modal';
 
-import AnnouncementBar from '../default_announcement_bar';
-import {ModalData} from 'types/actions';
 import {
     Preferences,
     CloudBanners,
@@ -25,6 +21,13 @@ import {
 } from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getLocaleDateFromUTC} from 'utils/utils';
+
+import AnnouncementBar from '../default_announcement_bar';
+
+import type {Subscription} from '@mattermost/types/cloud';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ModalData} from 'types/actions';
 
 type Props = {
     userIsAdmin: boolean;

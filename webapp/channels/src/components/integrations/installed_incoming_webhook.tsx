@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {IncomingWebhook} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
@@ -13,6 +10,10 @@ import CopyText from 'components/copy_text';
 import {getSiteURL} from 'utils/url';
 
 import DeleteIntegrationLink from './delete_integration_link';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {IncomingWebhook} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
 export function matchesFilter(incomingWebhook: IncomingWebhook, channel: Channel, filter: string) {
     if (!filter) {

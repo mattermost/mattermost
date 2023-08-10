@@ -2,19 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {dismissNotice} from 'actions/views/notice';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
+import {dismissNotice} from 'actions/views/notice';
+
 import {AnnouncementBarMessages, ConfigurationBanners, Preferences} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
 import ConfigurationBar from './configuration_bar';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const currentUserId = getCurrentUserId(state);

@@ -4,17 +4,18 @@
 import {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {setAddChannelDropdown} from 'actions/views/add_channel_dropdown';
-import {close as closeLhs, open as openLhs} from 'actions/views/lhs';
-import {switchToChannels} from 'actions/views/onboarding_tasks';
-import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
 
-import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName} from '../onboarding_tasks';
+import {setAddChannelDropdown} from 'actions/views/add_channel_dropdown';
+import {close as closeLhs, open as openLhs} from 'actions/views/lhs';
+import {switchToChannels} from 'actions/views/onboarding_tasks';
+import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
+
+import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName} from 'components/onboarding_tasks';
+
 import {useGetPluginsActivationState} from 'plugins/useGetPluginsActivationState';
-import {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
 
 import {
@@ -25,6 +26,8 @@ import {
     TTNameMapToTourSteps,
     TutorialTourName,
 } from './constant';
+
+import type {GlobalState} from 'types/store';
 
 export const useGetTourSteps = (tourCategory: string) => {
     const isGuestUser = useSelector((state: GlobalState) => isCurrentUserGuestUser(state));

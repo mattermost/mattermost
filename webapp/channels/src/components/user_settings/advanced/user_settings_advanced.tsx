@@ -3,13 +3,10 @@
 
 /* eslint-disable max-lines */
 
-import {PreferenceType} from '@mattermost/types/preferences';
-import {UserProfile} from '@mattermost/types/users';
-import React, {ReactNode} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import SettingItem from 'components/setting_item';
@@ -23,6 +20,11 @@ import {a11yFocus, localizeMessage} from 'utils/utils';
 
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import type {ReactNode} from 'react';
 
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 

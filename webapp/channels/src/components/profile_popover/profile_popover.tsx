@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AccountOutlineIcon, AccountPlusOutlineIcon, CloseIcon, EmoticonHappyOutlineIcon, PhoneInTalkIcon, SendIcon} from '@mattermost/compass-icons/components';
-import {Channel} from '@mattermost/types/channels';
-import {ServerError} from '@mattermost/types/errors';
-import {UserCustomStatus, UserProfile, CustomStatusDuration} from '@mattermost/types/users';
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
-import * as GlobalActions from 'actions/global_actions';
+import {AccountOutlineIcon, AccountPlusOutlineIcon, CloseIcon, EmoticonHappyOutlineIcon, PhoneInTalkIcon, SendIcon} from '@mattermost/compass-icons/components';
+import {CustomStatusDuration} from '@mattermost/types/users';
+
 import {Client4} from 'mattermost-redux/client';
 import {displayUsername, isGuest, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+
+import * as GlobalActions from 'actions/global_actions';
 
 import AddUserToChannelModal from 'components/add_user_to_channel_modal';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
@@ -27,21 +27,27 @@ import ToggleModalButton from 'components/toggle_modal_button';
 import Tooltip from 'components/tooltip';
 import UserSettingsModal from 'components/user_settings/modal';
 import Popover from 'components/widgets/popover';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
+import Tag from 'components/widgets/tag/tag';
 import Avatar from 'components/widgets/users/avatar';
 
-import BotTag from '../widgets/tag/bot_tag';
-import GuestTag from '../widgets/tag/guest_tag';
-import Tag from '../widgets/tag/tag';
 import Pluggable from 'plugins/pluggable';
-import {ModalData} from 'types/actions';
 import {getHistory} from 'utils/browser_history';
-import Constants, {A11yClassNames, A11yCustomEventTypes, A11yFocusEventDetail, ModalIdentifiers, UserStatuses} from 'utils/constants';
+import Constants, {A11yClassNames, A11yCustomEventTypes, ModalIdentifiers, UserStatuses} from 'utils/constants';
 import {t} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
 import {shouldFocusMainTextbox} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import {ProfileTimezone} from './profile_localtime';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
+import type {UserCustomStatus, UserProfile} from '@mattermost/types/users';
+import type {IntlShape} from 'react-intl';
+import type {ModalData} from 'types/actions';
+import type {A11yFocusEventDetail} from 'utils/constants';
 
 import './profile_popover.scss';
 

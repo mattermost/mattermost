@@ -1,21 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CreateSubscriptionRequest} from '@mattermost/types/cloud';
-import {SelfHostedExpansionRequest, SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
-import {ValueOf} from '@mattermost/types/utilities';
-import {Stripe} from '@stripe/stripe-js';
 import {getCode} from 'country-list';
+
+import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
 
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 import {bindClientFunc} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import {getSelfHostedErrors} from 'mattermost-redux/selectors/entities/hosted_customer';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {getConfirmCardSetup} from 'components/payment_form/stripe';
 
-import {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
+import type {CreateSubscriptionRequest} from '@mattermost/types/cloud';
+import type {SelfHostedExpansionRequest} from '@mattermost/types/hosted_customer';
+import type {ValueOf} from '@mattermost/types/utilities';
+import type {Stripe} from '@stripe/stripe-js';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
 
 function selfHostedNeedsConfirmation(progress: ValueOf<typeof SelfHostedSignupProgress>): boolean {
     switch (progress) {

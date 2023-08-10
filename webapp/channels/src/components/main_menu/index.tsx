@@ -3,10 +3,8 @@
 
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {openModal} from 'actions/views/modals';
-import {showMentions, showFlaggedPosts, closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
 import {Permissions} from 'mattermost-redux/constants';
 import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {
@@ -20,14 +18,19 @@ import {
     getCurrentRelativeTeamUrl,
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import {openModal} from 'actions/views/modals';
+import {showMentions, showFlaggedPosts, closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
-import {GlobalState} from 'types/store';
 import {RHSStates, CloudProducts} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 
 import MainMenu from './main_menu';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import React, {useState, useMemo, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
@@ -16,8 +15,11 @@ import InviteMembersLink from './invite_members_link';
 import PageBody from './page_body';
 import PageLine from './page_line';
 import SingleColumnLayout from './single_column_layout';
-import {Animations, mapAnimationReasonToClass, Form, PreparingWorkspacePageProps} from './steps';
+import {Animations, mapAnimationReasonToClass} from './steps';
 import Title from './title';
+
+import type {Form, PreparingWorkspacePageProps} from './steps';
+import type {UserProfile} from '@mattermost/types/users';
 
 import './invite_members.scss';
 

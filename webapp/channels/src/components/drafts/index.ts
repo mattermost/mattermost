@@ -6,11 +6,12 @@ import {connect} from 'react-redux';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
+
 import {makeGetDrafts} from 'selectors/drafts';
 
-import {GlobalState} from 'types/store';
-
 import Drafts from './drafts';
+
+import type {GlobalState} from 'types/store';
 
 function makeMapStateToProps() {
     const getDrafts = makeGetDrafts();

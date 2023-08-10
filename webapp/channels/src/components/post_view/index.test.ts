@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-
 import {Constants} from 'utils/constants';
 
 import {isChannelLoading} from './index';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('components/post_view/index', () => {
     test('should return false if loading a permalink view', () => {

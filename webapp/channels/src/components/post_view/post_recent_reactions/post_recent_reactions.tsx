@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Emoji} from '@mattermost/types/emojis';
 import React from 'react';
 
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -13,6 +12,8 @@ import Tooltip from 'components/tooltip';
 import {Locations} from 'utils/constants';
 
 import EmojiItem from './recent_reactions_emoji_item';
+
+import type {Emoji} from '@mattermost/types/emojis';
 
 type LocationTypes = 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT';
 

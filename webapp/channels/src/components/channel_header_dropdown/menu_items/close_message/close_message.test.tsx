@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelType} from '@mattermost/types/channels';
-import {TeamType} from '@mattermost/types/teams';
 import {shallow} from 'enzyme';
 import React from 'react';
 
@@ -12,6 +10,9 @@ import {Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import CloseMessage from './close_message';
+
+import type {ChannelType} from '@mattermost/types/channels';
+import type {TeamType} from '@mattermost/types/teams';
 
 describe('components/ChannelHeaderDropdown/MenuItem.CloseMessage', () => {
     const baseProps = {

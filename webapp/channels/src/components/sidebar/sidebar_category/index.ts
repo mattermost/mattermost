@@ -1,20 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelCategory} from '@mattermost/types/channel_categories';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {setCategoryCollapsed, setCategorySorting} from 'mattermost-redux/actions/channel_categories';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
+
 import {getDraggingState, makeGetFilteredChannelIdsForCategory} from 'selectors/views/channel_sidebar';
 
-import {GlobalState} from 'types/store';
-
 import SidebarCategory from './sidebar_category';
+
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     category: ChannelCategory;

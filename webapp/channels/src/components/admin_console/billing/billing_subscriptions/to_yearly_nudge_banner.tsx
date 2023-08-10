@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import moment from 'moment';
 import React, {useEffect} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
@@ -19,6 +18,8 @@ import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 import {AnnouncementBarTypes, CloudBanners, CloudProducts, Preferences, RecurringIntervals, CloudBillingTypes} from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import './to_yearly_nudge_banner.scss';
 

@@ -1,15 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppCallResponse, AppForm, AppCallRequest, AppContext, AppBinding} from '@mattermost/types/apps';
-import {CommandArgs} from '@mattermost/types/integrations';
-import {Post} from '@mattermost/types/posts';
-
-import {openModal} from 'actions/views/modals';
 import {Client4} from 'mattermost-redux/client';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {Action, ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
 import {cleanForm} from 'mattermost-redux/utils/apps';
+
+import {openModal} from 'actions/views/modals';
 
 import AppsForm from 'components/apps_form';
 
@@ -19,6 +15,11 @@ import {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
 
 import {sendEphemeralPost} from './global_actions';
+
+import type {AppCallResponse, AppForm, AppCallRequest, AppContext, AppBinding} from '@mattermost/types/apps';
+import type {CommandArgs} from '@mattermost/types/integrations';
+import type {Post} from '@mattermost/types/posts';
+import type {Action, ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
 
 export function handleBindingClick<Res=unknown>(binding: AppBinding, context: AppContext, intl: any): ActionFunc {
     return async (dispatch: DispatchFunc) => {

@@ -4,9 +4,11 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import ChannelNavigator from './channel_navigator';
+
 import AddChannelDropdown from '../add_channel_dropdown';
 
-import ChannelNavigator, {Props} from './channel_navigator';
+import type {Props} from './channel_navigator';
 
 let props: Props;
 

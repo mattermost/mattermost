@@ -1,21 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Group, GroupSearachParams} from '@mattermost/types/groups';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {setModalSearchTerm} from 'actions/views/search';
 import {getGroups, getGroupsByUserIdPaginated, searchGroups} from 'mattermost-redux/actions/groups';
 import {getAllAssociatedGroupsForReference, getMyAllowReferencedGroups, searchAllowReferencedGroups, searchMyAllowReferencedGroups} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+
+import {setModalSearchTerm} from 'actions/views/search';
 import {isModalOpen} from 'selectors/views/modals';
 
-import {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 
 import UserGroupsModal from './user_groups_modal';
+
+import type {Group, GroupSearachParams} from '@mattermost/types/groups';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type Actions = {
     getGroups: (

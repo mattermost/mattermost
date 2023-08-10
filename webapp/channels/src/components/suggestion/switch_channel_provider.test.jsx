@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {Preferences} from 'mattermost-redux/constants';
+
 import {getState} from 'stores/redux_store';
 
 import mockStore from 'tests/test_store';

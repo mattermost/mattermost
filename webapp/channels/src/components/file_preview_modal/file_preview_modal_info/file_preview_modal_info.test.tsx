@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
+import React from 'react';
 
-import {GlobalState} from '../../../types/store';
-import {TestHelper} from '../../../utils/test_helper';
+import {TestHelper} from 'utils/test_helper';
 
 import FilePreviewModalInfo from './file_preview_modal_info';
+
+import type {ComponentProps} from 'react';
+import type {GlobalState} from 'types/store';
 
 const mockDispatch = jest.fn();
 let mockState: GlobalState;

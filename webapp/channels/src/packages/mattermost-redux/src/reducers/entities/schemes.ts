@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SchemesState, Scheme} from '@mattermost/types/schemes';
 import {combineReducers} from 'redux';
 
 import {SchemeTypes, UserTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import type {SchemesState, Scheme} from '@mattermost/types/schemes';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function schemes(state: {
     [x: string]: Scheme;

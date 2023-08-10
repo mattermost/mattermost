@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
 import React from 'react';
 
 import {usePostAriaLabel} from 'utils/post_utils';
+
+import type {Post} from '@mattermost/types/posts';
 
 export type Props = React.HTMLProps<HTMLDivElement> & {
     post: Post;

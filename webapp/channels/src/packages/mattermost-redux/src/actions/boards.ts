@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PreferenceType} from '@mattermost/types/preferences';
-
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+
+import {savePreferences} from './preferences';
 
 import {Preferences} from '../constants';
 
-import {savePreferences} from './preferences';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 export function setNewChannelWithBoardPreference(initializationState: Record<string, boolean>): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {

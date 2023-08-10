@@ -3,11 +3,12 @@
 
 import React from 'react';
 
-import FeatureDiscovery from '../index';
 import {LicenseSkus} from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import CustomTermsOfServiceSVG from './images/custom_terms_of_service_svg';
+
+import FeatureDiscovery from '../index';
 
 const CustomTermsOfServiceFeatureDiscovery: React.FC = () => {
     return (

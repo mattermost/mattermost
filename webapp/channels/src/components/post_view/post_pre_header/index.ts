@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {showFlaggedPosts, showPinnedPosts} from 'actions/views/rhs';
 
 import PostPreHeader from './post_pre_header';
+
+import type {Dispatch} from 'redux';
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators({

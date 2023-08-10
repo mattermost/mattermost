@@ -2,7 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+
+import {moveCategory} from 'mattermost-redux/actions/channel_categories';
+import {getCurrentChannelId, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
+import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 
 import {switchToChannelById} from 'actions/views/channel';
 import {
@@ -13,12 +19,6 @@ import {
     multiSelectChannelAdd,
 } from 'actions/views/channel_sidebar';
 import {close, switchToLhsStaticPage} from 'actions/views/lhs';
-import {moveCategory} from 'mattermost-redux/actions/channel_categories';
-import {getCurrentChannelId, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
-import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {getCurrentStaticPageId, getVisibleStaticPages} from 'selectors/lhs';
 import {
     getDisplayedChannels,
@@ -27,9 +27,11 @@ import {
     isUnreadFilterEnabled,
 } from 'selectors/views/channel_sidebar';
 
-import {GlobalState} from 'types/store';
-
 import SidebarList from './sidebar_list';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const currentTeam = getCurrentTeam(state);

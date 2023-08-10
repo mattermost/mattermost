@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {Value} from 'components/multiselect/multiselect';
-
 import CreateUserGroupsModal from './create_user_groups_modal';
+
+import type {UserProfile} from '@mattermost/types/users';
+import type {Value} from 'components/multiselect/multiselect';
 
 type UserProfileValue = Value & UserProfile;
 

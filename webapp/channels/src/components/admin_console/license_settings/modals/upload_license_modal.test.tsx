@@ -7,6 +7,7 @@ import {act} from 'react-dom/test-utils';
 import * as reactRedux from 'react-redux';
 
 import {General} from 'mattermost-redux/constants';
+
 import * as i18Selectors from 'selectors/i18n';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';

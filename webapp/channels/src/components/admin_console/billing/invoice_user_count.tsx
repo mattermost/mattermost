@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Invoice, InvoiceLineItemType} from '@mattermost/types/cloud';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {InvoiceLineItemType} from '@mattermost/types/cloud';
+
 import {numberToFixedDynamic} from 'utils/utils';
+
+import type {Invoice} from '@mattermost/types/cloud';
 
 export default function InvoiceUserCount({invoice}: {invoice: Invoice}): JSX.Element {
     const fullUsers = invoice.line_items.filter((item) => item.type === InvoiceLineItemType.Full).reduce((val, item) => val + item.quantity, 0);

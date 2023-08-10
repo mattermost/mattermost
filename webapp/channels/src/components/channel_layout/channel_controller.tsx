@@ -6,7 +6,6 @@ import React, {useEffect} from 'react';
 import {useDispatch} from 'react-redux';
 
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import CenterChannel from 'components/channel_layout/center_channel';
 import FaviconTitleHandler from 'components/favicon_title_handler';
@@ -18,6 +17,8 @@ import Sidebar from 'components/sidebar';
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 import {isInternetExplorer, isEdge} from 'utils/user_agent';
+
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 const BODY_CLASS_FOR_CHANNEL = ['app__body', 'channel-view'];
 

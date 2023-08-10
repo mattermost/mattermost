@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -13,6 +12,8 @@ import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 import {AboutLinks} from 'utils/constants';
 
 import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cloud';
+
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 
 type Props = {
 

@@ -1,15 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Feedback} from '@mattermost/types/cloud';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {subscribeCloudSubscription} from 'actions/cloud';
-import {trackEvent} from 'actions/telemetry_actions';
-import {closeModal, openModal} from 'actions/views/modals';
 import {
     getCloudSubscription as selectCloudSubscription,
     getSubscriptionProduct as selectSubscriptionProduct,
@@ -17,7 +13,10 @@ import {
 } from 'mattermost-redux/selectors/entities/cloud';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {subscribeCloudSubscription} from 'actions/cloud';
+import {trackEvent} from 'actions/telemetry_actions';
+import {closeModal, openModal} from 'actions/views/modals';
 
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import ErrorModal from 'components/cloud_subscribe_result_modal/error';
@@ -43,6 +42,9 @@ import Card, {BlankCard, ButtonCustomiserClasses} from './card';
 import ContactSalesCTA from './contact_sales_cta';
 import StartTrialCaution from './start_trial_caution';
 import StarterDisclaimerCTA from './starter_disclaimer_cta';
+
+import type {Feedback} from '@mattermost/types/cloud';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import './content.scss';
 

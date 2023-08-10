@@ -6,8 +6,9 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+
+import {trackEvent} from 'actions/telemetry_actions';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 

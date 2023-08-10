@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import ThemeProvider, {lightTheme} from '@mattermost/compass-components/utilities/theme'; // eslint-disable-line no-restricted-imports
 import React, {useState, useEffect} from 'react';
 
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import ThemeProvider, {lightTheme} from '@mattermost/compass-components/utilities/theme'; // eslint-disable-line no-restricted-imports
+
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 type Props = {
     theme: Theme;

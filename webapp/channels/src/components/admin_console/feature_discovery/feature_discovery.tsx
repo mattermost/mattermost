@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AnalyticsRow} from '@mattermost/types/admin';
-import {CloudCustomer} from '@mattermost/types/cloud';
-import {ClientLicense} from '@mattermost/types/config';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
@@ -20,11 +17,15 @@ import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import PurchaseModal from 'components/purchase_modal';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {ModalData} from 'types/actions';
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES, AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
 import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 import * as Utils from 'utils/utils';
+
+import type {AnalyticsRow} from '@mattermost/types/admin';
+import type {CloudCustomer} from '@mattermost/types/cloud';
+import type {ClientLicense} from '@mattermost/types/config';
+import type {ModalData} from 'types/actions';
 
 import './feature_discovery.scss';
 

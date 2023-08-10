@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CheckCircleIcon} from '@mattermost/compass-icons/components';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+
+import {CheckCircleIcon} from '@mattermost/compass-icons/components';
 
 import './gather_intent.scss';
 

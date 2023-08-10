@@ -1,17 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from '@mattermost/types/errors';
-import {OutgoingWebhook} from '@mattermost/types/integrations';
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {getOutgoingHook, updateOutgoingHook} from 'mattermost-redux/actions/integrations';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import EditOutgoingWebhook from './edit_outgoing_webhook';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {OutgoingWebhook} from '@mattermost/types/integrations';
+import type {GlobalState} from '@mattermost/types/store';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 type OwnProps = {
     location: {

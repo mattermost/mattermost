@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Group} from '@mattermost/types/groups';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {Overlay} from 'react-bootstrap';
 
@@ -17,6 +15,9 @@ import {isKeyPressed} from 'utils/keyboard';
 import {popOverOverlayPosition} from 'utils/position_utils';
 import {getUserOrGroupFromMentionName} from 'utils/post_utils';
 import {getViewportSize} from 'utils/utils';
+
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
     currentUserId: string;

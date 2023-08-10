@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {toggle as toggleLhs} from 'actions/views/lhs';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
 import CollapseLhsButton from './collapse_lhs_button';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
 
 const mapDispatchToProps = (dispatch: Dispatch<GenericAction>) => ({
     actions: bindActionCreators({

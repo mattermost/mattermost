@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PostAcknowledgement} from '@mattermost/types/posts';
-import type {UserProfile} from '@mattermost/types/users';
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -15,7 +13,9 @@ import Nbsp from 'components/html_entities/nbsp';
 import Timestamp from 'components/timestamp';
 import Avatar from 'components/widgets/users/avatar';
 
-import {GlobalState} from 'types/store';
+import type {PostAcknowledgement} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
+import type {GlobalState} from 'types/store';
 
 type Props = {
     currentUserId: UserProfile['id'];

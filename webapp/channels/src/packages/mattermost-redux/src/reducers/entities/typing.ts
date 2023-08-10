@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Typing} from '@mattermost/types/typing';
-
 import {WebsocketEvents} from 'mattermost-redux/constants';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import type {Typing} from '@mattermost/types/typing';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+
 export default function typing(state: Typing = {}, action: GenericAction): Typing {
     const {
         data,

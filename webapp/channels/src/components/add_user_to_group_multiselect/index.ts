@@ -1,20 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {loadStatusesForProfilesList} from 'actions/status_actions';
 import {getProfilesNotInGroup, searchProfiles, getProfiles} from 'mattermost-redux/actions/users';
 import {getProfilesNotInCurrentGroup, getUserStatuses, getProfiles as getUsers} from 'mattermost-redux/selectors/entities/users';
-import {Action, ActionResult} from 'mattermost-redux/types/actions';
 
-import {Value} from 'components/multiselect/multiselect';
-
-import {GlobalState} from 'types/store';
+import {loadStatusesForProfilesList} from 'actions/status_actions';
 
 import AddUserToGroupMultiSelect from './add_user_to_group_multiselect';
+
+import type {UserProfile} from '@mattermost/types/users';
+import type {Value} from 'components/multiselect/multiselect';
+import type {Action, ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type UserProfileValue = Value & UserProfile;
 

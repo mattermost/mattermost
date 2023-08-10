@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GifsAppState, GfycatAPIItem} from '@mattermost/types/gifs';
 import React, {useState} from 'react';
 
 import App from 'components/gif_picker/components/App';
@@ -9,6 +8,8 @@ import Categories from 'components/gif_picker/components/Categories';
 import Search from 'components/gif_picker/components/Search';
 import Trending from 'components/gif_picker/components/Trending';
 import constants from 'components/gif_picker/utils/constants';
+
+import type {GifsAppState, GfycatAPIItem} from '@mattermost/types/gifs';
 
 export const appProps: GifsAppState = {
     appName: constants.appName.mattermost,

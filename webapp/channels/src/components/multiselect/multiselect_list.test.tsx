@@ -4,8 +4,10 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {Value} from './multiselect';
-import MultiSelectList, {Props as MultiSelectProps} from './multiselect_list';
+import MultiSelectList from './multiselect_list';
+
+import type {Value} from './multiselect';
+import type {Props as MultiSelectProps} from './multiselect_list';
 
 const element = () => <div/>;
 

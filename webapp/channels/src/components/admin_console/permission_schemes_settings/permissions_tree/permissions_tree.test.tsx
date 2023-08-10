@@ -9,7 +9,7 @@ import PermissionsTree from 'components/admin_console/permission_schemes_setting
 
 import {LicenseSkus} from 'utils/constants';
 
-import {Group, Permission} from './types';
+import type {Group, Permission} from './types';
 
 describe('components/admin_console/permission_schemes_settings/permission_tree', () => {
     const defaultProps = {

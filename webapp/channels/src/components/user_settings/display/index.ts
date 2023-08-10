@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CollapsedThreads} from '@mattermost/types/config';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 import timezones from 'timezones.json';
+
+import {CollapsedThreads} from '@mattermost/types/config';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
@@ -15,13 +14,17 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {get, isCollapsedThreadsAllowed, getCollapsedThreadsPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezoneFull, getCurrentTimezoneLabel} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
-import {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
 
 import UserSettingsDisplay from './user_settings_display';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
+import type {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type Actions = {
     autoUpdateTimezone: (deviceTimezone: string) => void;

@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {FormEvent} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import AbstractCommand from 'components/integrations/abstract_command';
 
 import {TestHelper} from 'utils/test_helper';
+
+import type {FormEvent} from 'react';
 
 describe('components/integrations/AbstractCommand', () => {
     const header = {id: 'Header', defaultMessage: 'Header'};

@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Post, PostType, PostMetadata, PostEmbed} from '@mattermost/types/posts';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {GlobalState} from '@mattermost/types/store';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+
+import {getPreferenceKey} from './preference_utils';
 
 import {Posts, Preferences, Permissions} from '../constants';
 
-import {getPreferenceKey} from './preference_utils';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post, PostType, PostMetadata, PostEmbed} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 export function isPostFlagged(postId: Post['id'], myPreferences: {
     [x: string]: PreferenceType;

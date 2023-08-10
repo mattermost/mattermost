@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ClientConfig} from '@mattermost/types/config';
-import {shallow, ReactWrapper} from 'enzyme';
+import {shallow} from 'enzyme';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {BrowserRouter} from 'react-router-dom';
@@ -17,8 +16,11 @@ import PasswordInput from 'components/widgets/inputs/password_input/password_inp
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {act, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import {GlobalState} from 'types/store';
 import {WindowSizes} from 'utils/constants';
+
+import type {ClientConfig} from '@mattermost/types/config';
+import type {ReactWrapper} from 'enzyme';
+import type {GlobalState} from 'types/store';
 
 let mockState: GlobalState;
 let mockLocation = {pathname: '', search: '', hash: ''};

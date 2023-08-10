@@ -10,7 +10,9 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import * as Utils from 'utils/utils';
 
-import {noAccess, PermissionAccess, writeAccess, readAccess, PermissionToUpdate, SystemSection, mixedAccess, WriteAccess, NoAccess, ReadAccess, MixedAccess} from './types';
+import {noAccess, writeAccess, readAccess, mixedAccess} from './types';
+
+import type {PermissionAccess, PermissionToUpdate, SystemSection, WriteAccess, NoAccess, ReadAccess, MixedAccess} from './types';
 
 import './system_role_permissions.scss';
 

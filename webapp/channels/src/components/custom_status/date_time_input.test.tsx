@@ -7,6 +7,7 @@ import React from 'react';
 import {Provider} from 'react-redux';
 
 import {General} from 'mattermost-redux/constants';
+
 import * as i18Selectors from 'selectors/i18n';
 
 import mockStore from 'tests/test_store';

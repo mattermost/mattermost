@@ -3,18 +3,19 @@
 
 import fs from 'fs';
 
-import {UserProfile} from '@mattermost/types/users';
 import nock from 'nock';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {ActionResult} from 'mattermost-redux/types/actions';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
 import {RequestStatus} from '../constants';
+
+import type {UserProfile} from '@mattermost/types/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 const OK_RESPONSE = {status: 'OK'};
 

@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import {connect} from 'react-redux';
 
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
-
 import SearchChannelSuggestion from './search_channel_suggestion';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     item: Channel;

@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GfycatAPIItem, GfycatAPITag} from '@mattermost/types/gifs';
 import React, {PureComponent} from 'react';
 import {connect} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {requestCategoriesList, requestCategoriesListIfNeeded, saveSearchBarText, saveSearchScrollPosition, searchTextUpdate} from 'mattermost-redux/actions/gifs';
 
-import InfiniteScroll from 'components/gif_picker/components/InfiniteScroll';
-import {appProps} from 'components/gif_picker/gif_picker';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import {GlobalState} from 'types/store';
+import InfiniteScroll from 'components/gif_picker/components/InfiniteScroll';
+
 import {getImageSrc} from 'utils/post_utils';
+
+import type {GfycatAPIItem, GfycatAPITag} from '@mattermost/types/gifs';
+import type {appProps} from 'components/gif_picker/gif_picker';
+import type {GlobalState} from 'types/store';
 
 import './Categories.scss';
 

@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {injectIntl, IntlShape} from 'react-intl';
+import {injectIntl} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -13,6 +13,8 @@ import Tooltip from 'components/tooltip';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+
+import type {IntlShape} from 'react-intl';
 
 type Props = {
     intl: IntlShape;

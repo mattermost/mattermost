@@ -6,7 +6,8 @@
 // Until that happens this is the fix
 
 import * as React from 'react';
-import {OverlayTriggerProps} from 'react-bootstrap';
+
+import type {OverlayTriggerProps} from 'react-bootstrap';
 
 export interface AdditionalOverlayTriggerProps extends React.ComponentPropsWithRef<typeof OverlayTriggerProps> {
 

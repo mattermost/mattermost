@@ -2,12 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {updateChannelNotifyProps} from 'mattermost-redux/actions/channels';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
-import MenuItemToggleMuteChannel, {Actions} from './toggle_mute_channel';
+import MenuItemToggleMuteChannel from './toggle_mute_channel';
+
+import type {Actions} from './toggle_mute_channel';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({

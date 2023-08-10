@@ -1,18 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {ActionResult} from 'mattermost-redux/types/actions.js';
 import React from 'react';
 
 import {getMyChannels, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_utils';
+
 import store from 'stores/redux_store.jsx';
 
 import {Constants} from 'utils/constants';
 
-import Provider, {ResultsCallback} from './provider';
-import {SuggestionContainer, SuggestionProps} from './suggestion';
+import Provider from './provider';
+import {SuggestionContainer} from './suggestion';
+
+import type {ResultsCallback} from './provider';
+import type {SuggestionProps} from './suggestion';
+import type {Channel} from '@mattermost/types/channels';
+import type {ActionResult} from 'mattermost-redux/types/actions.js';
 
 export const MIN_CHANNEL_LINK_LENGTH = 2;
 

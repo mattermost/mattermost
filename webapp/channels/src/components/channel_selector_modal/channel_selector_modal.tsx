@@ -1,18 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import MultiSelect, {Value} from 'components/multiselect/multiselect';
+import MultiSelect from 'components/multiselect/multiselect';
 
 import Constants from 'utils/constants';
 import {localizeMessage, compareChannels} from 'utils/utils';
+
+import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
+import type {Value} from 'components/multiselect/multiselect';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 type ChannelWithTeamDataValue = ChannelWithTeamData & Value;
 

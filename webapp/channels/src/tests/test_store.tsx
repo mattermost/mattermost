@@ -4,13 +4,14 @@
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
-import {AnyAction} from 'redux';
 import configureStore from 'redux-mock-store';
-import thunk, {ThunkDispatch} from 'redux-thunk';
-
-import {GlobalState} from 'types/store';
+import thunk from 'redux-thunk';
 
 import {defaultIntl} from './helpers/intl-test-helper';
+
+import type {AnyAction} from 'redux';
+import type {ThunkDispatch} from 'redux-thunk';
+import type {GlobalState} from 'types/store';
 
 export default function testConfigureStore(initialState = {}) {
     return configureStore<GlobalState, ThunkDispatch<GlobalState, Record<string, never>, AnyAction>>([thunk])(initialState as GlobalState);

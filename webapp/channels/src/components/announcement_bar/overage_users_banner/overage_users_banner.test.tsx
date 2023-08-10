@@ -1,21 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {getLicenseSelfServeStatus} from 'mattermost-redux/actions/cloud';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General} from 'mattermost-redux/constants';
 
+import {trackEvent} from 'actions/telemetry_actions';
+
 import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import {GlobalState} from 'types/store';
 import {OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
 import OverageUsersBanner from './index';
+
+import type {DeepPartial} from '@mattermost/types/utilities';
+import type {GlobalState} from 'types/store';
 
 type ComponentProps = React.ComponentProps<typeof OverageUsersBanner>;
 

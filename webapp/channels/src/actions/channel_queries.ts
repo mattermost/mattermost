@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelMembership, ServerChannel, ChannelType} from '@mattermost/types/channels';
-import {Role} from '@mattermost/types/roles';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-
 import {convertRolesNamesArrayToString} from 'mattermost-redux/actions/roles';
+
+import type {ChannelMembership, ServerChannel, ChannelType} from '@mattermost/types/channels';
+import type {Role} from '@mattermost/types/roles';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 export const CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE = 200;
 

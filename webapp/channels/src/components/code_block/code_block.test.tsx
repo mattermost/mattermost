@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, ReactWrapper, shallow} from 'enzyme';
+import {mount, shallow} from 'enzyme';
 import React from 'react';
 import {act} from 'react-dom/test-utils';
 import {IntlProvider} from 'react-intl';
 
 import CodeBlock from './code_block';
+
+import type {ReactWrapper} from 'enzyme';
 
 const actImmediate = (wrapper: ReactWrapper) =>
     act(

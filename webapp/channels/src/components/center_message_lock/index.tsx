@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {EyeOffOutlineIcon} from '@mattermost/compass-icons/components';
-import {GlobalState} from '@mattermost/types/store';
 import React from 'react';
-import {useIntl, FormatDateOptions} from 'react-intl';
+import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
+
+import {EyeOffOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {getOldestPostTimeInChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -18,6 +18,9 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 
 import {LicenseSkus, MattermostFeatures} from 'utils/constants';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {FormatDateOptions} from 'react-intl';
 
 import './index.scss';
 

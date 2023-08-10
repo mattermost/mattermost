@@ -8,7 +8,7 @@ import {useSelector} from 'react-redux';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import CardImage from 'components/payment_form/card_image';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 export interface PaymentDetailsProps {
     children?: React.ReactNode;

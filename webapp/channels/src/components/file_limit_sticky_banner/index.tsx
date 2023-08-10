@@ -18,9 +18,10 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import NotifyAdminCTA from 'components/notify_admin_cta/notify_admin_cta';
 import Tooltip from 'components/tooltip';
 
-import {GlobalState} from 'types/store';
 import {CloudProducts, LicenseSkus, MattermostFeatures, Preferences} from 'utils/constants';
 import {asGBString} from 'utils/limits';
+
+import type {GlobalState} from 'types/store';
 
 interface FileLimitSnoozePreference {
     lastSnoozeTimestamp: number;

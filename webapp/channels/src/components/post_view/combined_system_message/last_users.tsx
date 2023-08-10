@@ -2,14 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {injectIntl, IntlShape, MessageDescriptor} from 'react-intl';
+import {injectIntl} from 'react-intl';
 
 import {Posts} from 'mattermost-redux/constants';
 
 import Markdown from 'components/markdown';
 
 import {t} from 'utils/i18n';
-import {TextFormattingOptions} from 'utils/text_formatting';
+
+import type {IntlShape, MessageDescriptor} from 'react-intl';
+import type {TextFormattingOptions} from 'utils/text_formatting';
 
 const typeMessage = {
     [Posts.POST_TYPES.ADD_TO_CHANNEL]: {

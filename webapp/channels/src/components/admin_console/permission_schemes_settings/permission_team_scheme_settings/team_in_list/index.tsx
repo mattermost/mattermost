@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {getTeamStats as loadTeamStats} from 'mattermost-redux/actions/teams';
 import {getTeamStats} from 'mattermost-redux/selectors/entities/teams';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
 import TeamInList from './team_in_list';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
 
 function mapStateToProps(state: GlobalState) {
     return {

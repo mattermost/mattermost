@@ -1,23 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServiceEnvironment} from '@mattermost/types/config';
 import {shallow} from 'enzyme';
 import React from 'react';
-import {RouteComponentProps} from 'react-router-dom';
 import rudderAnalytics from 'rudder-sdk-js';
 
-import * as GlobalActions from 'actions/global_actions';
+import {ServiceEnvironment} from '@mattermost/types/config';
+
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+
+import * as GlobalActions from 'actions/global_actions';
 import store from 'stores/redux_store.jsx';
 
 import Root from 'components/root/root';
 
 import matchMedia from 'tests/helpers/match_media.mock';
-import {ProductComponent} from 'types/store/plugins';
 import Constants, {StoragePrefixes, WindowSizes} from 'utils/constants';
+
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import type {RouteComponentProps} from 'react-router-dom';
+import type {ProductComponent} from 'types/store/plugins';
 
 jest.mock('rudder-sdk-js', () => ({
     identify: jest.fn(),

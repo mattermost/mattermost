@@ -2,18 +2,20 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {ChangeEvent, CSSProperties, FormEvent, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import Provider from 'components/suggestion/provider';
 import SearchSuggestionList from 'components/suggestion/search_suggestion_list';
 import SuggestionBox from 'components/suggestion/suggestion_box';
-import SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionDate from 'components/suggestion/suggestion_date';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+
+import type Provider from 'components/suggestion/provider';
+import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
+import type {ChangeEvent, CSSProperties, FormEvent} from 'react';
 
 const {KeyCodes} = Constants;
 

@@ -2,13 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {GlobalState} from 'types/store/index.js';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {copyToClipboard} from 'utils/utils';
 
 import CopyUrlContextMenu from './copy_url_context_menu';
+
+import type {GlobalState} from 'types/store/index.js';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

@@ -2,15 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React, {
-    ChangeEvent,
     forwardRef,
-    KeyboardEvent,
     memo,
 } from 'react';
 import {useIntl} from 'react-intl';
 
 import {EMOJI_PER_ROW} from 'components/emoji_picker/constants';
 import {NavigationDirection} from 'components/emoji_picker/types';
+
+import type {
+    ChangeEvent,
+    KeyboardEvent} from 'react';
 
 interface Props {
     value: string;

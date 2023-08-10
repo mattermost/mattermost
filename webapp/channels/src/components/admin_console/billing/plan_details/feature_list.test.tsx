@@ -10,7 +10,9 @@ import mockStore from 'tests/test_store';
 import {CloudProducts} from 'utils/constants';
 import {makeEmptyLimits, makeEmptyUsage} from 'utils/limits_test';
 
-import FeatureList, {FeatureListProps} from './feature_list';
+import FeatureList from './feature_list';
+
+import type {FeatureListProps} from './feature_list';
 
 function renderFeatureList(props: FeatureListProps, deep?: boolean) {
     const state = {

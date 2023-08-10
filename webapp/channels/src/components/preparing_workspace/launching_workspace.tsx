@@ -13,8 +13,10 @@ import LogoSvg from 'components/common/svg_images_components/logo_dark_blue_svg'
 import loadingIcon from 'images/spinner-48x48-blue.apng';
 
 import Description from './description';
-import {Animations, mapAnimationReasonToClass, PreparingWorkspacePageProps} from './steps';
+import {Animations, mapAnimationReasonToClass} from './steps';
 import Title from './title';
+
+import type {PreparingWorkspacePageProps} from './steps';
 
 import './launching_workspace.scss';
 

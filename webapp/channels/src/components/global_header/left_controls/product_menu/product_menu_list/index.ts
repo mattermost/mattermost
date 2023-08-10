@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {openModal} from 'actions/views/modals';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {Permissions} from 'mattermost-redux/constants';
 import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
@@ -21,17 +20,21 @@ import {
 import {haveICurrentTeamPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {Action} from 'mattermost-redux/types/actions';
+
+import {openModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps} from 'components/onboarding_tasks';
 
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
 import {CloudProducts} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 
 import ProductMenuList from './product_menu_list';
+
+import type {Action} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 type Actions = {
     openModal: <P>(modalData: ModalData<P>) => void;

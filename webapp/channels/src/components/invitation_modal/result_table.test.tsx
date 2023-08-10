@@ -14,7 +14,9 @@ import Avatar from 'components/widgets/users/avatar';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
-import ResultTable, {Props} from './result_table';
+import ResultTable from './result_table';
+
+import type {Props} from './result_table';
 
 let props: Props = {
     sent: true,

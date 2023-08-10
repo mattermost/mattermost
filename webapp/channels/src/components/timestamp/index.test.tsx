@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {GlobalState} from 'types/store';
 
 import * as Timestamp from './timestamp';
 
 import {mapStateToProps} from './index';
+
+import type {GlobalState} from 'types/store';
 
 const supportsHourCycleOg = Timestamp.supportsHourCycle;
 Object.defineProperty(Timestamp, 'supportsHourCycle', {get: () => supportsHourCycleOg});

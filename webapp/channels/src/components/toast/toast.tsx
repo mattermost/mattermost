@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode, MouseEventHandler} from 'react';
-import {OverlayTriggerProps} from 'react-bootstrap';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import OverlayTrigger from 'components/overlay_trigger';
@@ -12,6 +11,9 @@ import UnreadAboveIcon from 'components/widgets/icons/unread_above_icon';
 import UnreadBelowIcon from 'components/widgets/icons/unread_below_icon';
 
 import Constants from 'utils/constants';
+
+import type {ReactNode, MouseEventHandler} from 'react';
+import type {OverlayTriggerProps} from 'react-bootstrap';
 
 import './toast.scss';
 

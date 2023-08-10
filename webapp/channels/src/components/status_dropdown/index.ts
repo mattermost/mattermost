@@ -2,10 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {openModal} from 'actions/views/modals';
-import {setStatusDropdown} from 'actions/views/status_dropdown';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {setStatus, unsetCustomStatus} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
@@ -13,7 +11,9 @@ import {Preferences} from 'mattermost-redux/constants';
 import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import {openModal} from 'actions/views/modals';
+import {setStatusDropdown} from 'actions/views/status_dropdown';
 import {makeGetCustomStatus, isCustomStatusEnabled, showStatusDropdownPulsatingDot, isCustomStatusExpired} from 'selectors/views/custom_status';
 import {isStatusDropdownOpen} from 'selectors/views/status_dropdown';
 
@@ -23,9 +23,11 @@ import {
     TaskNameMapToSteps,
 } from 'components/onboarding_tasks';
 
-import {GlobalState} from 'types/store';
-
 import StatusDropdown from './status_dropdown';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function makeMapStateToProps() {
     const getCustomStatus = makeGetCustomStatus();

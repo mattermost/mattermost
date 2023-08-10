@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
-import {injectIntl, IntlShape, MessageDescriptor} from 'react-intl';
+import {injectIntl} from 'react-intl';
 
 import {Posts} from 'mattermost-redux/constants';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import Markdown from 'components/markdown';
 
 import {t} from 'utils/i18n';
 
 import LastUsers from './last_users';
+
+import type {UserProfile} from '@mattermost/types/users';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 const {
     JOIN_CHANNEL, ADD_TO_CHANNEL, REMOVE_FROM_CHANNEL, LEAVE_CHANNEL,

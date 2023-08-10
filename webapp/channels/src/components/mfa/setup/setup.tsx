@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -11,6 +10,8 @@ import LocalizedInput from 'components/localized_input/localized_input';
 
 import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 type MFAControllerState = {
     enforceMultifactorAuthentication: boolean;

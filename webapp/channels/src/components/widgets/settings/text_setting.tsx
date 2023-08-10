@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, ReactNode} from 'react';
+import React from 'react';
 
 import Setting from './setting';
+
+import type {ChangeEvent, ReactNode} from 'react';
 
 const INPUT_TYPES = ['text', 'textarea', 'number', 'email', 'tel', 'url', 'password'] as const;
 export type InputTypes = typeof INPUT_TYPES[number];

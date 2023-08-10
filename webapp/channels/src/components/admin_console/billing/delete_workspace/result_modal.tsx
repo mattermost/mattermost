@@ -13,7 +13,7 @@ import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZen
 import IconMessage from 'components/purchase_modal/icon_message';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import './result_modal.scss';
 

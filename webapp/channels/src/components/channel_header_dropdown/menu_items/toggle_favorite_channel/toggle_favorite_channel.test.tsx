@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelType} from '@mattermost/types/channels';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import Menu from 'components/widgets/menu/menu';
 
 import ToggleFavoriteChannel from './toggle_favorite_channel';
+
+import type {ChannelType} from '@mattermost/types/channels';
 
 describe('components/ChannelHeaderDropdown/MenuItem.ToggleFavoriteChannel', () => {
     const baseProps = {

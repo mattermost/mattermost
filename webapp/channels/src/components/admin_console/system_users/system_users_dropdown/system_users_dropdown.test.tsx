@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import Menu from 'components/widgets/menu/menu';
 
-import {TestHelper} from '../../../../utils/test_helper';
+import {TestHelper} from 'utils/test_helper';
 
-import SystemUsersDropdown, {Props} from './system_users_dropdown';
+import SystemUsersDropdown from './system_users_dropdown';
+
+import type {Props} from './system_users_dropdown';
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('components/admin_console/system_users/system_users_dropdown/system_users_dropdown', () => {
     const user: UserProfile & {mfa_active: boolean} = Object.assign(TestHelper.getUserMock(), {mfa_active: true});

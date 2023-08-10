@@ -1,19 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
-import {RelationOneToOne} from '@mattermost/types/utilities';
 import React from 'react';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
 import {filterProfilesStartingWithTerm} from 'mattermost-redux/utils/user_utils';
 
-import MultiSelect, {Value} from 'components/multiselect/multiselect';
+import MultiSelect from 'components/multiselect/multiselect';
 
 import Constants from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
 import MultiSelectOption from './multiselect_option/multiselect_option';
+
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
+import type {Value} from 'components/multiselect/multiselect';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 const USERS_PER_PAGE = 50;
 const MAX_SELECTABLE_VALUES = 256;

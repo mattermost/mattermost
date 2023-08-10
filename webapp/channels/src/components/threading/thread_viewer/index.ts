@@ -1,13 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {UserThread} from '@mattermost/types/threads';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {selectPostCard} from 'actions/views/rhs';
-import {updateThreadLastOpened} from 'actions/views/threads';
 import {fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
 import {getNewestPostThread, getPostThread} from 'mattermost-redux/actions/posts';
 import {getThread as fetchThread, updateThreadRead} from 'mattermost-redux/actions/threads';
@@ -18,13 +14,19 @@ import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/pre
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import {selectPostCard} from 'actions/views/rhs';
+import {updateThreadLastOpened} from 'actions/views/threads';
 import {getHighlightedPostId, getSelectedPostFocussedAt} from 'selectors/rhs';
 import {getSocketStatus} from 'selectors/views/websocket';
 
-import {GlobalState} from 'types/store';
-
 import ThreadViewer from './thread_viewer';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserThread} from '@mattermost/types/threads';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     rootPostId: string;

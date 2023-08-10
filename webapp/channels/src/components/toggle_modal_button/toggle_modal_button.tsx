@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentType, MouseEvent, ReactNode} from 'react';
+import React from 'react';
 import {useIntl} from 'react-intl';
 
-import {ModalData} from 'types/actions';
+import type {ComponentType, MouseEvent, ReactNode} from 'react';
+import type {ModalData} from 'types/actions';
 
 type Props = {
     ariaLabel?: string;

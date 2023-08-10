@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {ChangeEvent, ComponentProps} from 'react';
+import React from 'react';
 
 import GeneralTab from 'components/team_general_tab/team_general_tab';
 
 import {TestHelper} from 'utils/test_helper';
+
+import type {ChangeEvent, ComponentProps} from 'react';
 
 describe('components/TeamSettings', () => {
     const getTeam = jest.fn().mockResolvedValue({data: true});

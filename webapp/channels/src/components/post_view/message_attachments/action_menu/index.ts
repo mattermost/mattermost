@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostAction} from '@mattermost/types/integration_actions';
-import {connect, ConnectedProps} from 'react-redux';
+import {connect} from 'react-redux';
 
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsers} from 'actions/user_actions';
 import {selectAttachmentMenuAction} from 'actions/views/posts';
 
-import {GlobalState} from 'types/store';
-
 import ActionMenu from './action_menu';
+
+import type {PostAction} from '@mattermost/types/integration_actions';
+import type {ConnectedProps} from 'react-redux';
+import type {GlobalState} from 'types/store';
 
 export type OwnProps = {
     postId: string;

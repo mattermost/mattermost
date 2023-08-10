@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes, ModalIdentifiers} from 'utils/constants';
+
+import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 // plugins tracks the set of marketplace plugins returned by the server
 function plugins(state: MarketplacePlugin[] = [], action: GenericAction): MarketplacePlugin[] {

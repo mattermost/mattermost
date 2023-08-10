@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {ReactPortal} from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 
 import LinkTooltip from 'components/link_tooltip/link_tooltip';
+
+import type {ReactPortal} from 'react';
 
 describe('components/link_tooltip/link_tooltip', () => {
     test('should match snapshot', () => {

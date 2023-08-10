@@ -1,25 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {injectIntl, IntlShape} from 'react-intl';
+import {injectIntl} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {debounce} from 'mattermost-redux/actions/helpers';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {isEmail} from 'mattermost-redux/utils/helpers';
+
+import {trackEvent} from 'actions/telemetry_actions';
 
 import {getRoleForTrackFlow} from 'utils/utils';
 
 import {InviteType} from './invite_as';
-import InviteView, {InviteState, initializeInviteState} from './invite_view';
+import InviteView, {initializeInviteState} from './invite_view';
 import NoPermissionsView from './no_permissions_view';
-import ResultView, {ResultState, defaultResultState, InviteResults} from './result_view';
+import ResultView, {defaultResultState} from './result_view';
+
+import type {InviteState} from './invite_view';
+import type {ResultState, InviteResults} from './result_view';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {IntlShape} from 'react-intl';
 
 import './invitation_modal.scss';
 

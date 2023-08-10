@@ -5,9 +5,9 @@ import {connect} from 'react-redux';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {GlobalState} from 'types/store';
-
 import ListItem from './list_item';
+
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     return {

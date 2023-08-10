@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {
     getPlugins,
@@ -14,9 +14,11 @@ import {
     disablePlugin,
 } from 'mattermost-redux/actions/admin';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
 import PluginManagement from './plugin_management';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
 
 function mapStateToProps(state: any) {
     return {

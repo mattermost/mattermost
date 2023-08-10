@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GenericModal} from '@mattermost/components';
-import {Limits} from '@mattermost/types/cloud';
 import React from 'react';
 import {useSelector} from 'react-redux';
+
+import {GenericModal} from '@mattermost/components';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
@@ -12,9 +12,10 @@ import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
-import {Message} from 'utils/i18n';
-
 import WorkspaceLimitsPanel, {messageToElement} from './workspace_limits_panel';
+
+import type {Limits} from '@mattermost/types/cloud';
+import type {Message} from 'utils/i18n';
 
 import './index.scss';
 

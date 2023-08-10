@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppBinding} from '@mattermost/types/apps';
-import {Post, PostEmbed} from '@mattermost/types/posts';
 import React from 'react';
 
 import {getEmbedFromMetadata} from 'mattermost-redux/utils/post_utils';
@@ -13,10 +11,14 @@ import PostImage from 'components/post_view/post_image';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import YoutubeVideo from 'components/youtube_video';
 
-import EmbeddedBindings from '../embedded_bindings/embedded_bindings';
 import webSocketClient from 'client/web_websocket_client.jsx';
-import {PostWillRenderEmbedPluginComponent} from 'types/store/plugins';
-import {TextFormattingOptions} from 'utils/text_formatting';
+
+import EmbeddedBindings from '../embedded_bindings/embedded_bindings';
+
+import type {AppBinding} from '@mattermost/types/apps';
+import type {Post, PostEmbed} from '@mattermost/types/posts';
+import type {PostWillRenderEmbedPluginComponent} from 'types/store/plugins';
+import type {TextFormattingOptions} from 'utils/text_formatting';
 
 export type Props = {
     post: Post;

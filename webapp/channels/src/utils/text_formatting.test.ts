@@ -14,8 +14,10 @@ import {
     highlightSearchTerms,
     handleUnicodeEmoji,
     highlightCurrentMentions,
-    parseSearchTerms, autolinkChannelMentions, ChannelNamesMap,
+    parseSearchTerms, autolinkChannelMentions,
 } from 'utils/text_formatting';
+
+import type {ChannelNamesMap} from 'utils/text_formatting';
 
 const emptyEmojiMap = new EmojiMap(new Map());
 

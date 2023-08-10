@@ -4,16 +4,19 @@
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {Client4} from 'mattermost-redux/client';
+
+import {trackEvent} from 'actions/telemetry_actions';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
-import NoInternetConnection from '../no_internet_connection/no_internet_connection';
-import {ModalData} from 'types/actions';
 import {
     ModalIdentifiers,
 } from 'utils/constants';
+
+import NoInternetConnection from '../no_internet_connection/no_internet_connection';
+
+import type {ModalData} from 'types/actions';
 
 import './renew_link.scss';
 

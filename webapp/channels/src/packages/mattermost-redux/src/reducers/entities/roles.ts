@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Role} from '@mattermost/types/roles';
 import {combineReducers} from 'redux';
 
 import {RoleTypes, UserTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import type {Role} from '@mattermost/types/roles';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function pending(state: Set<string> = new Set(), action: GenericAction) {
     switch (action.type) {

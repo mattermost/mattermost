@@ -1,16 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AuthorType, MarketplacePlugin, ReleaseStage} from '@mattermost/types/marketplace';
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import {AuthorType, ReleaseStage} from '@mattermost/types/marketplace';
 
-import {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 
-import MarketplaceModal, {OpenedFromType} from './marketplace_modal';
+import MarketplaceModal from './marketplace_modal';
+
+import type {OpenedFromType} from './marketplace_modal';
+import type {MarketplacePlugin} from '@mattermost/types/marketplace';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {GlobalState} from 'types/store';
 
 let mockState: GlobalState;
 

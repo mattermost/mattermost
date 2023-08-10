@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ClusterInfo} from '@mattermost/types/admin';
-import React, {MouseEvent, PureComponent} from 'react';
+import React, {PureComponent} from 'react';
 
 import {getClusterStatus} from 'actions/admin_actions.jsx';
 
+import ClusterTable from './cluster_table';
+
 import LoadingScreen from '../loading_screen';
 
-import ClusterTable from './cluster_table';
+import type {ClusterInfo} from '@mattermost/types/admin';
+import type {MouseEvent} from 'react';
 
 interface State {
     clusterInfos: ClusterInfo[] | null;

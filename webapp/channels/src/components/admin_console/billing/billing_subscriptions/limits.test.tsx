@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Subscription, Product} from '@mattermost/types/cloud';
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile, UsersState} from '@mattermost/types/users';
 import React from 'react';
 import * as redux from 'react-redux';
 import {Provider} from 'react-redux';
@@ -16,6 +13,10 @@ import {Constants, CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 
 import Limits from './limits';
+
+import type {Subscription, Product} from '@mattermost/types/cloud';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile, UsersState} from '@mattermost/types/users';
 
 const freeLimits = {
     messages: {

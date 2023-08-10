@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Emoji} from '@mattermost/types/emojis';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import PostReaction from 'components/post_view/post_reaction/post_reaction';
+
+import type {Emoji} from '@mattermost/types/emojis';
 
 describe('components/post_view/PostReaction', () => {
     const baseProps = {

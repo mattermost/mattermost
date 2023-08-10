@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileInfo} from '@mattermost/types/files';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import FileInfoPreview from 'components/file_info_preview/file_info_preview';
+
+import type {FileInfo} from '@mattermost/types/files';
 
 describe('components/FileInfoPreview', () => {
     test('should match snapshot, can download files', () => {

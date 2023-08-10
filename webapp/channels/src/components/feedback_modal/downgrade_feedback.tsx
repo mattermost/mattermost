@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Feedback} from '@mattermost/types/cloud';
 import React from 'react';
-import {injectIntl, WrappedComponentProps} from 'react-intl';
+import {injectIntl} from 'react-intl';
 
-import FeedbackModal, {FeedbackOption} from 'components/feedback_modal/feedback';
+import FeedbackModal from 'components/feedback_modal/feedback';
+
+import type {Feedback} from '@mattermost/types/cloud';
+import type {FeedbackOption} from 'components/feedback_modal/feedback';
+import type {WrappedComponentProps} from 'react-intl';
 
 type Props = {
     onSubmit: (downgradeFeedback: Feedback) => void;

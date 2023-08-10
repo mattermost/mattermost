@@ -8,9 +8,10 @@ import {useIntl} from 'react-intl';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
-import Input from '../input/input';
 import Constants from 'utils/constants';
 import {getShortenedURL} from 'utils/url';
+
+import Input from '../input/input';
 
 import './url_input.scss';
 

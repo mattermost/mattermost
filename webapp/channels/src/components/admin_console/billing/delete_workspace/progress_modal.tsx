@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useRef, useState} from 'react';
-import {injectIntl, WrappedComponentProps} from 'react-intl';
+import {injectIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {closeModal} from 'actions/views/modals';
@@ -14,6 +14,8 @@ import RootPortal from 'components/root_portal';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {WrappedComponentProps} from 'react-intl';
 
 import './progress_modal.scss';
 const MIN_PROCESSING_MILLISECONDS = 5000;

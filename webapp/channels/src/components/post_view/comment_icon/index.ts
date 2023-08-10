@@ -8,7 +8,7 @@ import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/pre
 
 import CommentIcon from 'components/common/comment_icon';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     postId: string;

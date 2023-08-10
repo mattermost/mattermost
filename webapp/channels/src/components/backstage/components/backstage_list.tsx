@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, ReactNode, useState} from 'react';
+import React, {useState} from 'react';
 import {Link} from 'react-router-dom';
 
 import LoadingScreen from 'components/loading_screen';
 import SearchIcon from 'components/widgets/icons/fa_search_icon';
 
 import {localizeMessage} from 'utils/utils';
+
+import type {ChangeEvent, ReactNode} from 'react';
 
 type Props = {
     children?: ReactNode | ((filter: string) => void);

@@ -1,24 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {RequireOnlyOne} from '@mattermost/types/utilities';
 import {capitalize as caps, isArray} from 'lodash';
-import moment, {Moment} from 'moment-timezone';
-import React, {PureComponent, ReactNode} from 'react';
+import moment from 'moment-timezone';
+import React, {PureComponent} from 'react';
 import {
     injectIntl,
-    IntlShape,
-    FormatDateOptions,
-    FormatRelativeTimeOptions,
     FormattedMessage,
 } from 'react-intl';
 import {isValidElementType} from 'react-is';
 
 import {isSameYear, isWithin, isEqual, getDiff} from 'utils/datetime';
-import {Resolvable, resolve} from 'utils/resolvable';
+import {resolve} from 'utils/resolvable';
 
 import {STANDARD_UNITS} from './relative_ranges';
 import SemanticTime from './semantic_time';
+
+import type {RequireOnlyOne} from '@mattermost/types/utilities';
+import type {Moment} from 'moment-timezone';
+import type {ReactNode} from 'react';
+import type {
+    IntlShape,
+    FormatDateOptions,
+    FormatRelativeTimeOptions} from 'react-intl';
+import type {Resolvable} from 'utils/resolvable';
 
 // Feature test the browser for support of hourCycle.
 // Note that Intl.DateTimeFormatOptions typings are stale and do not have definitions of hourCycle, dateStyle, etc..

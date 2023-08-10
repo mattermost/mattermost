@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PreferenceType} from '@mattermost/types/preferences';
-import {UserStatus} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -13,6 +11,9 @@ import ConfirmModal from 'components/confirm_modal';
 import {UserStatuses} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {toTitleCase} from 'utils/utils';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserStatus} from '@mattermost/types/users';
 
 t('modal.manual_status.auto_responder.message_');
 t('modal.manual_status.auto_responder.message_away');

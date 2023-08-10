@@ -2,19 +2,23 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
+import React from 'react';
+
+import {getThreads} from 'mattermost-redux/actions/threads';
 
 import {openModal} from 'actions/views/modals';
-import {getThreads} from 'mattermost-redux/actions/threads';
 
 import Header from 'components/widgets/header';
 
-import Button from '../../common/button';
 import {Constants, WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ThreadList, {ThreadFilter} from './thread_list';
 import VirtualizedThreadList from './virtualized_thread_list';
+
+import Button from '../../common/button';
+
+import type {ComponentProps} from 'react';
 
 jest.mock('mattermost-redux/actions/threads');
 jest.mock('actions/views/modals');

@@ -1,18 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Bot} from '@mattermost/types/bots';
-import {AdminConfig} from '@mattermost/types/config';
-import {ServerError} from '@mattermost/types/errors';
-import {UserProfile} from '@mattermost/types/users';
-import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {adminResetMfa} from 'actions/admin_actions.jsx';
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import {Permissions} from 'mattermost-redux/constants';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
+
+import {adminResetMfa} from 'actions/admin_actions.jsx';
+import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
@@ -25,6 +21,12 @@ import {Constants} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getSiteURL} from 'utils/url';
 import * as Utils from 'utils/utils';
+
+import type {Bot} from '@mattermost/types/bots';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {UserProfile} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 const ROWS_FROM_BOTTOM_TO_OPEN_UP = 3;
 const TOTAL_USERS_TO_OPEN_UP = 5;

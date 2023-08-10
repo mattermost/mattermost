@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CustomStatusDuration} from '@mattermost/types/users';
 import React from 'react';
 import {Provider} from 'react-redux';
+
+import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {General} from 'mattermost-redux/constants';
 

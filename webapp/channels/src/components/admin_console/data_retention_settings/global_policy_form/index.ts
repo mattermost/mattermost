@@ -1,18 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminConfig} from '@mattermost/types/config';
-import {ServerError} from '@mattermost/types/errors';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 import {
     updateConfig,
 } from 'mattermost-redux/actions/admin';
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+
+import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
 import GlobalPolicyForm from './global_policy_form';
+
+import type {AdminConfig} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 type Actions = {
     updateConfig: (config: Record<string, any>) => Promise<{ data?: AdminConfig; error?: ServerError }>;

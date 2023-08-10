@@ -3,10 +3,10 @@
 
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
+import * as Selectors from './emojis';
+
 import mergeObjects from '../../../test/merge_objects';
 import TestHelper from '../../../test/test_helper';
-
-import * as Selectors from './emojis';
 
 describe('getCustomEmojis', () => {
     const emoji1 = {id: TestHelper.generateId(), name: 'a', creator_id: TestHelper.generateId()};

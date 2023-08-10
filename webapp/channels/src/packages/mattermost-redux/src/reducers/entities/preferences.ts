@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PreferenceType} from '@mattermost/types/preferences';
 import {combineReducers} from 'redux';
 
 import {PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function getKey(preference: PreferenceType) {
     return `${preference.category}--${preference.name}`;

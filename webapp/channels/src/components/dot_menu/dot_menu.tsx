@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import React from 'react';
+import {FormattedMessage, injectIntl} from 'react-intl';
+
 import {
     ArrowRightBoldOutlineIcon,
     BookmarkIcon,
@@ -18,11 +22,6 @@ import {
     ReplyOutlineIcon,
     TrashCanOutlineIcon,
 } from '@mattermost/compass-icons/components';
-import {Post} from '@mattermost/types/posts';
-import {UserThread} from '@mattermost/types/threads';
-import classNames from 'classnames';
-import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
@@ -31,7 +30,6 @@ import ForwardPostModal from 'components/forward_post_modal';
 import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
-import {ModalData} from 'types/actions';
 import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import * as Keyboard from 'utils/keyboard';
@@ -39,7 +37,13 @@ import * as PostUtils from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import PostReminderSubMenu from './post_reminder_submenu';
-import {ChangeEvent, trackDotMenuEvent} from './utils';
+import {trackDotMenuEvent} from './utils';
+
+import type {ChangeEvent} from './utils';
+import type {Post} from '@mattermost/types/posts';
+import type {UserThread} from '@mattermost/types/threads';
+import type {IntlShape} from 'react-intl';
+import type {ModalData} from 'types/actions';
 import './dot_menu.scss';
 
 type ShortcutKeyProps = {

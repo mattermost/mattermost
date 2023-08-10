@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
 import React from 'react';
 
 import PostComponent from 'components/post';
 
 import {Locations} from 'utils/constants';
+
+import type {Post} from '@mattermost/types/posts';
 
 type Props = {
     a11yIndex: number;

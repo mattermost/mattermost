@@ -1,40 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from '@mattermost/types/errors';
-import {UserProfile} from '@mattermost/types/users';
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
-import React, {useState, useEffect, useRef, useCallback, FocusEvent} from 'react';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {useLocation, useHistory} from 'react-router-dom';
 
-import {redirectUserToDefaultTeam} from 'actions/global_actions';
-import {removeGlobalItem, setGlobalItem} from 'actions/storage';
-import {addUserToTeamFromInvite} from 'actions/team_actions';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-import {loginById} from 'actions/views/login';
 import {getTeamInviteInfo} from 'mattermost-redux/actions/teams';
 import {createUser, loadMe, loadMeREST} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
+
+import {redirectUserToDefaultTeam} from 'actions/global_actions';
+import {removeGlobalItem, setGlobalItem} from 'actions/storage';
+import {addUserToTeamFromInvite} from 'actions/team_actions';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
+import {loginById} from 'actions/views/login';
 import {getGlobalItem} from 'selectors/storage';
 
-import AlertBanner, {ModeType, AlertBannerProps} from 'components/alert_banner';
+import AlertBanner from 'components/alert_banner';
 import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import ManWithLaptopSVG from 'components/common/svg_images_components/man_with_laptop_svg';
 import ExternalLink from 'components/external_link';
-import ExternalLoginButton, {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
+import ExternalLoginButton from 'components/external_login_button/external_login_button';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
-import {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
 import LoadingScreen from 'components/loading_screen';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
@@ -44,12 +41,21 @@ import LoginGoogleIcon from 'components/widgets/icons/login_google_icon';
 import LoginOffice365Icon from 'components/widgets/icons/login_office_365_icon';
 import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import CheckInput from 'components/widgets/inputs/check';
-import Input, {CustomMessageInputType, SIZE} from 'components/widgets/inputs/input/input';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
-import {GlobalState} from 'types/store';
 import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
 import {isValidUsername, isValidPassword, getPasswordConfig, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ModeType, AlertBannerProps} from 'components/alert_banner';
+import type {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
+import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
+import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {FocusEvent} from 'react';
+import type {GlobalState} from 'types/store';
 
 import './signup.scss';
 

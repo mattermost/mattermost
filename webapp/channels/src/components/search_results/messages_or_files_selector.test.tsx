@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, ShallowWrapper} from 'enzyme';
+import {shallow} from 'enzyme';
 import React from 'react';
 
 import MessagesOrFilesSelector from 'components/search_results/messages_or_files_selector';
+
+import type {ShallowWrapper} from 'enzyme';
 
 describe('components/search_results/MessagesOrFilesSelector', () => {
     test('should match snapshot, on messages selected', () => {

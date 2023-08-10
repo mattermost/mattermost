@@ -1,23 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {loadChannelMembersForProfilesList, loadTeamMembersForProfilesList} from 'actions/user_actions';
-import {setModalSearchTerm, setModalFilters} from 'actions/views/search';
 import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getMembersInTeams} from 'mattermost-redux/selectors/entities/teams';
 import {filterProfiles} from 'mattermost-redux/selectors/entities/users';
-import {ActionResult, GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
 
-import {GlobalState} from 'types/store';
+import {loadChannelMembersForProfilesList, loadTeamMembersForProfilesList} from 'actions/user_actions';
+import {setModalSearchTerm, setModalFilters} from 'actions/views/search';
 
-import UsersToRemove, {Filters, Memberships} from './users_to_remove';
+import UsersToRemove from './users_to_remove';
+
+import type {Filters, Memberships} from './users_to_remove';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ActionResult, GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type Props = {
     members: UserProfile[];

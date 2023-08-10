@@ -7,8 +7,9 @@ import {FormattedMessage} from 'react-intl';
 import ExternalLink from 'components/external_link';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
-import LineSwitch from '../../line_switch';
 import {t} from 'utils/i18n';
+
+import LineSwitch from '../../line_switch';
 
 interface Props {
     isPublic: boolean;

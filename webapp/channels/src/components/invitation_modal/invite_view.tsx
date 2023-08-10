@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
 import classNames from 'classnames';
 import React, {useEffect, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
+
+import {trackEvent} from 'actions/telemetry_actions';
 
 import useCopyText from 'components/common/hooks/useCopyText';
 import {getAnalyticsCategory} from 'components/onboarding_tasks';
@@ -21,9 +19,14 @@ import {t} from 'utils/i18n';
 import {getSiteURL} from 'utils/url';
 import {getTrackFlowRole, getRoleForTrackFlow, getSourceForTrackFlow} from 'utils/utils';
 
-import AddToChannels, {CustomMessageProps, InviteChannels, defaultCustomMessage, defaultInviteChannels} from './add_to_channels';
+import AddToChannels, {defaultCustomMessage, defaultInviteChannels} from './add_to_channels';
 import InviteAs, {InviteType} from './invite_as';
 import OverageUsersBannerNotice from './overage_users_banner_notice';
+
+import type {CustomMessageProps, InviteChannels} from './add_to_channels';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import './invite_view.scss';
 

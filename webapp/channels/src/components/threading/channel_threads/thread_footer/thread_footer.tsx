@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-import {threadIsSynthetic, UserThread} from '@mattermost/types/threads';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {selectPost} from 'actions/views/rhs';
+import {threadIsSynthetic} from '@mattermost/types/threads';
+
 import {setThreadFollow, getThread as fetchThread} from 'mattermost-redux/actions/threads';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
+import {trackEvent} from 'actions/telemetry_actions';
+import {selectPost} from 'actions/views/rhs';
 
 import Button from 'components/threading/common/button';
 import FollowButton from 'components/threading/common/follow_button';
@@ -22,7 +23,9 @@ import Timestamp from 'components/timestamp';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Avatars from 'components/widgets/users/avatars';
 
-import {GlobalState} from 'types/store';
+import type {Post} from '@mattermost/types/posts';
+import type {UserThread} from '@mattermost/types/threads';
+import type {GlobalState} from 'types/store';
 
 import './thread_footer.scss';
 

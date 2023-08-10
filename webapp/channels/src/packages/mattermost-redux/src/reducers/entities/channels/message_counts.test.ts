@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerChannel} from '@mattermost/types/channels';
-
 import {updateMessageCount} from './message_counts';
+
+import type {ServerChannel} from '@mattermost/types/channels';
 
 describe('reducers.entities.channels', () => {
     describe('updateMessageCounts', () => {

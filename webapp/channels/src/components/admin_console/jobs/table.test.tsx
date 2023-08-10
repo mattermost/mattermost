@@ -6,7 +6,9 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import JobCancelButton from './job_cancel_button';
-import JobTable, {Props} from './table';
+import JobTable from './table';
+
+import type {Props} from './table';
 
 describe('components/admin_console/jobs/table', () => {
     const createJobButtonText = (

@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import React, {useEffect, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {closeModal} from 'actions/views/modals';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+
+import {trackEvent} from 'actions/telemetry_actions';
+import {closeModal} from 'actions/views/modals';
 
 import useCanSelfHostedSignup from 'components/common/hooks/useCanSelfHostedSignup';
 import {
@@ -35,6 +35,8 @@ import {findSelfHostedProductBySku} from 'utils/hosted_customer';
 import Card, {ButtonCustomiserClasses} from './card';
 import ContactSalesCTA from './contact_sales_cta';
 import StartTrialCaution from './start_trial_caution';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import './content.scss';
 

@@ -1,18 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import {TermsOfService as ReduxTermsOfService} from '@mattermost/types/terms_of_service';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {getTermsOfService, updateMyTermsOfServiceStatus} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+
 import {getEmojiMap} from 'selectors/emojis';
 
-import TermsOfService, {UpdateMyTermsOfServiceStatusResponse} from './terms_of_service';
+import TermsOfService from './terms_of_service';
+
+import type {UpdateMyTermsOfServiceStatusResponse} from './terms_of_service';
+import type {GlobalState} from '@mattermost/types/store';
+import type {TermsOfService as ReduxTermsOfService} from '@mattermost/types/terms_of_service';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 type Actions = {
     getTermsOfService: () => Promise<{data: ReduxTermsOfService}>;

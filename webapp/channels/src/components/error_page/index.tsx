@@ -7,9 +7,9 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import {GlobalState} from 'types/store';
-
 import ErrorPage from './error_page';
+
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

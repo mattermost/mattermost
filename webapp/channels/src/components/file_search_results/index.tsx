@@ -1,18 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileInfo} from '@mattermost/types/files';
-import {connect, ConnectedProps} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import {openModal} from 'actions/views/modals';
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {GenericAction} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from 'types/store';
-import {FileDropdownPluginComponent} from 'types/store/plugins';
 
 import FileSearchResultItem from './file_search_result_item';
+
+import type {FileInfo} from '@mattermost/types/files';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {ConnectedProps} from 'react-redux';
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
+import type {FileDropdownPluginComponent} from 'types/store/plugins';
 
 export type OwnProps = {
     channelId: string;

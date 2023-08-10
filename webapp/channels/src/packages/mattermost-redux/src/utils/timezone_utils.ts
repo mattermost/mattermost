@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserTimezone} from '@mattermost/types/users';
-import {Timezone} from 'timezones.json';
+import type {UserTimezone} from '@mattermost/types/users';
+import type {Timezone} from 'timezones.json';
 
 export function getUserCurrentTimezone(userTimezone?: UserTimezone): string {
     if (!userTimezone) {

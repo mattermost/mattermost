@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Invoice, InvoiceLineItemType} from '@mattermost/types/cloud';
 import React from 'react';
 
-import {mountWithIntl} from '../../../tests/helpers/intl-test-helper';
+import {InvoiceLineItemType} from '@mattermost/types/cloud';
+
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import InvoiceUserCount from './invoice_user_count';
+
+import type {Invoice} from '@mattermost/types/cloud';
 
 function makeInvoice(...lines: Array<[number, typeof InvoiceLineItemType[keyof typeof InvoiceLineItemType]]>): Invoice {
     return {

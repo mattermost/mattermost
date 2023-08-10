@@ -11,11 +11,13 @@ import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct 
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import useOpenPricingModal, {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
 import Constants, {CloudProducts} from 'utils/constants';
+
+import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 
 const UpgradeButton = styled.button`
 background: var(--denim-button-bg);

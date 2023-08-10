@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {ElementsConsumer, CardElement} from '@stripe/react-stripe-js';
-import {StripeElements, StripeCardElement, StripeCardElementChangeEvent} from '@stripe/stripe-js';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
-
 import {toRgbValues} from 'utils/utils';
+
+import type {StripeElements, StripeCardElement, StripeCardElementChangeEvent} from '@stripe/stripe-js';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import 'components/widgets/inputs/input/input.scss';
 

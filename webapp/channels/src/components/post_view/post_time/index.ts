@@ -4,11 +4,12 @@
 import {connect} from 'react-redux';
 
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {GlobalState} from 'types/store';
-
 import PostTime from './post_time';
+
+import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     teamName?: string;

@@ -7,15 +7,17 @@ import {Tooltip} from 'react-bootstrap';
 import {useSelector} from 'react-redux';
 
 import {getCurrentChannel, getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
+
 import {getActiveRhsComponent} from 'selectors/rhs';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import PluginIcon from 'components/widgets/icons/plugin_icon';
 
-import {PluginComponent, AppBarComponent} from 'types/store/plugins';
 import Constants, {suitePluginIds} from 'utils/constants';
 
 import NewChannelWithBoardTourTip from './new_channel_with_board_tour_tip';
+
+import type {PluginComponent, AppBarComponent} from 'types/store/plugins';
 
 type PluginComponentProps = {
     component: AppBarComponent;

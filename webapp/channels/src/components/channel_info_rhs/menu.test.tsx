@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelStats} from '@mattermost/types/channels';
 import React from 'react';
 
 import {
@@ -13,6 +12,8 @@ import {
 import Constants from 'utils/constants';
 
 import Menu from './menu';
+
+import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
 describe('channel_info_rhs/menu', () => {
     const defaultProps = {

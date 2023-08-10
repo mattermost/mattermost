@@ -3,9 +3,9 @@
 
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
-import TestHelper from '../../../test/test_helper';
-
 import {getAllCommands, getAutocompleteCommandsList, getOutgoingHooksInCurrentTeam} from './integrations';
+
+import TestHelper from '../../../test/test_helper';
 
 describe('Selectors.Integrations', () => {
     TestHelper.initBasic();

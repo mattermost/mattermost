@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Product} from '@mattermost/types/cloud';
 import {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -10,6 +9,8 @@ import {
 } from 'mattermost-redux/actions/cloud';
 import {getCloudSubscription, getCloudProducts, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+
+import type {Product} from '@mattermost/types/cloud';
 
 export default function useGetSubscription(): Product | undefined {
     const cloudSubscription = useSelector(getCloudSubscription);

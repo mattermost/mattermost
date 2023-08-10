@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Role} from '@mattermost/types/roles';
-import React, {MouseEvent} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {PermissionsScope} from 'utils/constants';
@@ -10,7 +9,10 @@ import {PermissionsScope} from 'utils/constants';
 import PermissionCheckbox from './permission_checkbox';
 import PermissionDescription from './permission_description';
 import PermissionRow from './permission_row';
-import {AdditionalValues, Permission, Permissions} from './permissions_tree/types';
+
+import type {AdditionalValues, Permission, Permissions} from './permissions_tree/types';
+import type {Role} from '@mattermost/types/roles';
+import type {MouseEvent} from 'react';
 
 type Props = {
     id: string;

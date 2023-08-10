@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
+import React from 'react';
 
 import {Constants} from 'utils/constants';
 
 import Row from './virtualized_thread_list_row';
+
+import type {ComponentProps} from 'react';
 
 describe('components/threading/global_threads/thread_list/virtualized_thread_list_row', () => {
     let props: ComponentProps<typeof Row>;

@@ -3,8 +3,11 @@
 
 import React from 'react';
 
-import Provider, {ResultsCallback} from './provider';
-import {SuggestionContainer, SuggestionProps} from './suggestion';
+import Provider from './provider';
+import {SuggestionContainer} from './suggestion';
+
+import type {ResultsCallback} from './provider';
+import type {SuggestionProps} from './suggestion';
 
 interface MenuAction {
     text: string;

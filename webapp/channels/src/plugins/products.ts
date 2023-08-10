@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Store} from 'redux';
-
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import store from 'stores/redux_store';
 
 import PluginRegistry from './registry';
+
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {Store} from 'redux';
 
 export abstract class ProductPlugin {
     abstract initialize(registry: PluginRegistry, store: Store): void;

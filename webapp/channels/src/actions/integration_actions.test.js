@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as Actions from 'actions/integration_actions.jsx';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
+
+import * as Actions from 'actions/integration_actions.jsx';
 
 import mockStore from 'tests/test_store';
 

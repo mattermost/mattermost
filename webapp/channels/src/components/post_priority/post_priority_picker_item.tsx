@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CheckIcon} from '@mattermost/compass-icons/components';
 import React from 'react';
 import styled from 'styled-components';
+
+import {CheckIcon} from '@mattermost/compass-icons/components';
 
 import Toggle from 'components/toggle';
 import MenuGroup from 'components/widgets/menu/menu_group';

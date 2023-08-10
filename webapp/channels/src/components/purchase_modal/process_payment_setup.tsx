@@ -1,27 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Address, Feedback, Product} from '@mattermost/types/cloud';
-import {Team} from '@mattermost/types/teams';
-import {Stripe} from '@stripe/stripe-js';
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
-import {RouteComponentProps, withRouter} from 'react-router-dom';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import {withRouter} from 'react-router-dom';
 
 import {pageVisited, trackEvent} from 'actions/telemetry_actions';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import ComplianceScreenFailedSvg from 'components/common/svg_images_components/access_denied_happy_svg';
 import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
 import PaymentFailedSvg from 'components/common/svg_images_components/payment_failed_svg';
 import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
 
-import {BillingDetails} from 'types/cloud/sku';
 import {RecurringIntervals, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getNextBillingDate} from 'utils/utils';
 
 import IconMessage from './icon_message';
+
+import type {Address, Feedback, Product} from '@mattermost/types/cloud';
+import type {Team} from '@mattermost/types/teams';
+import type {Stripe} from '@stripe/stripe-js';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import type {IntlShape} from 'react-intl';
+import type {RouteComponentProps} from 'react-router-dom';
+import type {BillingDetails} from 'types/cloud/sku';
 
 import './process_payment.css';
 

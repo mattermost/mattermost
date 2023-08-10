@@ -11,10 +11,12 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import withUseGetUsageDelta from 'components/common/hocs/cloud/with_use_get_usage_deltas';
 
-import {GlobalState} from 'types/store';
 import {isCloudLicense} from 'utils/license_utils';
 
-import CreateTeam, {Props} from './create_team';
+import CreateTeam from './create_team';
+
+import type {Props} from './create_team';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

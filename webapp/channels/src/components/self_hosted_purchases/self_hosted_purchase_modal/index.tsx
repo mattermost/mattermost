@@ -1,19 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    SelfHostedSignupProgress,
-    SelfHostedSignupCustomerResponse,
-} from '@mattermost/types/hosted_customer';
-import {ValueOf} from '@mattermost/types/utilities';
-import {StripeCardElementChangeEvent} from '@stripe/stripe-js';
 import classNames from 'classnames';
 import React, {useEffect, useRef, useReducer, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {confirmSelfHostedSignup} from 'actions/hosted_customer';
-import {trackEvent, pageVisited} from 'actions/telemetry_actions';
+import {
+    SelfHostedSignupProgress,
+} from '@mattermost/types/hosted_customer';
+
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
@@ -22,7 +18,9 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getSelfHostedProducts, getSelfHostedSignupProgress} from 'mattermost-redux/selectors/entities/hosted_customer';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {confirmSelfHostedSignup} from 'actions/hosted_customer';
+import {trackEvent, pageVisited} from 'actions/telemetry_actions';
 import {isCwsMockMode} from 'selectors/cloud';
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -32,17 +30,12 @@ import useFetchStandardAnalytics from 'components/common/hooks/useFetchStandardA
 import useLoadStripe from 'components/common/hooks/useLoadStripe';
 import BackgroundSvg from 'components/common/svg_images_components/background_svg';
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
-import CardInput, {CardInputType} from 'components/payment_form/card_input';
+import CardInput from 'components/payment_form/card_input';
 import RootPortal from 'components/root_portal';
+import {errorInvalidNumber} from 'components/seats_calculator';
 import Input from 'components/widgets/inputs/input/input';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
-import {Seats, errorInvalidNumber} from '../../seats_calculator';
-import Address from '../address';
-import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from '../constants';
-import ContactSalesLink from '../contact_sales_link';
-import StripeProvider from '../stripe_provider';
-import {GlobalState} from 'types/store';
 import {
     ModalIdentifiers,
     StatTypes,
@@ -55,8 +48,23 @@ import SelfHostedCard from './self_hosted_card';
 import Submitting, {convertProgressToBar} from './submitting';
 import SuccessPage from './success_page';
 import Terms from './terms';
-import {SetPrefix, UnionSetActions} from './types';
+import {SetPrefix} from './types';
 import useNoEscape from './useNoEscape';
+
+import Address from '../address';
+import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from '../constants';
+import ContactSalesLink from '../contact_sales_link';
+import StripeProvider from '../stripe_provider';
+
+import type {UnionSetActions} from './types';
+import type {
+    SelfHostedSignupCustomerResponse} from '@mattermost/types/hosted_customer';
+import type {ValueOf} from '@mattermost/types/utilities';
+import type {StripeCardElementChangeEvent} from '@stripe/stripe-js';
+import type {CardInputType} from 'components/payment_form/card_input';
+import type {Seats} from 'components/seats_calculator';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {GlobalState} from 'types/store';
 
 import './self_hosted_purchase_modal.scss';
 

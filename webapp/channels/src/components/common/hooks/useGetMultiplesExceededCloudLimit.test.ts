@@ -4,7 +4,9 @@
 import {FileSizes} from 'utils/file_utils';
 import {limitThresholds, LimitTypes} from 'utils/limits';
 
-import useGetMultiplesExceededCloudLimit, {LimitSummary} from './useGetMultiplesExceededCloudLimit';
+import useGetMultiplesExceededCloudLimit from './useGetMultiplesExceededCloudLimit';
+
+import type {LimitSummary} from './useGetMultiplesExceededCloudLimit';
 
 jest.mock('react', () => ({
     useMemo: (fn: () => LimitSummary) => fn(),

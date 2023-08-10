@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileInfo} from '@mattermost/types/files';
 import classNames from 'classnames';
 import React from 'react';
 
@@ -16,6 +15,7 @@ import {
 } from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
+import type {FileInfo} from '@mattermost/types/files';
 
 const PREVIEW_IMAGE_MIN_DIMENSION = 50;
 const DISPROPORTIONATE_HEIGHT_RATIO = 20;

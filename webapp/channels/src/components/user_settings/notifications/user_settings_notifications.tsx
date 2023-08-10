@@ -3,11 +3,8 @@
 
 /* eslint-disable max-lines */
 
-import {UserNotifyProps, UserProfile} from '@mattermost/types/users';
-import React, {ChangeEvent, RefObject} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import LocalizedIcon from 'components/localized_icon';
 import SettingItem from 'components/setting_item';
@@ -21,6 +18,10 @@ import {a11yFocus, localizeMessage, moveCursorToEnd} from 'utils/utils';
 import DesktopNotificationSettings from './desktop_notification_setting/desktop_notification_settings';
 import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
+
+import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import type {ChangeEvent, RefObject} from 'react';
 
 export type Props = {
     user: UserProfile;

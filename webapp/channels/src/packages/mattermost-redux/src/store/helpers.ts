@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AnyAction, combineReducers, Reducer} from 'redux';
+import {combineReducers} from 'redux';
 import {enableBatching} from 'redux-batched-actions';
 
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
+
+import type {AnyAction, Reducer} from 'redux';
 
 export function createReducer(...reducerSets: Array<Record<string, Reducer>>) {
     // Merge each dictionary of reducers into a single combined reducer

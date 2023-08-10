@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {GlobalState} from 'types/store';
+import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
 import SavedPostsButton from './saved_posts_button';
+
+import type {GlobalState} from 'types/store';
 
 const mockDispatch = jest.fn();
 let mockState: GlobalState;

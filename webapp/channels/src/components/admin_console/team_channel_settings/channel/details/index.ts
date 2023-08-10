@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {setNavigationBlocked} from 'actions/admin_actions';
 import {
     addChannelMember,
     deleteChannel,
@@ -32,11 +30,17 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {getAllGroups, getGroupsAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
 import {getScheme} from 'mattermost-redux/selectors/entities/schemes';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {ActionFunc} from 'mattermost-redux/types/actions';
+
+import {setNavigationBlocked} from 'actions/admin_actions';
 
 import {LicenseSkus} from 'utils/constants';
 
-import ChannelDetails, {ChannelDetailsActions} from './channel_details';
+import ChannelDetails from './channel_details';
+
+import type {ChannelDetailsActions} from './channel_details';
+import type {GlobalState} from '@mattermost/types/store';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 type OwnProps = {
     match: {

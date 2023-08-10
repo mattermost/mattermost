@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Job} from '@mattermost/types/jobs';
 import nock from 'nock';
 
 import * as Actions from 'mattermost-redux/actions/jobs';
@@ -9,6 +8,8 @@ import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
+
+import type {Job} from '@mattermost/types/jobs';
 
 const OK_RESPONSE = {status: 'OK'};
 

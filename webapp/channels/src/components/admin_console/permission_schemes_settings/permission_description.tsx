@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Role} from '@mattermost/types/roles';
-import React, {useState, useRef, MouseEvent} from 'react';
+import React, {useState, useRef} from 'react';
 import {Overlay} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
@@ -11,7 +10,9 @@ import Tooltip from 'components/tooltip';
 
 import {generateId} from 'utils/utils';
 
-import {AdditionalValues} from './permissions_tree/types';
+import type {AdditionalValues} from './permissions_tree/types';
+import type {Role} from '@mattermost/types/roles';
+import type {MouseEvent} from 'react';
 
 type Props = {
     id: string;

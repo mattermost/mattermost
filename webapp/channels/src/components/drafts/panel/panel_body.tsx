@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostPriorityMetadata} from '@mattermost/types/posts';
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import React, {useCallback} from 'react';
 import {useSelector} from 'react-redux';
 
@@ -13,8 +11,11 @@ import FilePreview from 'components/file_preview';
 import Markdown from 'components/markdown';
 import ProfilePicture from 'components/profile_picture';
 
-import type {PostDraft} from 'types/store/draft';
 import {imageURLForUser, handleFormattedTextClick} from 'utils/utils';
+
+import type {PostPriorityMetadata} from '@mattermost/types/posts';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
+import type {PostDraft} from 'types/store/draft';
 
 import './panel_body.scss';
 

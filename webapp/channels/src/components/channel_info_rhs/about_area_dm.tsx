@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
@@ -13,9 +12,11 @@ import ProfilePicture from 'components/profile_picture';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
-import {DMUser} from './channel_info_rhs';
 import EditableArea from './components/editable_area';
 import LineLimiter from './components/linelimiter';
+
+import type {DMUser} from './channel_info_rhs';
+import type {Channel} from '@mattermost/types/channels';
 
 const Username = styled.p`
     font-family: Metropolis, sans-serif;

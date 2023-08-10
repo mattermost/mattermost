@@ -1,23 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {RefObject} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import ExternalLink from 'components/external_link';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
-import SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
 import ImportThemeModal from 'components/user_settings/import_theme_modal';
 
-import {ModalData} from 'types/actions';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {applyTheme} from 'utils/utils';
 
 import CustomThemeChooser from './custom_theme_chooser/custom_theme_chooser';
 import PremadeThemeChooser from './premade_theme_chooser';
+
+import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import type {RefObject} from 'react';
+import type {ModalData} from 'types/actions';
 
 type Props = {
     currentTeamId: string;

@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GroupChannel, GroupTeam} from '@mattermost/types/groups';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import GroupTeamsAndChannelsRow from 'components/admin_console/group_settings/group_details/group_teams_and_channels_row';
+
+import type {GroupChannel, GroupTeam} from '@mattermost/types/groups';
 
 export type Props = {
     id: string;

@@ -1,30 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {LogFilter} from '@mattermost/types/admin';
-import {
-    ChannelSearchOpts,
-} from '@mattermost/types/channels';
-import {Compliance} from '@mattermost/types/compliance';
-import {
-    CreateDataRetentionCustomPolicy,
-} from '@mattermost/types/data_retention';
-import {ServerError} from '@mattermost/types/errors';
-import {GroupSearchOpts} from '@mattermost/types/groups';
-import {CompleteOnboardingRequest} from '@mattermost/types/setup';
-import {
-    TeamSearchOpts,
-} from '@mattermost/types/teams';
 import {batchActions} from 'redux-batched-actions';
 
 import {AdminTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
-import {General} from '../constants';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
+
+import {General} from '../constants';
+
+import type {LogFilter} from '@mattermost/types/admin';
+import type {
+    ChannelSearchOpts,
+} from '@mattermost/types/channels';
+import type {Compliance} from '@mattermost/types/compliance';
+import type {
+    CreateDataRetentionCustomPolicy,
+} from '@mattermost/types/data_retention';
+import type {ServerError} from '@mattermost/types/errors';
+import type {GroupSearchOpts} from '@mattermost/types/groups';
+import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
+import type {
+    TeamSearchOpts,
+} from '@mattermost/types/teams';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo}: LogFilter): ActionFunc {
     const logFilter = {

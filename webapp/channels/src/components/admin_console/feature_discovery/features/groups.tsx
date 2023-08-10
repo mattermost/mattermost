@@ -3,11 +3,12 @@
 
 import React from 'react';
 
-import FeatureDiscovery from '../index';
 import {LicenseSkus} from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import GroupsSVG from './images/groups_svg';
+
+import FeatureDiscovery from '../index';
 
 const GroupsFeatureDiscovery: React.FC = () => {
     return (

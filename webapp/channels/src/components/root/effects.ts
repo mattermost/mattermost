@@ -4,9 +4,10 @@
 import {Settings} from 'luxon';
 
 import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
+
 import {getCurrentLocale} from 'selectors/i18n';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 let prevTimezone: string | undefined;
 let prevLocale: string | undefined;

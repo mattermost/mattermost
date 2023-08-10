@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ReactWrapper, shallow} from 'enzyme';
+import {shallow} from 'enzyme';
 import React from 'react';
 import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
@@ -14,6 +14,8 @@ import mockStore from 'tests/test_store';
 import {TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import CloudStartTrialButton from './cloud_start_trial_btn';
+
+import type {ReactWrapper} from 'enzyme';
 
 jest.mock('actions/telemetry_actions.jsx', () => {
     const original = jest.requireActual('actions/telemetry_actions.jsx');

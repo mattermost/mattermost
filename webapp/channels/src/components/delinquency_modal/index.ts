@@ -2,19 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {closeModal, openModal} from 'actions/views/modals';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
+import {closeModal, openModal} from 'actions/views/modals';
+
 import {ModalIdentifiers, Preferences} from 'utils/constants';
 
 import DeliquencyModalController from './delinquency_modal_controller';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function makeMapStateToProps() {
     const getCategory = makeGetCategory();

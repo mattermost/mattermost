@@ -8,7 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import warningIcon from 'images/icons/warning-icon.svg';
 
 import './gather_intent.scss';
-import {FormDataState} from './useGatherIntent';
+import type {FormDataState} from './useGatherIntent';
 
 export interface GatherIntentModalProps {
     onClose: () => void;

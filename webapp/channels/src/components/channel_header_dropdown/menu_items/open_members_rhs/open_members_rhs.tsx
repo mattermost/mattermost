@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 
 import Menu from 'components/widgets/menu/menu';
+
+import type {Channel} from '@mattermost/types/channels';
 
 type Action = {
     showChannelMembers: (channelId: string, editMembers: boolean) => void;

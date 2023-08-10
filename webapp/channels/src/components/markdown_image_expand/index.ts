@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-import {ReactNode} from 'react';
-import {connect, ConnectedProps} from 'react-redux';
+import {connect} from 'react-redux';
 
 import {toggleInlineImageVisibility} from 'actions/post_actions';
 import {isInlineImageVisible} from 'selectors/posts';
 
-import {GlobalState} from 'types/store';
-
 import MarkdownImageExpand from './markdown_image_expand';
+
+import type {Post} from '@mattermost/types/posts';
+import type {ReactNode} from 'react';
+import type {ConnectedProps} from 'react-redux';
+import type {GlobalState} from 'types/store';
 
 export type OwnProps = {
     postId: Post['id'];

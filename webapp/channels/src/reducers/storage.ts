@@ -3,14 +3,16 @@
 
 import localForage from 'localforage';
 import {combineReducers} from 'redux';
-import {createMigrate, MigrationManifest, PersistedState, persistReducer, REHYDRATE} from 'redux-persist';
+import {createMigrate, persistReducer, REHYDRATE} from 'redux-persist';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {StoragePrefixes, StorageTypes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {MigrationManifest, PersistedState} from 'redux-persist';
 
 type StorageEntry = {
     timestamp: Date;

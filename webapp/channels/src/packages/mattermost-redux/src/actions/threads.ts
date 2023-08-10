@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-import type {UserThread, UserThreadList} from '@mattermost/types/threads';
 import {uniq} from 'lodash';
 import {batchActions} from 'redux-batched-actions';
 
@@ -17,11 +15,14 @@ import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/pre
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThread as getThreadSelector, getThreadItemsInChannel} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {forceLogoutIfNecessary} from './helpers';
 import {getPostThread} from './posts';
+
+import type {Post} from '@mattermost/types/posts';
+import type {UserThread, UserThreadList} from '@mattermost/types/threads';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 type ExtendedPost = Post & { system_post_ids?: string[] };
 

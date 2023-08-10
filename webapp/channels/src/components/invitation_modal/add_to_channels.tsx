@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
@@ -14,6 +13,8 @@ import ChannelsInput from 'components/widgets/inputs/channels_input';
 import Constants from 'utils/constants';
 
 import {InviteType} from './invite_as';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import './add_to_channels.scss';
 

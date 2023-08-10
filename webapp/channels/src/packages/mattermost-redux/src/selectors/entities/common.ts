@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelMembership, Channel} from '@mattermost/types/channels';
-import {GlobalState} from '@mattermost/types/store';
-import {TeamMembership} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
-
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+
+import type {ChannelMembership, Channel} from '@mattermost/types/channels';
+import type {GlobalState} from '@mattermost/types/store';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
 
 const CALLS_PLUGIN = 'plugins-com.mattermost.calls';
 

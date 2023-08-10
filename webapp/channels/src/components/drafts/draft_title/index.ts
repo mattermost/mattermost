@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
 import {connect} from 'react-redux';
 
 import {makeGetGmChannelMemberCount} from 'mattermost-redux/selectors/entities/channels';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
-import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 
 import DraftTitle from './draft_title';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     channel: Channel;

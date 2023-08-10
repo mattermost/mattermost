@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post, PostImage as PostImageMetadata} from '@mattermost/types/posts';
 import React from 'react';
 
 import ExternalImage from 'components/external_image';
 import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
 
-import {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {Post, PostImage as PostImageMetadata} from '@mattermost/types/posts';
+import type {ModalData} from 'types/actions';
 
 interface Props {
     imageMetadata: PostImageMetadata;

@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Group} from '@mattermost/types/groups';
-import {Scheme} from '@mattermost/types/schemes';
-import {Team} from '@mattermost/types/teams';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import ChannelDetails from './channel_details';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
+import type {Scheme} from '@mattermost/types/schemes';
+import type {Team} from '@mattermost/types/teams';
 
 describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
     test('should match snapshot', () => {

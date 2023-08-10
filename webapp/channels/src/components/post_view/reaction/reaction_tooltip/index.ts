@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Reaction as ReactionType} from '@mattermost/types/reactions';
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -14,6 +11,10 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 import * as Utils from 'utils/utils';
 
 import ReactionTooltip from './reaction_tooltip';
+
+import type {Reaction as ReactionType} from '@mattermost/types/reactions';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
 
 type OwnProps = {
     reactions: ReactionType[];

@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ReactWrapper} from 'enzyme';
 import React from 'react';
 
 import InfiniteScroll from 'components/common/infinite_scroll';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+
+import type {ReactWrapper} from 'enzyme';
 
 describe('/components/common/InfiniteScroll', () => {
     const baseProps = {

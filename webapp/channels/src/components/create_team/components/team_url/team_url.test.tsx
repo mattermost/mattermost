@@ -3,7 +3,6 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {Provider} from 'react-redux';
 
@@ -12,6 +11,8 @@ import TeamUrl from 'components/create_team/components/team_url/team_url';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 import Constants from 'utils/constants';
+
+import type {Button} from 'react-bootstrap';
 
 jest.mock('images/logo.png', () => 'logo.png');
 

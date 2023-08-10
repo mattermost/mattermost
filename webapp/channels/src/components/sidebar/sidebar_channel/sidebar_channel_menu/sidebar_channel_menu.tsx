@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React, {useRef, memo} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+
 import {
     MarkAsUnreadIcon,
     StarIcon,
@@ -12,8 +15,6 @@ import {
     DotsVerticalIcon,
     ExitToAppIcon,
 } from '@mattermost/compass-icons/components';
-import React, {useRef, memo} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 

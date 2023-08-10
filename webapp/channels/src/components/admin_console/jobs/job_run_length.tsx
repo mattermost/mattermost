@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Job} from '@mattermost/types/jobs';
 import React from 'react';
 import {useIntl} from 'react-intl';
 
 import {JobStatuses} from 'utils/constants';
+
+import type {Job} from '@mattermost/types/jobs';
 
 const JobRunLength = React.memo(({job}: {job: Job}): JSX.Element => {
     const intl = useIntl();

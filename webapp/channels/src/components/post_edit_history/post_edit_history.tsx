@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
 import React, {memo, useEffect, useRef, useState} from 'react';
 import Scrollbars from 'react-custom-scrollbars';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {getPostEditHistory} from 'mattermost-redux/actions/posts';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
 import LoadingScreen from 'components/loading_screen';
@@ -17,6 +15,8 @@ import SearchResultsHeader from 'components/search_results_header';
 import EditedPostItem from './edited_post_item';
 
 import type {PropsFromRedux} from './index';
+import type {Post} from '@mattermost/types/posts';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import './post_edit_history.scss';
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (

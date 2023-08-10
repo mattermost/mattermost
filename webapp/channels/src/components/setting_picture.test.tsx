@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {ReactNode} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import SettingPicture from 'components/setting_picture';
+
+import type {ReactNode} from 'react';
 
 const helpText: ReactNode = (
     <FormattedMessage

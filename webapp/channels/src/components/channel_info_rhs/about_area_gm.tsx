@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
@@ -15,6 +13,9 @@ import UserProfileElement from 'components/user_profile';
 
 import EditableArea from './components/editable_area';
 import LineLimiter from './components/linelimiter';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 const Usernames = styled.p`
     font-family: Metropolis, sans-serif;

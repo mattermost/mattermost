@@ -5,10 +5,11 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {openModal} from 'actions/views/modals';
 import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+
+import {trackEvent} from 'actions/telemetry_actions';
+import {openModal} from 'actions/views/modals';
 
 import {CloudProducts, ModalIdentifiers} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';

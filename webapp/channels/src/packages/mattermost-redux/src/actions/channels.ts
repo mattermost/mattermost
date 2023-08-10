@@ -1,18 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    Channel,
-    ChannelNotifyProps,
-    ChannelMembership,
-    ChannelModerationPatch,
-    ChannelsWithTotalCount,
-    ChannelSearchOpts,
-    ServerChannel,
-} from '@mattermost/types/channels';
-import {ServerError} from '@mattermost/types/errors';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import {ChannelTypes, PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -29,10 +17,7 @@ import {
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
-
-import {General, Preferences} from '../constants';
 
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
 import {logError} from './errors';
@@ -40,6 +25,22 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 import {savePreferences} from './preferences';
 import {loadRolesIfNeeded} from './roles';
 import {getMissingProfilesByIds} from './users';
+
+import {General, Preferences} from '../constants';
+
+import type {
+    Channel,
+    ChannelNotifyProps,
+    ChannelMembership,
+    ChannelModerationPatch,
+    ChannelsWithTotalCount,
+    ChannelSearchOpts,
+    ServerChannel,
+} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {AnyAction} from 'redux';
 
 export function selectChannel(channelId: string) {
     return {

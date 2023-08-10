@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PluginRedux} from '@mattermost/types/plugins';
+import {Constants} from 'utils/constants';
+import {t} from 'utils/i18n';
 
-import {Constants} from '../../../utils/constants';
-import {t} from '../../../utils/i18n';
 import SchemaAdminSettings from '../schema_admin_settings';
+
+import type {PluginRedux} from '@mattermost/types/plugins';
 
 export type EnabledPluginSetting = {
     type: string;

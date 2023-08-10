@@ -4,21 +4,24 @@
 import {useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {closeModal, openModal} from 'actions/views/modals';
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+
+import {trackEvent} from 'actions/telemetry_actions';
+import {closeModal, openModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
 import PurchaseInProgressModal from 'components/purchase_in_progress_modal';
 import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from 'components/self_hosted_purchases/constants';
 import SelfHostedPurchaseModal from 'components/self_hosted_purchases/self_hosted_purchase_modal';
 
-import {GlobalState} from 'types/store';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
-import {useControlModal, ControlModal} from './useControlModal';
+import {useControlModal} from './useControlModal';
+
+import type {ControlModal} from './useControlModal';
+import type {GlobalState} from 'types/store';
 
 interface HookOptions{
     onClick?: () => void;

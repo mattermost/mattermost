@@ -3,9 +3,9 @@
 
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
-import TestHelper from '../../../test/test_helper';
-
 import * as Selectors from './threads';
+
+import TestHelper from '../../../test/test_helper';
 
 describe('Selectors.Threads.getThreadOrderInCurrentTeam', () => {
     const team1 = TestHelper.fakeTeamWithId();

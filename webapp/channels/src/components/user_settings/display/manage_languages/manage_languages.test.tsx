@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
-import ManageLanguages, {ManageLanguage as ManageLanguageClass} from './manage_languages';
+import ManageLanguages from './manage_languages';
+
+import type {ManageLanguage as ManageLanguageClass} from './manage_languages';
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('components/user_settings/display/manage_languages/manage_languages', () => {
     const user = {

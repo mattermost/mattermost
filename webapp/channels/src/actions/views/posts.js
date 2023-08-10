@@ -10,13 +10,15 @@ import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/prefere
 import {haveIChannelPermission, haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
 import {getPermalinkURL} from 'selectors/urls';
 
-import {runMessageWillBePostedHooks} from '../hooks';
 import {ActionTypes, AnnouncementBarTypes} from 'utils/constants';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import {getSiteURL} from 'utils/url';
 import {getTimestamp} from 'utils/utils';
+
+import {runMessageWillBePostedHooks} from '../hooks';
 
 export function editPost(post) {
     return async (dispatch, getState) => {

@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelType} from '@mattermost/types/channels';
-import {CloudUsage} from '@mattermost/types/cloud';
 import {shallow} from 'enzyme';
 import React from 'react';
 
@@ -18,6 +16,9 @@ import {PostListRowListIds} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import PostListRow from './post_list_row';
+
+import type {ChannelType} from '@mattermost/types/channels';
+import type {CloudUsage} from '@mattermost/types/cloud';
 
 describe('components/post_view/post_list_row', () => {
     const defaultProps = {

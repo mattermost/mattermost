@@ -12,9 +12,10 @@ import LocalizedIcon from 'components/localized_icon';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
-import {RhsState} from 'types/store/rhs';
 import Constants, {RHSStates} from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import type {RhsState} from 'types/store/rhs';
 
 const BackButton = styled.button`
     border: 0px;

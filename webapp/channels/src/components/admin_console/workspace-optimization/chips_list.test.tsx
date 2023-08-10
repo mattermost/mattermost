@@ -4,9 +4,11 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import ChipsList, {ChipsInfoType} from 'components/admin_console/workspace-optimization/chips_list';
+import ChipsList from 'components/admin_console/workspace-optimization/chips_list';
 
 import {ItemStatus} from './dashboard.type';
+
+import type {ChipsInfoType} from 'components/admin_console/workspace-optimization/chips_list';
 
 describe('components/admin_console/workspace-optimization/chips_list', () => {
     const overallScoreChips: ChipsInfoType = {

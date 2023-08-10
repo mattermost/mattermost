@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Group, GroupSource} from '@mattermost/types/groups';
-import {GlobalState} from '@mattermost/types/store';
+import {GroupSource} from '@mattermost/types/groups';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {UserMentionKey} from 'mattermost-redux/selectors/entities/users';
 import {filterGroupsMatchingTerm, sortGroups} from 'mattermost-redux/utils/group_utils';
 
 import {getCurrentUserLocale} from './i18n';
+
+import type {Group} from '@mattermost/types/groups';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserMentionKey} from 'mattermost-redux/selectors/entities/users';
 
 const emptyList: any[] = [];
 const emptySyncables = {

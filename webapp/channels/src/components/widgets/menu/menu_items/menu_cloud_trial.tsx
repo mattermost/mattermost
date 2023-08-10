@@ -6,12 +6,12 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {openModal} from 'actions/views/modals';
 import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {openModal} from 'actions/views/modals';
 
 import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
 import useGetLimits from 'components/common/hooks/useGetLimits';
@@ -21,6 +21,8 @@ import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_tr
 import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
 
 import {ModalIdentifiers, CloudProducts} from 'utils/constants';
+
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import './menu_item.scss';
 

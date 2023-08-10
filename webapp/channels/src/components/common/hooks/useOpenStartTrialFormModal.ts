@@ -9,7 +9,7 @@ import StartTrialFormModal from 'components/start_trial_form_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import {TelemetryProps} from './useOpenPricingModal';
+import type {TelemetryProps} from './useOpenPricingModal';
 
 export default function useOpenStartTrialFormModal() {
     const dispatch = useDispatch();

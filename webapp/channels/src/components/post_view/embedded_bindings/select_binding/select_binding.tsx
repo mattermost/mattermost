@@ -1,21 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppBinding} from '@mattermost/types/apps';
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
 import React from 'react';
-import {injectIntl, IntlShape} from 'react-intl';
+import {injectIntl} from 'react-intl';
 
 import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import AutocompleteSelector from 'components/autocomplete_selector';
 import PostContext from 'components/post_view/post_context';
 import MenuActionProvider from 'components/suggestion/menu_action_provider';
 
-import {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
 import {createCallContext} from 'utils/apps';
+
+import type {AppBinding} from '@mattermost/types/apps';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import type {IntlShape} from 'react-intl';
+import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
 
 type Option = {
     text: string;

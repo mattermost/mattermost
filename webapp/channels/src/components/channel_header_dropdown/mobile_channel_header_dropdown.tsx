@@ -1,10 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
 import {ChannelHeaderDropdownItems} from 'components/channel_header_dropdown';
 import StatusIcon from 'components/status_icon';
@@ -14,6 +12,10 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import {Constants} from 'utils/constants';
 
 import MobileChannelHeaderDropdownAnimation from './mobile_channel_header_dropdown_animation';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IntlShape} from 'react-intl';
 
 type Props = {
     user: UserProfile;

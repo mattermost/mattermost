@@ -5,11 +5,12 @@ import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getSelfHostedInvoices as getSelfHostedInvoicesAction} from 'actions/hosted_customer';
-import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 import {getInvoices} from 'mattermost-redux/actions/cloud';
 import {getCloudErrors, getCloudInvoices, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getSelfHostedErrors, getSelfHostedInvoices} from 'mattermost-redux/selectors/entities/hosted_customer';
+
+import {getSelfHostedInvoices as getSelfHostedInvoicesAction} from 'actions/hosted_customer';
+import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 
 import CloudFetchError from 'components/cloud_fetch_error';
 import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';

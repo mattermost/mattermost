@@ -1,11 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Group, GroupPermissions} from '@mattermost/types/groups';
 import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
@@ -14,10 +11,14 @@ import ViewUserGroupModal from 'components/view_user_group_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import ADLDAPUpsellBanner from '../ad_ldap_upsell_banner';
-import {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import ADLDAPUpsellBanner from '../ad_ldap_upsell_banner';
+
+import type {Group, GroupPermissions} from '@mattermost/types/groups';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import type {ModalData} from 'types/actions';
 
 export type Props = {
     groups: Group[];

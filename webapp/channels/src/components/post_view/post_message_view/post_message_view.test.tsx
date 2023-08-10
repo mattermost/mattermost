@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post, PostType} from '@mattermost/types/posts';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import {Posts} from 'mattermost-redux/constants';
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import PostMessageView from 'components/post_view/post_message_view/post_message_view';
+
+import type {Post, PostType} from '@mattermost/types/posts';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 describe('components/post_view/PostAttachment', () => {
     const post = {

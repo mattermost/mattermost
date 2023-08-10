@@ -6,7 +6,7 @@ import React from 'react';
 
 import InstalledCommand from 'components/integrations/installed_command';
 
-import {TestHelper} from '../../utils/test_helper';
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/InstalledCommand', () => {
     const team = TestHelper.getTeamMock({name: 'team_name'});

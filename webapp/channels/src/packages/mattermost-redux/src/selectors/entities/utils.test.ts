@@ -4,9 +4,9 @@
 import {General} from 'mattermost-redux/constants';
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
-import TestHelper from '../../../test/test_helper';
-
 import {makeAddLastViewAtToProfiles} from './utils';
+
+import TestHelper from '../../../test/test_helper';
 
 describe('utils.makeAddLastViewAtToProfiles', () => {
     it('Should return profiles with last_viewed_at from membership if channel and membership exists', () => {

@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileInfo} from '@mattermost/types/files';
 import React from 'react';
 
 import FileInfoPreview from 'components/file_info_preview';
 
 import Constants from 'utils/constants';
+
+import type {FileInfo} from '@mattermost/types/files';
 
 type Props = {
     fileInfo: FileInfo;

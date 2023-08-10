@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
 import nock from 'nock';
 
 import {UserTypes} from 'mattermost-redux/action_types';
@@ -10,7 +9,6 @@ import {createIncomingHook, createOutgoingHook} from 'mattermost-redux/actions/i
 import {addUserToTeam} from 'mattermost-redux/actions/teams';
 import {getProfilesByIds, loadMeREST} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {ActionResult} from 'mattermost-redux/types/actions';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import TestHelper from '../../test/test_helper';
@@ -18,6 +16,9 @@ import configureStore from '../../test/test_store';
 import {General, RequestStatus, Preferences, Permissions} from '../constants';
 import {CategoryTypes} from '../constants/channel_categories';
 import {MarkUnread} from '../constants/channels';
+
+import type {IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 const OK_RESPONSE = {status: 'OK'};
 

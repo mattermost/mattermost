@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {Group} from '@mattermost/types/groups';
-import {PreferencesType} from '@mattermost/types/preferences';
-import {GlobalState} from '@mattermost/types/store';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-
 import {General, Preferences} from 'mattermost-redux/constants';
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 import {sortByUsername} from 'mattermost-redux/utils/user_utils';
 
 import TestHelper from '../../../test/test_helper';
+
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
+import type {PreferencesType} from '@mattermost/types/preferences';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
 const searchProfilesMatchingWithTerm = Selectors.makeSearchProfilesMatchingWithTerm();
 const searchProfilesStartingWithTerm = Selectors.makeSearchProfilesStartingWithTerm();
 

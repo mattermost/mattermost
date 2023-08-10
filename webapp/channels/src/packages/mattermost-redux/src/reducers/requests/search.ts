@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SearchRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
 import {combineReducers} from 'redux';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
 import {handleRequest, initialRequestState} from './helpers';
+
+import type {SearchRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function flaggedPosts(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
     if (action.type === SearchTypes.REMOVE_SEARCH_POSTS) {

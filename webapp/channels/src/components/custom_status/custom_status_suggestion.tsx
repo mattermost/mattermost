@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CustomStatusDuration, UserCustomStatus} from '@mattermost/types/users';
 import classNames from 'classnames';
 import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {CustomStatusDuration} from '@mattermost/types/users';
 
 import RenderEmoji from 'components/emoji/render_emoji';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -13,6 +14,8 @@ import Tooltip from 'components/tooltip';
 import Constants, {durationValues} from 'utils/constants';
 
 import CustomStatusText from './custom_status_text';
+
+import type {UserCustomStatus} from '@mattermost/types/users';
 
 import './custom_status.scss';
 

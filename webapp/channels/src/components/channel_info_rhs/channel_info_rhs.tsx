@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelStats} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
 import React, {memo} from 'react';
 import styled from 'styled-components';
 
@@ -13,7 +10,6 @@ import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
 
-import {ModalData} from 'types/actions';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
@@ -21,6 +17,11 @@ import AboutArea from './about_area';
 import Header from './header';
 import Menu from './menu';
 import TopButtons from './top_buttons';
+
+import type {Channel, ChannelStats} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ModalData} from 'types/actions';
 
 const Divider = styled.div`
     width: 88%;

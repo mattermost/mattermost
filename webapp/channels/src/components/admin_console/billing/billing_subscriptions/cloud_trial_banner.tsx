@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import isEmpty from 'lodash/isEmpty';
 import moment from 'moment';
 import React, {useState} from 'react';
@@ -18,6 +17,8 @@ import UpgradeLink from 'components/widgets/links/upgrade_link';
 
 import {CloudBanners, Preferences} from 'utils/constants';
 import {getBrowserTimezone} from 'utils/timezone';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import './cloud_trial_banner.scss';
 

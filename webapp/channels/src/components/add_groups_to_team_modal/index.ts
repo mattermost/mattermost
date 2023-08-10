@@ -1,20 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Group} from '@mattermost/types/groups';
-import {Team} from '@mattermost/types/teams';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {setModalSearchTerm} from 'actions/views/search';
 import {getGroupsNotAssociatedToTeam, linkGroupSyncable, getAllGroupsAssociatedToTeam} from 'mattermost-redux/actions/groups';
 import {getGroupsNotAssociatedToTeam as selectGroupsNotAssociatedToTeam} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from '../../types/store';
+import {setModalSearchTerm} from 'actions/views/search';
 
-import AddGroupsToTeamModal, {Actions} from './add_groups_to_team_modal';
+import AddGroupsToTeamModal from './add_groups_to_team_modal';
+
+import type {Actions} from './add_groups_to_team_modal';
+import type {Group} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type Props = {
     team?: Team;

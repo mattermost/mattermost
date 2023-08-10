@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import classNames from 'classnames';
 import React from 'react';
 import {Link} from 'react-router-dom';
@@ -14,17 +13,20 @@ import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
 
-import ChannelMentionBadge from '../channel_mention_badge';
-import ChannelPencilIcon from '../channel_pencil_icon';
-import SidebarChannelIcon from '../sidebar_channel_icon';
-import SidebarChannelMenu from '../sidebar_channel_menu';
 import Pluggable from 'plugins/pluggable';
-import {RhsState} from 'types/store/rhs';
 import Constants, {RHSStates} from 'utils/constants';
 import {wrapEmojis} from 'utils/emoji_utils';
 import {cmdOrCtrlPressed} from 'utils/keyboard';
 import {isDesktopApp} from 'utils/user_agent';
 import {localizeMessage} from 'utils/utils';
+
+import ChannelMentionBadge from '../channel_mention_badge';
+import ChannelPencilIcon from '../channel_pencil_icon';
+import SidebarChannelIcon from '../sidebar_channel_icon';
+import SidebarChannelMenu from '../sidebar_channel_menu';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {RhsState} from 'types/store/rhs';
 
 type Props = {
     channel: Channel;

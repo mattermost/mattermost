@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 import {Provider} from 'react-redux';
 
@@ -13,6 +11,9 @@ import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
 
 import CloudEffectsWrapper from './';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 function nonCloudLicense(state: DeepPartial<GlobalState>): GlobalState {
     const newState = JSON.parse(JSON.stringify(state));

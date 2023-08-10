@@ -2,15 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+
+import {getChannel} from 'mattermost-redux/actions/channels';
 
 import {postEphemeralCallResponseForPost, handleBindingClick, openAppsModal} from 'actions/apps';
-import {getChannel} from 'mattermost-redux/actions/channels';
-import {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-
-import {PostEphemeralCallResponseForPost, HandleBindingClick, OpenAppsModal} from 'types/apps';
 
 import ButtonBinding from './button_binding';
+
+import type {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {PostEphemeralCallResponseForPost, HandleBindingClick, OpenAppsModal} from 'types/apps';
 
 type Actions = {
     handleBindingClick: HandleBindingClick;

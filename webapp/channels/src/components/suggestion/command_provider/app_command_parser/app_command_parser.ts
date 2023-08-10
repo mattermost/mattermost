@@ -7,20 +7,6 @@ import {Constants} from 'utils/constants';
 
 import {
     AppsTypes,
-    AppCallRequest,
-    AppBinding,
-    AppCall,
-    AppField,
-    DoAppCallResult,
-    AppLookupResponse,
-    AppContext,
-    AppForm,
-    AppCallValues,
-    AppSelectOption,
-    AutocompleteSuggestion,
-    AutocompleteStaticSelect,
-    Channel,
-    Store,
 
     AppBindingLocations,
     AppCallResponseTypes,
@@ -52,11 +38,27 @@ import {
     getChannelSuggestions,
     getUserSuggestions,
     inTextMentionSuggestions,
-    ExtendedAutocompleteSuggestion,
     getAppCommandForm,
     getAppRHSCommandForm,
     makeRHSAppBindingSelector,
 } from './app_command_parser_dependencies';
+
+import type {
+    AppCallRequest,
+    AppBinding,
+    AppCall,
+    AppField,
+    DoAppCallResult,
+    AppLookupResponse,
+    AppContext,
+    AppForm,
+    AppCallValues,
+    AppSelectOption,
+    AutocompleteSuggestion,
+    AutocompleteStaticSelect,
+    Channel,
+    Store,
+    ExtendedAutocompleteSuggestion} from './app_command_parser_dependencies';
 
 export enum ParseState {
     Start = 'Start',

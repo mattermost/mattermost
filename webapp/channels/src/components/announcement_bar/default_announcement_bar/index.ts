@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {incrementAnnouncementBarCount, decrementAnnouncementBarCount} from 'actions/views/announcement_bar';
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {getAnnouncementBarCount} from 'selectors/views/announcement_bar';
 
-import {GlobalState} from 'types/store';
-
 import AnnouncementBar from './announcement_bar';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     return {

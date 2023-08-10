@@ -1,17 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+
+import {getAllChannels as loadChannels, searchAllChannels} from 'mattermost-redux/actions/channels';
 
 import {setModalSearchTerm} from 'actions/views/search';
-import {getAllChannels as loadChannels, searchAllChannels} from 'mattermost-redux/actions/channels';
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from '../../types/store';
 
 import ChannelSelectorModal from './channel_selector_modal';
+
+import type {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type Actions = {
     loadChannels: (page?: number, perPage?: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean) => Promise<{data: ChannelWithTeamData[]}>;

@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Scheme} from '@mattermost/types/schemes';
-import {Team} from '@mattermost/types/teams';
-
 import {ScopeTypes} from 'mattermost-redux/constants/schemes';
 import * as Selectors from 'mattermost-redux/selectors/entities/schemes';
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
 import TestHelper from '../../../test/test_helper';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Scheme} from '@mattermost/types/schemes';
+import type {Team} from '@mattermost/types/teams';
 
 describe('Selectors.Schemes', () => {
     const scheme1 = TestHelper.mockSchemeWithId();

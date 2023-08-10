@@ -3,11 +3,12 @@
 
 import React from 'react';
 
-import FeatureDiscovery from '../index';
 import {LicenseSkus} from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import LdapSVG from './images/ldap_svg';
+
+import FeatureDiscovery from '../index';
 
 const LDAPFeatureDiscovery: React.FC = () => {
     return (

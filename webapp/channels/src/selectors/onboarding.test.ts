@@ -2,13 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+
 import {getShowTaskListBool} from 'selectors/onboarding';
 
 import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
-import {GlobalState} from 'types/store';
 import {RecommendedNextStepsLegacy, Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 describe('selectors/onboarding', () => {
     describe('getShowTaskListBool', () => {

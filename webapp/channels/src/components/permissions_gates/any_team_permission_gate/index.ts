@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
 
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import AnyTeamPermissionGate from './any_team_permission_gate';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 type Props = {
     permissions: string[];

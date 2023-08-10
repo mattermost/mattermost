@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelStats, ChannelMembership} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
 import ChannelMembersDropdown from 'components/channel_members_dropdown';
@@ -11,6 +9,9 @@ import SearchableUserList from 'components/searchable_user_list/searchable_user_
 
 import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
+
+import type {Channel, ChannelStats, ChannelMembership} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 const USERS_PER_PAGE = 50;
 

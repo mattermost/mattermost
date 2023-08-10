@@ -19,16 +19,18 @@ import {
     getUserStatuses,
     getCurrentUserId,
 } from 'mattermost-redux/selectors/entities/users';
+
 import {getPenultimateViewedChannelName} from 'selectors/local_storage';
 import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
 
-import {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import Desktop from './channel_header_dropdown';
 import Items from './channel_header_dropdown_items';
 import Mobile from './mobile_channel_header_dropdown';
+
+import type {GlobalState} from 'types/store';
 
 const getTeammateId = createSelector(
     'getTeammateId',

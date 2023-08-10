@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import React, {useState, useEffect, useRef} from 'react';
 import {useDispatch} from 'react-redux';
 
 import {createDirectChannel} from 'mattermost-redux/actions/channels';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
-import {PluginComponent} from 'types/store/plugins';
 import {Constants} from 'utils/constants';
+
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import type {PluginComponent} from 'types/store/plugins';
 
 type Props = {
     channelMember?: ChannelMembership;

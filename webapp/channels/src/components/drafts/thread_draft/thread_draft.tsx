@@ -1,23 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Post} from '@mattermost/types/posts';
-import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import React, {memo, useCallback, useMemo, useEffect} from 'react';
 import {useDispatch} from 'react-redux';
+
+import {getPost} from 'mattermost-redux/actions/posts';
 
 import {makeOnSubmit} from 'actions/views/create_comment';
 import {removeDraft} from 'actions/views/drafts';
 import {selectPost} from 'actions/views/rhs';
-import {getPost} from 'mattermost-redux/actions/posts';
 
 import DraftActions from '../draft_actions';
 import DraftTitle from '../draft_title';
 import Panel from '../panel/panel';
 import PanelBody from '../panel/panel_body';
 import Header from '../panel/panel_header';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import type {PostDraft} from 'types/store/draft';
 
 type Props = {

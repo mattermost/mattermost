@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Product} from '@mattermost/types/cloud';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
@@ -10,13 +9,16 @@ import {trackEvent} from 'actions/telemetry_actions';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import PlanLabel from 'components/common/plan_label';
 import {Card, ButtonCustomiserClasses} from 'components/purchase_modal/purchase_modal';
+import SeatsCalculator from 'components/seats_calculator';
+import Consequences from 'components/seats_calculator/consequences';
 import StarMarkSvg from 'components/widgets/icons/star_mark_icon';
 
-import SeatsCalculator, {Seats} from '../../seats_calculator';
-import Consequences from '../../seats_calculator/consequences';
 import {
     SelfHostedProducts,
 } from 'utils/constants';
+
+import type {Product} from '@mattermost/types/cloud';
+import type {Seats} from 'components/seats_calculator';
 
 // Card has a bunch of props needed for monthly/yearly payments that
 // do not apply to self-hosted.

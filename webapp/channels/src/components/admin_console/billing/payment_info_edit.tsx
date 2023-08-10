@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {Elements} from '@stripe/react-stripe-js';
-import {Stripe} from '@stripe/stripe-js';
 import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
-import {completeStripeAddPaymentMethod} from 'actions/cloud';
 import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+
+import {completeStripeAddPaymentMethod} from 'actions/cloud';
 import {isCwsMockMode} from 'selectors/cloud';
 
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -23,9 +23,12 @@ import {STRIPE_CSS_SRC, getStripePublicKey} from 'components/payment_form/stripe
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {areBillingDetailsValid, BillingDetails} from 'types/cloud/sku';
-import {GlobalState} from 'types/store';
+import {areBillingDetailsValid} from 'types/cloud/sku';
 import {CloudLinks} from 'utils/constants';
+
+import type {Stripe} from '@stripe/stripe-js';
+import type {BillingDetails} from 'types/cloud/sku';
+import type {GlobalState} from 'types/store';
 
 import './payment_info_edit.scss';
 

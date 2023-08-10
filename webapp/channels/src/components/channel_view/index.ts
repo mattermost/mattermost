@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect, ConnectedProps} from 'react-redux';
+import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
 
-import {goToLastViewedChannel} from 'actions/views/channel';
 import {getCurrentChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
+import {goToLastViewedChannel} from 'actions/views/channel';
 
 import ChannelView from './channel_view';
+
+import type {ConnectedProps} from 'react-redux';
+import type {GlobalState} from 'types/store';
 
 function isDeactivatedChannel(state: GlobalState, channelId: string) {
     const teammate = getDirectTeammate(state, channelId);

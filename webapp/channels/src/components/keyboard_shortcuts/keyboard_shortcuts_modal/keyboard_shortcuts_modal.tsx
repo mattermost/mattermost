@@ -10,10 +10,12 @@ import {isCallsEnabled} from 'selectors/calls';
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
-    KeyboardShortcutDescriptor,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 
 import * as UserAgent from 'utils/user_agent';
+
+import type {
+    KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 
 import './keyboard_shortcuts_modal.scss';
 

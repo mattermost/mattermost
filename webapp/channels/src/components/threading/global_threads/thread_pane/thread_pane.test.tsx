@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
+import React from 'react';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 
@@ -14,6 +13,9 @@ import Header from 'components/widgets/header';
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 
 import ThreadPane from './thread_pane';
+
+import type {UserProfile} from '@mattermost/types/users';
+import type {ComponentProps} from 'react';
 
 jest.mock('mattermost-redux/actions/threads');
 

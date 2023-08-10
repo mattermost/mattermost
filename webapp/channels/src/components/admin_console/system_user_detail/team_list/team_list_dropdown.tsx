@@ -9,7 +9,7 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {localizeMessage} from 'utils/utils';
 
-import {TeamWithMembership} from './types';
+import type {TeamWithMembership} from './types';
 
 type Props = {
     team: TeamWithMembership;

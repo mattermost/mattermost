@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
+
 import {getBasePath} from 'selectors/general';
 import store from 'stores/redux_store.jsx';
 

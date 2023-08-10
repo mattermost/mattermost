@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {mount} from 'enzyme';
 import React from 'react';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import MobileChannelHeaderPlug, {RawMobileChannelHeaderPlug} from 'plugins/mobile_channel_header_plug/mobile_channel_header_plug';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {createCallContext} from 'utils/apps';
+
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 describe('plugins/MobileChannelHeaderPlug', () => {
     const testPlug = {

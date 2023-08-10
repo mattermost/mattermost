@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ProductIdentifier} from '@mattermost/types/products';
 import React from 'react';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
@@ -16,13 +15,15 @@ import {
 } from 'components/tours/onboarding_tour';
 
 import Pluggable from 'plugins/pluggable';
-import {GlobalState} from 'types/store';
 import {isChannels} from 'utils/products';
 
 import AtMentionsButton from './at_mentions_button/at_mentions_button';
 import PlanUpgradeButton from './plan_upgrade_button';
 import SavedPostsButton from './saved_posts_button/saved_posts_button';
 import SettingsButton from './settings_button';
+
+import type {ProductIdentifier} from '@mattermost/types/products';
+import type {GlobalState} from 'types/store';
 
 const RightControlsContainer = styled.div`
     display: flex;

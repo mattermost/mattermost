@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelNotifyProps} from '@mattermost/types/channels';
-import React, {ChangeEvent, useMemo, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
-import ReactSelect, {ValueType} from 'react-select';
+import ReactSelect from 'react-select';
 
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
@@ -17,6 +16,10 @@ import {notificationSounds} from 'utils/notification_sounds';
 import Describe from './describe';
 import ExtraInfo from './extra_info';
 import SectionTitle from './section_title';
+
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
+import type {ChangeEvent} from 'react';
+import type {ValueType} from 'react-select';
 
 type SelectedOption = {
     label: string;

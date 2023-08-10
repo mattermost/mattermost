@@ -5,21 +5,23 @@ import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {closeModal, openModal} from 'actions/views/modals';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getSubscriptionProduct, checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {closeModal, openModal} from 'actions/views/modals';
 
 import RadioGroup from 'components/common/radio_group';
 import InvitationModal from 'components/invitation_modal';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {GlobalState} from 'types/store';
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {CloudProducts, LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
+
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {GlobalState} from 'types/store';
 
 import './invite_as.scss';
 

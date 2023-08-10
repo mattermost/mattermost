@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
 import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -14,6 +12,9 @@ import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import UnarchiveIcon from 'components/widgets/icons/unarchive_icon';
 
 import {t} from 'utils/i18n';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
 
 import './channel_profile.scss';
 interface ChannelProfileProps {

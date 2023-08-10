@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 import React from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
+
+import {Client4} from 'mattermost-redux/client';
+
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
-import {Client4} from 'mattermost-redux/client';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import CloudInvoicePreview from 'components/cloud_invoice_preview';
@@ -20,6 +21,8 @@ import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
 import {BillingSchemes, CloudLinks, TrialPeriodDays, ModalIdentifiers} from 'utils/constants';
+
+import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 
 export const noBillingHistory = (
     <div className='BillingSummary__noBillingHistory'>

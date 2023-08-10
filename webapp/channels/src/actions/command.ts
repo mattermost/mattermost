@@ -1,11 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {CommandArgs} from '@mattermost/types/integrations';
-
-import * as GlobalActions from 'actions/global_actions';
-import * as PostActions from 'actions/post_actions';
-import {openModal} from 'actions/views/modals';
 import {IntegrationTypes} from 'mattermost-redux/action_types';
 import {unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -18,7 +13,10 @@ import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general'
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+
+import * as GlobalActions from 'actions/global_actions';
+import * as PostActions from 'actions/post_actions';
+import {openModal} from 'actions/views/modals';
 
 import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import LeaveChannelModal from 'components/leave_channel_modal';
@@ -27,8 +25,6 @@ import {AppCommandParser} from 'components/suggestion/command_provider/app_comma
 import {intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
 import UserSettingsModal from 'components/user_settings/modal';
 
-import {DoAppCallResult} from 'types/apps';
-import {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {isUrlSafe, getSiteURL} from 'utils/url';
@@ -37,6 +33,11 @@ import {localizeMessage, getUserIdFromChannelName} from 'utils/utils';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForCommandArgs} from './apps';
 import {trackEvent} from './telemetry_actions';
+
+import type {CommandArgs} from '@mattermost/types/integrations';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DoAppCallResult} from 'types/apps';
+import type {GlobalState} from 'types/store';
 
 export function executeCommand(message: string, args: CommandArgs): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {

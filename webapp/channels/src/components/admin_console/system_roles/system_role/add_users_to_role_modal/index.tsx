@@ -1,16 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {getProfiles, searchProfiles} from 'mattermost-redux/actions/users';
 import {getProfiles as selectProfiles} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
-import AddUsersToRoleModal, {Props} from './add_users_to_role_modal';
+import AddUsersToRoleModal from './add_users_to_role_modal';
+
+import type {Props} from './add_users_to_role_modal';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
+import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 function mapStateToProps(state: GlobalState, props: Props) {
     const filterOptions: {[key: string]: any} = {active: true, exclude_roles: [props.role.name]};

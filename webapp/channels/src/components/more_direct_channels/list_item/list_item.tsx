@@ -7,13 +7,14 @@ import React, {useCallback} from 'react';
 import Timestamp from 'components/timestamp';
 import AddIcon from 'components/widgets/icons/fa_add_icon';
 
-import {
+import UserDetails from './user_details';
+
+import {isGroupChannel} from '../types';
+
+import type {
     GroupChannel,
-    isGroupChannel,
     OptionValue,
 } from '../types';
-
-import UserDetails from './user_details';
 
 const TIME_SPEC: React.ComponentProps<typeof Timestamp> = {
     useTime: false,

@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CloudUsage, Limits} from '@mattermost/types/cloud';
-import {FormatNumberOptions} from 'react-intl';
-
 import {FileSizes} from './file_utils';
+
+import type {CloudUsage, Limits} from '@mattermost/types/cloud';
+import type {FormatNumberOptions} from 'react-intl';
 
 export function asGBString(bits: number, formatNumber: (b: number, options: FormatNumberOptions) => string): string {
     return `${formatNumber(bits / FileSizes.Gigabyte, {maximumFractionDigits: 1})}GB`;

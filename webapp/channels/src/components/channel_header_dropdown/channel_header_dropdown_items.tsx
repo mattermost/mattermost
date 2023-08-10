@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -24,7 +22,6 @@ import UnarchiveChannelModal from 'components/unarchive_channel_modal';
 import Menu from 'components/widgets/menu/menu';
 
 import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
-import {PluginComponent} from 'types/store/plugins';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
@@ -36,6 +33,10 @@ import MenuItemToggleFavoriteChannel from './menu_items/toggle_favorite_channel'
 import MenuItemToggleInfo from './menu_items/toggle_info';
 import MenuItemToggleMuteChannel from './menu_items/toggle_mute_channel';
 import MenuItemViewPinnedPosts from './menu_items/view_pinned_posts';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {PluginComponent} from 'types/store/plugins';
 
 export type Props = {
     user: UserProfile;

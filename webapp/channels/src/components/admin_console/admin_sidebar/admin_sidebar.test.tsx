@@ -1,20 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SelfHostedSignupProgress} from '@mattermost/types/cloud';
-import {ExperimentalSettings, PluginSettings, SSOSettings, Office365Settings} from '@mattermost/types/config';
 import React from 'react';
-import {IntlShape} from 'react-intl';
+
+import {SelfHostedSignupProgress} from '@mattermost/types/cloud';
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import AdminDefinition from 'components/admin_console/admin_definition';
 import AdminSidebar from 'components/admin_console/admin_sidebar/admin_sidebar';
-import type {Props} from 'components/admin_console/admin_sidebar/admin_sidebar';
 
 import {samplePlugin1} from 'tests/helpers/admin_console_plugin_index_sample_pluings';
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {generateIndex} from 'utils/admin_console_index';
+
+import type {ExperimentalSettings, PluginSettings, SSOSettings, Office365Settings} from '@mattermost/types/config';
+import type {Props} from 'components/admin_console/admin_sidebar/admin_sidebar';
+import type {IntlShape} from 'react-intl';
 
 jest.mock('utils/utils', () => {
     const original = jest.requireActual('utils/utils');

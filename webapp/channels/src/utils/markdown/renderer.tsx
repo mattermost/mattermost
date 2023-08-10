@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import marked, {MarkedOptions} from 'marked';
+import marked from 'marked';
 
 import EmojiMap from 'utils/emoji_map';
 import * as PostUtils from 'utils/post_utils';
@@ -9,6 +9,8 @@ import * as TextFormatting from 'utils/text_formatting';
 import {getScheme, isUrlSafe, shouldOpenInNewTab} from 'utils/url';
 
 import {parseImageDimensions} from './helpers';
+
+import type {MarkedOptions} from 'marked';
 
 export default class Renderer extends marked.Renderer {
     private formattingOptions: TextFormatting.TextFormattingOptions;

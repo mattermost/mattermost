@@ -3,19 +3,16 @@
 
 /* eslint-disable max-lines */
 
-import {Address, CloudCustomer, Product, Invoice, areShippingDetailsValid, Feedback} from '@mattermost/types/cloud';
-import {Team} from '@mattermost/types/teams';
 import {Elements} from '@stripe/react-stripe-js';
-import {Stripe, StripeCardElementChangeEvent} from '@stripe/stripe-js';
 import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
 import classnames from 'classnames';
 import {isEmpty} from 'lodash';
-import React, {ReactNode} from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import React from 'react';
+import {FormattedMessage, injectIntl} from 'react-intl';
+
+import {areShippingDetailsValid} from '@mattermost/types/cloud';
 
 import {trackEvent, pageVisited} from 'actions/telemetry_actions';
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import BillingHistoryModal from 'components/admin_console/billing/billing_history_modal';
 import PaymentDetails from 'components/admin_console/billing/payment_details';
@@ -26,19 +23,18 @@ import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import ExternalLink from 'components/external_link';
 import OverlayTrigger from 'components/overlay_trigger';
 import AddressForm from 'components/payment_form/address_form';
+import PaymentForm from 'components/payment_form/payment_form';
 import {STRIPE_CSS_SRC} from 'components/payment_form/stripe';
 import PricingModal from 'components/pricing_modal';
 import RootPortal from 'components/root_portal';
-import SeatsCalculator, {errorInvalidNumber, Seats} from 'components/seats_calculator';
+import SeatsCalculator, {errorInvalidNumber} from 'components/seats_calculator';
 import Consequences from 'components/seats_calculator/consequences';
 import SwitchToYearlyPlanConfirmModal from 'components/switch_to_yearly_plan_confirm_modal';
 import Tooltip from 'components/tooltip';
 import StarMarkSvg from 'components/widgets/icons/star_mark_icon';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
-import {areBillingDetailsValid, BillingDetails} from '../../types/cloud/sku';
-import PaymentForm from '../payment_form/payment_form';
-import {ModalData} from 'types/actions';
+import {areBillingDetailsValid} from 'types/cloud/sku';
 import {
     Constants,
     TELEMETRY_CATEGORIES,
@@ -54,6 +50,17 @@ import {localizeMessage, getNextBillingDate, getBlankAddressWithCountry} from 'u
 
 import IconMessage from './icon_message';
 import ProcessPaymentSetup from './process_payment_setup';
+
+import type {Address, CloudCustomer, Product, Invoice, Feedback} from '@mattermost/types/cloud';
+import type {Team} from '@mattermost/types/teams';
+import type {Stripe, StripeCardElementChangeEvent} from '@stripe/stripe-js';
+import type {Seats} from 'components/seats_calculator';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import type {ReactNode} from 'react';
+import type {IntlShape} from 'react-intl';
+import type {ModalData} from 'types/actions';
+import type {BillingDetails} from 'types/cloud/sku';
 
 import 'components/payment_form/payment_form.scss';
 

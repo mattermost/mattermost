@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CustomStatusDuration} from '@mattermost/types/users';
 import React from 'react';
+
+import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 

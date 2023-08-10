@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AuthChangeResponse} from '@mattermost/types/users';
 import classNames from 'classnames';
 import React, {useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -16,6 +15,8 @@ import {t} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
 
 import ErrorLabel from './error_label';
+
+import type {AuthChangeResponse} from '@mattermost/types/users';
 
 type Props = {
     email: string | null;

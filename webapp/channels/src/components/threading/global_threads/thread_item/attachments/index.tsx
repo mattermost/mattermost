@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
 import React from 'react';
 
 import AttachmentCard from './attachment_card';
 import FileCard from './file_card';
+
+import type {Post} from '@mattermost/types/posts';
 
 type Props = {
     post: Post;

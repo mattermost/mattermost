@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppBinding, AppCallResponse} from '@mattermost/types/apps';
-import {Post} from '@mattermost/types/posts';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 import SelectBinding, {RawSelectBinding} from './select_binding';
+
+import type {AppBinding, AppCallResponse} from '@mattermost/types/apps';
+import type {Post} from '@mattermost/types/posts';
 
 describe('components/post_view/embedded_bindings/select_binding', () => {
     const post = {

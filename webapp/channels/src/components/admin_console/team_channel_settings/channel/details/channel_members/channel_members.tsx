@@ -1,25 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {ServerError} from '@mattermost/types/errors';
-import {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import GeneralConstants from 'mattermost-redux/constants/general';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
-import {FilterOptions} from 'components/admin_console/filter/filter';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
+
 import UserGrid from 'components/admin_console/user_grid/user_grid';
-import {BaseMembership} from 'components/admin_console/user_grid/user_grid_role_dropdown';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ToggleModalButton from 'components/toggle_modal_button';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
+import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
+import type {FilterOptions} from 'components/admin_console/filter/filter';
+import type {BaseMembership} from 'components/admin_console/user_grid/user_grid_role_dropdown';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 type Props = {
     channelId: string;

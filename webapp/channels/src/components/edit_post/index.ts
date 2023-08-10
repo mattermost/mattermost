@@ -2,13 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {runMessageWillBeUpdatedHooks} from 'actions/hooks';
-import {unsetEditingPost} from 'actions/post_actions';
-import {scrollPostListToBottom} from 'actions/views/channel';
-import {openModal} from 'actions/views/modals';
-import {editPost} from 'actions/views/posts';
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 import {Preferences, Permissions} from 'mattermost-redux/constants';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -17,14 +12,23 @@ import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getEditingPost} from 'selectors/posts';
 
-import {setGlobalItem} from '../../actions/storage';
-import {getIsRhsOpen, getPostDraft, getRhsState} from '../../selectors/rhs';
-import {GlobalState} from 'types/store';
+import {runMessageWillBeUpdatedHooks} from 'actions/hooks';
+import {unsetEditingPost} from 'actions/post_actions';
+import {setGlobalItem} from 'actions/storage';
+import {scrollPostListToBottom} from 'actions/views/channel';
+import {openModal} from 'actions/views/modals';
+import {editPost} from 'actions/views/posts';
+import {getEditingPost} from 'selectors/posts';
+import {getIsRhsOpen, getPostDraft, getRhsState} from 'selectors/rhs';
+
 import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
 
-import EditPost, {Actions} from './edit_post';
+import EditPost from './edit_post';
+
+import type {Actions} from './edit_post';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

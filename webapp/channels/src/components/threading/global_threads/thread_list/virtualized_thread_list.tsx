@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserThread} from '@mattermost/types/threads';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {FixedSizeList} from 'react-window';
@@ -10,6 +9,8 @@ import InfiniteLoader from 'react-window-infinite-loader';
 import {Constants} from 'utils/constants';
 
 import Row from './virtualized_thread_list_row';
+
+import type {UserThread} from '@mattermost/types/threads';
 
 type Props = {
     ids: Array<UserThread['id']>;

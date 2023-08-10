@@ -3,11 +3,12 @@
 
 import React from 'react';
 
-import FeatureDiscovery from '../index';
 import {LicenseSkus} from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import DataRetentionSVG from './images/data_retention_svg';
+
+import FeatureDiscovery from '../index';
 
 const DataRetentionFeatureDiscovery: React.FC = () => {
     return (

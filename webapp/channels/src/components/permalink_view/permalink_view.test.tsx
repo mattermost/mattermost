@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ReactWrapper, shallow} from 'enzyme';
+import {shallow} from 'enzyme';
 import nock from 'nock';
-import React, {ComponentProps} from 'react';
+import React from 'react';
 import {act} from 'react-dom/test-utils';
-import {match} from 'react-router-dom';
 
 import {getPostThread} from 'mattermost-redux/actions/posts';
 import {Client4} from 'mattermost-redux/client';
@@ -20,6 +19,10 @@ import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 import {ErrorPageTypes} from 'utils/constants';
+
+import type {ReactWrapper} from 'enzyme';
+import type {ComponentProps} from 'react';
+import type {match} from 'react-router-dom';
 
 jest.mock('actions/channel_actions', () => ({
     loadChannelsForCurrentUser: jest.fn(() => {

@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import ConfirmModal from 'components/confirm_modal';
 
 import Constants from 'utils/constants';
+
+import type {Channel} from '@mattermost/types/channels';
 
 type Props = {
     channel: Channel;

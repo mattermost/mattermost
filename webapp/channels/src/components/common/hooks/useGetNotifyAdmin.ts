@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {NotifyAdminRequest} from '@mattermost/types/cloud';
 import {useState} from 'react';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {Client4} from 'mattermost-redux/client';
+
+import {trackEvent} from 'actions/telemetry_actions';
+
+import type {NotifyAdminRequest} from '@mattermost/types/cloud';
 
 export const NotifyStatus = {
     NotStarted: 'NOT_STARTED',

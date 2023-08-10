@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports
-import glyphMap, {ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import React from 'react';
 import styled from 'styled-components';
+
+import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports
+import glyphMap, {ProductChannelsIcon} from '@mattermost/compass-icons/components';
 
 import {useCurrentProduct} from 'utils/products';
 

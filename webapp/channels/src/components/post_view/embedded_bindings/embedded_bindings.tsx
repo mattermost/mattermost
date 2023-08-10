@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppBinding} from '@mattermost/types/apps';
-import {Post} from '@mattermost/types/posts';
 import React from 'react';
 
-import {TextFormattingOptions} from 'utils/text_formatting';
-
 import EmbeddedBinding from './embedded_binding';
+
+import type {AppBinding} from '@mattermost/types/apps';
+import type {Post} from '@mattermost/types/posts';
+import type {TextFormattingOptions} from 'utils/text_formatting';
 
 type Props = {
 

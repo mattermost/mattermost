@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect, ConnectedProps} from 'react-redux';
+import {connect} from 'react-redux';
 
-import {openModal} from 'actions/views/modals';
 import {setCategoryMuted, setCategorySorting} from 'mattermost-redux/actions/channel_categories';
 
+import {openModal} from 'actions/views/modals';
+
 import SidebarCategoryMenu from './sidebar_category_menu';
+
+import type {ConnectedProps} from 'react-redux';
 
 const mapDispatchToProps = {
     openModal,

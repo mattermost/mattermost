@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 
 import StatisticCount from 'components/analytics/statistic_count';
 

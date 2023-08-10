@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {openModal} from 'actions/views/modals';
 import {doPostActionWithCookie} from 'mattermost-redux/actions/posts';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
-import {ModalData} from 'types/actions';
+import {openModal} from 'actions/views/modals';
 
 import MessageAttachment from './message_attachment';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {ModalData} from 'types/actions';
 
 function mapStateToProps(state: GlobalState) {
     return {

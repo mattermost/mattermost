@@ -1,13 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-
-import {executeCommand} from 'actions/command';
-import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
-import * as PostActions from 'actions/post_actions';
-import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
-import {updateDraft, removeDraft} from 'actions/views/drafts';
 import {
     removeReaction,
     addMessageIntoHistory,
@@ -24,15 +17,23 @@ import {
 } from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
+
+import {executeCommand} from 'actions/command';
+import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
+import * as PostActions from 'actions/post_actions';
+import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
+import {updateDraft, removeDraft} from 'actions/views/drafts';
 import {getPostDraft} from 'selectors/rhs';
 
-import type {GlobalState} from 'types/store';
-import type {PostDraft} from 'types/store/draft';
 import {Constants, StoragePrefixes} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
 import * as Utils from 'utils/utils';
+
+import type {Post} from '@mattermost/types/posts';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
 
 export function clearCommentDraftUploads() {
     return actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, (_key: string, draft: PostDraft) => {

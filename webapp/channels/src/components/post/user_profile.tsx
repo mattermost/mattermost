@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-import React, {ReactNode} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import PostHeaderCustomStatus from 'components/post_view/post_header_custom_status/post_header_custom_status';
@@ -12,6 +11,9 @@ import Tag from 'components/widgets/tag/tag';
 
 import {Locations} from 'utils/constants';
 import {fromAutoResponder, isFromWebhook} from 'utils/post_utils';
+
+import type {Post} from '@mattermost/types/posts';
+import type {ReactNode} from 'react';
 
 type Props = {
     post: Post;

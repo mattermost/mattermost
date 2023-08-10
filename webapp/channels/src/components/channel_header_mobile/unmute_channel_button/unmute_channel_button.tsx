@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelNotifyProps} from '@mattermost/types/channels';
 import React from 'react';
 
 import {NotificationLevels} from 'utils/constants';
+
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
 
 type Actions = {
     updateChannelNotifyProps: (userId: string, channelId: string, props: ChannelNotifyProps) => void;

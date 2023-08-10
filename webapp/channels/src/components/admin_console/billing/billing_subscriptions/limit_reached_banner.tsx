@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Product} from '@mattermost/types/cloud';
 import React from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -17,6 +16,8 @@ import {useSaveBool} from 'components/common/hooks/useSavePreferences';
 
 import {CloudProducts} from 'utils/constants';
 import {anyUsageDeltaExceededLimit} from 'utils/limits';
+
+import type {Product} from '@mattermost/types/cloud';
 
 import './limit_reached_banner.scss';
 

@@ -7,11 +7,12 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/preferences';
 import {loadMeREST} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
 import {Preferences} from '../constants';
+
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 const OK_RESPONSE = {status: 'OK'};
 

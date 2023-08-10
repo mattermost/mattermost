@@ -1,21 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelWithTeamData} from '@mattermost/types/channels';
-import {
-    Group,
-    GroupChannel,
-    GroupPatch,
-    GroupTeam,
-    SyncablePatch,
-    SyncableType,
-} from '@mattermost/types/groups';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import {
+    SyncableType,
+} from '@mattermost/types/groups';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import {GroupProfileAndSettings} from 'components/admin_console/group_settings/group_details/group_profile_and_settings';
@@ -32,6 +23,17 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {t} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
+
+import type {ChannelWithTeamData} from '@mattermost/types/channels';
+import type {
+    Group,
+    GroupChannel,
+    GroupPatch,
+    GroupTeam,
+    SyncablePatch} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export type Props = {
     groupID: string;

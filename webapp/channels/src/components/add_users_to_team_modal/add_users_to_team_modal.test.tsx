@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import {TestHelper} from 'utils/test_helper';
 
 import AddUsersToTeamModal from './add_users_to_team_modal';
+
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal', () => {
     function createUser(id: string, username: string, bot: boolean): UserProfile {

@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
+import React from 'react';
 
 import {NotificationLevels} from 'utils/constants';
 
 import DesktopNotificationSettings from './desktop_notification_settings';
+
+import type {ComponentProps} from 'react';
 
 jest.mock('utils/notification_sounds', () => {
     const original = jest.requireActual('utils/notification_sounds');

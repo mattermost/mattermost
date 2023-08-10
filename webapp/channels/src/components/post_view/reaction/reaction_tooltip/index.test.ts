@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Reaction} from '@mattermost/types/reactions';
-import {GlobalState} from '@mattermost/types/store';
-
 import {TestHelper} from 'utils/test_helper';
 
 import {makeGetNamesOfUsers} from './index';
+
+import type {Reaction} from '@mattermost/types/reactions';
+import type {GlobalState} from '@mattermost/types/store';
 
 describe('makeGetNamesOfUsers', () => {
     test('should sort users by who reacted first', () => {

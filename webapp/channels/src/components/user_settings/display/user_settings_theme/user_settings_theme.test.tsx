@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
+import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 
@@ -12,6 +12,8 @@ import {render, fireEvent, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import UserSettingsTheme from './user_settings_theme';
+
+import type {ComponentProps} from 'react';
 
 jest.mock('utils/utils', () => ({
     applyTheme: jest.fn(),

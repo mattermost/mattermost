@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelModeration as ChannelPermissions} from '@mattermost/types/channels';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import ChannelModeration, {ChannelModerationTableRow} from './channel_moderation';
+
+import type {ChannelModeration as ChannelPermissions} from '@mattermost/types/channels';
 
 describe('admin_console/team_channel_settings/channel/ChannelModeration', () => {
     const channelPermissions: ChannelPermissions[] = [{

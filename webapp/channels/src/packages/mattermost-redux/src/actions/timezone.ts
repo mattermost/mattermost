@@ -3,9 +3,10 @@
 
 import {getCurrentTimezoneFull} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {updateMe} from './users';
+
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 export function autoUpdateTimezone(deviceTimezone: string) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
@@ -14,6 +13,8 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import {imageURLForUser, getLongDisplayName} from 'utils/utils';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import './result_table.scss';
 

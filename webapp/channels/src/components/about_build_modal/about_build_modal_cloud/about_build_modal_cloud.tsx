@@ -10,7 +10,7 @@ import {useSelector} from 'react-redux';
 import ExternalLink from 'components/external_link';
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import './about_build_modal_cloud.scss';
 

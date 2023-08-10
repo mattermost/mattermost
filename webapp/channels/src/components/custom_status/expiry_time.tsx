@@ -6,9 +6,10 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
-import {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 import {getCurrentMomentForTimezone} from 'utils/timezone';
+
+import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 const CUSTOM_STATUS_EXPIRY_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,

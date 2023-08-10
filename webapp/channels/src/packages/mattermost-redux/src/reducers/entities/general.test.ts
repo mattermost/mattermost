@@ -3,7 +3,8 @@
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import reducer from 'mattermost-redux/reducers/entities/general';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 type ReducerState = ReturnType<typeof reducer>
 

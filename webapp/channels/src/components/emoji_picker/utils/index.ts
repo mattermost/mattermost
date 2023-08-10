@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Emoji, EmojiCategory, SystemEmoji} from '@mattermost/types/emojis';
 import isEmpty from 'lodash/isEmpty';
 
 import {isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
@@ -15,7 +14,12 @@ import {
     RECENT_EMOJI_CATEGORY,
     CATEGORIES,
 } from 'components/emoji_picker/constants';
-import {
+
+import {EmojiIndicesByCategory, Emojis as EmojisJson} from 'utils/emoji';
+import {compareEmojis, convertEmojiSkinTone, emojiMatchesSkin, getSkin} from 'utils/emoji_utils';
+
+import type {Emoji, EmojiCategory, SystemEmoji} from '@mattermost/types/emojis';
+import type {
     Categories,
     Category,
     CategoryOrEmojiRow,
@@ -24,10 +28,7 @@ import {
     EmojiPosition,
     EmojiCursor,
 } from 'components/emoji_picker/types';
-
-import {EmojiIndicesByCategory, Emojis as EmojisJson} from 'utils/emoji';
-import EmojiMap from 'utils/emoji_map';
-import {compareEmojis, convertEmojiSkinTone, emojiMatchesSkin, getSkin} from 'utils/emoji_utils';
+import type EmojiMap from 'utils/emoji_map';
 
 export function isCategoryHeaderRow(row: CategoryOrEmojiRow): row is CategoryHeaderRow {
     return row.type === CATEGORY_HEADER_ROW;

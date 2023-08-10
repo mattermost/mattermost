@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
-import {Team} from '@mattermost/types/teams';
-import {UserThread} from '@mattermost/types/threads';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-
-import {I18nState} from './i18n';
-import {LhsViewState} from './lhs';
-import {RhsViewState} from './rhs';
-
-import {DraggingState} from '.';
+import type {DraggingState} from '.';
+import type {I18nState} from './i18n';
+import type {LhsViewState} from './lhs';
+import type {RhsViewState} from './rhs';
+import type {Channel} from '@mattermost/types/channels';
+import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import type {Team} from '@mattermost/types/teams';
+import type {UserThread} from '@mattermost/types/threads';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 export type ModalFilters = {
     roles?: string[];

@@ -5,8 +5,9 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {closeModal} from 'actions/views/modals';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+
+import {closeModal} from 'actions/views/modals';
 
 import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
 import useGetLimits from 'components/common/hooks/useGetLimits';
@@ -14,10 +15,12 @@ import useGetUsage from 'components/common/hooks/useGetUsage';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {t, Message} from 'utils/i18n';
+import {t} from 'utils/i18n';
 import {fallbackStarterLimits, asGBString, LimitTypes} from 'utils/limits';
 
 import CloudUsageModal from './index';
+
+import type {Message} from 'utils/i18n';
 
 export default function LHSNearingLimitsModal() {
     const dispatch = useDispatch();

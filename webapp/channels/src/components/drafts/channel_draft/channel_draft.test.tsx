@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
 
 import mockStore from 'tests/test_store';
-import {PostDraft} from 'types/store/draft';
 
 import ChannelDraft from './channel_draft';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
+import type {PostDraft} from 'types/store/draft';
 
 describe('components/drafts/drafts_row', () => {
     const baseProps = {

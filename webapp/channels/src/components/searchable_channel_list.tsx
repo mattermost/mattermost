@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, MagnifyIcon, AccountOutlineIcon} from '@mattermost/compass-icons/components';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {RelationOneToOne} from '@mattermost/types/utilities';
 import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, MagnifyIcon, AccountOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {isPrivateChannel} from 'mattermost-redux/utils/channel_utils';
 
@@ -26,6 +25,9 @@ import {localizeMessage, localizeAndFormatMessage} from 'utils/utils';
 
 import Menu from './widgets/menu/menu';
 import MenuWrapper from './widgets/menu/menu_wrapper';
+
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 

@@ -5,9 +5,10 @@ import React from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {Permissions} from 'mattermost-redux/constants';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+
+import {trackEvent} from 'actions/telemetry_actions';
 
 import InvitationModal from 'components/invitation_modal';
 import {getAnalyticsCategory} from 'components/onboarding_tasks';

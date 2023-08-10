@@ -5,7 +5,8 @@ import {ThreadTypes} from 'mattermost-redux/action_types';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 import {handleFollowChanged} from './threadsInTeam';
-import {ExtraData} from './types';
+
+import type {ExtraData} from './types';
 
 describe('handleFollowChanged', () => {
     const state = deepFreeze({

@@ -14,17 +14,19 @@ import {
     useInteractions,
     useRole,
 } from '@floating-ui/react-dom-interactions';
-import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import {Post, PostAcknowledgement} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
 import classNames from 'classnames';
 import React, {memo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
+
 import {acknowledgePost, unacknowledgePost} from 'mattermost-redux/actions/posts';
 
 import PostAcknowledgementsUserPopover from './post_acknowledgements_users_popover';
+
+import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
 import './post_acknowledgements.scss';
 

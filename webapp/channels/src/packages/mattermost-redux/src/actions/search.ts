@@ -1,22 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileSearchResults, FileSearchResultItem} from '@mattermost/types/files';
-import {PostList} from '@mattermost/types/posts';
-import {SearchParameter} from '@mattermost/types/search';
 import {batchActions} from 'redux-batched-actions';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {ActionResult, DispatchFunc, GetStateFunc, ActionFunc} from 'mattermost-redux/types/actions';
 
 import {getChannelAndMyMember, getChannelMembers} from './channels';
 import {logError} from './errors';
 import {receivedFiles} from './files';
 import {forceLogoutIfNecessary} from './helpers';
 import {getProfilesAndStatusesForPosts, receivedPosts} from './posts';
+
+import type {FileSearchResults, FileSearchResultItem} from '@mattermost/types/files';
+import type {PostList} from '@mattermost/types/posts';
+import type {SearchParameter} from '@mattermost/types/search';
+import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc} from 'mattermost-redux/types/actions';
 
 const WEBAPP_SEARCH_PER_PAGE = 20;
 

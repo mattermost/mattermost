@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SyncIcon} from '@mattermost/compass-icons/components';
 import cn from 'classnames';
-import React, {ComponentProps} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {SyncIcon} from '@mattermost/compass-icons/components';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Timestamp from 'components/timestamp';
@@ -12,6 +13,8 @@ import Tooltip from 'components/tooltip';
 import Tag from 'components/widgets/tag/tag';
 
 import Constants from 'utils/constants';
+
+import type {ComponentProps} from 'react';
 
 import './panel_header.scss';
 

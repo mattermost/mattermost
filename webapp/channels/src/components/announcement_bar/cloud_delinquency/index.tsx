@@ -5,20 +5,23 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+
+import {trackEvent} from 'actions/telemetry_actions';
 
 import {useDelinquencySubscription} from 'components/common/hooks/useDelinquencySubscription';
 import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 
-import AnnouncementBar from '../default_announcement_bar';
-import {GlobalState} from 'types/store';
 import {
     AnnouncementBarTypes, TELEMETRY_CATEGORIES,
 } from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import AnnouncementBar from '../default_announcement_bar';
+
+import type {GlobalState} from 'types/store';
 
 const CloudDelinquencyAnnouncementBar = () => {
     const subscription = useGetSubscription();

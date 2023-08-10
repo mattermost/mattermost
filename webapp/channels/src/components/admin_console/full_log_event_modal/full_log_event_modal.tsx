@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {LogObject} from '@mattermost/types/admin';
 import React from 'react';
 import {Button, Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+
+import type {LogObject} from '@mattermost/types/admin';
 
 type Props = {
     log: LogObject | null;

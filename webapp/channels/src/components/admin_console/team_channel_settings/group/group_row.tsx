@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Group} from '@mattermost/types/groups';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -12,6 +11,8 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
+
+import type {Group} from '@mattermost/types/groups';
 
 interface GroupRowProps {
     group: Partial<Group>;

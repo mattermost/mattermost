@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -19,6 +18,8 @@ import SlashCommandIcon from 'images/slash_command_icon.jpg';
 import * as Utils from 'utils/utils';
 
 import IntegrationOption from './integration_option';
+
+import type {Team} from '@mattermost/types/teams';
 
 type Props = {
     siteName: string | undefined;

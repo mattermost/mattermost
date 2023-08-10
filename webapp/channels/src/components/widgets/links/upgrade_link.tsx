@@ -7,11 +7,12 @@ import {useDispatch} from 'react-redux';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import PurchaseModal from 'components/purchase_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import './link.scss';
 

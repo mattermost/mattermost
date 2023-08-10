@@ -6,9 +6,9 @@ import {connect} from 'react-redux';
 import {getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store/index';
-
 import ProfilePopoverCallButton from './profile_popover_call_button';
+
+import type {GlobalState} from 'types/store/index';
 
 function mapStateToProps(state: GlobalState) {
     return {

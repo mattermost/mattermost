@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post, PostImage} from '@mattermost/types/posts';
-import React, {PureComponent, MouseEvent} from 'react';
+import React, {PureComponent} from 'react';
 
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
@@ -11,8 +10,11 @@ import MarkdownImageExpand from 'components/markdown_image_expand';
 import SizeAwareImage from 'components/size_aware_image';
 
 import brokenImageIcon from 'images/icons/brokenimage.png';
-import {ModalData} from 'types/actions';
 import Constants, {ModalIdentifiers} from 'utils/constants';
+
+import type {Post, PostImage} from '@mattermost/types/posts';
+import type {MouseEvent} from 'react';
+import type {ModalData} from 'types/actions';
 
 export type Props = {
     alt: string;

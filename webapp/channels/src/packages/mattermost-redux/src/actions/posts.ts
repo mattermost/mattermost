@@ -1,13 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelUnread} from '@mattermost/types/channels';
-import {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
-import {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
-import {Reaction} from '@mattermost/types/reactions';
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
-import {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import {PostTypes, ChannelTypes, FileTypes, IntegrationTypes} from 'mattermost-redux/action_types';
@@ -27,10 +20,18 @@ import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redu
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
-import {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError} from './errors';
+
+import type {Channel, ChannelUnread} from '@mattermost/types/channels';
+import type {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
+import type {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {AnyAction} from 'redux';
 
 // receivedPost should be dispatched after a single post from the server. This typically happens when an existing post
 // is updated.

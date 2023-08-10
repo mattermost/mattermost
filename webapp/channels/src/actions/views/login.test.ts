@@ -3,11 +3,12 @@
 
 import nock from 'nock';
 
+import {Client4} from 'mattermost-redux/client';
+
 import {
     login,
     loginById,
 } from 'actions/views/login';
-import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import configureStore from 'store';

@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {ReactNode} from 'react';
+import React from 'react';
+
+import type {ReactNode} from 'react';
 
 type Props = {
     withBackButton?: boolean;

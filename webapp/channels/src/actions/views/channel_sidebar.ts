@@ -6,12 +6,14 @@ import {General} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getCategory, makeGetChannelIdsForCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {insertMultipleWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
+
 import {getCategoriesForCurrentTeam, getChannelsInCategoryOrder, getDisplayedChannels} from 'selectors/views/channel_sidebar';
 
-import {DraggingState, GlobalState} from 'types/store';
 import {ActionTypes} from 'utils/constants';
+
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DraggingState, GlobalState} from 'types/store';
 
 export function setUnreadFilterEnabled(enabled: boolean) {
     return {

@@ -1,21 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-import {connect, ConnectedProps} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {openModal} from 'actions/views/modals';
 import {editPost} from 'actions/views/posts';
 import {closeRightHandSide} from 'actions/views/rhs';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getSelectedPostId} from 'selectors/rhs';
 
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
-
 import EditedPostItem from './edited_post_item';
+
+import type {Post} from '@mattermost/types/posts';
+import type {ConnectedProps} from 'react-redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const selectedPostId = getSelectedPostId(state) || '';

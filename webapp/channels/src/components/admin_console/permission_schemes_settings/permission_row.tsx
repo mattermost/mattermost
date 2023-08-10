@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Role} from '@mattermost/types/roles';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import PermissionCheckbox from './permission_checkbox';
 import PermissionDescription from './permission_description';
-import {AdditionalValues} from './permissions_tree/types';
+
+import type {AdditionalValues} from './permissions_tree/types';
+import type {Role} from '@mattermost/types/roles';
 
 type Props = {
     id: string;

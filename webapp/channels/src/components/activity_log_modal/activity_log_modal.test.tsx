@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {MouseEvent} from 'react';
+import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
 
 import ActivityLogModal from 'components/activity_log_modal/activity_log_modal';
+
+import type {MouseEvent} from 'react';
 
 describe('components/ActivityLogModal', () => {
     const baseProps = {

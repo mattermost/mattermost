@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {revokeUserAccessToken} from 'mattermost-redux/actions/users';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
 import RevokeTokenButton from './revoke_token_button';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {

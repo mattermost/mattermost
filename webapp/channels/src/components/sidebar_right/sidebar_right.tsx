@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {ProductIdentifier} from '@mattermost/types/products';
-import {Team} from '@mattermost/types/teams';
 import classNames from 'classnames';
 import React from 'react';
 
@@ -19,10 +16,14 @@ import RhsThread from 'components/rhs_thread';
 import Search from 'components/search/index';
 
 import RhsPlugin from 'plugins/rhs_plugin';
-import {RhsState} from 'types/store/rhs';
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {isMac} from 'utils/user_agent';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {ProductIdentifier} from '@mattermost/types/products';
+import type {Team} from '@mattermost/types/teams';
+import type {RhsState} from 'types/store/rhs';
 
 type Props = {
     isExpanded: boolean;

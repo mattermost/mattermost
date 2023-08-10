@@ -6,9 +6,10 @@ import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
 
-import {OptionValue} from '../types';
+import ListItem from './list_item';
 
-import ListItem, {Props} from './list_item';
+import type {Props} from './list_item';
+import type {OptionValue} from '../types';
 
 describe('ListItem', () => {
     const baseProps: Props = {

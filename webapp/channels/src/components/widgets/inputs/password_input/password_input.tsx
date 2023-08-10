@@ -2,11 +2,15 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {ChangeEventHandler, FocusEventHandler, useState} from 'react';
+import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import Input, {CustomMessageInputType, SIZE} from '../input/input';
 import {ItemStatus} from 'utils/constants';
+
+import Input from '../input/input';
+
+import type {CustomMessageInputType, SIZE} from '../input/input';
+import type {ChangeEventHandler, FocusEventHandler} from 'react';
 
 import './password_input.scss';
 

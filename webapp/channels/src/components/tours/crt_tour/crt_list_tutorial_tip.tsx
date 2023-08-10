@@ -1,18 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useMeasurePunchouts} from '@mattermost/components';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
+
+import {useMeasurePunchouts} from '@mattermost/components';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
 
-import {GlobalState} from 'types/store';
-
 import CRTTourTip from './crt_tour_tip';
+
+import type {GlobalState} from 'types/store';
 
 const translate = {x: -6, y: 62};
 

@@ -43,16 +43,25 @@
         "groups": [
           "builtin",
           "external",
-          [
-            "internal",
-            "parent"
-          ],
+          "internal",
           "sibling",
-          "index"
+          "parent",
+          "index",
+          "type"
         ],
         "pathGroups": [
           {
-            "pattern": "@(mattermost-redux|selectors|actions|stores)/**",
+            "pattern": "@mattermost/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "mattermost-redux/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "@(selectors|actions|stores)/**",
             "group": "external",
             "position": "after"
           },
@@ -65,7 +74,8 @@
         "alphabetize": {
           "order": "asc",
           "caseInsensitive": true
-        }
+        },
+        "pathGroupsExcludedImportTypes": ["type"]
       }
     ],
     "no-undefined": 0,
@@ -111,7 +121,8 @@
       }
     ],
     "max-lines": ["warn", {"max": 800, "skipBlankLines": true, "skipComments": true}],
-    "formatjs/no-multiple-whitespaces": 2
+    "formatjs/no-multiple-whitespaces": 2,
+    "@typescript-eslint/consistent-type-imports": ["error", {"disallowTypeAnnotations": false}]
   },
   "overrides": [
     {

@@ -6,7 +6,7 @@ import React from 'react';
 
 import Sidebar from 'components/sidebar/sidebar';
 
-import Constants, {ModalIdentifiers} from '../../utils/constants';
+import Constants, {ModalIdentifiers} from 'utils/constants';
 
 describe('components/sidebar', () => {
     const baseProps = {

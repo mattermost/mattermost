@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GroupStats} from '@mattermost/types/groups';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import DataGrid from 'components/admin_console/data_grid/data_grid';
 import UserGridName from 'components/admin_console/user_grid/user_grid_name';
 
 import Constants from 'utils/constants';
+
+import type {GroupStats} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
+import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 
 const USERS_PER_PAGE = 10;
 

@@ -4,8 +4,9 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import * as GlobalActions from 'actions/global_actions';
 import {Posts} from 'mattermost-redux/constants';
+
+import * as GlobalActions from 'actions/global_actions';
 
 import AdvancedCreatePost from 'components/advanced_create_post/advanced_create_post';
 import AdvanceTextEditor from 'components/advanced_text_editor/advanced_text_editor';

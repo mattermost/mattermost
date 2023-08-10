@@ -1,20 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppField, AppSelectOption} from '@mattermost/types/apps';
-import {UserAutocomplete} from '@mattermost/types/autocomplete';
-import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 
-import AutocompleteSelector from 'components/autocomplete_selector';
 import Markdown from 'components/markdown';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import BoolSetting from 'components/widgets/settings/bool_setting';
-import TextSetting, {InputTypes} from 'components/widgets/settings/text_setting';
+import TextSetting from 'components/widgets/settings/text_setting';
 
 import AppsFormSelectField from './apps_form_select_field';
+
+import type {AppField, AppSelectOption} from '@mattermost/types/apps';
+import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {Channel} from '@mattermost/types/channels';
+import type AutocompleteSelector from 'components/autocomplete_selector';
+import type {InputTypes} from 'components/widgets/settings/text_setting';
 
 const TEXT_DEFAULT_MAX_LENGTH = 150;
 const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;

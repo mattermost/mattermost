@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import UserProfile from './user_profile';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 type OwnProps = {
     userId: string;

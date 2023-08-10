@@ -1,12 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-import * as Redux from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import {sendDesktopNotification} from 'actions/notification_actions.jsx';
-import {updateThreadLastOpened} from 'actions/views/threads';
 import {
     actionsToMarkChannelAsRead,
     actionsToMarkChannelAsUnread,
@@ -19,16 +15,22 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {
     isFromWebhook,
     isSystemMessage,
     shouldIgnorePost,
 } from 'mattermost-redux/utils/post_utils';
+
+import {sendDesktopNotification} from 'actions/notification_actions.jsx';
+import {updateThreadLastOpened} from 'actions/views/threads';
 import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
-import {GlobalState} from 'types/store';
 import {ActionTypes} from 'utils/constants';
+
+import type {Post} from '@mattermost/types/posts';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type * as Redux from 'redux';
+import type {GlobalState} from 'types/store';
 
 export type NewPostMessageProps = {
     mentions: string[];

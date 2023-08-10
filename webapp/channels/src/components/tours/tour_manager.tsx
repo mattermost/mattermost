@@ -1,21 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import React, {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {trackEvent as trackEventAction} from 'actions/telemetry_actions';
 import {savePreferences as storeSavePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
+
+import {trackEvent as trackEventAction} from 'actions/telemetry_actions';
 
 import {
     generateTelemetryTag,
 } from 'components/onboarding_tasks';
 import {
-    ActionType,
-    ChannelsTourTipManager,
     getLastStep,
     isKeyPressed,
     KeyCodes,
@@ -30,6 +28,12 @@ import {
     SKIPPED,
     TTNameMapToATStatusKey,
 } from './constant';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {
+    ActionType,
+    ChannelsTourTipManager} from 'components/tours';
+import type React from 'react';
 
 export const useTourTipManager = (tourCategory: string): ChannelsTourTipManager => {
     const [show, setShow] = useState(false);

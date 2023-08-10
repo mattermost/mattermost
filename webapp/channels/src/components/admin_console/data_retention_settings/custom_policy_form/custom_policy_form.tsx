@@ -1,14 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelWithTeamData} from '@mattermost/types/channels';
-import {
-    DataRetentionCustomPolicy,
-    CreateDataRetentionCustomPolicy,
-    PatchDataRetentionCustomPolicy,
-} from '@mattermost/types/data_retention';
-import {Team} from '@mattermost/types/teams';
-import {IDMappedObjects} from '@mattermost/types/utilities';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -28,6 +20,15 @@ import Input from 'components/widgets/inputs/input/input';
 import {getHistory} from 'utils/browser_history';
 import {ItemStatus} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {ChannelWithTeamData} from '@mattermost/types/channels';
+import type {
+    DataRetentionCustomPolicy,
+    CreateDataRetentionCustomPolicy,
+    PatchDataRetentionCustomPolicy,
+} from '@mattermost/types/data_retention';
+import type {Team} from '@mattermost/types/teams';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import './custom_policy_form.scss';
 

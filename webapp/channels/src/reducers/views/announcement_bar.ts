@@ -4,9 +4,10 @@
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function announcementBarState(state = {announcementBarCount: 0}, action: GenericAction) {
     switch (action.type) {

@@ -6,13 +6,14 @@ import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';
 
 import * as Utils from 'utils/utils';
 
 import EmojiList from './emoji_list';
+
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 type Props = {
     teamId: string;

@@ -19,8 +19,6 @@ import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
-import AnnouncementBar from '../default_announcement_bar';
-import {GlobalState} from 'types/store';
 import {
     AnnouncementBarTypes,
     Preferences,
@@ -28,6 +26,10 @@ import {
     CloudProducts,
 } from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import AnnouncementBar from '../default_announcement_bar';
+
+import type {GlobalState} from 'types/store';
 
 const CloudTrialEndAnnouncementBar: React.FC = () => {
     const limits = useGetLimits();

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -9,8 +8,10 @@ import {FormattedMessage} from 'react-intl';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import MemberListChannel from 'components/member_list_channel';
 
-import {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {ModalData} from 'types/actions';
 
 type Props = {
 

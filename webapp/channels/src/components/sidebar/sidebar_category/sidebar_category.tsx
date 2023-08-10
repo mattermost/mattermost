@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelCategory, CategorySorting} from '@mattermost/types/channel_categories';
-import {PreferenceType} from '@mattermost/types/preferences';
 import classNames from 'classnames';
-import React, {MouseEvent, KeyboardEvent} from 'react';
+import React from 'react';
 import {Draggable, Droppable} from 'react-beautiful-dnd';
 import {FormattedMessage} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
+import {CategorySorting} from '@mattermost/types/channel_categories';
+
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {localizeMessage} from 'mattermost-redux/utils/i18n_utils';
+
+import {trackEvent} from 'actions/telemetry_actions';
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
@@ -18,17 +19,22 @@ import KeyboardShortcutSequence, {
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
-import AddChannelsCtaButton from '../add_channels_cta_button';
-import InviteMembersButton from '../invite_members_button';
-import {SidebarCategoryHeader} from '../sidebar_category_header';
-import SidebarChannel from '../sidebar_channel';
-import {DraggingState} from 'types/store';
 import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isKeyPressed} from 'utils/keyboard';
 
 import SidebarCategoryMenu from './sidebar_category_menu';
 import SidebarCategorySortingMenu from './sidebar_category_sorting_menu';
+
+import AddChannelsCtaButton from '../add_channels_cta_button';
+import InviteMembersButton from '../invite_members_button';
+import {SidebarCategoryHeader} from '../sidebar_category_header';
+import SidebarChannel from '../sidebar_channel';
+
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {MouseEvent, KeyboardEvent} from 'react';
+import type {DraggingState} from 'types/store';
 
 type Props = {
     category: ChannelCategory;

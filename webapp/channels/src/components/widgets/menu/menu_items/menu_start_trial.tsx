@@ -1,20 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import React, {useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {openModal} from 'actions/views/modals';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+
+import {trackEvent} from 'actions/telemetry_actions';
+import {openModal} from 'actions/views/modals';
 
 import {makeAsyncComponent} from 'components/async_load';
 
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {isTrialLicense} from 'utils/license_utils';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import './menu_item.scss';
 

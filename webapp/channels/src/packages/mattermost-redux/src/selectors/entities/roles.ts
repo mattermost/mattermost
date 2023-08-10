@@ -1,10 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GroupMembership, GroupPermissions} from '@mattermost/types/groups';
-import {Role} from '@mattermost/types/roles';
-import {GlobalState} from '@mattermost/types/store';
-
 import {General, Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
@@ -17,6 +13,10 @@ import {
 } from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getTeamMemberships, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
+import type {GroupMembership, GroupPermissions} from '@mattermost/types/groups';
+import type {Role} from '@mattermost/types/roles';
+import type {GlobalState} from '@mattermost/types/store';
 
 export {getMySystemPermissions, getMySystemRoles, getRoles, haveISystemPermission};
 

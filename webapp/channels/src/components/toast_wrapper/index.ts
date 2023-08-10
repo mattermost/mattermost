@@ -3,9 +3,8 @@
 
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {updateToastStatus} from 'actions/views/channel';
 import {Posts} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentChannel, countCurrentChannelUnreadMessages, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
@@ -14,9 +13,12 @@ import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'matt
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {makePreparePostIdsForPostList} from 'mattermost-redux/utils/post_list';
 
-import {GlobalState} from 'types/store/index';
+import {updateToastStatus} from 'actions/views/channel';
 
 import ToastWrapper from './toast_wrapper';
+
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store/index';
 
 interface OwnProps {
     atLatestPost?: boolean;

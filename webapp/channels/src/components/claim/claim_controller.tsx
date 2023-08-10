@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AuthChangeResponse} from '@mattermost/types/users';
 import React from 'react';
 import {Route, Switch} from 'react-router-dom';
 
@@ -12,6 +11,8 @@ import OAuthToEmail from 'components/claim/components/oauth_to_email';
 import BackButton from 'components/common/back_button';
 
 import logoImage from 'images/logo.png';
+
+import type {AuthChangeResponse} from '@mattermost/types/users';
 
 export interface PasswordConfig {
     minimumLength: number;

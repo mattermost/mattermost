@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {useFloating, offset} from '@floating-ui/react-dom';
-import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 import classNames from 'classnames';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
 
-import {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
 import {useFormattingBarControls, useGetLatest} from './hooks';
+
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 
 export const Separator = styled.div`
     display: block;

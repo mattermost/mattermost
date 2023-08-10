@@ -4,22 +4,26 @@
 import {
     shallow,
     mount,
-    ShallowRendererProps,
-    MountRendererProps,
 } from 'enzyme';
-import React, {
-    ExoticComponent,
-    ForwardRefExoticComponent,
-    ReactElement,
-} from 'react';
+import React from 'react';
 import {
     createIntl,
-    injectIntl,
-    IntlShape,
     IntlProvider,
 } from 'react-intl';
 
 import defaultMessages from 'i18n/en.json';
+
+import type {
+    ShallowRendererProps,
+    MountRendererProps} from 'enzyme';
+import type {
+    ExoticComponent,
+    ForwardRefExoticComponent,
+    ReactElement,
+} from 'react';
+import type {
+    injectIntl,
+    IntlShape} from 'react-intl';
 
 export const defaultIntl = createIntl({
     locale: 'en',

@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import React from 'react';
 
-import {PluginComponent} from 'types/store/plugins';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {PluginComponent} from 'types/store/plugins';
 
 type Props = {
     channel: Channel;

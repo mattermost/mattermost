@@ -1,11 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {OutgoingWebhook} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {IDMappedObjects} from '@mattermost/types/utilities';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -16,6 +11,12 @@ import InstalledOutgoingWebhook, {matchesFilter} from 'components/integrations/i
 
 import {Constants, DeveloperLinks} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 export type Props = {
 

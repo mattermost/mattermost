@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GenericModal} from '@mattermost/components';
 import React, {useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {GenericModal} from '@mattermost/components';
+
 import {closeModal} from 'actions/views/modals';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {isModalOpen} from 'selectors/views/modals';
 
 import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
@@ -18,10 +18,13 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
 
-import {GlobalState} from 'types/store';
 import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
 
-import ThreeDaysLeftTrialCard, {ThreeDaysLeftTrialCardProps} from './three_days_left_trial_modal_card';
+import ThreeDaysLeftTrialCard from './three_days_left_trial_modal_card';
+
+import type {ThreeDaysLeftTrialCardProps} from './three_days_left_trial_modal_card';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {GlobalState} from 'types/store';
 
 import './three_days_left_trial_modal.scss';
 

@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import ManageTimezones from './manage_timezones';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('components/user_settings/display/manage_timezones/manage_timezones', () => {
     const user = {

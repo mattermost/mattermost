@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
 import React from 'react';
 
 import {Posts} from 'mattermost-redux/constants';
@@ -9,7 +8,8 @@ import {Posts} from 'mattermost-redux/constants';
 import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
 import PostMessageView from 'components/post_view/post_message_view';
 
-import {PluginsState} from 'types/store/plugins';
+import type {Post} from '@mattermost/types/posts';
+import type {PluginsState} from 'types/store/plugins';
 
 type Props = {
     id?: string;

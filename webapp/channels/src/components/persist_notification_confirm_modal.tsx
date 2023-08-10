@@ -1,20 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GenericModal} from '@mattermost/components';
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 import React, {memo, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {GenericModal} from '@mattermost/components';
+
 import {getPersistentNotificationIntervalMinutes, getPersistentNotificationMaxRecipients} from 'mattermost-redux/selectors/entities/posts';
 
-import {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 import {makeGetUserOrGroupMentionCountFromMessage} from 'utils/post_utils';
 
 import {HasNoMentions, HasSpecialMentions} from './post_priority/error_messages';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {GlobalState} from 'types/store';
 
 type Props = {
     currentChannelTeammateUsername?: UserProfile['username'];

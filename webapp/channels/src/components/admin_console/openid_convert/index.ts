@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminConfig} from '@mattermost/types/config';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {updateConfig} from 'mattermost-redux/actions/admin';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import OpenIdConvert from './openid_convert';
+
+import type {AdminConfig} from '@mattermost/types/config';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 type Actions = {
     updateConfig: (config: AdminConfig) => ActionFunc;

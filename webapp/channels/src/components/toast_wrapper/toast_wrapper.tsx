@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape, WrappedComponentProps} from 'react-intl';
-import {RouteComponentProps} from 'react-router-dom';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
 import {Preferences} from 'mattermost-redux/constants';
 
@@ -18,6 +17,9 @@ import {isToday} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {isIdNotPost, getNewMessageIndex} from 'utils/post_utils';
 import {localizeMessage} from 'utils/utils';
+
+import type {IntlShape, WrappedComponentProps} from 'react-intl';
+import type {RouteComponentProps} from 'react-router-dom';
 
 const TOAST_TEXT_COLLAPSE_WIDTH = 500;
 

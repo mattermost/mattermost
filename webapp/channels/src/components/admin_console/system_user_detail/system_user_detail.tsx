@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from '@mattermost/types/errors';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {Overlay} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
-import {Redirect, RouteComponentProps} from 'react-router-dom';
+import {Redirect} from 'react-router-dom';
+
+import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {adminResetMfa, adminResetEmail} from 'actions/admin_actions.jsx';
-import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import AdminButtonOutline from 'components/admin_console/admin_button_outline/admin_button_outline';
 import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
@@ -31,6 +29,11 @@ import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import {Constants} from 'utils/constants';
 import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RouteComponentProps} from 'react-router-dom';
 
 import './system_user_detail.scss';
 

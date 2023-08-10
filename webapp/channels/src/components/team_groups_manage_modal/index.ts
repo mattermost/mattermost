@@ -1,20 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Group, SyncablePatch, SyncableType} from '@mattermost/types/groups';
-import {GlobalState} from '@mattermost/types/store';
-import {TeamMembership} from '@mattermost/types/teams';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {closeModal, openModal} from 'actions/views/modals';
 import {getGroupsAssociatedToTeam, unlinkGroupSyncable, patchGroupSyncable} from 'mattermost-redux/actions/groups';
 import {getMyTeamMembers} from 'mattermost-redux/actions/teams';
-import {Action} from 'mattermost-redux/types/actions';
 
-import {ModalData} from 'types/actions';
+import {closeModal, openModal} from 'actions/views/modals';
 
 import TeamGroupsManageModal from './team_groups_manage_modal';
+
+import type {Group, SyncablePatch, SyncableType} from '@mattermost/types/groups';
+import type {GlobalState} from '@mattermost/types/store';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {Action} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {ModalData} from 'types/actions';
 
 type OwnProps = {
     teamID: string;

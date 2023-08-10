@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, ShallowWrapper} from 'enzyme';
+import {shallow} from 'enzyme';
 import React from 'react';
 
 import FilesFilterMenu from 'components/search_results/files_filter_menu';
+
+import type {ShallowWrapper} from 'enzyme';
 
 describe('components/search_results/FilesFilterMenu', () => {
     const filters = ['all', 'documents', 'spreadsheets', 'presentations', 'code', 'images', 'audio', 'video'];

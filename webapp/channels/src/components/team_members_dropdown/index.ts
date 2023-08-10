@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {removeUserFromTeamAndGetStats} from 'actions/team_actions';
 import {getChannelStats} from 'mattermost-redux/actions/channels';
 import {
     getMyTeamMembers,
@@ -18,9 +16,14 @@ import {getUser, updateUserActive} from 'mattermost-redux/actions/users';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import {removeUserFromTeamAndGetStats} from 'actions/team_actions';
 
 import TeamMembersDropdown from './team_members_dropdown';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
 
 function mapStateToProps(state: GlobalState) {
     return {

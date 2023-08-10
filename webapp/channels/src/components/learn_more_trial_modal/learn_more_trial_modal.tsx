@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GenericModal} from '@mattermost/components';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {closeModal} from 'actions/views/modals';
+import {GenericModal} from '@mattermost/components';
+
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {trackEvent} from 'actions/telemetry_actions';
+import {closeModal} from 'actions/views/modals';
 
 import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
@@ -23,8 +24,11 @@ import ExternalLink from 'components/external_link';
 
 import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
-import LearnMoreTrialModalStep, {LearnMoreTrialModalStepProps} from './learn_more_trial_modal_step';
+import LearnMoreTrialModalStep from './learn_more_trial_modal_step';
 import StartTrialBtn from './start_trial_btn';
+
+import type {LearnMoreTrialModalStepProps} from './learn_more_trial_modal_step';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import './learn_more_trial_modal.scss';
 

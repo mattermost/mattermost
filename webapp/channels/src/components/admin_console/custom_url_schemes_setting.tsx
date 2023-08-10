@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import PropTypes from 'prop-types';
-import React, {ChangeEvent, PureComponent} from 'react';
+import React, {PureComponent} from 'react';
 
 import LocalizedInput from 'components/localized_input/localized_input';
 
@@ -10,6 +10,8 @@ import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import Setting from './setting';
+
+import type {ChangeEvent} from 'react';
 
 type Props = {
     id: string;

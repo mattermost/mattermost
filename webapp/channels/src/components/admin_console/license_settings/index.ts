@@ -1,25 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {StatusOK} from '@mattermost/types/client4';
-import {ServerError} from '@mattermost/types/errors';
-import {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {requestTrialLicense, upgradeToE0Status, upgradeToE0, restartServer, ping} from 'actions/admin_actions';
-import {openModal} from 'actions/views/modals';
 import {uploadLicense, removeLicense, getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getFilteredUsersStats as selectFilteredUserStats} from 'mattermost-redux/selectors/entities/users';
-import {Action, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
+import {requestTrialLicense, upgradeToE0Status, upgradeToE0, restartServer, ping} from 'actions/admin_actions';
+import {openModal} from 'actions/views/modals';
 
 import LicenseSettings from './license_settings';
+
+import type {StatusOK} from '@mattermost/types/client4';
+import type {ServerError} from '@mattermost/types/errors';
+import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
+import type {Action, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

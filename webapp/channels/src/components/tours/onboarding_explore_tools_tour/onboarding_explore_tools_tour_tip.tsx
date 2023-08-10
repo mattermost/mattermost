@@ -3,7 +3,9 @@
 
 import React from 'react';
 
-import {ChannelsTourTip, ChannelsTourTipProps, TutorialTourName} from 'components/tours';
+import {ChannelsTourTip, TutorialTourName} from 'components/tours';
+
+import type {ChannelsTourTipProps} from 'components/tours';
 
 const OnboardingExploreToolsTourTip = (props: Omit<ChannelsTourTipProps, 'tourCategory'>) => {
     return (

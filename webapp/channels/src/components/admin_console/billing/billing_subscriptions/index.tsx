@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {pageVisited} from 'actions/telemetry_actions';
 import {getCloudSubscription, getCloudProducts, getCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {
     getSubscriptionProduct,
@@ -14,7 +12,8 @@ import {
     getCloudCustomer as selectCloudCustomer,
     getCloudErrors,
 } from 'mattermost-redux/selectors/entities/cloud';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {pageVisited} from 'actions/telemetry_actions';
 
 import DeleteWorkspaceCTA from 'components/admin_console/billing//delete_workspace/delete_workspace_cta';
 import CloudTrialBanner from 'components/admin_console/billing/billing_subscriptions/cloud_trial_banner';
@@ -24,8 +23,6 @@ import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurch
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import BillingSummary from '../billing_summary';
-import PlanDetails from '../plan_details';
 import {isCustomerCardExpired} from 'utils/cloud_utils';
 import {
     CloudProducts,
@@ -46,6 +43,12 @@ import LimitReachedBanner from './limit_reached_banner';
 import Limits from './limits';
 import {ToPaidNudgeBanner} from './to_paid_plan_nudge_banner';
 import {ToYearlyNudgeBanner} from './to_yearly_nudge_banner';
+
+import BillingSummary from '../billing_summary';
+import PlanDetails from '../plan_details';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import './billing_subscriptions.scss';
 

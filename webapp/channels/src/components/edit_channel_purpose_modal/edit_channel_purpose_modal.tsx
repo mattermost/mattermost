@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import React, {ChangeEvent} from 'react';
+import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import type {ChangeEvent} from 'react';
+import type {IntlShape} from 'react-intl';
 
 type Actions = {
     patchChannel: (channelId: string, patch: Partial<Channel>) => Promise<ActionResult>;

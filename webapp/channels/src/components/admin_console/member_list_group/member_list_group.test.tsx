@@ -5,7 +5,7 @@ import {shallow} from 'enzyme';
 import {range} from 'lodash';
 import React from 'react';
 
-import {TestHelper} from '../../../utils/test_helper';
+import {TestHelper} from 'utils/test_helper';
 
 import MemberListGroup from './member_list_group';
 

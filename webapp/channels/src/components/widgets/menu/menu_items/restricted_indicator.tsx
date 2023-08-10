@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useCallback} from 'react';
-import {useIntl, MessageDescriptor} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import FeatureRestrictedModal from 'components/feature_restricted_modal/feature_restricted_modal';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -12,6 +12,8 @@ import Tooltip from 'components/tooltip';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {Constants, LicenseSkus, ModalIdentifiers} from 'utils/constants';
+
+import type {MessageDescriptor} from 'react-intl';
 
 import './restricted_indicator.scss';
 

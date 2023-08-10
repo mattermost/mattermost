@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import {TestHelper} from 'utils/test_helper';
 
 import RhsThread from './rhs_thread';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
 const mockDispatch = jest.fn();
 let mockState: any;

@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/types/files';
-import {Post} from '@mattermost/types/posts';
 import classNames from 'classnames';
 import React, {useEffect, useRef, useState} from 'react';
 import Scrollbars from 'react-custom-scrollbars';
-import {MessageDescriptor, useIntl, FormattedMessage} from 'react-intl';
+import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
 
 import FileSearchResultItem from 'components/file_search_results';
@@ -30,7 +29,11 @@ import FilesFilterMenu from './files_filter_menu';
 import MessageOrFileSelector from './messages_or_files_selector';
 import PostSearchResultsItem from './post_search_results_item';
 import SearchLimitsBanner from './search_limits_banner';
+
 import type {Props} from './types';
+import type {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
+import type {MessageDescriptor} from 'react-intl';
 
 import './search_results.scss';
 

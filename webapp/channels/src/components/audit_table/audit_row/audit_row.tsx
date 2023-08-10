@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Audit} from '@mattermost/types/audits';
-import {GlobalState} from '@mattermost/types/store';
 import React from 'react';
 import {FormattedDate, FormattedTime, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import holders from '../holders';
 import {toTitleCase} from 'utils/utils';
+
+import holders from '../holders';
+
+import type {Audit} from '@mattermost/types/audits';
+import type {GlobalState} from '@mattermost/types/store';
 
 export type Props = {
     audit: Audit;

@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import ChannelsInput from './channels_input';
+
+import type {Channel} from '@mattermost/types/channels';
 
 describe('components/widgets/inputs/ChannelsInput', () => {
     test('should match snapshot', () => {

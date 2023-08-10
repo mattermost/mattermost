@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile as UserProfileRedux} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedDate, FormattedMessage} from 'react-intl';
 
@@ -25,6 +23,9 @@ import * as Utils from 'utils/utils';
 
 import AddMembersButton from './add_members_button';
 import PluggableIntroButtons from './pluggable_intro_buttons';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile as UserProfileRedux} from '@mattermost/types/users';
 
 type Props = {
     currentUserId: string;

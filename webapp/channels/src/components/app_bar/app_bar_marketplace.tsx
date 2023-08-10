@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ViewGridPlusOutlineIcon} from '@mattermost/compass-icons/components';
 import React, {useCallback} from 'react';
 import {Tooltip} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
+
+import {ViewGridPlusOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {openModal} from 'actions/views/modals';
 

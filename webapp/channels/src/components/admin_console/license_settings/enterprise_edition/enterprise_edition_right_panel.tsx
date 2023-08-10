@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ClientLicense} from '@mattermost/types/config';
 import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -11,6 +10,8 @@ import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/w
 import WomanWithCardSvg from 'components/common/svg_images_components/woman_with_card_svg';
 
 import {isEnterpriseOrE20License} from 'utils/license_utils';
+
+import type {ClientLicense} from '@mattermost/types/config';
 
 export interface EnterpriseEditionProps {
     isTrialLicense: boolean;

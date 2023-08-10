@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
 import classNames from 'classnames';
 import React from 'react';
-import {injectIntl, IntlShape} from 'react-intl';
+import {injectIntl} from 'react-intl';
 
 import {imageURLForTeam} from 'utils/utils';
+
+import type {Team} from '@mattermost/types/teams';
+import type {IntlShape} from 'react-intl';
 
 import './team_icon.scss';
 

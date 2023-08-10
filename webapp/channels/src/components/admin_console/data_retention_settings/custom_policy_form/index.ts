@@ -1,16 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    DataRetentionCustomPolicy,
-    CreateDataRetentionCustomPolicy,
-    PatchDataRetentionCustomPolicy,
-} from '@mattermost/types/data_retention';
-import {Team} from '@mattermost/types/teams';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 import {
     getDataRetentionCustomPolicy as fetchPolicy,
     getDataRetentionCustomPolicyTeams as fetchPolicyTeams,
@@ -23,11 +16,20 @@ import {
 } from 'mattermost-redux/actions/admin';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
 import {getTeamsInPolicy} from 'mattermost-redux/selectors/entities/teams';
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
+import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
 import CustomPolicyForm from './custom_policy_form';
+
+import type {
+    DataRetentionCustomPolicy,
+    CreateDataRetentionCustomPolicy,
+    PatchDataRetentionCustomPolicy,
+} from '@mattermost/types/data_retention';
+import type {Team} from '@mattermost/types/teams';
+import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type Actions = {
     fetchPolicy: (id: string) => Promise<{ data: DataRetentionCustomPolicy }>;

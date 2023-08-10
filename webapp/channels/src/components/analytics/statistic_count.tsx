@@ -2,8 +2,10 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {ReactNode} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import type {ReactNode} from 'react';
 
 type Props = {
     title: ReactNode;

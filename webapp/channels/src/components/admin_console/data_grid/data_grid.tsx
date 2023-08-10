@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {CSSProperties} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {FilterOptions} from 'components/admin_console/filter/filter';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -13,6 +12,9 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import DataGridHeader from './data_grid_header';
 import DataGridRow from './data_grid_row';
 import DataGridSearch from './data_grid_search';
+
+import type {FilterOptions} from 'components/admin_console/filter/filter';
+import type {CSSProperties} from 'react';
 
 import './data_grid.scss';
 

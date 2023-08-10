@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
 import AutocompleteSelector from 'components/autocomplete_selector';
@@ -12,6 +10,8 @@ import GenericUserProvider from 'components/suggestion/generic_user_provider';
 import MenuActionProvider from 'components/suggestion/menu_action_provider';
 
 import type {OwnProps, PropsFromRedux} from './index';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 type Option = {
     text: string;

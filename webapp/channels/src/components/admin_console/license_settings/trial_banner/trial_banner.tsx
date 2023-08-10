@@ -1,26 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PreferenceType} from '@mattermost/types/preferences';
-import React, {useEffect, useState, ReactNode} from 'react';
+import React, {useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
 import store from 'stores/redux_store.jsx';
 
 import AlertBanner from 'components/alert_banner';
 import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
-import {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {GlobalState} from 'types/store';
 import {AboutLinks, LicenseLinks, Preferences, Unique} from 'utils/constants';
 import {format} from 'utils/markdown';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
+import type {ReactNode} from 'react';
+import type {GlobalState} from 'types/store';
 
 interface TrialBannerProps {
     isDisabled: boolean;

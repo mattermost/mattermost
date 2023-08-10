@@ -1,15 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Role} from '@mattermost/types/roles';
-import {UserProfile} from '@mattermost/types/users';
 import {uniq, difference} from 'lodash';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import SaveChangesPanel from 'components/admin_console/team_channel_settings/save_changes_panel';
@@ -22,7 +19,12 @@ import Constants from 'utils/constants';
 
 import SystemRolePermissions from './system_role_permissions';
 import SystemRoleUsers from './system_role_users';
-import {PermissionToUpdate, PermissionsToUpdate, writeAccess} from './types';
+import {writeAccess} from './types';
+
+import type {PermissionToUpdate, PermissionsToUpdate} from './types';
+import type {Role} from '@mattermost/types/roles';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 type Props = {
     role: Role;

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -13,6 +12,8 @@ import SearchIcon from 'components/widgets/icons/search_icon';
 
 import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
 const LDAP_GROUPS_PAGE_SIZE = 200;
 

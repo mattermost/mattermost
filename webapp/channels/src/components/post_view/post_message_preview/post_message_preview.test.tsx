@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelType} from '@mattermost/types/channels';
-import {Post, PostEmbed} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
 
-import PostMessagePreview, {Props} from './post_message_preview';
+import PostMessagePreview from './post_message_preview';
+
+import type {Props} from './post_message_preview';
+import type {ChannelType} from '@mattermost/types/channels';
+import type {Post, PostEmbed} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('PostMessagePreview', () => {
     const previewPost = {

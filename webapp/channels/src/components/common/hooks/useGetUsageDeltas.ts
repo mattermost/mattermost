@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CloudUsage} from '@mattermost/types/cloud';
 import {useMemo} from 'react';
 
 import useGetLimits from './useGetLimits';
 import useGetUsage from './useGetUsage';
+
+import type {CloudUsage} from '@mattermost/types/cloud';
 
 // Returns an object of type CloudUsage with the values being the delta between the limit, and the actual usage of this installation.
 // A value < 0 means that they are NOT over the limit. A value > 0 means they've exceeded that limit

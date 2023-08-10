@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
 import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -18,12 +16,15 @@ import UserProfileComponent from 'components/user_profile';
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 import Avatar from 'components/widgets/users/avatar';
 
-import PostAttachmentContainer from '../post_attachment_container/post_attachment_container';
 import {Constants} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import {OwnProps} from './index';
+import PostAttachmentContainer from '../post_attachment_container/post_attachment_container';
+
+import type {OwnProps} from './index';
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
 export type Props = OwnProps & {
     previewPost?: Post;

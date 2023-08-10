@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SelfHostedSignupForm, SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
-import {DeepPartial} from '@mattermost/types/utilities';
 import moment from 'moment-timezone';
 import React from 'react';
+
+import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {
@@ -13,11 +13,15 @@ import {
     screen,
     waitFor,
 } from 'tests/react_testing_utils';
-import {GlobalState} from 'types/store';
 import {SelfHostedProducts, ModalIdentifiers, RecurringIntervals} from 'utils/constants';
 import {TestHelper as TH} from 'utils/test_helper';
 
-import SelfHostedExpansionModal, {makeInitialState, canSubmit, FormState} from './';
+import SelfHostedExpansionModal, {makeInitialState, canSubmit} from './';
+
+import type {FormState} from './';
+import type {SelfHostedSignupForm} from '@mattermost/types/hosted_customer';
+import type {DeepPartial} from '@mattermost/types/utilities';
+import type {GlobalState} from 'types/store';
 
 interface MockCardInputProps {
     onCardInputChange: (event: {complete: boolean}) => void;

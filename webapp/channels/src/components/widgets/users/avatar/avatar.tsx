@@ -2,13 +2,15 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, HTMLAttributes} from 'react';
-
-import './avatar.scss';
+import React, {memo} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
 import BotDefaultIcon from 'images/bot_default_icon.png';
+
+import type {HTMLAttributes} from 'react';
+
+import './avatar.scss';
 
 export type TAvatarSizeToken = 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
 

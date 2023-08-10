@@ -3,11 +3,13 @@
 
 import classNames from 'classnames';
 import Popper from 'popper.js';
-import React, {RefObject, CSSProperties} from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
+
+import type {RefObject, CSSProperties} from 'react';
 
 import './link_tooltip.scss';
 

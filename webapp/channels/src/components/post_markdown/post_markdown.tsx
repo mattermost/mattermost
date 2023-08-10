@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-import {Team} from '@mattermost/types/teams';
 import memoize from 'memoize-one';
 import React from 'react';
 
@@ -11,9 +8,12 @@ import {Posts} from 'mattermost-redux/constants';
 
 import Markdown from 'components/markdown';
 
-import {MentionKey, TextFormattingOptions} from 'utils/text_formatting';
-
 import {renderReminderSystemBotMessage, renderSystemMessage} from './system_message_helpers';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
+import type {MentionKey, TextFormattingOptions} from 'utils/text_formatting';
 
 type Props = {
 

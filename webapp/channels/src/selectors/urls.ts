@@ -1,10 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-import {Team} from '@mattermost/types/teams';
-
 import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {
     getCurrentRelativeTeamUrl,
@@ -13,8 +9,12 @@ import {
     getTeam,
 } from 'mattermost-redux/selectors/entities/teams';
 
-import {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
+import type {GlobalState} from 'types/store';
 
 function getTeamRelativeUrl(team: Team | undefined) {
     if (!team) {

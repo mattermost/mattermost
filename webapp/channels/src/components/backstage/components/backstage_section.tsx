@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
+import React from 'react';
 import {NavLink} from 'react-router-dom';
+
+import type {ReactNode} from 'react';
 
 type Props = {
     name: string;

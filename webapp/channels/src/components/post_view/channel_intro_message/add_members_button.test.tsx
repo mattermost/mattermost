@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import {mount} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
@@ -11,6 +10,8 @@ import * as teams from 'mattermost-redux/selectors/entities/teams';
 import mockStore from 'tests/test_store';
 
 import AddMembersButton from './add_members_button';
+
+import type {Channel} from '@mattermost/types/channels';
 
 describe('components/post_view/AddMembersButton', () => {
     const channel = {

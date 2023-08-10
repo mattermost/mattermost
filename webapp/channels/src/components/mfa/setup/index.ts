@@ -1,16 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {activateMfa, generateMfaSecret} from 'actions/views/mfa';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+
+import {activateMfa, generateMfaSecret} from 'actions/views/mfa';
 
 import Setup from './setup';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

@@ -1,27 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Bot} from '@mattermost/types/bots';
-import {CategorySorting, ChannelCategory} from '@mattermost/types/channel_categories';
-import {Channel, ChannelMembership, ChannelNotifyProps, ChannelWithTeamData} from '@mattermost/types/channels';
-import {Invoice, Product, Subscription, CloudCustomer} from '@mattermost/types/cloud';
-import {ClientLicense} from '@mattermost/types/config';
-import {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
-import {FileInfo} from '@mattermost/types/files';
-import {Group} from '@mattermost/types/groups';
-import {Command, IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
-import {Post} from '@mattermost/types/posts';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {Reaction} from '@mattermost/types/reactions';
-import {Role} from '@mattermost/types/roles';
-import {Session} from '@mattermost/types/sessions';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {UserProfile, UserAccessToken} from '@mattermost/types/users';
+import {CategorySorting} from '@mattermost/types/channel_categories';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {ProductComponent} from 'types/store/plugins';
+import type {Bot} from '@mattermost/types/bots';
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import type {Channel, ChannelMembership, ChannelNotifyProps, ChannelWithTeamData} from '@mattermost/types/channels';
+import type {Invoice, Product, Subscription, CloudCustomer} from '@mattermost/types/cloud';
+import type {ClientLicense} from '@mattermost/types/config';
+import type {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
+import type {FileInfo} from '@mattermost/types/files';
+import type {Group} from '@mattermost/types/groups';
+import type {Command, IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Post} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {Role} from '@mattermost/types/roles';
+import type {Session} from '@mattermost/types/sessions';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
+import type {ProductComponent} from 'types/store/plugins';
 
 export class TestHelper {
     public static getUserMock(override: Partial<UserProfile> = {}): UserProfile {

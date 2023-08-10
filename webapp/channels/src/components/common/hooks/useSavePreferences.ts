@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PreferenceType} from '@mattermost/types/preferences';
 import {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 type MinimalPreferenceType = Omit<PreferenceType, 'user_id'>
 export default function useSavePreferences(): (preferences: MinimalPreferenceType | MinimalPreferenceType[]) => void {

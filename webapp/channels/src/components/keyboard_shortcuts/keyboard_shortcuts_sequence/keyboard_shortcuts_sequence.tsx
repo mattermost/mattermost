@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FormatXMLElementFn, PrimitiveType} from 'intl-messageformat';
 import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -9,7 +8,10 @@ import {ShortcutKeyVariant, ShortcutKey} from 'components/shortcut_key';
 
 import {isMac} from 'utils/user_agent';
 
-import {isMessageDescriptor, KeyboardShortcutDescriptor} from './keyboard_shortcuts';
+import {isMessageDescriptor} from './keyboard_shortcuts';
+
+import type {KeyboardShortcutDescriptor} from './keyboard_shortcuts';
+import type {FormatXMLElementFn, PrimitiveType} from 'intl-messageformat';
 
 import './keyboard_shortcuts_sequence.scss';
 

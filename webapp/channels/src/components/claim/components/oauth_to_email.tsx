@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AuthChangeResponse} from '@mattermost/types/users';
 import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -12,9 +11,12 @@ import LocalizedInput from 'components/localized_input/localized_input';
 
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
-import {getPasswordConfig, isValidPassword, localizeMessage, toTitleCase} from 'utils/utils';
+import {isValidPassword, localizeMessage, toTitleCase} from 'utils/utils';
 
 import ErrorLabel from './error_label';
+
+import type {AuthChangeResponse} from '@mattermost/types/users';
+import type {getPasswordConfig} from 'utils/utils';
 
 type Props = {
     currentType: string | null;

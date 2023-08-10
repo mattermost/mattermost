@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChevronRightIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
-import {Post} from '@mattermost/types/posts';
 import React, {memo} from 'react';
 import {FormattedMessage, FormattedDate, FormattedTime, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {openModal} from 'actions/views/modals';
+import {ChevronRightIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
+
 import {addPostReminder} from 'mattermost-redux/actions/posts';
+
+import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
 import PostReminderCustomTimePicker from 'components/post_reminder_custom_time_picker_modal';
@@ -16,6 +17,8 @@ import PostReminderCustomTimePicker from 'components/post_reminder_custom_time_p
 import {ModalIdentifiers} from 'utils/constants';
 import {toUTCUnix} from 'utils/datetime';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
+
+import type {Post} from '@mattermost/types/posts';
 
 type Props = {
     userId: string;

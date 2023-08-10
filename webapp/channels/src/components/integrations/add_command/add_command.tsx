@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Command} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
-import {ActionResult} from 'mattermost-redux/types/actions.js';
 import React, {useState} from 'react';
-import {useIntl, MessageDescriptor} from 'react-intl';
+import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
 import AbstractCommand from '../abstract_command';
+
+import type {Command} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+import type {ActionResult} from 'mattermost-redux/types/actions.js';
+import type {MessageDescriptor} from 'react-intl';
 
 export type Props = {
 

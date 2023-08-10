@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserAutocomplete} from '@mattermost/types/autocomplete';
-import {UserProfile} from '@mattermost/types/users';
 import React, {useCallback, useRef} from 'react';
 
 import Setting from 'components/admin_console/setting';
 import GenericUserProvider from 'components/suggestion/generic_user_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
+
+import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {UserProfile} from '@mattermost/types/users';
 
 export type Props = {
     id: string;

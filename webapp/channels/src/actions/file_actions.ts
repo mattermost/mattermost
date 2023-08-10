@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from '@mattermost/types/errors';
-import {FileInfo} from '@mattermost/types/files';
 import {batchActions} from 'redux-batched-actions';
 
 import {FileTypes} from 'mattermost-redux/action_types';
 import {getLogErrorAction} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
-import {FilePreviewInfo} from 'components/file_preview/file_preview';
 
 import {localizeMessage} from 'utils/utils';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo} from '@mattermost/types/files';
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 export interface UploadFile {
     file: File;

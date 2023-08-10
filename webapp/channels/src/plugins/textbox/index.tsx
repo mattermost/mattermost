@@ -4,7 +4,8 @@
 import React from 'react';
 
 import Textbox from 'components/textbox';
-import BaseTextbox from 'components/textbox/textbox';
+
+import type BaseTextbox from 'components/textbox/textbox';
 
 type Props = Omit<React.ComponentPropsWithRef<typeof Textbox>, 'suggestionListPosition'> & {
     suggestionListStyle?: React.ComponentPropsWithRef<typeof Textbox>['suggestionListPosition'];

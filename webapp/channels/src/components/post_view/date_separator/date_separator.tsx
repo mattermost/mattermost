@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import PropTypes from 'prop-types';
-import React, {FC, memo} from 'react';
+import React, {memo} from 'react';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import BasicSeparator from 'components/widgets/separator/basic-separator';
+
+import type {FC} from 'react';
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,

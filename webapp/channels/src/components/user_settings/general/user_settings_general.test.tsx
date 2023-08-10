@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {Provider} from 'react-redux';
 
@@ -9,7 +8,10 @@ import configureStore from 'store';
 import {shallowWithIntl, mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
-import UserSettingsGeneral, {UserSettingsGeneralTab} from './user_settings_general';
+import UserSettingsGeneral from './user_settings_general';
+
+import type {UserSettingsGeneralTab} from './user_settings_general';
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('components/user_settings/general/UserSettingsGeneral', () => {
     const user: UserProfile = TestHelper.getUserMock({

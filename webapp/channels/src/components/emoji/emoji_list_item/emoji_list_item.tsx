@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CustomEmoji} from '@mattermost/types/emojis';
 import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';
 
 import DeleteEmojiButton from './delete_emoji_button';
+
+import type {CustomEmoji} from '@mattermost/types/emojis';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 export type Props = {
     emoji: CustomEmoji;

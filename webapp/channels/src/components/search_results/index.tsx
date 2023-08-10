@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileSearchResultItem} from '@mattermost/types/files';
-import {Post} from '@mattermost/types/posts';
 import {connect} from 'react-redux';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -11,6 +9,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getSearchMatches, getSearchResults} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentSearchForCurrentTeam} from 'mattermost-redux/selectors/entities/search';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+
 import {
     getSearchResultsTerms,
     getIsSearchingTerm,
@@ -19,10 +18,12 @@ import {
     getIsSearchGettingMore,
 } from 'selectors/rhs';
 
-import {GlobalState} from 'types/store';
-
 import SearchResults from './search_results';
-import {StateProps, OwnProps} from './types';
+
+import type {StateProps, OwnProps} from './types';
+import type {FileSearchResultItem} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
+import type {GlobalState} from 'types/store';
 
 function makeMapStateToProps() {
     let results: Post[];

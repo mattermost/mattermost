@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Scheme} from '@mattermost/types/schemes';
 import {shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
-import {RouteComponentProps} from 'react-router-dom';
+import React from 'react';
 
 import PermissionSchemesSettings from 'components/admin_console/permission_schemes_settings/permission_schemes_settings';
+
+import type {Scheme} from '@mattermost/types/schemes';
+import type {ComponentProps} from 'react';
+import type {RouteComponentProps} from 'react-router-dom';
 
 describe('components/admin_console/permission_schemes_settings/permission_schemes_settings', () => {
     const defaultProps: ComponentProps<typeof PermissionSchemesSettings> = {

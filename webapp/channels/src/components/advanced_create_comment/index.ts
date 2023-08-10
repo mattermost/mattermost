@@ -1,24 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PreferenceType} from '@mattermost/types/preferences';
-import {ActionFunc, ActionResult, DispatchFunc} from 'mattermost-redux/types/actions.js';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-import {ModalData} from 'types/actions.js';
-import {GlobalState} from 'types/store/index.js';
+import {bindActionCreators} from 'redux';
 
-import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
-import {
-    clearCommentDraftUploads,
-    updateCommentDraft,
-    makeOnMoveHistoryIndex,
-    makeOnSubmit,
-    makeOnEditLatestPost,
-} from 'actions/views/create_comment';
-import {searchAssociatedGroupsForReference} from 'actions/views/group';
-import {openModal} from 'actions/views/modals';
-import {setShowPreviewOnCreateComment} from 'actions/views/textbox';
 import {getChannelTimezones, getChannelMemberCountsByGroup} from 'mattermost-redux/actions/channels';
 import {resetCreatePostRequest, resetHistoryIndex} from 'mattermost-redux/actions/posts';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -31,16 +16,34 @@ import {makeGetMessageInHistoryItem} from 'mattermost-redux/selectors/entities/p
 import {getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+
+import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {
+    clearCommentDraftUploads,
+    updateCommentDraft,
+    makeOnMoveHistoryIndex,
+    makeOnSubmit,
+    makeOnEditLatestPost,
+} from 'actions/views/create_comment';
+import {searchAssociatedGroupsForReference} from 'actions/views/group';
+import {openModal} from 'actions/views/modals';
+import {setShowPreviewOnCreateComment} from 'actions/views/textbox';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getPostDraft, getIsRhsExpanded, getSelectedPostFocussedAt} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import {showPreviewOnCreateComment} from 'selectors/views/textbox';
 
-import {PostDraft} from 'types/store/draft';
 import {AdvancedTextEditor, Constants, StoragePrefixes} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
 
 import AdvancedCreateComment from './advanced_create_comment';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {ActionFunc, ActionResult, DispatchFunc} from 'mattermost-redux/types/actions.js';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {ModalData} from 'types/actions.js';
+import type {PostDraft} from 'types/store/draft';
+import type {GlobalState} from 'types/store/index.js';
 
 type OwnProps = {
     rootId: string;

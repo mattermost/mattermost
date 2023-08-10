@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {partition} from 'lodash';
-import React, {ReactNode} from 'react';
+import React from 'react';
 import {useSelector} from 'react-redux';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {getAppBarAppBindings} from 'mattermost-redux/selectors/entities/apps';
 import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
+
 import {getAppBarPluginComponents, getChannelHeaderPluginComponents, shouldShowAppBar} from 'selectors/plugins';
 
 import {suitePluginIds} from 'utils/constants';
@@ -18,6 +18,9 @@ import {useCurrentProduct, useCurrentProductId, inScope} from 'utils/products';
 import AppBarBinding, {isAppBinding} from './app_bar_binding';
 import AppBarMarketplace from './app_bar_marketplace';
 import AppBarPluginComponent, {isAppBarPluginComponent} from './app_bar_plugin_component';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {ReactNode} from 'react';
 
 import './app_bar.scss';
 

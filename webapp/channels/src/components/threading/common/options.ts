@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ComponentProps} from 'react';
-
-import Timestamp from 'components/timestamp';
+import type Timestamp from 'components/timestamp';
+import type {ComponentProps} from 'react';
 
 export const THREADING_TIME: Partial<ComponentProps<typeof Timestamp>> = {
     units: [

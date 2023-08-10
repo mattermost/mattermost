@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SyncableType} from '@mattermost/types/groups';
 import {shallow} from 'enzyme';
 import React from 'react';
+
+import {SyncableType} from '@mattermost/types/groups';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal/add_groups_to_team_modal';
 

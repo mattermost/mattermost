@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CloudUsage, Limits} from '@mattermost/types/cloud';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Message} from 'utils/i18n';
 import {asGBString, inK} from 'utils/limits';
 
 import LimitLine from './limit_line';
+
+import type {CloudUsage, Limits} from '@mattermost/types/cloud';
+import type {Message} from 'utils/i18n';
 
 export function messageToElement(x: Message | React.ReactNode): React.ReactNode {
     if (Object.prototype.hasOwnProperty.call(x, 'defaultMessage')) {

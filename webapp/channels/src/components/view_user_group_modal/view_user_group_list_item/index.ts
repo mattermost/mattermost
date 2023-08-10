@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {removeUsersFromGroup} from 'mattermost-redux/actions/groups';
 import {Permissions} from 'mattermost-redux/constants';
 import {getGroup as getGroupById} from 'mattermost-redux/selectors/entities/groups';
 import {haveIGroupPermission} from 'mattermost-redux/selectors/entities/roles';
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from 'types/store';
 
 import ViewUserGroupListItem from './view_user_group_list_item';
+
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type Actions = {
     removeUsersFromGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;

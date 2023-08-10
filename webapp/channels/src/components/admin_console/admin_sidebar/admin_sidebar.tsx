@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PluginRedux} from '@mattermost/types/plugins';
 import classNames from 'classnames';
 import isEqual from 'lodash/isEqual';
 import React from 'react';
 import Scrollbars from 'react-custom-scrollbars';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
 import AdminSidebarCategory from 'components/admin_console/admin_sidebar/admin_sidebar_category';
 import AdminSidebarSection from 'components/admin_console/admin_sidebar/admin_sidebar_section';
@@ -15,12 +14,15 @@ import Highlight from 'components/admin_console/highlight';
 import QuickInput from 'components/quick_input';
 import SearchIcon from 'components/widgets/icons/search_icon';
 
-import AdminDefinition from '../admin_definition';
-import {generateIndex, Index} from 'utils/admin_console_index';
+import {generateIndex} from 'utils/admin_console_index';
 import {getHistory} from 'utils/browser_history';
 import {localizeMessage} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
+import type AdminDefinition from '../admin_definition';
+import type {PluginRedux} from '@mattermost/types/plugins';
+import type {IntlShape} from 'react-intl';
+import type {Index} from 'utils/admin_console_index';
 
 export interface Props extends PropsFromRedux {
     intl: IntlShape;

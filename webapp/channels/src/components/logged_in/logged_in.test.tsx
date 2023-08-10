@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import * as GlobalActions from 'actions/global_actions';
 import BrowserStore from 'stores/browser_store';
 
-import LoggedIn, {Props} from 'components/logged_in/logged_in';
+import LoggedIn from 'components/logged_in/logged_in';
+
+import type {UserProfile} from '@mattermost/types/users';
+import type {Props} from 'components/logged_in/logged_in';
 
 jest.mock('actions/websocket_actions.jsx', () => ({
     initialize: jest.fn(),

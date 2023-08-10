@@ -3,10 +3,11 @@
 
 import nock from 'nock';
 
-import {emitChannelClickEvent} from 'actions/global_actions';
 import {getChannelByNameAndTeamName, getChannelMember, joinChannel} from 'mattermost-redux/actions/channels';
 import {getUserByEmail} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
+
+import {emitChannelClickEvent} from 'actions/global_actions';
 
 import {
     goToChannelByChannelName,

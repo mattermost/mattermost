@@ -2,9 +2,10 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {CSSProperties} from 'react';
+import React from 'react';
 
-import {Row, Column} from './data_grid';
+import type {Row, Column} from './data_grid';
+import type {CSSProperties} from 'react';
 
 import './data_grid.scss';
 

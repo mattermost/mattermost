@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {
     clearUserAccessTokens,
@@ -13,9 +12,12 @@ import {
     enableUserAccessToken,
     disableUserAccessToken,
 } from 'mattermost-redux/actions/users';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import UserAccessTokenSection from './user_access_token_section';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 type Actions = {
     getUserAccessTokensForUser: (userId: string, page: number, perPage: number) => void;

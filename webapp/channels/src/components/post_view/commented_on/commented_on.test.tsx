@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import CommentedOn from 'components/post_view/commented_on/commented_on';
 import CommentedOnFilesMessage from 'components/post_view/commented_on_files_message';
+
+import type {Post} from '@mattermost/types/posts';
 
 describe('components/post_view/CommentedOn', () => {
     const baseProps = {

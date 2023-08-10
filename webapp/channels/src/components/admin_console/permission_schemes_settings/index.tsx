@@ -2,16 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {getSchemeTeams as loadSchemeTeams, getSchemes as loadSchemes} from 'mattermost-redux/actions/schemes';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getSchemes} from 'mattermost-redux/selectors/entities/schemes';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
+import PermissionSchemesSettings from './permission_schemes_settings';
 
-import PermissionSchemesSettings, {Props} from './permission_schemes_settings';
+import type {Props} from './permission_schemes_settings';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const schemes = getSchemes(state);

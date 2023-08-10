@@ -3,9 +3,10 @@
 
 import React from 'react';
 
-import EmojiMap from 'utils/emoji_map';
 import * as Markdown from 'utils/markdown';
 import {getSiteURL} from 'utils/url';
+
+import type EmojiMap from 'utils/emoji_map';
 
 type Props = {
     id: string;

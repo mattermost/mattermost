@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
-import {UserCustomStatus, UserProfile} from '@mattermost/types/users';
 import classNames from 'classnames';
-import React, {MouseEvent, ReactNode, RefObject} from 'react';
+import React from 'react';
 import {Overlay} from 'react-bootstrap';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
@@ -18,7 +16,7 @@ import CustomStatusText from 'components/custom_status/custom_status_text';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import LocalizedIcon from 'components/localized_icon';
 import Markdown from 'components/markdown';
-import OverlayTrigger, {BaseOverlayTrigger} from 'components/overlay_trigger';
+import OverlayTrigger from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import StatusIcon from 'components/status_icon';
@@ -32,8 +30,6 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 
 import CallButton from 'plugins/call_button';
 import ChannelHeaderPlug from 'plugins/channel_header_plug';
-import {ModalData} from 'types/actions';
-import {RhsState} from 'types/store/rhs';
 import {
     Constants,
     ModalIdentifiers,
@@ -45,6 +41,14 @@ import {handleFormattedTextClick, localizeMessage, isEmptyObject, toTitleCase} f
 
 import ChannelInfoButton from './channel_info_button';
 import HeaderIconWrapper from './components/header_icon_wrapper';
+
+import type {Channel, ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
+import type {UserCustomStatus, UserProfile} from '@mattermost/types/users';
+import type {BaseOverlayTrigger} from 'components/overlay_trigger';
+import type {MouseEvent, ReactNode, RefObject} from 'react';
+import type {IntlShape} from 'react-intl';
+import type {ModalData} from 'types/actions';
+import type {RhsState} from 'types/store/rhs';
 
 const headerMarkdownOptions = {singleline: true, mentionHighlight: false, atMentions: true};
 const popoverMarkdownOptions = {singleline: false, mentionHighlight: false, atMentions: true};

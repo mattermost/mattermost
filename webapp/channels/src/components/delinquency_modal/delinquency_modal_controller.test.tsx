@@ -5,6 +5,7 @@ import React from 'react';
 import * as reactRedux from 'react-redux';
 
 import * as cloudActions from 'mattermost-redux/actions/cloud';
+
 import * as StorageSelectors from 'selectors/storage';
 
 import ModalController from 'components/modal_controller';

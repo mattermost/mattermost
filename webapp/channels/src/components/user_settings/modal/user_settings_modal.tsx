@@ -1,15 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {StatusOK} from '@mattermost/types/client4';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import ReactDOM from 'react-dom';
 import {
     defineMessages,
     injectIntl,
-    IntlShape,
 } from 'react-intl';
 import {Provider} from 'react-redux';
 
@@ -21,6 +18,11 @@ import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as NotificationSounds from 'utils/notification_sounds';
 import * as Utils from 'utils/utils';
+
+import type {StatusOK} from '@mattermost/types/client4';
+import type {UserProfile} from '@mattermost/types/users';
+import type {
+    IntlShape} from 'react-intl';
 
 const UserSettings = React.lazy(() => import(/* webpackPrefetch: true */ 'components/user_settings'));
 const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ '../../settings_sidebar'));

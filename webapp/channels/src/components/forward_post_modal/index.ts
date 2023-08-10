@@ -1,17 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-import {connect, ConnectedProps} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {joinChannelById, switchToChannel} from 'actions/views/channel';
 import {forwardPost} from 'actions/views/posts';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import ForwardPostModal from './forward_post_modal';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import type {ConnectedProps} from 'react-redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 

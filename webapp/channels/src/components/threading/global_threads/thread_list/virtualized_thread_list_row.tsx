@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserThread} from '@mattermost/types/threads';
 import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {areEqual} from 'react-window';
@@ -13,8 +12,11 @@ import {NoResultsLayout} from 'components/no_results_indicator/types';
 import {SearchShortcut} from 'components/search_shortcut/search_shortcut';
 import {ShortcutKeyVariant} from 'components/shortcut_key';
 
-import ThreadItem from '../thread_item';
 import {Constants} from 'utils/constants';
+
+import ThreadItem from '../thread_item';
+
+import type {UserThread} from '@mattermost/types/threads';
 
 type Props = {
     data: {

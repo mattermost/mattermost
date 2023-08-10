@@ -1,22 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GenericModal} from '@mattermost/components';
 import MuiMenuList from '@mui/material/MenuList';
 import React, {
-    ReactNode,
     useState,
-    MouseEvent,
     useEffect,
-    KeyboardEvent,
-    SyntheticEvent,
     useMemo,
     useCallback,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {openModal, closeModal} from 'actions/views/modals';
+import {GenericModal} from '@mattermost/components';
+
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+
+import {openModal, closeModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import CompassDesignProvider from 'components/compass_design_provider';
@@ -28,6 +26,12 @@ import {isKeyPressed} from 'utils/keyboard';
 
 import {MenuContext} from './menu_context';
 import {MuiMenuStyled} from './menu_styled';
+
+import type {
+    ReactNode,
+    MouseEvent,
+    KeyboardEvent,
+    SyntheticEvent} from 'react';
 
 const OVERLAY_TIME_DELAY = 500;
 const MENU_OPEN_ANIMATION_DURATION = 150;

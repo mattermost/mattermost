@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import {ReactComponentLike} from 'prop-types';
-import React, {ReactNode} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import AutosizeTextarea from 'components/autosize_textarea';
@@ -11,6 +10,9 @@ import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
 import Constants from 'utils/constants';
+
+import type {ReactComponentLike} from 'prop-types';
+import type {ReactNode} from 'react';
 
 export type Props = {
 

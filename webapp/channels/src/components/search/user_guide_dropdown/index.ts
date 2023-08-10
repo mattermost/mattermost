@@ -1,16 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect, ConnectedProps} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {openModal} from 'actions/views/modals';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {GenericAction} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from 'types/store';
 
 import UserGuideDropdown from './user_guide_dropdown';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {ConnectedProps} from 'react-redux';
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const {HelpLink, ReportAProblemLink, EnableAskCommunityLink} = getConfig(state);

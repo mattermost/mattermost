@@ -1,12 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelCategory, ChannelCategoryType, CategorySorting} from '@mattermost/types/channel_categories';
-import {Channel, ChannelMembership, ChannelMessageCount} from '@mattermost/types/channels';
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
-import {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
 import shallowEquals from 'shallow-equals';
+
+import {CategorySorting} from '@mattermost/types/channel_categories';
 
 import {General, Preferences} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
@@ -22,6 +19,12 @@ import {
 } from 'mattermost-redux/utils/channel_utils';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
+
+import type {ChannelCategory, ChannelCategoryType} from '@mattermost/types/channel_categories';
+import type {Channel, ChannelMembership, ChannelMessageCount} from '@mattermost/types/channels';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
 
 export function getAllCategoriesByIds(state: GlobalState) {
     return state.entities.channelCategories.byId;

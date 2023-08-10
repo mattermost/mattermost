@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GenericModal} from '@mattermost/components';
 import {shallow} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
+
+import {GenericModal} from '@mattermost/components';
 
 import Carousel from 'components/common/carousel/carousel';
 import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';

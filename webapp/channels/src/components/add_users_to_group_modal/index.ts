@@ -2,17 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {openModal} from 'actions/views/modals';
 import {addUsersToGroup} from 'mattermost-redux/actions/groups';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
-import {Action, ActionResult} from 'mattermost-redux/types/actions';
 
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
+import {openModal} from 'actions/views/modals';
 
 import AddUsersToGroupModal from './add_users_to_group_modal';
+
+import type {Action, ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 type Actions = {
     addUsersToGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;

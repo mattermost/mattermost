@@ -15,7 +15,9 @@ import mockStore from 'tests/test_store';
 import {Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import {MainMenu, Props} from './main_menu';
+import {MainMenu} from './main_menu';
+
+import type {Props} from './main_menu';
 
 describe('components/Menu', () => {
     // Neccessary for components enhanced by HOCs due to issue with enzyme.

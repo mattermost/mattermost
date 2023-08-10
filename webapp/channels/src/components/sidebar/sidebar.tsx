@@ -11,14 +11,12 @@ import CreateUserGroupsModal from 'components/create_user_groups_modal';
 import DataPrefetch from 'components/data_prefetch';
 import EditCategoryModal from 'components/edit_category_modal';
 import InvitationModal from 'components/invitation_modal';
+import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import UserSettingsModal from 'components/user_settings/modal';
 
-import KeyboardShortcutsModal from '../keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import Pluggable from 'plugins/pluggable';
-import {ModalData} from 'types/actions';
-import {RhsState} from 'types/store/rhs';
 import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
@@ -27,6 +25,9 @@ import ChannelNavigator from './channel_navigator';
 import MobileSidebarHeader from './mobile_sidebar_header';
 import SidebarHeader from './sidebar_header';
 import SidebarList from './sidebar_list';
+
+import type {ModalData} from 'types/actions';
+import type {RhsState} from 'types/store/rhs';
 
 type Props = {
     teamId: string;

@@ -1,20 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-
 import ConfirmModal from 'components/confirm_modal';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import MultiSelect, {Value} from 'components/multiselect/multiselect';
+import MultiSelect from 'components/multiselect/multiselect';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {localizeMessage, imageURLForTeam} from 'utils/utils';
+
+import type {Team} from '@mattermost/types/teams';
+import type {Value} from 'components/multiselect/multiselect';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 const TEAMS_PER_PAGE = 50;
 

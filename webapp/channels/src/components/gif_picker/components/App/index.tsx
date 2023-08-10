@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent, ReactNode} from 'react';
+import React, {PureComponent} from 'react';
 import {connect} from 'react-redux';
 
 import {saveAppProps} from 'mattermost-redux/actions/gifs';
 
 import Header from 'components/gif_picker/components/Header';
-import {appProps} from 'components/gif_picker/gif_picker';
+
+import type {appProps} from 'components/gif_picker/gif_picker';
+import type {ReactNode} from 'react';
 
 const mapDispatchToProps = ({
     saveAppProps,

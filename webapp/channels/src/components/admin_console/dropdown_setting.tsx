@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {EmailSettings} from '@mattermost/types/config';
 import PropTypes from 'prop-types';
-import React, {PureComponent, ReactNode, ChangeEvent} from 'react';
+import React, {PureComponent} from 'react';
 
 import Setting from './setting';
+
+import type {EmailSettings} from '@mattermost/types/config';
+import type {ReactNode, ChangeEvent} from 'react';
 
 type Props = {
     id: string;

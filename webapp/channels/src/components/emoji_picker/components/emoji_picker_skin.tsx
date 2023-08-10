@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CloseIcon} from '@mattermost/compass-icons/components';
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
+
+import {CloseIcon} from '@mattermost/compass-icons/components';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
@@ -13,6 +14,8 @@ import Tooltip from 'components/tooltip';
 import imgTrans from 'images/img_trans.gif';
 import {Constants} from 'utils/constants';
 import * as Emoji from 'utils/emoji';
+
+import type {IntlShape} from 'react-intl';
 
 const skinsList = [
     ['raised_hand_with_fingers_splayed_dark_skin_tone', '1F3FF'],

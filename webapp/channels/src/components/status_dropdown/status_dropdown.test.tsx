@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CustomStatusDuration, UserProfile} from '@mattermost/types/users';
 import React from 'react';
+
+import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {fakeDate} from 'tests/helpers/date';
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 import StatusDropdown from './status_dropdown';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('components/StatusDropdown', () => {
     let resetFakeDate: () => void;

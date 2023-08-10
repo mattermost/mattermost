@@ -3,15 +3,16 @@
 
 import React from 'react';
 
-import {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import {clearMarks, mark, measure, trackEvent} from 'actions/telemetry_actions.jsx';
-import type {LoadPostsParameters, LoadPostsReturnValue, CanLoadMorePosts} from 'actions/views/channel';
 
 import LoadingScreen from 'components/loading_screen';
 import VirtPostList from 'components/post_view/post_list_virtualized/post_list_virtualized';
 
 import {PostRequestTypes} from 'utils/constants';
 import {getOldestPostId, getLatestPostId} from 'utils/post_utils';
+
+import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
+import type {LoadPostsParameters, LoadPostsReturnValue, CanLoadMorePosts} from 'actions/views/channel';
 
 const MAX_NUMBER_OF_AUTO_RETRIES = 3;
 export const MAX_EXTRA_PAGES_LOADED = 10;

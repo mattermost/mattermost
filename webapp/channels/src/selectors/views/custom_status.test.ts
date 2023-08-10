@@ -7,6 +7,7 @@ import {Preferences} from 'mattermost-redux/constants';
 import * as GeneralSelectors from 'mattermost-redux/selectors/entities/general';
 import * as PreferenceSelectors from 'mattermost-redux/selectors/entities/preferences';
 import * as UserSelectors from 'mattermost-redux/selectors/entities/users';
+
 import {makeGetCustomStatus, getRecentCustomStatuses, isCustomStatusEnabled, showStatusDropdownPulsatingDot, showPostHeaderUpdateStatusButton} from 'selectors/views/custom_status';
 
 import configureStore from 'store';

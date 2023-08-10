@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, ButtonHTMLAttributes, ReactNode} from 'react';
+import React, {memo} from 'react';
+
+import type {ButtonHTMLAttributes, ReactNode} from 'react';
 
 import './button.scss';
 

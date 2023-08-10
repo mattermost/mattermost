@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PreferenceType} from '@mattermost/types/preferences';
-import React, {ReactNode, RefObject} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Preferences} from 'mattermost-redux/constants';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
-import SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
 
 import {AdvancedSections} from 'utils/constants';
 import {a11yFocus} from 'utils/utils';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import type {ReactNode, RefObject} from 'react';
 
 type Props = {
     active: boolean;

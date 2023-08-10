@@ -5,8 +5,9 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+
+import {trackEvent} from 'actions/telemetry_actions';
 
 import CloudUsageModal from 'components/cloud_usage_modal';
 import useGetLimits from 'components/common/hooks/useGetLimits';
@@ -15,8 +16,10 @@ import useGetUsage from 'components/common/hooks/useGetUsage';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 
 import {TELEMETRY_CATEGORIES} from 'utils/constants';
-import {t, Message} from 'utils/i18n';
+import {t} from 'utils/i18n';
 import {LimitTypes} from 'utils/limits';
+
+import type {Message} from 'utils/i18n';
 
 import './delinquency_modal.scss';
 

@@ -1,10 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import React, {ComponentType, useRef} from 'react';
-import {match, Route, Switch} from 'react-router-dom';
+import React, {useRef} from 'react';
+import {Route, Switch} from 'react-router-dom';
 import {createGlobalStyle} from 'styled-components';
 
 import Emoji from 'components/emoji';
@@ -28,6 +26,11 @@ import Pluggable from 'plugins/pluggable';
 
 import BackstageNavbar from './components/backstage_navbar';
 import BackstageSidebar from './components/backstage_sidebar';
+
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ComponentType} from 'react';
+import type {match} from 'react-router-dom';
 
 type ExtraProps = Pick<Props, 'user' | 'team'> & {scrollToTop: () => void}
 

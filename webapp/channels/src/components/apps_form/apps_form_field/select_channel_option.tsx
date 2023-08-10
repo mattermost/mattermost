@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppSelectOption} from '@mattermost/types/apps';
 import React from 'react';
-import {components, OptionProps} from 'react-select';
+import {components} from 'react-select';
+
+import type {AppSelectOption} from '@mattermost/types/apps';
+import type {OptionProps} from 'react-select';
 
 const {Option} = components;
 export const SelectChannelOption = (props: OptionProps<AppSelectOption>) => {

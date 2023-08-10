@@ -1,13 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {autocompleteChannels} from 'actions/channel_actions';
-import {autocompleteUsersInChannel} from 'actions/views/channel';
-import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
@@ -15,9 +11,17 @@ import {makeGetProfilesForThread} from 'mattermost-redux/selectors/entities/post
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {Action} from 'mattermost-redux/types/actions';
 
-import Textbox, {Props as TextboxProps} from './textbox';
+import {autocompleteChannels} from 'actions/channel_actions';
+import {autocompleteUsersInChannel} from 'actions/views/channel';
+import {searchAssociatedGroupsForReference} from 'actions/views/group';
+
+import Textbox from './textbox';
+
+import type {Props as TextboxProps} from './textbox';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Action} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 type Props = {
     channelId: string;

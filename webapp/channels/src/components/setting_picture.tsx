@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, Component, createRef, CSSProperties, MouseEvent, ReactNode, RefObject} from 'react';
+import React, {Component, createRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import FormError from 'components/form_error';
@@ -12,6 +12,8 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import {Constants} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
 import {localizeMessage} from 'utils/utils';
+
+import type {ChangeEvent, CSSProperties, MouseEvent, ReactNode, RefObject} from 'react';
 
 type Props = {
     clientError?: ReactNode;

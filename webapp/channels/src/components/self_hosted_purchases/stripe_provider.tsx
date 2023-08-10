@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {Elements} from '@stripe/react-stripe-js';
-import {Stripe} from '@stripe/stripe-js';
 import React from 'react';
 
 import {STRIPE_CSS_SRC} from 'components/payment_form/stripe';
+
+import type {Stripe} from '@stripe/stripe-js';
 interface Props {
     children: React.ReactNode | React.ReactNodeArray;
     stripeRef: React.MutableRefObject<Stripe | null>;

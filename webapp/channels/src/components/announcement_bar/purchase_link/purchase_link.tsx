@@ -4,8 +4,9 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
+
+import {trackEvent} from 'actions/telemetry_actions';
 
 import useCanSelfHostedSignup from 'components/common/hooks/useCanSelfHostedSignup';
 import {

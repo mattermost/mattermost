@@ -3,11 +3,12 @@
 
 /* eslint-disable mattermost/use-external-link */
 
-import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
 
 import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 

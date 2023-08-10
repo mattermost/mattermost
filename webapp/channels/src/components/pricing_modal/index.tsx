@@ -5,15 +5,17 @@ import React, {useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {closeModal} from 'actions/views/modals';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+
+import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 
 import Content from './content';
 import SelfHostedContent from './self_hosted_content';
+
+import type {GlobalState} from 'types/store';
 
 import './pricing_modal.scss';
 

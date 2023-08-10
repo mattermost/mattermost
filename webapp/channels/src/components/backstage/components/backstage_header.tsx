@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
+import React from 'react';
 
 import LocalizedIcon from 'components/localized_icon';
 
 import {t} from 'utils/i18n';
+
+import type {ReactNode} from 'react';
 
 type Props = {
     children?: ReactNode;

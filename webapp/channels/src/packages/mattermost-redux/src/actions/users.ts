@@ -1,13 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import {ServerError} from '@mattermost/types/errors';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {Role} from '@mattermost/types/roles';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus} from '@mattermost/types/users';
-import {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import {UserTypes, AdminTypes, GeneralTypes, PreferenceTypes, TeamTypes, RoleTypes} from 'mattermost-redux/action_types';
@@ -19,7 +12,6 @@ import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
 import {
     currentUserInfoQuery,
-    CurrentUserInfoQueryResponseType,
     transformToRecievedMeReducerPayload,
     transformToRecievedTeamsListReducerPayload,
     transformToReceivedUserAndTeamRolesReducerPayload,
@@ -30,8 +22,18 @@ import {General} from 'mattermost-redux/constants';
 import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
-import {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
+
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Role} from '@mattermost/types/roles';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus} from '@mattermost/types/users';
+import type {
+    CurrentUserInfoQueryResponseType} from 'mattermost-redux/actions/users_queries';
+import type {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {AnyAction} from 'redux';
 
 export function generateMfaSecret(userId: string): ActionFunc {
     return bindClientFunc({

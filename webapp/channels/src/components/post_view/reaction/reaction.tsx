@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-import {Reaction as ReactionType} from '@mattermost/types/reactions';
 import React from 'react';
 
 import OverlayTrigger from 'components/overlay_trigger';
@@ -11,6 +9,9 @@ import Tooltip from 'components/tooltip';
 import * as Utils from 'utils/utils';
 
 import ReactionTooltip from './reaction_tooltip';
+
+import type {Post} from '@mattermost/types/posts';
+import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 import './reaction.scss';
 
 type State = {

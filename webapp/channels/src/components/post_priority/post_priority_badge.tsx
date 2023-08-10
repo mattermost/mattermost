@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AlertOutlineIcon, AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import {PostPriority} from '@mattermost/types/posts';
 import React from 'react';
 import styled from 'styled-components';
+
+import {AlertOutlineIcon, AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {PostPriority} from '@mattermost/types/posts';
 
 type Props = {
     priority?: PostPriority;

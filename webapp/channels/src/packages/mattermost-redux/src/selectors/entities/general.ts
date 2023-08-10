@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
-import {GlobalState} from '@mattermost/types/store';
-
 import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
+
+import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
+import type {GlobalState} from '@mattermost/types/store';
 
 export function getConfig(state: GlobalState): Partial<ClientConfig> {
     return state.entities.general.config;

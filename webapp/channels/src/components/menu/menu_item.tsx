@@ -2,15 +2,10 @@
 // See LICENSE.txt for license information.
 
 import MuiMenuItem from '@mui/material/MenuItem';
-import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
 import {styled} from '@mui/material/styles';
 import {cloneDeep} from 'lodash';
 import React, {
-    ReactElement,
-    ReactNode,
     Children,
-    KeyboardEvent,
-    MouseEvent,
     useContext,
     useRef,
     useEffect,
@@ -24,6 +19,13 @@ import {isKeyPressed} from 'utils/keyboard';
 
 import {MENU_CLOSE_ANIMATION_DURATION} from './menu';
 import {MenuContext, SubMenuContext} from './menu_context';
+
+import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
+import type {
+    ReactElement,
+    ReactNode,
+    KeyboardEvent,
+    MouseEvent} from 'react';
 
 const DELAY_CLICK_EVENT_EXECUTION_MODIFIER = 1.2;
 

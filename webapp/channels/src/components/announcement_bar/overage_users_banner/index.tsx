@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PreferenceType} from '@mattermost/types/preferences';
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -18,10 +17,12 @@ import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpa
 import {useExpandOverageUsersCheck} from 'components/common/hooks/useExpandOverageUsersCheck';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
-import {GlobalState} from 'types/store';
 import {StatTypes, Preferences, AnnouncementBarTypes, ConsolePages} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 import {getSiteURL} from 'utils/url';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {GlobalState} from 'types/store';
 
 import './overage_users_banner.scss';
 

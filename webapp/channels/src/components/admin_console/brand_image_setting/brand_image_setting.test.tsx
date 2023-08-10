@@ -4,8 +4,9 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
 import {Client4} from 'mattermost-redux/client';
+
+import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
 
 import BrandImageSetting from './brand_image_setting';
 

@@ -11,11 +11,13 @@ import {
     FloatingFocusManager,
     useDismiss,
 } from '@floating-ui/react-dom-interactions';
-import type {Locale} from 'date-fns';
 import React, {useCallback, useEffect, useState} from 'react';
-import {DayPicker, DayPickerProps} from 'react-day-picker';
+import {DayPicker} from 'react-day-picker';
 
 import {getDatePickerLocalesForDateFns} from 'utils/utils';
+
+import type {Locale} from 'date-fns';
+import type {DayPickerProps} from 'react-day-picker';
 
 import 'react-day-picker/dist/style.css';
 import './date_picker.scss';

@@ -1,30 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch} from '@mattermost/types/channels';
-import {ServerError} from '@mattermost/types/errors';
-import {SyncablePatch, Group, SyncableType} from '@mattermost/types/groups';
-import {Scheme} from '@mattermost/types/schemes';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
 import {cloneDeep} from 'lodash';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import {SyncableType} from '@mattermost/types/groups';
+
 import {Permissions} from 'mattermost-redux/constants';
-import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+
+import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import ConvertAndRemoveConfirmModal from '../../convert_and_remove_confirm_modal';
-import ConvertConfirmModal from '../../convert_confirm_modal';
-import {NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
-import RemoveConfirmModal from '../../remove_confirm_modal';
-import SaveChangesPanel from '../../save_changes_panel';
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 
@@ -33,7 +24,21 @@ import ChannelMembers from './channel_members';
 import ChannelModeration from './channel_moderation';
 import {ChannelModes} from './channel_modes';
 import {ChannelProfile} from './channel_profile';
-import {ChannelModerationRoles} from './types';
+
+import ConvertAndRemoveConfirmModal from '../../convert_and_remove_confirm_modal';
+import ConvertConfirmModal from '../../convert_confirm_modal';
+import {NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
+import RemoveConfirmModal from '../../remove_confirm_modal';
+import SaveChangesPanel from '../../save_changes_panel';
+
+import type {ChannelModerationRoles} from './types';
+import type {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
+import type {SyncablePatch, Group} from '@mattermost/types/groups';
+import type {Scheme} from '@mattermost/types/schemes';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
 export interface ChannelDetailsProps {
     channelID: string;

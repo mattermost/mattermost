@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {IncomingWebhook} from '@mattermost/types/integrations';
 import {shallow} from 'enzyme';
 import React from 'react';
 import {Link} from 'react-router-dom';
 
 import DeleteIntegrationLink from 'components/integrations/delete_integration_link';
 import InstalledIncomingWebhook from 'components/integrations/installed_incoming_webhook';
+
+import type {IncomingWebhook} from '@mattermost/types/integrations';
 
 describe('components/integrations/InstalledIncomingWebhook', () => {
     const incomingWebhook: IncomingWebhook = {

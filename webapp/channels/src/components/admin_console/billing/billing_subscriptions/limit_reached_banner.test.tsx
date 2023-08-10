@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile, UsersState} from '@mattermost/types/users';
 import React from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
@@ -18,6 +16,9 @@ import {fireEvent, renderWithFullContext, screen} from 'tests/react_testing_util
 import {CloudProducts} from 'utils/constants';
 
 import LimitReachedBanner from './limit_reached_banner';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile, UsersState} from '@mattermost/types/users';
 
 const upgradeCloudKey = getPreferenceKey(Preferences.CATEGORY_UPGRADE_CLOUD, Preferences.SYSTEM_CONSOLE_LIMIT_REACHED);
 

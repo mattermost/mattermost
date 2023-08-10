@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from 'types/store';
-
 import * as selectors from './threads';
+
+import type {GlobalState} from 'types/store';
 
 describe('selectors/views/threads', () => {
     const makeState = (selectedThreadId: string|null, selectedPostId: string, isSidebarOpen = true) => ({

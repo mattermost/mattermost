@@ -1,24 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {
-    MessageHistory,
-    OpenGraphMetadata,
-    Post,
-    PostAcknowledgement,
-    PostOrderBlock,
-} from '@mattermost/types/posts';
-import {Reaction} from '@mattermost/types/reactions';
-import {GlobalState} from '@mattermost/types/store';
-import type {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {
-    IDMappedObjects,
-    RelationOneToOne,
-    RelationOneToMany,
-} from '@mattermost/types/utilities';
-
 import {General, Posts, Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -39,6 +21,24 @@ import {
 } from 'mattermost-redux/utils/post_utils';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {
+    MessageHistory,
+    OpenGraphMetadata,
+    Post,
+    PostAcknowledgement,
+    PostOrderBlock,
+} from '@mattermost/types/posts';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {
+    IDMappedObjects,
+    RelationOneToOne,
+    RelationOneToMany,
+} from '@mattermost/types/utilities';
 
 export function getAllPosts(state: GlobalState) {
     return state.entities.posts.posts;

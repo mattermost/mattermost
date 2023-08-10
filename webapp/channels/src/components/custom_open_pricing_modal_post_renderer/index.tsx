@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
 import React, {useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {openModal} from 'actions/views/modals';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getUsers} from 'mattermost-redux/selectors/entities/users';
+
+import {trackEvent} from 'actions/telemetry_actions';
+import {openModal} from 'actions/views/modals';
 
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
@@ -18,6 +18,8 @@ import Markdown from 'components/markdown';
 
 import {ModalIdentifiers, MattermostFeatures} from 'utils/constants';
 import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
+
+import type {Post} from '@mattermost/types/posts';
 
 const MinimumPlansForFeature = {
     Professional: 'Professional plan',

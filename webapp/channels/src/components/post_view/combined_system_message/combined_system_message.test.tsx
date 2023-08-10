@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
 import {General, Posts} from 'mattermost-redux/constants';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
-import CombinedSystemMessage, {CombinedSystemMessage as CombinedSystemMessageType} from './combined_system_message';
+import CombinedSystemMessage from './combined_system_message';
+
+import type {CombinedSystemMessage as CombinedSystemMessageType} from './combined_system_message';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 describe('components/post_view/CombinedSystemMessage', () => {
     function emptyFunc() {} // eslint-disable-line no-empty-function

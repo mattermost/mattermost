@@ -1,17 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UsersState} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import Permissions from 'mattermost-redux/constants/permissions';
 
+import {trackEvent} from 'actions/telemetry_actions.jsx';
+
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {GlobalState} from 'types/store';
 
 import AddChannelsCtaButton from './add_channels_cta_button';
+
+import type {UsersState} from '@mattermost/types/users';
+import type {GlobalState} from 'types/store';
 
 jest.mock('actions/telemetry_actions.jsx', () => {
     const original = jest.requireActual('actions/telemetry_actions.jsx');

@@ -1,19 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {getAllChannelsWithCount as getData, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
-import {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 
 import List from './channel_list';
+
+import type {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
+import type {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {GlobalState} from 'types/store';
 
 const compareByDisplayName = (a: {display_name: string}, b: {display_name: string}) => a.display_name.localeCompare(b.display_name);
 

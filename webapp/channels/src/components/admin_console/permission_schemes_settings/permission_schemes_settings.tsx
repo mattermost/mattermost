@@ -1,12 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Scheme, SchemeScope, SchemesState} from '@mattermost/types/schemes';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {RouteComponentProps} from 'react-router-dom';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
@@ -19,6 +15,10 @@ import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import PermissionsSchemeSummary from './permissions_scheme_summary';
+
+import type {Scheme, SchemeScope, SchemesState} from '@mattermost/types/schemes';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import type {RouteComponentProps} from 'react-router-dom';
 
 const PAGE_SIZE = 30;
 const PHASE_2_MIGRATION_IMCOMPLETE_STATUS_CODE = 501;

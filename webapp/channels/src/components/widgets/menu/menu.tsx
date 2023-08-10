@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {CSSProperties} from 'react';
+import React from 'react';
 
 import {isMobile} from 'utils/utils';
 
@@ -16,6 +16,8 @@ import MenuItemLink from './menu_items/menu_item_link';
 import MenuItemToggleModalRedux from './menu_items/menu_item_toggle_modal_redux';
 import MenuStartTrial from './menu_items/menu_start_trial';
 import SubMenuItem from './menu_items/submenu_item';
+
+import type {CSSProperties} from 'react';
 
 import './menu.scss';
 

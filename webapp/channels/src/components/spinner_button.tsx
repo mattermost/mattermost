@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ButtonHTMLAttributes, PureComponent, ReactNode} from 'react';
+import React, {PureComponent} from 'react';
 
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+
+import type {ButtonHTMLAttributes, ReactNode} from 'react';
 
 type Props = {
     children?: ReactNode;

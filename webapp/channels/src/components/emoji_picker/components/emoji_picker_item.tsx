@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Emoji} from '@mattermost/types/emojis';
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
 import React, {memo, useCallback} from 'react';
@@ -10,9 +9,11 @@ import {useIntl} from 'react-intl';
 import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import {EMOJI_SCROLL_THROTTLE_DELAY} from 'components/emoji_picker/constants';
-import {EmojiCursor} from 'components/emoji_picker/types';
 
 import imgTrans from 'images/img_trans.gif';
+
+import type {Emoji} from '@mattermost/types/emojis';
+import type {EmojiCursor} from 'components/emoji_picker/types';
 
 interface Props {
     emoji: Emoji;

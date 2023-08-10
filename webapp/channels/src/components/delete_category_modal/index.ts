@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {deleteCategory} from 'mattermost-redux/actions/channel_categories';
 
 import DeleteCategoryModal from './delete_category_modal';
+
+import type {Dispatch} from 'redux';
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {

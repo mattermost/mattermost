@@ -3,12 +3,13 @@
 
 /* eslint-disable max-lines */
 
-import {CustomStatusDuration} from '@mattermost/types/users';
 import solarizedDarkCSS from 'highlight.js/styles/base16/solarized-dark.css';
 import solarizedLightCSS from 'highlight.js/styles/base16/solarized-light.css';
 import githubCSS from 'highlight.js/styles/github.css';
 import monokaiCSS from 'highlight.js/styles/monokai.css';
 import keyMirror from 'key-mirror';
+
+import {CustomStatusDuration} from '@mattermost/types/users';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';

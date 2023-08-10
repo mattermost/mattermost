@@ -3,14 +3,15 @@
 
 import regeneratorRuntime from 'regenerator-runtime';
 
-import {unregisterAdminConsolePlugin} from 'actions/admin_actions';
-import {trackPluginInitialization} from 'actions/telemetry_actions';
-import {unregisterPluginTranslationsSource} from 'actions/views/root';
-import {unregisterAllPluginWebSocketEvents, unregisterPluginReconnectHandler} from 'actions/websocket_actions.jsx';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+
+import {unregisterAdminConsolePlugin} from 'actions/admin_actions';
+import {trackPluginInitialization} from 'actions/telemetry_actions';
+import {unregisterPluginTranslationsSource} from 'actions/views/root';
+import {unregisterAllPluginWebSocketEvents, unregisterPluginReconnectHandler} from 'actions/websocket_actions.jsx';
 import store from 'stores/redux_store.jsx';
 
 import PluginRegistry from 'plugins/registry';

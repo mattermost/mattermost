@@ -1,11 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import {Team, TeamMembership, TeamStats} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
-
 import {Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
@@ -16,6 +11,11 @@ import {sortTeamsWithLocale, filterTeamsStartingWithTerm} from 'mattermost-redux
 import {isTeamAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {isCollapsedThreadsEnabled} from './preferences';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team, TeamMembership, TeamStats} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
 
 export function getCurrentTeamId(state: GlobalState) {
     return state.entities.teams.currentTeamId;

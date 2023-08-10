@@ -12,9 +12,12 @@ import Avatar from 'components/widgets/users/avatar';
 
 import * as Utils from 'utils/utils';
 
-import {UserAutocomplete, UserProfile} from './command_provider/app_command_parser/app_command_parser_dependencies.js';
-import Provider, {ResultsCallback} from './provider';
-import {SuggestionContainer, SuggestionProps} from './suggestion';
+import Provider from './provider';
+import {SuggestionContainer} from './suggestion';
+
+import type {UserAutocomplete, UserProfile} from './command_provider/app_command_parser/app_command_parser_dependencies.js';
+import type {ResultsCallback} from './provider';
+import type {SuggestionProps} from './suggestion';
 
 const GenericUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<UserProfile>>((props, ref) => {
     const {item} = props;

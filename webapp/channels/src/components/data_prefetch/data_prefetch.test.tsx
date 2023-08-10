@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelType} from '@mattermost/types/channels';
 import {shallow} from 'enzyme';
 import React from 'react';
 
@@ -10,6 +9,8 @@ import {loadProfilesForSidebar} from 'actions/user_actions';
 import {TestHelper} from 'utils/test_helper';
 
 import DataPrefetch from './data_prefetch';
+
+import type {ChannelType} from '@mattermost/types/channels';
 
 const mockQueue: Array<() => Promise<void>> = [];
 

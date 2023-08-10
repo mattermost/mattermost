@@ -6,9 +6,10 @@ import {FormattedMessage} from 'react-intl';
 
 import './file_preview_modal_main_nav.scss';
 
-import Constants from '../../../utils/constants';
-import OverlayTrigger from '../../overlay_trigger';
-import Tooltip from '../../tooltip';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
+
+import Constants from 'utils/constants';
 
 interface Props {
     fileIndex: number;

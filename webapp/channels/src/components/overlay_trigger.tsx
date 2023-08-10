@@ -2,11 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {OverlayTrigger as OriginalOverlayTrigger, OverlayTriggerProps} from 'react-bootstrap'; // eslint-disable-line no-restricted-imports
-import {IntlContext, IntlShape} from 'react-intl';
+import {OverlayTrigger as OriginalOverlayTrigger} from 'react-bootstrap'; // eslint-disable-line no-restricted-imports
+import {IntlContext} from 'react-intl';
 import {Provider} from 'react-redux';
 
 import store from 'stores/redux_store.jsx';
+
+import type {OverlayTriggerProps} from 'react-bootstrap';
+import type {IntlShape} from 'react-intl';
 
 export type BaseOverlayTrigger = OriginalOverlayTrigger & {
     hide: () => void;

@@ -1,31 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GenericModal} from '@mattermost/components';
-import {ChannelMembership} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 import React, {useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 import styled from 'styled-components';
 
-import {openDirectChannelToUserId} from 'actions/channel_actions';
-import {closeModal} from 'actions/views/modals';
+import {GenericModal} from '@mattermost/components';
+
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getUsers, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
+
+import {openDirectChannelToUserId} from 'actions/channel_actions';
+import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
 import {ListItemType} from 'components/channel_members_rhs/channel_members_rhs';
+import MemberList from 'components/channel_members_rhs/member_list';
 
-import MemberList from '../channel_members_rhs/member_list';
-import {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
+
+import type {ChannelMembership} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {GlobalState} from 'types/store';
 
 import './notification_from_members_modal.scss';
 

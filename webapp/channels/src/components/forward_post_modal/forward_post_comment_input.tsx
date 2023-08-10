@@ -7,13 +7,16 @@ import {useSelector} from 'react-redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import Textbox, {TextboxClass, TextboxElement} from 'components/textbox';
+import Textbox from 'components/textbox';
 
-import {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {applyMarkdown} from 'utils/markdown/apply_markdown';
 import * as Utils from 'utils/utils';
+
+import type {TextboxClass, TextboxElement} from 'components/textbox';
+import type {GlobalState} from 'types/store';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 
 const {KeyCodes} = Constants;
 

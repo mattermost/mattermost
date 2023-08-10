@@ -1,18 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
-import {UserThread} from '@mattermost/types/threads';
 import {isEmpty} from 'lodash';
-import React, {memo, useCallback, PropsWithChildren, useEffect} from 'react';
+import React, {memo, useCallback, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {closeModal, openModal} from 'actions/views/modals';
+import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
+
 import {getThreads, markAllThreadsInTeamRead} from 'mattermost-redux/actions/threads';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
+
+import {trackEvent} from 'actions/telemetry_actions';
+import {closeModal, openModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import NoResultsIndicator from 'components/no_results_indicator';
@@ -21,15 +22,21 @@ import CRTUnreadTutorialTip from 'components/tours/crt_tour/crt_unread_tutorial_
 import Header from 'components/widgets/header';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 
-import BalloonIllustration from '../../common/balloon_illustration';
-import Button from '../../common/button';
-import {useThreadRouting} from '../../hooks';
-import MarkAllThreadsAsReadModal, {MarkAllThreadsAsReadModalProps} from '../mark_all_threads_as_read_modal';
-import {GlobalState} from 'types/store';
 import {A11yClassNames, Constants, CrtTutorialSteps, ModalIdentifiers, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 
 import VirtualizedThreadList from './virtualized_thread_list';
+
+import BalloonIllustration from '../../common/balloon_illustration';
+import Button from '../../common/button';
+import {useThreadRouting} from '../../hooks';
+import MarkAllThreadsAsReadModal from '../mark_all_threads_as_read_modal';
+
+import type {MarkAllThreadsAsReadModalProps} from '../mark_all_threads_as_read_modal';
+import type {UserThread} from '@mattermost/types/threads';
+import type {PropsWithChildren} from 'react';
+import type {GlobalState} from 'types/store';
+
 import './thread_list.scss';
 
 export enum ThreadFilter {

@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
-import {PostImage} from '@mattermost/types/posts';
 import React from 'react';
 
-import {TextFormattingOptions} from 'utils/text_formatting';
-
 import MessageAttachment from './message_attachment';
+
+import type {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
+import type {PostImage} from '@mattermost/types/posts';
+import type {TextFormattingOptions} from 'utils/text_formatting';
 
 type Props = {
 

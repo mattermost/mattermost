@@ -1,7 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
+import {ChannelTypes, GeneralTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {Posts} from 'mattermost-redux/constants';
+import {PostTypes as PostConstant} from 'mattermost-redux/constants/posts';
+import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
+
+import type {
     OpenGraphMetadata,
     Post,
     PostsState,
@@ -11,19 +16,14 @@ import {
     PostEmbed,
     PostPreviewMetadata,
 } from '@mattermost/types/posts';
-import {Reaction} from '@mattermost/types/reactions';
-import {UserProfile} from '@mattermost/types/users';
-import {
+import type {Reaction} from '@mattermost/types/reactions';
+import type {UserProfile} from '@mattermost/types/users';
+import type {
     RelationOneToOne,
     IDMappedObjects,
     RelationOneToMany,
 } from '@mattermost/types/utilities';
-
-import {ChannelTypes, GeneralTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
-import {Posts} from 'mattermost-redux/constants';
-import {PostTypes as PostConstant} from 'mattermost-redux/constants/posts';
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 export function removeUnneededMetadata(post: Post) {
     if (!post.metadata) {

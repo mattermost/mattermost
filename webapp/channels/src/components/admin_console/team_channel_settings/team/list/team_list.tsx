@@ -1,20 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team, TeamSearchOpts, TeamsWithCount} from '@mattermost/types/teams';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
 
-import DataGrid, {Column} from 'components/admin_console/data_grid/data_grid';
-import {FilterOptions} from 'components/admin_console/filter/filter';
+import DataGrid from 'components/admin_console/data_grid/data_grid';
 import {PAGE_SIZE} from 'components/admin_console/team_channel_settings/abstract_list';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 
 import {getHistory} from 'utils/browser_history';
 import * as Utils from 'utils/utils';
+
+import type {Team, TeamSearchOpts, TeamsWithCount} from '@mattermost/types/teams';
+import type {Column} from 'components/admin_console/data_grid/data_grid';
+import type {FilterOptions} from 'components/admin_console/filter/filter';
 
 import './team_list.scss';
 

@@ -1,20 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PreferenceType} from '@mattermost/types/preferences';
-
 import {PreferenceTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {getMyPreferences as getMyPreferencesSelector, makeGetCategory, Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {getMyPreferences as getMyPreferencesSelector, makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-
-import {Preferences} from '../constants';
 
 import {getChannelAndMyMember, getMyChannelMember} from './channels';
 import {bindClientFunc} from './helpers';
 import {getProfilesByIds, getProfilesInChannel} from './users';
+
+import {Preferences} from '../constants';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
 
 export function deletePreferences(userId: string, preferences: PreferenceType[]): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {

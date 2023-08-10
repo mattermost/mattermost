@@ -6,10 +6,11 @@ import {connect} from 'react-redux';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {get, getBool} from 'mattermost-redux/selectors/entities/preferences';
 
-import {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
 
 import Reply from './reply';
+
+import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     id: string;

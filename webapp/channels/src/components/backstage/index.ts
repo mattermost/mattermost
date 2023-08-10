@@ -10,9 +10,9 @@ import {haveITeamPermission, haveISystemPermission} from 'mattermost-redux/selec
 import {getMyTeams, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
-
 import BackstageController from './backstage_controller';
+
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const user = getCurrentUser(state);

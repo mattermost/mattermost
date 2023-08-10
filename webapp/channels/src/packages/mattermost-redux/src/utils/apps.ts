@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppBinding, AppField, AppForm} from '@mattermost/types/apps';
-
 import {AppBindingLocations, AppFieldTypes} from 'mattermost-redux/constants/apps';
+
+import type {AppBinding, AppField, AppForm} from '@mattermost/types/apps';
 
 export function cleanBinding(binding: AppBinding, topLocation: string) {
     cleanBindingRec(binding, topLocation, 0);

@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
 import ProfilePicture from 'components/profile_picture';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
     user: UserProfile;

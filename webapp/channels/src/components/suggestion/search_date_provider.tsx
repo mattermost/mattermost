@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import Provider, {ResultsCallback} from './provider';
+import Provider from './provider';
 import SearchDateSuggestion from './search_date_suggestion';
+
+import type {ResultsCallback} from './provider';
 
 type DateItem = {label: string; date: string};
 

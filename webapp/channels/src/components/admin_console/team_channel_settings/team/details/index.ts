@@ -2,10 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {RouteComponentProps} from 'react-router-dom';
-import {ActionCreatorsMapObject, Dispatch, bindActionCreators} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {setNavigationBlocked} from 'actions/admin_actions';
 import {
     getGroupsAssociatedToTeam as fetchAssociatedGroups,
     linkGroupSyncable,
@@ -15,11 +13,16 @@ import {
 import {getTeam as fetchTeam, membersMinusGroupMembers, patchTeam, removeUserFromTeam, updateTeamMemberSchemeRoles, addUserToTeam, deleteTeam, unarchiveTeam} from 'mattermost-redux/actions/teams';
 import {getAllGroups, getGroupsAssociatedToTeam} from 'mattermost-redux/selectors/entities/groups';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
+import {setNavigationBlocked} from 'actions/admin_actions';
 
-import TeamDetails, {Props} from './team_details';
+import TeamDetails from './team_details';
+
+import type {Props} from './team_details';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {RouteComponentProps} from 'react-router-dom';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type Params = {
     team_id: string;

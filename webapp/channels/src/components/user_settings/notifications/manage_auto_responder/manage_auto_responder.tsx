@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import SettingItemMax from 'components/setting_item_max';
 
 import {localizeMessage} from 'utils/utils';
+
+import type {ChangeEvent} from 'react';
 
 const MESSAGE_MAX_LENGTH = 200;
 

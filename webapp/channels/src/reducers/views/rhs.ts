@@ -9,10 +9,11 @@ import {
     SearchTypes,
     UserTypes,
 } from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
-import type {RhsState} from 'types/store/rhs';
 import {ActionTypes, RHSStates} from 'utils/constants';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {RhsState} from 'types/store/rhs';
 
 function selectedPostId(state = '', action: GenericAction) {
     switch (action.type) {

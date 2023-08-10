@@ -7,13 +7,13 @@ import {Modal, Button} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {getLicenseConfig} from 'mattermost-redux/actions/general';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+
 import {requestTrialLicense} from 'actions/admin_actions';
 import {validateBusinessEmail} from 'actions/cloud';
 import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal, openModal} from 'actions/views/modals';
-import {getLicenseConfig} from 'mattermost-redux/actions/general';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {isModalOpen} from 'selectors/views/modals';
 
 import {makeAsyncComponent} from 'components/async_load';
@@ -21,15 +21,18 @@ import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityC
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
 import DropdownInput from 'components/dropdown_input';
 import ExternalLink from 'components/external_link';
-import Input, {SIZE, CustomMessageInputType} from 'components/widgets/inputs/input/input';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
-import {GlobalState} from 'types/store';
 import {AboutLinks, LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {COUNTRIES} from 'utils/countries';
 import {t} from 'utils/i18n';
 
 import AirGappedModal from './air_gapped_modal';
 import StartTrialFormModalResult from './failure_modal';
+
+import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {GlobalState} from 'types/store';
 
 import './start_trial_form_modal.scss';
 

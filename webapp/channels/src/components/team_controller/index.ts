@@ -1,25 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect, ConnectedProps} from 'react-redux';
-import {RouteComponentProps} from 'react-router-dom';
+import {connect} from 'react-redux';
 
-import {fetchChannelsAndMembers} from 'actions/channel_actions';
-import {markChannelAsReadOnFocus} from 'actions/views/channel';
 import {fetchAllMyTeamsChannelsAndChannelMembersREST, fetchMyChannelsAndMembersREST, viewChannel} from 'mattermost-redux/actions/channels';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+
+import {fetchChannelsAndMembers} from 'actions/channel_actions';
+import {markChannelAsReadOnFocus} from 'actions/views/channel';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 
 import {initializeTeam, joinTeam} from 'components/team_controller/actions';
 
-import {GlobalState} from 'types/store';
 import {checkIfMFARequired} from 'utils/route';
 
 import TeamController from './team_controller';
+
+import type {ConnectedProps} from 'react-redux';
+import type {RouteComponentProps} from 'react-router-dom';
+import type {GlobalState} from 'types/store';
 
 type Params = {
     url: string;

@@ -2,20 +2,20 @@
 // See LICENSE.txt for license information.
 
 import {
-    Channel,
-    ChannelMessageCount,
-    ServerChannel,
-} from '@mattermost/types/channels';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-
-import {
     AdminTypes,
     ChannelTypes,
     UserTypes,
     SchemeTypes,
 } from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import type {
+    Channel,
+    ChannelMessageCount,
+    ServerChannel,
+} from '@mattermost/types/channels';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 export default function messageCounts(state: RelationOneToOne<Channel, ChannelMessageCount> = {}, action: GenericAction): RelationOneToOne<Channel, ChannelMessageCount> {
     switch (action.type) {

@@ -1,10 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppSelectOption} from '@mattermost/types/apps';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
-import {components, OptionProps} from 'react-select';
+import {components} from 'react-select';
 
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
@@ -14,6 +12,10 @@ import Avatar from 'components/widgets/users/avatar/avatar';
 
 import * as Utils from 'utils/utils';
 import {imageURLForUser} from 'utils/utils';
+
+import type {AppSelectOption} from '@mattermost/types/apps';
+import type {UserProfile} from '@mattermost/types/users';
+import type {OptionProps} from 'react-select';
 
 const getDescription = (data: UserProfile): string => {
     if ((data.first_name || data.last_name) && data.nickname) {

@@ -6,11 +6,12 @@ import {connect} from 'react-redux';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {isPostPriorityEnabled} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+
 import {getChannelURL} from 'selectors/urls';
 
-import {GlobalState} from 'types/store';
-
 import ChannelDraft from './channel_draft';
+
+import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     id: string;

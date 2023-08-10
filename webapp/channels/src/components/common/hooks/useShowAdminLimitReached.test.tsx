@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactPortal} from 'react';
+import React from 'react';
 import {Provider} from 'react-redux';
 
 import * as useGetLimitsHook from 'components/common/hooks/useGetLimits';
@@ -14,6 +14,8 @@ import {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import useShowAdminLimitReached from './useShowAdminLimitReached';
+
+import type {ReactPortal} from 'react';
 
 function TestComponent() {
     useShowAdminLimitReached();

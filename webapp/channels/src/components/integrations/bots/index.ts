@@ -1,11 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Bot as BotType} from '@mattermost/types/bots';
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {loadBots, disableBot, enableBot} from 'mattermost-redux/actions/bots';
 import {getAppsBotIDs as fetchAppsBotIDs} from 'mattermost-redux/actions/integrations';
@@ -15,9 +12,14 @@ import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAppsBotIDs} from 'mattermost-redux/selectors/entities/integrations';
 import * as UserSelectors from 'mattermost-redux/selectors/entities/users';
-import {GenericAction, ActionResult, ActionFunc} from 'mattermost-redux/types/actions';
 
 import Bots from './bots';
+
+import type {Bot as BotType} from '@mattermost/types/bots';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
+import type {GenericAction, ActionResult, ActionFunc} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

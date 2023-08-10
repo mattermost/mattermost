@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
-import React, {ChangeEvent, MouseEvent, ReactNode} from 'react';
+import React from 'react';
 import {FormattedMessage, FormattedDate} from 'react-intl';
 
 import LocalizedInput from 'components/localized_input/localized_input';
@@ -17,7 +16,9 @@ import {imageURLForTeam, isMobile, localizeMessage, moveCursorToEnd} from 'utils
 
 import OpenInvite from './open_invite';
 
-import {PropsFromRedux, OwnProps} from '.';
+import type {PropsFromRedux, OwnProps} from '.';
+import type {Team} from '@mattermost/types/teams';
+import type {ChangeEvent, MouseEvent, ReactNode} from 'react';
 
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 

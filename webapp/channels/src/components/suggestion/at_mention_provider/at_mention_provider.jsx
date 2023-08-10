@@ -4,12 +4,14 @@
 import {makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
 import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/utils';
 import {getSuggestionsSplitBy, getSuggestionsSplitByMultiple} from 'mattermost-redux/utils/user_utils';
+
 import store from 'stores/redux_store';
 
-import Provider from '../provider';
 import {Constants} from 'utils/constants';
 
 import AtMentionSuggestion from './at_mention_suggestion';
+
+import Provider from '../provider';
 
 const profilesInChannelOptions = {active: true};
 const regexForAtMention = /(?:^|\W)@([\p{L}\d\-_. ]*)$/iu;

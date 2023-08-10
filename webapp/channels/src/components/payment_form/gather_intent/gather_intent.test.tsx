@@ -13,7 +13,8 @@ import {
 import {TestHelper} from 'utils/test_helper';
 
 import {GatherIntent} from './gather_intent';
-import {GatherIntentModalProps} from './gather_intent_modal';
+
+import type {GatherIntentModalProps} from './gather_intent_modal';
 
 const DummyModal = ({onClose, onSave}: GatherIntentModalProps) => {
     return (

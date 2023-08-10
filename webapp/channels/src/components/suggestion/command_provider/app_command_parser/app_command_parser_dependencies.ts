@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
-import type {AutocompleteSuggestion} from '@mattermost/types/integrations';
-import type {UserProfile} from '@mattermost/types/users';
-
 import {sendEphemeralPost} from 'actions/global_actions';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import ReduxStore from 'stores/redux_store';
 
-import {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 import {isMac} from 'utils/user_agent';
 import {localizeAndFormatMessage} from 'utils/utils';
 
 import type {ParsedCommand} from './app_command_parser';
+import type {Channel} from '@mattermost/types/channels';
+import type {AutocompleteSuggestion} from '@mattermost/types/integrations';
+import type {UserProfile} from '@mattermost/types/users';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {GlobalState} from 'types/store';
 
 export type {
     AppCall,

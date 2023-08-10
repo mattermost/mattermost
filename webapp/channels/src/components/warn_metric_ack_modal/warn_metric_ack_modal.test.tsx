@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
 import WarnMetricAckModal from 'components/warn_metric_ack_modal/warn_metric_ack_modal';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('components/WarnMetricAckModal', () => {
     const serverError = 'some error';

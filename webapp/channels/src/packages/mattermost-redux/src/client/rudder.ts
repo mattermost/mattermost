@@ -3,10 +3,11 @@
 
 // As per rudder-sdk-js documentation, import this only once and use like a singleton.
 // See https://github.com/rudderlabs/rudder-sdk-js#step-1-install-rudderstack-using-the-code-snippet
-import {TelemetryHandler} from '@mattermost/client';
 import * as rudderAnalytics from 'rudder-sdk-js';
 
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+
+import type {TelemetryHandler} from '@mattermost/client';
 
 export {rudderAnalytics};
 

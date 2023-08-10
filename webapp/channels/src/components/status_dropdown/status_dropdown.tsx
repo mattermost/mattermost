@@ -1,19 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import React from 'react';
+import {injectIntl, FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+
 import StatusIcon from '@mattermost/compass-components/components/status-icon'; // eslint-disable-line no-restricted-imports
 import Text from '@mattermost/compass-components/components/text'; // eslint-disable-line no-restricted-imports
-import {TUserStatus} from '@mattermost/compass-components/shared'; // eslint-disable-line no-restricted-imports
 import {AccountOutlineIcon, CheckIcon, ExitToAppIcon} from '@mattermost/compass-icons/components';
 import {PulsatingDot} from '@mattermost/components';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {CustomStatusDuration, UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
-import classNames from 'classnames';
-import React, {ReactNode} from 'react';
-import {IntlShape, injectIntl, FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import {CustomStatusDuration} from '@mattermost/types/users';
 
 import * as GlobalActions from 'actions/global_actions';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusModal from 'components/custom_status/custom_status_modal';
@@ -28,13 +26,21 @@ import UserSettingsModal from 'components/user_settings/modal';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Avatar, {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
+import Avatar from 'components/widgets/users/avatar/avatar';
 
-import {ModalData} from 'types/actions';
 import {Constants, ModalIdentifiers, UserStatuses} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
 import {localizeMessage} from 'utils/utils';
+
+import type {TUserStatus} from '@mattermost/compass-components/shared'; // eslint-disable-line no-restricted-imports
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
+import type {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ReactNode} from 'react';
+import type {IntlShape} from 'react-intl';
+import type {ModalData} from 'types/actions';
 
 import './status_dropdown.scss';
 

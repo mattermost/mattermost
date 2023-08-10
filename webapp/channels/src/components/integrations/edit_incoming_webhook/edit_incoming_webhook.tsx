@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {IncomingWebhook} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
 import React from 'react';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import AbstractIncomingWebhook from 'components/integrations/abstract_incoming_webhook';
 import LoadingScreen from 'components/loading_screen';
 
 import {getHistory} from 'utils/browser_history';
 import {t} from 'utils/i18n';
+
+import type {IncomingWebhook} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 const HEADER = {id: t('integrations.edit'), defaultMessage: 'Edit'};
 const FOOTER = {id: t('update_incoming_webhook.update'), defaultMessage: 'Update'};

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AnalyticsRow} from '@mattermost/types/admin';
-import React from 'react';
+import type {AnalyticsRow} from '@mattermost/types/admin';
+import type React from 'react';
 
 export type Notice = {
     name: string;

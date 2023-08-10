@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useMeasurePunchouts} from '@mattermost/components';
-import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {useMeasurePunchouts} from '@mattermost/components';
 
 import PrewrittenChips from 'components/advanced_create_post/prewritten_chips';
 
 import OnboardingTourTip from './onboarding_tour_tip';
+
+import type {Channel} from '@mattermost/types/channels';
 
 type Props = {
     prefillMessage: (msg: string, shouldFocus: boolean) => void;

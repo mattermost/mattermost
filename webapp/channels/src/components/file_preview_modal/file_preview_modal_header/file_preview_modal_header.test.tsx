@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {TestHelper} from '../../../utils/test_helper';
+import {TestHelper} from 'utils/test_helper';
 
 import FilePreviewModalHeader from './file_preview_modal_header';
+
+import type {Post} from '@mattermost/types/posts';
 
 describe('components/file_preview_modal/file_preview_modal_header/FilePreviewModalHeader', () => {
     const defaultProps = {

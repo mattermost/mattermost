@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
 import React from 'react';
-import {injectIntl, IntlShape} from 'react-intl';
+import {injectIntl} from 'react-intl';
 
 import * as GlobalActions from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -18,6 +17,9 @@ import {t} from 'utils/i18n';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import MenuItemBlockableLink from './menu_item_blockable_link';
+
+import type {Team} from '@mattermost/types/teams';
+import type {IntlShape} from 'react-intl';
 
 type Props = {
     intl: IntlShape;

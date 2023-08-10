@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties, MouseEvent, PureComponent} from 'react';
+import React, {PureComponent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
@@ -10,6 +10,8 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import statusGreen from 'images/status_green.png';
 import statusYellow from 'images/status_yellow.png';
 import * as Utils from 'utils/utils';
+
+import type {CSSProperties, MouseEvent} from 'react';
 
 type Props = {
     clusterInfos: Array<{

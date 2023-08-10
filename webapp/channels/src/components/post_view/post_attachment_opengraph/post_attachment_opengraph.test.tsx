@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {OpenGraphMetadata, Post} from '@mattermost/types/posts';
 import {mount} from 'enzyme';
 import {cloneDeep, set} from 'lodash';
 import React from 'react';
@@ -15,6 +14,8 @@ import {Preferences} from 'utils/constants';
 import {getBestImage, getIsLargeImage, PostAttachmentOpenGraphImage, PostAttachmentOpenGraphBody} from './post_attachment_opengraph';
 
 import PostAttachmentOpenGraph from './index';
+
+import type {OpenGraphMetadata, Post} from '@mattermost/types/posts';
 
 const preferenceKeys = {
     COLLAPSE_DISPLAY: getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY),

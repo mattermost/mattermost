@@ -6,7 +6,8 @@ import React from 'react';
 
 import AbstractList from './abstract_list';
 import TeamRow from './team_row';
-import {TeamWithMembership} from './types';
+
+import type {TeamWithMembership} from './types';
 
 describe('admin_console/system_user_detail/team_list/AbstractList', () => {
     const renderRow = jest.fn((item) => {

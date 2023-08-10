@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import ViewUserGroupModal from './view_user_group_modal';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('component/view_user_group_modal', () => {
     const users = [

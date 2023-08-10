@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {Search} from '@mattermost/types/search';
 import {combineReducers} from 'redux';
 
 import {PostTypes, PreferenceTypes, SearchTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Preferences} from 'mattermost-redux/constants';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import type {Post} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Search} from '@mattermost/types/search';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function results(state: string[] = [], action: GenericAction) {
     switch (action.type) {

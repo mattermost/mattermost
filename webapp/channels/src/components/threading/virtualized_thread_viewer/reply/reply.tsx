@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
 import React, {memo} from 'react';
 
 import PostComponent from 'components/post';
-import {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 import {Locations} from 'utils/constants';
+
+import type {Post} from '@mattermost/types/posts';
+import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 type Props = {
     a11yIndex: number;

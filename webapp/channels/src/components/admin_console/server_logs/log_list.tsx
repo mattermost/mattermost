@@ -1,17 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ArrowDownIcon, ArrowUpIcon} from '@mattermost/compass-icons/components';
-import {LogFilter, LogLevelEnum, LogObject} from '@mattermost/types/admin';
-import {ChannelSearchOpts} from '@mattermost/types/channels';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
-import {FilterOptions} from 'components/admin_console/filter/filter';
+import {ArrowDownIcon, ArrowUpIcon} from '@mattermost/compass-icons/components';
+
+import DataGrid from 'components/admin_console/data_grid/data_grid';
+
+import FullLogEventModal from '../full_log_event_modal';
+
+import type {LogFilter, LogLevelEnum, LogObject} from '@mattermost/types/admin';
+import type {ChannelSearchOpts} from '@mattermost/types/channels';
+import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import type {FilterOptions} from 'components/admin_console/filter/filter';
 
 import './log_list.scss';
-import FullLogEventModal from '../full_log_event_modal';
 
 type Props = {
     loading: boolean;

@@ -2,9 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
+import React from 'react';
 
 import Header from './header';
+
+import type {ComponentProps} from 'react';
 
 describe('components/widgets/header', () => {
     const levels: Array<ComponentProps<typeof Header>['level']> = [1, 2, 3, 4, 5, 6];

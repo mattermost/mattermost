@@ -1,13 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {addUsersToChannel} from 'actions/channel_actions';
-import {loadStatusesForProfilesList} from 'actions/status_actions';
-import {closeModal} from 'actions/views/modals';
 import {getTeamStats} from 'mattermost-redux/actions/teams';
 import {getProfilesNotInChannel, getProfilesInChannel, searchProfiles} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
@@ -17,13 +13,18 @@ import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getProfilesNotInCurrentChannel, getProfilesInCurrentChannel, getProfilesNotInCurrentTeam, getProfilesNotInTeam, getUserStatuses, makeGetProfilesNotInChannel, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
-import {Action, ActionResult} from 'mattermost-redux/types/actions';
 
-import {Value} from 'components/multiselect/multiselect';
-
-import {GlobalState} from 'types/store';
+import {addUsersToChannel} from 'actions/channel_actions';
+import {loadStatusesForProfilesList} from 'actions/status_actions';
+import {closeModal} from 'actions/views/modals';
 
 import ChannelInviteModal from './channel_invite_modal';
+
+import type {UserProfile} from '@mattermost/types/users';
+import type {Value} from 'components/multiselect/multiselect';
+import type {Action, ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type UserProfileValue = Value & UserProfile;
 

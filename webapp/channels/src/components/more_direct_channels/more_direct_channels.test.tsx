@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
+import React from 'react';
 
 import MoreDirectChannels from 'components/more_direct_channels/more_direct_channels';
 
 import {TestHelper} from 'utils/test_helper';
+
+import type {UserProfile} from '@mattermost/types/users';
+import type {ComponentProps} from 'react';
 
 jest.useFakeTimers();
 const mockedUser = TestHelper.getUserMock();

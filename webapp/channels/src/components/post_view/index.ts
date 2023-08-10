@@ -1,21 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
 import {connect} from 'react-redux';
-import {withRouter, RouteComponentProps} from 'react-router-dom';
+import {withRouter} from 'react-router-dom';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getUnreadScrollPositionPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeamByName, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 
 import PostView from './post_view';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RouteComponentProps} from 'react-router-dom';
+import type {GlobalState} from 'types/store';
 
 export const isChannelLoading = (params: RouteViewParams, channel?: Channel, team?: Team, teammate?: UserProfile, teamMemberships?: Record<string, TeamMembership>) => {
     if (params.postid) {

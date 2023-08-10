@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import UsersEmailsInput from './users_emails_input';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('components/widgets/inputs/UsersEmailsInput', () => {
     test('should match snapshot', () => {

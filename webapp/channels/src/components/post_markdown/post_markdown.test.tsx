@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post, PostType} from '@mattermost/types/posts';
 import React from 'react';
 
 import {Posts} from 'mattermost-redux/constants';
@@ -10,6 +9,8 @@ import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import PostMarkdown from './post_markdown';
+
+import type {Post, PostType} from '@mattermost/types/posts';
 
 describe('components/PostMarkdown', () => {
     const baseProps = {

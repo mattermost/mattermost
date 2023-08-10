@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {TourTip, useMeasurePunchouts} from '@mattermost/components';
 import React, {memo, useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useRouteMatch} from 'react-router-dom';
 
-import {setDraftsTourTipPreference} from 'actions/views/drafts';
+import {TourTip, useMeasurePunchouts} from '@mattermost/components';
+
 import {Preferences} from 'mattermost-redux/constants';
+
+import {setDraftsTourTipPreference} from 'actions/views/drafts';
 import {showDraftsPulsatingDotAndTourTip} from 'selectors/drafts';
 
 import Tag from 'components/widgets/tag/tag';

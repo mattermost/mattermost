@@ -2,11 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {AnyAction, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {muteChannel, unmuteChannel} from 'actions/channel_actions';
-import {openModal} from 'actions/views/modals';
-import {closeRightHandSide, showChannelFiles, showChannelMembers, showPinnedPosts} from 'actions/views/rhs';
 import {unfavoriteChannel, favoriteChannel, getChannelStats} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {getCurrentChannel, isCurrentChannelFavorite, isCurrentChannelMuted, isCurrentChannelArchived, getCurrentChannelStats} from 'mattermost-redux/selectors/entities/channels';
@@ -15,14 +12,21 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getProfilesInCurrentChannel, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
+
+import {muteChannel, unmuteChannel} from 'actions/channel_actions';
+import {openModal} from 'actions/views/modals';
+import {closeRightHandSide, showChannelFiles, showChannelMembers, showPinnedPosts} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 import {isModalOpen} from 'selectors/views/modals';
 
-import {GlobalState} from 'types/store';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getDisplayNameByUser, getUserIdFromChannelId} from 'utils/utils';
 
-import RHS, {Props} from './channel_info_rhs';
+import RHS from './channel_info_rhs';
+
+import type {Props} from './channel_info_rhs';
+import type {AnyAction, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 const EMPTY_CHANNEL_STATS = {
     member_count: 0,

@@ -6,10 +6,11 @@ import {extendPrototype} from 'localforage-observable';
 import {persistStore, REHYDRATE} from 'redux-persist';
 import Observable from 'zen-observable';
 
-import {cleanLocalStorage} from 'actions/storage';
-import {clearUserCookie} from 'actions/views/cookie';
 import {General, RequestStatus} from 'mattermost-redux/constants';
 import configureServiceStore from 'mattermost-redux/store';
+
+import {cleanLocalStorage} from 'actions/storage';
+import {clearUserCookie} from 'actions/views/cookie';
 import {getBasePath} from 'selectors/general';
 
 import appReducers from 'reducers';

@@ -12,7 +12,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {focusPost} from 'components/permalink_view/actions';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 export type Props = {
     className?: string;

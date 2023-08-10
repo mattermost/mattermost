@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminConfig} from '@mattermost/types/config';
-import {useIntl} from 'react-intl';
-
 import {testSiteURL} from 'actions/admin_actions';
 
-import {impactModifiers} from '../dashboard.data';
-import {ItemModel, ItemStatus} from '../dashboard.type';
 import {ConsolePages, DocLinks} from 'utils/constants';
+
+import {impactModifiers} from '../dashboard.data';
+import {ItemStatus} from '../dashboard.type';
+
+import type {ItemModel} from '../dashboard.type';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {useIntl} from 'react-intl';
 
 /**
  *

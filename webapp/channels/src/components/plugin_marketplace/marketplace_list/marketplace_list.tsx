@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -11,6 +10,8 @@ import PluginIcon from 'components/widgets/icons/plugin_icon';
 
 import MarketplaceItemApp from '../marketplace_item/marketplace_item_app';
 import MarketplaceItemPlugin from '../marketplace_item/marketplace_item_plugin';
+
+import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 
 export const ITEMS_PER_PAGE = 15;
 

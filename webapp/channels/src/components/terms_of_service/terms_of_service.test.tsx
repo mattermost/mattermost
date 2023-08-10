@@ -6,9 +6,10 @@ import React from 'react';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
-import EmojiMap from 'utils/emoji_map';
+import TermsOfService from './terms_of_service';
 
-import TermsOfService, {TermsOfServiceProps} from './terms_of_service';
+import type {TermsOfServiceProps} from './terms_of_service';
+import type EmojiMap from 'utils/emoji_map';
 
 jest.mock('actions/global_actions', () => ({
     emitUserLoggedOutEvent: jest.fn(),

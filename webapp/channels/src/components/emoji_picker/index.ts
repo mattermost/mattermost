@@ -1,21 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CustomEmoji} from '@mattermost/types/emojis';
-import {ServerError} from '@mattermost/types/errors';
-import {connect, ConnectedProps} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 
-import {incrementEmojiPickerPage, setUserSkinTone} from 'actions/emoji_actions';
 import {getCustomEmojis, searchCustomEmojis} from 'mattermost-redux/actions/emojis';
 import {getCustomEmojisEnabled} from 'mattermost-redux/selectors/entities/emojis';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+
+import {incrementEmojiPickerPage, setUserSkinTone} from 'actions/emoji_actions';
 import {getEmojiMap, getRecentEmojisNames, getUserSkinTone} from 'selectors/emojis';
 
-import {GlobalState} from 'types/store';
-
 import EmojiPicker from './emoji_picker';
+
+import type {CustomEmoji} from '@mattermost/types/emojis';
+import type {ServerError} from '@mattermost/types/errors';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {ConnectedProps} from 'react-redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     return {

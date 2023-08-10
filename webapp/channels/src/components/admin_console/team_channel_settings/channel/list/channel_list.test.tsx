@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelList from './channel_list';
+
+import type {Channel} from '@mattermost/types/channels';
 
 describe('admin_console/team_channel_settings/channel/ChannelList', () => {
     const channel: Channel = Object.assign(TestHelper.getChannelMock({id: 'channel-1'}));

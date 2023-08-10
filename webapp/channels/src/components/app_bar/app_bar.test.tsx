@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppBinding} from '@mattermost/types/apps';
 import {mount, shallow} from 'enzyme';
 import React from 'react';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {AppBindingLocations} from 'mattermost-redux/constants/apps';
 
-import {GlobalState} from 'types/store';
-import {PluginComponent} from 'types/store/plugins';
-
 import AppBar from './app_bar';
+
+import type {AppBinding} from '@mattermost/types/apps';
+import type {GlobalState} from 'types/store';
+import type {PluginComponent} from 'types/store/plugins';
 
 import 'jest-styled-components';
 

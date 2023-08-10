@@ -1,17 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithFullContext, screen, userEvent} from 'tests/react_testing_utils';
-import {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import PostComponent, {Props} from './post_component';
+import PostComponent from './post_component';
+
+import type {Props} from './post_component';
+import type {DeepPartial} from '@mattermost/types/utilities';
+import type {GlobalState} from 'types/store';
 
 describe('PostComponent', () => {
     const currentTeam = TestHelper.getTeamMock();

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {ReactNode} from 'react';
+import React from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
@@ -14,6 +14,8 @@ import {HostedCustomerLinks} from 'utils/constants';
 import BlankCardImage from './blank_card_image.svg';
 import BuildingSvg from './building.svg';
 import TadaSvg from './tada.svg';
+
+import type {ReactNode} from 'react';
 
 export enum ButtonCustomiserClasses {
     grayed = 'grayed',

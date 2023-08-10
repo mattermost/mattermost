@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {
-    AppBinding,
-    AppForm,
     AppFieldTypes,
 } from './app_command_parser_test_dependencies';
+
+import type {
+    AppBinding,
+    AppForm} from './app_command_parser_test_dependencies';
 
 export const reduxTestState = {
     entities: {

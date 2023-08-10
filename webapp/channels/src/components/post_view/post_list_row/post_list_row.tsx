@@ -1,14 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CloudUsage, Limits} from '@mattermost/types/cloud';
-import {Post} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
 import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
 import CenterMessageLock from 'components/center_message_lock';
@@ -20,6 +16,11 @@ import NewMessageSeparator from 'components/post_view/new_message_separator/new_
 
 import {PostListRowListIds, Locations} from 'utils/constants';
 import {isIdNotPost} from 'utils/post_utils';
+
+import type {CloudUsage, Limits} from '@mattermost/types/cloud';
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
+import type {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 
 export type PostListRowProps = {
     listId: string;

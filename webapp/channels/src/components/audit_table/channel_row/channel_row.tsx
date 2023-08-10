@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Audit} from '@mattermost/types/audits';
-import {GlobalState} from '@mattermost/types/store';
 import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
 
+import ChannelCreateDirectRow from './channel_create_direct_row';
+import ChannelDefaultRow from './channel_default_row';
+
 import AuditRow from '../audit_row/audit_row';
 import holders from '../holders';
 
-import ChannelCreateDirectRow from './channel_create_direct_row';
-import ChannelDefaultRow from './channel_default_row';
+import type {Audit} from '@mattermost/types/audits';
+import type {GlobalState} from '@mattermost/types/store';
 
 type Props = {
     audit: Audit;

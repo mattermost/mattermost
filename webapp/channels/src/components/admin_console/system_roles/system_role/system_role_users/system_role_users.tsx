@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from '@mattermost/types/errors';
-import {Role} from '@mattermost/types/roles';
-import {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -14,9 +11,14 @@ import ToggleModalButton from 'components/toggle_modal_button';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import Tag from 'components/widgets/tag/tag';
 
-import AddUsersToRoleModal from '../add_users_to_role_modal';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import AddUsersToRoleModal from '../add_users_to_role_modal';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {Role} from '@mattermost/types/roles';
+import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
 export type Props = {
     users: UserProfile[];

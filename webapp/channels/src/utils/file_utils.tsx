@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ClientConfig} from '@mattermost/types/config';
 import exif2css from 'exif2css';
 
 import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
+
+import type {ClientConfig} from '@mattermost/types/config';
 
 export const FileSizes = {
     Bit: 1,

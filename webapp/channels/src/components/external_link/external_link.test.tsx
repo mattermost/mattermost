@@ -4,13 +4,14 @@
 import {mount} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
-import {DeepPartial} from 'redux';
 
 import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-import {GlobalState} from 'types/store';
 
 import ExternalLink from '.';
+
+import type {DeepPartial} from 'redux';
+import type {GlobalState} from 'types/store';
 
 describe('components/external_link', () => {
     const initialState: DeepPartial<GlobalState> = {

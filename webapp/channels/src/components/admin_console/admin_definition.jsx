@@ -3,9 +3,12 @@
 
 /* eslint-disable max-lines */
 
-import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
+
+import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import {
     ldapTest, invalidateAllCaches, reloadConfig, testS3Connection,
@@ -17,7 +20,6 @@ import {
     invalidateAllEmailInvites, testSmtp, testSiteURL, getSamlMetadataFromIdp, setSamlIdpCertificateFromMetadata,
 } from 'actions/admin_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 import PluginManagement from 'components/admin_console/plugin_management';

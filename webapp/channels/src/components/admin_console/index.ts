@@ -1,14 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminConfig} from '@mattermost/types/config';
-import {Role} from '@mattermost/types/roles';
-import {connect, ConnectedProps} from 'react-redux';
+import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {setNavigationBlocked, deferNavigation, cancelNavigation, confirmNavigation} from 'actions/admin_actions.jsx';
-import {selectLhsItem} from 'actions/views/lhs';
 import {getConfig, getEnvironmentConfig, updateConfig} from 'mattermost-redux/actions/admin';
 import {loadRolesIfNeeded, editRole} from 'mattermost-redux/actions/roles';
 import {selectTeam} from 'mattermost-redux/actions/teams';
@@ -19,15 +15,22 @@ import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin, currentUserHasAnAdminRole, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+
+import {setNavigationBlocked, deferNavigation, cancelNavigation, confirmNavigation} from 'actions/admin_actions.jsx';
+import {selectLhsItem} from 'actions/views/lhs';
 import {getAdminDefinition, getConsoleAccess} from 'selectors/admin_console';
 import {showNavigationPrompt} from 'selectors/views/admin';
 import LocalStorageStore from 'stores/local_storage_store';
 
-import {GlobalState} from 'types/store';
-import {LhsItemType} from 'types/store/lhs';
-
 import AdminConsole from './admin_console';
+
+import type {AdminConfig} from '@mattermost/types/config';
+import type {Role} from '@mattermost/types/roles';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {ConnectedProps} from 'react-redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
+import type {LhsItemType} from 'types/store/lhs';
 
 function mapStateToProps(state: GlobalState) {
     const generalConfig = getGeneralConfig(state);

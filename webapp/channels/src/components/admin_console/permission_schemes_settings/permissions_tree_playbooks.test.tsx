@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
+import React from 'react';
 
 import PermissionGroup from 'components/admin_console/permission_schemes_settings/permission_group';
 import PermissionsTreePlaybooks from 'components/admin_console/permission_schemes_settings/permissions_tree_playbooks';
 
 import {LicenseSkus} from 'utils/constants';
 
-import {Group, Permission} from './permissions_tree/types';
+import type {Group, Permission} from './permissions_tree/types';
+import type {ComponentProps} from 'react';
 
 describe('components/admin_console/permission_schemes_settings/permissions_tree_playbooks', () => {
     const defaultProps: ComponentProps<typeof PermissionsTreePlaybooks> = {

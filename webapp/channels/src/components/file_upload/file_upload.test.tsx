@@ -1,16 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileInfo} from '@mattermost/types/files';
-import React, {MouseEvent, DragEvent, ChangeEvent} from 'react';
+import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
 
-import FileUpload, {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import FileUpload from 'components/file_upload/file_upload';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {FilesWillUploadHook} from 'types/store/plugins';
 import {clearFileInput} from 'utils/utils';
+
+import type {FileInfo} from '@mattermost/types/files';
+import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import type {MouseEvent, DragEvent, ChangeEvent} from 'react';
+import type {FilesWillUploadHook} from 'types/store/plugins';
 
 const generatedIdRegex = /[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/;
 

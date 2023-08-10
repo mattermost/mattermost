@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post, PostEmbed, PostEmbedType, PostType} from '@mattermost/types/posts';
-import {GlobalState} from '@mattermost/types/store';
-
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {
     canEditPost,
@@ -20,6 +17,9 @@ import {
 
 import TestHelper from '../../test/test_helper';
 import {Permissions} from '../constants';
+
+import type {Post, PostEmbed, PostEmbedType, PostType} from '@mattermost/types/posts';
+import type {GlobalState} from '@mattermost/types/store';
 
 describe('PostUtils', () => {
     describe('shouldFilterJoinLeavePost', () => {

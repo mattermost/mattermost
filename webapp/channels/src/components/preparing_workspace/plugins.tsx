@@ -19,8 +19,10 @@ import Description from './description';
 import PageBody from './page_body';
 import PageLine from './page_line';
 import SingleColumnLayout from './single_column_layout';
-import {Animations, mapAnimationReasonToClass, Form, PreparingWorkspacePageProps} from './steps';
+import {Animations, mapAnimationReasonToClass} from './steps';
 import Title from './title';
+
+import type {Form, PreparingWorkspacePageProps} from './steps';
 import './plugins.scss';
 
 type Props = PreparingWorkspacePageProps & {

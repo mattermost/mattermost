@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team, TeamSearchOpts} from '@mattermost/types/teams';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -11,10 +10,12 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import InfiniteScroll from 'components/gif_picker/components/InfiniteScroll';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {FilterOption, FilterValues} from '../filter';
 import * as Utils from 'utils/utils';
 
 import TeamFilterCheckbox from './team_filter_checkbox';
+
+import type {FilterOption, FilterValues} from '../filter';
+import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
 
 import './team_filter_dropdown.scss';
 import '../filter.scss';

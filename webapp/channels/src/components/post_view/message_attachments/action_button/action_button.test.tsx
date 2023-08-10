@@ -4,12 +4,13 @@
 import React from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 import ActionButton from './action_button';
+
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 describe('components/post_view/message_attachments/action_button.jsx', () => {
     const baseProps = {

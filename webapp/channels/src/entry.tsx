@@ -5,6 +5,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import {logError} from 'mattermost-redux/actions/errors';
+
 import store from 'stores/redux_store.jsx';
 
 import App from 'components/app';

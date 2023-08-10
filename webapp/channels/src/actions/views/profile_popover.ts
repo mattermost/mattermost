@@ -3,7 +3,8 @@
 
 import {getChannelMember} from 'mattermost-redux/actions/channels';
 import {getTeamMember} from 'mattermost-redux/actions/teams';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 export function getMembershipForEntities(teamId: string, userId: string, channelId?: string) {
     return (dispatch: DispatchFunc) => {

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DeepPartial} from '@mattermost/types/utilities';
 import {render} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {createBrowserHistory} from 'history';
@@ -13,7 +12,9 @@ import {Router} from 'react-router-dom';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import configureStore from 'store';
 import mockStore from 'tests/test_store';
-import {GlobalState} from 'types/store';
+
+import type {DeepPartial} from '@mattermost/types/utilities';
+import type {GlobalState} from 'types/store';
 
 export * from '@testing-library/react';
 export {userEvent};

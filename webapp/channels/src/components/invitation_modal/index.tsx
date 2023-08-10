@@ -1,18 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 import React from 'react';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {
-    sendMembersInvites,
-    sendGuestsInvites,
-    sendMembersInvitesToChannels,
-} from 'actions/invite_actions';
-import {CloseModalType} from 'actions/views/modals';
 import {searchChannels as reduxSearchChannels} from 'mattermost-redux/actions/channels';
 import {regenerateTeamInviteId} from 'mattermost-redux/actions/teams';
 import {getProfiles, searchProfiles as reduxSearchProfiles} from 'mattermost-redux/actions/users';
@@ -22,15 +14,25 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {haveIChannelPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam, getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
+
+import {
+    sendMembersInvites,
+    sendGuestsInvites,
+    sendMembersInvitesToChannels,
+} from 'actions/invite_actions';
 
 import {makeAsyncComponent} from 'components/async_load';
 
-import {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 
 import type {InviteResults} from './result_view';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {CloseModalType} from 'actions/views/modals';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 const InvitationModal = makeAsyncComponent('InvitationModal', React.lazy(() => import('./invitation_modal')));
 
 const searchProfiles = (term: string, options = {}) => {

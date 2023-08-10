@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppField} from '@mattermost/types/apps';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import TextSetting from 'components/widgets/settings/text_setting';
 
-import AppsFormField, {Props} from './apps_form_field';
+import AppsFormField from './apps_form_field';
 import AppsFormSelectField from './apps_form_select_field';
+
+import type {Props} from './apps_form_field';
+import type {AppField} from '@mattermost/types/apps';
 
 describe('components/apps_form/apps_form_field/AppsFormField', () => {
     describe('Text elements', () => {

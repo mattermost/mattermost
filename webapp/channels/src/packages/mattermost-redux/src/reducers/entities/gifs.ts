@@ -4,7 +4,8 @@
 import {combineReducers} from 'redux';
 
 import {GifTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 type ReducerMap = {[actionType: string]: (state: any, action: GenericAction) => any};
 

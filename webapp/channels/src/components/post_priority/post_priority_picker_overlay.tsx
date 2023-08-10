@@ -14,16 +14,18 @@ import {
     flip,
     shift,
 } from '@floating-ui/react-dom-interactions';
-import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import {PostPriorityMetadata} from '@mattermost/types/posts';
 import classNames from 'classnames';
 import React, {memo, useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
+
+import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
 import useTooltip from 'components/common/hooks/useTooltip';
 
 import PostPriorityPicker from './post_priority_picker';
+
+import type {PostPriorityMetadata} from '@mattermost/types/posts';
 
 type Props = {
     disabled: boolean;

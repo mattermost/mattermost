@@ -2,9 +2,11 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {RefObject, useState} from 'react';
+import React, {useState} from 'react';
 
 import AccordionCard from './accordion_card';
+
+import type {RefObject} from 'react';
 
 import './accordion.scss';
 

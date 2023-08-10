@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import React from 'react';
 import * as reactRedux from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Client4} from 'mattermost-redux/client';
+
+import {trackEvent} from 'actions/telemetry_actions';
 
 import configureStore from 'store';
 import {
@@ -19,6 +20,8 @@ import {CloudProducts, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants'
 import {TestHelper} from 'utils/test_helper';
 
 import NotifyAdminDowngradeDeliquencyBar, {BannerPreferenceName} from './index';
+
+import type {ComponentProps} from 'react';
 
 type RenderComponentArgs = {
     props?: Partial<ComponentProps<typeof NotifyAdminDowngradeDeliquencyBar>>;

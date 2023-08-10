@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileInfo} from '@mattermost/types/files';
-import React, {ReactNode} from 'react';
+import React from 'react';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
@@ -12,6 +11,9 @@ import Constants, {FileTypes} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import FileProgressPreview from './file_progress_preview';
+
+import type {FileInfo} from '@mattermost/types/files';
+import type {ReactNode} from 'react';
 
 type UploadInfo = {
     name: string;

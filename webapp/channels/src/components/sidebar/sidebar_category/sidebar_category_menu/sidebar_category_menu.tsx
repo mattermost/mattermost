@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
+import React, {memo, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+
 import {
     BellOutlineIcon,
     TrashCanOutlineIcon,
@@ -12,13 +16,11 @@ import {
     DotsVerticalIcon,
     ChevronRightIcon,
 } from '@mattermost/compass-icons/components';
-import {ChannelCategory, CategorySorting} from '@mattermost/types/channel_categories';
-import classNames from 'classnames';
-import React, {memo, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {CategorySorting} from '@mattermost/types/channel_categories';
+
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import DeleteCategoryModal from 'components/delete_category_modal';
 import EditCategoryModal from 'components/edit_category_modal';
@@ -27,6 +29,7 @@ import * as Menu from 'components/menu';
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
 
 type OwnProps = {
     category: ChannelCategory;

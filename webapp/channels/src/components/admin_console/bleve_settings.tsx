@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminConfig} from '@mattermost/types/config';
-import {Job} from '@mattermost/types/jobs';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -13,12 +11,16 @@ import ExternalLink from 'components/external_link';
 import {JobStatuses, JobTypes} from 'utils/constants';
 import {t} from 'utils/i18n';
 
-import AdminSettings, {BaseProps, BaseState} from './admin_settings';
+import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import JobsTable from './jobs';
 import RequestButton from './request_button/request_button';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
+
+import type {BaseProps, BaseState} from './admin_settings';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {Job} from '@mattermost/types/jobs';
 
 type Props = BaseProps & {
     config: AdminConfig;

@@ -4,10 +4,11 @@
 import React from 'react';
 
 import {renderWithIntl, screen} from 'tests/react_testing_utils';
-import {RhsState} from 'types/store/rhs';
 import {RHSStates} from 'utils/constants';
 
 import Header from './search_results_header';
+
+import type {RhsState} from 'types/store/rhs';
 
 describe('search_results_header', () => {
     test('should display back button when the parent is channel info', () => {

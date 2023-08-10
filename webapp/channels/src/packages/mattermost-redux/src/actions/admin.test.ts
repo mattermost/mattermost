@@ -3,16 +3,17 @@
 
 import fs from 'fs';
 
-import {CreateDataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 import nock from 'nock';
 
 import * as Actions from 'mattermost-redux/actions/admin';
 import {Client4} from 'mattermost-redux/client';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
 import {RequestStatus, Stats} from '../constants';
+
+import type {CreateDataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 const OK_RESPONSE = {status: 'OK'};
 const NO_GROUPS_RESPONSE = {count: 0, groups: []};

@@ -1,16 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from '@mattermost/types/errors';
-import {Team} from '@mattermost/types/teams';
-import {GetFilteredUsersStatsOpts, UserProfile, UsersStats} from '@mattermost/types/users';
-import React, {ChangeEvent} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {Permissions} from 'mattermost-redux/constants';
-import {ActionFunc} from 'mattermost-redux/types/actions';
+
+import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
@@ -24,6 +21,12 @@ import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import SystemUsersList from './list';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team} from '@mattermost/types/teams';
+import type {GetFilteredUsersStatsOpts, UserProfile, UsersStats} from '@mattermost/types/users';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ChangeEvent} from 'react';
 
 const USER_ID_LENGTH = 26;
 const USERS_PER_PAGE = 50;

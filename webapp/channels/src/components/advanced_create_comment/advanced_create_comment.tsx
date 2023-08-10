@@ -3,36 +3,25 @@
 
 /* eslint-disable max-lines */
 
-import {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
-import {Emoji} from '@mattermost/types/emojis';
-import {ServerError} from '@mattermost/types/errors';
-import {FileInfo} from '@mattermost/types/files';
-import {Group, GroupSource} from '@mattermost/types/groups';
-import {PreferenceType} from '@mattermost/types/preferences';
 import {isNil} from 'lodash';
 import React from 'react';
 
-import * as GlobalActions from 'actions/global_actions';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import {GroupSource} from '@mattermost/types/groups';
+
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
+
+import * as GlobalActions from 'actions/global_actions';
 
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
-import {FilePreviewInfo} from 'components/file_preview/file_preview';
-import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import PostDeletedModal from 'components/post_deleted_modal';
-import {TextboxClass, TextboxElement} from 'components/textbox';
 
-import {ModalData} from 'types/actions';
-import {PostDraft} from 'types/store/draft';
-import {PluginComponent} from 'types/store/plugins';
 import Constants, {AdvancedTextEditor as AdvancedTextEditorConst, Locations, ModalIdentifiers, Preferences} from 'utils/constants';
 import {execCommandInsertText} from 'utils/exec_commands';
 import * as Keyboard from 'utils/keyboard';
 import {
     applyMarkdown,
-    ApplyMarkdownOptions,
 } from 'utils/markdown/apply_markdown';
 import {
     getHtmlTable,
@@ -54,6 +43,22 @@ import {
 } from 'utils/post_utils';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
+
+import type {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
+import type {Emoji} from '@mattermost/types/emojis';
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo} from '@mattermost/types/files';
+import type {Group} from '@mattermost/types/groups';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
+import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import type {TextboxClass, TextboxElement} from 'components/textbox';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import type {ModalData} from 'types/actions';
+import type {PostDraft} from 'types/store/draft';
+import type {PluginComponent} from 'types/store/plugins';
+import type {
+    ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 
 const KeyCodes = Constants.KeyCodes;
 

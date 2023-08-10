@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
 import React from 'react';
 
 import LeaveChannelModal from 'components/leave_channel_modal';
@@ -11,6 +10,7 @@ import {Constants, ModalIdentifiers} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
+import type {Channel} from '@mattermost/types/channels';
 
 interface Props extends PropsFromRedux {
 

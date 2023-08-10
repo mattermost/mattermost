@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -9,9 +8,12 @@ import TeamIcon from 'components/widgets/team_icon/team_icon';
 
 import * as Utils from 'utils/utils';
 
-import './team_row.scss';
 import TeamListDropdown from './team_list_dropdown';
-import {TeamWithMembership} from './types';
+
+import type {TeamWithMembership} from './types';
+import type {Team} from '@mattermost/types/teams';
+
+import './team_row.scss';
 
 type Props = {
     team: TeamWithMembership;

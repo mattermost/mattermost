@@ -1,19 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostType} from '@mattermost/types/posts';
-import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import {GlobalState} from 'types/store';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-jest.mock('./utils');
+import DotMenu from './dot_menu';
 
-import DotMenu, {DotMenuClass} from './dot_menu';
+import type {DotMenuClass} from './dot_menu';
+import type {PostType} from '@mattermost/types/posts';
+import type {DeepPartial} from '@mattermost/types/utilities';
+import type {GlobalState} from 'types/store';
+
+jest.mock('./utils');
 
 describe('components/dot_menu/DotMenu', () => {
     const latestPost = {

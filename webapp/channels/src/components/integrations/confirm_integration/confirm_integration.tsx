@@ -1,10 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Bot} from '@mattermost/types/bots';
-import {Command, IncomingWebhook, OAuthApp, OutgoingWebhook} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
-import {IDMappedObjects} from '@mattermost/types/utilities';
 import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link, useHistory} from 'react-router-dom';
@@ -16,6 +12,11 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {Constants, DeveloperLinks, ErrorPageTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
+
+import type {Bot} from '@mattermost/types/bots';
+import type {Command, IncomingWebhook, OAuthApp, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 type Props = {
     team: Team;

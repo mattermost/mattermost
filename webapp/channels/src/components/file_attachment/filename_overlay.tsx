@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileInfo} from '@mattermost/types/files';
 import React from 'react';
 
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
@@ -13,6 +12,8 @@ import AttachmentIcon from 'components/widgets/icons/attachment_icon';
 
 import {trimFilename} from 'utils/file_utils';
 import {localizeMessage} from 'utils/utils';
+
+import type {FileInfo} from '@mattermost/types/files';
 
 type Props = {
 

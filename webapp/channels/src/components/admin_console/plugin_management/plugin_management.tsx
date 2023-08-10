@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminConfig} from '@mattermost/types/config';
-import {DeepPartial} from '@mattermost/types/utilities';
 import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -15,13 +13,18 @@ import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 
-import AdminSettings, {BaseProps, BaseState} from '../admin_settings';
-import BooleanSetting from '../boolean_setting';
-import SettingsGroup from '../settings_group';
-import TextSetting from '../text_setting';
 import {appsPluginID} from 'utils/apps';
 import {DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import AdminSettings from '../admin_settings';
+import BooleanSetting from '../boolean_setting';
+import SettingsGroup from '../settings_group';
+import TextSetting from '../text_setting';
+
+import type {BaseProps, BaseState} from '../admin_settings';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 const PluginItemState = ({state}: {state: number}) => {
     switch (state) {

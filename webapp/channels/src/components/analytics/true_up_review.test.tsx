@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import {DeepPartial} from '@mattermost/types/utilities';
 import React from 'react';
 
 import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
@@ -12,6 +10,9 @@ import {LicenseSkus} from 'utils/constants';
 import {TestHelper as TH} from 'utils/test_helper';
 
 import TrueUpReview from './true_up_review';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 describe('TrueUpReview', () => {
     const showsTrueUpReviewStore: DeepPartial<GlobalState> = {

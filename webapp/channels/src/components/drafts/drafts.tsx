@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import React, {memo, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
-import {Draft} from 'selectors/drafts';
 
 import NoResultsIndicator from 'components/no_results_indicator';
 import Header from 'components/widgets/header';
@@ -17,6 +15,9 @@ import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import DraftRow from './draft_row';
 import DraftsIllustration from './drafts_illustration';
+
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
+import type {Draft} from 'selectors/drafts';
 
 import './drafts.scss';
 

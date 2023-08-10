@@ -1,13 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from '@mattermost/types/errors';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
 
-import {openDirectChannelToUserId} from 'actions/channel_actions';
-import {closeModal, openModal} from 'actions/views/modals';
-import {getMembershipForEntities} from 'actions/views/profile_popover';
 import {
     canManageAnyChannelMembersInCurrentTeam,
     getCurrentChannelId,
@@ -23,18 +19,25 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
 import {displayLastActiveLabel, getCurrentUserId, getLastActiveTimestampUnits, getLastActivityForUserId, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction} from 'mattermost-redux/types/actions';
+
+import {openDirectChannelToUserId} from 'actions/channel_actions';
+import {closeModal, openModal} from 'actions/views/modals';
+import {getMembershipForEntities} from 'actions/views/profile_popover';
 import {isCallsEnabled} from 'selectors/calls';
 import {getRhsState, getSelectedPost} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
 import {isAnyModalOpen} from 'selectors/views/modals';
 
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
 import {getDirectChannelName} from 'utils/utils';
 
 import ProfilePopover from './profile_popover';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     userId: string;

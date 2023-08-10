@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from '@mattermost/types/errors';
 import classNames from 'classnames';
 import React, {useState, useRef, memo} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -11,6 +10,8 @@ import LocalizedInput from 'components/localized_input/localized_input';
 
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import type {ServerError} from '@mattermost/types/errors';
 
 interface Props {
     location: {search: string};

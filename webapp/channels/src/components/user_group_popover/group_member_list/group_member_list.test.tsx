@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ReactWrapper} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
 import {BrowserRouter} from 'react-router-dom';
@@ -9,13 +8,17 @@ import {BrowserRouter} from 'react-router-dom';
 import {General} from 'mattermost-redux/constants';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import {Load} from '../user_group_popover';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
 
-import GroupMemberList, {GroupMember} from './group_member_list';
+import GroupMemberList from './group_member_list';
+
+import {Load} from '../user_group_popover';
+
+import type {GroupMember} from './group_member_list';
+import type {ReactWrapper} from 'enzyme';
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),

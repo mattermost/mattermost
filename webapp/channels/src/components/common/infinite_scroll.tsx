@@ -2,9 +2,11 @@
 // See LICENSE.txt for license information.
 
 import debounce from 'lodash/debounce';
-import React, {CSSProperties} from 'react';
+import React from 'react';
 
 import LoadingScreen from 'components/loading_screen';
+
+import type {CSSProperties} from 'react';
 
 const SCROLL_BUFFER = 100;
 const DEBOUNCE_WAIT_TIME = 200;

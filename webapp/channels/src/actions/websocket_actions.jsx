@@ -5,23 +5,6 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import {loadChannelsForCurrentUser} from 'actions/channel_actions';
-import {
-    getTeamsUsage,
-} from 'actions/cloud';
-import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
-import {redirectUserToDefaultTeam} from 'actions/global_actions';
-import {sendDesktopNotification} from 'actions/notification_actions.jsx';
-import {handleNewPost} from 'actions/post_actions';
-import * as StatusActions from 'actions/status_actions';
-import {setGlobalItem} from 'actions/storage';
-import {loadProfilesForSidebar} from 'actions/user_actions';
-import {syncPostsInChannel} from 'actions/views/channel';
-import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
-import {openModal} from 'actions/views/modals';
-import {closeRightHandSide} from 'actions/views/rhs';
-import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
-import {updateThreadLastOpened} from 'actions/views/threads';
 import {
     ChannelTypes,
     EmojiTypes,
@@ -99,6 +82,24 @@ import {getMyTeams, getCurrentRelativeTeamUrl, getCurrentTeamId, getCurrentTeamU
 import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
+
+import {loadChannelsForCurrentUser} from 'actions/channel_actions';
+import {
+    getTeamsUsage,
+} from 'actions/cloud';
+import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
+import {redirectUserToDefaultTeam} from 'actions/global_actions';
+import {sendDesktopNotification} from 'actions/notification_actions.jsx';
+import {handleNewPost} from 'actions/post_actions';
+import * as StatusActions from 'actions/status_actions';
+import {setGlobalItem} from 'actions/storage';
+import {loadProfilesForSidebar} from 'actions/user_actions';
+import {syncPostsInChannel} from 'actions/views/channel';
+import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
+import {openModal} from 'actions/views/modals';
+import {closeRightHandSide} from 'actions/views/rhs';
+import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
+import {updateThreadLastOpened} from 'actions/views/threads';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store.jsx';

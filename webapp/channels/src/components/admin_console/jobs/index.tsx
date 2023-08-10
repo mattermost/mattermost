@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {JobType} from '@mattermost/types/jobs';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
 
 import {getJobsByType, createJob, cancelJob} from 'mattermost-redux/actions/jobs';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {makeGetJobsByType} from 'mattermost-redux/selectors/entities/jobs';
-import {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
+import Table from './table';
 
-import Table, {Props} from './table';
+import type {Props} from './table';
+import type {JobType} from '@mattermost/types/jobs';
+import type {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {GlobalState} from 'types/store';
 
 type OwnProps = Omit<Props, 'actions'|'jobs'|'downloadExportRresults'>;
 

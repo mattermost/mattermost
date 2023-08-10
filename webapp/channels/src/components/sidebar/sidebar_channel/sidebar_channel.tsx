@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {AnimationEvent, ReactNode, useState} from 'react';
+import React, {useState} from 'react';
 import {Draggable} from 'react-beautiful-dnd';
 import {FormattedMessage} from 'react-intl';
 
@@ -13,6 +13,7 @@ import SidebarDirectChannel from './sidebar_direct_channel';
 import SidebarGroupChannel from './sidebar_group_channel';
 
 import type {Props} from './index';
+import type {AnimationEvent, ReactNode} from 'react';
 
 function SidebarChannel({
     isCategoryCollapsed,

@@ -2,7 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+
+import {getMorePostsForSearch, getMoreFilesForSearch} from 'mattermost-redux/actions/search';
+import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import {autocompleteChannelsForSearch} from 'actions/channel_actions';
 import {autocompleteUsersInTeam} from 'actions/user_actions';
@@ -20,17 +23,17 @@ import {
     filterFilesSearchByExt,
     updateSearchType,
 } from 'actions/views/rhs';
-import {getMorePostsForSearch, getMoreFilesForSearch} from 'mattermost-redux/actions/search';
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-import {Action} from 'mattermost-redux/types/actions';
 import {getRhsState, getSearchTerms, getSearchType, getIsSearchingTerm, getIsRhsOpen, getIsRhsExpanded} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {GlobalState} from 'types/store';
 import {RHSStates} from 'utils/constants';
 
 import Search from './search';
+
 import type {StateProps, DispatchProps, OwnProps} from './types';
+import type {Action} from 'mattermost-redux/types/actions';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const rhsState = getRhsState(state);

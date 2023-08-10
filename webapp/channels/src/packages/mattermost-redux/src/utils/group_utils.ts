@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Group} from '@mattermost/types/groups';
+import {getSuggestionsSplitByMultiple} from './user_utils';
 
 import {General} from '../constants';
 
-import {getSuggestionsSplitByMultiple} from './user_utils';
+import type {Group} from '@mattermost/types/groups';
 
 export function filterGroupsMatchingTerm(groups: Group[], term: string): Group[] {
     const lowercasedTerm = term.toLowerCase();

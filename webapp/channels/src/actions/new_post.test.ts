@@ -4,17 +4,18 @@
 // import thunk from 'redux-thunk';
 // import configureStore from 'redux-mock-store';
 
-import {Post} from '@mattermost/types/posts';
-import {GlobalState} from '@mattermost/types/store';
-
-import * as NewPostActions from 'actions/new_post';
 import {ChannelTypes} from 'mattermost-redux/action_types';
 import {receivedNewPost} from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
-import {GetStateFunc} from 'mattermost-redux/types/actions';
+
+import * as NewPostActions from 'actions/new_post';
 
 import mockStore from 'tests/test_store';
 import {Constants} from 'utils/constants';
+
+import type {Post} from '@mattermost/types/posts';
+import type {GlobalState} from '@mattermost/types/store';
+import type {GetStateFunc} from 'mattermost-redux/types/actions';
 
 jest.mock('mattermost-redux/actions/channels', () => ({
     ...jest.requireActual('mattermost-redux/actions/channels'),

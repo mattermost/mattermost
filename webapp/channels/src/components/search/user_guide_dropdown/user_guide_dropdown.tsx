@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage, injectIntl, WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -17,6 +17,7 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
+import type {WrappedComponentProps} from 'react-intl';
 
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 

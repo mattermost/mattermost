@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Dispatch} from 'redux';
-
-import {trackEvent} from 'actions/telemetry_actions';
 import {getChannelIdsForCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
 
-import {GlobalState} from 'types/store';
+import {trackEvent} from 'actions/telemetry_actions';
+
+import type {Dispatch} from 'redux';
+import type {GlobalState} from 'types/store';
 
 let isFirstPreload = true;
 

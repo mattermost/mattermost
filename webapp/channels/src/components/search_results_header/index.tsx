@@ -2,20 +2,23 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {AnyAction, bindActionCreators, Dispatch} from 'redux';
-import {GlobalState} from 'types/store/index.js';
+import {bindActionCreators} from 'redux';
+
+import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 
 import {
     closeRightHandSide,
     toggleRhsExpanded,
     goBack,
 } from 'actions/views/rhs';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
 
 import {RHSStates} from 'utils/constants';
 
 import SearchResultsHeader from './search_results_header';
+
+import type {AnyAction, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store/index.js';
 
 function mapStateToProps(state: GlobalState) {
     const previousRhsState = getPreviousRhsState(state);

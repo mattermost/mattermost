@@ -2,13 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {RefObject} from 'react';
+import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
 
 import AtMention from 'components/at_mention/at_mention';
 
 import {TestHelper} from 'utils/test_helper';
+
+import type {RefObject} from 'react';
 
 /* eslint-disable global-require */
 
