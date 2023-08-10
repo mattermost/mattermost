@@ -235,7 +235,6 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
   <ProfilePicture
     hasMention={false}
     isEmoji={false}
-    isRHS={false}
     popoverPlacement="right"
     size="md"
     src="/api/v4/users/user-1/image"
