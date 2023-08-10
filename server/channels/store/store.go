@@ -67,6 +67,7 @@ type Store interface {
 	DropAllTables()
 	RecycleDBConnections(d time.Duration)
 	GetDBSchemaVersion() (int, error)
+	GetLocalSchemaVersion() (int, error)
 	GetAppliedMigrations() ([]model.AppliedMigration, error)
 	GetDbVersion(numerical bool) (string, error)
 	// GetInternalMasterDB allows access to the raw master DB

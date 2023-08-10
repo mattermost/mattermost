@@ -2184,7 +2184,6 @@ func TestUpdateUserAuth(t *testing.T) {
 	userAuth := &model.UserAuth{}
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = user.AuthService
-	userAuth.Password = user.Password
 
 	// Regular user can not use endpoint
 	_, respErr, _ := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
@@ -2192,19 +2191,16 @@ func TestUpdateUserAuth(t *testing.T) {
 
 	userAuth.AuthData = model.NewString("test@test.com")
 	userAuth.AuthService = model.UserAuthServiceSaml
-	userAuth.Password = "newpassword"
 	ruser, _, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NoError(t, err)
 
 	// AuthData and AuthService are set, password is set to empty
 	require.Equal(t, *userAuth.AuthData, *ruser.AuthData)
 	require.Equal(t, model.UserAuthServiceSaml, ruser.AuthService)
-	require.Empty(t, ruser.Password)
 
 	// When AuthData or AuthService are empty, password must be valid
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = ""
-	userAuth.Password = "1"
 	_, respErr, _ = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr)
 
@@ -2218,7 +2214,6 @@ func TestUpdateUserAuth(t *testing.T) {
 
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = user.AuthService
-	userAuth.Password = user.Password
 	_, respErr, _ = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr, "Should have errored")
 }

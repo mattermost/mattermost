@@ -1100,7 +1100,6 @@ func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, as
 }
 
 func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
-	userAuth.Password = ""
 	if _, err := a.Srv().Store().User().UpdateAuthData(userID, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {

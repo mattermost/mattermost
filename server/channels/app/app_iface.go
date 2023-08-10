@@ -248,7 +248,8 @@ type AppIface interface {
 	HubRegister(webConn *platform.WebConn)
 	// HubUnregister unregisters a connection from a hub.
 	HubUnregister(webConn *platform.WebConn)
-	// InstallPlugin unpacks and installs a plugin but does not enable or activate it.
+	// InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the the
+	// plugin was already enabled.
 	InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
 	// LogAuditRec logs an audit record using default LvlAuditCLI.
 	LogAuditRec(rec *audit.Record, err error)

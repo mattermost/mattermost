@@ -27,6 +27,8 @@ export type PluginsState = {
         Product: ProductComponent[];
         CallButton: PluginComponent[];
         PostDropdownMenu: PluginComponent[];
+        PostAction: PluginComponent[];
+        PostEditorAction: PluginComponent[];
         FilePreview: PluginComponent[];
         MainMenu: PluginComponent[];
         LinkTooltip: PluginComponent[];
