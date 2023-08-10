@@ -345,6 +345,10 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
+		if (patch.Name != nil && *patch.Name != oldChannel.Name) || (patch.DisplayName != nil && *patch.DisplayName != oldChannel.DisplayName) || (patch.Purpose != nil && *patch.Purpose != oldChannel.Purpose) {
+			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.cant_update_direct_or_group_messages.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
 
 	default:
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)

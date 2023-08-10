@@ -336,6 +336,10 @@
     "translation": "Your license does not support channel moderation"
   },
   {
+    "id": "api.channel.patch_update_channel.cant_update_direct_or_group_messages.app_error",
+    "translation": "Unable to update the name, display_name, and purpose of a direct or group messages."
+  },
+  {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
     "translation": "Failed to update the channel."
   },
