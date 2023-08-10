@@ -780,7 +780,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             <span
                                 id='channelHeaderDropdownIcon'
                                 className='icon icon-chevron-down header-dropdown-chevron-icon'
-                                aria-label={formatMessage({id: 'generic_icons.dropdown', defaultMessage: 'Dropdown Icon'}).toLowerCase()}
                             />
                         </button>
                     </div>

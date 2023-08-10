@@ -15,7 +15,6 @@ import general from './general';
 import gifs from './gifs';
 import groups from './groups';
 import hostedCustomer from './hosted_customer';
-import insights from './insights';
 import integrations from './integrations';
 import jobs from './jobs';
 import posts from './posts';
@@ -52,7 +51,6 @@ export default combineReducers({
     channelCategories,
     apps,
     cloud,
-    insights,
     usage,
     hostedCustomer,
 });

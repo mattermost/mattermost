@@ -363,7 +363,6 @@ const AdvanceTextEditor = ({
 
         if (!message) {
             // if we do not have a message we can just render the default state
-            input.style.maxWidth = `${maxWidth}px`;
             setShowFormattingSpacer(false);
             return;
         }
@@ -374,10 +373,8 @@ const AdvanceTextEditor = ({
         const currentWidth = width + inputPaddingX;
 
         if (currentWidth >= maxWidth) {
-            input.style.maxWidth = '100%';
             setShowFormattingSpacer(true);
         } else {
-            input.style.maxWidth = `${maxWidth}px`;
             setShowFormattingSpacer(false);
         }
     }, [message, input]);

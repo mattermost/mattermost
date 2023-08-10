@@ -18,7 +18,7 @@ import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import {PostPriorityMetadata} from '@mattermost/types/posts';
 import classNames from 'classnames';
 import React, {memo, useCallback, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
 import useTooltip from 'components/common/hooks/useTooltip';
@@ -39,19 +39,16 @@ function PostPriorityPickerOverlay({
     onClose,
 }: Props) {
     const [pickerOpen, setPickerOpen] = useState(false);
+    const {formatMessage} = useIntl();
 
+    const messagePriority = formatMessage({id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority'});
     const {
         reference: tooltipRef,
         getReferenceProps: getTooltipReferenceProps,
         tooltip,
     } = useTooltip({
         placement: 'top',
-        message: (
-            <FormattedMessage
-                id='shortcuts.msgs.formatting_bar.post_priority'
-                defaultMessage={'Message priority'}
-            />
-        ),
+        message: messagePriority,
     });
 
     const handleClose = useCallback(() => {
@@ -102,6 +99,7 @@ function PostPriorityPickerOverlay({
                     className={classNames({control: true, active: pickerOpen})}
                     disabled={disabled}
                     type='button'
+                    aria-label={messagePriority}
                     {...getPickerReferenceProps()}
                 >
                     <AlertCircleOutlineIcon

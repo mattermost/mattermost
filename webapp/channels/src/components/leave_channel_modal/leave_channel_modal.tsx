@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {Channel} from '@mattermost/types/channels';
-import {LeastActiveChannel} from '@mattermost/types/insights';
 import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -11,7 +10,7 @@ import ConfirmModal from 'components/confirm_modal';
 import Constants from 'utils/constants';
 
 type Props = {
-    channel: Channel | LeastActiveChannel;
+    channel: Channel;
     onExited: () => void;
     callback?: () => any;
     actions: {

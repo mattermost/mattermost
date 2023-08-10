@@ -98,7 +98,7 @@ interface MenuProps {
         showChannelFiles: (channelId: string) => void;
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
-        getChannelStats: (channelId: string) => Promise<{data: ChannelStats}>;
+        getChannelStats: (channelId: string, includeFileCount: boolean) => Promise<{data: ChannelStats}>;
     };
 }
 
@@ -111,7 +111,7 @@ const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps
     const fileCount = channelStats?.files_count >= 0 ? channelStats?.files_count : 0;
 
     useEffect(() => {
-        actions.getChannelStats(channel.id).then(() => {
+        actions.getChannelStats(channel.id, true).then(() => {
             setLoadingStats(false);
         });
         return () => {

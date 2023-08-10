@@ -112,14 +112,14 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 aria-label={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
                 onClick={handleClick}
             >
-                <li
+                <div
                     aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.addChannelsCta', defaultMessage: 'Add channels'})}
                 >
                     <i className='icon-plus-box'/>
                     <span>
                         {intl.formatMessage({id: 'sidebar_left.addChannelsCta', defaultMessage: 'Add Channels'})}
                     </span>
-                </li>
+                </div>
             </button>
         );
     };

@@ -1119,7 +1119,7 @@ describe('Actions.Posts', () => {
         const {dispatch, getState} = store;
 
         nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}/stats`).
+            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
 
         await dispatch(getChannelStats(TestHelper.basicChannel!.id));
@@ -1158,7 +1158,7 @@ describe('Actions.Posts', () => {
         const {dispatch, getState} = store;
 
         nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}/stats`).
+            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
 
         await dispatch(getChannelStats(TestHelper.basicChannel!.id));

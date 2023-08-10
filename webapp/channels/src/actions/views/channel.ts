@@ -129,8 +129,6 @@ export function switchToChannel(channel: Channel & {userId?: string}) {
             getHistory().push(`${teamUrl}/channels/${gmChannel.name}`);
         } else if (channel.type === Constants.THREADS) {
             getHistory().push(`${teamUrl}/${channel.name}`);
-        } else if (channel.type === Constants.INSIGHTS) {
-            getHistory().push(`${teamUrl}/${channel.name}`);
         } else {
             getHistory().push(`${teamUrl}/channels/${channel.name}`);
         }

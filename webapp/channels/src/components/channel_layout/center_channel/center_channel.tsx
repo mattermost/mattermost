@@ -38,16 +38,6 @@ const LazyDrafts = makeAsyncComponent(
     ),
 );
 
-const LazyActivityAndInsights = makeAsyncComponent(
-    'LazyActivityAndInsights',
-    React.lazy(() => import('components/activity_and_insights/activity_and_insights')),
-    (
-        <div className='app__content'>
-            <LoadingScreen/>
-        </div>
-    ),
-);
-
 type Props = PropsFromRedux & OwnProps;
 
 type State = {
@@ -80,7 +70,7 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
     }
 
     render() {
-        const {lastChannelPath, isCollapsedThreadsEnabled, insightsAreEnabled, isMobileView} = this.props;
+        const {lastChannelPath, isCollapsedThreadsEnabled, isMobileView} = this.props;
         const url = this.props.match.url;
 
         return (
@@ -129,12 +119,7 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                             path='/:team/drafts'
                             component={LazyDrafts}
                         />
-                        {insightsAreEnabled ? (
-                            <Route
-                                path='/:team/activity-and-insights'
-                                component={LazyActivityAndInsights}
-                            />
-                        ) : null}
+
                         <Redirect to={lastChannelPath}/>
                     </Switch>
                 </div>

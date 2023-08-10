@@ -477,6 +477,7 @@ func (wc *WebConn) writePump() {
 			if len(wc.send) >= sendFullWarn && time.Since(wc.lastLogTimeFull) > websocketSuppressWarnThreshold {
 				logData := []mlog.Field{
 					mlog.String("user_id", wc.UserId),
+					mlog.String("conn_id", wc.GetConnectionID()),
 					mlog.String("type", msg.EventType()),
 					mlog.Int("size", buf.Len()),
 				}
@@ -730,6 +731,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 				mlog.Warn(
 					"websocket.slow: dropping message",
 					mlog.String("user_id", wc.UserId),
+					mlog.String("conn_id", wc.GetConnectionID()),
 					mlog.String("type", msg.EventType()),
 				)
 				// Reset timer to now.
@@ -761,17 +763,6 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 	}
 
-	// The priority checks in order of specificity are:
-	// ConnectionId
-	// OmitConnectionId
-	//
-	// UserId
-	// OmitUserId
-	//
-	// ChannelId - is member of channel
-	// TeamId - is member of team
-	// Guest - does guest have access
-
 	// If the event is destined to a specific connection
 	if msg.GetBroadcast().ConnectionId != "" {
 		return wc.GetConnectionID() == msg.GetBroadcast().ConnectionId
@@ -798,16 +789,6 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
 			wc.allChannelMembers = nil
 			wc.lastAllChannelMembersTime = 0
-		}
-
-		// Execute channel hook
-		if msg.GetBroadcast().ChannelHook != nil {
-			hasChange := msg.GetBroadcast().ChannelHook(wc.UserId, msg)
-			if hasChange {
-				// If hook returns true, that means message has been modified. We need
-				// to wipe off the pre-computed JSON
-				msg.RemovePrecomputedJSON()
-			}
 		}
 
 		if wc.allChannelMembers == nil {
@@ -863,8 +844,13 @@ func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 func (wc *WebConn) logSocketErr(source string, err error) {
 	// browsers will appear as CloseNoStatusReceived
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-		mlog.Debug(source+": client side closed socket", mlog.String("user_id", wc.UserId))
+		mlog.Debug(source+": client side closed socket",
+			mlog.String("user_id", wc.UserId),
+			mlog.String("conn_id", wc.GetConnectionID()))
 	} else {
-		mlog.Debug(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
+		mlog.Debug(source+": closing websocket",
+			mlog.String("user_id", wc.UserId),
+			mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.Err(err))
 	}
 }

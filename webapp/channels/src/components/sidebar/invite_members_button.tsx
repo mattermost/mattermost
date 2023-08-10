@@ -39,14 +39,14 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
             permissions={[Permissions.ADD_USER_TO_TEAM, Permissions.INVITE_GUEST]}
         >
             <ToggleModalButton
-                ariaLabel={intl.formatMessage({id: 'sidebar_left.inviteUsers', defaultMessage: 'Invite Users'})}
-                id='introTextInvite'
+                ariaLabel={intl.formatMessage({id: 'sidebar_left.inviteMembers', defaultMessage: 'Invite Members'})}
+                id='inviteMembersButton'
                 className={`intro-links color--link cursor--pointer${props.className ? ` ${props.className}` : ''}`}
                 modalId={ModalIdentifiers.INVITATION}
                 dialogType={InvitationModal}
                 onClick={handleButtonClick}
             >
-                <li
+                <div
                     className='SidebarChannelNavigator__inviteMembersLhsButton'
                     aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.inviteUsers', defaultMessage: 'Invite Members'})}
                 >
@@ -55,7 +55,7 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
                         id={'sidebar_left.inviteMembers'}
                         defaultMessage='Invite Members'
                     />
-                </li>
+                </div>
             </ToggleModalButton>
         </TeamPermissionGate>
     );

@@ -8,6 +8,8 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
+import {ActionResult} from 'mattermost-redux/types/actions';
+
 import DeletePostModal from 'components/delete_post_modal';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import Textbox, {TextboxClass, TextboxElement} from 'components/textbox';
@@ -41,6 +43,7 @@ export type Actions = {
     unsetEditingPost: () => void;
     openModal: (input: ModalData<DialogProps>) => void;
     scrollPostListToBottom: () => void;
+    runMessageWillBeUpdatedHooks: (newPost: Partial<Post>, oldPost: Post) => Promise<ActionResult>;
 }
 
 export type Props = {
@@ -232,11 +235,19 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             return;
         }
 
-        const updatedPost = {
+        let updatedPost = {
             message: editText,
             id: editingPost.postId,
             channel_id: editingPost.post.channel_id,
         };
+
+        const hookResult = await actions.runMessageWillBeUpdatedHooks(updatedPost, editingPost.post);
+        if (hookResult.error && hookResult.error.message) {
+            setPostError(<>{hookResult.error.message}</>);
+            return;
+        }
+
+        updatedPost = hookResult.data;
 
         if (postError) {
             setErrorClass('animation--highlight');

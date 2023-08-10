@@ -12,7 +12,6 @@ import * as general from './general';
 import * as gifs from './gifs';
 import * as groups from './groups';
 import * as helpers from './helpers';
-import * as insights from './insights';
 import * as integrations from './integrations';
 import * as jobs from './jobs';
 import * as posts from './posts';
@@ -48,6 +47,5 @@ export {
     timezone,
     websocket,
     users,
-    insights,
 };
 

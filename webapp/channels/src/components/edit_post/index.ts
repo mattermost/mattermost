@@ -4,6 +4,7 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
+import {runMessageWillBeUpdatedHooks} from 'actions/hooks';
 import {unsetEditingPost} from 'actions/post_actions';
 import {scrollPostListToBottom} from 'actions/views/channel';
 import {openModal} from 'actions/views/modals';
@@ -67,6 +68,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setDraft: setGlobalItem,
             unsetEditingPost,
             openModal,
+            runMessageWillBeUpdatedHooks,
         }, dispatch),
     };
 }

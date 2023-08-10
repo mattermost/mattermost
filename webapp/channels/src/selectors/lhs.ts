@@ -3,7 +3,6 @@
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
-    insightsAreEnabled,
     isCollapsedThreadsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {makeGetDraftsCount} from 'selectors/drafts';
@@ -23,18 +22,10 @@ export const getDraftsCount = makeGetDraftsCount();
 
 export const getVisibleStaticPages = createSelector(
     'getVisibleSidebarStaticPages',
-    insightsAreEnabled,
     isCollapsedThreadsEnabled,
     getDraftsCount,
-    (insightsEnabled, collapsedThreadsEnabled, draftsCount) => {
+    (collapsedThreadsEnabled, draftsCount) => {
         const staticPages: StaticPage[] = [];
-
-        if (insightsEnabled) {
-            staticPages.push({
-                id: 'activity-and-insights',
-                isVisible: true,
-            });
-        }
 
         if (collapsedThreadsEnabled) {
             staticPages.push({

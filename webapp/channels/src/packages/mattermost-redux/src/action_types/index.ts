@@ -15,7 +15,6 @@ import GeneralTypes from './general';
 import GifTypes from './gifs';
 import GroupTypes from './groups';
 import HostedCustomerTypes from './hosted_customer';
-import InsightTypes from './insights';
 import IntegrationTypes from './integrations';
 import JobTypes from './jobs';
 import PlaybookType from './playbooks';
@@ -53,7 +52,6 @@ export {
     CloudTypes,
     AppsTypes,
     ThreadTypes,
-    InsightTypes,
     HostedCustomerTypes,
     DraftTypes,
     PlaybookType,

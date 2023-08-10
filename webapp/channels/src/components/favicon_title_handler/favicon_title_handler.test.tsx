@@ -44,7 +44,6 @@ describe('components/FaviconTitleHandler', () => {
         currentTeammate: null,
         inGlobalThreads: false,
         inDrafts: false,
-        inActivityAndInsights: false,
     };
 
     test('set correctly the title when needed', () => {

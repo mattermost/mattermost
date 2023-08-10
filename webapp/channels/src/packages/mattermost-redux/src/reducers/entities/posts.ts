@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {TopThread} from '@mattermost/types/insights';
 import {
     OpenGraphMetadata,
     Post,
@@ -20,7 +19,7 @@ import {
     RelationOneToMany,
 } from '@mattermost/types/utilities';
 
-import {ChannelTypes, GeneralTypes, PostTypes, UserTypes, ThreadTypes, InsightTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, GeneralTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
 import {PostTypes as PostConstant} from 'mattermost-redux/constants/posts';
 import {GenericAction} from 'mattermost-redux/types/actions';
@@ -302,23 +301,6 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: Ge
                 is_following: following,
             },
         };
-    }
-
-    case InsightTypes.RECEIVED_TOP_THREADS:
-    case InsightTypes.RECEIVED_MY_TOP_THREADS: {
-        const topThreads = Object.values(action.data.items) as TopThread[];
-
-        if (topThreads.length === 0) {
-            return state;
-        }
-
-        const nextState = {...state};
-
-        for (const thread of topThreads) {
-            handlePostReceived(nextState, thread.post);
-        }
-
-        return nextState;
     }
 
     case UserTypes.LOGOUT_SUCCESS:

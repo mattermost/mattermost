@@ -63,7 +63,7 @@ export function emitChannelClickEvent(channel: Channel) {
         const currentChannelId = getCurrentChannelId(state);
         const previousRhsState = getPreviousRhsState(state);
 
-        dispatch(getChannelStats(chan.id, true));
+        dispatch(getChannelStats(chan.id));
 
         const penultimate = LocalStorageStore.getPreviousChannelName(userId, teamId);
         const penultimateType = LocalStorageStore.getPreviousViewedType(userId, teamId);

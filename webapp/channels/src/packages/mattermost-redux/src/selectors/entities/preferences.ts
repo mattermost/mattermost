@@ -8,11 +8,9 @@ import {GlobalState} from '@mattermost/types/store';
 import {General, Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 export function getMyPreferences(state: GlobalState): { [x: string]: PreferenceType } {
     return state.entities.preferences.myPreferences;
@@ -244,13 +242,6 @@ export function isCustomGroupsEnabled(state: GlobalState): boolean {
 
 export function getIsOnboardingFlowEnabled(state: GlobalState): boolean {
     return getConfig(state).EnableOnboardingFlow === 'true';
-}
-
-export function insightsAreEnabled(state: GlobalState): boolean {
-    const isConfiguredForFeature = getConfig(state).InsightsEnabled === 'true';
-    const featureIsEnabled = getFeatureFlagValue(state, 'InsightsEnabled') === 'true';
-    const currentUserIsGuest = isGuest(getCurrentUser(state).roles);
-    return featureIsEnabled && isConfiguredForFeature && !currentUserIsGuest;
 }
 
 export function isGraphQLEnabled(state: GlobalState): boolean {

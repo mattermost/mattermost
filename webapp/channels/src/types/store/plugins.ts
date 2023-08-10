@@ -6,7 +6,6 @@ import {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import {PluginAnalyticsRow} from '@mattermost/types/admin';
 import {Channel} from '@mattermost/types/channels';
 import {FileInfo} from '@mattermost/types/files';
-import {TopBoardResponse} from '@mattermost/types/insights';
 import {ClientPluginManifest} from '@mattermost/types/plugins';
 import {Post, PostEmbed} from '@mattermost/types/posts';
 import {ProductScope} from '@mattermost/types/products';
@@ -27,6 +26,8 @@ export type PluginsState = {
         Product: ProductComponent[];
         CallButton: PluginComponent[];
         PostDropdownMenu: PluginComponent[];
+        PostAction: PluginComponent[];
+        PostEditorAction: PluginComponent[];
         FilePreview: PluginComponent[];
         MainMenu: PluginComponent[];
         LinkTooltip: PluginComponent[];
@@ -58,9 +59,6 @@ export type PluginsState = {
     };
     siteStatsHandlers: {
         [pluginId: string]: PluginSiteStatsHandler;
-    };
-    insightsHandlers: {
-        [pluginId: string]: (timeRange: string, page: number, perPage: number, teamId: string, insightType: string) => Promise<TopBoardResponse>;
     };
 };
 

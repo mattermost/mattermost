@@ -103,34 +103,9 @@ func scanSearchPath(path string) ([]*model.BundleInfo, error) {
 	return ret, nil
 }
 
-var pluginIDBlocklist = map[string]bool{
-	"com.mattermost.plugin-incident-response":   true,
-	"com.mattermost.plugin-incident-management": true,
-}
-
-func PluginIDIsBlocked(id string) bool {
-	_, ok := pluginIDBlocklist[id]
-	return ok
-}
-
 // Returns a list of all plugins within the environment.
 func (env *Environment) Available() ([]*model.BundleInfo, error) {
-	rawList, err := scanSearchPath(env.pluginDir)
-	if err != nil {
-		return nil, err
-	}
-
-	// Filter any plugins that match the blocklist
-	filteredList := make([]*model.BundleInfo, 0, len(rawList))
-	for _, bundleInfo := range rawList {
-		if PluginIDIsBlocked(bundleInfo.Manifest.Id) {
-			env.logger.Debug("Plugin ignored by blocklist", mlog.String("plugin_id", bundleInfo.Manifest.Id))
-		} else {
-			filteredList = append(filteredList, bundleInfo)
-		}
-	}
-
-	return filteredList, nil
+	return scanSearchPath(env.pluginDir)
 }
 
 // Returns a list of prepackaged plugins available in the local prepackaged_plugins folder.

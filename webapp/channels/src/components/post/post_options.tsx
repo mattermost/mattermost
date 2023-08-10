@@ -17,6 +17,7 @@ import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
 import PostRecentReactions from 'components/post_view/post_recent_reactions';
 
+import {PluginComponent} from 'types/store/plugins';
 import {Locations} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 
@@ -48,6 +49,7 @@ type Props = {
     isPostHeaderVisible?: boolean | null;
     isPostBeingEdited?: boolean;
     canDelete?: boolean;
+    pluginActions: PluginComponent[];
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
     };
@@ -174,6 +176,24 @@ const PostOptions = (props: Props): JSX.Element => {
             isMenuOpen={showActionsMenu}
         />
     );
+
+    let pluginItems: ReactNode = null;
+    if ((!isEphemeral && !post.failed && !systemMessage) && hoverLocal) {
+        pluginItems = props.pluginActions?.
+            map((item) => {
+                if (item.component) {
+                    const Component = item.component as any;
+                    return (
+                        <Component
+                            post={props.post}
+                            key={item.id}
+                        />
+                    );
+                }
+                return null;
+            }) || [];
+    }
+
     const dotMenu = (
         <DotMenu
             post={props.post}
@@ -242,6 +262,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 {showRecentReactions}
                 {postReaction}
                 {flagIcon}
+                {pluginItems}
                 {actionsMenu}
                 {commentIcon}
                 {(collapsedThreadsEnabled || showRecentlyUsedReactions) && dotMenu}

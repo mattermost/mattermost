@@ -22,12 +22,6 @@ type FeatureFlags struct {
 	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
-	// Feature flags to control plugin versions
-	PluginPlaybooks  string `plugin_id:"playbooks"`
-	PluginApps       string `plugin_id:"com.mattermost.apps"`
-	PluginFocalboard string `plugin_id:"focalboard"`
-	PluginCalls      string `plugin_id:"com.mattermost.calls"`
-
 	PermalinkPreviews bool
 
 	// CallsEnabled controls whether or not the Calls plugin should be enabled
@@ -40,10 +34,6 @@ type FeatureFlags struct {
 
 	// Enable GraphQL feature
 	GraphQL bool
-
-	InsightsEnabled bool
-
-	CommandPalette bool
 
 	PostPriority bool
 
@@ -68,13 +58,9 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = true
-	f.PluginApps = ""
-	f.PluginFocalboard = ""
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.GraphQL = false
-	f.InsightsEnabled = false
-	f.CommandPalette = false
 	f.CallsEnabled = true
 	f.PeopleProduct = false
 	f.DeprecateCloudFree = false
@@ -83,26 +69,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
 	f.DataRetentionConcurrencyEnabled = true
-}
-
-func (f *FeatureFlags) Plugins() map[string]string {
-	rFFVal := reflect.ValueOf(f).Elem()
-	rFFType := reflect.TypeOf(f).Elem()
-
-	pluginVersions := make(map[string]string)
-	for i := 0; i < rFFVal.NumField(); i++ {
-		rFieldVal := rFFVal.Field(i)
-		rFieldType := rFFType.Field(i)
-
-		pluginId, hasPluginId := rFieldType.Tag.Lookup("plugin_id")
-		if !hasPluginId {
-			continue
-		}
-
-		pluginVersions[pluginId] = rFieldVal.String()
-	}
-
-	return pluginVersions
 }
 
 // ToMap returns the feature flags as a map[string]string

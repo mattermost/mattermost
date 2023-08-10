@@ -2,11 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
-import {TopThread} from '@mattermost/types/insights';
 import {Post} from '@mattermost/types/posts';
 import {combineReducers} from 'redux';
 
-import {FileTypes, InsightTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
+import {FileTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
 import {GenericAction} from 'mattermost-redux/types/actions';
 
 export function files(state: Record<string, FileInfo> = {}, action: GenericAction) {
@@ -28,15 +27,6 @@ export function files(state: Record<string, FileInfo> = {}, action: GenericActio
         const post = action.data;
 
         return storeAllFilesForPost(storeFilesForPost, state, post);
-    }
-
-    case InsightTypes.RECEIVED_TOP_THREADS:
-    case InsightTypes.RECEIVED_MY_TOP_THREADS: {
-        const threads: TopThread[] = Object.values(action.data.items);
-
-        return threads.reduce((nextState, thread) => {
-            return storeAllFilesForPost(storeFilesForPost, nextState, thread.post);
-        }, state);
     }
 
     case PostTypes.RECEIVED_POSTS: {
