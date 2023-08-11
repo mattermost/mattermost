@@ -88,12 +88,12 @@ type RetentionPolicyCursor struct {
 }
 
 type RetentionIdsForDeletion struct {
-	Id 	      string
+	Id        string
 	TableName string
-	Ids		  []string
+	Ids       []string
 }
 
-func(r *RetentionIdsForDeletion) PreSave() {
+func (r *RetentionIdsForDeletion) PreSave() {
 	if r.Id == "" {
 		r.Id = NewId()
 	}
