@@ -22,7 +22,6 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
 
     private textarea?: HTMLTextAreaElement;
     private referenceRef: React.RefObject<HTMLDivElement>;
-    private referenceObserver: ResizeObserver;
 
     constructor(props: Props) {
         super(props);
@@ -30,26 +29,24 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
         this.height = 0;
 
         this.referenceRef = React.createRef();
-        this.referenceObserver = new ResizeObserver((entries) => {
-            this.recalculateHeight(entries[0]);
-            this.recalculateWidth(entries[0]);
-        });
     }
 
     componentDidMount() {
-        this.referenceObserver.observe(this.referenceRef.current!);
+        this.recalculateHeight();
+        this.recalculateWidth();
     }
 
-    componentWillUnmount(): void {
-        this.referenceObserver.disconnect();
+    componentDidUpdate() {
+        this.recalculateHeight();
+        this.recalculateWidth();
     }
 
-    private recalculateHeight = (entry: ResizeObserverEntry) => {
-        if (!this.textarea) {
+    private recalculateHeight = () => {
+        if (!this.referenceRef.current || !this.textarea) {
             return;
         }
 
-        const height = entry.borderBoxSize[0].blockSize;
+        const height = (this.referenceRef.current).scrollHeight;
         const textarea = this.textarea;
 
         if (height > 0 && height !== this.height) {
@@ -64,11 +61,13 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
         }
     };
 
-    private recalculateWidth = (entry: ResizeObserverEntry) => {
-        const width = entry.borderBoxSize[0].inlineSize;
-        if (width > 0) {
-            // Call this with requestAnimationFrame so that the ResizeObserver doesn't detect this as a potential
-            // infinite loop. It won't bea loop unless onWidthChange causes the width of the AutosizeTextarea to change
+    private recalculateWidth = () => {
+        if (!this.referenceRef) {
+            return;
+        }
+
+        const width = this.referenceRef.current?.offsetWidth || -1;
+        if (width >= 0) {
             window.requestAnimationFrame(() => {
                 this.props.onWidthChange?.(width);
             });
