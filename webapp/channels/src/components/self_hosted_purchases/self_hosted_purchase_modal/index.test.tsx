@@ -13,9 +13,10 @@ import {
     screen,
     waitFor,
 } from 'tests/react_testing_utils';
-import type {GlobalState} from 'types/store';
 import {SelfHostedProducts, ModalIdentifiers} from 'utils/constants';
 import {TestHelper as TH} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import SelfHostedPurchaseModal, {makeInitialState, canSubmit} from '.';
 import type {State} from '.';

@@ -37,8 +37,6 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 
 import CallButton from 'plugins/call_button';
 import ChannelHeaderPlug from 'plugins/channel_header_plug';
-import type {ModalData} from 'types/actions';
-import type {RhsState} from 'types/store/rhs';
 import {
     Constants,
     ModalIdentifiers,
@@ -47,6 +45,9 @@ import {
 } from 'utils/constants';
 import {t} from 'utils/i18n';
 import {handleFormattedTextClick, localizeMessage, isEmptyObject, toTitleCase} from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
+import type {RhsState} from 'types/store/rhs';
 
 import ChannelInfoButton from './channel_info_button';
 import HeaderIconWrapper from './components/header_icon_wrapper';

@@ -21,10 +21,11 @@ import RhsThread from 'components/rhs_thread';
 import Search from 'components/search/index';
 
 import RhsPlugin from 'plugins/rhs_plugin';
-import type {RhsState} from 'types/store/rhs';
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {isMac} from 'utils/user_agent';
+
+import type {RhsState} from 'types/store/rhs';
 
 type Props = {
     isExpanded: boolean;

@@ -29,10 +29,11 @@ import type TextboxClass from 'components/textbox/textbox';
 import Tooltip from 'components/tooltip';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
-import type {PostDraft} from 'types/store/draft';
 import Constants, {Locations} from 'utils/constants';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import * as Utils from 'utils/utils';
+
+import type {PostDraft} from 'types/store/draft';
 
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';

@@ -24,8 +24,9 @@ import {
     getPreviousRhsState,
 } from 'selectors/rhs';
 
-import type {GlobalState} from 'types/store';
 import {RHSStates} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import SidebarRight from './sidebar_right';
 

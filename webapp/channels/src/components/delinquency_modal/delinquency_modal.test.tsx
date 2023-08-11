@@ -8,8 +8,8 @@ import * as reactRedux from 'react-redux';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 import {trackEvent} from 'actions/telemetry_actions';
-
 import configureStore from 'store';
+
 import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 import {ModalIdentifiers, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
 

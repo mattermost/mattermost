@@ -18,8 +18,9 @@ import ExternalLink from 'components/external_link';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 
-import {isSuccess} from 'types/actions';
 import {DeveloperLinks} from 'utils/constants';
+
+import {isSuccess} from 'types/actions';
 
 export type Props = {
     show: boolean;

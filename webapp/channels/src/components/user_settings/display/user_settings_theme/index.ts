@@ -12,8 +12,9 @@ import {getCurrentTeamId, getMyTeamsCount} from 'mattermost-redux/selectors/enti
 
 import {openModal} from 'actions/views/modals';
 
-import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import UserSettingsTheme from './user_settings_theme';
 

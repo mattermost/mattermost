@@ -32,9 +32,10 @@ import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import Header from 'components/widgets/header';
 
+import {Constants, PreviousViewedTypes} from 'utils/constants';
+
 import type {GlobalState} from 'types/store/index';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
-import {Constants, PreviousViewedTypes} from 'utils/constants';
 
 import ThreadList, {ThreadFilter, FILTER_STORAGE_KEY} from './thread_list';
 import ThreadPane from './thread_pane';

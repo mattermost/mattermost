@@ -14,8 +14,9 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import type {PluginComponent} from 'types/store/plugins';
 import {Constants} from 'utils/constants';
+
+import type {PluginComponent} from 'types/store/plugins';
 
 import './call_button.scss';
 

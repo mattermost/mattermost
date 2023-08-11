@@ -21,8 +21,9 @@ import Markdown from 'components/markdown';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import ToggleModalButton from 'components/toggle_modal_button';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 type PluginRequest = {
     user_id: string;

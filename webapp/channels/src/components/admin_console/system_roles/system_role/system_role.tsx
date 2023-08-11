@@ -18,9 +18,10 @@ import SaveChangesPanel from 'components/admin_console/team_channel_settings/sav
 import FormError from 'components/form_error';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {isError} from 'types/actions';
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
+
+import {isError} from 'types/actions';
 
 import SystemRolePermissions from './system_role_permissions';
 import SystemRoleUsers from './system_role_users';

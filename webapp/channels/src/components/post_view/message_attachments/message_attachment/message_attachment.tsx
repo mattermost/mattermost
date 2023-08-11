@@ -24,12 +24,13 @@ import Markdown from 'components/markdown';
 import ShowMore from 'components/post_view/show_more';
 import SizeAwareImage from 'components/size_aware_image';
 
-import type {ModalData} from 'types/actions';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import {isUrlSafe} from 'utils/url';
 import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 import ActionButton from '../action_button';
 import ActionMenu from '../action_menu';

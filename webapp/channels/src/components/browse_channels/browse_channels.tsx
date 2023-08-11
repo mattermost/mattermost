@@ -18,12 +18,13 @@ import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import SearchableChannelList from 'components/searchable_channel_list';
 
-import type {ModalData} from 'types/actions';
-import type {RhsState} from 'types/store/rhs';
 import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getRelativeChannelURL} from 'utils/url';
 import {localizeMessage} from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
+import type {RhsState} from 'types/store/rhs';
 
 import './browse_channels.scss';
 

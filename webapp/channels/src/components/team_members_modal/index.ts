@@ -12,9 +12,10 @@ import type {Action} from 'mattermost-redux/types/actions';
 import {openModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
+import {ModalIdentifiers} from 'utils/constants';
+
 import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
-import {ModalIdentifiers} from 'utils/constants';
 
 import TeamMembersModal from './team_members_modal';
 

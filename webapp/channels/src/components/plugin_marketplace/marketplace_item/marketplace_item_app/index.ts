@@ -13,8 +13,9 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {closeModal} from 'actions/views/modals';
 import {getInstalling, getError} from 'selectors/views/marketplace';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import MarketplaceItemApp from './marketplace_item_app';
 import type {MarketplaceItemAppProps} from './marketplace_item_app';

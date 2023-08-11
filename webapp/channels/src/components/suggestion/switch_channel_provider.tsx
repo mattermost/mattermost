@@ -58,9 +58,10 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
-import type {GlobalState} from 'types/store';
 import {Constants, StoragePrefixes} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import Provider from './provider';
 import type {ResultsCallback} from './provider';

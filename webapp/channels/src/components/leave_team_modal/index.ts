@@ -14,8 +14,9 @@ import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {toggleSideBarRightMenuAction} from 'actions/global_actions';
 
-import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import LeaveTeamModal from './leave_team_modal';
 

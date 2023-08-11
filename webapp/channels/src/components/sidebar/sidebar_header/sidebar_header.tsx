@@ -25,8 +25,9 @@ import {OnboardingTourSteps} from 'components/tours';
 import {useShowOnboardingTutorialStep} from 'components/tours/onboarding_tour';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 type SidebarHeaderContainerProps = {
     id?: string;

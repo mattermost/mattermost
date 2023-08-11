@@ -38,7 +38,6 @@ import Tag from 'components/widgets/tag/tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import Pluggable from 'plugins/pluggable';
-import type {ModalData} from 'types/actions';
 import {getHistory} from 'utils/browser_history';
 import Constants, {A11yClassNames, A11yCustomEventTypes, ModalIdentifiers, UserStatuses} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
@@ -46,6 +45,8 @@ import {t} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
 import {shouldFocusMainTextbox} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 import {ProfileTimezone} from './profile_localtime';
 

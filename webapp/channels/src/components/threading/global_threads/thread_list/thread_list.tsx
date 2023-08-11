@@ -25,9 +25,10 @@ import CRTUnreadTutorialTip from 'components/tours/crt_tour/crt_unread_tutorial_
 import Header from 'components/widgets/header';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 
-import type {GlobalState} from 'types/store';
 import {A11yClassNames, Constants, CrtTutorialSteps, ModalIdentifiers, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+
+import type {GlobalState} from 'types/store';
 
 import VirtualizedThreadList from './virtualized_thread_list';
 

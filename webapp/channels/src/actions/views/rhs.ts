@@ -29,11 +29,12 @@ import type {Action, ActionResult, DispatchFunc, GenericAction, GetStateFunc} fr
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState} from 'selectors/rhs';
 
-import type {GlobalState} from 'types/store';
-import type {RhsState} from 'types/store/rhs';
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
+import type {RhsState} from 'types/store/rhs';
 
 function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {

@@ -48,9 +48,10 @@ import {getAnnouncementBarCount} from 'selectors/views/announcement_bar';
 import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
 import {isModalOpen} from 'selectors/views/modals';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelHeader from './channel_header';
 import type {Props} from './channel_header';

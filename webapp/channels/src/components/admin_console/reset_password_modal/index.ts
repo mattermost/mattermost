@@ -11,8 +11,9 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
-import type {GlobalState} from 'types/store';
 import {getPasswordConfig} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import ResetPasswordModal from './reset_password_modal';
 

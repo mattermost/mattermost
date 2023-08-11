@@ -14,11 +14,12 @@ import {useDelinquencySubscription} from 'components/common/hooks/useDelinquency
 import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 
-import type {GlobalState} from 'types/store';
 import {
     AnnouncementBarTypes, TELEMETRY_CATEGORIES,
 } from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import type {GlobalState} from 'types/store';
 
 import AnnouncementBar from '../default_announcement_bar';
 

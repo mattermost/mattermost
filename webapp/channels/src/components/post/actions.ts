@@ -10,8 +10,9 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import {getGlobalItem} from 'selectors/storage';
 import {isThreadOpen} from 'selectors/views/threads';
 
-import type {GlobalState} from 'types/store';
 import {StoragePrefixes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 /**
  * This action is called when the deleted post which is shown as 'deleted' in the RHS is then removed from the channel manually.

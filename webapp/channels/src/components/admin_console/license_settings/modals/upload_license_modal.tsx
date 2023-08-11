@@ -24,11 +24,12 @@ import HandsSvg from 'components/common/svg_images_components/hands_svg';
 import WomanArmOnTable from 'components/common/svg_images_components/woman_arm_on_table_svg';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import type {GlobalState} from 'types/store';
 import {FileTypes, ModalIdentifiers} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
 import {getSkuDisplayName} from 'utils/subscription';
 import {fileSizeToString, localizeMessage} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import './upload_license_modal.scss';
 

@@ -9,11 +9,12 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
 import {EmojiIndicesByAlias, Emojis} from 'utils/emoji';
 import EmojiMap from 'utils/emoji_map';
 import {convertEmojiSkinTone} from 'utils/emoji_utils';
+
+import type {GlobalState} from 'types/store';
 
 export const getEmojiMap = createSelector(
     'getEmojiMap',

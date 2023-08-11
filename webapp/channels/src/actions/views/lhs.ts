@@ -5,10 +5,11 @@ import {selectChannel} from 'mattermost-redux/actions/channels';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
-import type {GlobalState} from 'types/store';
-import {LhsItemType} from 'types/store/lhs';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
+import {LhsItemType} from 'types/store/lhs';
 
 export const toggle = () => ({
     type: ActionTypes.TOGGLE_LHS,

@@ -7,10 +7,10 @@ import * as reactRedux from 'react-redux';
 import * as cloudActions from 'mattermost-redux/actions/cloud';
 
 import * as StorageSelectors from 'selectors/storage';
+import configureStore from 'store';
 
 import ModalController from 'components/modal_controller';
 
-import configureStore from 'store';
 import {renderWithIntl, screen} from 'tests/react_testing_utils';
 import {CloudProducts, ModalIdentifiers, Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';

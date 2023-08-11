@@ -54,11 +54,12 @@ import {getLastPostsApiTimeForChannel} from 'selectors/views/channel';
 import {getSocketStatus} from 'selectors/views/websocket';
 import LocalStorageStore from 'stores/local_storage_store';
 
-import type {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
 import {isMobile} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 export function checkAndSetMobileView() {
     return (dispatch: DispatchFunc) => {

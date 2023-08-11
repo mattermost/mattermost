@@ -10,10 +10,11 @@ import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {sendEphemeralPost} from 'actions/global_actions';
 import ReduxStore from 'stores/redux_store';
 
-import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 import {isMac} from 'utils/user_agent';
 import {localizeAndFormatMessage} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import type {ParsedCommand} from './app_command_parser';
 

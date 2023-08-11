@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import textboxReducer from 'reducers/views/textbox';
+
 import {ActionTypes} from 'utils/constants';
 
 describe('Reducers.RHS', () => {

@@ -28,13 +28,14 @@ import {AppCommandParser} from 'components/suggestion/command_provider/app_comma
 import {intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
 import UserSettingsModal from 'components/user_settings/modal';
 
-import type {DoAppCallResult} from 'types/apps';
-import type {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {isUrlSafe, getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import {localizeMessage, getUserIdFromChannelName} from 'utils/utils';
+
+import type {DoAppCallResult} from 'types/apps';
+import type {GlobalState} from 'types/store';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForCommandArgs} from './apps';
 import {trackEvent} from './telemetry_actions';

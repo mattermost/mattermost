@@ -5,6 +5,7 @@ import {TeamTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import lhsReducer from 'reducers/views/lhs';
+
 import {ActionTypes} from 'utils/constants';
 
 describe('Reducers.LHS', () => {

@@ -25,10 +25,11 @@ import {STRIPE_CSS_SRC, getStripePublicKey} from 'components/payment_form/stripe
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import {CloudLinks} from 'utils/constants';
+
 import {areBillingDetailsValid} from 'types/cloud/sku';
 import type {BillingDetails} from 'types/cloud/sku';
 import type {GlobalState} from 'types/store';
-import {CloudLinks} from 'utils/constants';
 
 import './payment_info_edit.scss';
 

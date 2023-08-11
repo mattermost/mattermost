@@ -15,8 +15,9 @@ import PaymentFailedSvg from 'components/common/svg_images_components/payment_fa
 import IconMessage from 'components/purchase_modal/icon_message';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import './style.scss';
 

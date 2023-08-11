@@ -18,11 +18,12 @@ import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import UserSettingsModal from 'components/user_settings/modal';
 
 import Pluggable from 'plugins/pluggable';
-import type {ModalData} from 'types/actions';
-import type {RhsState} from 'types/store/rhs';
 import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
+import type {RhsState} from 'types/store/rhs';
 
 import ChannelNavigator from './channel_navigator';
 import MobileSidebarHeader from './mobile_sidebar_header';

@@ -13,8 +13,9 @@ import type {GenericAction} from 'mattermost-redux/types/actions';
 import {openModal} from 'actions/views/modals';
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
 
-import type {GlobalState} from 'types/store';
 import {canDownloadFiles} from 'utils/file_utils';
+
+import type {GlobalState} from 'types/store';
 
 import FileAttachment from './file_attachment';
 

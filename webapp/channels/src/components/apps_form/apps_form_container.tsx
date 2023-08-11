@@ -9,8 +9,9 @@ import type {AppContext, AppField, AppForm, AppFormValues, FormResponseData, App
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
-import type {DoAppSubmit, DoAppFetchForm, DoAppLookup, DoAppCallResult, PostEphemeralCallResponseForContext} from 'types/apps';
 import {createCallRequest, makeCallErrorResponse} from 'utils/apps';
+
+import type {DoAppSubmit, DoAppFetchForm, DoAppLookup, DoAppCallResult, PostEphemeralCallResponseForContext} from 'types/apps';
 
 import AppsForm from './apps_form_component';
 

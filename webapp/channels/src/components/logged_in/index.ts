@@ -17,10 +17,11 @@ import type {DispatchFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {getChannelURL} from 'selectors/urls';
 
-import type {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
 import {checkIfMFARequired} from 'utils/route';
 import {isPermalinkURL} from 'utils/url';
+
+import type {GlobalState} from 'types/store';
 
 import LoggedIn from './logged_in';
 

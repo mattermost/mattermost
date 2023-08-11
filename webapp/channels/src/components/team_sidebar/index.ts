@@ -26,8 +26,9 @@ import {switchTeam, updateTeamsOrderForUser} from 'actions/team_actions';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getIsLhsOpen} from 'selectors/lhs';
 
-import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import TeamSidebar from './team_sidebar';
 

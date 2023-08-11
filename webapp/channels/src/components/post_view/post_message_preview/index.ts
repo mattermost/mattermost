@@ -20,8 +20,9 @@ import type {GenericAction} from 'mattermost-redux/types/actions';
 import {toggleEmbedVisibility} from 'actions/post_actions';
 import {isEmbedVisible} from 'selectors/posts';
 
-import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import PostMessagePreview from './post_message_preview';
 

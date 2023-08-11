@@ -21,10 +21,11 @@ import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import type {GlobalState} from 'types/store';
 import {t} from 'utils/i18n';
 import {getSiteURL} from 'utils/url';
 import {copyToClipboard} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import {useThreadRouting} from '../../hooks';
 

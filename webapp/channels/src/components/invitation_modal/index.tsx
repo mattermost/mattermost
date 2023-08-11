@@ -31,8 +31,9 @@ import type {CloseModalType} from 'actions/views/modals';
 
 import {makeAsyncComponent} from 'components/async_load';
 
-import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import type {InviteResults} from './result_view';
 

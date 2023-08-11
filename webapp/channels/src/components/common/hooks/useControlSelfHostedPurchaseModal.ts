@@ -16,8 +16,9 @@ import PurchaseInProgressModal from 'components/purchase_in_progress_modal';
 import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from 'components/self_hosted_purchases/constants';
 import SelfHostedPurchaseModal from 'components/self_hosted_purchases/self_hosted_purchase_modal';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import {useControlModal} from './useControlModal';
 import type {ControlModal} from './useControlModal';

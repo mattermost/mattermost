@@ -14,10 +14,11 @@ import type {Action} from 'mattermost-redux/types/actions';
 import {openModal, closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import type {ModalData} from 'types/actions';
-import type {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 import ChannelNavigator from './channel_navigator';
 

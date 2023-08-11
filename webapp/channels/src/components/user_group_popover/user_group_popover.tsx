@@ -19,11 +19,12 @@ import UserGroupsModal from 'components/user_groups_modal';
 import ViewUserGroupModal from 'components/view_user_group_modal';
 import Popover from 'components/widgets/popover';
 
-import type {ModalData} from 'types/actions';
 import Constants, {A11yClassNames, A11yCustomEventTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {shouldFocusMainTextbox} from 'utils/post_utils';
+
+import type {ModalData} from 'types/actions';
 
 import {Load} from './constants';
 import useShouldClose from './useShouldClose';

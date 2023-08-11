@@ -6,8 +6,9 @@ import type {ComponentProps} from 'react';
 
 import {shallow} from 'enzyme';
 
-import type {GlobalState} from 'types/store';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import FilePreviewModalInfo from './file_preview_modal_info';
 

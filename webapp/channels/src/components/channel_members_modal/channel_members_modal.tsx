@@ -10,8 +10,9 @@ import type {Channel} from '@mattermost/types/channels';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import MemberListChannel from 'components/member_list_channel';
 
-import type {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
 
 type Props = {
 

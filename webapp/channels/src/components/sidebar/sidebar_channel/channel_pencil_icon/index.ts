@@ -9,9 +9,10 @@ import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels'
 
 import {getPostDraft} from 'selectors/rhs';
 
+import {StoragePrefixes} from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {StoragePrefixes} from 'utils/constants';
 
 import ChannelPencilIcon from './channel_pencil_icon';
 

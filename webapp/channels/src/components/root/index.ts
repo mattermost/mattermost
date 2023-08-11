@@ -28,6 +28,7 @@ import {
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {initializeProducts} from 'plugins/products';
+
 import type {GlobalState} from 'types/store/index';
 
 import Root from './root';

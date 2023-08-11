@@ -15,8 +15,9 @@ import {isModalOpen} from 'selectors/views/modals';
 
 import Svg from 'components/common/svg_images_components/woman_credit_card_and_laptop_svg';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import './switch_to_yearly_plan_confirm_modal.scss';
 

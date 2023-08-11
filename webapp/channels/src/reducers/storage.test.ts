@@ -4,6 +4,7 @@
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import storageReducer from 'reducers/storage';
+
 import {StorageTypes} from 'utils/constants';
 
 type ReducerState = ReturnType<typeof storageReducer>;

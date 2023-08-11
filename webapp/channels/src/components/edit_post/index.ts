@@ -24,8 +24,9 @@ import {editPost} from 'actions/views/posts';
 import {getEditingPost} from 'selectors/posts';
 import {getIsRhsOpen, getPostDraft, getRhsState} from 'selectors/rhs';
 
-import type {GlobalState} from 'types/store';
 import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import EditPost from './edit_post';
 import type {Actions} from './edit_post';

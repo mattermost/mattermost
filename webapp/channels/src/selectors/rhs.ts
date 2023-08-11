@@ -10,11 +10,12 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage';
 
+import {PostTypes, StoragePrefixes} from 'utils/constants';
+import {localizeMessage} from 'utils/utils';
+
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import type {RhsState, FakePost, SearchType} from 'types/store/rhs';
-import {PostTypes, StoragePrefixes} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 export function getSelectedPostId(state: GlobalState): Post['id'] {
     return state.views.rhs.selectedPostId;

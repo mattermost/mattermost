@@ -14,8 +14,9 @@ import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {addReaction} from 'actions/post_actions';
 
-import type {GlobalState} from 'types/store';
 import {makeGetUniqueReactionsToPost} from 'utils/post_utils';
+
+import type {GlobalState} from 'types/store';
 
 import ReactionList from './reaction_list';
 

@@ -11,8 +11,9 @@ import type {GenericAction} from 'mattermost-redux/types/actions';
 import {showChannelMembers} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 
-import type {GlobalState} from 'types/store';
 import {RHSStates} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import OpenChannelMembersRHS from './open_members_rhs';
 

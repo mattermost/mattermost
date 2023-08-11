@@ -11,8 +11,9 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 import {filterProfilesStartingWithTerm} from 'mattermost-redux/utils/user_utils';
 
-import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import List from './list';
 

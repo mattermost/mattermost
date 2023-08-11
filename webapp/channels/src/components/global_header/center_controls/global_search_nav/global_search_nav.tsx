@@ -11,12 +11,13 @@ import {getRhsState} from 'selectors/rhs';
 
 import Search from 'components/search';
 
-import type {GlobalState} from 'types/store';
 import {
     Constants,
     RHSStates,
 } from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+
+import type {GlobalState} from 'types/store';
 
 const GlobalSearchNav = (): JSX.Element => {
     const dispatch = useDispatch();

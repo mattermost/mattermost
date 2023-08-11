@@ -30,9 +30,10 @@ import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/s
 import {getDisplayedChannels} from 'selectors/views/channel_sidebar';
 import store from 'stores/redux_store.jsx';
 
-import type {GlobalState} from 'types/store';
 import {Constants, Preferences, UserStatuses} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 export const queue = new PQueue({concurrency: 4});
 const dispatch = store.dispatch;

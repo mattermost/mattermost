@@ -18,8 +18,9 @@ import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurch
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import {FreemiumModal} from './freemium_modal';
 

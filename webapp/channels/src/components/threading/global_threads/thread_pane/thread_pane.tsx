@@ -16,8 +16,9 @@ import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entitie
 import Header from 'components/widgets/header';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 
-import type {GlobalState} from 'types/store';
 import {t} from 'utils/i18n';
+
+import type {GlobalState} from 'types/store';
 
 import Button from '../../common/button';
 import FollowButton from '../../common/follow_button';

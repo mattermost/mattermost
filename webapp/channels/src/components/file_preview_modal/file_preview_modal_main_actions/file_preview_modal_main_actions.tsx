@@ -15,9 +15,10 @@ import ExternalLink from 'components/external_link';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
-import type {GlobalState} from 'types/store';
 import Constants, {FileTypes} from 'utils/constants';
 import {copyToClipboard, getFileType} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import {isFileInfo} from '../types';
 import type {LinkInfo} from '../types';

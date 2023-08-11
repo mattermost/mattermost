@@ -26,9 +26,10 @@ import {isModalOpen} from 'selectors/views/modals';
 import {ListItemType} from 'components/channel_members_rhs/channel_members_rhs';
 import MemberList from 'components/channel_members_rhs/member_list';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
+
+import type {GlobalState} from 'types/store';
 
 import './notification_from_members_modal.scss';
 

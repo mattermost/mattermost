@@ -13,8 +13,9 @@ import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud'
 import {setItem} from 'actions/storage';
 import {makeGetItem} from 'selectors/storage';
 
-import type {ModalData} from 'types/actions';
 import {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
 
 import DelinquencyModal from './delinquency_modal';
 

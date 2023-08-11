@@ -11,8 +11,9 @@ import {insertMultipleWithoutDuplicates} from 'mattermost-redux/utils/array_util
 
 import {getCategoriesForCurrentTeam, getChannelsInCategoryOrder, getDisplayedChannels} from 'selectors/views/channel_sidebar';
 
-import type {DraggingState, GlobalState} from 'types/store';
 import {ActionTypes} from 'utils/constants';
+
+import type {DraggingState, GlobalState} from 'types/store';
 
 export function setUnreadFilterEnabled(enabled: boolean) {
     return {

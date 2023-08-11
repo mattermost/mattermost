@@ -19,8 +19,9 @@ import type {Action, ActionResult} from 'mattermost-redux/types/actions';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import WarnMetricAckModal from './warn_metric_ack_modal';
 

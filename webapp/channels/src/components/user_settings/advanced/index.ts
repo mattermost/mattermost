@@ -13,8 +13,9 @@ import {get, getUnreadScrollPositionPreference, makeGetCategory, syncedDraftsAre
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc} from 'mattermost-redux/types/actions';
 
-import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import AdvancedSettingsDisplay from './user_settings_advanced';
 import type {Props} from './user_settings_advanced';

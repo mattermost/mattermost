@@ -21,8 +21,9 @@ import SaveButton from 'components/save_button';
 import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
-import type {GlobalState} from 'types/store';
 import Constants, {WindowSizes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 let mockState: GlobalState;
 let mockLocation = {pathname: '', search: '', hash: ''};

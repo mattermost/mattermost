@@ -11,8 +11,9 @@ import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {autocompleteUsersInChannel} from 'actions/views/channel';
 
-import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 export const COMMAND_SUGGESTION_CHANNEL = Constants.Integrations.COMMAND_SUGGESTION_CHANNEL;
 export const COMMAND_SUGGESTION_USER = Constants.Integrations.COMMAND_SUGGESTION_USER;

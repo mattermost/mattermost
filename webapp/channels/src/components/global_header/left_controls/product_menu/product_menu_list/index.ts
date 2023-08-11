@@ -29,10 +29,11 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps} from 'components/onboarding_tasks';
 
-import type {ModalData} from 'types/actions';
-import type {GlobalState} from 'types/store';
 import {CloudProducts} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
+
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 import ProductMenuList from './product_menu_list';
 

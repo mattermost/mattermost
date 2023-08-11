@@ -4,8 +4,9 @@
 import React from 'react';
 
 import {renderWithIntl, screen} from 'tests/react_testing_utils';
-import type {RhsState} from 'types/store/rhs';
 import {RHSStates} from 'utils/constants';
+
+import type {RhsState} from 'types/store/rhs';
 
 import Header from './search_results_header';
 

@@ -29,11 +29,12 @@ import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {updateDraft, removeDraft} from 'actions/views/drafts';
 import {getPostDraft} from 'selectors/rhs';
 
-import type {GlobalState} from 'types/store';
-import type {PostDraft} from 'types/store/draft';
 import {Constants, StoragePrefixes} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
 import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
 
 export function clearCommentDraftUploads() {
     return actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, (_key: string, draft: PostDraft) => {

@@ -16,9 +16,10 @@ import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {getCurrentLocale} from 'selectors/i18n';
 
-import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
 import {getDisplayNameByUser} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelIntroMessage from './channel_intro_message';
 

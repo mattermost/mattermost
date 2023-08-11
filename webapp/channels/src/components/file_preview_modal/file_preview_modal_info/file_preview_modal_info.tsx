@@ -16,8 +16,9 @@ import {
 
 import Avatar from 'components/widgets/users/avatar/avatar';
 
-import type {GlobalState} from 'types/store';
 import {imageURLForUser} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import './file_preview_modal_info.scss';
 

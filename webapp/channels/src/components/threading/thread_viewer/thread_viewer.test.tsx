@@ -10,8 +10,9 @@ import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {fakeDate} from 'tests/helpers/date';
-import type {FakePost} from 'types/store/rhs';
 import {TestHelper} from 'utils/test_helper';
+
+import type {FakePost} from 'types/store/rhs';
 
 import ThreadViewer from './thread_viewer';
 import type {Props} from './thread_viewer';

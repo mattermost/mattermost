@@ -16,9 +16,10 @@ import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
-import type {GlobalState} from 'types/store';
 import {Preferences, TrialPeriodDays} from 'utils/constants';
 import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 

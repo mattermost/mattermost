@@ -15,9 +15,10 @@ import ViewUserGroupModal from 'components/view_user_group_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import type {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 import ADLDAPUpsellBanner from '../ad_ldap_upsell_banner';
 

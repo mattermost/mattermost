@@ -33,9 +33,10 @@ import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
 
-import type {GlobalState} from 'types/store';
 import {CrtTutorialSteps, Preferences} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import Attachment from './attachments';
 

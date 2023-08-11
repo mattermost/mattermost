@@ -13,9 +13,10 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import {makeAsyncComponent} from 'components/async_load';
 
+import {canDownloadFiles} from 'utils/file_utils';
+
 import type {GlobalState} from 'types/store';
 import type {FilePreviewComponent} from 'types/store/plugins';
-import {canDownloadFiles} from 'utils/file_utils';
 
 import type {Props} from './file_preview_modal';
 

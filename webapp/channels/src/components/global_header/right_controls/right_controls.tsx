@@ -18,8 +18,9 @@ import {
 } from 'components/tours/onboarding_tour';
 
 import Pluggable from 'plugins/pluggable';
-import type {GlobalState} from 'types/store';
 import {isChannels} from 'utils/products';
+
+import type {GlobalState} from 'types/store';
 
 import AtMentionsButton from './at_mentions_button/at_mentions_button';
 import PlanUpgradeButton from './plan_upgrade_button';

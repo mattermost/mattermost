@@ -10,8 +10,9 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
-import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import PostProfilePicture from './post_profile_picture';
 

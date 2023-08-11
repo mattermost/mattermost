@@ -21,8 +21,9 @@ import {getNavigationBlocked} from 'selectors/views/admin';
 
 import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
 
-import type {GlobalState} from 'types/store';
 import {isMobile} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import AdminSidebar from './admin_sidebar';
 

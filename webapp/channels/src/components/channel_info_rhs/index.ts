@@ -21,9 +21,10 @@ import {closeRightHandSide, showChannelFiles, showChannelMembers, showPinnedPost
 import {getIsMobileView} from 'selectors/views/browser';
 import {isModalOpen} from 'selectors/views/modals';
 
-import type {GlobalState} from 'types/store';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getDisplayNameByUser, getUserIdFromChannelId} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import RHS from './channel_info_rhs';
 import type {Props} from './channel_info_rhs';

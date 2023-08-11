@@ -14,9 +14,10 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {getEmojiMap} from 'selectors/emojis';
 
-import type {GlobalState} from 'types/store';
 import type {ChannelNamesMap, MentionKey} from 'utils/text_formatting';
 import {getSiteURL} from 'utils/url';
+
+import type {GlobalState} from 'types/store';
 
 import Markdown from './markdown';
 

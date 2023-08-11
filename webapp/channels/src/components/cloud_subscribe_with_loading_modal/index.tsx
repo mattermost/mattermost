@@ -23,9 +23,10 @@ import ProgressBar, {ProcessState} from 'components/icon_message_with_progress_b
 import IconMessage from 'components/purchase_modal/icon_message';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import type {GlobalState} from 'types/store';
 
 type Props = RouteComponentProps & {
     onBack: () => void;

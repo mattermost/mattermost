@@ -22,13 +22,14 @@ import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
 import ThreeDaysLeftTrialModal from 'components/three_days_left_trial_modal/three_days_left_trial_modal';
 
-import type {GlobalState} from 'types/store';
 import {
     Preferences,
     TELEMETRY_CATEGORIES,
     ModalIdentifiers,
     CloudBanners,
 } from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 const ShowThreeDaysLeftTrialModal = () => {
     const license = useSelector(getLicense);

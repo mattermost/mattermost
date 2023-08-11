@@ -20,9 +20,10 @@ import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import type {DoAppCallResult} from 'types/apps';
 import {filterEmptyOptions} from 'utils/apps';
 import {localizeMessage} from 'utils/utils';
+
+import type {DoAppCallResult} from 'types/apps';
 
 import AppsFormField from './apps_form_field';
 import AppsFormHeader from './apps_form_header';

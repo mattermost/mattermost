@@ -16,8 +16,9 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import {getConfirmCardSetup} from 'components/payment_form/stripe';
 
-import type {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
 import {getBlankAddressWithCountry} from 'utils/utils';
+
+import type {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
 
 // Returns true for success, and false for any error
 export function completeStripeAddPaymentMethod(

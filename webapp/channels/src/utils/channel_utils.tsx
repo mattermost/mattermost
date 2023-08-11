@@ -17,9 +17,10 @@ import LocalStorageStore from 'stores/local_storage_store';
 
 import JoinPrivateChannelModal from 'components/join_private_channel_modal';
 
-import type {GlobalState} from 'types/store';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import {getHistory} from './browser_history';
 import {cleanUpUrlable} from './url';

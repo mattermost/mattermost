@@ -24,9 +24,10 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {makeGetGlobalItem} from 'selectors/storage';
 
+import Constants, {StoragePrefixes} from 'utils/constants';
+
 import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
-import Constants, {StoragePrefixes} from 'utils/constants';
 
 import BrowseChannels from './browse_channels';
 

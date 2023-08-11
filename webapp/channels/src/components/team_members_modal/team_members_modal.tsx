@@ -13,8 +13,9 @@ import InvitationModal from 'components/invitation_modal';
 import MemberListTeam from 'components/member_list_team';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 
-import type {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
 
 type Props = {
     currentTeam: Team;

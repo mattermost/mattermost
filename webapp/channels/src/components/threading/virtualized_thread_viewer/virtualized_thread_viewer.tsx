@@ -18,11 +18,12 @@ import NewRepliesBanner from 'components/new_replies_banner';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import {THREADING_TIME as BASE_THREADING_TIME} from 'components/threading/common/options';
 
-import type {FakePost} from 'types/store/rhs';
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import {getNewMessageIndex, getPreviousPostId, getLatestPostId} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
+
+import type {FakePost} from 'types/store/rhs';
 
 import CreateComment from './create_comment';
 import Row from './thread_viewer_row';

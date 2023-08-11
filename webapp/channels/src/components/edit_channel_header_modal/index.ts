@@ -16,9 +16,10 @@ import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/typ
 import {setShowPreviewOnEditChannelHeaderModal} from 'actions/views/textbox';
 import {showPreviewOnEditChannelHeaderModal} from 'selectors/views/textbox';
 
-import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 import {isFeatureEnabled} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import EditChannelHeaderModal from './edit_channel_header_modal';
 

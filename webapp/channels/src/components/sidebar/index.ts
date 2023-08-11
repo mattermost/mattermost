@@ -24,9 +24,10 @@ import {getIsMobileView} from 'selectors/views/browser';
 import {isUnreadFilterEnabled} from 'selectors/views/channel_sidebar';
 import {isModalOpen} from 'selectors/views/modals';
 
+import {ModalIdentifiers} from 'utils/constants';
+
 import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
-import {ModalIdentifiers} from 'utils/constants';
 
 import Sidebar from './sidebar';
 

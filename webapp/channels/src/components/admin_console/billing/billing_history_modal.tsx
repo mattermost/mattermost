@@ -11,8 +11,9 @@ import type {Invoice} from '@mattermost/types/cloud';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import BillingHistoryTable from './billing_history_table';
 

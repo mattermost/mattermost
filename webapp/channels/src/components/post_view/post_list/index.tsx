@@ -24,8 +24,9 @@ import {
 } from 'actions/views/channel';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import type {GlobalState} from 'types/store';
 import {getLatestPostId} from 'utils/post_utils';
+
+import type {GlobalState} from 'types/store';
 
 import PostList from './post_list';
 import type {Props as PostListProps} from './post_list';

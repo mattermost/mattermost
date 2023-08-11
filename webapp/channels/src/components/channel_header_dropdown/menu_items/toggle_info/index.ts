@@ -11,8 +11,9 @@ import type {GenericAction} from 'mattermost-redux/types/actions';
 import {closeRightHandSide, showChannelInfo} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 
-import type {GlobalState} from 'types/store';
 import {RHSStates} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import ToggleInfo from './toggle_info';
 

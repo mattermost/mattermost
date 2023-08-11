@@ -14,8 +14,9 @@ import RenderEmoji from 'components/emoji/render_emoji';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
-import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import ExpiryTime from './expiry_time';
 

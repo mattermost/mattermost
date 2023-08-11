@@ -5,7 +5,6 @@ import {connect} from 'react-redux';
 
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store/index.js';
 
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserStatus} from '@mattermost/types/users';
@@ -18,6 +17,8 @@ import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions.js';
 
 import {autoResetStatus} from 'actions/user_actions';
+
+import type {GlobalState} from 'types/store/index.js';
 
 import ResetStatusModal from './reset_status_modal';
 

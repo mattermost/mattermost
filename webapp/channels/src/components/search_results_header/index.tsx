@@ -5,7 +5,6 @@ import {connect} from 'react-redux';
 
 import {bindActionCreators} from 'redux';
 import type {AnyAction, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store/index.js';
 
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 
@@ -17,6 +16,8 @@ import {
 import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
 
 import {RHSStates} from 'utils/constants';
+
+import type {GlobalState} from 'types/store/index.js';
 
 import SearchResultsHeader from './search_results_header';
 

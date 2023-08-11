@@ -31,11 +31,12 @@ import {
 } from 'actions/websocket_actions.jsx';
 import store from 'stores/redux_store.jsx';
 
-import type {GlobalState} from 'types/store';
-import type {PluginComponent, PluginsState, ProductComponent, NeedsTeamComponent} from 'types/store/plugins';
 import {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
 import {generateId} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
+import type {PluginComponent, PluginsState, ProductComponent, NeedsTeamComponent} from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
 

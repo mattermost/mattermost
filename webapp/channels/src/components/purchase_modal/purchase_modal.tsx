@@ -44,9 +44,6 @@ import Tooltip from 'components/tooltip';
 import StarMarkSvg from 'components/widgets/icons/star_mark_icon';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
-import type {ModalData} from 'types/actions';
-import {areBillingDetailsValid} from 'types/cloud/sku';
-import type {BillingDetails} from 'types/cloud/sku';
 import {
     Constants,
     TELEMETRY_CATEGORIES,
@@ -59,6 +56,10 @@ import {
 import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 import {t} from 'utils/i18n';
 import {localizeMessage, getNextBillingDate, getBlankAddressWithCountry} from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
+import type {BillingDetails} from 'types/cloud/sku';
+import {areBillingDetailsValid} from 'types/cloud/sku';
 
 import IconMessage from './icon_message';
 import ProcessPaymentSetup from './process_payment_setup';

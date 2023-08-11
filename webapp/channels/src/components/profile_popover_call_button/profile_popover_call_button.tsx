@@ -9,8 +9,9 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {createDirectChannel} from 'mattermost-redux/actions/channels';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import type {PluginComponent} from 'types/store/plugins';
 import {Constants} from 'utils/constants';
+
+import type {PluginComponent} from 'types/store/plugins';
 
 type Props = {
     channelMember?: ChannelMembership;

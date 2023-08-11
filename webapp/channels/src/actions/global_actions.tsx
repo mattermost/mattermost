@@ -43,11 +43,12 @@ import store from 'stores/redux_store.jsx';
 import SubMenuModal from 'components/widgets/menu/menu_modals/submenu_modal/submenu_modal';
 
 import WebSocketClient from 'client/web_websocket_client.jsx';
-import type {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, PostTypes, RHSStates, ModalIdentifiers, PreviousViewedTypes} from 'utils/constants';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import {openModal} from './views/modals';
 

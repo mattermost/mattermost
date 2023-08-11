@@ -13,8 +13,9 @@ import {
     getTeam,
 } from 'mattermost-redux/selectors/entities/teams';
 
-import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 function getTeamRelativeUrl(team: Team | undefined) {
     if (!team) {

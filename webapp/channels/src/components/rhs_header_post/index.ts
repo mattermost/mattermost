@@ -25,10 +25,11 @@ import {
 import {getIsRhsExpanded} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import type {GlobalState} from 'types/store';
 import {CrtThreadPaneSteps, Preferences} from 'utils/constants';
 import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
 import {allAtMentions} from 'utils/text_formatting';
+
+import type {GlobalState} from 'types/store';
 
 import RhsHeaderPost from './rhs_header_post';
 

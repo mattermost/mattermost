@@ -6,10 +6,10 @@ import type {ComponentProps} from 'react';
 import * as reactRedux from 'react-redux';
 
 import {trackEvent} from 'actions/telemetry_actions';
+import configureStore from 'store';
 
 import useGetMultiplesExceededCloudLimit from 'components/common/hooks/useGetMultiplesExceededCloudLimit';
 
-import configureStore from 'store';
 import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {LimitTypes} from 'utils/limits';

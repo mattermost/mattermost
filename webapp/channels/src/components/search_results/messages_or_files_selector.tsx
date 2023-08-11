@@ -6,9 +6,10 @@ import {FormattedMessage} from 'react-intl';
 
 import type {SearchFilterType} from 'components/search/types';
 
-import type {SearchType} from 'types/store/rhs';
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+
+import type {SearchType} from 'types/store/rhs';
 
 import FilesFilterMenu from './files_filter_menu';
 

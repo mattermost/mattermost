@@ -9,9 +9,9 @@ import {
     login,
     loginById,
 } from 'actions/views/login';
+import configureStore from 'store';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
-import configureStore from 'store';
 
 describe('actions/views/login', () => {
     describe('login', () => {

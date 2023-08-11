@@ -31,11 +31,12 @@ import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 's
 import {getHighlightedPostId, getRhsState, getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import type {GlobalState} from 'types/store';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
 import {areConsecutivePostsBySameUser, canDeletePost, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
 import {getDisplayNameByUser} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import {removePostCloseRHSDeleteDraft} from './actions';
 import PostComponent from './post_component';

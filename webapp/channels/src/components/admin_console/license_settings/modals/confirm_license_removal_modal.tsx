@@ -14,8 +14,9 @@ import {isModalOpen} from 'selectors/views/modals';
 
 import AlertSvg from 'components/common/svg_images_components/alert_svg';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import './confirm_license_removal_modal.scss';
 

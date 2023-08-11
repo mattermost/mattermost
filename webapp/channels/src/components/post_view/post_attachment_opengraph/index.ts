@@ -15,8 +15,9 @@ import type {GenericAction} from 'mattermost-redux/types/actions';
 import {editPost} from 'actions/views/posts';
 import {arePreviewsCollapsed} from 'selectors/preferences';
 
-import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import PostAttachmentOpenGraph from './post_attachment_opengraph';
 import type {Props} from './post_attachment_opengraph';

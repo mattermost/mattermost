@@ -21,9 +21,10 @@ import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import type {GlobalState} from 'types/store';
 import {AboutLinks, LicenseLinks, Preferences, Unique} from 'utils/constants';
 import {format} from 'utils/markdown';
+
+import type {GlobalState} from 'types/store';
 
 interface TrialBannerProps {
     isDisabled: boolean;

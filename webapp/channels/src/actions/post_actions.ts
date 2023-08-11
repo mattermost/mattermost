@@ -27,7 +27,6 @@ import {isEmbedVisible, isInlineImageVisible} from 'selectors/posts';
 import {getSelectedPostId, getSelectedPostCardId, getRhsState} from 'selectors/rhs';
 import {getGlobalItem} from 'selectors/storage';
 
-import type {GlobalState} from 'types/store';
 import {
     ActionTypes,
     Constants,
@@ -36,6 +35,8 @@ import {
 } from 'utils/constants';
 import {matchEmoticons} from 'utils/emoticons';
 import * as UserAgent from 'utils/user_agent';
+
+import type {GlobalState} from 'types/store';
 
 import {completePostReceive} from './new_post';
 import type {NewPostMessageProps} from './new_post';

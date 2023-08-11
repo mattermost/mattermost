@@ -12,8 +12,9 @@ import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/type
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 
-import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 export function loadStatusesForChannelAndSidebar(): ActionFunc {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {

@@ -17,12 +17,13 @@ import Tooltip from 'components/tooltip';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
 
 import Pluggable from 'plugins/pluggable';
-import type {RhsState} from 'types/store/rhs';
 import Constants, {RHSStates} from 'utils/constants';
 import {wrapEmojis} from 'utils/emoji_utils';
 import {cmdOrCtrlPressed} from 'utils/keyboard';
 import {isDesktopApp} from 'utils/user_agent';
 import {localizeMessage} from 'utils/utils';
+
+import type {RhsState} from 'types/store/rhs';
 
 import ChannelMentionBadge from '../channel_mention_badge';
 import ChannelPencilIcon from '../channel_pencil_icon';

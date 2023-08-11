@@ -16,8 +16,9 @@ import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {setModalSearchTerm} from 'actions/views/search';
 import {isModalOpen} from 'selectors/views/modals';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import UserGroupsModal from './user_groups_modal';
 

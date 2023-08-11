@@ -29,8 +29,9 @@ import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 import {updateThreadLastOpened} from 'actions/views/threads';
 import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
-import type {GlobalState} from 'types/store';
 import {ActionTypes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 export type NewPostMessageProps = {
     mentions: string[];

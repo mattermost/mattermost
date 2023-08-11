@@ -11,9 +11,8 @@ import configureServiceStore from 'mattermost-redux/store';
 
 import {cleanLocalStorage} from 'actions/storage';
 import {clearUserCookie} from 'actions/views/cookie';
-import {getBasePath} from 'selectors/general';
-
 import appReducers from 'reducers';
+import {getBasePath} from 'selectors/general';
 
 function getAppReducers() {
     return require('../reducers'); // eslint-disable-line global-require

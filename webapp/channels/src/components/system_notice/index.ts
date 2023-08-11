@@ -21,8 +21,9 @@ import {dismissNotice} from 'actions/views/notice';
 import Notices from 'components/system_notice/notices';
 import SystemNotice from 'components/system_notice/system_notice';
 
-import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 function makeMapStateToProps() {
     const getCategory = makeGetCategory();

@@ -13,10 +13,11 @@ import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 
 import {getAdminConsoleCustomComponents} from 'selectors/admin_console';
 
-import type {AdminConsolePluginComponent} from 'types/store/plugins';
 import {appsPluginID} from 'utils/apps';
 import {Constants} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
+
+import type {AdminConsolePluginComponent} from 'types/store/plugins';
 
 import CustomPluginSettings from './custom_plugin_settings';
 import getEnablePluginSetting from './enable_plugin_setting';

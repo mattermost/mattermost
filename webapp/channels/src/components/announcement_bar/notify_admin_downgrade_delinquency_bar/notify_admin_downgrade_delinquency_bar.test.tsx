@@ -9,8 +9,8 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Client4} from 'mattermost-redux/client';
 
 import {trackEvent} from 'actions/telemetry_actions';
-
 import configureStore from 'store';
+
 import {
     fireEvent,
     renderWithIntl,

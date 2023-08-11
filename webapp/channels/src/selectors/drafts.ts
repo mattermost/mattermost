@@ -8,10 +8,11 @@ import {get, onboardingTourTipsEnabled} from 'mattermost-redux/selectors/entitie
 
 import {getIsMobileView} from 'selectors/views/browser';
 
-import type {GlobalState} from 'types/store';
-import type {DraftInfo, PostDraft} from 'types/store/draft';
 import {StoragePrefixes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
+
+import type {GlobalState} from 'types/store';
+import type {DraftInfo, PostDraft} from 'types/store/draft';
 
 export type Draft = DraftInfo & {
     key: keyof GlobalState['storage']['storage'];

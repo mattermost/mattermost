@@ -28,7 +28,6 @@ import CollapsedReplyThreadsModal
 import CRTWelcomeTutorialTip
     from 'components/tours/crt_tour/crt_welcome_tutorial_tip';
 
-import type {GlobalState} from 'types/store';
 import Constants, {
     CrtTutorialSteps,
     CrtTutorialTriggerSteps,
@@ -37,6 +36,8 @@ import Constants, {
     RHSStates,
 } from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import type {GlobalState} from 'types/store';
 
 import ThreadsIcon from './threads_icon';
 

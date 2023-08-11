@@ -52,11 +52,12 @@ import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
-import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
 import {showNotification} from 'utils/notifications';
 import {setCSRFFromCookie} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import LoginMfa from './login_mfa';
 

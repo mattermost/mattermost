@@ -14,8 +14,9 @@ import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {closeModal, openModal} from 'actions/views/modals';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers, Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import DeliquencyModalController from './delinquency_modal_controller';
 

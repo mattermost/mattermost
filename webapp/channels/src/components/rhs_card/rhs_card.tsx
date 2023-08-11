@@ -16,10 +16,11 @@ import PostProfilePicture from 'components/post_profile_picture';
 import RhsCardHeader from 'components/rhs_card_header';
 import UserProfile from 'components/user_profile';
 
-import type {PostPluginComponent} from 'types/store/plugins';
-import type {RhsState} from 'types/store/rhs';
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
+
+import type {PostPluginComponent} from 'types/store/plugins';
+import type {RhsState} from 'types/store/rhs';
 
 type Props = {
     isMobileView: boolean;

@@ -5,8 +5,6 @@ import {connect} from 'react-redux';
 
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {ModalData} from 'types/actions.js';
-import type {GlobalState} from 'types/store/index.js';
 
 import type {PreferenceType} from '@mattermost/types/preferences';
 
@@ -40,9 +38,12 @@ import {getPostDraft, getIsRhsExpanded, getSelectedPostFocussedAt} from 'selecto
 import {connectionErrorCount} from 'selectors/views/system';
 import {showPreviewOnCreateComment} from 'selectors/views/textbox';
 
-import type {PostDraft} from 'types/store/draft';
 import {AdvancedTextEditor, Constants, StoragePrefixes} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
+
+import type {ModalData} from 'types/actions.js';
+import type {PostDraft} from 'types/store/draft';
+import type {GlobalState} from 'types/store/index.js';
 
 import AdvancedCreateComment from './advanced_create_comment';
 

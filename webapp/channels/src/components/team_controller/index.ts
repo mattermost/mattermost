@@ -18,8 +18,9 @@ import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 
 import {initializeTeam, joinTeam} from 'components/team_controller/actions';
 
-import type {GlobalState} from 'types/store';
 import {checkIfMFARequired} from 'utils/route';
+
+import type {GlobalState} from 'types/store';
 
 import TeamController from './team_controller';
 

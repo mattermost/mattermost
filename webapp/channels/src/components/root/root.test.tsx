@@ -19,8 +19,9 @@ import store from 'stores/redux_store.jsx';
 import Root from 'components/root/root';
 
 import matchMedia from 'tests/helpers/match_media.mock';
-import type {ProductComponent} from 'types/store/plugins';
 import Constants, {StoragePrefixes, WindowSizes} from 'utils/constants';
+
+import type {ProductComponent} from 'types/store/plugins';
 
 jest.mock('rudder-sdk-js', () => ({
     identify: jest.fn(),

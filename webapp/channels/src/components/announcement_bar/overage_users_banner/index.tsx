@@ -19,10 +19,11 @@ import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpa
 import {useExpandOverageUsersCheck} from 'components/common/hooks/useExpandOverageUsersCheck';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
-import type {GlobalState} from 'types/store';
 import {StatTypes, Preferences, AnnouncementBarTypes, ConsolePages} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 import {getSiteURL} from 'utils/url';
+
+import type {GlobalState} from 'types/store';
 
 import './overage_users_banner.scss';
 

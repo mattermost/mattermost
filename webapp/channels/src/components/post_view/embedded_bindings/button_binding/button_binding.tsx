@@ -15,8 +15,9 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import Markdown from 'components/markdown';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import type {PostEphemeralCallResponseForPost, HandleBindingClick, OpenAppsModal} from 'types/apps';
 import {createCallContext} from 'utils/apps';
+
+import type {PostEphemeralCallResponseForPost, HandleBindingClick, OpenAppsModal} from 'types/apps';
 
 type Props = {
     intl: IntlShape;

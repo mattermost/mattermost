@@ -10,10 +10,11 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
-import type {ModalData} from 'types/actions';
 import {
     ModalIdentifiers,
 } from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
 
 import NoInternetConnection from '../no_internet_connection/no_internet_connection';
 

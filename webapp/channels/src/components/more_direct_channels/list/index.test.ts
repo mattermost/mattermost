@@ -8,6 +8,7 @@ import * as ChannelUtils from 'mattermost-redux/utils/channel_utils';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
+
 import type {GlobalState} from 'types/store';
 
 import type {OptionValue} from '../types';

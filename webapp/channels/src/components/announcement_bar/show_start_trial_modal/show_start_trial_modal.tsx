@@ -18,13 +18,14 @@ import {isModalOpen} from 'selectors/views/modals';
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
 import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTrialFormModal';
 
-import type {GlobalState} from 'types/store';
 import {
     Preferences,
     Constants,
     TELEMETRY_CATEGORIES,
     ModalIdentifiers,
 } from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 const ShowStartTrialModal = () => {
     const isUserAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));

@@ -19,7 +19,6 @@ import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
-import type {GlobalState} from 'types/store';
 import {
     AnnouncementBarTypes,
     Preferences,
@@ -27,6 +26,8 @@ import {
     CloudProducts,
 } from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import type {GlobalState} from 'types/store';
 
 import AnnouncementBar from '../default_announcement_bar';
 

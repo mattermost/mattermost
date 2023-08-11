@@ -16,9 +16,10 @@ import {
     screen,
     waitFor,
 } from 'tests/react_testing_utils';
-import type {GlobalState} from 'types/store';
 import {SelfHostedProducts, ModalIdentifiers, RecurringIntervals} from 'utils/constants';
 import {TestHelper as TH} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import SelfHostedExpansionModal, {makeInitialState, canSubmit} from './';
 import type {FormState} from './';

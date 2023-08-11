@@ -12,8 +12,9 @@ import {patchChannel} from 'mattermost-redux/actions/channels';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import type {ActionFunc, GenericAction, ActionResult} from 'mattermost-redux/types/actions';
 
-import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import EditChannelPurposeModal from './edit_channel_purpose_modal';
 

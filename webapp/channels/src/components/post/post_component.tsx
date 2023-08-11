@@ -42,13 +42,14 @@ import Tooltip from 'components/tooltip';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 
-import type {PostPluginComponent, PluginComponent} from 'types/store/plugins';
 import {getHistory} from 'utils/browser_history';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
 import {getDateForUnixTicks, makeIsEligibleForClick} from 'utils/utils';
+
+import type {PostPluginComponent, PluginComponent} from 'types/store/plugins';
 
 import PostOptions from './post_options';
 import PostUserProfile from './user_profile';

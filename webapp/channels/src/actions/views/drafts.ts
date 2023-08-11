@@ -21,9 +21,10 @@ import {makeGetDrafts} from 'selectors/drafts';
 import {getConnectionId} from 'selectors/general';
 import {getGlobalItem} from 'selectors/storage';
 
+import {ActionTypes, StoragePrefixes} from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {ActionTypes, StoragePrefixes} from 'utils/constants';
 
 type Draft = {
     key: keyof GlobalState['storage']['storage'];

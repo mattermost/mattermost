@@ -19,9 +19,10 @@ import {openShowEditHistory} from 'actions/views/rhs';
 
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
-import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
 import {isPostOwner, canEditPost} from 'utils/post_utils';
+
+import type {GlobalState} from 'types/store';
 
 import PostEditedIndicator from './post_edited_indicator';
 

@@ -11,8 +11,9 @@ import type {Channel} from '@mattermost/types/channels';
 import {closeRightHandSide, showChannelInfo} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 
-import type {RhsState} from 'types/store/rhs';
 import {RHSStates} from 'utils/constants';
+
+import type {RhsState} from 'types/store/rhs';
 
 import HeaderIconWrapper from './components/header_icon_wrapper';
 

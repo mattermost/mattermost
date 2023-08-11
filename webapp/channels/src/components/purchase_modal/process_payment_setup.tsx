@@ -21,10 +21,11 @@ import CreditCardSvg from 'components/common/svg_images_components/credit_card_s
 import PaymentFailedSvg from 'components/common/svg_images_components/payment_failed_svg';
 import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
 
-import type {BillingDetails} from 'types/cloud/sku';
 import {RecurringIntervals, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getNextBillingDate} from 'utils/utils';
+
+import type {BillingDetails} from 'types/cloud/sku';
 
 import IconMessage from './icon_message';
 

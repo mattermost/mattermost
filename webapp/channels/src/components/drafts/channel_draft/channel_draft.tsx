@@ -15,9 +15,10 @@ import {openModal} from 'actions/views/modals';
 
 import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
 
-import type {PostDraft} from 'types/store/draft';
 import {ModalIdentifiers} from 'utils/constants';
 import {hasRequestedPersistentNotifications, specialMentionsInText} from 'utils/post_utils';
+
+import type {PostDraft} from 'types/store/draft';
 
 import DraftActions from '../draft_actions';
 import DraftTitle from '../draft_title';

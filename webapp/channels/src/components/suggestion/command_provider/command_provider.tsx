@@ -13,9 +13,10 @@ import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 
 import globalStore from 'stores/redux_store';
 
-import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
+
+import type {GlobalState} from 'types/store';
 
 import {AppCommandParser} from './app_command_parser/app_command_parser';
 import {intlShim} from './app_command_parser/app_command_parser_dependencies';

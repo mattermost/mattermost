@@ -24,12 +24,13 @@ import {trackEvent} from 'actions/telemetry_actions';
 import DraftsLink from 'components/drafts/drafts_link/drafts_link';
 import GlobalThreadsLink from 'components/threading/global_threads_link';
 
-import type {DraggingState} from 'types/store';
-import type {StaticPage} from 'types/store/lhs';
 import * as ChannelUtils from 'utils/channel_utils';
 import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
+
+import type {DraggingState} from 'types/store';
+import type {StaticPage} from 'types/store/lhs';
 
 import SidebarCategory from '../sidebar_category';
 import UnreadChannelIndicator from '../unread_channel_indicator';

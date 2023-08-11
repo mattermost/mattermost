@@ -14,11 +14,12 @@ import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect'
 import LocalizedIcon from 'components/localized_icon';
 import Input from 'components/widgets/inputs/input/input';
 
-import type {ModalData} from 'types/actions';
 import Constants, {ItemStatus} from 'utils/constants';
 import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 import {localizeMessage} from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 import 'components/user_groups_modal/user_groups_modal.scss';
 import './create_user_groups_modal.scss';

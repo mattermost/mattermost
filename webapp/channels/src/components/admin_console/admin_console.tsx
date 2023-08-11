@@ -20,8 +20,9 @@ import DiscardChangesModal from 'components/discard_changes_modal';
 import ModalController from 'components/modal_controller';
 import SystemNotice from 'components/system_notice';
 
-import {LhsItemType} from 'types/store/lhs';
 import {applyTheme, resetTheme} from 'utils/utils';
+
+import {LhsItemType} from 'types/store/lhs';
 
 import AdminSidebar from './admin_sidebar';
 import Highlight from './highlight';

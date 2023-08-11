@@ -11,8 +11,9 @@ import {Posts} from 'mattermost-redux/constants';
 import * as Actions from 'actions/post_actions';
 
 import mockStore from 'tests/test_store';
-import type {GlobalState} from 'types/store';
 import {Constants, ActionTypes, RHSStates} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     addReaction: (...args: any[]) => ({type: 'MOCK_ADD_REACTION', args}),

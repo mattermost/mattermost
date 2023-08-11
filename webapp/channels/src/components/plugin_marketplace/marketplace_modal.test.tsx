@@ -10,8 +10,9 @@ import {AuthorType, ReleaseStage} from '@mattermost/types/marketplace';
 
 import type {ActionFunc} from 'mattermost-redux/types/actions';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import MarketplaceModal from './marketplace_modal';
 import type {OpenedFromType} from './marketplace_modal';

@@ -34,9 +34,10 @@ import {getIsMobileView} from 'selectors/views/browser';
 import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
 import {isAnyModalOpen} from 'selectors/views/modals';
 
+import {getDirectChannelName} from 'utils/utils';
+
 import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
-import {getDirectChannelName} from 'utils/utils';
 
 import ProfilePopover from './profile_popover';
 

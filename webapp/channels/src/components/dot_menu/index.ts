@@ -32,14 +32,15 @@ import {
 import {openModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import type {ModalData} from 'types/actions';
-import type {GlobalState} from 'types/store';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
 import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
 import {allAtMentions} from 'utils/text_formatting';
 import {getSiteURL} from 'utils/url';
+
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 import DotMenu from './dot_menu';
 

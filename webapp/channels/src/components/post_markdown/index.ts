@@ -18,10 +18,11 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
-import type {GlobalState} from 'types/store';
 import {canManageMembers} from 'utils/channel_utils';
 import {Preferences} from 'utils/constants';
 import type {MentionKey} from 'utils/text_formatting';
+
+import type {GlobalState} from 'types/store';
 
 import PostMarkdown from './post_markdown';
 

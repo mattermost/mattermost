@@ -9,8 +9,9 @@ import {Link, Route} from 'react-router-dom';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import type {GlobalState} from 'types/store';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import {renderWithFullContext, screen} from './react_testing_utils';
 

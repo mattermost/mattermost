@@ -13,8 +13,9 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 import InfiniteScroll from 'components/gif_picker/components/InfiniteScroll';
 import type {appProps} from 'components/gif_picker/gif_picker';
 
-import type {GlobalState} from 'types/store';
 import {getImageSrc} from 'utils/post_utils';
+
+import type {GlobalState} from 'types/store';
 
 import './Categories.scss';
 

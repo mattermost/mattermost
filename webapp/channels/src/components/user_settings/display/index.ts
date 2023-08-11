@@ -21,8 +21,9 @@ import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/use
 import type {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
-import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import UserSettingsDisplay from './user_settings_display';
 

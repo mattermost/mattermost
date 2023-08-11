@@ -10,9 +10,10 @@ import LocalStorageStore from 'stores/local_storage_store';
 
 import InvitationModal from 'components/invitation_modal';
 
-import type {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import {openModal} from './modals';
 

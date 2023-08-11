@@ -23,9 +23,10 @@ import {
 import {getPenultimateViewedChannelName} from 'selectors/local_storage';
 import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
 
-import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import Desktop from './channel_header_dropdown';
 import Items from './channel_header_dropdown_items';

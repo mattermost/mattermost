@@ -10,8 +10,9 @@ import {Client4} from 'mattermost-redux/client';
 import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from 'components/self_hosted_purchases/constants';
 
 import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import type {GlobalState} from 'types/store';
 import {TestHelper as TH} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import PurchaseInProgressModal from './';
 

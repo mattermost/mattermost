@@ -9,9 +9,10 @@ import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 
 import en from 'i18n/en.json';
+import {ActionTypes} from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
 import type {Translations} from 'types/store/i18n';
-import {ActionTypes} from 'utils/constants';
 
 const pluginTranslationSources: Record<string, TranslationPluginFunction> = {};
 

@@ -19,9 +19,10 @@ import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 import {getIsRhsOpen, getSelectedPostId} from 'selectors/rhs';
 
+import {isFromWebhook} from 'utils/post_utils';
+
 import type {GlobalState} from 'types/store';
 import type {ViewsState} from 'types/store/views';
-import {isFromWebhook} from 'utils/post_utils';
 
 interface PostFilterOptions {
     postIds: Array<Post['id']>;

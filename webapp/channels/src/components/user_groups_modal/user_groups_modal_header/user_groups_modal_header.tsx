@@ -7,8 +7,9 @@ import {FormattedMessage} from 'react-intl';
 
 import CreateUserGroupsModal from 'components/create_user_groups_modal';
 
-import type {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
 
 export type Props = {
     canCreateCustomGroups: boolean;

@@ -52,13 +52,14 @@ import TeamSidebar from 'components/team_sidebar';
 import webSocketClient from 'client/web_websocket_client.jsx';
 import {initializePlugins} from 'plugins';
 import Pluggable from 'plugins/pluggable';
-import type {ProductComponent, PluginComponent} from 'types/store/plugins';
 import A11yController from 'utils/a11y_controller';
 import Constants, {StoragePrefixes, WindowSizes} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
+
+import type {ProductComponent, PluginComponent} from 'types/store/plugins';
 
 import {applyLuxonDefaults} from './effects';
 import RootProvider from './root_provider';

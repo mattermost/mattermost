@@ -14,8 +14,9 @@ import FilePreview from 'components/file_preview';
 import Markdown from 'components/markdown';
 import ProfilePicture from 'components/profile_picture';
 
-import type {PostDraft} from 'types/store/draft';
 import {imageURLForUser, handleFormattedTextClick} from 'utils/utils';
+
+import type {PostDraft} from 'types/store/draft';
 
 import './panel_body.scss';
 

@@ -8,10 +8,11 @@ import classNames from 'classnames';
 
 import {showMobileSubMenuModal} from 'actions/global_actions';
 
-import type {Menu} from 'types/store/plugins';
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
+
+import type {Menu} from 'types/store/plugins';
 
 import './menu_item.scss';
 

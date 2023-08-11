@@ -6,8 +6,9 @@ import React from 'react';
 import type {PostType} from '@mattermost/types/posts';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import type {PluginComponent} from 'types/store/plugins';
 import {TestHelper} from 'utils/test_helper';
+
+import type {PluginComponent} from 'types/store/plugins';
 
 import ActionsMenu, {PLUGGABLE_COMPONENT} from './actions_menu';
 import type {Props} from './actions_menu';

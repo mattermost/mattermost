@@ -13,8 +13,9 @@ import MarkdownImageExpand from 'components/markdown_image_expand';
 import SizeAwareImage from 'components/size_aware_image';
 
 import brokenImageIcon from 'images/icons/brokenimage.png';
-import type {ModalData} from 'types/actions';
 import Constants, {ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
 
 export type Props = {
     alt: string;

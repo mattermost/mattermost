@@ -15,6 +15,7 @@ import store from 'stores/redux_store';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import mockStore from 'tests/test_store';
+
 import type {GlobalState} from 'types/store';
 
 jest.mock('mattermost-redux/actions/users', () => {

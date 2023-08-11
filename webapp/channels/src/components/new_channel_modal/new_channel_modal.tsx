@@ -32,10 +32,11 @@ import URLInput from 'components/widgets/inputs/url_input/url_input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 
 import Pluggable from 'plugins/pluggable';
-import type {GlobalState} from 'types/store';
 import Constants, {ItemStatus, ModalIdentifiers} from 'utils/constants';
 import {cleanUpUrlable, validateChannelUrl, getSiteURL} from 'utils/url';
 import {localizeMessage} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import './new_channel_modal.scss';
 

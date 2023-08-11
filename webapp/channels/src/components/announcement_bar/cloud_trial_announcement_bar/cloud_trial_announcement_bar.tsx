@@ -15,7 +15,6 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import PricingModal from 'components/pricing_modal';
 
-import type {ModalData} from 'types/actions';
 import {
     Preferences,
     CloudBanners,
@@ -26,6 +25,8 @@ import {
 } from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getLocaleDateFromUTC} from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 import AnnouncementBar from '../default_announcement_bar';
 

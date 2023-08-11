@@ -25,9 +25,10 @@ import UnarchiveChannelModal from 'components/unarchive_channel_modal';
 import Menu from 'components/widgets/menu/menu';
 
 import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
-import type {PluginComponent} from 'types/store/plugins';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
+
+import type {PluginComponent} from 'types/store/plugins';
 
 import MenuItemCloseChannel from './menu_items/close_channel';
 import MenuItemCloseMessage from './menu_items/close_message';

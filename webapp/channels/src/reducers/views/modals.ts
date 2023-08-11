@@ -6,8 +6,9 @@ import {combineReducers} from 'redux';
 import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
-import type {ViewsState} from 'types/store/views';
 import {ActionTypes} from 'utils/constants';
+
+import type {ViewsState} from 'types/store/views';
 
 export function modalState(state: ViewsState['modals']['modalState'] = {}, action: GenericAction) {
     switch (action.type) {

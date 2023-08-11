@@ -17,8 +17,6 @@ import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import Textbox from 'components/textbox';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
 
-import type {ModalData} from 'types/actions';
-import type {PostDraft} from 'types/store/draft';
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
@@ -32,6 +30,9 @@ import {
 } from 'utils/paste';
 import {postMessageOnKeyPress, splitMessageBasedOnCaretPosition} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
+import type {PostDraft} from 'types/store/draft';
 
 import EditPostFooter from './edit_post_footer';
 

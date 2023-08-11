@@ -9,8 +9,9 @@ import {ChannelCategoryTypes, UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 import {removeItem} from 'mattermost-redux/utils/array_utils';
 
-import type {DraggingState} from 'types/store';
 import {ActionTypes} from 'utils/constants';
+
+import type {DraggingState} from 'types/store';
 
 export function unreadFilterEnabled(state = false, action: GenericAction) {
     switch (action.type) {

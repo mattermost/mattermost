@@ -14,8 +14,9 @@ import TrueUpReview from 'components/analytics/true_up_review';
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import DoughnutChart from '../doughnut_chart';
 import {

@@ -16,8 +16,9 @@ import AdvancedCreateComment from 'components/advanced_create_comment';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import BasicSeparator from 'components/widgets/separator/basic-separator';
 
-import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     focusOnMount: boolean;

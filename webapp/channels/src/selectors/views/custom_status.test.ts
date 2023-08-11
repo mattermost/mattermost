@@ -9,8 +9,8 @@ import * as PreferenceSelectors from 'mattermost-redux/selectors/entities/prefer
 import * as UserSelectors from 'mattermost-redux/selectors/entities/users';
 
 import {makeGetCustomStatus, getRecentCustomStatuses, isCustomStatusEnabled, showStatusDropdownPulsatingDot, showPostHeaderUpdateStatusButton} from 'selectors/views/custom_status';
-
 import configureStore from 'store';
+
 import {TestHelper} from 'utils/test_helper';
 import {addTimeToTimestamp, TimeInformation} from 'utils/utils';
 

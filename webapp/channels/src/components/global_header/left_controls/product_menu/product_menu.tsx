@@ -29,9 +29,10 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useGetPluginsActivationState} from 'plugins/useGetPluginsActivationState';
-import type {GlobalState} from 'types/store';
 import {ExploreOtherToolsTourSteps, suitePluginIds} from 'utils/constants';
 import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
+
+import type {GlobalState} from 'types/store';
 
 import ProductBranding from './product_branding';
 import ProductMenuItem from './product_menu_item';

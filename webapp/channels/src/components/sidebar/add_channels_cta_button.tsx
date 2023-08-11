@@ -23,8 +23,9 @@ import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers, Preferences, Touched} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 const AddChannelsCtaButton = (): JSX.Element | null => {
     const dispatch = useDispatch<DispatchFunc>();

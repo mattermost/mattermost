@@ -25,10 +25,11 @@ import useOpenDowngradeModal from 'components/common/hooks/useOpenDowngradeModal
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import DowngradeFeedbackModal from 'components/feedback_modal/downgrade_feedback';
 
-import type {GlobalState} from 'types/store';
 import {CloudProducts, ModalIdentifiers, StatTypes} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 import {fileSizeToString} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import DeleteWorkspaceFailureModal from './failure_modal';
 import DeleteWorkspaceSuccessModal from './success_modal';

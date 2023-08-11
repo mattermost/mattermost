@@ -26,9 +26,10 @@ import {openModal} from 'actions/views/modals';
 import {showMentions, showFlaggedPosts, closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
-import type {GlobalState} from 'types/store';
 import {RHSStates, CloudProducts} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
+
+import type {GlobalState} from 'types/store';
 
 import MainMenu from './main_menu';
 

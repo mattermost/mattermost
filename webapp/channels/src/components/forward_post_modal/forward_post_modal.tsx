@@ -21,9 +21,10 @@ import {getPermalinkURL} from 'selectors/urls';
 import NotificationBox from 'components/notification_box';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 
-import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 import {getSiteURL} from 'utils/url';
+
+import type {GlobalState} from 'types/store';
 
 import ForwardPostChannelSelect, {makeSelectedChannelOption} from './forward_post_channel_select';
 import type {ChannelOption} from './forward_post_channel_select';

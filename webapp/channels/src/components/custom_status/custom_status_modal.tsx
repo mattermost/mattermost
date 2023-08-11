@@ -32,13 +32,14 @@ import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
-import type {GlobalState} from 'types/store';
 import {A11yCustomEventTypes, Constants, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 import {localizeMessage} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import 'components/category_modal.scss';
 import './custom_status.scss';

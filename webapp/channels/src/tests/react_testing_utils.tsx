@@ -12,9 +12,11 @@ import {createBrowserHistory} from 'history';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import configureStore from 'store';
+
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import mockStore from 'tests/test_store';
+
 import type {GlobalState} from 'types/store';
 
 export * from '@testing-library/react';

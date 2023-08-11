@@ -9,8 +9,9 @@ import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezoneFull, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
-import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import * as RelativeRanges from './relative_ranges';
 import Timestamp, {supportsHourCycle} from './timestamp';

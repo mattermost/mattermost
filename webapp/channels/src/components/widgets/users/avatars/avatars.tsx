@@ -21,9 +21,10 @@ import ProfilePopover from 'components/profile_popover';
 import SimpleTooltip, {useSynchronizedImmediate} from 'components/widgets/simple_tooltip';
 import Avatar from 'components/widgets/users/avatar';
 
-import type {GlobalState} from 'types/store';
 import {t} from 'utils/i18n';
 import {imageURLForUser} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import './avatars.scss';
 

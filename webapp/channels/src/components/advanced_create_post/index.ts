@@ -5,8 +5,6 @@ import {connect} from 'react-redux';
 
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {ModalData} from 'types/actions.js';
-import type {GlobalState} from 'types/store/index.js';
 
 import type {FileInfo} from '@mattermost/types/files';
 import type {CommandArgs} from '@mattermost/types/integrations';
@@ -55,9 +53,12 @@ import {showPreviewOnCreatePost} from 'selectors/views/textbox';
 
 import {OnboardingTourSteps, TutorialTourName, OnboardingTourStepsForGuestUsers} from 'components/tours';
 
-import type {PostDraft} from 'types/store/draft';
 import {AdvancedTextEditor, Constants, Preferences, StoragePrefixes, UserStatuses} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
+
+import type {ModalData} from 'types/actions.js';
+import type {PostDraft} from 'types/store/draft';
+import type {GlobalState} from 'types/store/index.js';
 
 import AdvancedCreatePost from './advanced_create_post';
 

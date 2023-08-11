@@ -16,10 +16,11 @@ import Tooltip from 'components/tooltip';
 import CRTThreadsPaneTutorialTip
     from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
 
-import type {RhsState} from 'types/store/rhs';
 import {getHistory} from 'utils/browser_history';
 import Constants, {RHSStates} from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import type {RhsState} from 'types/store/rhs';
 
 interface RhsHeaderPostProps {
     isExpanded: boolean;

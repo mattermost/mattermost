@@ -18,9 +18,10 @@ import RadioGroup from 'components/common/radio_group';
 import InvitationModal from 'components/invitation_modal';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import type {GlobalState} from 'types/store';
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {CloudProducts, LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import './invite_as.scss';
 

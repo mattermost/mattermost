@@ -12,10 +12,11 @@ import UpdateUserGroupModal from 'components/update_user_group_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import type {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 export type Props = {
     group: Group;

@@ -17,11 +17,12 @@ import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/su
 import SuggestionList from 'components/suggestion/suggestion_list';
 import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
 
-import type {RhsState} from 'types/store/rhs';
 import {getHistory} from 'utils/browser_history';
 import Constants, {RHSStates} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
+
+import type {RhsState} from 'types/store/rhs';
 
 const CHANNEL_MODE = 'channel';
 

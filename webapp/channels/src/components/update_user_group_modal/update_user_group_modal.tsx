@@ -13,11 +13,12 @@ import LocalizedIcon from 'components/localized_icon';
 import SaveButton from 'components/save_button';
 import Input from 'components/widgets/inputs/input/input';
 
-import type {ModalData} from 'types/actions';
 import Constants, {ItemStatus} from 'utils/constants';
 import {t} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 import 'components/user_groups_modal/user_groups_modal.scss';
 import './update_user_group_modal.scss';

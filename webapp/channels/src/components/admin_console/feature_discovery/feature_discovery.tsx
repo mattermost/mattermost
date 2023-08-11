@@ -21,11 +21,12 @@ import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import PurchaseModal from 'components/purchase_modal';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import type {ModalData} from 'types/actions';
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES, AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
 import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 import './feature_discovery.scss';
 

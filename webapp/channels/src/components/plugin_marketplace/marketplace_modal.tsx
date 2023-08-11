@@ -28,8 +28,9 @@ import {isModalOpen} from 'selectors/views/modals';
 import LoadingScreen from 'components/loading_screen';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import MarketplaceList, {ITEMS_PER_PAGE} from './marketplace_list/marketplace_list';
 

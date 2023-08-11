@@ -13,8 +13,9 @@ import {getRhsState} from 'selectors/rhs';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
-import type {GlobalState} from 'types/store';
 import Constants, {RHSStates} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 const SavedPostsButton = (): JSX.Element | null => {
     const {formatMessage} = useIntl();

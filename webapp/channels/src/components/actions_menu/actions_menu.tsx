@@ -23,13 +23,14 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import Pluggable from 'plugins/pluggable';
-import type {ModalData} from 'types/actions';
-import type {HandleBindingClick, PostEphemeralCallResponseForPost, OpenAppsModal} from 'types/apps';
-import type {PluginComponent} from 'types/store/plugins';
 import {createCallContext} from 'utils/apps';
 import {Locations, Constants, ModalIdentifiers} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
 import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
+import type {HandleBindingClick, PostEphemeralCallResponseForPost, OpenAppsModal} from 'types/apps';
+import type {PluginComponent} from 'types/store/plugins';
 
 import './actions_menu.scss';
 

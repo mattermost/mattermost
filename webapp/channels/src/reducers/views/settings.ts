@@ -4,8 +4,9 @@
 import {UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
-import type {ViewsState} from 'types/store/views';
 import {ActionTypes} from 'utils/constants';
+
+import type {ViewsState} from 'types/store/views';
 
 export default function settings(state: ViewsState['settings'] = {activeSection: '', previousActiveSection: ''}, action: GenericAction) {
     switch (action.type) {

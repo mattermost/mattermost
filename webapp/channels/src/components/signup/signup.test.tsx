@@ -20,8 +20,9 @@ import PasswordInput from 'components/widgets/inputs/password_input/password_inp
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {act, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import type {GlobalState} from 'types/store';
 import {WindowSizes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 let mockState: GlobalState;
 let mockLocation = {pathname: '', search: '', hash: ''};

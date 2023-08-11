@@ -15,9 +15,10 @@ import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
 
-import type {ModalData} from 'types/actions';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
+
+import type {ModalData} from 'types/actions';
 
 import AboutArea from './about_area';
 import Header from './header';

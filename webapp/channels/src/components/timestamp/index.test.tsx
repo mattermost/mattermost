@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+
 import type {GlobalState} from 'types/store';
 
 import * as Timestamp from './timestamp';

@@ -12,8 +12,9 @@ import FileUpload from 'components/file_upload/file_upload';
 import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import type {FilesWillUploadHook} from 'types/store/plugins';
 import {clearFileInput} from 'utils/utils';
+
+import type {FilesWillUploadHook} from 'types/store/plugins';
 
 const generatedIdRegex = /[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/;
 

@@ -18,8 +18,9 @@ import ChannelInviteModal from 'components/channel_invite_modal';
 import ExternalLink from 'components/external_link';
 import MoreDirectChannels from 'components/more_direct_channels';
 
-import type {ModalData} from 'types/actions';
 import Constants, {ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
 
 import ActionBar from './action_bar';
 import Header from './header';

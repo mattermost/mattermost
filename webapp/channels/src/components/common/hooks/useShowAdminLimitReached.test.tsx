@@ -5,11 +5,12 @@ import React from 'react';
 import type {ReactPortal} from 'react';
 import {Provider} from 'react-redux';
 
+import configureStore from 'store';
+
 import * as useGetLimitsHook from 'components/common/hooks/useGetLimits';
 import * as useGetUsageHook from 'components/common/hooks/useGetUsage';
 import ModalController from 'components/modal_controller';
 
-import configureStore from 'store';
 import {renderWithIntl, screen} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';

@@ -24,12 +24,13 @@ import {makeAsyncComponent} from 'components/async_load';
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 import {getStripePublicKey} from 'components/payment_form/stripe';
 
-import type {ModalData} from 'types/actions';
-import type {BillingDetails} from 'types/cloud/sku';
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 import {getCloudContactSalesLink, getCloudSupportLink} from 'utils/contact_support_sales';
 import {findOnlyYearlyProducts} from 'utils/products';
+
+import type {ModalData} from 'types/actions';
+import type {BillingDetails} from 'types/cloud/sku';
+import type {GlobalState} from 'types/store';
 
 const PurchaseModal = makeAsyncComponent('PurchaseModal', React.lazy(() => import('./purchase_modal')));
 

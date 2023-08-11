@@ -36,8 +36,9 @@ import {closeRightHandSide, goBack, setEditChannelMembers} from 'actions/views/r
 import {setChannelMembersRhsSearchTerm} from 'actions/views/search';
 import {getIsEditingMembers, getPreviousRhsState} from 'selectors/rhs';
 
-import type {GlobalState} from 'types/store';
 import {Constants, RHSStates} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import RHS from './channel_members_rhs';
 import type {Props, ChannelMember} from './channel_members_rhs';

@@ -7,8 +7,9 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {isModalOpen} from 'selectors/views/modals';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import TeamSettingsModal from './team_settings_modal';
 

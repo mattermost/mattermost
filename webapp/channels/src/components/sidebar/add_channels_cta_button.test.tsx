@@ -12,6 +12,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+
 import type {GlobalState} from 'types/store';
 
 import AddChannelsCtaButton from './add_channels_cta_button';

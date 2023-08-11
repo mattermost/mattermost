@@ -16,11 +16,12 @@ import {trackEvent} from 'actions/telemetry_actions';
 import {useDelinquencySubscription} from 'components/common/hooks/useDelinquencySubscription';
 import {NotifyStatus, useGetNotifyAdmin} from 'components/common/hooks/useGetNotifyAdmin';
 
-import type {GlobalState} from 'types/store';
 import {
     AnnouncementBarTypes, CloudProducts, CloudProductToSku, MattermostFeatures, Preferences, TELEMETRY_CATEGORIES,
 } from 'utils/constants';
 import {t} from 'utils/i18n';
+
+import type {GlobalState} from 'types/store';
 
 import AnnouncementBar from '../default_announcement_bar';
 

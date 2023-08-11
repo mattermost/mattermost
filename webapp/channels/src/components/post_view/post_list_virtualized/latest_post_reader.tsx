@@ -8,8 +8,9 @@ import type {Post} from '@mattermost/types/posts';
 
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
-import type {GlobalState} from 'types/store';
 import {getLatestPostId, usePostAriaLabel} from 'utils/post_utils';
+
+import type {GlobalState} from 'types/store';
 
 interface Props {
     postIds?: string[];

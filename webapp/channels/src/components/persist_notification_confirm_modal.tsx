@@ -11,9 +11,10 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {getPersistentNotificationIntervalMinutes, getPersistentNotificationMaxRecipients} from 'mattermost-redux/selectors/entities/posts';
 
-import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 import {makeGetUserOrGroupMentionCountFromMessage} from 'utils/post_utils';
+
+import type {GlobalState} from 'types/store';
 
 import {HasNoMentions, HasSpecialMentions} from './post_priority/error_messages';
 

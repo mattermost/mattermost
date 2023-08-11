@@ -34,8 +34,9 @@ import {useHandleOnBoardingTaskTrigger} from 'components/onboarding_tasks/onboar
 import OnBoardingVideoModal from 'components/onboarding_tasks/onboarding_video_modal/onboarding_video_modal';
 
 import checklistImg from 'images/onboarding-checklist.svg';
-import type {GlobalState} from 'types/store';
 import {Preferences, RecommendedNextStepsLegacy} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import {CompletedAnimation} from './onboarding_tasklist_animations';
 import Completed from './onboarding_tasklist_completed';

@@ -11,6 +11,7 @@ import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import mockStore from 'tests/test_store';
+
 import type {PostDraft} from 'types/store/draft';
 
 import ThreadDraft from './thread_draft';

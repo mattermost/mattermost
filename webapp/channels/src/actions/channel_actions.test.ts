@@ -9,6 +9,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import TestHelper from 'mattermost-redux/test/test_helper';
 
 import {
     searchMoreChannels,
@@ -19,9 +20,8 @@ import {
 } from 'actions/channel_actions';
 import {CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE} from 'actions/channel_queries';
 import {loadProfilesForSidebar} from 'actions/user_actions';
-
-import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import configureStore from 'store';
+
 import mockStore from 'tests/test_store';
 
 const initialState = {

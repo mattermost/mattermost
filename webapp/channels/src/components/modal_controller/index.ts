@@ -5,11 +5,12 @@ import {connect} from 'react-redux';
 
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store/index.js';
 
 import type {Action, GenericAction} from 'mattermost-redux/types/actions.js';
 
 import {closeModal} from 'actions/views/modals';
+
+import type {GlobalState} from 'types/store/index.js';
 
 import ModalController from './modal_controller';
 

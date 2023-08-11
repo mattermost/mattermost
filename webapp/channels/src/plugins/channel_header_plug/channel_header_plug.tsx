@@ -19,10 +19,11 @@ import HeaderIconWrapper from 'components/channel_header/components/header_icon_
 import OverlayTrigger from 'components/overlay_trigger';
 import PluginChannelHeaderIcon from 'components/widgets/icons/plugin_channel_header_icon';
 
-import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForChannel} from 'types/apps';
-import type {PluginComponent} from 'types/store/plugins';
 import {createCallContext} from 'utils/apps';
 import {Constants} from 'utils/constants';
+
+import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForChannel} from 'types/apps';
+import type {PluginComponent} from 'types/store/plugins';
 
 type CustomMenuProps = {
     open?: boolean;

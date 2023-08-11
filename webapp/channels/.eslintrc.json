@@ -50,7 +50,7 @@
         ],
         "pathGroups": [
           {
-            "pattern": "react{*,*/**}",
+            "pattern": "react*{,/**}",
             "group": "builtin",
             "position": "before"
           },
@@ -65,13 +65,18 @@
             "position": "after"
           },
           {
-            "pattern": "@(selectors|actions|stores)/**",
+            "pattern": "@(selectors|actions|stores|store|reducers){,/**}",
             "group": "external",
             "position": "after"
           },
           {
             "pattern": "components/**",
             "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "types{,/**}",
+            "group": "internal",
             "position": "after"
           }
         ],

@@ -8,8 +8,9 @@ import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {setGlobalItem} from 'actions/storage';
 
 import mockStore from 'tests/test_store';
-import type {PostDraft} from 'types/store/draft';
 import {StoragePrefixes} from 'utils/constants';
+
+import type {PostDraft} from 'types/store/draft';
 
 import {removeDraft, setGlobalDraftSource, updateDraft} from './drafts';
 

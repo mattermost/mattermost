@@ -21,8 +21,9 @@ import {getLastViewedChannelNameByTeamName, getLastViewedTypeByTeamName, getPrev
 import {getIsRhsOpen, getIsRhsMenuOpen} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import type {GlobalState} from 'types/store';
 import {PreviousViewedTypes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import CenterChannel from './center_channel';
 

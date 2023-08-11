@@ -36,9 +36,6 @@ import PostPriorityPickerOverlay from 'components/post_priority/post_priority_pi
 import ResetStatusModal from 'components/reset_status_modal';
 import type TextboxClass from 'components/textbox/textbox';
 
-import type {ModalData} from 'types/actions';
-import type {PostDraft} from 'types/store/draft';
-import type {PluginComponent} from 'types/store/plugins';
 import Constants, {
     StoragePrefixes,
     ModalIdentifiers,
@@ -74,6 +71,10 @@ import {
 } from 'utils/post_utils';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
+import type {PostDraft} from 'types/store/draft';
+import type {PluginComponent} from 'types/store/plugins';
 
 import PriorityLabels from './priority_labels';
 

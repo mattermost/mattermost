@@ -15,8 +15,9 @@ import type {GenericAction} from 'mattermost-redux/types/actions';
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
 
-import type {GlobalState} from 'types/store';
 import {PostListRowListIds} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import PostListRow from './post_list_row';
 import type {PostListRowProps} from './post_list_row';

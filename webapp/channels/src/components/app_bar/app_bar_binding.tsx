@@ -16,9 +16,10 @@ import {handleBindingClick, openAppsModal, postEphemeralCallResponseForContext} 
 
 import OverlayTrigger from 'components/overlay_trigger';
 
-import type {DoAppCallResult} from 'types/apps';
 import {createCallContext} from 'utils/apps';
 import Constants from 'utils/constants';
+
+import type {DoAppCallResult} from 'types/apps';
 
 export const isAppBinding = (x: Record<string, any> | undefined): x is AppBinding => {
     return Boolean(x?.app_id);

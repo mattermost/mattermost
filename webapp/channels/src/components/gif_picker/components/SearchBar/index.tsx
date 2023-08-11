@@ -16,8 +16,9 @@ import LocalizedInput from 'components/localized_input/localized_input';
 import GifSearchClearIcon from 'components/widgets/icons/gif_search_clear_icon';
 import GifSearchIcon from 'components/widgets/icons/gif_search_icon';
 
-import type {GlobalState} from 'types/store';
 import {t} from 'utils/i18n';
+
+import type {GlobalState} from 'types/store';
 
 import './SearchBar.scss';
 

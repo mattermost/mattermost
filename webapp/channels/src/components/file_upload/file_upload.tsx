@@ -21,7 +21,6 @@ import Tooltip from 'components/tooltip';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import type {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import dragster from 'utils/dragster';
@@ -39,6 +38,8 @@ import {
     localizeMessage,
     isTextDroppableEvent,
 } from 'utils/utils';
+
+import type {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
 
 const holders = defineMessages({
     limited: {

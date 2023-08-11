@@ -4,6 +4,7 @@
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import rhsSuppressed from 'reducers/views/rhs_suppressed';
+
 import {ActionTypes} from 'utils/constants';
 
 describe('Reducers.views.rhsSuppressed', () => {

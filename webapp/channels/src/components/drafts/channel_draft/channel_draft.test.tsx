@@ -10,6 +10,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import mockStore from 'tests/test_store';
+
 import type {PostDraft} from 'types/store/draft';
 
 import ChannelDraft from './channel_draft';

@@ -16,9 +16,10 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import DropdownInput from 'components/dropdown_input';
 import Input from 'components/widgets/inputs/input/input';
 
-import type {BillingDetails} from 'types/cloud/sku';
 import {COUNTRIES} from 'utils/countries';
 import * as Utils from 'utils/utils';
+
+import type {BillingDetails} from 'types/cloud/sku';
 
 import CardImage from './card_image';
 import CardInput from './card_input';

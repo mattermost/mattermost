@@ -14,8 +14,9 @@ import {getUnreadScrollPositionPreference} from 'mattermost-redux/selectors/enti
 import {getTeamByName, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import PostView from './post_view';
 

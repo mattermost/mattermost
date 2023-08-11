@@ -29,9 +29,10 @@ import SwitchChannelProvider from 'components/suggestion/switch_channel_provider
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
-import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import {getBaseStyles} from './forward_post_channel_select_styles';
 

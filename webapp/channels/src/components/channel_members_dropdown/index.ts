@@ -16,8 +16,9 @@ import type {Action} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
-import type {GlobalState} from 'types/store';
 import {canManageMembers} from 'utils/channel_utils';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelMembersDropdown from './channel_members_dropdown';
 

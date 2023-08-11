@@ -28,8 +28,9 @@ import type {Action, ActionFunc, GenericAction} from 'mattermost-redux/types/act
 import {loadProfilesAndTeamMembers, loadProfilesWithoutTeam} from 'actions/user_actions';
 import {setSystemUsersSearch} from 'actions/views/search';
 
-import type {GlobalState} from 'types/store';
 import {SearchUserTeamFilter} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import SystemUsers from './system_users';
 

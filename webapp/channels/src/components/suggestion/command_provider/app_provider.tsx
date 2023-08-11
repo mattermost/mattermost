@@ -10,8 +10,9 @@ import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {openAppsModal} from 'actions/apps';
 import globalStore from 'stores/redux_store';
 
-import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import {AppCommandParser} from './app_command_parser/app_command_parser';
 import {COMMAND_SUGGESTION_CHANNEL, COMMAND_SUGGESTION_USER, intlShim} from './app_command_parser/app_command_parser_dependencies';

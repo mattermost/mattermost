@@ -34,12 +34,13 @@ import ForwardPostModal from 'components/forward_post_modal';
 import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
-import type {ModalData} from 'types/actions';
 import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import * as Keyboard from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
 import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 import PostReminderSubMenu from './post_reminder_submenu';
 import {trackDotMenuEvent} from './utils';

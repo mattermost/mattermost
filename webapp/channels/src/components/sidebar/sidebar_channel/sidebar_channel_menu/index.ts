@@ -21,8 +21,9 @@ import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {openModal} from 'actions/views/modals';
 import {getCategoriesForCurrentTeam, getDisplayedChannels} from 'selectors/views/channel_sidebar';
 
-import type {GlobalState} from 'types/store';
 import {getSiteURL} from 'utils/url';
+
+import type {GlobalState} from 'types/store';
 
 import SidebarChannelMenu from './sidebar_channel_menu';
 

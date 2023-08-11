@@ -18,8 +18,9 @@ import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import Menu from 'components/widgets/menu/menu';
 
 import {fakeDate} from 'tests/helpers/date';
-import type {GlobalState} from 'types/store';
 import {copyToClipboard} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import ThreadMenu from '../thread_menu';
 

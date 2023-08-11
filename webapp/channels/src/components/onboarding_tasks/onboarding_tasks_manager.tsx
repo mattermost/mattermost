@@ -42,8 +42,9 @@ import {
     TutorialTourName,
 } from 'components/tours';
 
-import type {GlobalState} from 'types/store';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES, ExploreOtherToolsTourSteps} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName, TaskNameMapToSteps} from './constants';
 import {generateTelemetryTag} from './utils';

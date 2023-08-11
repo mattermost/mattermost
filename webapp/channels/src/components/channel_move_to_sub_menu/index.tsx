@@ -30,8 +30,9 @@ import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 import EditCategoryModal from 'components/edit_category_modal';
 import * as Menu from 'components/menu';
 
-import type {GlobalState} from 'types/store';
 import Constants, {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     channel: Channel;

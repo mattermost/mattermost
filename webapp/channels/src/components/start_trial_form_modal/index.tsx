@@ -26,10 +26,11 @@ import ExternalLink from 'components/external_link';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
-import type {GlobalState} from 'types/store';
 import {AboutLinks, LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {COUNTRIES} from 'utils/countries';
 import {t} from 'utils/i18n';
+
+import type {GlobalState} from 'types/store';
 
 import AirGappedModal from './air_gapped_modal';
 import StartTrialFormModalResult from './failure_modal';

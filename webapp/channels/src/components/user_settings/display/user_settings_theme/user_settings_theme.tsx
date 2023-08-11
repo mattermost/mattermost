@@ -13,9 +13,10 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
 import ImportThemeModal from 'components/user_settings/import_theme_modal';
 
-import type {ModalData} from 'types/actions';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {applyTheme} from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 import CustomThemeChooser from './custom_theme_chooser/custom_theme_chooser';
 import PremadeThemeChooser from './premade_theme_chooser';

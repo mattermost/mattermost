@@ -11,6 +11,7 @@ import {Preferences} from 'mattermost-redux/constants';
 import * as Actions from 'actions/status_actions';
 
 import mockStore from 'tests/test_store';
+
 import type {GlobalState} from 'types/store';
 
 jest.mock('mattermost-redux/actions/users', () => ({

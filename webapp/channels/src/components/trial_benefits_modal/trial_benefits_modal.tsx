@@ -24,8 +24,9 @@ import HandsSvg from 'components/common/svg_images_components/hands_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
 import PersonWithChecklistSvg from 'components/common/svg_images_components/person_with_checklist';
 
-import type {GlobalState} from 'types/store';
 import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import TrialBenefitsModalStep from './trial_benefits_modal_step';
 import type {TrialBenefitsModalStepProps} from './trial_benefits_modal_step';

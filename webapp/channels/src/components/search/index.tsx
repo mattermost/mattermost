@@ -29,8 +29,9 @@ import {
 import {getRhsState, getSearchTerms, getSearchType, getIsSearchingTerm, getIsRhsOpen, getIsRhsExpanded} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import type {GlobalState} from 'types/store';
 import {RHSStates} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import Search from './search';
 import type {StateProps, DispatchProps, OwnProps} from './types';

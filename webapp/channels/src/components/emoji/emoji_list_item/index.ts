@@ -11,8 +11,9 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
-import type {GlobalState} from 'types/store';
 import {getDisplayNameByUser} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import EmojiListItem from './emoji_list_item';
 import type {Props} from './emoji_list_item';

@@ -20,8 +20,9 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
 
-import type {GlobalState} from 'types/store';
 import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import ThreeDaysLeftTrialCard from './three_days_left_trial_modal_card';
 import type {ThreeDaysLeftTrialCardProps} from './three_days_left_trial_modal_card';

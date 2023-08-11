@@ -6,9 +6,10 @@ import type {ComponentProps} from 'react';
 
 import {shallow} from 'enzyme';
 
+import {TestHelper} from 'utils/test_helper';
+
 import type {PostPluginComponent} from 'types/store/plugins';
 import type {RhsState} from 'types/store/rhs';
-import {TestHelper} from 'utils/test_helper';
 
 import RhsCard from './rhs_card';
 

@@ -44,13 +44,14 @@ import type {Seats} from 'components/seats_calculator';
 import Input from 'components/widgets/inputs/input/input';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
-import type {GlobalState} from 'types/store';
 import {
     ModalIdentifiers,
     StatTypes,
     TELEMETRY_CATEGORIES,
 } from 'utils/constants';
 import {inferNames} from 'utils/hosted_customer';
+
+import type {GlobalState} from 'types/store';
 
 import ErrorPage from './error';
 import SelfHostedCard from './self_hosted_card';
