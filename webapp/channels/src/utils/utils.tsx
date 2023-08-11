@@ -1521,19 +1521,6 @@ export function moveCursorToEnd(e: React.MouseEvent | React.FocusEvent) {
     }
 }
 
-export function compareChannels(a: Channel, b: Channel) {
-    const aDisplayName = a.display_name.toUpperCase();
-    const bDisplayName = b.display_name.toUpperCase();
-    const result = aDisplayName.localeCompare(bDisplayName);
-    if (result !== 0) {
-        return result;
-    }
-
-    const aName = a.name.toUpperCase();
-    const bName = b.name.toUpperCase();
-    return aName.localeCompare(bName);
-}
-
 export function setCSRFFromCookie() {
     if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
         const cookies = document.cookie.split(';');
