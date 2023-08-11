@@ -334,6 +334,11 @@ func (ch *Channels) syncPlugins() *model.AppError {
 		return appErr
 	}
 
+	if len(pluginSignaturePathMap) == 0 {
+		ch.srv.Log().Info("No plugins to sync from the file store")
+		return nil
+	}
+
 	for _, plugin := range pluginSignaturePathMap {
 		wg.Add(1)
 		go func(plugin *pluginSignaturePath) {
@@ -896,7 +901,7 @@ func (ch *Channels) getPluginsFromFilePaths(fileStorePaths []string) map[string]
 		if strings.HasSuffix(path, ".tar.gz.sig") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz.sig")
 			if val, ok := pluginSignaturePathMap[id]; !ok {
-				mlog.Warn("Unknown signature", mlog.String("path", path))
+				ch.srv.Log().Warn("Unknown signature", mlog.String("path", path))
 			} else {
 				val.signaturePath = path
 			}
@@ -909,6 +914,7 @@ func (ch *Channels) getPluginsFromFilePaths(fileStorePaths []string) map[string]
 func (ch *Channels) processPrepackagedPlugins(pluginsDir string) []*plugin.PrepackagedPlugin {
 	prepackagedPluginsDir, found := fileutils.FindDir(pluginsDir)
 	if !found {
+		ch.srv.Log().Debug("No prepackaged plugins directory found")
 		return nil
 	}
 
@@ -937,7 +943,7 @@ func (ch *Channels) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepa
 				if errors.As(err, &appErr) && appErr.Id == "app.plugin.skip_installation.app_error" {
 					return
 				}
-				ch.srv.Log().Error("Failed to install prepackaged plugin", mlog.String("plugin_id", p.Manifest.Id), mlog.String("bundle_path", psPath.bundlePath), mlog.Err(err))
+				ch.srv.Log().Error("Failed to install prepackaged plugin", mlog.String("bundle_path", psPath.bundlePath), mlog.Err(err))
 				return
 			}
 			prepackagedPlugins <- p
@@ -957,7 +963,7 @@ func (ch *Channels) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepa
 // processPrepackagedPlugin will return the prepackaged plugin metadata and will also
 // install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
 func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
-	logger := ch.srv.Log().With(mlog.String("plugin_id", pluginPath.pluginID), mlog.String("bundle_path", pluginPath.bundlePath))
+	logger := ch.srv.Log().With(mlog.String("bundle_path", pluginPath.bundlePath))
 
 	logger.Info("Processing prepackaged plugin")
 
