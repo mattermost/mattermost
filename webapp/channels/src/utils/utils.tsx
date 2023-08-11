@@ -25,7 +25,7 @@ import {
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {getTeamByName as getTeamByNameAction} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
-import {Posts, Preferences, General} from 'mattermost-redux/constants';
+import {Preferences, General} from 'mattermost-redux/constants';
 import {
     getChannel,
     getChannelsNameMapInTeam,
@@ -1218,10 +1218,6 @@ export function clearFileInput(elm: HTMLInputElement) {
     } catch (e) {
         // Do nothing
     }
-}
-
-export function isPostEphemeral(post: Post) {
-    return post.type === Constants.PostTypes.EPHEMERAL || post.state === Posts.POST_DELETED;
 }
 
 export function getRootId(post: Post) {
