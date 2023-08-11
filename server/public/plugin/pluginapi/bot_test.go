@@ -1,6 +1,7 @@
 package pluginapi
 
 import (
+	"net/http"
 	"os"
 	"testing"
 
@@ -355,3 +356,13 @@ func TestEnsureBot(t *testing.T) {
 		})
 	})
 }
+
+func newAppError() *model.AppError {
+	return model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+}
+
+type testMutex struct {
+}
+
+func (m testMutex) Lock()   {}
+func (m testMutex) Unlock() {}
