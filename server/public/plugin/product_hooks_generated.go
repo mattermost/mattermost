@@ -9,6 +9,7 @@ package plugin
 import (
 	"errors"
 	"io"
+	"net/http"
 	"reflect"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -116,6 +117,10 @@ type OnCloudLimitsUpdatedIFace interface {
 
 type ConfigurationWillBeSavedIFace interface {
 	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
+}
+
+type ServeMetricsIFace interface {
+	ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 type HooksAdapter struct {
@@ -365,6 +370,15 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		return nil, errors.New("hook has ConfigurationWillBeSaved method but does not implement plugin.ConfigurationWillBeSaved interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements ServeMetrics interface.
+	tt = reflect.TypeOf((*ServeMetricsIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[ServeMetricsID] = struct{}{}
+	} else if _, ok := ft.MethodByName("ServeMetrics"); ok {
+		return nil, errors.New("hook has ServeMetrics method but does not implement plugin.ServeMetrics interface")
+	}
+
 	return a, nil
 }
 
@@ -599,5 +613,14 @@ func (a *HooksAdapter) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Co
 	}
 
 	return a.productHooks.(ConfigurationWillBeSavedIFace).ConfigurationWillBeSaved(newCfg)
+
+}
+
+func (a *HooksAdapter) ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
+	if _, ok := a.implemented[ServeMetricsID]; !ok {
+		panic("product hooks must implement ServeMetrics")
+	}
+
+	a.productHooks.(ServeMetricsIFace).ServeMetrics(c, w, r)
 
 }

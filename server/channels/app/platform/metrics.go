@@ -9,7 +9,9 @@ import (
 	"net"
 	"net/http"
 	"net/http/pprof"
+	"path"
 	"runtime"
+	"strings"
 	"sync"
 	"text/template"
 	"time"
@@ -19,7 +21,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
@@ -35,6 +39,8 @@ type platformMetrics struct {
 
 	cfgFn      func() *model.Config
 	listenAddr string
+
+	getPluginsEnv func() *plugin.Environment
 }
 
 // resetMetrics resets the metrics server. Clears the metrics if the metrics are disabled by the config.
@@ -56,6 +62,12 @@ func (ps *PlatformService) resetMetrics() error {
 		cfgFn:       ps.Config,
 		metricsImpl: ps.metricsIFace,
 		logger:      ps.logger,
+		getPluginsEnv: func() *plugin.Environment {
+			if ps.pluginEnv == nil {
+				return nil
+			}
+			return ps.pluginEnv.GetPluginsEnvironment()
+		},
 	}
 
 	if err := ps.metrics.initMetricsRouter(); err != nil {
@@ -166,7 +178,41 @@ func (pm *platformMetrics) initMetricsRouter() error {
 	pm.router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
 	pm.router.Handle("/debug/pprof/block", pprof.Handler("block"))
 
+	// Plugins metrics route
+	pluginsMetricsRoute := pm.router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/metrics").Subrouter()
+	pluginsMetricsRoute.HandleFunc("", pm.servePluginMetricsRequest)
+	pluginsMetricsRoute.HandleFunc("/{anything:.*}", pm.servePluginMetricsRequest)
+
 	return nil
+}
+
+func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *http.Request) {
+	pluginID := mux.Vars(r)["plugin_id"]
+
+	pluginsEnvironment := pm.getPluginsEnv()
+	if pluginsEnvironment == nil {
+		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
+		mlog.Error(err.Error())
+		w.WriteHeader(err.StatusCode)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(err.ToJSON()))
+		return
+	}
+
+	hooks, err := pluginsEnvironment.HooksForPlugin(pluginID)
+	if err != nil {
+		mlog.Debug("Access to route for non-existent plugin",
+			mlog.String("missing_plugin_id", pluginID),
+			mlog.String("url", r.URL.String()),
+			mlog.Err(err))
+		http.NotFound(w, r)
+		return
+	}
+
+	subpath, _ := utils.GetSubpathFromConfig(pm.cfgFn())
+	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", pluginID, "metrics"))
+
+	hooks.ServeMetrics(&plugin.Context{}, w, r)
 }
 
 func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {

@@ -50,6 +50,7 @@ const (
 	deprecatedGetCollectionMetadataByIdsID    = 32
 	deprecatedGetTopicMetadataByIdsID         = 33
 	ConfigurationWillBeSavedID                = 34
+	ServeMetricsID                            = 35
 	TotalHooksID                              = iota
 )
 
@@ -284,4 +285,11 @@ type Hooks interface {
 	// config object can be returned to be stored in place of the provided one.
 	// Minimum server version: 8.0
 	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
+
+	// ServeMetrics allows plugins to expose their own metrics endpoint through
+	// the server's metrics HTTP listener (e.g. "localhost:8067").
+	// Requests destined to the /plugins/{id}/metrics path will be routed to the plugin.
+	//
+	// Minimum server version: 9.0
+	ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
 }

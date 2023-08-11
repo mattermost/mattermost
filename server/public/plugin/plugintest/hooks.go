@@ -313,6 +313,11 @@ func (_m *Hooks) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	_m.Called(c, w, r)
 }
 
+// ServeMetrics provides a mock function with given fields: c, w, r
+func (_m *Hooks) ServeMetrics(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+	_m.Called(c, w, r)
+}
+
 // UserHasBeenCreated provides a mock function with given fields: c, user
 func (_m *Hooks) UserHasBeenCreated(c *plugin.Context, user *model.User) {
 	_m.Called(c, user)

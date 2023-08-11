@@ -918,3 +918,107 @@ func (s *apiRPCServer) UploadData(args *Z_UploadDataArgs, returns *Z_UploadDataR
 	returns.A, returns.B = hook.UploadData(args.A, pluginReader)
 	return nil
 }
+
+func init() {
+	hookNameToId["ServeMetrics"] = ServeMetricsID
+}
+
+type Z_ServeMetricsArgs struct {
+	ResponseWriterStream uint32
+	Request              *http.Request
+	Context              *Context
+	RequestBodyStream    uint32
+}
+
+func (g *hooksRPCClient) ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !g.implemented[ServeMetricsID] {
+		http.NotFound(w, r)
+		return
+	}
+
+	serveMetricsStreamId := g.muxBroker.NextId()
+	go func() {
+		connection, err := g.muxBroker.Accept(serveMetricsStreamId)
+		if err != nil {
+			g.log.Error("Plugin failed to ServeMetrics, muxBroker couldn't accept connection", mlog.Uint32("serve_http_stream_id", serveMetricsStreamId), mlog.Err(err))
+			return
+		}
+		defer connection.Close()
+
+		rpcServer := rpc.NewServer()
+		if err := rpcServer.RegisterName("Plugin", &httpResponseWriterRPCServer{w: w, log: g.log}); err != nil {
+			g.log.Error("Plugin failed to ServeMetrics, couldn't register RPC name", mlog.Err(err))
+			return
+		}
+		rpcServer.ServeConn(connection)
+	}()
+
+	requestBodyStreamId := uint32(0)
+	if r.Body != nil {
+		requestBodyStreamId = g.muxBroker.NextId()
+		go func() {
+			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
+			if err != nil {
+				g.log.Error("Plugin failed to ServeMetrics, muxBroker couldn't Accept request body connection", mlog.Err(err))
+				return
+			}
+			defer bodyConnection.Close()
+			serveIOReader(r.Body, bodyConnection)
+		}()
+	}
+
+	forwardedRequest := &http.Request{
+		Method:     r.Method,
+		URL:        r.URL,
+		Proto:      r.Proto,
+		ProtoMajor: r.ProtoMajor,
+		ProtoMinor: r.ProtoMinor,
+		Header:     r.Header,
+		Host:       r.Host,
+		RemoteAddr: r.RemoteAddr,
+		RequestURI: r.RequestURI,
+	}
+
+	if err := g.client.Call("Plugin.ServeMetrics", Z_ServeMetricsArgs{
+		Context:              c,
+		ResponseWriterStream: serveMetricsStreamId,
+		Request:              forwardedRequest,
+		RequestBodyStream:    requestBodyStreamId,
+	}, nil); err != nil {
+		g.log.Error("Plugin failed to ServeMetrics, RPC call failed", mlog.Err(err))
+		http.Error(w, "500 internal server error", http.StatusInternalServerError)
+	}
+}
+
+func (s *hooksRPCServer) ServeMetrics(args *Z_ServeMetricsArgs, returns *struct{}) error {
+	connection, err := s.muxBroker.Dial(args.ResponseWriterStream)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote response writer stream, error: %v", err.Error())
+		return err
+	}
+	w := connectHTTPResponseWriter(connection)
+	defer w.Close()
+
+	r := args.Request
+	if args.RequestBodyStream != 0 {
+		connection, err := s.muxBroker.Dial(args.RequestBodyStream)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote request body stream, error: %v", err.Error())
+			return err
+		}
+		r.Body = connectIOReader(connection)
+	} else {
+		r.Body = io.NopCloser(&bytes.Buffer{})
+	}
+	defer r.Body.Close()
+
+	if hook, ok := s.impl.(interface {
+		ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
+	}); ok {
+		hook.ServeMetrics(args.Context, w, r)
+	} else {
+		http.NotFound(w, r)
+	}
+
+	return nil
+}

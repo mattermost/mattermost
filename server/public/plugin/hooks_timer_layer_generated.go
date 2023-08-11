@@ -218,3 +218,9 @@ func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*m
 	hooks.recordTime(startTime, "ConfigurationWillBeSaved", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (hooks *hooksTimerLayer) ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.ServeMetrics(c, w, r)
+	hooks.recordTime(startTime, "ServeMetrics", true)
+}
