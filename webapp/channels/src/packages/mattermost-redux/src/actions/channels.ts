@@ -1000,11 +1000,11 @@ export function searchGroupChannels(term: string): ActionFunc {
     });
 }
 
-export function getChannelStats(channelId: string, excludeFilesCount?: boolean): ActionFunc {
+export function getChannelStats(channelId: string, includeFileCount?: boolean): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let stat;
         try {
-            stat = await Client4.getChannelStats(channelId, excludeFilesCount);
+            stat = await Client4.getChannelStats(channelId, includeFileCount);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

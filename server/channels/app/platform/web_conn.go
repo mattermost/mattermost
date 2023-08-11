@@ -477,6 +477,7 @@ func (wc *WebConn) writePump() {
 			if len(wc.send) >= sendFullWarn && time.Since(wc.lastLogTimeFull) > websocketSuppressWarnThreshold {
 				logData := []mlog.Field{
 					mlog.String("user_id", wc.UserId),
+					mlog.String("conn_id", wc.GetConnectionID()),
 					mlog.String("type", msg.EventType()),
 					mlog.Int("size", buf.Len()),
 				}
@@ -730,6 +731,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 				mlog.Warn(
 					"websocket.slow: dropping message",
 					mlog.String("user_id", wc.UserId),
+					mlog.String("conn_id", wc.GetConnectionID()),
 					mlog.String("type", msg.EventType()),
 				)
 				// Reset timer to now.
@@ -842,8 +844,13 @@ func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 func (wc *WebConn) logSocketErr(source string, err error) {
 	// browsers will appear as CloseNoStatusReceived
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-		mlog.Debug(source+": client side closed socket", mlog.String("user_id", wc.UserId))
+		mlog.Debug(source+": client side closed socket",
+			mlog.String("user_id", wc.UserId),
+			mlog.String("conn_id", wc.GetConnectionID()))
 	} else {
-		mlog.Debug(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
+		mlog.Debug(source+": closing websocket",
+			mlog.String("user_id", wc.UserId),
+			mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.Err(err))
 	}
 }

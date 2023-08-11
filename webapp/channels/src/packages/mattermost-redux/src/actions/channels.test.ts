@@ -1301,7 +1301,7 @@ describe('Actions.Channels', () => {
 
     it('getChannelStats', async () => {
         nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}/stats`).
+            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1});
 
         await store.dispatch(Actions.getChannelStats(TestHelper.basicChannel!.id));
@@ -1334,7 +1334,7 @@ describe('Actions.Channels', () => {
         await store.dispatch(Actions.joinChannel(TestHelper.basicUser!.id, TestHelper.basicTeam!.id, channelId));
 
         nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}/stats`).
+            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1});
 
         await store.dispatch(Actions.getChannelStats(channelId));
@@ -1405,7 +1405,7 @@ describe('Actions.Channels', () => {
         await store.dispatch(Actions.joinChannel(TestHelper.basicUser!.id, TestHelper.basicTeam!.id, channelId));
 
         nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}/stats`).
+            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1});
 
         await store.dispatch(Actions.getChannelStats(channelId));
