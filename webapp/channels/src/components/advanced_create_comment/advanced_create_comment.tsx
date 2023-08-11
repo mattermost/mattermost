@@ -54,9 +54,8 @@ import NotifyConfirmModal from 'components/notify_confirm_modal';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 import PostDeletedModal from 'components/post_deleted_modal';
 import {FilePreviewInfo} from 'components/file_preview/file_preview';
-import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import {TextboxClass, TextboxElement} from 'components/textbox';
-import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
+import Foo from 'components/advanced_text_editor/foo';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -1236,62 +1235,55 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             });
 
         return (
-            <form onSubmit={this.handleSubmit}>
-                {
-                    this.props.canPost &&
-                    (this.props.draft.fileInfos.length > 0 || this.props.draft.uploadsInProgress.length > 0) &&
-                    <FileLimitStickyBanner/>
-                }
-                <AdvancedTextEditor
-                    location={Locations.RHS_COMMENT}
-                    textboxRef={this.textboxRef}
-                    currentUserId={this.props.currentUserId}
-                    message={draft.message}
-                    showEmojiPicker={this.state.showEmojiPicker}
-                    uploadsProgressPercent={this.state.uploadsProgressPercent}
-                    channelId={this.props.channelId}
-                    postId={this.props.rootId}
-                    errorClass={this.state.errorClass}
-                    serverError={this.state.serverError}
-                    isFormattingBarHidden={this.state.isFormattingBarHidden}
-                    draft={this.props.draft}
-                    handleSubmit={this.handleSubmit}
-                    removePreview={this.removePreview}
-                    setShowPreview={this.setShowPreview}
-                    shouldShowPreview={this.props.shouldShowPreview}
-                    maxPostSize={this.props.maxPostSize}
-                    canPost={this.props.canPost}
-                    applyMarkdown={this.applyMarkdown}
-                    useChannelMentions={this.props.useChannelMentions}
-                    badConnection={this.props.badConnection}
-                    canUploadFiles={this.props.canUploadFiles}
-                    enableEmojiPicker={this.props.enableEmojiPicker}
-                    enableGifPicker={this.props.enableGifPicker}
-                    handleBlur={this.handleBlur}
-                    postError={this.state.postError}
-                    handlePostError={this.handlePostError}
-                    emitTypingEvent={this.emitTypingEvent}
-                    handleMouseUpKeyUp={this.handleMouseUpKeyUp}
-                    handleKeyDown={this.handleKeyDown}
-                    postMsgKeyPress={this.commentMsgKeyPress}
-                    handleChange={this.handleChange}
-                    toggleEmojiPicker={this.toggleEmojiPicker}
-                    handleGifClick={this.handleGifClick}
-                    handleEmojiClick={this.handleEmojiClick}
-                    hideEmojiPicker={this.hideEmojiPicker}
-                    toggleAdvanceTextEditor={this.toggleAdvanceTextEditor}
-                    handleUploadProgress={this.handleUploadProgress}
-                    handleUploadError={this.handleUploadError}
-                    handleFileUploadComplete={this.handleFileUploadComplete}
-                    handleUploadStart={this.handleUploadStart}
-                    handleFileUploadChange={this.handleFileUploadChange}
-                    getFileUploadTarget={this.getFileUploadTarget}
-                    fileUploadRef={this.fileUploadRef}
-                    isThreadView={this.props.isThreadView}
-                    additionalControls={pluginItems.filter(Boolean)}
-                />
-            </form>
-        );
+            <Foo
+                location={Locations.RHS_COMMENT}
+                textboxRef={this.textboxRef}
+                currentUserId={this.props.currentUserId}
+                message={draft.message}
+                showEmojiPicker={this.state.showEmojiPicker}
+                uploadsProgressPercent={this.state.uploadsProgressPercent}
+                channelId={this.props.channelId}
+                postId={this.props.rootId}
+                errorClass={this.state.errorClass}
+                serverError={this.state.serverError}
+                isFormattingBarHidden={this.state.isFormattingBarHidden}
+                draft={this.props.draft}
+                handleSubmit={this.handleSubmit}
+                removePreview={this.removePreview}
+                setShowPreview={this.setShowPreview}
+                shouldShowPreview={this.props.shouldShowPreview}
+                maxPostSize={this.props.maxPostSize}
+                canPost={this.props.canPost}
+                applyMarkdown={this.applyMarkdown}
+                useChannelMentions={this.props.useChannelMentions}
+                badConnection={this.props.badConnection}
+                canUploadFiles={this.props.canUploadFiles}
+                enableEmojiPicker={this.props.enableEmojiPicker}
+                enableGifPicker={this.props.enableGifPicker}
+                handleBlur={this.handleBlur}
+                postError={this.state.postError}
+                handlePostError={this.handlePostError}
+                emitTypingEvent={this.emitTypingEvent}
+                handleMouseUpKeyUp={this.handleMouseUpKeyUp}
+                handleKeyDown={this.handleKeyDown}
+                onKeyPress={this.commentMsgKeyPress}
+                handleChange={this.handleChange}
+                toggleEmojiPicker={this.toggleEmojiPicker}
+                handleGifClick={this.handleGifClick}
+                handleEmojiClick={this.handleEmojiClick}
+                hideEmojiPicker={this.hideEmojiPicker}
+                toggleAdvanceTextEditor={this.toggleAdvanceTextEditor}
+                handleUploadProgress={this.handleUploadProgress}
+                handleUploadError={this.handleUploadError}
+                handleFileUploadComplete={this.handleFileUploadComplete}
+                handleUploadStart={this.handleUploadStart}
+                handleFileUploadChange={this.handleFileUploadChange}
+                getFileUploadTarget={this.getFileUploadTarget}
+                fileUploadRef={this.fileUploadRef}
+                isThreadView={this.props.isThreadView}
+                pluginItems={pluginItems}
+            />
+        )
     }
 }
 

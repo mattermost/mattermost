@@ -68,10 +68,9 @@ import PersistNotificationConfirmModal from 'components/persist_notification_con
 import {PostDraft} from 'types/store/draft';
 import {ModalData} from 'types/actions';
 
-import AdvancedTextEditor from '../advanced_text_editor/advanced_text_editor';
-import FileLimitStickyBanner from '../file_limit_sticky_banner';
 import {FilePreviewInfo} from '../file_preview/file_preview';
 import PriorityLabels from './priority_labels';
+import Foo from 'components/advanced_text_editor/foo';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -1604,90 +1603,81 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         return (
-            <form
-                id='create_post'
-                ref={this.topDiv}
-                className={centerClass}
-                onSubmit={this.handleSubmit}
-            >
-                {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
-                    <FileLimitStickyBanner/>
-                )}
-                <AdvancedTextEditor
-                    location={Locations.CENTER}
-                    currentUserId={this.props.currentUserId}
-                    postError={this.state.postError}
-                    message={this.state.message}
-                    showEmojiPicker={this.state.showEmojiPicker}
-                    uploadsProgressPercent={this.state.uploadsProgressPercent}
-                    currentChannel={this.state.currentChannel}
-                    postId={''}
-                    channelId={this.props.currentChannel.id}
-                    errorClass={this.state.errorClass}
-                    serverError={this.state.serverError}
-                    isFormattingBarHidden={this.state.isFormattingBarHidden}
-                    draft={draft}
-                    showSendTutorialTip={this.props.showSendTutorialTip}
-                    handleSubmit={this.handleSubmit}
-                    removePreview={this.removePreview}
-                    setShowPreview={this.setShowPreview}
-                    shouldShowPreview={this.props.shouldShowPreview}
-                    maxPostSize={this.props.maxPostSize}
-                    canPost={canPost}
-                    applyMarkdown={this.applyMarkdown}
-                    useChannelMentions={this.props.useChannelMentions}
-                    badConnection={this.props.badConnection}
-                    canUploadFiles={this.props.canUploadFiles}
-                    enableEmojiPicker={this.props.enableEmojiPicker}
-                    enableGifPicker={this.props.enableGifPicker}
-                    handleBlur={this.handleBlur}
-                    handlePostError={this.handlePostError}
-                    emitTypingEvent={this.emitTypingEvent}
-                    handleMouseUpKeyUp={this.handleMouseUpKeyUp}
-                    handleKeyDown={this.handleKeyDown}
-                    postMsgKeyPress={this.postMsgKeyPress}
-                    handleChange={this.handleChange}
-                    toggleEmojiPicker={this.toggleEmojiPicker}
-                    handleGifClick={this.handleGifClick}
-                    handleEmojiClick={this.handleEmojiClick}
-                    hideEmojiPicker={this.hideEmojiPicker}
-                    toggleAdvanceTextEditor={this.toggleAdvanceTextEditor}
-                    handleUploadProgress={this.handleUploadProgress}
-                    handleUploadError={this.handleUploadError}
-                    handleFileUploadComplete={this.handleFileUploadComplete}
-                    handleUploadStart={this.handleUploadStart}
-                    handleFileUploadChange={this.handleFileUploadChange}
-                    getFileUploadTarget={this.getFileUploadTarget}
-                    fileUploadRef={this.fileUploadRef}
-                    prefillMessage={this.prefillMessage}
-                    textboxRef={this.textboxRef}
-                    disableSend={!this.isValidPersistentNotifications()}
-                    labels={this.hasPrioritySet() ? (
-                        <PriorityLabels
-                            canRemove={!this.props.shouldShowPreview}
-                            hasError={!this.isValidPersistentNotifications()}
-                            specialMentions={this.getSpecialMentions()}
-                            onRemove={this.handleRemovePriority}
-                            persistentNotifications={draft!.metadata!.priority?.persistent_notifications}
-                            priority={draft!.metadata!.priority?.priority}
-                            requestedAck={draft!.metadata!.priority?.requested_ack}
+            <Foo
+                location={Locations.CENTER}
+                currentUserId={this.props.currentUserId}
+                postError={this.state.postError}
+                message={this.state.message}
+                showEmojiPicker={this.state.showEmojiPicker}
+                uploadsProgressPercent={this.state.uploadsProgressPercent}
+                currentChannel={this.state.currentChannel}
+                postId={''}
+                channelId={this.props.currentChannel.id}
+                errorClass={this.state.errorClass}
+                serverError={this.state.serverError}
+                isFormattingBarHidden={this.state.isFormattingBarHidden}
+                draft={draft}
+                showSendTutorialTip={this.props.showSendTutorialTip}
+                handleSubmit={this.handleSubmit}
+                removePreview={this.removePreview}
+                setShowPreview={this.setShowPreview}
+                shouldShowPreview={this.props.shouldShowPreview}
+                maxPostSize={this.props.maxPostSize}
+                canPost={canPost}
+                applyMarkdown={this.applyMarkdown}
+                useChannelMentions={this.props.useChannelMentions}
+                badConnection={this.props.badConnection}
+                canUploadFiles={this.props.canUploadFiles}
+                enableEmojiPicker={this.props.enableEmojiPicker}
+                enableGifPicker={this.props.enableGifPicker}
+                handleBlur={this.handleBlur}
+                handlePostError={this.handlePostError}
+                emitTypingEvent={this.emitTypingEvent}
+                handleMouseUpKeyUp={this.handleMouseUpKeyUp}
+                handleKeyDown={this.handleKeyDown}
+                onKeyPress={this.postMsgKeyPress}
+                handleChange={this.handleChange}
+                toggleEmojiPicker={this.toggleEmojiPicker}
+                handleGifClick={this.handleGifClick}
+                handleEmojiClick={this.handleEmojiClick}
+                hideEmojiPicker={this.hideEmojiPicker}
+                toggleAdvanceTextEditor={this.toggleAdvanceTextEditor}
+                handleUploadProgress={this.handleUploadProgress}
+                handleUploadError={this.handleUploadError}
+                handleFileUploadComplete={this.handleFileUploadComplete}
+                handleUploadStart={this.handleUploadStart}
+                handleFileUploadChange={this.handleFileUploadChange}
+                getFileUploadTarget={this.getFileUploadTarget}
+                fileUploadRef={this.fileUploadRef}
+                prefillMessage={this.prefillMessage}
+                textboxRef={this.textboxRef}
+                disableSend={!this.isValidPersistentNotifications()}
+                priorityLabel={this.hasPrioritySet() ? (
+                    <PriorityLabels
+                        canRemove={!this.props.shouldShowPreview}
+                        hasError={!this.isValidPersistentNotifications()}
+                        specialMentions={this.getSpecialMentions()}
+                        onRemove={this.handleRemovePriority}
+                        persistentNotifications={draft!.metadata!.priority?.persistent_notifications}
+                        priority={draft!.metadata!.priority?.priority}
+                        requestedAck={draft!.metadata!.priority?.requested_ack}
+                    />
+                ) : undefined}
+                priorityControls={this.props.isPostPriorityEnabled ? (
+                        <PostPriorityPickerOverlay
+                            key='post-priority-picker-key'
+                            settings={draft?.metadata?.priority}
+                            onApply={this.handlePostPriorityApply}
+                            onClose={this.handlePostPriorityHide}
+                            disabled={this.props.shouldShowPreview}
                         />
-                    ) : undefined}
-                    additionalControls={[
-                        this.props.isPostPriorityEnabled && (
-                            <PostPriorityPickerOverlay
-                                key='post-priority-picker-key'
-                                settings={draft?.metadata?.priority}
-                                onApply={this.handlePostPriorityApply}
-                                onClose={this.handlePostPriorityHide}
-                                disabled={this.props.shouldShowPreview}
-                            />
-                        ),
-                        ...(pluginItems || []),
-                    ].filter(Boolean)}
-                />
-            </form>
-        );
+                    ): undefined}
+                pluginItems={pluginItems}
+                formId={'create_post'}
+                formRef={this.topDiv}
+                formClass={centerClass}
+            />
+        )
     }
 }
 
