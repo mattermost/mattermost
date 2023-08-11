@@ -5,6 +5,7 @@ package model
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -562,52 +563,52 @@ func (c *Client4) permissionsRoute() string {
 	return "/permissions"
 }
 
-func (c *Client4) DoAPIGet(url string, etag string) (*http.Response, error) {
-	return c.DoAPIRequest(http.MethodGet, c.APIURL+url, "", etag)
+func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
+	return c.DoAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
 }
 
-func (c *Client4) DoAPIPost(url string, data string) (*http.Response, error) {
-	return c.DoAPIRequest(http.MethodPost, c.APIURL+url, data, "")
+func (c *Client4) DoAPIPost(ctx context.Context, url string, data string) (*http.Response, error) {
+	return c.DoAPIRequest(ctx, http.MethodPost, c.APIURL+url, data, "")
 }
 
-func (c *Client4) DoAPIDeleteBytes(url string, data []byte) (*http.Response, error) {
-	return c.DoAPIRequestBytes(http.MethodDelete, c.APIURL+url, data, "")
+func (c *Client4) DoAPIDeleteBytes(ctx context.Context, url string, data []byte) (*http.Response, error) {
+	return c.DoAPIRequestBytes(ctx, http.MethodDelete, c.APIURL+url, data, "")
 }
 
-func (c *Client4) DoAPIPatchBytes(url string, data []byte) (*http.Response, error) {
-	return c.DoAPIRequestBytes(http.MethodPatch, c.APIURL+url, data, "")
+func (c *Client4) DoAPIPatchBytes(ctx context.Context, url string, data []byte) (*http.Response, error) {
+	return c.DoAPIRequestBytes(ctx, http.MethodPatch, c.APIURL+url, data, "")
 }
 
-func (c *Client4) DoAPIPostBytes(url string, data []byte) (*http.Response, error) {
-	return c.DoAPIRequestBytes(http.MethodPost, c.APIURL+url, data, "")
+func (c *Client4) DoAPIPostBytes(ctx context.Context, url string, data []byte) (*http.Response, error) {
+	return c.DoAPIRequestBytes(ctx, http.MethodPost, c.APIURL+url, data, "")
 }
 
-func (c *Client4) DoAPIPut(url string, data string) (*http.Response, error) {
-	return c.DoAPIRequest(http.MethodPut, c.APIURL+url, data, "")
+func (c *Client4) DoAPIPut(ctx context.Context, url string, data string) (*http.Response, error) {
+	return c.DoAPIRequest(ctx, http.MethodPut, c.APIURL+url, data, "")
 }
 
-func (c *Client4) DoAPIPutBytes(url string, data []byte) (*http.Response, error) {
-	return c.DoAPIRequestBytes(http.MethodPut, c.APIURL+url, data, "")
+func (c *Client4) DoAPIPutBytes(ctx context.Context, url string, data []byte) (*http.Response, error) {
+	return c.DoAPIRequestBytes(ctx, http.MethodPut, c.APIURL+url, data, "")
 }
 
-func (c *Client4) DoAPIDelete(url string) (*http.Response, error) {
-	return c.DoAPIRequest(http.MethodDelete, c.APIURL+url, "", "")
+func (c *Client4) DoAPIDelete(ctx context.Context, url string) (*http.Response, error) {
+	return c.DoAPIRequest(ctx, http.MethodDelete, c.APIURL+url, "", "")
 }
 
-func (c *Client4) DoAPIRequest(method, url, data, etag string) (*http.Response, error) {
-	return c.DoAPIRequestReader(method, url, strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
+func (c *Client4) DoAPIRequest(ctx context.Context, method, url, data, etag string) (*http.Response, error) {
+	return c.DoAPIRequestReader(ctx, method, url, strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
-func (c *Client4) DoAPIRequestWithHeaders(method, url, data string, headers map[string]string) (*http.Response, error) {
-	return c.DoAPIRequestReader(method, url, strings.NewReader(data), headers)
+func (c *Client4) DoAPIRequestWithHeaders(ctx context.Context, method, url, data string, headers map[string]string) (*http.Response, error) {
+	return c.DoAPIRequestReader(ctx, method, url, strings.NewReader(data), headers)
 }
 
-func (c *Client4) DoAPIRequestBytes(method, url string, data []byte, etag string) (*http.Response, error) {
-	return c.DoAPIRequestReader(method, url, bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
+func (c *Client4) DoAPIRequestBytes(ctx context.Context, method, url string, data []byte, etag string) (*http.Response, error) {
+	return c.DoAPIRequestReader(ctx, method, url, bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
-func (c *Client4) DoAPIRequestReader(method, url string, data io.Reader, headers map[string]string) (*http.Response, error) {
-	rq, err := http.NewRequest(method, url, data)
+func (c *Client4) DoAPIRequestReader(ctx context.Context, method, url string, data io.Reader, headers map[string]string) (*http.Response, error) {
+	rq, err := http.NewRequestWithContext(ctx, method, url, data)
 	if err != nil {
 		return nil, err
 	}
@@ -643,11 +644,11 @@ func (c *Client4) DoAPIRequestReader(method, url string, data io.Reader, headers
 	return rp, nil
 }
 
-func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*FileUploadResponse, *Response, error) {
-	return c.doUploadFile(url, bytes.NewReader(data), contentType, 0)
+func (c *Client4) DoUploadFile(ctx context.Context, url string, data []byte, contentType string) (*FileUploadResponse, *Response, error) {
+	return c.doUploadFile(ctx, url, bytes.NewReader(data), contentType, 0)
 }
 
-func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, contentLength int64) (*FileUploadResponse, *Response, error) {
+func (c *Client4) doUploadFile(ctx context.Context, url string, body io.Reader, contentType string, contentLength int64) (*FileUploadResponse, *Response, error) {
 	rq, err := http.NewRequest("POST", c.APIURL+url, body)
 	if err != nil {
 		return nil, nil, err
@@ -678,8 +679,8 @@ func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, c
 	return &res, BuildResponse(rp), nil
 }
 
-func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string) (*Emoji, *Response, error) {
-	rq, err := http.NewRequest("POST", c.APIURL+url, bytes.NewReader(data))
+func (c *Client4) DoEmojiUploadFile(ctx context.Context, url string, data []byte, contentType string) (*Emoji, *Response, error) {
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+url, bytes.NewReader(data))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -706,7 +707,7 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 	return &e, BuildResponse(rp), nil
 }
 
-func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string) (map[string]string, *Response, error) {
+func (c *Client4) DoUploadImportTeam(ctx context.Context, url string, data []byte, contentType string) (map[string]string, *Response, error) {
 	rq, err := http.NewRequest("POST", c.APIURL+url, bytes.NewReader(data))
 	if err != nil {
 		return nil, nil, err
@@ -733,53 +734,53 @@ func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string
 // Authentication Section
 
 // LoginById authenticates a user by user id and password.
-func (c *Client4) LoginById(id string, password string) (*User, *Response, error) {
+func (c *Client4) LoginById(ctx context.Context, id string, password string) (*User, *Response, error) {
 	m := make(map[string]string)
 	m["id"] = id
 	m["password"] = password
-	return c.login(m)
+	return c.login(ctx, m)
 }
 
 // Login authenticates a user by login id, which can be username, email or some sort
 // of SSO identifier based on server configuration, and a password.
-func (c *Client4) Login(loginId string, password string) (*User, *Response, error) {
+func (c *Client4) Login(ctx context.Context, loginId string, password string) (*User, *Response, error) {
 	m := make(map[string]string)
 	m["login_id"] = loginId
 	m["password"] = password
-	return c.login(m)
+	return c.login(ctx, m)
 }
 
 // LoginByLdap authenticates a user by LDAP id and password.
-func (c *Client4) LoginByLdap(loginId string, password string) (*User, *Response, error) {
+func (c *Client4) LoginByLdap(ctx context.Context, loginId string, password string) (*User, *Response, error) {
 	m := make(map[string]string)
 	m["login_id"] = loginId
 	m["password"] = password
 	m["ldap_only"] = c.boolString(true)
-	return c.login(m)
+	return c.login(ctx, m)
 }
 
 // LoginWithDevice authenticates a user by login id (username, email or some sort
 // of SSO identifier based on configuration), password and attaches a device id to
 // the session.
-func (c *Client4) LoginWithDevice(loginId string, password string, deviceId string) (*User, *Response, error) {
+func (c *Client4) LoginWithDevice(ctx context.Context, loginId string, password string, deviceId string) (*User, *Response, error) {
 	m := make(map[string]string)
 	m["login_id"] = loginId
 	m["password"] = password
 	m["device_id"] = deviceId
-	return c.login(m)
+	return c.login(ctx, m)
 }
 
 // LoginWithMFA logs a user in with a MFA token
-func (c *Client4) LoginWithMFA(loginId, password, mfaToken string) (*User, *Response, error) {
+func (c *Client4) LoginWithMFA(ctx context.Context, loginId, password, mfaToken string) (*User, *Response, error) {
 	m := make(map[string]string)
 	m["login_id"] = loginId
 	m["password"] = password
 	m["token"] = mfaToken
-	return c.login(m)
+	return c.login(ctx, m)
 }
 
-func (c *Client4) login(m map[string]string) (*User, *Response, error) {
-	r, err := c.DoAPIPost("/users/login", MapToJSON(m))
+func (c *Client4) login(ctx context.Context, m map[string]string) (*User, *Response, error) {
+	r, err := c.DoAPIPost(ctx, "/users/login", MapToJSON(m))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -795,8 +796,8 @@ func (c *Client4) login(m map[string]string) (*User, *Response, error) {
 }
 
 // Logout terminates the current user's session.
-func (c *Client4) Logout() (*Response, error) {
-	r, err := c.DoAPIPost("/users/logout", "")
+func (c *Client4) Logout(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, "/users/logout", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -807,12 +808,12 @@ func (c *Client4) Logout() (*Response, error) {
 }
 
 // SwitchAccountType changes a user's login type from one type to another.
-func (c *Client4) SwitchAccountType(switchRequest *SwitchRequest) (string, *Response, error) {
+func (c *Client4) SwitchAccountType(ctx context.Context, switchRequest *SwitchRequest) (string, *Response, error) {
 	buf, err := json.Marshal(switchRequest)
 	if err != nil {
 		return "", BuildResponse(nil), NewAppError("SwitchAccountType", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.usersRoute()+"/login/switch", buf)
+	r, err := c.DoAPIPostBytes(ctx, c.usersRoute()+"/login/switch", buf)
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -823,13 +824,13 @@ func (c *Client4) SwitchAccountType(switchRequest *SwitchRequest) (string, *Resp
 // User Section
 
 // CreateUser creates a user in the system based on the provided user struct.
-func (c *Client4) CreateUser(user *User) (*User, *Response, error) {
+func (c *Client4) CreateUser(ctx context.Context, user *User) (*User, *Response, error) {
 	userJSON, err := json.Marshal(user)
 	if err != nil {
 		return nil, nil, NewAppError("CreateUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	r, err := c.DoAPIPost(c.usersRoute(), string(userJSON))
+	r, err := c.DoAPIPost(ctx, c.usersRoute(), string(userJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -842,7 +843,7 @@ func (c *Client4) CreateUser(user *User) (*User, *Response, error) {
 }
 
 // CreateUserWithToken creates a user in the system based on the provided tokenId.
-func (c *Client4) CreateUserWithToken(user *User, tokenId string) (*User, *Response, error) {
+func (c *Client4) CreateUserWithToken(ctx context.Context, user *User, tokenId string) (*User, *Response, error) {
 	if tokenId == "" {
 		return nil, nil, NewAppError("MissingHashOrData", "api.user.create_user.missing_token.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -852,7 +853,7 @@ func (c *Client4) CreateUserWithToken(user *User, tokenId string) (*User, *Respo
 	if err != nil {
 		return nil, nil, NewAppError("CreateUserWithToken", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.usersRoute()+query, buf)
+	r, err := c.DoAPIPostBytes(ctx, c.usersRoute()+query, buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -866,7 +867,7 @@ func (c *Client4) CreateUserWithToken(user *User, tokenId string) (*User, *Respo
 }
 
 // CreateUserWithInviteId creates a user in the system based on the provided invited id.
-func (c *Client4) CreateUserWithInviteId(user *User, inviteId string) (*User, *Response, error) {
+func (c *Client4) CreateUserWithInviteId(ctx context.Context, user *User, inviteId string) (*User, *Response, error) {
 	if inviteId == "" {
 		return nil, nil, NewAppError("MissingInviteId", "api.user.create_user.missing_invite_id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -876,7 +877,7 @@ func (c *Client4) CreateUserWithInviteId(user *User, inviteId string) (*User, *R
 	if err != nil {
 		return nil, nil, NewAppError("CreateUserWithInviteId", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.usersRoute()+query, buf)
+	r, err := c.DoAPIPostBytes(ctx, c.usersRoute()+query, buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -890,8 +891,8 @@ func (c *Client4) CreateUserWithInviteId(user *User, inviteId string) (*User, *R
 }
 
 // GetMe returns the logged in user.
-func (c *Client4) GetMe(etag string) (*User, *Response, error) {
-	r, err := c.DoAPIGet(c.userRoute(Me), etag)
+func (c *Client4) GetMe(ctx context.Context, etag string) (*User, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(Me), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -907,8 +908,8 @@ func (c *Client4) GetMe(etag string) (*User, *Response, error) {
 }
 
 // GetUser returns a user based on the provided user id string.
-func (c *Client4) GetUser(userId, etag string) (*User, *Response, error) {
-	r, err := c.DoAPIGet(c.userRoute(userId), etag)
+func (c *Client4) GetUser(ctx context.Context, userId, etag string) (*User, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -924,8 +925,8 @@ func (c *Client4) GetUser(userId, etag string) (*User, *Response, error) {
 }
 
 // GetUserByUsername returns a user based on the provided user name string.
-func (c *Client4) GetUserByUsername(userName, etag string) (*User, *Response, error) {
-	r, err := c.DoAPIGet(c.userByUsernameRoute(userName), etag)
+func (c *Client4) GetUserByUsername(ctx context.Context, userName, etag string) (*User, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userByUsernameRoute(userName), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -941,8 +942,8 @@ func (c *Client4) GetUserByUsername(userName, etag string) (*User, *Response, er
 }
 
 // GetUserByEmail returns a user based on the provided user email string.
-func (c *Client4) GetUserByEmail(email, etag string) (*User, *Response, error) {
-	r, err := c.DoAPIGet(c.userByEmailRoute(email), etag)
+func (c *Client4) GetUserByEmail(ctx context.Context, email, etag string) (*User, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userByEmailRoute(email), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -958,9 +959,9 @@ func (c *Client4) GetUserByEmail(email, etag string) (*User, *Response, error) {
 }
 
 // AutocompleteUsersInTeam returns the users on a team based on search term.
-func (c *Client4) AutocompleteUsersInTeam(teamId string, username string, limit int, etag string) (*UserAutocomplete, *Response, error) {
+func (c *Client4) AutocompleteUsersInTeam(ctx context.Context, teamId string, username string, limit int, etag string) (*UserAutocomplete, *Response, error) {
 	query := fmt.Sprintf("?in_team=%v&name=%v&limit=%d", teamId, username, limit)
-	r, err := c.DoAPIGet(c.usersRoute()+"/autocomplete"+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/autocomplete"+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -976,9 +977,9 @@ func (c *Client4) AutocompleteUsersInTeam(teamId string, username string, limit 
 }
 
 // AutocompleteUsersInChannel returns the users in a channel based on search term.
-func (c *Client4) AutocompleteUsersInChannel(teamId string, channelId string, username string, limit int, etag string) (*UserAutocomplete, *Response, error) {
+func (c *Client4) AutocompleteUsersInChannel(ctx context.Context, teamId string, channelId string, username string, limit int, etag string) (*UserAutocomplete, *Response, error) {
 	query := fmt.Sprintf("?in_team=%v&in_channel=%v&name=%v&limit=%d", teamId, channelId, username, limit)
-	r, err := c.DoAPIGet(c.usersRoute()+"/autocomplete"+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/autocomplete"+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -994,9 +995,9 @@ func (c *Client4) AutocompleteUsersInChannel(teamId string, channelId string, us
 }
 
 // AutocompleteUsers returns the users in the system based on search term.
-func (c *Client4) AutocompleteUsers(username string, limit int, etag string) (*UserAutocomplete, *Response, error) {
+func (c *Client4) AutocompleteUsers(ctx context.Context, username string, limit int, etag string) (*UserAutocomplete, *Response, error) {
 	query := fmt.Sprintf("?name=%v&limit=%d", username, limit)
-	r, err := c.DoAPIGet(c.usersRoute()+"/autocomplete"+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/autocomplete"+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1012,8 +1013,8 @@ func (c *Client4) AutocompleteUsers(username string, limit int, etag string) (*U
 }
 
 // GetDefaultProfileImage gets the default user's profile image. Must be logged in.
-func (c *Client4) GetDefaultProfileImage(userId string) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(c.userRoute(userId)+"/image/default", "")
+func (c *Client4) GetDefaultProfileImage(ctx context.Context, userId string) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/image/default", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1028,8 +1029,8 @@ func (c *Client4) GetDefaultProfileImage(userId string) ([]byte, *Response, erro
 }
 
 // GetProfileImage gets user's profile image. Must be logged in.
-func (c *Client4) GetProfileImage(userId, etag string) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(c.userRoute(userId)+"/image", etag)
+func (c *Client4) GetProfileImage(ctx context.Context, userId, etag string) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/image", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1043,9 +1044,9 @@ func (c *Client4) GetProfileImage(userId, etag string) ([]byte, *Response, error
 }
 
 // GetUsers returns a page of users on the system. Page counting starts at 0.
-func (c *Client4) GetUsers(page int, perPage int, etag string) ([]*User, *Response, error) {
+func (c *Client4) GetUsers(ctx context.Context, page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1061,9 +1062,9 @@ func (c *Client4) GetUsers(page int, perPage int, etag string) ([]*User, *Respon
 }
 
 // GetUsersWithChannelRoles returns a page of users on the system. Page counting starts at 0.
-func (c *Client4) GetUsersWithCustomQueryParameters(page int, perPage int, queryParameters, etag string) ([]*User, *Response, error) {
+func (c *Client4) GetUsersWithCustomQueryParameters(ctx context.Context, page int, perPage int, queryParameters, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&%v", page, perPage, queryParameters)
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1079,9 +1080,9 @@ func (c *Client4) GetUsersWithCustomQueryParameters(page int, perPage int, query
 }
 
 // GetUsersInTeam returns a page of users on a team. Page counting starts at 0.
-func (c *Client4) GetUsersInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
+func (c *Client4) GetUsersInTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1097,9 +1098,9 @@ func (c *Client4) GetUsersInTeam(teamId string, page int, perPage int, etag stri
 }
 
 // GetNewUsersInTeam returns a page of users on a team. Page counting starts at 0.
-func (c *Client4) GetNewUsersInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
+func (c *Client4) GetNewUsersInTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?sort=create_at&in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1115,9 +1116,9 @@ func (c *Client4) GetNewUsersInTeam(teamId string, page int, perPage int, etag s
 }
 
 // GetRecentlyActiveUsersInTeam returns a page of users on a team. Page counting starts at 0.
-func (c *Client4) GetRecentlyActiveUsersInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
+func (c *Client4) GetRecentlyActiveUsersInTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?sort=last_activity_at&in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1133,9 +1134,9 @@ func (c *Client4) GetRecentlyActiveUsersInTeam(teamId string, page int, perPage 
 }
 
 // GetActiveUsersInTeam returns a page of users on a team. Page counting starts at 0.
-func (c *Client4) GetActiveUsersInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
+func (c *Client4) GetActiveUsersInTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?active=true&in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1151,9 +1152,9 @@ func (c *Client4) GetActiveUsersInTeam(teamId string, page int, perPage int, eta
 }
 
 // GetUsersNotInTeam returns a page of users who are not in a team. Page counting starts at 0.
-func (c *Client4) GetUsersNotInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
+func (c *Client4) GetUsersNotInTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?not_in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1169,9 +1170,9 @@ func (c *Client4) GetUsersNotInTeam(teamId string, page int, perPage int, etag s
 }
 
 // GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
-func (c *Client4) GetUsersInChannel(channelId string, page int, perPage int, etag string) ([]*User, *Response, error) {
+func (c *Client4) GetUsersInChannel(ctx context.Context, channelId string, page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?in_channel=%v&page=%v&per_page=%v", channelId, page, perPage)
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1187,9 +1188,9 @@ func (c *Client4) GetUsersInChannel(channelId string, page int, perPage int, eta
 }
 
 // GetUsersInChannelByStatus returns a page of users in a channel. Page counting starts at 0. Sorted by Status
-func (c *Client4) GetUsersInChannelByStatus(channelId string, page int, perPage int, etag string) ([]*User, *Response, error) {
+func (c *Client4) GetUsersInChannelByStatus(ctx context.Context, channelId string, page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?in_channel=%v&page=%v&per_page=%v&sort=status", channelId, page, perPage)
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1205,9 +1206,9 @@ func (c *Client4) GetUsersInChannelByStatus(channelId string, page int, perPage 
 }
 
 // GetUsersNotInChannel returns a page of users not in a channel. Page counting starts at 0.
-func (c *Client4) GetUsersNotInChannel(teamId, channelId string, page int, perPage int, etag string) ([]*User, *Response, error) {
+func (c *Client4) GetUsersNotInChannel(ctx context.Context, teamId, channelId string, page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?in_team=%v&not_in_channel=%v&page=%v&per_page=%v", teamId, channelId, page, perPage)
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1223,9 +1224,9 @@ func (c *Client4) GetUsersNotInChannel(teamId, channelId string, page int, perPa
 }
 
 // GetUsersWithoutTeam returns a page of users on the system that aren't on any teams. Page counting starts at 0.
-func (c *Client4) GetUsersWithoutTeam(page int, perPage int, etag string) ([]*User, *Response, error) {
+func (c *Client4) GetUsersWithoutTeam(ctx context.Context, page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?without_team=1&page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1241,9 +1242,9 @@ func (c *Client4) GetUsersWithoutTeam(page int, perPage int, etag string) ([]*Us
 }
 
 // GetUsersInGroup returns a page of users in a group. Page counting starts at 0.
-func (c *Client4) GetUsersInGroup(groupID string, page int, perPage int, etag string) ([]*User, *Response, error) {
+func (c *Client4) GetUsersInGroup(ctx context.Context, groupID string, page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?in_group=%v&page=%v&per_page=%v", groupID, page, perPage)
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1259,9 +1260,9 @@ func (c *Client4) GetUsersInGroup(groupID string, page int, perPage int, etag st
 }
 
 // GetUsersInGroup returns a page of users in a group. Page counting starts at 0.
-func (c *Client4) GetUsersInGroupByDisplayName(groupID string, page int, perPage int, etag string) ([]*User, *Response, error) {
+func (c *Client4) GetUsersInGroupByDisplayName(ctx context.Context, groupID string, page int, perPage int, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?sort=display_name&in_group=%v&page=%v&per_page=%v", groupID, page, perPage)
-	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1277,8 +1278,8 @@ func (c *Client4) GetUsersInGroupByDisplayName(groupID string, page int, perPage
 }
 
 // GetUsersByIds returns a list of users based on the provided user ids.
-func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response, error) {
-	r, err := c.DoAPIPost(c.usersRoute()+"/ids", ArrayToJSON(userIds))
+func (c *Client4) GetUsersByIds(ctx context.Context, userIds []string) ([]*User, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/ids", ArrayToJSON(userIds))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1291,7 +1292,7 @@ func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response, error) {
 }
 
 // GetUsersByIds returns a list of users based on the provided user ids.
-func (c *Client4) GetUsersByIdsWithOptions(userIds []string, options *UserGetByIdsOptions) ([]*User, *Response, error) {
+func (c *Client4) GetUsersByIdsWithOptions(ctx context.Context, userIds []string, options *UserGetByIdsOptions) ([]*User, *Response, error) {
 	v := url.Values{}
 	if options.Since != 0 {
 		v.Set("since", fmt.Sprintf("%d", options.Since))
@@ -1302,7 +1303,7 @@ func (c *Client4) GetUsersByIdsWithOptions(userIds []string, options *UserGetByI
 		url += "?" + v.Encode()
 	}
 
-	r, err := c.DoAPIPost(url, ArrayToJSON(userIds))
+	r, err := c.DoAPIPost(ctx, url, ArrayToJSON(userIds))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1315,8 +1316,8 @@ func (c *Client4) GetUsersByIdsWithOptions(userIds []string, options *UserGetByI
 }
 
 // GetUsersByUsernames returns a list of users based on the provided usernames.
-func (c *Client4) GetUsersByUsernames(usernames []string) ([]*User, *Response, error) {
-	r, err := c.DoAPIPost(c.usersRoute()+"/usernames", ArrayToJSON(usernames))
+func (c *Client4) GetUsersByUsernames(ctx context.Context, usernames []string) ([]*User, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/usernames", ArrayToJSON(usernames))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1330,8 +1331,8 @@ func (c *Client4) GetUsersByUsernames(usernames []string) ([]*User, *Response, e
 
 // GetUsersByGroupChannelIds returns a map with channel ids as keys
 // and a list of users as values based on the provided user ids.
-func (c *Client4) GetUsersByGroupChannelIds(groupChannelIds []string) (map[string][]*User, *Response, error) {
-	r, err := c.DoAPIPost(c.usersRoute()+"/group_channels", ArrayToJSON(groupChannelIds))
+func (c *Client4) GetUsersByGroupChannelIds(ctx context.Context, groupChannelIds []string) (map[string][]*User, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/group_channels", ArrayToJSON(groupChannelIds))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1343,12 +1344,12 @@ func (c *Client4) GetUsersByGroupChannelIds(groupChannelIds []string) (map[strin
 }
 
 // SearchUsers returns a list of users based on some search criteria.
-func (c *Client4) SearchUsers(search *UserSearch) ([]*User, *Response, error) {
+func (c *Client4) SearchUsers(ctx context.Context, search *UserSearch) ([]*User, *Response, error) {
 	buf, err := json.Marshal(search)
 	if err != nil {
 		return nil, nil, NewAppError("SearchUsers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.usersRoute()+"/search", buf)
+	r, err := c.DoAPIPostBytes(ctx, c.usersRoute()+"/search", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1361,12 +1362,12 @@ func (c *Client4) SearchUsers(search *UserSearch) ([]*User, *Response, error) {
 }
 
 // UpdateUser updates a user in the system based on the provided user struct.
-func (c *Client4) UpdateUser(user *User) (*User, *Response, error) {
+func (c *Client4) UpdateUser(ctx context.Context, user *User) (*User, *Response, error) {
 	buf, err := json.Marshal(user)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.userRoute(user.Id), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.userRoute(user.Id), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1379,12 +1380,12 @@ func (c *Client4) UpdateUser(user *User) (*User, *Response, error) {
 }
 
 // PatchUser partially updates a user in the system. Any missing fields are not updated.
-func (c *Client4) PatchUser(userId string, patch *UserPatch) (*User, *Response, error) {
+func (c *Client4) PatchUser(ctx context.Context, userId string, patch *UserPatch) (*User, *Response, error) {
 	buf, err := json.Marshal(patch)
 	if err != nil {
 		return nil, nil, NewAppError("PatchUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.userRoute(userId)+"/patch", buf)
+	r, err := c.DoAPIPutBytes(ctx, c.userRoute(userId)+"/patch", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1397,12 +1398,12 @@ func (c *Client4) PatchUser(userId string, patch *UserPatch) (*User, *Response, 
 }
 
 // UpdateUserAuth updates a user AuthData (uthData, authService and password) in the system.
-func (c *Client4) UpdateUserAuth(userId string, userAuth *UserAuth) (*UserAuth, *Response, error) {
+func (c *Client4) UpdateUserAuth(ctx context.Context, userId string, userAuth *UserAuth) (*UserAuth, *Response, error) {
 	buf, err := json.Marshal(userAuth)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateUserAuth", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.userRoute(userId)+"/auth", buf)
+	r, err := c.DoAPIPutBytes(ctx, c.userRoute(userId)+"/auth", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1417,12 +1418,12 @@ func (c *Client4) UpdateUserAuth(userId string, userAuth *UserAuth) (*UserAuth, 
 // UpdateUserMfa activates multi-factor authentication for a user if activate
 // is true and a valid code is provided. If activate is false, then code is not
 // required and multi-factor authentication is disabled for the user.
-func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (*Response, error) {
+func (c *Client4) UpdateUserMfa(ctx context.Context, userId, code string, activate bool) (*Response, error) {
 	requestBody := make(map[string]any)
 	requestBody["activate"] = activate
 	requestBody["code"] = code
 
-	r, err := c.DoAPIPut(c.userRoute(userId)+"/mfa", StringInterfaceToJSON(requestBody))
+	r, err := c.DoAPIPut(ctx, c.userRoute(userId)+"/mfa", StringInterfaceToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1432,8 +1433,8 @@ func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (*Response, 
 
 // GenerateMfaSecret will generate a new MFA secret for a user and return it as a string and
 // as a base64 encoded image QR code.
-func (c *Client4) GenerateMfaSecret(userId string) (*MfaSecret, *Response, error) {
-	r, err := c.DoAPIPost(c.userRoute(userId)+"/mfa/generate", "")
+func (c *Client4) GenerateMfaSecret(ctx context.Context, userId string) (*MfaSecret, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.userRoute(userId)+"/mfa/generate", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1446,9 +1447,9 @@ func (c *Client4) GenerateMfaSecret(userId string) (*MfaSecret, *Response, error
 }
 
 // UpdateUserPassword updates a user's password. Must be logged in as the user or be a system administrator.
-func (c *Client4) UpdateUserPassword(userId, currentPassword, newPassword string) (*Response, error) {
+func (c *Client4) UpdateUserPassword(ctx context.Context, userId, currentPassword, newPassword string) (*Response, error) {
 	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
-	r, err := c.DoAPIPut(c.userRoute(userId)+"/password", MapToJSON(requestBody))
+	r, err := c.DoAPIPut(ctx, c.userRoute(userId)+"/password", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1457,9 +1458,9 @@ func (c *Client4) UpdateUserPassword(userId, currentPassword, newPassword string
 }
 
 // UpdateUserHashedPassword updates a user's password with an already-hashed password. Must be a system administrator.
-func (c *Client4) UpdateUserHashedPassword(userId, newHashedPassword string) (*Response, error) {
+func (c *Client4) UpdateUserHashedPassword(ctx context.Context, userId, newHashedPassword string) (*Response, error) {
 	requestBody := map[string]string{"already_hashed": "true", "new_password": newHashedPassword}
-	r, err := c.DoAPIPut(c.userRoute(userId)+"/password", MapToJSON(requestBody))
+	r, err := c.DoAPIPut(ctx, c.userRoute(userId)+"/password", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1468,8 +1469,8 @@ func (c *Client4) UpdateUserHashedPassword(userId, newHashedPassword string) (*R
 }
 
 // PromoteGuestToUser convert a guest into a regular user
-func (c *Client4) PromoteGuestToUser(guestId string) (*Response, error) {
-	r, err := c.DoAPIPost(c.userRoute(guestId)+"/promote", "")
+func (c *Client4) PromoteGuestToUser(ctx context.Context, guestId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.userRoute(guestId)+"/promote", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1478,8 +1479,8 @@ func (c *Client4) PromoteGuestToUser(guestId string) (*Response, error) {
 }
 
 // DemoteUserToGuest convert a regular user into a guest
-func (c *Client4) DemoteUserToGuest(guestId string) (*Response, error) {
-	r, err := c.DoAPIPost(c.userRoute(guestId)+"/demote", "")
+func (c *Client4) DemoteUserToGuest(ctx context.Context, guestId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.userRoute(guestId)+"/demote", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1488,9 +1489,9 @@ func (c *Client4) DemoteUserToGuest(guestId string) (*Response, error) {
 }
 
 // UpdateUserRoles updates a user's roles in the system. A user can have "system_user" and "system_admin" roles.
-func (c *Client4) UpdateUserRoles(userId, roles string) (*Response, error) {
+func (c *Client4) UpdateUserRoles(ctx context.Context, userId, roles string) (*Response, error) {
 	requestBody := map[string]string{"roles": roles}
-	r, err := c.DoAPIPut(c.userRoute(userId)+"/roles", MapToJSON(requestBody))
+	r, err := c.DoAPIPut(ctx, c.userRoute(userId)+"/roles", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1499,10 +1500,10 @@ func (c *Client4) UpdateUserRoles(userId, roles string) (*Response, error) {
 }
 
 // UpdateUserActive updates status of a user whether active or not.
-func (c *Client4) UpdateUserActive(userId string, active bool) (*Response, error) {
+func (c *Client4) UpdateUserActive(ctx context.Context, userId string, active bool) (*Response, error) {
 	requestBody := make(map[string]any)
 	requestBody["active"] = active
-	r, err := c.DoAPIPut(c.userRoute(userId)+"/active", StringInterfaceToJSON(requestBody))
+	r, err := c.DoAPIPut(ctx, c.userRoute(userId)+"/active", StringInterfaceToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1512,8 +1513,8 @@ func (c *Client4) UpdateUserActive(userId string, active bool) (*Response, error
 }
 
 // DeleteUser deactivates a user in the system based on the provided user id string.
-func (c *Client4) DeleteUser(userId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.userRoute(userId))
+func (c *Client4) DeleteUser(ctx context.Context, userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.userRoute(userId))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1522,8 +1523,8 @@ func (c *Client4) DeleteUser(userId string) (*Response, error) {
 }
 
 // PermanentDeleteUser deletes a user in the system based on the provided user id string.
-func (c *Client4) PermanentDeleteUser(userId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.userRoute(userId) + "?permanent=" + c.boolString(true))
+func (c *Client4) PermanentDeleteUser(ctx context.Context, userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.userRoute(userId)+"?permanent="+c.boolString(true))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1532,8 +1533,8 @@ func (c *Client4) PermanentDeleteUser(userId string) (*Response, error) {
 }
 
 // ConvertUserToBot converts a user to a bot user.
-func (c *Client4) ConvertUserToBot(userId string) (*Bot, *Response, error) {
-	r, err := c.DoAPIPost(c.userRoute(userId)+"/convert_to_bot", "")
+func (c *Client4) ConvertUserToBot(ctx context.Context, userId string) (*Bot, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.userRoute(userId)+"/convert_to_bot", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1547,7 +1548,7 @@ func (c *Client4) ConvertUserToBot(userId string) (*Bot, *Response, error) {
 }
 
 // ConvertBotToUser converts a bot user to a user.
-func (c *Client4) ConvertBotToUser(userId string, userPatch *UserPatch, setSystemAdmin bool) (*User, *Response, error) {
+func (c *Client4) ConvertBotToUser(ctx context.Context, userId string, userPatch *UserPatch, setSystemAdmin bool) (*User, *Response, error) {
 	var query string
 	if setSystemAdmin {
 		query = "?set_system_admin=true"
@@ -1556,7 +1557,7 @@ func (c *Client4) ConvertBotToUser(userId string, userPatch *UserPatch, setSyste
 	if err != nil {
 		return nil, nil, NewAppError("ConvertBotToUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.botRoute(userId)+"/convert_to_user"+query, buf)
+	r, err := c.DoAPIPostBytes(ctx, c.botRoute(userId)+"/convert_to_user"+query, buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1569,8 +1570,8 @@ func (c *Client4) ConvertBotToUser(userId string, userPatch *UserPatch, setSyste
 }
 
 // PermanentDeleteAll permanently deletes all users in the system. This is a local only endpoint
-func (c *Client4) PermanentDeleteAllUsers() (*Response, error) {
-	r, err := c.DoAPIDelete(c.usersRoute())
+func (c *Client4) PermanentDeleteAllUsers(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.usersRoute())
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1580,9 +1581,9 @@ func (c *Client4) PermanentDeleteAllUsers() (*Response, error) {
 
 // SendPasswordResetEmail will send a link for password resetting to a user with the
 // provided email.
-func (c *Client4) SendPasswordResetEmail(email string) (*Response, error) {
+func (c *Client4) SendPasswordResetEmail(ctx context.Context, email string) (*Response, error) {
 	requestBody := map[string]string{"email": email}
-	r, err := c.DoAPIPost(c.usersRoute()+"/password/reset/send", MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/password/reset/send", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1591,9 +1592,9 @@ func (c *Client4) SendPasswordResetEmail(email string) (*Response, error) {
 }
 
 // ResetPassword uses a recovery code to update reset a user's password.
-func (c *Client4) ResetPassword(token, newPassword string) (*Response, error) {
+func (c *Client4) ResetPassword(ctx context.Context, token, newPassword string) (*Response, error) {
 	requestBody := map[string]string{"token": token, "new_password": newPassword}
-	r, err := c.DoAPIPost(c.usersRoute()+"/password/reset", MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/password/reset", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1602,8 +1603,8 @@ func (c *Client4) ResetPassword(token, newPassword string) (*Response, error) {
 }
 
 // GetSessions returns a list of sessions based on the provided user id string.
-func (c *Client4) GetSessions(userId, etag string) ([]*Session, *Response, error) {
-	r, err := c.DoAPIGet(c.userRoute(userId)+"/sessions", etag)
+func (c *Client4) GetSessions(ctx context.Context, userId, etag string) ([]*Session, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/sessions", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1616,9 +1617,9 @@ func (c *Client4) GetSessions(userId, etag string) ([]*Session, *Response, error
 }
 
 // RevokeSession revokes a user session based on the provided user id and session id strings.
-func (c *Client4) RevokeSession(userId, sessionId string) (*Response, error) {
+func (c *Client4) RevokeSession(ctx context.Context, userId, sessionId string) (*Response, error) {
 	requestBody := map[string]string{"session_id": sessionId}
-	r, err := c.DoAPIPost(c.userRoute(userId)+"/sessions/revoke", MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.userRoute(userId)+"/sessions/revoke", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1627,8 +1628,8 @@ func (c *Client4) RevokeSession(userId, sessionId string) (*Response, error) {
 }
 
 // RevokeAllSessions revokes all sessions for the provided user id string.
-func (c *Client4) RevokeAllSessions(userId string) (*Response, error) {
-	r, err := c.DoAPIPost(c.userRoute(userId)+"/sessions/revoke/all", "")
+func (c *Client4) RevokeAllSessions(ctx context.Context, userId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.userRoute(userId)+"/sessions/revoke/all", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1637,8 +1638,8 @@ func (c *Client4) RevokeAllSessions(userId string) (*Response, error) {
 }
 
 // RevokeAllSessions revokes all sessions for all the users.
-func (c *Client4) RevokeSessionsFromAllUsers() (*Response, error) {
-	r, err := c.DoAPIPost(c.usersRoute()+"/sessions/revoke/all", "")
+func (c *Client4) RevokeSessionsFromAllUsers(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/sessions/revoke/all", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1647,9 +1648,9 @@ func (c *Client4) RevokeSessionsFromAllUsers() (*Response, error) {
 }
 
 // AttachDeviceId attaches a mobile device ID to the current session.
-func (c *Client4) AttachDeviceId(deviceId string) (*Response, error) {
+func (c *Client4) AttachDeviceId(ctx context.Context, deviceId string) (*Response, error) {
 	requestBody := map[string]string{"device_id": deviceId}
-	r, err := c.DoAPIPut(c.usersRoute()+"/sessions/device", MapToJSON(requestBody))
+	r, err := c.DoAPIPut(ctx, c.usersRoute()+"/sessions/device", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1661,7 +1662,7 @@ func (c *Client4) AttachDeviceId(deviceId string) (*Response, error) {
 // of unread messages and mentions the current user has for the teams it belongs to.
 // An optional team ID can be set to exclude that team from the results.
 // An optional boolean can be set to include collapsed thread unreads. Must be authenticated.
-func (c *Client4) GetTeamsUnreadForUser(userId, teamIdToExclude string, includeCollapsedThreads bool) ([]*TeamUnread, *Response, error) {
+func (c *Client4) GetTeamsUnreadForUser(ctx context.Context, userId, teamIdToExclude string, includeCollapsedThreads bool) ([]*TeamUnread, *Response, error) {
 	query := url.Values{}
 
 	if teamIdToExclude != "" {
@@ -1672,7 +1673,7 @@ func (c *Client4) GetTeamsUnreadForUser(userId, teamIdToExclude string, includeC
 		query.Set("include_collapsed_threads", "true")
 	}
 
-	r, err := c.DoAPIGet(c.userRoute(userId)+"/teams/unread?"+query.Encode(), "")
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/teams/unread?"+query.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1686,9 +1687,9 @@ func (c *Client4) GetTeamsUnreadForUser(userId, teamIdToExclude string, includeC
 }
 
 // GetUserAudits returns a list of audit based on the provided user id string.
-func (c *Client4) GetUserAudits(userId string, page int, perPage int, etag string) (Audits, *Response, error) {
+func (c *Client4) GetUserAudits(ctx context.Context, userId string, page int, perPage int, etag string) (Audits, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.userRoute(userId)+"/audits"+query, etag)
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/audits"+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1703,9 +1704,9 @@ func (c *Client4) GetUserAudits(userId string, page int, perPage int, etag strin
 }
 
 // VerifyUserEmail will verify a user's email using the supplied token.
-func (c *Client4) VerifyUserEmail(token string) (*Response, error) {
+func (c *Client4) VerifyUserEmail(ctx context.Context, token string) (*Response, error) {
 	requestBody := map[string]string{"token": token}
-	r, err := c.DoAPIPost(c.usersRoute()+"/email/verify", MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/email/verify", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1714,8 +1715,8 @@ func (c *Client4) VerifyUserEmail(token string) (*Response, error) {
 }
 
 // VerifyUserEmailWithoutToken will verify a user's email by its Id. (Requires manage system role)
-func (c *Client4) VerifyUserEmailWithoutToken(userId string) (*User, *Response, error) {
-	r, err := c.DoAPIPost(c.userRoute(userId)+"/email/verify/member", "")
+func (c *Client4) VerifyUserEmailWithoutToken(ctx context.Context, userId string) (*User, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.userRoute(userId)+"/email/verify/member", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1730,9 +1731,9 @@ func (c *Client4) VerifyUserEmailWithoutToken(userId string) (*User, *Response, 
 // SendVerificationEmail will send an email to the user with the provided email address, if
 // that user exists. The email will contain a link that can be used to verify the user's
 // email address.
-func (c *Client4) SendVerificationEmail(email string) (*Response, error) {
+func (c *Client4) SendVerificationEmail(ctx context.Context, email string) (*Response, error) {
 	requestBody := map[string]string{"email": email}
-	r, err := c.DoAPIPost(c.usersRoute()+"/email/verify/send", MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/email/verify/send", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1741,8 +1742,8 @@ func (c *Client4) SendVerificationEmail(email string) (*Response, error) {
 }
 
 // SetDefaultProfileImage resets the profile image to a default generated one.
-func (c *Client4) SetDefaultProfileImage(userId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.userRoute(userId) + "/image")
+func (c *Client4) SetDefaultProfileImage(ctx context.Context, userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.userRoute(userId)+"/image")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1750,7 +1751,7 @@ func (c *Client4) SetDefaultProfileImage(userId string) (*Response, error) {
 }
 
 // SetProfileImage sets profile image of the user.
-func (c *Client4) SetProfileImage(userId string, data []byte) (*Response, error) {
+func (c *Client4) SetProfileImage(ctx context.Context, userId string, data []byte) (*Response, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -1794,9 +1795,9 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (*Response, error)
 // of a session token to access the REST API. Must have the 'create_user_access_token'
 // permission and if generating for another user, must have the 'edit_other_users'
 // permission. A non-blank description is required.
-func (c *Client4) CreateUserAccessToken(userId, description string) (*UserAccessToken, *Response, error) {
+func (c *Client4) CreateUserAccessToken(ctx context.Context, userId, description string) (*UserAccessToken, *Response, error) {
 	requestBody := map[string]string{"description": description}
-	r, err := c.DoAPIPost(c.userRoute(userId)+"/tokens", MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.userRoute(userId)+"/tokens", MapToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1811,9 +1812,9 @@ func (c *Client4) CreateUserAccessToken(userId, description string) (*UserAccess
 // GetUserAccessTokens will get a page of access tokens' id, description, is_active
 // and the user_id in the system. The actual token will not be returned. Must have
 // the 'manage_system' permission.
-func (c *Client4) GetUserAccessTokens(page int, perPage int) ([]*UserAccessToken, *Response, error) {
+func (c *Client4) GetUserAccessTokens(ctx context.Context, page int, perPage int) ([]*UserAccessToken, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.userAccessTokensRoute()+query, "")
+	r, err := c.DoAPIGet(ctx, c.userAccessTokensRoute()+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1829,8 +1830,8 @@ func (c *Client4) GetUserAccessTokens(page int, perPage int) ([]*UserAccessToken
 // and the user_id of the user it is for. The actual token will not be returned.
 // Must have the 'read_user_access_token' permission and if getting for another
 // user, must have the 'edit_other_users' permission.
-func (c *Client4) GetUserAccessToken(tokenId string) (*UserAccessToken, *Response, error) {
-	r, err := c.DoAPIGet(c.userAccessTokenRoute(tokenId), "")
+func (c *Client4) GetUserAccessToken(ctx context.Context, tokenId string) (*UserAccessToken, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userAccessTokenRoute(tokenId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1846,9 +1847,9 @@ func (c *Client4) GetUserAccessToken(tokenId string) (*UserAccessToken, *Respons
 // description and user_id for each. The actual tokens will not be returned. Must have
 // the 'read_user_access_token' permission and if getting for another user, must have the
 // 'edit_other_users' permission.
-func (c *Client4) GetUserAccessTokensForUser(userId string, page, perPage int) ([]*UserAccessToken, *Response, error) {
+func (c *Client4) GetUserAccessTokensForUser(ctx context.Context, userId string, page, perPage int) ([]*UserAccessToken, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.userRoute(userId)+"/tokens"+query, "")
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/tokens"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1863,9 +1864,9 @@ func (c *Client4) GetUserAccessTokensForUser(userId string, page, perPage int) (
 // RevokeUserAccessToken will revoke a user access token by id. Must have the
 // 'revoke_user_access_token' permission and if revoking for another user, must have the
 // 'edit_other_users' permission.
-func (c *Client4) RevokeUserAccessToken(tokenId string) (*Response, error) {
+func (c *Client4) RevokeUserAccessToken(ctx context.Context, tokenId string) (*Response, error) {
 	requestBody := map[string]string{"token_id": tokenId}
-	r, err := c.DoAPIPost(c.usersRoute()+"/tokens/revoke", MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/tokens/revoke", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1874,12 +1875,12 @@ func (c *Client4) RevokeUserAccessToken(tokenId string) (*Response, error) {
 }
 
 // SearchUserAccessTokens returns user access tokens matching the provided search term.
-func (c *Client4) SearchUserAccessTokens(search *UserAccessTokenSearch) ([]*UserAccessToken, *Response, error) {
+func (c *Client4) SearchUserAccessTokens(ctx context.Context, search *UserAccessTokenSearch) ([]*UserAccessToken, *Response, error) {
 	buf, err := json.Marshal(search)
 	if err != nil {
 		return nil, nil, NewAppError("SearchUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.usersRoute()+"/tokens/search", buf)
+	r, err := c.DoAPIPostBytes(ctx, c.usersRoute()+"/tokens/search", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1894,9 +1895,9 @@ func (c *Client4) SearchUserAccessTokens(search *UserAccessTokenSearch) ([]*User
 // DisableUserAccessToken will disable a user access token by id. Must have the
 // 'revoke_user_access_token' permission and if disabling for another user, must have the
 // 'edit_other_users' permission.
-func (c *Client4) DisableUserAccessToken(tokenId string) (*Response, error) {
+func (c *Client4) DisableUserAccessToken(ctx context.Context, tokenId string) (*Response, error) {
 	requestBody := map[string]string{"token_id": tokenId}
-	r, err := c.DoAPIPost(c.usersRoute()+"/tokens/disable", MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/tokens/disable", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1907,9 +1908,9 @@ func (c *Client4) DisableUserAccessToken(tokenId string) (*Response, error) {
 // EnableUserAccessToken will enable a user access token by id. Must have the
 // 'create_user_access_token' permission and if enabling for another user, must have the
 // 'edit_other_users' permission.
-func (c *Client4) EnableUserAccessToken(tokenId string) (*Response, error) {
+func (c *Client4) EnableUserAccessToken(ctx context.Context, tokenId string) (*Response, error) {
 	requestBody := map[string]string{"token_id": tokenId}
-	r, err := c.DoAPIPost(c.usersRoute()+"/tokens/enable", MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/tokens/enable", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1920,12 +1921,12 @@ func (c *Client4) EnableUserAccessToken(tokenId string) (*Response, error) {
 // Bots section
 
 // CreateBot creates a bot in the system based on the provided bot struct.
-func (c *Client4) CreateBot(bot *Bot) (*Bot, *Response, error) {
+func (c *Client4) CreateBot(ctx context.Context, bot *Bot) (*Bot, *Response, error) {
 	buf, err := json.Marshal(bot)
 	if err != nil {
 		return nil, nil, NewAppError("CreateBot", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.botsRoute(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.botsRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1941,12 +1942,12 @@ func (c *Client4) CreateBot(bot *Bot) (*Bot, *Response, error) {
 }
 
 // PatchBot partially updates a bot. Any missing fields are not updated.
-func (c *Client4) PatchBot(userId string, patch *BotPatch) (*Bot, *Response, error) {
+func (c *Client4) PatchBot(ctx context.Context, userId string, patch *BotPatch) (*Bot, *Response, error) {
 	buf, err := json.Marshal(patch)
 	if err != nil {
 		return nil, nil, NewAppError("PatchBot", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.botRoute(userId), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.botRoute(userId), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1962,8 +1963,8 @@ func (c *Client4) PatchBot(userId string, patch *BotPatch) (*Bot, *Response, err
 }
 
 // GetBot fetches the given, undeleted bot.
-func (c *Client4) GetBot(userId string, etag string) (*Bot, *Response, error) {
-	r, err := c.DoAPIGet(c.botRoute(userId), etag)
+func (c *Client4) GetBot(ctx context.Context, userId string, etag string) (*Bot, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.botRoute(userId), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1979,8 +1980,8 @@ func (c *Client4) GetBot(userId string, etag string) (*Bot, *Response, error) {
 }
 
 // GetBotIncludeDeleted fetches the given bot, even if it is deleted.
-func (c *Client4) GetBotIncludeDeleted(userId string, etag string) (*Bot, *Response, error) {
-	r, err := c.DoAPIGet(c.botRoute(userId)+"?include_deleted="+c.boolString(true), etag)
+func (c *Client4) GetBotIncludeDeleted(ctx context.Context, userId string, etag string) (*Bot, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.botRoute(userId)+"?include_deleted="+c.boolString(true), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1996,9 +1997,9 @@ func (c *Client4) GetBotIncludeDeleted(userId string, etag string) (*Bot, *Respo
 }
 
 // GetBots fetches the given page of bots, excluding deleted.
-func (c *Client4) GetBots(page, perPage int, etag string) ([]*Bot, *Response, error) {
+func (c *Client4) GetBots(ctx context.Context, page, perPage int, etag string) ([]*Bot, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.botsRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.botsRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2013,9 +2014,9 @@ func (c *Client4) GetBots(page, perPage int, etag string) ([]*Bot, *Response, er
 }
 
 // GetBotsIncludeDeleted fetches the given page of bots, including deleted.
-func (c *Client4) GetBotsIncludeDeleted(page, perPage int, etag string) ([]*Bot, *Response, error) {
+func (c *Client4) GetBotsIncludeDeleted(ctx context.Context, page, perPage int, etag string) ([]*Bot, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted="+c.boolString(true), page, perPage)
-	r, err := c.DoAPIGet(c.botsRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.botsRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2030,9 +2031,9 @@ func (c *Client4) GetBotsIncludeDeleted(page, perPage int, etag string) ([]*Bot,
 }
 
 // GetBotsOrphaned fetches the given page of bots, only including orphaned bots.
-func (c *Client4) GetBotsOrphaned(page, perPage int, etag string) ([]*Bot, *Response, error) {
+func (c *Client4) GetBotsOrphaned(ctx context.Context, page, perPage int, etag string) ([]*Bot, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&only_orphaned="+c.boolString(true), page, perPage)
-	r, err := c.DoAPIGet(c.botsRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.botsRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2047,8 +2048,8 @@ func (c *Client4) GetBotsOrphaned(page, perPage int, etag string) ([]*Bot, *Resp
 }
 
 // DisableBot disables the given bot in the system.
-func (c *Client4) DisableBot(botUserId string) (*Bot, *Response, error) {
-	r, err := c.DoAPIPostBytes(c.botRoute(botUserId)+"/disable", nil)
+func (c *Client4) DisableBot(ctx context.Context, botUserId string) (*Bot, *Response, error) {
+	r, err := c.DoAPIPostBytes(ctx, c.botRoute(botUserId)+"/disable", nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2064,8 +2065,8 @@ func (c *Client4) DisableBot(botUserId string) (*Bot, *Response, error) {
 }
 
 // EnableBot disables the given bot in the system.
-func (c *Client4) EnableBot(botUserId string) (*Bot, *Response, error) {
-	r, err := c.DoAPIPostBytes(c.botRoute(botUserId)+"/enable", nil)
+func (c *Client4) EnableBot(ctx context.Context, botUserId string) (*Bot, *Response, error) {
+	r, err := c.DoAPIPostBytes(ctx, c.botRoute(botUserId)+"/enable", nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2081,8 +2082,8 @@ func (c *Client4) EnableBot(botUserId string) (*Bot, *Response, error) {
 }
 
 // AssignBot assigns the given bot to the given user
-func (c *Client4) AssignBot(botUserId, newOwnerId string) (*Bot, *Response, error) {
-	r, err := c.DoAPIPostBytes(c.botRoute(botUserId)+"/assign/"+newOwnerId, nil)
+func (c *Client4) AssignBot(ctx context.Context, botUserId, newOwnerId string) (*Bot, *Response, error) {
+	r, err := c.DoAPIPostBytes(ctx, c.botRoute(botUserId)+"/assign/"+newOwnerId, nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2100,12 +2101,12 @@ func (c *Client4) AssignBot(botUserId, newOwnerId string) (*Bot, *Response, erro
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.
-func (c *Client4) CreateTeam(team *Team) (*Team, *Response, error) {
+func (c *Client4) CreateTeam(ctx context.Context, team *Team) (*Team, *Response, error) {
 	buf, err := json.Marshal(team)
 	if err != nil {
 		return nil, nil, NewAppError("CreateTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.teamsRoute(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.teamsRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2118,8 +2119,8 @@ func (c *Client4) CreateTeam(team *Team) (*Team, *Response, error) {
 }
 
 // GetTeam returns a team based on the provided team id string.
-func (c *Client4) GetTeam(teamId, etag string) (*Team, *Response, error) {
-	r, err := c.DoAPIGet(c.teamRoute(teamId), etag)
+func (c *Client4) GetTeam(ctx context.Context, teamId, etag string) (*Team, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.teamRoute(teamId), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2132,9 +2133,9 @@ func (c *Client4) GetTeam(teamId, etag string) (*Team, *Response, error) {
 }
 
 // GetAllTeams returns all teams based on permissions.
-func (c *Client4) GetAllTeams(etag string, page int, perPage int) ([]*Team, *Response, error) {
+func (c *Client4) GetAllTeams(ctx context.Context, etag string, page int, perPage int) ([]*Team, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.teamsRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.teamsRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2147,9 +2148,9 @@ func (c *Client4) GetAllTeams(etag string, page int, perPage int) ([]*Team, *Res
 }
 
 // GetAllTeamsWithTotalCount returns all teams based on permissions.
-func (c *Client4) GetAllTeamsWithTotalCount(etag string, page int, perPage int) ([]*Team, int64, *Response, error) {
+func (c *Client4) GetAllTeamsWithTotalCount(ctx context.Context, etag string, page int, perPage int) ([]*Team, int64, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count="+c.boolString(true), page, perPage)
-	r, err := c.DoAPIGet(c.teamsRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.teamsRoute()+query, etag)
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
 	}
@@ -2163,9 +2164,9 @@ func (c *Client4) GetAllTeamsWithTotalCount(etag string, page int, perPage int) 
 
 // GetAllTeamsExcludePolicyConstrained returns all teams which are not part of a data retention policy.
 // Must be a system administrator.
-func (c *Client4) GetAllTeamsExcludePolicyConstrained(etag string, page int, perPage int) ([]*Team, *Response, error) {
+func (c *Client4) GetAllTeamsExcludePolicyConstrained(ctx context.Context, etag string, page int, perPage int) ([]*Team, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&exclude_policy_constrained=%v", page, perPage, true)
-	r, err := c.DoAPIGet(c.teamsRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.teamsRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2178,8 +2179,8 @@ func (c *Client4) GetAllTeamsExcludePolicyConstrained(etag string, page int, per
 }
 
 // GetTeamByName returns a team based on the provided team name string.
-func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response, error) {
-	r, err := c.DoAPIGet(c.teamByNameRoute(name), etag)
+func (c *Client4) GetTeamByName(ctx context.Context, name, etag string) (*Team, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.teamByNameRoute(name), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2192,12 +2193,12 @@ func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response, error) {
 }
 
 // SearchTeams returns teams matching the provided search term.
-func (c *Client4) SearchTeams(search *TeamSearch) ([]*Team, *Response, error) {
+func (c *Client4) SearchTeams(ctx context.Context, search *TeamSearch) ([]*Team, *Response, error) {
 	buf, err := json.Marshal(search)
 	if err != nil {
 		return nil, nil, NewAppError("SearchTeams", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.teamsRoute()+"/search", buf)
+	r, err := c.DoAPIPostBytes(ctx, c.teamsRoute()+"/search", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2210,7 +2211,7 @@ func (c *Client4) SearchTeams(search *TeamSearch) ([]*Team, *Response, error) {
 }
 
 // SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
-func (c *Client4) SearchTeamsPaged(search *TeamSearch) ([]*Team, int64, *Response, error) {
+func (c *Client4) SearchTeamsPaged(ctx context.Context, search *TeamSearch) ([]*Team, int64, *Response, error) {
 	if search.Page == nil {
 		search.Page = NewInt(0)
 	}
@@ -2221,7 +2222,7 @@ func (c *Client4) SearchTeamsPaged(search *TeamSearch) ([]*Team, int64, *Respons
 	if err != nil {
 		return nil, 0, BuildResponse(nil), NewAppError("SearchTeamsPaged", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.teamsRoute()+"/search", buf)
+	r, err := c.DoAPIPostBytes(ctx, c.teamsRoute()+"/search", buf)
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
 	}
@@ -2234,8 +2235,8 @@ func (c *Client4) SearchTeamsPaged(search *TeamSearch) ([]*Team, int64, *Respons
 }
 
 // TeamExists returns true or false if the team exist or not.
-func (c *Client4) TeamExists(name, etag string) (bool, *Response, error) {
-	r, err := c.DoAPIGet(c.teamByNameRoute(name)+"/exists", etag)
+func (c *Client4) TeamExists(ctx context.Context, name, etag string) (bool, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.teamByNameRoute(name)+"/exists", etag)
 	if err != nil {
 		return false, BuildResponse(r), err
 	}
@@ -2245,8 +2246,8 @@ func (c *Client4) TeamExists(name, etag string) (bool, *Response, error) {
 
 // GetTeamsForUser returns a list of teams a user is on. Must be logged in as the user
 // or be a system administrator.
-func (c *Client4) GetTeamsForUser(userId, etag string) ([]*Team, *Response, error) {
-	r, err := c.DoAPIGet(c.userRoute(userId)+"/teams", etag)
+func (c *Client4) GetTeamsForUser(ctx context.Context, userId, etag string) ([]*Team, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/teams", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2259,8 +2260,8 @@ func (c *Client4) GetTeamsForUser(userId, etag string) ([]*Team, *Response, erro
 }
 
 // GetTeamMember returns a team member based on the provided team and user id strings.
-func (c *Client4) GetTeamMember(teamId, userId, etag string) (*TeamMember, *Response, error) {
-	r, err := c.DoAPIGet(c.teamMemberRoute(teamId, userId), etag)
+func (c *Client4) GetTeamMember(ctx context.Context, teamId, userId, etag string) (*TeamMember, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.teamMemberRoute(teamId, userId), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2276,9 +2277,9 @@ func (c *Client4) GetTeamMember(teamId, userId, etag string) (*TeamMember, *Resp
 }
 
 // UpdateTeamMemberRoles will update the roles on a team for a user.
-func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*Response, error) {
+func (c *Client4) UpdateTeamMemberRoles(ctx context.Context, teamId, userId, newRoles string) (*Response, error) {
 	requestBody := map[string]string{"roles": newRoles}
-	r, err := c.DoAPIPut(c.teamMemberRoute(teamId, userId)+"/roles", MapToJSON(requestBody))
+	r, err := c.DoAPIPut(ctx, c.teamMemberRoute(teamId, userId)+"/roles", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2287,12 +2288,12 @@ func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*Respo
 }
 
 // UpdateTeamMemberSchemeRoles will update the scheme-derived roles on a team for a user.
-func (c *Client4) UpdateTeamMemberSchemeRoles(teamId string, userId string, schemeRoles *SchemeRoles) (*Response, error) {
+func (c *Client4) UpdateTeamMemberSchemeRoles(ctx context.Context, teamId string, userId string, schemeRoles *SchemeRoles) (*Response, error) {
 	buf, err := json.Marshal(schemeRoles)
 	if err != nil {
 		return nil, NewAppError("UpdateTeamMemberSchemeRoles", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.teamMemberRoute(teamId, userId)+"/schemeRoles", buf)
+	r, err := c.DoAPIPutBytes(ctx, c.teamMemberRoute(teamId, userId)+"/schemeRoles", buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2301,12 +2302,12 @@ func (c *Client4) UpdateTeamMemberSchemeRoles(teamId string, userId string, sche
 }
 
 // UpdateTeam will update a team.
-func (c *Client4) UpdateTeam(team *Team) (*Team, *Response, error) {
+func (c *Client4) UpdateTeam(ctx context.Context, team *Team) (*Team, *Response, error) {
 	buf, err := json.Marshal(team)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.teamRoute(team.Id), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.teamRoute(team.Id), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2319,12 +2320,12 @@ func (c *Client4) UpdateTeam(team *Team) (*Team, *Response, error) {
 }
 
 // PatchTeam partially updates a team. Any missing fields are not updated.
-func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response, error) {
+func (c *Client4) PatchTeam(ctx context.Context, teamId string, patch *TeamPatch) (*Team, *Response, error) {
 	buf, err := json.Marshal(patch)
 	if err != nil {
 		return nil, nil, NewAppError("PatchTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.teamRoute(teamId)+"/patch", buf)
+	r, err := c.DoAPIPutBytes(ctx, c.teamRoute(teamId)+"/patch", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2337,8 +2338,8 @@ func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response, 
 }
 
 // RestoreTeam restores a previously deleted team.
-func (c *Client4) RestoreTeam(teamId string) (*Team, *Response, error) {
-	r, err := c.DoAPIPost(c.teamRoute(teamId)+"/restore", "")
+func (c *Client4) RestoreTeam(ctx context.Context, teamId string) (*Team, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.teamRoute(teamId)+"/restore", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2351,8 +2352,8 @@ func (c *Client4) RestoreTeam(teamId string) (*Team, *Response, error) {
 }
 
 // RegenerateTeamInviteId requests a new invite ID to be generated.
-func (c *Client4) RegenerateTeamInviteId(teamId string) (*Team, *Response, error) {
-	r, err := c.DoAPIPost(c.teamRoute(teamId)+"/regenerate_invite_id", "")
+func (c *Client4) RegenerateTeamInviteId(ctx context.Context, teamId string) (*Team, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.teamRoute(teamId)+"/regenerate_invite_id", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2365,8 +2366,8 @@ func (c *Client4) RegenerateTeamInviteId(teamId string) (*Team, *Response, error
 }
 
 // SoftDeleteTeam deletes the team softly (archive only, not permanent delete).
-func (c *Client4) SoftDeleteTeam(teamId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.teamRoute(teamId))
+func (c *Client4) SoftDeleteTeam(ctx context.Context, teamId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.teamRoute(teamId))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2376,8 +2377,8 @@ func (c *Client4) SoftDeleteTeam(teamId string) (*Response, error) {
 
 // PermanentDeleteTeam deletes the team, should only be used when needed for
 // compliance and the like.
-func (c *Client4) PermanentDeleteTeam(teamId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.teamRoute(teamId) + "?permanent=" + c.boolString(true))
+func (c *Client4) PermanentDeleteTeam(ctx context.Context, teamId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.teamRoute(teamId)+"?permanent="+c.boolString(true))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2387,9 +2388,9 @@ func (c *Client4) PermanentDeleteTeam(teamId string) (*Response, error) {
 
 // UpdateTeamPrivacy modifies the team type (model.TeamOpen <--> model.TeamInvite) and sets
 // the corresponding AllowOpenInvite appropriately.
-func (c *Client4) UpdateTeamPrivacy(teamId string, privacy string) (*Team, *Response, error) {
+func (c *Client4) UpdateTeamPrivacy(ctx context.Context, teamId string, privacy string) (*Team, *Response, error) {
 	requestBody := map[string]string{"privacy": privacy}
-	r, err := c.DoAPIPut(c.teamRoute(teamId)+"/privacy", MapToJSON(requestBody))
+	r, err := c.DoAPIPut(ctx, c.teamRoute(teamId)+"/privacy", MapToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2402,9 +2403,9 @@ func (c *Client4) UpdateTeamPrivacy(teamId string, privacy string) (*Team, *Resp
 }
 
 // GetTeamMembers returns team members based on the provided team id string.
-func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response, error) {
+func (c *Client4) GetTeamMembers(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.teamMembersRoute(teamId)+query, etag)
+	r, err := c.DoAPIGet(ctx, c.teamMembersRoute(teamId)+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2421,9 +2422,9 @@ func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag stri
 
 // GetTeamMembersWithoutDeletedUsers returns team members based on the provided team id string. Additional parameters of sort and exclude_deleted_users accepted as well
 // Could not add it to above function due to it be a breaking change.
-func (c *Client4) GetTeamMembersSortAndWithoutDeletedUsers(teamId string, page int, perPage int, sort string, excludeDeletedUsers bool, etag string) ([]*TeamMember, *Response, error) {
+func (c *Client4) GetTeamMembersSortAndWithoutDeletedUsers(ctx context.Context, teamId string, page int, perPage int, sort string, excludeDeletedUsers bool, etag string) ([]*TeamMember, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&sort=%v&exclude_deleted_users=%v", page, perPage, sort, excludeDeletedUsers)
-	r, err := c.DoAPIGet(c.teamMembersRoute(teamId)+query, etag)
+	r, err := c.DoAPIGet(ctx, c.teamMembersRoute(teamId)+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2439,8 +2440,8 @@ func (c *Client4) GetTeamMembersSortAndWithoutDeletedUsers(teamId string, page i
 }
 
 // GetTeamMembersForUser returns the team members for a user.
-func (c *Client4) GetTeamMembersForUser(userId string, etag string) ([]*TeamMember, *Response, error) {
-	r, err := c.DoAPIGet(c.userRoute(userId)+"/teams/members", etag)
+func (c *Client4) GetTeamMembersForUser(ctx context.Context, userId string, etag string) ([]*TeamMember, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/teams/members", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2457,8 +2458,8 @@ func (c *Client4) GetTeamMembersForUser(userId string, etag string) ([]*TeamMemb
 
 // GetTeamMembersByIds will return an array of team members based on the
 // team id and a list of user ids provided. Must be authenticated.
-func (c *Client4) GetTeamMembersByIds(teamId string, userIds []string) ([]*TeamMember, *Response, error) {
-	r, err := c.DoAPIPost(fmt.Sprintf("/teams/%v/members/ids", teamId), ArrayToJSON(userIds))
+func (c *Client4) GetTeamMembersByIds(ctx context.Context, teamId string, userIds []string) ([]*TeamMember, *Response, error) {
+	r, err := c.DoAPIPost(ctx, fmt.Sprintf("/teams/%v/members/ids", teamId), ArrayToJSON(userIds))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2471,13 +2472,13 @@ func (c *Client4) GetTeamMembersByIds(teamId string, userIds []string) ([]*TeamM
 }
 
 // AddTeamMember adds user to a team and return a team member.
-func (c *Client4) AddTeamMember(teamId, userId string) (*TeamMember, *Response, error) {
+func (c *Client4) AddTeamMember(ctx context.Context, teamId, userId string) (*TeamMember, *Response, error) {
 	member := &TeamMember{TeamId: teamId, UserId: userId}
 	buf, err := json.Marshal(member)
 	if err != nil {
 		return nil, nil, NewAppError("AddTeamMember", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.teamMembersRoute(teamId), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.teamMembersRoute(teamId), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2491,7 +2492,7 @@ func (c *Client4) AddTeamMember(teamId, userId string) (*TeamMember, *Response, 
 
 // AddTeamMemberFromInvite adds a user to a team and return a team member using an invite id
 // or an invite token/data pair.
-func (c *Client4) AddTeamMemberFromInvite(token, inviteId string) (*TeamMember, *Response, error) {
+func (c *Client4) AddTeamMemberFromInvite(ctx context.Context, token, inviteId string) (*TeamMember, *Response, error) {
 	var query string
 
 	if inviteId != "" {
@@ -2502,7 +2503,7 @@ func (c *Client4) AddTeamMemberFromInvite(token, inviteId string) (*TeamMember, 
 		query += fmt.Sprintf("?token=%v", token)
 	}
 
-	r, err := c.DoAPIPost(c.teamsRoute()+"/members/invite"+query, "")
+	r, err := c.DoAPIPost(ctx, c.teamsRoute()+"/members/invite"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2515,7 +2516,7 @@ func (c *Client4) AddTeamMemberFromInvite(token, inviteId string) (*TeamMember, 
 }
 
 // AddTeamMembers adds a number of users to a team and returns the team members.
-func (c *Client4) AddTeamMembers(teamId string, userIds []string) ([]*TeamMember, *Response, error) {
+func (c *Client4) AddTeamMembers(ctx context.Context, teamId string, userIds []string) ([]*TeamMember, *Response, error) {
 	var members []*TeamMember
 	for _, userId := range userIds {
 		member := &TeamMember{TeamId: teamId, UserId: userId}
@@ -2525,7 +2526,7 @@ func (c *Client4) AddTeamMembers(teamId string, userIds []string) ([]*TeamMember
 	if err != nil {
 		return nil, nil, NewAppError("AddTeamMembers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.teamMembersRoute(teamId)+"/batch", string(js))
+	r, err := c.DoAPIPost(ctx, c.teamMembersRoute(teamId)+"/batch", string(js))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2538,7 +2539,7 @@ func (c *Client4) AddTeamMembers(teamId string, userIds []string) ([]*TeamMember
 }
 
 // AddTeamMembers adds a number of users to a team and returns the team members.
-func (c *Client4) AddTeamMembersGracefully(teamId string, userIds []string) ([]*TeamMemberWithError, *Response, error) {
+func (c *Client4) AddTeamMembersGracefully(ctx context.Context, teamId string, userIds []string) ([]*TeamMemberWithError, *Response, error) {
 	var members []*TeamMember
 	for _, userId := range userIds {
 		member := &TeamMember{TeamId: teamId, UserId: userId}
@@ -2549,7 +2550,7 @@ func (c *Client4) AddTeamMembersGracefully(teamId string, userIds []string) ([]*
 		return nil, nil, NewAppError("AddTeamMembersGracefully", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	r, err := c.DoAPIPost(c.teamMembersRoute(teamId)+"/batch?graceful="+c.boolString(true), string(js))
+	r, err := c.DoAPIPost(ctx, c.teamMembersRoute(teamId)+"/batch?graceful="+c.boolString(true), string(js))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2562,8 +2563,8 @@ func (c *Client4) AddTeamMembersGracefully(teamId string, userIds []string) ([]*
 }
 
 // RemoveTeamMember will remove a user from a team.
-func (c *Client4) RemoveTeamMember(teamId, userId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.teamMemberRoute(teamId, userId))
+func (c *Client4) RemoveTeamMember(ctx context.Context, teamId, userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.teamMemberRoute(teamId, userId))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2573,8 +2574,8 @@ func (c *Client4) RemoveTeamMember(teamId, userId string) (*Response, error) {
 
 // GetTeamStats returns a team stats based on the team id string.
 // Must be authenticated.
-func (c *Client4) GetTeamStats(teamId, etag string) (*TeamStats, *Response, error) {
-	r, err := c.DoAPIGet(c.teamStatsRoute(teamId), etag)
+func (c *Client4) GetTeamStats(ctx context.Context, teamId, etag string) (*TeamStats, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.teamStatsRoute(teamId), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2588,8 +2589,8 @@ func (c *Client4) GetTeamStats(teamId, etag string) (*TeamStats, *Response, erro
 
 // GetTotalUsersStats returns a total system user stats.
 // Must be authenticated.
-func (c *Client4) GetTotalUsersStats(etag string) (*UsersStats, *Response, error) {
-	r, err := c.DoAPIGet(c.totalUsersStatsRoute(), etag)
+func (c *Client4) GetTotalUsersStats(ctx context.Context, etag string) (*UsersStats, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.totalUsersStatsRoute(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2604,8 +2605,8 @@ func (c *Client4) GetTotalUsersStats(etag string) (*UsersStats, *Response, error
 // GetTeamUnread will return a TeamUnread object that contains the amount of
 // unread messages and mentions the user has for the specified team.
 // Must be authenticated.
-func (c *Client4) GetTeamUnread(teamId, userId string) (*TeamUnread, *Response, error) {
-	r, err := c.DoAPIGet(c.userRoute(userId)+c.teamRoute(teamId)+"/unread", "")
+func (c *Client4) GetTeamUnread(ctx context.Context, teamId, userId string) (*TeamUnread, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+c.teamRoute(teamId)+"/unread", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2618,7 +2619,7 @@ func (c *Client4) GetTeamUnread(teamId, userId string) (*TeamUnread, *Response, 
 }
 
 // ImportTeam will import an exported team from other app into a existing team.
-func (c *Client4) ImportTeam(data []byte, filesize int, importFrom, filename, teamId string) (map[string]string, *Response, error) {
+func (c *Client4) ImportTeam(ctx context.Context, data []byte, filesize int, importFrom, filename, teamId string) (map[string]string, *Response, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -2653,12 +2654,12 @@ func (c *Client4) ImportTeam(data []byte, filesize int, importFrom, filename, te
 		return nil, nil, err
 	}
 
-	return c.DoUploadImportTeam(c.teamImportRoute(teamId), body.Bytes(), writer.FormDataContentType())
+	return c.DoUploadImportTeam(ctx, c.teamImportRoute(teamId), body.Bytes(), writer.FormDataContentType())
 }
 
 // InviteUsersToTeam invite users by email to the team.
-func (c *Client4) InviteUsersToTeam(teamId string, userEmails []string) (*Response, error) {
-	r, err := c.DoAPIPost(c.teamRoute(teamId)+"/invite/email", ArrayToJSON(userEmails))
+func (c *Client4) InviteUsersToTeam(ctx context.Context, teamId string, userEmails []string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.teamRoute(teamId)+"/invite/email", ArrayToJSON(userEmails))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2667,7 +2668,7 @@ func (c *Client4) InviteUsersToTeam(teamId string, userEmails []string) (*Respon
 }
 
 // InviteGuestsToTeam invite guest by email to some channels in a team.
-func (c *Client4) InviteGuestsToTeam(teamId string, userEmails []string, channels []string, message string) (*Response, error) {
+func (c *Client4) InviteGuestsToTeam(ctx context.Context, teamId string, userEmails []string, channels []string, message string) (*Response, error) {
 	guestsInvite := GuestsInvite{
 		Emails:   userEmails,
 		Channels: channels,
@@ -2677,7 +2678,7 @@ func (c *Client4) InviteGuestsToTeam(teamId string, userEmails []string, channel
 	if err != nil {
 		return nil, NewAppError("InviteGuestsToTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.teamRoute(teamId)+"/invite-guests/email", buf)
+	r, err := c.DoAPIPostBytes(ctx, c.teamRoute(teamId)+"/invite-guests/email", buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2686,8 +2687,8 @@ func (c *Client4) InviteGuestsToTeam(teamId string, userEmails []string, channel
 }
 
 // InviteUsersToTeam invite users by email to the team.
-func (c *Client4) InviteUsersToTeamGracefully(teamId string, userEmails []string) ([]*EmailInviteWithError, *Response, error) {
-	r, err := c.DoAPIPost(c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), ArrayToJSON(userEmails))
+func (c *Client4) InviteUsersToTeamGracefully(ctx context.Context, teamId string, userEmails []string) ([]*EmailInviteWithError, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), ArrayToJSON(userEmails))
 
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -2701,7 +2702,7 @@ func (c *Client4) InviteUsersToTeamGracefully(teamId string, userEmails []string
 }
 
 // InviteUsersToTeam invite users by email to the team.
-func (c *Client4) InviteUsersToTeamAndChannelsGracefully(teamId string, userEmails []string, channelIds []string, message string) ([]*EmailInviteWithError, *Response, error) {
+func (c *Client4) InviteUsersToTeamAndChannelsGracefully(ctx context.Context, teamId string, userEmails []string, channelIds []string, message string) ([]*EmailInviteWithError, *Response, error) {
 	memberInvite := MemberInvite{
 		Emails:     userEmails,
 		ChannelIds: channelIds,
@@ -2711,7 +2712,7 @@ func (c *Client4) InviteUsersToTeamAndChannelsGracefully(teamId string, userEmai
 	if err != nil {
 		return nil, nil, NewAppError("InviteMembersToTeamAndChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2724,7 +2725,7 @@ func (c *Client4) InviteUsersToTeamAndChannelsGracefully(teamId string, userEmai
 }
 
 // InviteGuestsToTeam invite guest by email to some channels in a team.
-func (c *Client4) InviteGuestsToTeamGracefully(teamId string, userEmails []string, channels []string, message string) ([]*EmailInviteWithError, *Response, error) {
+func (c *Client4) InviteGuestsToTeamGracefully(ctx context.Context, teamId string, userEmails []string, channels []string, message string) ([]*EmailInviteWithError, *Response, error) {
 	guestsInvite := GuestsInvite{
 		Emails:   userEmails,
 		Channels: channels,
@@ -2734,7 +2735,7 @@ func (c *Client4) InviteGuestsToTeamGracefully(teamId string, userEmails []strin
 	if err != nil {
 		return nil, nil, NewAppError("InviteGuestsToTeamGracefully", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.teamRoute(teamId)+"/invite-guests/email?graceful="+c.boolString(true), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.teamRoute(teamId)+"/invite-guests/email?graceful="+c.boolString(true), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2747,8 +2748,8 @@ func (c *Client4) InviteGuestsToTeamGracefully(teamId string, userEmails []strin
 }
 
 // InvalidateEmailInvites will invalidate active email invitations that have not been accepted by the user.
-func (c *Client4) InvalidateEmailInvites() (*Response, error) {
-	r, err := c.DoAPIDelete(c.teamsRoute() + "/invites/email")
+func (c *Client4) InvalidateEmailInvites(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.teamsRoute()+"/invites/email")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2757,8 +2758,8 @@ func (c *Client4) InvalidateEmailInvites() (*Response, error) {
 }
 
 // GetTeamInviteInfo returns a team object from an invite id containing sanitized information.
-func (c *Client4) GetTeamInviteInfo(inviteId string) (*Team, *Response, error) {
-	r, err := c.DoAPIGet(c.teamsRoute()+"/invite/"+inviteId, "")
+func (c *Client4) GetTeamInviteInfo(ctx context.Context, inviteId string) (*Team, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.teamsRoute()+"/invite/"+inviteId, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2771,7 +2772,7 @@ func (c *Client4) GetTeamInviteInfo(inviteId string) (*Team, *Response, error) {
 }
 
 // SetTeamIcon sets team icon of the team.
-func (c *Client4) SetTeamIcon(teamId string, data []byte) (*Response, error) {
+func (c *Client4) SetTeamIcon(ctx context.Context, teamId string, data []byte) (*Response, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -2812,8 +2813,8 @@ func (c *Client4) SetTeamIcon(teamId string, data []byte) (*Response, error) {
 }
 
 // GetTeamIcon gets the team icon of the team.
-func (c *Client4) GetTeamIcon(teamId, etag string) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/image", etag)
+func (c *Client4) GetTeamIcon(ctx context.Context, teamId, etag string) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.teamRoute(teamId)+"/image", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2827,8 +2828,8 @@ func (c *Client4) GetTeamIcon(teamId, etag string) ([]byte, *Response, error) {
 }
 
 // RemoveTeamIcon updates LastTeamIconUpdate to 0 which indicates team icon is removed.
-func (c *Client4) RemoveTeamIcon(teamId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.teamRoute(teamId) + "/image")
+func (c *Client4) RemoveTeamIcon(ctx context.Context, teamId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.teamRoute(teamId)+"/image")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2839,25 +2840,25 @@ func (c *Client4) RemoveTeamIcon(teamId string) (*Response, error) {
 // Channel Section
 
 // GetAllChannels get all the channels. Must be a system administrator.
-func (c *Client4) GetAllChannels(page int, perPage int, etag string) (ChannelListWithTeamData, *Response, error) {
-	return c.getAllChannels(page, perPage, etag, ChannelSearchOpts{})
+func (c *Client4) GetAllChannels(ctx context.Context, page int, perPage int, etag string) (ChannelListWithTeamData, *Response, error) {
+	return c.getAllChannels(ctx, page, perPage, etag, ChannelSearchOpts{})
 }
 
 // GetAllChannelsIncludeDeleted get all the channels. Must be a system administrator.
-func (c *Client4) GetAllChannelsIncludeDeleted(page int, perPage int, etag string) (ChannelListWithTeamData, *Response, error) {
-	return c.getAllChannels(page, perPage, etag, ChannelSearchOpts{IncludeDeleted: true})
+func (c *Client4) GetAllChannelsIncludeDeleted(ctx context.Context, page int, perPage int, etag string) (ChannelListWithTeamData, *Response, error) {
+	return c.getAllChannels(ctx, page, perPage, etag, ChannelSearchOpts{IncludeDeleted: true})
 }
 
 // GetAllChannelsExcludePolicyConstrained gets all channels which are not part of a data retention policy.
 // Must be a system administrator.
-func (c *Client4) GetAllChannelsExcludePolicyConstrained(page, perPage int, etag string) (ChannelListWithTeamData, *Response, error) {
-	return c.getAllChannels(page, perPage, etag, ChannelSearchOpts{ExcludePolicyConstrained: true})
+func (c *Client4) GetAllChannelsExcludePolicyConstrained(ctx context.Context, page, perPage int, etag string) (ChannelListWithTeamData, *Response, error) {
+	return c.getAllChannels(ctx, page, perPage, etag, ChannelSearchOpts{ExcludePolicyConstrained: true})
 }
 
-func (c *Client4) getAllChannels(page int, perPage int, etag string, opts ChannelSearchOpts) (ChannelListWithTeamData, *Response, error) {
+func (c *Client4) getAllChannels(ctx context.Context, page int, perPage int, etag string, opts ChannelSearchOpts) (ChannelListWithTeamData, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=%v&exclude_policy_constrained=%v",
 		page, perPage, opts.IncludeDeleted, opts.ExcludePolicyConstrained)
-	r, err := c.DoAPIGet(c.channelsRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.channelsRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2872,9 +2873,9 @@ func (c *Client4) getAllChannels(page int, perPage int, etag string, opts Channe
 }
 
 // GetAllChannelsWithCount get all the channels including the total count. Must be a system administrator.
-func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (ChannelListWithTeamData, int64, *Response, error) {
+func (c *Client4) GetAllChannelsWithCount(ctx context.Context, page int, perPage int, etag string) (ChannelListWithTeamData, int64, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count="+c.boolString(true), page, perPage)
-	r, err := c.DoAPIGet(c.channelsRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.channelsRoute()+query, etag)
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
 	}
@@ -2889,12 +2890,12 @@ func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (C
 }
 
 // CreateChannel creates a channel based on the provided channel struct.
-func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response, error) {
+func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
 	channelJSON, err := json.Marshal(channel)
 	if err != nil {
 		return nil, nil, NewAppError("CreateChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.channelsRoute(), string(channelJSON))
+	r, err := c.DoAPIPost(ctx, c.channelsRoute(), string(channelJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2909,12 +2910,12 @@ func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response, error) {
 }
 
 // UpdateChannel updates a channel based on the provided channel struct.
-func (c *Client4) UpdateChannel(channel *Channel) (*Channel, *Response, error) {
+func (c *Client4) UpdateChannel(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
 	channelJSON, err := json.Marshal(channel)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPut(c.channelRoute(channel.Id), string(channelJSON))
+	r, err := c.DoAPIPut(ctx, c.channelRoute(channel.Id), string(channelJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2929,12 +2930,12 @@ func (c *Client4) UpdateChannel(channel *Channel) (*Channel, *Response, error) {
 }
 
 // PatchChannel partially updates a channel. Any missing fields are not updated.
-func (c *Client4) PatchChannel(channelId string, patch *ChannelPatch) (*Channel, *Response, error) {
+func (c *Client4) PatchChannel(ctx context.Context, channelId string, patch *ChannelPatch) (*Channel, *Response, error) {
 	buf, err := json.Marshal(patch)
 	if err != nil {
 		return nil, nil, NewAppError("PatchChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.channelRoute(channelId)+"/patch", buf)
+	r, err := c.DoAPIPutBytes(ctx, c.channelRoute(channelId)+"/patch", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2949,9 +2950,9 @@ func (c *Client4) PatchChannel(channelId string, patch *ChannelPatch) (*Channel,
 }
 
 // UpdateChannelPrivacy updates channel privacy
-func (c *Client4) UpdateChannelPrivacy(channelId string, privacy ChannelType) (*Channel, *Response, error) {
+func (c *Client4) UpdateChannelPrivacy(ctx context.Context, channelId string, privacy ChannelType) (*Channel, *Response, error) {
 	requestBody := map[string]string{"privacy": string(privacy)}
-	r, err := c.DoAPIPut(c.channelRoute(channelId)+"/privacy", MapToJSON(requestBody))
+	r, err := c.DoAPIPut(ctx, c.channelRoute(channelId)+"/privacy", MapToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2966,8 +2967,8 @@ func (c *Client4) UpdateChannelPrivacy(channelId string, privacy ChannelType) (*
 }
 
 // RestoreChannel restores a previously deleted channel. Any missing fields are not updated.
-func (c *Client4) RestoreChannel(channelId string) (*Channel, *Response, error) {
-	r, err := c.DoAPIPost(c.channelRoute(channelId)+"/restore", "")
+func (c *Client4) RestoreChannel(ctx context.Context, channelId string) (*Channel, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.channelRoute(channelId)+"/restore", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2983,9 +2984,9 @@ func (c *Client4) RestoreChannel(channelId string) (*Channel, *Response, error) 
 
 // CreateDirectChannel creates a direct message channel based on the two user
 // ids provided.
-func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Response, error) {
+func (c *Client4) CreateDirectChannel(ctx context.Context, userId1, userId2 string) (*Channel, *Response, error) {
 	requestBody := []string{userId1, userId2}
-	r, err := c.DoAPIPost(c.channelsRoute()+"/direct", ArrayToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.channelsRoute()+"/direct", ArrayToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3000,8 +3001,8 @@ func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Respo
 }
 
 // CreateGroupChannel creates a group message channel based on userIds provided.
-func (c *Client4) CreateGroupChannel(userIds []string) (*Channel, *Response, error) {
-	r, err := c.DoAPIPost(c.channelsRoute()+"/group", ArrayToJSON(userIds))
+func (c *Client4) CreateGroupChannel(ctx context.Context, userIds []string) (*Channel, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.channelsRoute()+"/group", ArrayToJSON(userIds))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3016,8 +3017,8 @@ func (c *Client4) CreateGroupChannel(userIds []string) (*Channel, *Response, err
 }
 
 // GetChannel returns a channel based on the provided channel id string.
-func (c *Client4) GetChannel(channelId, etag string) (*Channel, *Response, error) {
-	r, err := c.DoAPIGet(c.channelRoute(channelId), etag)
+func (c *Client4) GetChannel(ctx context.Context, channelId, etag string) (*Channel, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3032,9 +3033,9 @@ func (c *Client4) GetChannel(channelId, etag string) (*Channel, *Response, error
 }
 
 // GetChannelStats returns statistics for a channel.
-func (c *Client4) GetChannelStats(channelId string, etag string, excludeFilesCount bool) (*ChannelStats, *Response, error) {
+func (c *Client4) GetChannelStats(ctx context.Context, channelId string, etag string, excludeFilesCount bool) (*ChannelStats, *Response, error) {
 	route := c.channelRoute(channelId) + fmt.Sprintf("/stats?exclude_files_count=%v", excludeFilesCount)
-	r, err := c.DoAPIGet(route, etag)
+	r, err := c.DoAPIGet(ctx, route, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3046,9 +3047,24 @@ func (c *Client4) GetChannelStats(channelId string, etag string, excludeFilesCou
 	return &stats, BuildResponse(r), nil
 }
 
+// GetChannelsMemberCount get channel member count for a given array of channel ids
+func (c *Client4) GetChannelsMemberCount(ctx context.Context, channelIDs []string) (map[string]int64, *Response, error) {
+	route := c.channelsRoute() + "/stats/member_count"
+	r, err := c.DoAPIPost(ctx, route, ArrayToJSON(channelIDs))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var counts map[string]int64
+	if err := json.NewDecoder(r.Body).Decode(&counts); err != nil {
+		return nil, nil, NewAppError("GetChannelsMemberCount", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return counts, BuildResponse(r), nil
+}
+
 // GetChannelMembersTimezones gets a list of timezones for a channel.
-func (c *Client4) GetChannelMembersTimezones(channelId string) ([]string, *Response, error) {
-	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/timezones", "")
+func (c *Client4) GetChannelMembersTimezones(ctx context.Context, channelId string) ([]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/timezones", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3057,8 +3073,8 @@ func (c *Client4) GetChannelMembersTimezones(channelId string) ([]string, *Respo
 }
 
 // GetPinnedPosts gets a list of pinned posts.
-func (c *Client4) GetPinnedPosts(channelId string, etag string) (*PostList, *Response, error) {
-	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/pinned", etag)
+func (c *Client4) GetPinnedPosts(ctx context.Context, channelId string, etag string) (*PostList, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/pinned", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3076,9 +3092,9 @@ func (c *Client4) GetPinnedPosts(channelId string, etag string) (*PostList, *Res
 }
 
 // GetPrivateChannelsForTeam returns a list of private channels based on the provided team id string.
-func (c *Client4) GetPrivateChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
+func (c *Client4) GetPrivateChannelsForTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
 	query := fmt.Sprintf("/private?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.channelsForTeamRoute(teamId)+query, etag)
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3093,9 +3109,9 @@ func (c *Client4) GetPrivateChannelsForTeam(teamId string, page int, perPage int
 }
 
 // GetPublicChannelsForTeam returns a list of public channels based on the provided team id string.
-func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
+func (c *Client4) GetPublicChannelsForTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.channelsForTeamRoute(teamId)+query, etag)
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3110,9 +3126,9 @@ func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int,
 }
 
 // GetDeletedChannelsForTeam returns a list of public channels based on the provided team id string.
-func (c *Client4) GetDeletedChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
+func (c *Client4) GetDeletedChannelsForTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
 	query := fmt.Sprintf("/deleted?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.channelsForTeamRoute(teamId)+query, etag)
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3127,8 +3143,8 @@ func (c *Client4) GetDeletedChannelsForTeam(teamId string, page int, perPage int
 }
 
 // GetPublicChannelsByIdsForTeam returns a list of public channels based on provided team id string.
-func (c *Client4) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) ([]*Channel, *Response, error) {
-	r, err := c.DoAPIPost(c.channelsForTeamRoute(teamId)+"/ids", ArrayToJSON(channelIds))
+func (c *Client4) GetPublicChannelsByIdsForTeam(ctx context.Context, teamId string, channelIds []string) ([]*Channel, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.channelsForTeamRoute(teamId)+"/ids", ArrayToJSON(channelIds))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3143,8 +3159,8 @@ func (c *Client4) GetPublicChannelsByIdsForTeam(teamId string, channelIds []stri
 }
 
 // GetChannelsForTeamForUser returns a list channels of on a team for a user.
-func (c *Client4) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool, etag string) ([]*Channel, *Response, error) {
-	r, err := c.DoAPIGet(c.channelsForTeamForUserRoute(teamId, userId, includeDeleted), etag)
+func (c *Client4) GetChannelsForTeamForUser(ctx context.Context, teamId, userId string, includeDeleted bool, etag string) ([]*Channel, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamForUserRoute(teamId, userId, includeDeleted), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3159,10 +3175,10 @@ func (c *Client4) GetChannelsForTeamForUser(teamId, userId string, includeDelete
 }
 
 // GetChannelsForTeamAndUserWithLastDeleteAt returns a list channels of a team for a user, additionally filtered with lastDeleteAt. This does not have any effect if includeDeleted is set to false.
-func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(teamId, userId string, includeDeleted bool, lastDeleteAt int, etag string) ([]*Channel, *Response, error) {
+func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(ctx context.Context, teamId, userId string, includeDeleted bool, lastDeleteAt int, etag string) ([]*Channel, *Response, error) {
 	route := fmt.Sprintf(c.userRoute(userId) + c.teamRoute(teamId) + "/channels")
 	route += fmt.Sprintf("?include_deleted=%v&last_delete_at=%d", includeDeleted, lastDeleteAt)
-	r, err := c.DoAPIGet(route, etag)
+	r, err := c.DoAPIGet(ctx, route, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3177,10 +3193,10 @@ func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(teamId, userId strin
 }
 
 // GetChannelsForUserWithLastDeleteAt returns a list channels for a user, additionally filtered with lastDeleteAt.
-func (c *Client4) GetChannelsForUserWithLastDeleteAt(userID string, lastDeleteAt int) ([]*Channel, *Response, error) {
+func (c *Client4) GetChannelsForUserWithLastDeleteAt(ctx context.Context, userID string, lastDeleteAt int) ([]*Channel, *Response, error) {
 	route := fmt.Sprintf(c.userRoute(userID) + "/channels")
 	route += fmt.Sprintf("?last_delete_at=%d", lastDeleteAt)
-	r, err := c.DoAPIGet(route, "")
+	r, err := c.DoAPIGet(ctx, route, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3195,12 +3211,12 @@ func (c *Client4) GetChannelsForUserWithLastDeleteAt(userID string, lastDeleteAt
 }
 
 // SearchChannels returns the channels on a team matching the provided search term.
-func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
+func (c *Client4) SearchChannels(ctx context.Context, teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
 	searchJSON, err := json.Marshal(search)
 	if err != nil {
 		return nil, nil, NewAppError("SearchChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.channelsForTeamRoute(teamId)+"/search", string(searchJSON))
+	r, err := c.DoAPIPost(ctx, c.channelsForTeamRoute(teamId)+"/search", string(searchJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3215,12 +3231,12 @@ func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Chann
 }
 
 // SearchArchivedChannels returns the archived channels on a team matching the provided search term.
-func (c *Client4) SearchArchivedChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
+func (c *Client4) SearchArchivedChannels(ctx context.Context, teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
 	searchJSON, err := json.Marshal(search)
 	if err != nil {
 		return nil, nil, NewAppError("SearchArchivedChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.channelsForTeamRoute(teamId)+"/search_archived", string(searchJSON))
+	r, err := c.DoAPIPost(ctx, c.channelsForTeamRoute(teamId)+"/search_archived", string(searchJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3235,12 +3251,12 @@ func (c *Client4) SearchArchivedChannels(teamId string, search *ChannelSearch) (
 }
 
 // SearchAllChannels search in all the channels. Must be a system administrator.
-func (c *Client4) SearchAllChannels(search *ChannelSearch) (ChannelListWithTeamData, *Response, error) {
+func (c *Client4) SearchAllChannels(ctx context.Context, search *ChannelSearch) (ChannelListWithTeamData, *Response, error) {
 	searchJSON, err := json.Marshal(search)
 	if err != nil {
 		return nil, nil, NewAppError("SearchAllChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.channelsRoute()+"/search", string(searchJSON))
+	r, err := c.DoAPIPost(ctx, c.channelsRoute()+"/search", string(searchJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3255,7 +3271,7 @@ func (c *Client4) SearchAllChannels(search *ChannelSearch) (ChannelListWithTeamD
 }
 
 // SearchAllChannelsForUser search in all the channels for a regular user.
-func (c *Client4) SearchAllChannelsForUser(term string) (ChannelListWithTeamData, *Response, error) {
+func (c *Client4) SearchAllChannelsForUser(ctx context.Context, term string) (ChannelListWithTeamData, *Response, error) {
 	search := &ChannelSearch{
 		Term: term,
 	}
@@ -3263,7 +3279,7 @@ func (c *Client4) SearchAllChannelsForUser(term string) (ChannelListWithTeamData
 	if err != nil {
 		return nil, nil, NewAppError("SearchAllChannelsForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.channelsRoute()+"/search?system_console=false", string(searchJSON))
+	r, err := c.DoAPIPost(ctx, c.channelsRoute()+"/search?system_console=false", string(searchJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3278,12 +3294,12 @@ func (c *Client4) SearchAllChannelsForUser(term string) (ChannelListWithTeamData
 }
 
 // SearchAllChannelsPaged searches all the channels and returns the results paged with the total count.
-func (c *Client4) SearchAllChannelsPaged(search *ChannelSearch) (*ChannelsWithCount, *Response, error) {
+func (c *Client4) SearchAllChannelsPaged(ctx context.Context, search *ChannelSearch) (*ChannelsWithCount, *Response, error) {
 	searchJSON, err := json.Marshal(search)
 	if err != nil {
 		return nil, nil, NewAppError("SearchAllChannelsPaged", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.channelsRoute()+"/search", string(searchJSON))
+	r, err := c.DoAPIPost(ctx, c.channelsRoute()+"/search", string(searchJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3298,12 +3314,12 @@ func (c *Client4) SearchAllChannelsPaged(search *ChannelSearch) (*ChannelsWithCo
 }
 
 // SearchGroupChannels returns the group channels of the user whose members' usernames match the search term.
-func (c *Client4) SearchGroupChannels(search *ChannelSearch) ([]*Channel, *Response, error) {
+func (c *Client4) SearchGroupChannels(ctx context.Context, search *ChannelSearch) ([]*Channel, *Response, error) {
 	searchJSON, err := json.Marshal(search)
 	if err != nil {
 		return nil, nil, NewAppError("SearchGroupChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.channelsRoute()+"/group/search", string(searchJSON))
+	r, err := c.DoAPIPost(ctx, c.channelsRoute()+"/group/search", string(searchJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3318,8 +3334,8 @@ func (c *Client4) SearchGroupChannels(search *ChannelSearch) ([]*Channel, *Respo
 }
 
 // DeleteChannel deletes channel based on the provided channel id string.
-func (c *Client4) DeleteChannel(channelId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.channelRoute(channelId))
+func (c *Client4) DeleteChannel(ctx context.Context, channelId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.channelRoute(channelId))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3328,8 +3344,8 @@ func (c *Client4) DeleteChannel(channelId string) (*Response, error) {
 }
 
 // PermanentDeleteChannel deletes a channel based on the provided channel id string.
-func (c *Client4) PermanentDeleteChannel(channelId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.channelRoute(channelId) + "?permanent=" + c.boolString(true))
+func (c *Client4) PermanentDeleteChannel(ctx context.Context, channelId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.channelRoute(channelId)+"?permanent="+c.boolString(true))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3338,12 +3354,12 @@ func (c *Client4) PermanentDeleteChannel(channelId string) (*Response, error) {
 }
 
 // MoveChannel moves the channel to the destination team.
-func (c *Client4) MoveChannel(channelId, teamId string, force bool) (*Channel, *Response, error) {
+func (c *Client4) MoveChannel(ctx context.Context, channelId, teamId string, force bool) (*Channel, *Response, error) {
 	requestBody := map[string]any{
 		"team_id": teamId,
 		"force":   force,
 	}
-	r, err := c.DoAPIPost(c.channelRoute(channelId)+"/move", StringInterfaceToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.channelRoute(channelId)+"/move", StringInterfaceToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3358,8 +3374,8 @@ func (c *Client4) MoveChannel(channelId, teamId string, force bool) (*Channel, *
 }
 
 // GetChannelByName returns a channel based on the provided channel name and team id strings.
-func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*Channel, *Response, error) {
-	r, err := c.DoAPIGet(c.channelByNameRoute(channelName, teamId), etag)
+func (c *Client4) GetChannelByName(ctx context.Context, channelName, teamId string, etag string) (*Channel, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelByNameRoute(channelName, teamId), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3374,8 +3390,8 @@ func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*Ch
 }
 
 // GetChannelByNameIncludeDeleted returns a channel based on the provided channel name and team id strings. Other then GetChannelByName it will also return deleted channels.
-func (c *Client4) GetChannelByNameIncludeDeleted(channelName, teamId string, etag string) (*Channel, *Response, error) {
-	r, err := c.DoAPIGet(c.channelByNameRoute(channelName, teamId)+"?include_deleted="+c.boolString(true), etag)
+func (c *Client4) GetChannelByNameIncludeDeleted(ctx context.Context, channelName, teamId string, etag string) (*Channel, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelByNameRoute(channelName, teamId)+"?include_deleted="+c.boolString(true), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3390,8 +3406,8 @@ func (c *Client4) GetChannelByNameIncludeDeleted(channelName, teamId string, eta
 }
 
 // GetChannelByNameForTeamName returns a channel based on the provided channel name and team name strings.
-func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag string) (*Channel, *Response, error) {
-	r, err := c.DoAPIGet(c.channelByNameForTeamNameRoute(channelName, teamName), etag)
+func (c *Client4) GetChannelByNameForTeamName(ctx context.Context, channelName, teamName string, etag string) (*Channel, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelByNameForTeamNameRoute(channelName, teamName), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3406,8 +3422,8 @@ func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag
 }
 
 // GetChannelByNameForTeamNameIncludeDeleted returns a channel based on the provided channel name and team name strings. Other then GetChannelByNameForTeamName it will also return deleted channels.
-func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(channelName, teamName string, etag string) (*Channel, *Response, error) {
-	r, err := c.DoAPIGet(c.channelByNameForTeamNameRoute(channelName, teamName)+"?include_deleted="+c.boolString(true), etag)
+func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(ctx context.Context, channelName, teamName string, etag string) (*Channel, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelByNameForTeamNameRoute(channelName, teamName)+"?include_deleted="+c.boolString(true), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3422,9 +3438,9 @@ func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(channelName, teamNam
 }
 
 // GetChannelMembers gets a page of channel members specific to a channel.
-func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag string) (ChannelMembers, *Response, error) {
+func (c *Client4) GetChannelMembers(ctx context.Context, channelId string, page, perPage int, etag string) (ChannelMembers, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.channelMembersRoute(channelId)+query, etag)
+	r, err := c.DoAPIGet(ctx, c.channelMembersRoute(channelId)+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3439,9 +3455,9 @@ func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag st
 }
 
 // GetChannelMembersWithTeamData gets a page of all channel members for a user.
-func (c *Client4) GetChannelMembersWithTeamData(userID string, page, perPage int) (ChannelMembersWithTeamData, *Response, error) {
+func (c *Client4) GetChannelMembersWithTeamData(ctx context.Context, userID string, page, perPage int) (ChannelMembersWithTeamData, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.userRoute(userID)+"/channel_members"+query, "")
+	r, err := c.DoAPIGet(ctx, c.userRoute(userID)+"/channel_members"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3456,8 +3472,8 @@ func (c *Client4) GetChannelMembersWithTeamData(userID string, page, perPage int
 }
 
 // GetChannelMembersByIds gets the channel members in a channel for a list of user ids.
-func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (ChannelMembers, *Response, error) {
-	r, err := c.DoAPIPost(c.channelMembersRoute(channelId)+"/ids", ArrayToJSON(userIds))
+func (c *Client4) GetChannelMembersByIds(ctx context.Context, channelId string, userIds []string) (ChannelMembers, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.channelMembersRoute(channelId)+"/ids", ArrayToJSON(userIds))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3472,8 +3488,8 @@ func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (Ch
 }
 
 // GetChannelMember gets a channel member.
-func (c *Client4) GetChannelMember(channelId, userId, etag string) (*ChannelMember, *Response, error) {
-	r, err := c.DoAPIGet(c.channelMemberRoute(channelId, userId), etag)
+func (c *Client4) GetChannelMember(ctx context.Context, channelId, userId, etag string) (*ChannelMember, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelMemberRoute(channelId, userId), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3488,8 +3504,8 @@ func (c *Client4) GetChannelMember(channelId, userId, etag string) (*ChannelMemb
 }
 
 // GetChannelMembersForUser gets all the channel members for a user on a team.
-func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (ChannelMembers, *Response, error) {
-	r, err := c.DoAPIGet(fmt.Sprintf(c.userRoute(userId)+"/teams/%v/channels/members", teamId), etag)
+func (c *Client4) GetChannelMembersForUser(ctx context.Context, userId, teamId, etag string) (ChannelMembers, *Response, error) {
+	r, err := c.DoAPIGet(ctx, fmt.Sprintf(c.userRoute(userId)+"/teams/%v/channels/members", teamId), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3504,13 +3520,13 @@ func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (Channel
 }
 
 // ViewChannel performs a view action for a user. Synonymous with switching channels or marking channels as read by a user.
-func (c *Client4) ViewChannel(userId string, view *ChannelView) (*ChannelViewResponse, *Response, error) {
+func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelView) (*ChannelViewResponse, *Response, error) {
 	url := fmt.Sprintf(c.channelsRoute()+"/members/%v/view", userId)
 	buf, err := json.Marshal(view)
 	if err != nil {
 		return nil, nil, NewAppError("ViewChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(url, buf)
+	r, err := c.DoAPIPostBytes(ctx, url, buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3526,8 +3542,8 @@ func (c *Client4) ViewChannel(userId string, view *ChannelView) (*ChannelViewRes
 
 // GetChannelUnread will return a ChannelUnread object that contains the number of
 // unread messages and mentions for a user.
-func (c *Client4) GetChannelUnread(channelId, userId string) (*ChannelUnread, *Response, error) {
-	r, err := c.DoAPIGet(c.userRoute(userId)+c.channelRoute(channelId)+"/unread", "")
+func (c *Client4) GetChannelUnread(ctx context.Context, channelId, userId string) (*ChannelUnread, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+c.channelRoute(channelId)+"/unread", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3542,9 +3558,9 @@ func (c *Client4) GetChannelUnread(channelId, userId string) (*ChannelUnread, *R
 }
 
 // UpdateChannelRoles will update the roles on a channel for a user.
-func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (*Response, error) {
+func (c *Client4) UpdateChannelRoles(ctx context.Context, channelId, userId, roles string) (*Response, error) {
 	requestBody := map[string]string{"roles": roles}
-	r, err := c.DoAPIPut(c.channelMemberRoute(channelId, userId)+"/roles", MapToJSON(requestBody))
+	r, err := c.DoAPIPut(ctx, c.channelMemberRoute(channelId, userId)+"/roles", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3553,12 +3569,12 @@ func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (*Response
 }
 
 // UpdateChannelMemberSchemeRoles will update the scheme-derived roles on a channel for a user.
-func (c *Client4) UpdateChannelMemberSchemeRoles(channelId string, userId string, schemeRoles *SchemeRoles) (*Response, error) {
+func (c *Client4) UpdateChannelMemberSchemeRoles(ctx context.Context, channelId string, userId string, schemeRoles *SchemeRoles) (*Response, error) {
 	buf, err := json.Marshal(schemeRoles)
 	if err != nil {
 		return nil, NewAppError("UpdateChannelMemberSchemeRoles", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.channelMemberRoute(channelId, userId)+"/schemeRoles", buf)
+	r, err := c.DoAPIPutBytes(ctx, c.channelMemberRoute(channelId, userId)+"/schemeRoles", buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3567,8 +3583,8 @@ func (c *Client4) UpdateChannelMemberSchemeRoles(channelId string, userId string
 }
 
 // UpdateChannelNotifyProps will update the notification properties on a channel for a user.
-func (c *Client4) UpdateChannelNotifyProps(channelId, userId string, props map[string]string) (*Response, error) {
-	r, err := c.DoAPIPut(c.channelMemberRoute(channelId, userId)+"/notify_props", MapToJSON(props))
+func (c *Client4) UpdateChannelNotifyProps(ctx context.Context, channelId, userId string, props map[string]string) (*Response, error) {
+	r, err := c.DoAPIPut(ctx, c.channelMemberRoute(channelId, userId)+"/notify_props", MapToJSON(props))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3577,9 +3593,9 @@ func (c *Client4) UpdateChannelNotifyProps(channelId, userId string, props map[s
 }
 
 // AddChannelMember adds user to channel and return a channel member.
-func (c *Client4) AddChannelMember(channelId, userId string) (*ChannelMember, *Response, error) {
+func (c *Client4) AddChannelMember(ctx context.Context, channelId, userId string) (*ChannelMember, *Response, error) {
 	requestBody := map[string]string{"user_id": userId}
-	r, err := c.DoAPIPost(c.channelMembersRoute(channelId)+"", MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.channelMembersRoute(channelId)+"", MapToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3594,9 +3610,9 @@ func (c *Client4) AddChannelMember(channelId, userId string) (*ChannelMember, *R
 }
 
 // AddChannelMemberWithRootId adds user to channel and return a channel member. Post add to channel message has the postRootId.
-func (c *Client4) AddChannelMemberWithRootId(channelId, userId, postRootId string) (*ChannelMember, *Response, error) {
+func (c *Client4) AddChannelMemberWithRootId(ctx context.Context, channelId, userId, postRootId string) (*ChannelMember, *Response, error) {
 	requestBody := map[string]string{"user_id": userId, "post_root_id": postRootId}
-	r, err := c.DoAPIPost(c.channelMembersRoute(channelId)+"", MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.channelMembersRoute(channelId)+"", MapToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3611,8 +3627,8 @@ func (c *Client4) AddChannelMemberWithRootId(channelId, userId, postRootId strin
 }
 
 // RemoveUserFromChannel will delete the channel member object for a user, effectively removing the user from a channel.
-func (c *Client4) RemoveUserFromChannel(channelId, userId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.channelMemberRoute(channelId, userId))
+func (c *Client4) RemoveUserFromChannel(ctx context.Context, channelId, userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.channelMemberRoute(channelId, userId))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3621,9 +3637,9 @@ func (c *Client4) RemoveUserFromChannel(channelId, userId string) (*Response, er
 }
 
 // AutocompleteChannelsForTeam will return an ordered list of channels autocomplete suggestions.
-func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (ChannelList, *Response, error) {
+func (c *Client4) AutocompleteChannelsForTeam(ctx context.Context, teamId, name string) (ChannelList, *Response, error) {
 	query := fmt.Sprintf("?name=%v", name)
-	r, err := c.DoAPIGet(c.channelsForTeamRoute(teamId)+"/autocomplete"+query, "")
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+"/autocomplete"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3638,9 +3654,9 @@ func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (ChannelList,
 }
 
 // AutocompleteChannelsForTeamForSearch will return an ordered list of your channels autocomplete suggestions.
-func (c *Client4) AutocompleteChannelsForTeamForSearch(teamId, name string) (ChannelList, *Response, error) {
+func (c *Client4) AutocompleteChannelsForTeamForSearch(ctx context.Context, teamId, name string) (ChannelList, *Response, error) {
 	query := fmt.Sprintf("?name=%v", name)
-	r, err := c.DoAPIGet(c.channelsForTeamRoute(teamId)+"/search_autocomplete"+query, "")
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+"/search_autocomplete"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3654,85 +3670,15 @@ func (c *Client4) AutocompleteChannelsForTeamForSearch(teamId, name string) (Cha
 	return ch, BuildResponse(r), nil
 }
 
-// GetTopChannelsForTeamSince will return an ordered list of the top channels in a given team.
-func (c *Client4) GetTopChannelsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopChannelList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/channels"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topChannels *TopChannelList
-	if err := json.NewDecoder(r.Body).Decode(&topChannels); err != nil {
-		return nil, nil, NewAppError("GetTopChannelsForTeamSince", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topChannels, BuildResponse(r), nil
-}
-
-// GetTopChannelsForUserSince will return an ordered list of your top channels in a given team.
-func (c *Client4) GetTopChannelsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopChannelList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-
-	if teamId != "" {
-		query += fmt.Sprintf("&team_id=%v", teamId)
-	}
-
-	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/channels"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topChannels *TopChannelList
-	if err := json.NewDecoder(r.Body).Decode(&topChannels); err != nil {
-		return nil, nil, NewAppError("GetTopChannelsForUserSince", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topChannels, BuildResponse(r), nil
-}
-
-// GetTopInactiveChannelsForTeamSince will return an ordered list of the top channels in a given team.
-func (c *Client4) GetTopInactiveChannelsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopInactiveChannelList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/inactive_channels"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topInactiveChannels *TopInactiveChannelList
-	if jsonErr := json.NewDecoder(r.Body).Decode(&topInactiveChannels); jsonErr != nil {
-		return nil, nil, NewAppError("GetTopInactiveChannelsForTeamSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return topInactiveChannels, BuildResponse(r), nil
-}
-
-// GetTopInactiveChannelsForUserSince will return an ordered list of your top channels in a given team.
-func (c *Client4) GetTopInactiveChannelsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopInactiveChannelList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-
-	if teamId != "" {
-		query += fmt.Sprintf("&team_id=%v", teamId)
-	}
-
-	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/inactive_channels"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topInactiveChannels *TopInactiveChannelList
-	if jsonErr := json.NewDecoder(r.Body).Decode(&topInactiveChannels); jsonErr != nil {
-		return nil, nil, NewAppError("GetTopInactiveChannelsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return topInactiveChannels, BuildResponse(r), nil
-}
-
 // Post Section
 
 // CreatePost creates a post based on the provided post struct.
-func (c *Client4) CreatePost(post *Post) (*Post, *Response, error) {
+func (c *Client4) CreatePost(ctx context.Context, post *Post) (*Post, *Response, error) {
 	postJSON, err := json.Marshal(post)
 	if err != nil {
 		return nil, nil, NewAppError("CreatePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.postsRoute(), string(postJSON))
+	r, err := c.DoAPIPost(ctx, c.postsRoute(), string(postJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3748,12 +3694,12 @@ func (c *Client4) CreatePost(post *Post) (*Post, *Response, error) {
 }
 
 // CreatePostEphemeral creates a ephemeral post based on the provided post struct which is send to the given user id.
-func (c *Client4) CreatePostEphemeral(post *PostEphemeral) (*Post, *Response, error) {
+func (c *Client4) CreatePostEphemeral(ctx context.Context, post *PostEphemeral) (*Post, *Response, error) {
 	postJSON, err := json.Marshal(post)
 	if err != nil {
 		return nil, nil, NewAppError("CreatePostEphemeral", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.postsEphemeralRoute(), string(postJSON))
+	r, err := c.DoAPIPost(ctx, c.postsEphemeralRoute(), string(postJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3769,12 +3715,12 @@ func (c *Client4) CreatePostEphemeral(post *PostEphemeral) (*Post, *Response, er
 }
 
 // UpdatePost updates a post based on the provided post struct.
-func (c *Client4) UpdatePost(postId string, post *Post) (*Post, *Response, error) {
+func (c *Client4) UpdatePost(ctx context.Context, postId string, post *Post) (*Post, *Response, error) {
 	postJSON, err := json.Marshal(post)
 	if err != nil {
 		return nil, nil, NewAppError("UpdatePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPut(c.postRoute(postId), string(postJSON))
+	r, err := c.DoAPIPut(ctx, c.postRoute(postId), string(postJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3790,12 +3736,12 @@ func (c *Client4) UpdatePost(postId string, post *Post) (*Post, *Response, error
 }
 
 // PatchPost partially updates a post. Any missing fields are not updated.
-func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response, error) {
+func (c *Client4) PatchPost(ctx context.Context, postId string, patch *PostPatch) (*Post, *Response, error) {
 	buf, err := json.Marshal(patch)
 	if err != nil {
 		return nil, nil, NewAppError("PatchPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.postRoute(postId)+"/patch", buf)
+	r, err := c.DoAPIPutBytes(ctx, c.postRoute(postId)+"/patch", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3811,12 +3757,12 @@ func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response, 
 }
 
 // SetPostUnread marks channel where post belongs as unread on the time of the provided post.
-func (c *Client4) SetPostUnread(userId string, postId string, collapsedThreadsSupported bool) (*Response, error) {
+func (c *Client4) SetPostUnread(ctx context.Context, userId string, postId string, collapsedThreadsSupported bool) (*Response, error) {
 	b, err := json.Marshal(map[string]bool{"collapsed_threads_supported": collapsedThreadsSupported})
 	if err != nil {
 		return nil, NewAppError("SetPostUnread", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.userRoute(userId)+c.postRoute(postId)+"/set_unread", b)
+	r, err := c.DoAPIPostBytes(ctx, c.userRoute(userId)+c.postRoute(postId)+"/set_unread", b)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3827,13 +3773,13 @@ func (c *Client4) SetPostUnread(userId string, postId string, collapsedThreadsSu
 // SetPostReminder creates a post reminder for a given post at a specified time.
 // The time needs to be in UTC epoch in seconds. It is always truncated to a
 // 5 minute resolution minimum.
-func (c *Client4) SetPostReminder(reminder *PostReminder) (*Response, error) {
+func (c *Client4) SetPostReminder(ctx context.Context, reminder *PostReminder) (*Response, error) {
 	b, err := json.Marshal(reminder)
 	if err != nil {
 		return nil, NewAppError("SetPostReminder", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	r, err := c.DoAPIPostBytes(c.userRoute(reminder.UserId)+c.postRoute(reminder.PostId)+"/reminder", b)
+	r, err := c.DoAPIPostBytes(ctx, c.userRoute(reminder.UserId)+c.postRoute(reminder.PostId)+"/reminder", b)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3842,8 +3788,8 @@ func (c *Client4) SetPostReminder(reminder *PostReminder) (*Response, error) {
 }
 
 // PinPost pin a post based on provided post id string.
-func (c *Client4) PinPost(postId string) (*Response, error) {
-	r, err := c.DoAPIPost(c.postRoute(postId)+"/pin", "")
+func (c *Client4) PinPost(ctx context.Context, postId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/pin", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3852,8 +3798,8 @@ func (c *Client4) PinPost(postId string) (*Response, error) {
 }
 
 // UnpinPost unpin a post based on provided post id string.
-func (c *Client4) UnpinPost(postId string) (*Response, error) {
-	r, err := c.DoAPIPost(c.postRoute(postId)+"/unpin", "")
+func (c *Client4) UnpinPost(ctx context.Context, postId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/unpin", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3862,8 +3808,8 @@ func (c *Client4) UnpinPost(postId string) (*Response, error) {
 }
 
 // GetPost gets a single post.
-func (c *Client4) GetPost(postId string, etag string) (*Post, *Response, error) {
-	r, err := c.DoAPIGet(c.postRoute(postId), etag)
+func (c *Client4) GetPost(ctx context.Context, postId string, etag string) (*Post, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.postRoute(postId), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3880,8 +3826,8 @@ func (c *Client4) GetPost(postId string, etag string) (*Post, *Response, error) 
 }
 
 // GetPostIncludeDeleted gets a single post, including deleted.
-func (c *Client4) GetPostIncludeDeleted(postId string, etag string) (*Post, *Response, error) {
-	r, err := c.DoAPIGet(c.postRoute(postId)+"?include_deleted="+c.boolString(true), etag)
+func (c *Client4) GetPostIncludeDeleted(ctx context.Context, postId string, etag string) (*Post, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.postRoute(postId)+"?include_deleted="+c.boolString(true), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3898,8 +3844,8 @@ func (c *Client4) GetPostIncludeDeleted(postId string, etag string) (*Post, *Res
 }
 
 // DeletePost deletes a post from the provided post id string.
-func (c *Client4) DeletePost(postId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.postRoute(postId))
+func (c *Client4) DeletePost(ctx context.Context, postId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.postRoute(postId))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3908,12 +3854,12 @@ func (c *Client4) DeletePost(postId string) (*Response, error) {
 }
 
 // GetPostThread gets a post with all the other posts in the same thread.
-func (c *Client4) GetPostThread(postId string, etag string, collapsedThreads bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostThread(ctx context.Context, postId string, etag string, collapsedThreads bool) (*PostList, *Response, error) {
 	url := c.postRoute(postId) + "/thread"
 	if collapsedThreads {
 		url += "?collapsedThreads=true"
 	}
-	r, err := c.DoAPIGet(url, etag)
+	r, err := c.DoAPIGet(ctx, url, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3929,7 +3875,7 @@ func (c *Client4) GetPostThread(postId string, etag string, collapsedThreads boo
 }
 
 // GetPostThreadWithOpts gets a post with all the other posts in the same thread.
-func (c *Client4) GetPostThreadWithOpts(postID string, etag string, opts GetPostsOptions) (*PostList, *Response, error) {
+func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag string, opts GetPostsOptions) (*PostList, *Response, error) {
 	urlVal := c.postRoute(postID) + "/thread"
 
 	values := url.Values{}
@@ -3956,7 +3902,7 @@ func (c *Client4) GetPostThreadWithOpts(postID string, etag string, opts GetPost
 	}
 	urlVal += "?" + values.Encode()
 
-	r, err := c.DoAPIGet(urlVal, etag)
+	r, err := c.DoAPIGet(ctx, urlVal, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3972,7 +3918,7 @@ func (c *Client4) GetPostThreadWithOpts(postID string, etag string, opts GetPost
 }
 
 // GetPostsForChannel gets a page of posts with an array for ordering for a channel.
-func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostsForChannel(ctx context.Context, channelId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	if collapsedThreads {
 		query += "&collapsedThreads=true"
@@ -3981,7 +3927,7 @@ func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag s
 	if includeDeleted {
 		query += "&include_deleted=true"
 	}
-	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/posts"+query, etag)
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3997,12 +3943,12 @@ func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag s
 }
 
 // GetPostsByIds gets a list of posts by taking an array of post ids
-func (c *Client4) GetPostsByIds(postIds []string) ([]*Post, *Response, error) {
+func (c *Client4) GetPostsByIds(ctx context.Context, postIds []string) ([]*Post, *Response, error) {
 	js, err := json.Marshal(postIds)
 	if err != nil {
 		return nil, nil, NewAppError("SearchFilesWithParams", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.postsRoute()+"/ids", string(js))
+	r, err := c.DoAPIPost(ctx, c.postsRoute()+"/ids", string(js))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4018,12 +3964,12 @@ func (c *Client4) GetPostsByIds(postIds []string) ([]*Post, *Response, error) {
 }
 
 // GetEditHistoryForPost gets a list of posts by taking a post ids
-func (c *Client4) GetEditHistoryForPost(postId string) ([]*Post, *Response, error) {
+func (c *Client4) GetEditHistoryForPost(ctx context.Context, postId string) ([]*Post, *Response, error) {
 	js, err := json.Marshal(postId)
 	if err != nil {
 		return nil, nil, NewAppError("GetEditHistoryForPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIGet(c.postRoute(postId)+"/edit_history", string(js))
+	r, err := c.DoAPIGet(ctx, c.postRoute(postId)+"/edit_history", string(js))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4039,9 +3985,9 @@ func (c *Client4) GetEditHistoryForPost(postId string) ([]*Post, *Response, erro
 }
 
 // GetFlaggedPostsForUser returns flagged posts of a user based on user id string.
-func (c *Client4) GetFlaggedPostsForUser(userId string, page int, perPage int) (*PostList, *Response, error) {
+func (c *Client4) GetFlaggedPostsForUser(ctx context.Context, userId string, page int, perPage int) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.userRoute(userId)+"/posts/flagged"+query, "")
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/posts/flagged"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4057,13 +4003,13 @@ func (c *Client4) GetFlaggedPostsForUser(userId string, page int, perPage int) (
 }
 
 // GetFlaggedPostsForUserInTeam returns flagged posts in team of a user based on user id string.
-func (c *Client4) GetFlaggedPostsForUserInTeam(userId string, teamId string, page int, perPage int) (*PostList, *Response, error) {
+func (c *Client4) GetFlaggedPostsForUserInTeam(ctx context.Context, userId string, teamId string, page int, perPage int) (*PostList, *Response, error) {
 	if !IsValidId(teamId) {
 		return nil, nil, NewAppError("GetFlaggedPostsForUserInTeam", "model.client.get_flagged_posts_in_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	query := fmt.Sprintf("?team_id=%v&page=%v&per_page=%v", teamId, page, perPage)
-	r, err := c.DoAPIGet(c.userRoute(userId)+"/posts/flagged"+query, "")
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/posts/flagged"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4079,13 +4025,13 @@ func (c *Client4) GetFlaggedPostsForUserInTeam(userId string, teamId string, pag
 }
 
 // GetFlaggedPostsForUserInChannel returns flagged posts in channel of a user based on user id string.
-func (c *Client4) GetFlaggedPostsForUserInChannel(userId string, channelId string, page int, perPage int) (*PostList, *Response, error) {
+func (c *Client4) GetFlaggedPostsForUserInChannel(ctx context.Context, userId string, channelId string, page int, perPage int) (*PostList, *Response, error) {
 	if !IsValidId(channelId) {
 		return nil, nil, NewAppError("GetFlaggedPostsForUserInChannel", "model.client.get_flagged_posts_in_channel.missing_parameter.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	query := fmt.Sprintf("?channel_id=%v&page=%v&per_page=%v", channelId, page, perPage)
-	r, err := c.DoAPIGet(c.userRoute(userId)+"/posts/flagged"+query, "")
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/posts/flagged"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4101,12 +4047,12 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(userId string, channelId strin
 }
 
 // GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
-func (c *Client4) GetPostsSince(channelId string, time int64, collapsedThreads bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int64, collapsedThreads bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?since=%v", time)
 	if collapsedThreads {
 		query += "&collapsedThreads=true"
 	}
-	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/posts"+query, "")
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4122,7 +4068,7 @@ func (c *Client4) GetPostsSince(channelId string, time int64, collapsedThreads b
 }
 
 // GetPostsAfter gets a page of posts that were posted after the post provided.
-func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostsAfter(ctx context.Context, channelId, postId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&after=%v", page, perPage, postId)
 	if collapsedThreads {
 		query += "&collapsedThreads=true"
@@ -4130,7 +4076,7 @@ func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, eta
 	if includeDeleted {
 		query += "&include_deleted=true"
 	}
-	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/posts"+query, etag)
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4146,7 +4092,7 @@ func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, eta
 }
 
 // GetPostsBefore gets a page of posts that were posted before the post provided.
-func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostsBefore(ctx context.Context, channelId, postId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&before=%v", page, perPage, postId)
 	if collapsedThreads {
 		query += "&collapsedThreads=true"
@@ -4154,7 +4100,7 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 	if includeDeleted {
 		query += "&include_deleted=true"
 	}
-	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/posts"+query, etag)
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4170,12 +4116,12 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 }
 
 // GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
-func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore, limitAfter int, collapsedThreads bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostsAroundLastUnread(ctx context.Context, userId, channelId string, limitBefore, limitAfter int, collapsedThreads bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?limit_before=%v&limit_after=%v", limitBefore, limitAfter)
 	if collapsedThreads {
 		query += "&collapsedThreads=true"
 	}
-	r, err := c.DoAPIGet(c.userRoute(userId)+c.channelRoute(channelId)+"/posts/unread"+query, "")
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+c.channelRoute(channelId)+"/posts/unread"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4191,21 +4137,21 @@ func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore
 }
 
 // SearchFiles returns any posts with matching terms string.
-func (c *Client4) SearchFiles(teamId string, terms string, isOrSearch bool) (*FileInfoList, *Response, error) {
+func (c *Client4) SearchFiles(ctx context.Context, teamId string, terms string, isOrSearch bool) (*FileInfoList, *Response, error) {
 	params := SearchParameter{
 		Terms:      &terms,
 		IsOrSearch: &isOrSearch,
 	}
-	return c.SearchFilesWithParams(teamId, &params)
+	return c.SearchFilesWithParams(ctx, teamId, &params)
 }
 
 // SearchFilesWithParams returns any posts with matching terms string.
-func (c *Client4) SearchFilesWithParams(teamId string, params *SearchParameter) (*FileInfoList, *Response, error) {
+func (c *Client4) SearchFilesWithParams(ctx context.Context, teamId string, params *SearchParameter) (*FileInfoList, *Response, error) {
 	js, err := json.Marshal(params)
 	if err != nil {
 		return nil, nil, NewAppError("SearchFilesWithParams", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.teamRoute(teamId)+"/files/search", string(js))
+	r, err := c.DoAPIPost(ctx, c.teamRoute(teamId)+"/files/search", string(js))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4219,16 +4165,16 @@ func (c *Client4) SearchFilesWithParams(teamId string, params *SearchParameter) 
 }
 
 // SearchPosts returns any posts with matching terms string.
-func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*PostList, *Response, error) {
+func (c *Client4) SearchPosts(ctx context.Context, teamId string, terms string, isOrSearch bool) (*PostList, *Response, error) {
 	params := SearchParameter{
 		Terms:      &terms,
 		IsOrSearch: &isOrSearch,
 	}
-	return c.SearchPostsWithParams(teamId, &params)
+	return c.SearchPostsWithParams(ctx, teamId, &params)
 }
 
 // SearchPostsWithParams returns any posts with matching terms string.
-func (c *Client4) SearchPostsWithParams(teamId string, params *SearchParameter) (*PostList, *Response, error) {
+func (c *Client4) SearchPostsWithParams(ctx context.Context, teamId string, params *SearchParameter) (*PostList, *Response, error) {
 	js, err := json.Marshal(params)
 	if err != nil {
 		return nil, nil, NewAppError("SearchFilesWithParams", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -4239,7 +4185,7 @@ func (c *Client4) SearchPostsWithParams(teamId string, params *SearchParameter) 
 	} else {
 		route = c.teamRoute(teamId) + "/posts/search"
 	}
-	r, err := c.DoAPIPost(route, string(js))
+	r, err := c.DoAPIPost(ctx, route, string(js))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4255,7 +4201,7 @@ func (c *Client4) SearchPostsWithParams(teamId string, params *SearchParameter) 
 }
 
 // SearchPostsWithMatches returns any posts with matching terms string, including.
-func (c *Client4) SearchPostsWithMatches(teamId string, terms string, isOrSearch bool) (*PostSearchResults, *Response, error) {
+func (c *Client4) SearchPostsWithMatches(ctx context.Context, teamId string, terms string, isOrSearch bool) (*PostSearchResults, *Response, error) {
 	requestBody := map[string]any{"terms": terms, "is_or_search": isOrSearch}
 	var route string
 	if teamId == "" {
@@ -4263,7 +4209,7 @@ func (c *Client4) SearchPostsWithMatches(teamId string, terms string, isOrSearch
 	} else {
 		route = c.teamRoute(teamId) + "/posts/search"
 	}
-	r, err := c.DoAPIPost(route, StringInterfaceToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, route, StringInterfaceToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4276,8 +4222,8 @@ func (c *Client4) SearchPostsWithMatches(teamId string, terms string, isOrSearch
 }
 
 // DoPostAction performs a post action.
-func (c *Client4) DoPostAction(postId, actionId string) (*Response, error) {
-	r, err := c.DoAPIPost(c.postRoute(postId)+"/actions/"+actionId, "")
+func (c *Client4) DoPostAction(ctx context.Context, postId, actionId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/actions/"+actionId, "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4286,7 +4232,7 @@ func (c *Client4) DoPostAction(postId, actionId string) (*Response, error) {
 }
 
 // DoPostActionWithCookie performs a post action with extra arguments
-func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr string) (*Response, error) {
+func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, selected, cookieStr string) (*Response, error) {
 	var body []byte
 	if selected != "" || cookieStr != "" {
 		var err error
@@ -4298,7 +4244,7 @@ func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr s
 			return nil, NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
-	r, err := c.DoAPIPost(c.postRoute(postId)+"/actions/"+actionId, string(body))
+	r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/actions/"+actionId, string(body))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4306,51 +4252,16 @@ func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr s
 	return BuildResponse(r), nil
 }
 
-// GetTopThreadsForTeamSince will return an ordered list of the top channels in a given team.
-func (c *Client4) GetTopThreadsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopThreadList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/threads"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topThreads *TopThreadList
-	if err := json.NewDecoder(r.Body).Decode(&topThreads); err != nil {
-		return nil, nil, NewAppError("GetTopThreadsForTeamSince", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topThreads, BuildResponse(r), nil
-}
-
-// GetTopThreadsForUserSince will return an ordered list of your top channels in a given team.
-func (c *Client4) GetTopThreadsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopThreadList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-
-	if teamId != "" {
-		query += fmt.Sprintf("&team_id=%v", teamId)
-	}
-
-	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/threads"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topThreads *TopThreadList
-	if err := json.NewDecoder(r.Body).Decode(&topThreads); err != nil {
-		return nil, nil, NewAppError("GetTopThreadsForUserSince", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topThreads, BuildResponse(r), nil
-}
-
 // OpenInteractiveDialog sends a WebSocket event to a user's clients to
 // open interactive dialogs, based on the provided trigger ID and other
 // provided data. Used with interactive message buttons, menus and
 // slash commands.
-func (c *Client4) OpenInteractiveDialog(request OpenDialogRequest) (*Response, error) {
+func (c *Client4) OpenInteractiveDialog(ctx context.Context, request OpenDialogRequest) (*Response, error) {
 	b, err := json.Marshal(request)
 	if err != nil {
 		return nil, NewAppError("OpenInteractiveDialog", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost("/actions/dialogs/open", string(b))
+	r, err := c.DoAPIPost(ctx, "/actions/dialogs/open", string(b))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4360,12 +4271,12 @@ func (c *Client4) OpenInteractiveDialog(request OpenDialogRequest) (*Response, e
 
 // SubmitInteractiveDialog will submit the provided dialog data to the integration
 // configured by the URL. Used with the interactive dialogs integration feature.
-func (c *Client4) SubmitInteractiveDialog(request SubmitDialogRequest) (*SubmitDialogResponse, *Response, error) {
+func (c *Client4) SubmitInteractiveDialog(ctx context.Context, request SubmitDialogRequest) (*SubmitDialogResponse, *Response, error) {
 	b, err := json.Marshal(request)
 	if err != nil {
 		return nil, nil, NewAppError("SubmitInteractiveDialog", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost("/actions/dialogs/submit", string(b))
+	r, err := c.DoAPIPost(ctx, "/actions/dialogs/submit", string(b))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4378,7 +4289,7 @@ func (c *Client4) SubmitInteractiveDialog(request SubmitDialogRequest) (*SubmitD
 
 // UploadFile will upload a file to a channel using a multipart request, to be later attached to a post.
 // This method is functionally equivalent to Client4.UploadFileAsRequestBody.
-func (c *Client4) UploadFile(data []byte, channelId string, filename string) (*FileUploadResponse, *Response, error) {
+func (c *Client4) UploadFile(ctx context.Context, data []byte, channelId string, filename string) (*FileUploadResponse, *Response, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -4406,18 +4317,18 @@ func (c *Client4) UploadFile(data []byte, channelId string, filename string) (*F
 		return nil, nil, err
 	}
 
-	return c.DoUploadFile(c.filesRoute(), body.Bytes(), writer.FormDataContentType())
+	return c.DoUploadFile(ctx, c.filesRoute(), body.Bytes(), writer.FormDataContentType())
 }
 
 // UploadFileAsRequestBody will upload a file to a channel as the body of a request, to be later attached
 // to a post. This method is functionally equivalent to Client4.UploadFile.
-func (c *Client4) UploadFileAsRequestBody(data []byte, channelId string, filename string) (*FileUploadResponse, *Response, error) {
-	return c.DoUploadFile(c.filesRoute()+fmt.Sprintf("?channel_id=%v&filename=%v", url.QueryEscape(channelId), url.QueryEscape(filename)), data, http.DetectContentType(data))
+func (c *Client4) UploadFileAsRequestBody(ctx context.Context, data []byte, channelId string, filename string) (*FileUploadResponse, *Response, error) {
+	return c.DoUploadFile(ctx, c.filesRoute()+fmt.Sprintf("?channel_id=%v&filename=%v", url.QueryEscape(channelId), url.QueryEscape(filename)), data, http.DetectContentType(data))
 }
 
 // GetFile gets the bytes for a file by id.
-func (c *Client4) GetFile(fileId string) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(c.fileRoute(fileId), "")
+func (c *Client4) GetFile(ctx context.Context, fileId string) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4431,8 +4342,8 @@ func (c *Client4) GetFile(fileId string) ([]byte, *Response, error) {
 }
 
 // DownloadFile gets the bytes for a file by id, optionally adding headers to force the browser to download it.
-func (c *Client4) DownloadFile(fileId string, download bool) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(c.fileRoute(fileId)+fmt.Sprintf("?download=%v", download), "")
+func (c *Client4) DownloadFile(ctx context.Context, fileId string, download bool) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+fmt.Sprintf("?download=%v", download), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4446,8 +4357,8 @@ func (c *Client4) DownloadFile(fileId string, download bool) ([]byte, *Response,
 }
 
 // GetFileThumbnail gets the bytes for a file by id.
-func (c *Client4) GetFileThumbnail(fileId string) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(c.fileRoute(fileId)+"/thumbnail", "")
+func (c *Client4) GetFileThumbnail(ctx context.Context, fileId string) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+"/thumbnail", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4461,8 +4372,8 @@ func (c *Client4) GetFileThumbnail(fileId string) ([]byte, *Response, error) {
 }
 
 // DownloadFileThumbnail gets the bytes for a file by id, optionally adding headers to force the browser to download it.
-func (c *Client4) DownloadFileThumbnail(fileId string, download bool) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(c.fileRoute(fileId)+fmt.Sprintf("/thumbnail?download=%v", download), "")
+func (c *Client4) DownloadFileThumbnail(ctx context.Context, fileId string, download bool) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+fmt.Sprintf("/thumbnail?download=%v", download), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4476,8 +4387,8 @@ func (c *Client4) DownloadFileThumbnail(fileId string, download bool) ([]byte, *
 }
 
 // GetFileLink gets the public link of a file by id.
-func (c *Client4) GetFileLink(fileId string) (string, *Response, error) {
-	r, err := c.DoAPIGet(c.fileRoute(fileId)+"/link", "")
+func (c *Client4) GetFileLink(ctx context.Context, fileId string) (string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+"/link", "")
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -4486,8 +4397,8 @@ func (c *Client4) GetFileLink(fileId string) (string, *Response, error) {
 }
 
 // GetFilePreview gets the bytes for a file by id.
-func (c *Client4) GetFilePreview(fileId string) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(c.fileRoute(fileId)+"/preview", "")
+func (c *Client4) GetFilePreview(ctx context.Context, fileId string) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+"/preview", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4501,8 +4412,8 @@ func (c *Client4) GetFilePreview(fileId string) ([]byte, *Response, error) {
 }
 
 // DownloadFilePreview gets the bytes for a file by id.
-func (c *Client4) DownloadFilePreview(fileId string, download bool) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(c.fileRoute(fileId)+fmt.Sprintf("/preview?download=%v", download), "")
+func (c *Client4) DownloadFilePreview(ctx context.Context, fileId string, download bool) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+fmt.Sprintf("/preview?download=%v", download), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4516,8 +4427,8 @@ func (c *Client4) DownloadFilePreview(fileId string, download bool) ([]byte, *Re
 }
 
 // GetFileInfo gets all the file info objects.
-func (c *Client4) GetFileInfo(fileId string) (*FileInfo, *Response, error) {
-	r, err := c.DoAPIGet(c.fileRoute(fileId)+"/info", "")
+func (c *Client4) GetFileInfo(ctx context.Context, fileId string) (*FileInfo, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+"/info", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4531,8 +4442,8 @@ func (c *Client4) GetFileInfo(fileId string) (*FileInfo, *Response, error) {
 }
 
 // GetFileInfosForPost gets all the file info objects attached to a post.
-func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, *Response, error) {
-	r, err := c.DoAPIGet(c.postRoute(postId)+"/files/info", etag)
+func (c *Client4) GetFileInfosForPost(ctx context.Context, postId string, etag string) ([]*FileInfo, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.postRoute(postId)+"/files/info", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4549,8 +4460,8 @@ func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, 
 }
 
 // GetFileInfosForPost gets all the file info objects attached to a post, including deleted
-func (c *Client4) GetFileInfosForPostIncludeDeleted(postId string, etag string) ([]*FileInfo, *Response, error) {
-	r, err := c.DoAPIGet(c.postRoute(postId)+"/files/info"+"?include_deleted="+c.boolString(true), etag)
+func (c *Client4) GetFileInfosForPostIncludeDeleted(ctx context.Context, postId string, etag string) ([]*FileInfo, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.postRoute(postId)+"/files/info"+"?include_deleted="+c.boolString(true), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4569,8 +4480,8 @@ func (c *Client4) GetFileInfosForPostIncludeDeleted(postId string, etag string) 
 // General/System Section
 
 // GenerateSupportPacket downloads the generated support packet
-func (c *Client4) GenerateSupportPacket() ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(c.systemRoute()+"/support_packet", "")
+func (c *Client4) GenerateSupportPacket(ctx context.Context) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/support_packet", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4584,8 +4495,8 @@ func (c *Client4) GenerateSupportPacket() ([]byte, *Response, error) {
 }
 
 // GetPing will return ok if the running goRoutines are below the threshold and unhealthy for above.
-func (c *Client4) GetPing() (string, *Response, error) {
-	r, err := c.DoAPIGet(c.systemRoute()+"/ping", "")
+func (c *Client4) GetPing(ctx context.Context) (string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/ping", "")
 	if r != nil && r.StatusCode == 500 {
 		defer r.Body.Close()
 		return StatusUnhealthy, BuildResponse(r), err
@@ -4599,8 +4510,8 @@ func (c *Client4) GetPing() (string, *Response, error) {
 
 // GetPingWithServerStatus will return ok if several basic server health checks
 // all pass successfully.
-func (c *Client4) GetPingWithServerStatus() (string, *Response, error) {
-	r, err := c.DoAPIGet(c.systemRoute()+"/ping?get_server_status="+c.boolString(true), "")
+func (c *Client4) GetPingWithServerStatus(ctx context.Context) (string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/ping?get_server_status="+c.boolString(true), "")
 	if r != nil && r.StatusCode == 500 {
 		defer r.Body.Close()
 		return StatusUnhealthy, BuildResponse(r), err
@@ -4614,8 +4525,8 @@ func (c *Client4) GetPingWithServerStatus() (string, *Response, error) {
 
 // GetPingWithFullServerStatus will return the full status if several basic server
 // health checks all pass successfully.
-func (c *Client4) GetPingWithFullServerStatus() (map[string]string, *Response, error) {
-	r, err := c.DoAPIGet(c.systemRoute()+"/ping?get_server_status="+c.boolString(true), "")
+func (c *Client4) GetPingWithFullServerStatus(ctx context.Context) (map[string]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/ping?get_server_status="+c.boolString(true), "")
 	if r != nil && r.StatusCode == 500 {
 		defer r.Body.Close()
 		return map[string]string{"status": StatusUnhealthy}, BuildResponse(r), err
@@ -4628,12 +4539,12 @@ func (c *Client4) GetPingWithFullServerStatus() (map[string]string, *Response, e
 }
 
 // TestEmail will attempt to connect to the configured SMTP server.
-func (c *Client4) TestEmail(config *Config) (*Response, error) {
+func (c *Client4) TestEmail(ctx context.Context, config *Config) (*Response, error) {
 	buf, err := json.Marshal(config)
 	if err != nil {
 		return nil, NewAppError("TestEmail", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.testEmailRoute(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.testEmailRoute(), buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4642,10 +4553,10 @@ func (c *Client4) TestEmail(config *Config) (*Response, error) {
 }
 
 // TestSiteURL will test the validity of a site URL.
-func (c *Client4) TestSiteURL(siteURL string) (*Response, error) {
+func (c *Client4) TestSiteURL(ctx context.Context, siteURL string) (*Response, error) {
 	requestBody := make(map[string]string)
 	requestBody["site_url"] = siteURL
-	r, err := c.DoAPIPost(c.testSiteURLRoute(), MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.testSiteURLRoute(), MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4654,12 +4565,12 @@ func (c *Client4) TestSiteURL(siteURL string) (*Response, error) {
 }
 
 // TestS3Connection will attempt to connect to the AWS S3.
-func (c *Client4) TestS3Connection(config *Config) (*Response, error) {
+func (c *Client4) TestS3Connection(ctx context.Context, config *Config) (*Response, error) {
 	buf, err := json.Marshal(config)
 	if err != nil {
 		return nil, NewAppError("TestS3Connection", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.testS3Route(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.testS3Route(), buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4668,8 +4579,8 @@ func (c *Client4) TestS3Connection(config *Config) (*Response, error) {
 }
 
 // GetConfig will retrieve the server config with some sanitized items.
-func (c *Client4) GetConfig() (*Config, *Response, error) {
-	r, err := c.DoAPIGet(c.configRoute(), "")
+func (c *Client4) GetConfig(ctx context.Context) (*Config, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.configRoute(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4681,8 +4592,8 @@ func (c *Client4) GetConfig() (*Config, *Response, error) {
 }
 
 // ReloadConfig will reload the server configuration.
-func (c *Client4) ReloadConfig() (*Response, error) {
-	r, err := c.DoAPIPost(c.configRoute()+"/reload", "")
+func (c *Client4) ReloadConfig(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.configRoute()+"/reload", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4692,8 +4603,8 @@ func (c *Client4) ReloadConfig() (*Response, error) {
 
 // GetOldClientConfig will retrieve the parts of the server configuration needed by the
 // client, formatted in the old format.
-func (c *Client4) GetOldClientConfig(etag string) (map[string]string, *Response, error) {
-	r, err := c.DoAPIGet(c.configRoute()+"/client?format=old", etag)
+func (c *Client4) GetOldClientConfig(ctx context.Context, etag string) (map[string]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.configRoute()+"/client?format=old", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4704,8 +4615,8 @@ func (c *Client4) GetOldClientConfig(etag string) (map[string]string, *Response,
 // GetEnvironmentConfig will retrieve a map mirroring the server configuration where fields
 // are set to true if the corresponding config setting is set through an environment variable.
 // Settings that haven't been set through environment variables will be missing from the map.
-func (c *Client4) GetEnvironmentConfig() (map[string]any, *Response, error) {
-	r, err := c.DoAPIGet(c.configRoute()+"/environment", "")
+func (c *Client4) GetEnvironmentConfig(ctx context.Context) (map[string]any, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.configRoute()+"/environment", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4715,8 +4626,8 @@ func (c *Client4) GetEnvironmentConfig() (map[string]any, *Response, error) {
 
 // GetOldClientLicense will retrieve the parts of the server license needed by the
 // client, formatted in the old format.
-func (c *Client4) GetOldClientLicense(etag string) (map[string]string, *Response, error) {
-	r, err := c.DoAPIGet(c.licenseRoute()+"/client?format=old", etag)
+func (c *Client4) GetOldClientLicense(ctx context.Context, etag string) (map[string]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.licenseRoute()+"/client?format=old", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4725,8 +4636,8 @@ func (c *Client4) GetOldClientLicense(etag string) (map[string]string, *Response
 }
 
 // DatabaseRecycle will recycle the connections. Discard current connection and get new one.
-func (c *Client4) DatabaseRecycle() (*Response, error) {
-	r, err := c.DoAPIPost(c.databaseRoute()+"/recycle", "")
+func (c *Client4) DatabaseRecycle(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.databaseRoute()+"/recycle", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4735,8 +4646,8 @@ func (c *Client4) DatabaseRecycle() (*Response, error) {
 }
 
 // InvalidateCaches will purge the cache and can affect the performance while is cleaning.
-func (c *Client4) InvalidateCaches() (*Response, error) {
-	r, err := c.DoAPIPost(c.cacheRoute()+"/invalidate", "")
+func (c *Client4) InvalidateCaches(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.cacheRoute()+"/invalidate", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4745,12 +4656,12 @@ func (c *Client4) InvalidateCaches() (*Response, error) {
 }
 
 // UpdateConfig will update the server configuration.
-func (c *Client4) UpdateConfig(config *Config) (*Config, *Response, error) {
+func (c *Client4) UpdateConfig(ctx context.Context, config *Config) (*Config, *Response, error) {
 	buf, err := json.Marshal(config)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.configRoute(), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.configRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4765,11 +4676,11 @@ func (c *Client4) UpdateConfig(config *Config) (*Config, *Response, error) {
 // DEPRECATED: The config migrate API has been moved to be a purely
 // mmctl --local endpoint. This method will be removed in a
 // future major release.
-func (c *Client4) MigrateConfig(from, to string) (*Response, error) {
+func (c *Client4) MigrateConfig(ctx context.Context, from, to string) (*Response, error) {
 	m := make(map[string]string, 2)
 	m["from"] = from
 	m["to"] = to
-	r, err := c.DoAPIPost(c.configRoute()+"/migrate", MapToJSON(m))
+	r, err := c.DoAPIPost(ctx, c.configRoute()+"/migrate", MapToJSON(m))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4778,7 +4689,7 @@ func (c *Client4) MigrateConfig(from, to string) (*Response, error) {
 }
 
 // UploadLicenseFile will add a license file to the system.
-func (c *Client4) UploadLicenseFile(data []byte) (*Response, error) {
+func (c *Client4) UploadLicenseFile(ctx context.Context, data []byte) (*Response, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -4820,8 +4731,8 @@ func (c *Client4) UploadLicenseFile(data []byte) (*Response, error) {
 
 // RemoveLicenseFile will remove the server license it exists. Note that this will
 // disable all enterprise features.
-func (c *Client4) RemoveLicenseFile() (*Response, error) {
-	r, err := c.DoAPIDelete(c.licenseRoute())
+func (c *Client4) RemoveLicenseFile(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.licenseRoute())
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4833,9 +4744,9 @@ func (c *Client4) RemoveLicenseFile() (*Response, error) {
 // available but the "/analytics" endpoint is reserved for it. The "name" argument is optional
 // and defaults to "standard". The "teamId" argument is optional and will limit results
 // to a specific team.
-func (c *Client4) GetAnalyticsOld(name, teamId string) (AnalyticsRows, *Response, error) {
+func (c *Client4) GetAnalyticsOld(ctx context.Context, name, teamId string) (AnalyticsRows, *Response, error) {
 	query := fmt.Sprintf("?name=%v&team_id=%v", name, teamId)
-	r, err := c.DoAPIGet(c.analyticsRoute()+"/old"+query, "")
+	r, err := c.DoAPIGet(ctx, c.analyticsRoute()+"/old"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4852,12 +4763,12 @@ func (c *Client4) GetAnalyticsOld(name, teamId string) (AnalyticsRows, *Response
 // Webhooks Section
 
 // CreateIncomingWebhook creates an incoming webhook for a channel.
-func (c *Client4) CreateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook, *Response, error) {
+func (c *Client4) CreateIncomingWebhook(ctx context.Context, hook *IncomingWebhook) (*IncomingWebhook, *Response, error) {
 	buf, err := json.Marshal(hook)
 	if err != nil {
 		return nil, nil, NewAppError("CreateIncomingWebhook", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.incomingWebhooksRoute(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.incomingWebhooksRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4871,12 +4782,12 @@ func (c *Client4) CreateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook
 }
 
 // UpdateIncomingWebhook updates an incoming webhook for a channel.
-func (c *Client4) UpdateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook, *Response, error) {
+func (c *Client4) UpdateIncomingWebhook(ctx context.Context, hook *IncomingWebhook) (*IncomingWebhook, *Response, error) {
 	buf, err := json.Marshal(hook)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateIncomingWebhook", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.incomingWebhookRoute(hook.Id), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.incomingWebhookRoute(hook.Id), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4890,9 +4801,9 @@ func (c *Client4) UpdateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook
 }
 
 // GetIncomingWebhooks returns a page of incoming webhooks on the system. Page counting starts at 0.
-func (c *Client4) GetIncomingWebhooks(page int, perPage int, etag string) ([]*IncomingWebhook, *Response, error) {
+func (c *Client4) GetIncomingWebhooks(ctx context.Context, page int, perPage int, etag string) ([]*IncomingWebhook, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.incomingWebhooksRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.incomingWebhooksRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4908,9 +4819,9 @@ func (c *Client4) GetIncomingWebhooks(page int, perPage int, etag string) ([]*In
 }
 
 // GetIncomingWebhooksForTeam returns a page of incoming webhooks for a team. Page counting starts at 0.
-func (c *Client4) GetIncomingWebhooksForTeam(teamId string, page int, perPage int, etag string) ([]*IncomingWebhook, *Response, error) {
+func (c *Client4) GetIncomingWebhooksForTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*IncomingWebhook, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&team_id=%v", page, perPage, teamId)
-	r, err := c.DoAPIGet(c.incomingWebhooksRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.incomingWebhooksRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4926,8 +4837,8 @@ func (c *Client4) GetIncomingWebhooksForTeam(teamId string, page int, perPage in
 }
 
 // GetIncomingWebhook returns an Incoming webhook given the hook ID.
-func (c *Client4) GetIncomingWebhook(hookID string, etag string) (*IncomingWebhook, *Response, error) {
-	r, err := c.DoAPIGet(c.incomingWebhookRoute(hookID), etag)
+func (c *Client4) GetIncomingWebhook(ctx context.Context, hookID string, etag string) (*IncomingWebhook, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.incomingWebhookRoute(hookID), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4943,8 +4854,8 @@ func (c *Client4) GetIncomingWebhook(hookID string, etag string) (*IncomingWebho
 }
 
 // DeleteIncomingWebhook deletes and Incoming Webhook given the hook ID.
-func (c *Client4) DeleteIncomingWebhook(hookID string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.incomingWebhookRoute(hookID))
+func (c *Client4) DeleteIncomingWebhook(ctx context.Context, hookID string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.incomingWebhookRoute(hookID))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4953,12 +4864,12 @@ func (c *Client4) DeleteIncomingWebhook(hookID string) (*Response, error) {
 }
 
 // CreateOutgoingWebhook creates an outgoing webhook for a team or channel.
-func (c *Client4) CreateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook, *Response, error) {
+func (c *Client4) CreateOutgoingWebhook(ctx context.Context, hook *OutgoingWebhook) (*OutgoingWebhook, *Response, error) {
 	buf, err := json.Marshal(hook)
 	if err != nil {
 		return nil, nil, NewAppError("CreateOutgoingWebhook", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.outgoingWebhooksRoute(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.outgoingWebhooksRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4971,12 +4882,12 @@ func (c *Client4) CreateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook
 }
 
 // UpdateOutgoingWebhook creates an outgoing webhook for a team or channel.
-func (c *Client4) UpdateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook, *Response, error) {
+func (c *Client4) UpdateOutgoingWebhook(ctx context.Context, hook *OutgoingWebhook) (*OutgoingWebhook, *Response, error) {
 	buf, err := json.Marshal(hook)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateOutgoingWebhook", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.outgoingWebhookRoute(hook.Id), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.outgoingWebhookRoute(hook.Id), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4989,9 +4900,9 @@ func (c *Client4) UpdateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook
 }
 
 // GetOutgoingWebhooks returns a page of outgoing webhooks on the system. Page counting starts at 0.
-func (c *Client4) GetOutgoingWebhooks(page int, perPage int, etag string) ([]*OutgoingWebhook, *Response, error) {
+func (c *Client4) GetOutgoingWebhooks(ctx context.Context, page int, perPage int, etag string) ([]*OutgoingWebhook, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.outgoingWebhooksRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.outgoingWebhooksRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5007,8 +4918,8 @@ func (c *Client4) GetOutgoingWebhooks(page int, perPage int, etag string) ([]*Ou
 }
 
 // GetOutgoingWebhook outgoing webhooks on the system requested by Hook Id.
-func (c *Client4) GetOutgoingWebhook(hookId string) (*OutgoingWebhook, *Response, error) {
-	r, err := c.DoAPIGet(c.outgoingWebhookRoute(hookId), "")
+func (c *Client4) GetOutgoingWebhook(ctx context.Context, hookId string) (*OutgoingWebhook, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.outgoingWebhookRoute(hookId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5021,9 +4932,9 @@ func (c *Client4) GetOutgoingWebhook(hookId string) (*OutgoingWebhook, *Response
 }
 
 // GetOutgoingWebhooksForChannel returns a page of outgoing webhooks for a channel. Page counting starts at 0.
-func (c *Client4) GetOutgoingWebhooksForChannel(channelId string, page int, perPage int, etag string) ([]*OutgoingWebhook, *Response, error) {
+func (c *Client4) GetOutgoingWebhooksForChannel(ctx context.Context, channelId string, page int, perPage int, etag string) ([]*OutgoingWebhook, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&channel_id=%v", page, perPage, channelId)
-	r, err := c.DoAPIGet(c.outgoingWebhooksRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.outgoingWebhooksRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5039,9 +4950,9 @@ func (c *Client4) GetOutgoingWebhooksForChannel(channelId string, page int, perP
 }
 
 // GetOutgoingWebhooksForTeam returns a page of outgoing webhooks for a team. Page counting starts at 0.
-func (c *Client4) GetOutgoingWebhooksForTeam(teamId string, page int, perPage int, etag string) ([]*OutgoingWebhook, *Response, error) {
+func (c *Client4) GetOutgoingWebhooksForTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*OutgoingWebhook, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&team_id=%v", page, perPage, teamId)
-	r, err := c.DoAPIGet(c.outgoingWebhooksRoute()+query, etag)
+	r, err := c.DoAPIGet(ctx, c.outgoingWebhooksRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5057,8 +4968,8 @@ func (c *Client4) GetOutgoingWebhooksForTeam(teamId string, page int, perPage in
 }
 
 // RegenOutgoingHookToken regenerate the outgoing webhook token.
-func (c *Client4) RegenOutgoingHookToken(hookId string) (*OutgoingWebhook, *Response, error) {
-	r, err := c.DoAPIPost(c.outgoingWebhookRoute(hookId)+"/regen_token", "")
+func (c *Client4) RegenOutgoingHookToken(ctx context.Context, hookId string) (*OutgoingWebhook, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.outgoingWebhookRoute(hookId)+"/regen_token", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5071,8 +4982,8 @@ func (c *Client4) RegenOutgoingHookToken(hookId string) (*OutgoingWebhook, *Resp
 }
 
 // DeleteOutgoingWebhook delete the outgoing webhook on the system requested by Hook Id.
-func (c *Client4) DeleteOutgoingWebhook(hookId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.outgoingWebhookRoute(hookId))
+func (c *Client4) DeleteOutgoingWebhook(ctx context.Context, hookId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.outgoingWebhookRoute(hookId))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5083,8 +4994,8 @@ func (c *Client4) DeleteOutgoingWebhook(hookId string) (*Response, error) {
 // Preferences Section
 
 // GetPreferences returns the user's preferences.
-func (c *Client4) GetPreferences(userId string) (Preferences, *Response, error) {
-	r, err := c.DoAPIGet(c.preferencesRoute(userId), "")
+func (c *Client4) GetPreferences(ctx context.Context, userId string) (Preferences, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.preferencesRoute(userId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5098,12 +5009,12 @@ func (c *Client4) GetPreferences(userId string) (Preferences, *Response, error) 
 }
 
 // UpdatePreferences saves the user's preferences.
-func (c *Client4) UpdatePreferences(userId string, preferences Preferences) (*Response, error) {
+func (c *Client4) UpdatePreferences(ctx context.Context, userId string, preferences Preferences) (*Response, error) {
 	buf, err := json.Marshal(preferences)
 	if err != nil {
 		return nil, NewAppError("UpdatePreferences", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.preferencesRoute(userId), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.preferencesRoute(userId), buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5112,12 +5023,12 @@ func (c *Client4) UpdatePreferences(userId string, preferences Preferences) (*Re
 }
 
 // DeletePreferences deletes the user's preferences.
-func (c *Client4) DeletePreferences(userId string, preferences Preferences) (*Response, error) {
+func (c *Client4) DeletePreferences(ctx context.Context, userId string, preferences Preferences) (*Response, error) {
 	buf, err := json.Marshal(preferences)
 	if err != nil {
 		return nil, NewAppError("DeletePreferences", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.preferencesRoute(userId)+"/delete", buf)
+	r, err := c.DoAPIPostBytes(ctx, c.preferencesRoute(userId)+"/delete", buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5126,9 +5037,9 @@ func (c *Client4) DeletePreferences(userId string, preferences Preferences) (*Re
 }
 
 // GetPreferencesByCategory returns the user's preferences from the provided category string.
-func (c *Client4) GetPreferencesByCategory(userId string, category string) (Preferences, *Response, error) {
+func (c *Client4) GetPreferencesByCategory(ctx context.Context, userId string, category string) (Preferences, *Response, error) {
 	url := fmt.Sprintf(c.preferencesRoute(userId)+"/%s", category)
-	r, err := c.DoAPIGet(url, "")
+	r, err := c.DoAPIGet(ctx, url, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5141,9 +5052,9 @@ func (c *Client4) GetPreferencesByCategory(userId string, category string) (Pref
 }
 
 // GetPreferenceByCategoryAndName returns the user's preferences from the provided category and preference name string.
-func (c *Client4) GetPreferenceByCategoryAndName(userId string, category string, preferenceName string) (*Preference, *Response, error) {
+func (c *Client4) GetPreferenceByCategoryAndName(ctx context.Context, userId string, category string, preferenceName string) (*Preference, *Response, error) {
 	url := fmt.Sprintf(c.preferencesRoute(userId)+"/%s/name/%v", category, preferenceName)
-	r, err := c.DoAPIGet(url, "")
+	r, err := c.DoAPIGet(ctx, url, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5159,8 +5070,8 @@ func (c *Client4) GetPreferenceByCategoryAndName(userId string, category string,
 // SAML Section
 
 // GetSamlMetadata returns metadata for the SAML configuration.
-func (c *Client4) GetSamlMetadata() (string, *Response, error) {
-	r, err := c.DoAPIGet(c.samlRoute()+"/metadata", "")
+func (c *Client4) GetSamlMetadata(ctx context.Context) (string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.samlRoute()+"/metadata", "")
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -5197,43 +5108,43 @@ func fileToMultipart(data []byte, filename string) ([]byte, *multipart.Writer, e
 
 // UploadSamlIdpCertificate will upload an IDP certificate for SAML and set the config to use it.
 // The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
-func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (*Response, error) {
+func (c *Client4) UploadSamlIdpCertificate(ctx context.Context, data []byte, filename string) (*Response, error) {
 	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
 		return nil, NewAppError("UploadSamlIdpCertificate", "model.client.upload_saml_cert.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	_, resp, err := c.DoUploadFile(c.samlRoute()+"/certificate/idp", body, writer.FormDataContentType())
+	_, resp, err := c.DoUploadFile(ctx, c.samlRoute()+"/certificate/idp", body, writer.FormDataContentType())
 	return resp, err
 }
 
 // UploadSamlPublicCertificate will upload a public certificate for SAML and set the config to use it.
 // The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
-func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (*Response, error) {
+func (c *Client4) UploadSamlPublicCertificate(ctx context.Context, data []byte, filename string) (*Response, error) {
 	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
 		return nil, NewAppError("UploadSamlPublicCertificate", "model.client.upload_saml_cert.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	_, resp, err := c.DoUploadFile(c.samlRoute()+"/certificate/public", body, writer.FormDataContentType())
+	_, resp, err := c.DoUploadFile(ctx, c.samlRoute()+"/certificate/public", body, writer.FormDataContentType())
 	return resp, err
 }
 
 // UploadSamlPrivateCertificate will upload a private key for SAML and set the config to use it.
 // The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
-func (c *Client4) UploadSamlPrivateCertificate(data []byte, filename string) (*Response, error) {
+func (c *Client4) UploadSamlPrivateCertificate(ctx context.Context, data []byte, filename string) (*Response, error) {
 	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
 		return nil, NewAppError("UploadSamlPrivateCertificate", "model.client.upload_saml_cert.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	_, resp, err := c.DoUploadFile(c.samlRoute()+"/certificate/private", body, writer.FormDataContentType())
+	_, resp, err := c.DoUploadFile(ctx, c.samlRoute()+"/certificate/private", body, writer.FormDataContentType())
 	return resp, err
 }
 
 // DeleteSamlIdpCertificate deletes the SAML IDP certificate from the server and updates the config to not use it and disable SAML.
-func (c *Client4) DeleteSamlIdpCertificate() (*Response, error) {
-	r, err := c.DoAPIDelete(c.samlRoute() + "/certificate/idp")
+func (c *Client4) DeleteSamlIdpCertificate(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.samlRoute()+"/certificate/idp")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5242,8 +5153,8 @@ func (c *Client4) DeleteSamlIdpCertificate() (*Response, error) {
 }
 
 // DeleteSamlPublicCertificate deletes the SAML IDP certificate from the server and updates the config to not use it and disable SAML.
-func (c *Client4) DeleteSamlPublicCertificate() (*Response, error) {
-	r, err := c.DoAPIDelete(c.samlRoute() + "/certificate/public")
+func (c *Client4) DeleteSamlPublicCertificate(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.samlRoute()+"/certificate/public")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5252,8 +5163,8 @@ func (c *Client4) DeleteSamlPublicCertificate() (*Response, error) {
 }
 
 // DeleteSamlPrivateCertificate deletes the SAML IDP certificate from the server and updates the config to not use it and disable SAML.
-func (c *Client4) DeleteSamlPrivateCertificate() (*Response, error) {
-	r, err := c.DoAPIDelete(c.samlRoute() + "/certificate/private")
+func (c *Client4) DeleteSamlPrivateCertificate(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.samlRoute()+"/certificate/private")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5262,8 +5173,8 @@ func (c *Client4) DeleteSamlPrivateCertificate() (*Response, error) {
 }
 
 // GetSamlCertificateStatus returns metadata for the SAML configuration.
-func (c *Client4) GetSamlCertificateStatus() (*SamlCertificateStatus, *Response, error) {
-	r, err := c.DoAPIGet(c.samlRoute()+"/certificate/status", "")
+func (c *Client4) GetSamlCertificateStatus(ctx context.Context) (*SamlCertificateStatus, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.samlRoute()+"/certificate/status", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5276,10 +5187,10 @@ func (c *Client4) GetSamlCertificateStatus() (*SamlCertificateStatus, *Response,
 	return &status, BuildResponse(r), nil
 }
 
-func (c *Client4) GetSamlMetadataFromIdp(samlMetadataURL string) (*SamlMetadataResponse, *Response, error) {
+func (c *Client4) GetSamlMetadataFromIdp(ctx context.Context, samlMetadataURL string) (*SamlMetadataResponse, *Response, error) {
 	requestBody := make(map[string]string)
 	requestBody["saml_metadata_url"] = samlMetadataURL
-	r, err := c.DoAPIPost(c.samlRoute()+"/metadatafromidp", MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.samlRoute()+"/metadatafromidp", MapToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5293,7 +5204,7 @@ func (c *Client4) GetSamlMetadataFromIdp(samlMetadataURL string) (*SamlMetadataR
 }
 
 // ResetSamlAuthDataToEmail resets the AuthData field of SAML users to their Email.
-func (c *Client4) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (int64, *Response, error) {
+func (c *Client4) ResetSamlAuthDataToEmail(ctx context.Context, includeDeleted bool, dryRun bool, userIDs []string) (int64, *Response, error) {
 	params := map[string]any{
 		"include_deleted": includeDeleted,
 		"dry_run":         dryRun,
@@ -5303,7 +5214,7 @@ func (c *Client4) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, use
 	if err != nil {
 		return 0, nil, NewAppError("ResetSamlAuthDataToEmail", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.samlRoute()+"/reset_auth_data", b)
+	r, err := c.DoAPIPostBytes(ctx, c.samlRoute()+"/reset_auth_data", b)
 	if err != nil {
 		return 0, BuildResponse(r), err
 	}
@@ -5319,12 +5230,12 @@ func (c *Client4) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, use
 // Compliance Section
 
 // CreateComplianceReport creates an incoming webhook for a channel.
-func (c *Client4) CreateComplianceReport(report *Compliance) (*Compliance, *Response, error) {
+func (c *Client4) CreateComplianceReport(ctx context.Context, report *Compliance) (*Compliance, *Response, error) {
 	buf, err := json.Marshal(report)
 	if err != nil {
 		return nil, nil, NewAppError("CreateComplianceReport", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.complianceReportsRoute(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.complianceReportsRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5337,9 +5248,9 @@ func (c *Client4) CreateComplianceReport(report *Compliance) (*Compliance, *Resp
 }
 
 // GetComplianceReports returns list of compliance reports.
-func (c *Client4) GetComplianceReports(page, perPage int) (Compliances, *Response, error) {
+func (c *Client4) GetComplianceReports(ctx context.Context, page, perPage int) (Compliances, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.complianceReportsRoute()+query, "")
+	r, err := c.DoAPIGet(ctx, c.complianceReportsRoute()+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5352,8 +5263,8 @@ func (c *Client4) GetComplianceReports(page, perPage int) (Compliances, *Respons
 }
 
 // GetComplianceReport returns a compliance report.
-func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response, error) {
-	r, err := c.DoAPIGet(c.complianceReportRoute(reportId), "")
+func (c *Client4) GetComplianceReport(ctx context.Context, reportId string) (*Compliance, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.complianceReportRoute(reportId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5366,7 +5277,7 @@ func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response, 
 }
 
 // DownloadComplianceReport returns a full compliance report as a file.
-func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response, error) {
+func (c *Client4) DownloadComplianceReport(ctx context.Context, reportId string) ([]byte, *Response, error) {
 	rq, err := http.NewRequest("GET", c.APIURL+c.complianceReportDownloadRoute(reportId), nil)
 	if err != nil {
 		return nil, nil, err
@@ -5397,8 +5308,8 @@ func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response, 
 // Cluster Section
 
 // GetClusterStatus returns the status of all the configured cluster nodes.
-func (c *Client4) GetClusterStatus() ([]*ClusterInfo, *Response, error) {
-	r, err := c.DoAPIGet(c.clusterRoute()+"/status", "")
+func (c *Client4) GetClusterStatus(ctx context.Context) ([]*ClusterInfo, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.clusterRoute()+"/status", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5415,14 +5326,14 @@ func (c *Client4) GetClusterStatus() ([]*ClusterInfo, *Response, error) {
 // SyncLdap will force a sync with the configured LDAP server.
 // If includeRemovedMembers is true, then group members who left or were removed from a
 // synced team/channel will be re-joined; otherwise, they will be excluded.
-func (c *Client4) SyncLdap(includeRemovedMembers bool) (*Response, error) {
+func (c *Client4) SyncLdap(ctx context.Context, includeRemovedMembers bool) (*Response, error) {
 	reqBody, err := json.Marshal(map[string]any{
 		"include_removed_members": includeRemovedMembers,
 	})
 	if err != nil {
 		return nil, NewAppError("SyncLdap", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.ldapRoute()+"/sync", reqBody)
+	r, err := c.DoAPIPostBytes(ctx, c.ldapRoute()+"/sync", reqBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5432,8 +5343,8 @@ func (c *Client4) SyncLdap(includeRemovedMembers bool) (*Response, error) {
 
 // TestLdap will attempt to connect to the configured LDAP server and return OK if configured
 // correctly.
-func (c *Client4) TestLdap() (*Response, error) {
-	r, err := c.DoAPIPost(c.ldapRoute()+"/test", "")
+func (c *Client4) TestLdap(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.ldapRoute()+"/test", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5442,10 +5353,10 @@ func (c *Client4) TestLdap() (*Response, error) {
 }
 
 // GetLdapGroups retrieves the immediate child groups of the given parent group.
-func (c *Client4) GetLdapGroups() ([]*Group, *Response, error) {
+func (c *Client4) GetLdapGroups(ctx context.Context) ([]*Group, *Response, error) {
 	path := fmt.Sprintf("%s/groups", c.ldapRoute())
 
-	r, err := c.DoAPIGet(path, "")
+	r, err := c.DoAPIGet(ctx, path, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5466,10 +5377,10 @@ func (c *Client4) GetLdapGroups() ([]*Group, *Response, error) {
 }
 
 // LinkLdapGroup creates or undeletes a Mattermost group and associates it to the given LDAP group DN.
-func (c *Client4) LinkLdapGroup(dn string) (*Group, *Response, error) {
+func (c *Client4) LinkLdapGroup(ctx context.Context, dn string) (*Group, *Response, error) {
 	path := fmt.Sprintf("%s/groups/%s/link", c.ldapRoute(), dn)
 
-	r, err := c.DoAPIPost(path, "")
+	r, err := c.DoAPIPost(ctx, path, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5483,10 +5394,10 @@ func (c *Client4) LinkLdapGroup(dn string) (*Group, *Response, error) {
 }
 
 // UnlinkLdapGroup deletes the Mattermost group associated with the given LDAP group DN.
-func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response, error) {
+func (c *Client4) UnlinkLdapGroup(ctx context.Context, dn string) (*Group, *Response, error) {
 	path := fmt.Sprintf("%s/groups/%s/link", c.ldapRoute(), dn)
 
-	r, err := c.DoAPIDelete(path)
+	r, err := c.DoAPIDelete(ctx, path)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5500,8 +5411,8 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response, error) {
 }
 
 // MigrateIdLdap migrates the LDAP enabled users to given attribute
-func (c *Client4) MigrateIdLdap(toAttribute string) (*Response, error) {
-	r, err := c.DoAPIPost(c.ldapRoute()+"/migrateid", MapToJSON(map[string]string{
+func (c *Client4) MigrateIdLdap(ctx context.Context, toAttribute string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.ldapRoute()+"/migrateid", MapToJSON(map[string]string{
 		"toAttribute": toAttribute,
 	}))
 	if err != nil {
@@ -5512,12 +5423,12 @@ func (c *Client4) MigrateIdLdap(toAttribute string) (*Response, error) {
 }
 
 // GetGroupsByChannel retrieves the Mattermost Groups associated with a given channel
-func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response, error) {
+func (c *Client4) GetGroupsByChannel(ctx context.Context, channelId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response, error) {
 	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v&filter_allow_reference=%v", c.channelRoute(channelId), opts.Q, opts.IncludeMemberCount, opts.FilterAllowReference)
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
-	r, err := c.DoAPIGet(path, "")
+	r, err := c.DoAPIGet(ctx, path, "")
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
 	}
@@ -5535,12 +5446,12 @@ func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]
 }
 
 // GetGroupsByTeam retrieves the Mattermost Groups associated with a given team
-func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response, error) {
+func (c *Client4) GetGroupsByTeam(ctx context.Context, teamId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response, error) {
 	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v&filter_allow_reference=%v", c.teamRoute(teamId), opts.Q, opts.IncludeMemberCount, opts.FilterAllowReference)
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
-	r, err := c.DoAPIGet(path, "")
+	r, err := c.DoAPIGet(ctx, path, "")
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
 	}
@@ -5558,12 +5469,12 @@ func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*Group
 }
 
 // GetGroupsAssociatedToChannelsByTeam retrieves the Mattermost Groups associated with channels in a given team
-func (c *Client4) GetGroupsAssociatedToChannelsByTeam(teamId string, opts GroupSearchOpts) (map[string][]*GroupWithSchemeAdmin, *Response, error) {
+func (c *Client4) GetGroupsAssociatedToChannelsByTeam(ctx context.Context, teamId string, opts GroupSearchOpts) (map[string][]*GroupWithSchemeAdmin, *Response, error) {
 	path := fmt.Sprintf("%s/groups_by_channels?q=%v&filter_allow_reference=%v", c.teamRoute(teamId), opts.Q, opts.FilterAllowReference)
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
-	r, err := c.DoAPIGet(path, "")
+	r, err := c.DoAPIGet(ctx, path, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5580,7 +5491,7 @@ func (c *Client4) GetGroupsAssociatedToChannelsByTeam(teamId string, opts GroupS
 }
 
 // GetGroups retrieves Mattermost Groups
-func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response, error) {
+func (c *Client4) GetGroups(ctx context.Context, opts GroupSearchOpts) ([]*Group, *Response, error) {
 	path := fmt.Sprintf(
 		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v&include_channel_member_count=%v&include_timezones=%v",
 		c.groupsRoute(),
@@ -5600,7 +5511,7 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response, error) {
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
-	r, err := c.DoAPIGet(path, "")
+	r, err := c.DoAPIGet(ctx, path, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5614,14 +5525,14 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response, error) {
 }
 
 // GetGroupsByUserId retrieves Mattermost Groups for a user
-func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response, error) {
+func (c *Client4) GetGroupsByUserId(ctx context.Context, userId string) ([]*Group, *Response, error) {
 	path := fmt.Sprintf(
 		"%s/%v/groups",
 		c.usersRoute(),
 		userId,
 	)
 
-	r, err := c.DoAPIGet(path, "")
+	r, err := c.DoAPIGet(ctx, path, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5633,8 +5544,8 @@ func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response, error) 
 	return list, BuildResponse(r), nil
 }
 
-func (c *Client4) MigrateAuthToLdap(fromAuthService string, matchField string, force bool) (*Response, error) {
-	r, err := c.DoAPIPost(c.usersRoute()+"/migrate_auth/ldap", StringInterfaceToJSON(map[string]any{
+func (c *Client4) MigrateAuthToLdap(ctx context.Context, fromAuthService string, matchField string, force bool) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/migrate_auth/ldap", StringInterfaceToJSON(map[string]any{
 		"from":        fromAuthService,
 		"force":       force,
 		"match_field": matchField,
@@ -5646,8 +5557,8 @@ func (c *Client4) MigrateAuthToLdap(fromAuthService string, matchField string, f
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) MigrateAuthToSaml(fromAuthService string, usersMap map[string]string, auto bool) (*Response, error) {
-	r, err := c.DoAPIPost(c.usersRoute()+"/migrate_auth/saml", StringInterfaceToJSON(map[string]any{
+func (c *Client4) MigrateAuthToSaml(ctx context.Context, fromAuthService string, usersMap map[string]string, auto bool) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/migrate_auth/saml", StringInterfaceToJSON(map[string]any{
 		"from":    fromAuthService,
 		"auto":    auto,
 		"matches": usersMap,
@@ -5660,30 +5571,30 @@ func (c *Client4) MigrateAuthToSaml(fromAuthService string, usersMap map[string]
 }
 
 // UploadLdapPublicCertificate will upload a public certificate for LDAP and set the config to use it.
-func (c *Client4) UploadLdapPublicCertificate(data []byte) (*Response, error) {
+func (c *Client4) UploadLdapPublicCertificate(ctx context.Context, data []byte) (*Response, error) {
 	body, writer, err := fileToMultipart(data, LdapPublicCertificateName)
 	if err != nil {
 		return nil, NewAppError("UploadLdapPublicCertificate", "model.client.upload_ldap_cert.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	_, resp, err := c.DoUploadFile(c.ldapRoute()+"/certificate/public", body, writer.FormDataContentType())
+	_, resp, err := c.DoUploadFile(ctx, c.ldapRoute()+"/certificate/public", body, writer.FormDataContentType())
 	return resp, err
 }
 
 // UploadLdapPrivateCertificate will upload a private key for LDAP and set the config to use it.
-func (c *Client4) UploadLdapPrivateCertificate(data []byte) (*Response, error) {
+func (c *Client4) UploadLdapPrivateCertificate(ctx context.Context, data []byte) (*Response, error) {
 	body, writer, err := fileToMultipart(data, LdapPrivateKeyName)
 	if err != nil {
 		return nil, NewAppError("UploadLdapPrivateCertificate", "model.client.upload_Ldap_cert.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	_, resp, err := c.DoUploadFile(c.ldapRoute()+"/certificate/private", body, writer.FormDataContentType())
+	_, resp, err := c.DoUploadFile(ctx, c.ldapRoute()+"/certificate/private", body, writer.FormDataContentType())
 	return resp, err
 }
 
 // DeleteLdapPublicCertificate deletes the LDAP IDP certificate from the server and updates the config to not use it and disable LDAP.
-func (c *Client4) DeleteLdapPublicCertificate() (*Response, error) {
-	r, err := c.DoAPIDelete(c.ldapRoute() + "/certificate/public")
+func (c *Client4) DeleteLdapPublicCertificate(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.ldapRoute()+"/certificate/public")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5692,8 +5603,8 @@ func (c *Client4) DeleteLdapPublicCertificate() (*Response, error) {
 }
 
 // DeleteLDAPPrivateCertificate deletes the LDAP IDP certificate from the server and updates the config to not use it and disable LDAP.
-func (c *Client4) DeleteLdapPrivateCertificate() (*Response, error) {
-	r, err := c.DoAPIDelete(c.ldapRoute() + "/certificate/private")
+func (c *Client4) DeleteLdapPrivateCertificate(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.ldapRoute()+"/certificate/private")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5704,9 +5615,9 @@ func (c *Client4) DeleteLdapPrivateCertificate() (*Response, error) {
 // Audits Section
 
 // GetAudits returns a list of audits for the whole system.
-func (c *Client4) GetAudits(page int, perPage int, etag string) (Audits, *Response, error) {
+func (c *Client4) GetAudits(ctx context.Context, page int, perPage int, etag string) (Audits, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet("/audits"+query, etag)
+	r, err := c.DoAPIGet(ctx, "/audits"+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5723,8 +5634,8 @@ func (c *Client4) GetAudits(page int, perPage int, etag string) (Audits, *Respon
 // Brand Section
 
 // GetBrandImage retrieves the previously uploaded brand image.
-func (c *Client4) GetBrandImage() ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(c.brandRoute()+"/image", "")
+func (c *Client4) GetBrandImage(ctx context.Context) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.brandRoute()+"/image", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5743,8 +5654,8 @@ func (c *Client4) GetBrandImage() ([]byte, *Response, error) {
 }
 
 // DeleteBrandImage deletes the brand image for the system.
-func (c *Client4) DeleteBrandImage() (*Response, error) {
-	r, err := c.DoAPIDelete(c.brandRoute() + "/image")
+func (c *Client4) DeleteBrandImage(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.brandRoute()+"/image")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5752,7 +5663,7 @@ func (c *Client4) DeleteBrandImage() (*Response, error) {
 }
 
 // UploadBrandImage sets the brand image for the system.
-func (c *Client4) UploadBrandImage(data []byte) (*Response, error) {
+func (c *Client4) UploadBrandImage(ctx context.Context, data []byte) (*Response, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -5795,9 +5706,9 @@ func (c *Client4) UploadBrandImage(data []byte) (*Response, error) {
 // Logs Section
 
 // GetLogs page of logs as a string array.
-func (c *Client4) GetLogs(page, perPage int) ([]string, *Response, error) {
+func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Response, error) {
 	query := fmt.Sprintf("?page=%v&logs_per_page=%v", page, perPage)
-	r, err := c.DoAPIGet("/logs"+query, "")
+	r, err := c.DoAPIGet(ctx, "/logs"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5808,8 +5719,8 @@ func (c *Client4) GetLogs(page, perPage int) ([]string, *Response, error) {
 // PostLog is a convenience Web Service call so clients can log messages into
 // the server-side logs. For example we typically log javascript error messages
 // into the server-side. It returns the log message if the logging was successful.
-func (c *Client4) PostLog(message map[string]string) (map[string]string, *Response, error) {
-	r, err := c.DoAPIPost("/logs", MapToJSON(message))
+func (c *Client4) PostLog(ctx context.Context, message map[string]string) (map[string]string, *Response, error) {
+	r, err := c.DoAPIPost(ctx, "/logs", MapToJSON(message))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5820,12 +5731,12 @@ func (c *Client4) PostLog(message map[string]string) (map[string]string, *Respon
 // OAuth Section
 
 // CreateOAuthApp will register a new OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
-func (c *Client4) CreateOAuthApp(app *OAuthApp) (*OAuthApp, *Response, error) {
+func (c *Client4) CreateOAuthApp(ctx context.Context, app *OAuthApp) (*OAuthApp, *Response, error) {
 	buf, err := json.Marshal(app)
 	if err != nil {
 		return nil, nil, NewAppError("CreateOAuthApp", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.oAuthAppsRoute(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.oAuthAppsRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5839,12 +5750,12 @@ func (c *Client4) CreateOAuthApp(app *OAuthApp) (*OAuthApp, *Response, error) {
 }
 
 // UpdateOAuthApp updates a page of registered OAuth 2.0 client applications with Mattermost acting as an OAuth 2.0 service provider.
-func (c *Client4) UpdateOAuthApp(app *OAuthApp) (*OAuthApp, *Response, error) {
+func (c *Client4) UpdateOAuthApp(ctx context.Context, app *OAuthApp) (*OAuthApp, *Response, error) {
 	buf, err := json.Marshal(app)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateOAuthApp", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.oAuthAppRoute(app.Id), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.oAuthAppRoute(app.Id), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5857,9 +5768,9 @@ func (c *Client4) UpdateOAuthApp(app *OAuthApp) (*OAuthApp, *Response, error) {
 }
 
 // GetOAuthApps gets a page of registered OAuth 2.0 client applications with Mattermost acting as an OAuth 2.0 service provider.
-func (c *Client4) GetOAuthApps(page, perPage int) ([]*OAuthApp, *Response, error) {
+func (c *Client4) GetOAuthApps(ctx context.Context, page, perPage int) ([]*OAuthApp, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.oAuthAppsRoute()+query, "")
+	r, err := c.DoAPIGet(ctx, c.oAuthAppsRoute()+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5872,8 +5783,8 @@ func (c *Client4) GetOAuthApps(page, perPage int) ([]*OAuthApp, *Response, error
 }
 
 // GetOAuthApp gets a registered OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
-func (c *Client4) GetOAuthApp(appId string) (*OAuthApp, *Response, error) {
-	r, err := c.DoAPIGet(c.oAuthAppRoute(appId), "")
+func (c *Client4) GetOAuthApp(ctx context.Context, appId string) (*OAuthApp, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.oAuthAppRoute(appId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5886,8 +5797,8 @@ func (c *Client4) GetOAuthApp(appId string) (*OAuthApp, *Response, error) {
 }
 
 // GetOAuthAppInfo gets a sanitized version of a registered OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
-func (c *Client4) GetOAuthAppInfo(appId string) (*OAuthApp, *Response, error) {
-	r, err := c.DoAPIGet(c.oAuthAppRoute(appId)+"/info", "")
+func (c *Client4) GetOAuthAppInfo(ctx context.Context, appId string) (*OAuthApp, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.oAuthAppRoute(appId)+"/info", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5900,8 +5811,8 @@ func (c *Client4) GetOAuthAppInfo(appId string) (*OAuthApp, *Response, error) {
 }
 
 // DeleteOAuthApp deletes a registered OAuth 2.0 client application.
-func (c *Client4) DeleteOAuthApp(appId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.oAuthAppRoute(appId))
+func (c *Client4) DeleteOAuthApp(ctx context.Context, appId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.oAuthAppRoute(appId))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5910,8 +5821,8 @@ func (c *Client4) DeleteOAuthApp(appId string) (*Response, error) {
 }
 
 // RegenerateOAuthAppSecret regenerates the client secret for a registered OAuth 2.0 client application.
-func (c *Client4) RegenerateOAuthAppSecret(appId string) (*OAuthApp, *Response, error) {
-	r, err := c.DoAPIPost(c.oAuthAppRoute(appId)+"/regen_secret", "")
+func (c *Client4) RegenerateOAuthAppSecret(ctx context.Context, appId string) (*OAuthApp, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.oAuthAppRoute(appId)+"/regen_secret", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5924,9 +5835,9 @@ func (c *Client4) RegenerateOAuthAppSecret(appId string) (*OAuthApp, *Response, 
 }
 
 // GetAuthorizedOAuthAppsForUser gets a page of OAuth 2.0 client applications the user has authorized to use access their account.
-func (c *Client4) GetAuthorizedOAuthAppsForUser(userId string, page, perPage int) ([]*OAuthApp, *Response, error) {
+func (c *Client4) GetAuthorizedOAuthAppsForUser(ctx context.Context, userId string, page, perPage int) ([]*OAuthApp, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.userRoute(userId)+"/oauth/apps/authorized"+query, "")
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/oauth/apps/authorized"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5939,12 +5850,12 @@ func (c *Client4) GetAuthorizedOAuthAppsForUser(userId string, page, perPage int
 }
 
 // AuthorizeOAuthApp will authorize an OAuth 2.0 client application to access a user's account and provide a redirect link to follow.
-func (c *Client4) AuthorizeOAuthApp(authRequest *AuthorizeRequest) (string, *Response, error) {
+func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeRequest) (string, *Response, error) {
 	buf, err := json.Marshal(authRequest)
 	if err != nil {
 		return "", BuildResponse(nil), NewAppError("AuthorizeOAuthApp", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIRequestBytes(http.MethodPost, c.URL+"/oauth/authorize", buf, "")
+	r, err := c.DoAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/authorize", buf, "")
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -5953,9 +5864,9 @@ func (c *Client4) AuthorizeOAuthApp(authRequest *AuthorizeRequest) (string, *Res
 }
 
 // DeauthorizeOAuthApp will deauthorize an OAuth 2.0 client application from accessing a user's account.
-func (c *Client4) DeauthorizeOAuthApp(appId string) (*Response, error) {
+func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Response, error) {
 	requestData := map[string]string{"client_id": appId}
-	r, err := c.DoAPIRequest(http.MethodPost, c.URL+"/oauth/deauthorize", MapToJSON(requestData), "")
+	r, err := c.DoAPIRequest(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", MapToJSON(requestData), "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5964,7 +5875,7 @@ func (c *Client4) DeauthorizeOAuthApp(appId string) (*Response, error) {
 }
 
 // GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
-func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Response, error) {
+func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*AccessResponse, *Response, error) {
 	url := c.URL + "/oauth/access_token"
 	rq, err := http.NewRequest(http.MethodPost, url, strings.NewReader(data.Encode()))
 	if err != nil {
@@ -5999,8 +5910,8 @@ func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Respon
 
 // TestElasticsearch will attempt to connect to the configured Elasticsearch server and return OK if configured.
 // correctly.
-func (c *Client4) TestElasticsearch() (*Response, error) {
-	r, err := c.DoAPIPost(c.elasticsearchRoute()+"/test", "")
+func (c *Client4) TestElasticsearch(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.elasticsearchRoute()+"/test", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6009,8 +5920,8 @@ func (c *Client4) TestElasticsearch() (*Response, error) {
 }
 
 // PurgeElasticsearchIndexes immediately deletes all Elasticsearch indexes.
-func (c *Client4) PurgeElasticsearchIndexes() (*Response, error) {
-	r, err := c.DoAPIPost(c.elasticsearchRoute()+"/purge_indexes", "")
+func (c *Client4) PurgeElasticsearchIndexes(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.elasticsearchRoute()+"/purge_indexes", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6021,8 +5932,8 @@ func (c *Client4) PurgeElasticsearchIndexes() (*Response, error) {
 // Bleve Section
 
 // PurgeBleveIndexes immediately deletes all Bleve indexes.
-func (c *Client4) PurgeBleveIndexes() (*Response, error) {
-	r, err := c.DoAPIPost(c.bleveRoute()+"/purge_indexes", "")
+func (c *Client4) PurgeBleveIndexes(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.bleveRoute()+"/purge_indexes", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6033,8 +5944,8 @@ func (c *Client4) PurgeBleveIndexes() (*Response, error) {
 // Data Retention Section
 
 // GetDataRetentionPolicy will get the current global data retention policy details.
-func (c *Client4) GetDataRetentionPolicy() (*GlobalRetentionPolicy, *Response, error) {
-	r, err := c.DoAPIGet(c.dataRetentionRoute()+"/policy", "")
+func (c *Client4) GetDataRetentionPolicy(ctx context.Context) (*GlobalRetentionPolicy, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.dataRetentionRoute()+"/policy", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6047,8 +5958,8 @@ func (c *Client4) GetDataRetentionPolicy() (*GlobalRetentionPolicy, *Response, e
 }
 
 // GetDataRetentionPolicyByID will get the details for the granular data retention policy with the specified ID.
-func (c *Client4) GetDataRetentionPolicyByID(policyID string) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
-	r, err := c.DoAPIGet(c.dataRetentionPolicyRoute(policyID), "")
+func (c *Client4) GetDataRetentionPolicyByID(ctx context.Context, policyID string) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.dataRetentionPolicyRoute(policyID), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6062,11 +5973,11 @@ func (c *Client4) GetDataRetentionPolicyByID(policyID string) (*RetentionPolicyW
 }
 
 // GetDataRetentionPoliciesCount will get the total number of granular data retention policies.
-func (c *Client4) GetDataRetentionPoliciesCount() (int64, *Response, error) {
+func (c *Client4) GetDataRetentionPoliciesCount(ctx context.Context) (int64, *Response, error) {
 	type CountBody struct {
 		TotalCount int64 `json:"total_count"`
 	}
-	r, err := c.DoAPIGet(c.dataRetentionRoute()+"/policies_count", "")
+	r, err := c.DoAPIGet(ctx, c.dataRetentionRoute()+"/policies_count", "")
 	if err != nil {
 		return 0, BuildResponse(r), err
 	}
@@ -6079,9 +5990,9 @@ func (c *Client4) GetDataRetentionPoliciesCount() (int64, *Response, error) {
 }
 
 // GetDataRetentionPolicies will get the current granular data retention policies' details.
-func (c *Client4) GetDataRetentionPolicies(page, perPage int) (*RetentionPolicyWithTeamAndChannelCountsList, *Response, error) {
+func (c *Client4) GetDataRetentionPolicies(ctx context.Context, page, perPage int) (*RetentionPolicyWithTeamAndChannelCountsList, *Response, error) {
 	query := fmt.Sprintf("?page=%d&per_page=%d", page, perPage)
-	r, err := c.DoAPIGet(c.dataRetentionRoute()+"/policies"+query, "")
+	r, err := c.DoAPIGet(ctx, c.dataRetentionRoute()+"/policies"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6096,12 +6007,12 @@ func (c *Client4) GetDataRetentionPolicies(page, perPage int) (*RetentionPolicyW
 
 // CreateDataRetentionPolicy will create a new granular data retention policy which will be applied to
 // the specified teams and channels. The Id field of `policy` must be empty.
-func (c *Client4) CreateDataRetentionPolicy(policy *RetentionPolicyWithTeamAndChannelIDs) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
+func (c *Client4) CreateDataRetentionPolicy(ctx context.Context, policy *RetentionPolicyWithTeamAndChannelIDs) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
 	policyJSON, err := json.Marshal(policy)
 	if err != nil {
 		return nil, nil, NewAppError("CreateDataRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.dataRetentionRoute()+"/policies", policyJSON)
+	r, err := c.DoAPIPostBytes(ctx, c.dataRetentionRoute()+"/policies", policyJSON)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6114,8 +6025,8 @@ func (c *Client4) CreateDataRetentionPolicy(policy *RetentionPolicyWithTeamAndCh
 }
 
 // DeleteDataRetentionPolicy will delete the granular data retention policy with the specified ID.
-func (c *Client4) DeleteDataRetentionPolicy(policyID string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.dataRetentionPolicyRoute(policyID))
+func (c *Client4) DeleteDataRetentionPolicy(ctx context.Context, policyID string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.dataRetentionPolicyRoute(policyID))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6125,12 +6036,12 @@ func (c *Client4) DeleteDataRetentionPolicy(policyID string) (*Response, error) 
 
 // PatchDataRetentionPolicy will patch the granular data retention policy with the specified ID.
 // The Id field of `patch` must be non-empty.
-func (c *Client4) PatchDataRetentionPolicy(patch *RetentionPolicyWithTeamAndChannelIDs) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
+func (c *Client4) PatchDataRetentionPolicy(ctx context.Context, patch *RetentionPolicyWithTeamAndChannelIDs) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
 	patchJSON, err := json.Marshal(patch)
 	if err != nil {
 		return nil, nil, NewAppError("PatchDataRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPatchBytes(c.dataRetentionPolicyRoute(patch.ID), patchJSON)
+	r, err := c.DoAPIPatchBytes(ctx, c.dataRetentionPolicyRoute(patch.ID), patchJSON)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6143,9 +6054,9 @@ func (c *Client4) PatchDataRetentionPolicy(patch *RetentionPolicyWithTeamAndChan
 }
 
 // GetTeamsForRetentionPolicy will get the teams to which the specified policy is currently applied.
-func (c *Client4) GetTeamsForRetentionPolicy(policyID string, page, perPage int) (*TeamsWithCount, *Response, error) {
+func (c *Client4) GetTeamsForRetentionPolicy(ctx context.Context, policyID string, page, perPage int) (*TeamsWithCount, *Response, error) {
 	query := fmt.Sprintf("?page=%d&per_page=%d", page, perPage)
-	r, err := c.DoAPIGet(c.dataRetentionPolicyRoute(policyID)+"/teams"+query, "")
+	r, err := c.DoAPIGet(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6158,12 +6069,12 @@ func (c *Client4) GetTeamsForRetentionPolicy(policyID string, page, perPage int)
 }
 
 // SearchTeamsForRetentionPolicy will search the teams to which the specified policy is currently applied.
-func (c *Client4) SearchTeamsForRetentionPolicy(policyID string, term string) ([]*Team, *Response, error) {
+func (c *Client4) SearchTeamsForRetentionPolicy(ctx context.Context, policyID string, term string) ([]*Team, *Response, error) {
 	body, err := json.Marshal(map[string]any{"term": term})
 	if err != nil {
 		return nil, nil, NewAppError("SearchTeamsForRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.dataRetentionPolicyRoute(policyID)+"/teams/search", body)
+	r, err := c.DoAPIPostBytes(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams/search", body)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6177,12 +6088,12 @@ func (c *Client4) SearchTeamsForRetentionPolicy(policyID string, term string) ([
 
 // AddTeamsToRetentionPolicy will add the specified teams to the granular data retention policy
 // with the specified ID.
-func (c *Client4) AddTeamsToRetentionPolicy(policyID string, teamIDs []string) (*Response, error) {
+func (c *Client4) AddTeamsToRetentionPolicy(ctx context.Context, policyID string, teamIDs []string) (*Response, error) {
 	body, err := json.Marshal(teamIDs)
 	if err != nil {
 		return nil, NewAppError("AddTeamsToRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.dataRetentionPolicyRoute(policyID)+"/teams", body)
+	r, err := c.DoAPIPostBytes(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams", body)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6192,12 +6103,12 @@ func (c *Client4) AddTeamsToRetentionPolicy(policyID string, teamIDs []string) (
 
 // RemoveTeamsFromRetentionPolicy will remove the specified teams from the granular data retention policy
 // with the specified ID.
-func (c *Client4) RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []string) (*Response, error) {
+func (c *Client4) RemoveTeamsFromRetentionPolicy(ctx context.Context, policyID string, teamIDs []string) (*Response, error) {
 	body, err := json.Marshal(teamIDs)
 	if err != nil {
 		return nil, NewAppError("RemoveTeamsFromRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIDeleteBytes(c.dataRetentionPolicyRoute(policyID)+"/teams", body)
+	r, err := c.DoAPIDeleteBytes(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams", body)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6206,9 +6117,9 @@ func (c *Client4) RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []stri
 }
 
 // GetChannelsForRetentionPolicy will get the channels to which the specified policy is currently applied.
-func (c *Client4) GetChannelsForRetentionPolicy(policyID string, page, perPage int) (*ChannelsWithCount, *Response, error) {
+func (c *Client4) GetChannelsForRetentionPolicy(ctx context.Context, policyID string, page, perPage int) (*ChannelsWithCount, *Response, error) {
 	query := fmt.Sprintf("?page=%d&per_page=%d", page, perPage)
-	r, err := c.DoAPIGet(c.dataRetentionPolicyRoute(policyID)+"/channels"+query, "")
+	r, err := c.DoAPIGet(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6221,12 +6132,12 @@ func (c *Client4) GetChannelsForRetentionPolicy(policyID string, page, perPage i
 }
 
 // SearchChannelsForRetentionPolicy will search the channels to which the specified policy is currently applied.
-func (c *Client4) SearchChannelsForRetentionPolicy(policyID string, term string) (ChannelListWithTeamData, *Response, error) {
+func (c *Client4) SearchChannelsForRetentionPolicy(ctx context.Context, policyID string, term string) (ChannelListWithTeamData, *Response, error) {
 	body, err := json.Marshal(map[string]any{"term": term})
 	if err != nil {
 		return nil, nil, NewAppError("SearchChannelsForRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.dataRetentionPolicyRoute(policyID)+"/channels/search", body)
+	r, err := c.DoAPIPostBytes(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels/search", body)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6240,12 +6151,12 @@ func (c *Client4) SearchChannelsForRetentionPolicy(policyID string, term string)
 
 // AddChannelsToRetentionPolicy will add the specified channels to the granular data retention policy
 // with the specified ID.
-func (c *Client4) AddChannelsToRetentionPolicy(policyID string, channelIDs []string) (*Response, error) {
+func (c *Client4) AddChannelsToRetentionPolicy(ctx context.Context, policyID string, channelIDs []string) (*Response, error) {
 	body, err := json.Marshal(channelIDs)
 	if err != nil {
 		return nil, NewAppError("AddChannelsToRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.dataRetentionPolicyRoute(policyID)+"/channels", body)
+	r, err := c.DoAPIPostBytes(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels", body)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6255,12 +6166,12 @@ func (c *Client4) AddChannelsToRetentionPolicy(policyID string, channelIDs []str
 
 // RemoveChannelsFromRetentionPolicy will remove the specified channels from the granular data retention policy
 // with the specified ID.
-func (c *Client4) RemoveChannelsFromRetentionPolicy(policyID string, channelIDs []string) (*Response, error) {
+func (c *Client4) RemoveChannelsFromRetentionPolicy(ctx context.Context, policyID string, channelIDs []string) (*Response, error) {
 	body, err := json.Marshal(channelIDs)
 	if err != nil {
 		return nil, NewAppError("RemoveChannelsFromRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIDeleteBytes(c.dataRetentionPolicyRoute(policyID)+"/channels", body)
+	r, err := c.DoAPIDeleteBytes(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels", body)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6269,8 +6180,8 @@ func (c *Client4) RemoveChannelsFromRetentionPolicy(policyID string, channelIDs 
 }
 
 // GetTeamPoliciesForUser will get the data retention policies for the teams to which a user belongs.
-func (c *Client4) GetTeamPoliciesForUser(userID string, offset, limit int) (*RetentionPolicyForTeamList, *Response, error) {
-	r, err := c.DoAPIGet(c.userRoute(userID)+"/data_retention/team_policies", "")
+func (c *Client4) GetTeamPoliciesForUser(ctx context.Context, userID string, offset, limit int) (*RetentionPolicyForTeamList, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userID)+"/data_retention/team_policies", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6283,8 +6194,8 @@ func (c *Client4) GetTeamPoliciesForUser(userID string, offset, limit int) (*Ret
 }
 
 // GetChannelPoliciesForUser will get the data retention policies for the channels to which a user belongs.
-func (c *Client4) GetChannelPoliciesForUser(userID string, offset, limit int) (*RetentionPolicyForChannelList, *Response, error) {
-	r, err := c.DoAPIGet(c.userRoute(userID)+"/data_retention/channel_policies", "")
+func (c *Client4) GetChannelPoliciesForUser(ctx context.Context, userID string, offset, limit int) (*RetentionPolicyForChannelList, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userID)+"/data_retention/channel_policies", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6299,13 +6210,13 @@ func (c *Client4) GetChannelPoliciesForUser(userID string, offset, limit int) (*
 // Drafts Sections
 
 // UpsertDraft will create a new draft or update a draft if it already exists
-func (c *Client4) UpsertDraft(draft *Draft) (*Draft, *Response, error) {
+func (c *Client4) UpsertDraft(ctx context.Context, draft *Draft) (*Draft, *Response, error) {
 	buf, err := json.Marshal(draft)
 	if err != nil {
 		return nil, nil, NewAppError("UpsertDraft", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	r, err := c.DoAPIPostBytes(c.draftsRoute(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.draftsRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6320,8 +6231,8 @@ func (c *Client4) UpsertDraft(draft *Draft) (*Draft, *Response, error) {
 }
 
 // GetDrafts will get all drafts for a user
-func (c *Client4) GetDrafts(userId, teamId string) ([]*Draft, *Response, error) {
-	r, err := c.DoAPIGet(c.userRoute(userId)+c.teamRoute(teamId)+"/drafts", "")
+func (c *Client4) GetDrafts(ctx context.Context, userId, teamId string) ([]*Draft, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+c.teamRoute(teamId)+"/drafts", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6334,8 +6245,8 @@ func (c *Client4) GetDrafts(userId, teamId string) ([]*Draft, *Response, error) 
 	return drafts, BuildResponse(r), nil
 }
 
-func (c *Client4) DeleteDraft(userId, channelId, rootId string) (*Draft, *Response, error) {
-	r, err := c.DoAPIDelete(c.userRoute(userId) + c.channelRoute(channelId) + "/drafts")
+func (c *Client4) DeleteDraft(ctx context.Context, userId, channelId, rootId string) (*Draft, *Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.userRoute(userId)+c.channelRoute(channelId)+"/drafts")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6352,12 +6263,12 @@ func (c *Client4) DeleteDraft(userId, channelId, rootId string) (*Draft, *Respon
 // Commands Section
 
 // CreateCommand will create a new command if the user have the right permissions.
-func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response, error) {
+func (c *Client4) CreateCommand(ctx context.Context, cmd *Command) (*Command, *Response, error) {
 	buf, err := json.Marshal(cmd)
 	if err != nil {
 		return nil, nil, NewAppError("CreateCommand", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.commandsRoute(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.commandsRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6371,12 +6282,12 @@ func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response, error) {
 }
 
 // UpdateCommand updates a command based on the provided Command struct.
-func (c *Client4) UpdateCommand(cmd *Command) (*Command, *Response, error) {
+func (c *Client4) UpdateCommand(ctx context.Context, cmd *Command) (*Command, *Response, error) {
 	buf, err := json.Marshal(cmd)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateCommand", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.commandRoute(cmd.Id), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.commandRoute(cmd.Id), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6389,13 +6300,13 @@ func (c *Client4) UpdateCommand(cmd *Command) (*Command, *Response, error) {
 }
 
 // MoveCommand moves a command to a different team.
-func (c *Client4) MoveCommand(teamId string, commandId string) (*Response, error) {
+func (c *Client4) MoveCommand(ctx context.Context, teamId string, commandId string) (*Response, error) {
 	cmr := CommandMoveRequest{TeamId: teamId}
 	buf, err := json.Marshal(cmr)
 	if err != nil {
 		return nil, NewAppError("MoveCommand", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.commandMoveRoute(commandId), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.commandMoveRoute(commandId), buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6404,8 +6315,8 @@ func (c *Client4) MoveCommand(teamId string, commandId string) (*Response, error
 }
 
 // DeleteCommand deletes a command based on the provided command id string.
-func (c *Client4) DeleteCommand(commandId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.commandRoute(commandId))
+func (c *Client4) DeleteCommand(ctx context.Context, commandId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.commandRoute(commandId))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6414,9 +6325,9 @@ func (c *Client4) DeleteCommand(commandId string) (*Response, error) {
 }
 
 // ListCommands will retrieve a list of commands available in the team.
-func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Response, error) {
+func (c *Client4) ListCommands(ctx context.Context, teamId string, customOnly bool) ([]*Command, *Response, error) {
 	query := fmt.Sprintf("?team_id=%v&custom_only=%v", teamId, customOnly)
-	r, err := c.DoAPIGet(c.commandsRoute()+query, "")
+	r, err := c.DoAPIGet(ctx, c.commandsRoute()+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6430,9 +6341,9 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 }
 
 // ListCommandAutocompleteSuggestions will retrieve a list of suggestions for a userInput.
-func (c *Client4) ListCommandAutocompleteSuggestions(userInput, teamId string) ([]AutocompleteSuggestion, *Response, error) {
+func (c *Client4) ListCommandAutocompleteSuggestions(ctx context.Context, userInput, teamId string) ([]AutocompleteSuggestion, *Response, error) {
 	query := fmt.Sprintf("/commands/autocomplete_suggestions?user_input=%v", userInput)
-	r, err := c.DoAPIGet(c.teamRoute(teamId)+query, "")
+	r, err := c.DoAPIGet(ctx, c.teamRoute(teamId)+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6445,9 +6356,9 @@ func (c *Client4) ListCommandAutocompleteSuggestions(userInput, teamId string) (
 }
 
 // GetCommandById will retrieve a command by id.
-func (c *Client4) GetCommandById(cmdId string) (*Command, *Response, error) {
+func (c *Client4) GetCommandById(ctx context.Context, cmdId string) (*Command, *Response, error) {
 	url := fmt.Sprintf("%s/%s", c.commandsRoute(), cmdId)
-	r, err := c.DoAPIGet(url, "")
+	r, err := c.DoAPIGet(ctx, url, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6460,7 +6371,7 @@ func (c *Client4) GetCommandById(cmdId string) (*Command, *Response, error) {
 }
 
 // ExecuteCommand executes a given slash command.
-func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *Response, error) {
+func (c *Client4) ExecuteCommand(ctx context.Context, channelId, command string) (*CommandResponse, *Response, error) {
 	commandArgs := &CommandArgs{
 		ChannelId: channelId,
 		Command:   command,
@@ -6469,7 +6380,7 @@ func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *
 	if err != nil {
 		return nil, nil, NewAppError("ExecuteCommand", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.commandsRoute()+"/execute", buf)
+	r, err := c.DoAPIPostBytes(ctx, c.commandsRoute()+"/execute", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6484,7 +6395,7 @@ func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *
 
 // ExecuteCommandWithTeam executes a given slash command against the specified team.
 // Use this when executing slash commands in a DM/GM, since the team id cannot be inferred in that case.
-func (c *Client4) ExecuteCommandWithTeam(channelId, teamId, command string) (*CommandResponse, *Response, error) {
+func (c *Client4) ExecuteCommandWithTeam(ctx context.Context, channelId, teamId, command string) (*CommandResponse, *Response, error) {
 	commandArgs := &CommandArgs{
 		ChannelId: channelId,
 		TeamId:    teamId,
@@ -6494,7 +6405,7 @@ func (c *Client4) ExecuteCommandWithTeam(channelId, teamId, command string) (*Co
 	if err != nil {
 		return nil, nil, NewAppError("ExecuteCommandWithTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.commandsRoute()+"/execute", buf)
+	r, err := c.DoAPIPostBytes(ctx, c.commandsRoute()+"/execute", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6508,8 +6419,8 @@ func (c *Client4) ExecuteCommandWithTeam(channelId, teamId, command string) (*Co
 }
 
 // ListAutocompleteCommands will retrieve a list of commands available in the team.
-func (c *Client4) ListAutocompleteCommands(teamId string) ([]*Command, *Response, error) {
-	r, err := c.DoAPIGet(c.teamAutoCompleteCommandsRoute(teamId), "")
+func (c *Client4) ListAutocompleteCommands(ctx context.Context, teamId string) ([]*Command, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.teamAutoCompleteCommandsRoute(teamId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6522,8 +6433,8 @@ func (c *Client4) ListAutocompleteCommands(teamId string) ([]*Command, *Response
 }
 
 // RegenCommandToken will create a new token if the user have the right permissions.
-func (c *Client4) RegenCommandToken(commandId string) (string, *Response, error) {
-	r, err := c.DoAPIPut(c.commandRoute(commandId)+"/regen_token", "")
+func (c *Client4) RegenCommandToken(ctx context.Context, commandId string) (string, *Response, error) {
+	r, err := c.DoAPIPut(ctx, c.commandRoute(commandId)+"/regen_token", "")
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -6534,8 +6445,8 @@ func (c *Client4) RegenCommandToken(commandId string) (string, *Response, error)
 // Status Section
 
 // GetUserStatus returns a user based on the provided user id string.
-func (c *Client4) GetUserStatus(userId, etag string) (*Status, *Response, error) {
-	r, err := c.DoAPIGet(c.userStatusRoute(userId), etag)
+func (c *Client4) GetUserStatus(ctx context.Context, userId, etag string) (*Status, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userStatusRoute(userId), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6551,8 +6462,8 @@ func (c *Client4) GetUserStatus(userId, etag string) (*Status, *Response, error)
 }
 
 // GetUsersStatusesByIds returns a list of users status based on the provided user ids.
-func (c *Client4) GetUsersStatusesByIds(userIds []string) ([]*Status, *Response, error) {
-	r, err := c.DoAPIPost(c.userStatusesRoute()+"/ids", ArrayToJSON(userIds))
+func (c *Client4) GetUsersStatusesByIds(ctx context.Context, userIds []string) ([]*Status, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.userStatusesRoute()+"/ids", ArrayToJSON(userIds))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6565,12 +6476,12 @@ func (c *Client4) GetUsersStatusesByIds(userIds []string) ([]*Status, *Response,
 }
 
 // UpdateUserStatus sets a user's status based on the provided user id string.
-func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, *Response, error) {
+func (c *Client4) UpdateUserStatus(ctx context.Context, userId string, userStatus *Status) (*Status, *Response, error) {
 	buf, err := json.Marshal(userStatus)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateUserStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.userStatusRoute(userId), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.userStatusRoute(userId), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6585,12 +6496,12 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 // UpdateUserCustomStatus sets a user's custom status based on the provided user id string.
 // The returned CustomStatus object is the same as the one passed, and it should be just
 // ignored. It's only kept to maintain compatibility.
-func (c *Client4) UpdateUserCustomStatus(userId string, userCustomStatus *CustomStatus) (*CustomStatus, *Response, error) {
+func (c *Client4) UpdateUserCustomStatus(ctx context.Context, userId string, userCustomStatus *CustomStatus) (*CustomStatus, *Response, error) {
 	buf, err := json.Marshal(userCustomStatus)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateUserCustomStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.userStatusRoute(userId)+"/custom", buf)
+	r, err := c.DoAPIPutBytes(ctx, c.userStatusRoute(userId)+"/custom", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6602,8 +6513,8 @@ func (c *Client4) UpdateUserCustomStatus(userId string, userCustomStatus *Custom
 }
 
 // RemoveUserCustomStatus remove a user's custom status based on the provided user id string.
-func (c *Client4) RemoveUserCustomStatus(userId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.userStatusRoute(userId) + "/custom")
+func (c *Client4) RemoveUserCustomStatus(ctx context.Context, userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.userStatusRoute(userId)+"/custom")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6612,8 +6523,8 @@ func (c *Client4) RemoveUserCustomStatus(userId string) (*Response, error) {
 }
 
 // RemoveRecentUserCustomStatus remove a recent user's custom status based on the provided user id string.
-func (c *Client4) RemoveRecentUserCustomStatus(userId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.userStatusRoute(userId) + "/custom/recent")
+func (c *Client4) RemoveRecentUserCustomStatus(ctx context.Context, userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.userStatusRoute(userId)+"/custom/recent")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6626,7 +6537,7 @@ func (c *Client4) RemoveRecentUserCustomStatus(userId string) (*Response, error)
 // CreateEmoji will save an emoji to the server if the current user has permission
 // to do so. If successful, the provided emoji will be returned with its Id field
 // filled in. Otherwise, an error will be returned.
-func (c *Client4) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emoji, *Response, error) {
+func (c *Client4) CreateEmoji(ctx context.Context, emoji *Emoji, image []byte, filename string) (*Emoji, *Response, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -6653,13 +6564,13 @@ func (c *Client4) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emo
 		return nil, nil, err
 	}
 
-	return c.DoEmojiUploadFile(c.emojisRoute(), body.Bytes(), writer.FormDataContentType())
+	return c.DoEmojiUploadFile(ctx, c.emojisRoute(), body.Bytes(), writer.FormDataContentType())
 }
 
 // GetEmojiList returns a page of custom emoji on the system.
-func (c *Client4) GetEmojiList(page, perPage int) ([]*Emoji, *Response, error) {
+func (c *Client4) GetEmojiList(ctx context.Context, page, perPage int) ([]*Emoji, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.emojisRoute()+query, "")
+	r, err := c.DoAPIGet(ctx, c.emojisRoute()+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6674,9 +6585,9 @@ func (c *Client4) GetEmojiList(page, perPage int) ([]*Emoji, *Response, error) {
 
 // GetSortedEmojiList returns a page of custom emoji on the system sorted based on the sort
 // parameter, blank for no sorting and "name" to sort by emoji names.
-func (c *Client4) GetSortedEmojiList(page, perPage int, sort string) ([]*Emoji, *Response, error) {
+func (c *Client4) GetSortedEmojiList(ctx context.Context, page, perPage int, sort string) ([]*Emoji, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&sort=%v", page, perPage, sort)
-	r, err := c.DoAPIGet(c.emojisRoute()+query, "")
+	r, err := c.DoAPIGet(ctx, c.emojisRoute()+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6689,8 +6600,8 @@ func (c *Client4) GetSortedEmojiList(page, perPage int, sort string) ([]*Emoji, 
 }
 
 // DeleteEmoji delete an custom emoji on the provided emoji id string.
-func (c *Client4) DeleteEmoji(emojiId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.emojiRoute(emojiId))
+func (c *Client4) DeleteEmoji(ctx context.Context, emojiId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.emojiRoute(emojiId))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6699,8 +6610,8 @@ func (c *Client4) DeleteEmoji(emojiId string) (*Response, error) {
 }
 
 // GetEmoji returns a custom emoji based on the emojiId string.
-func (c *Client4) GetEmoji(emojiId string) (*Emoji, *Response, error) {
-	r, err := c.DoAPIGet(c.emojiRoute(emojiId), "")
+func (c *Client4) GetEmoji(ctx context.Context, emojiId string) (*Emoji, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.emojiRoute(emojiId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6713,8 +6624,8 @@ func (c *Client4) GetEmoji(emojiId string) (*Emoji, *Response, error) {
 }
 
 // GetEmojiByName returns a custom emoji based on the name string.
-func (c *Client4) GetEmojiByName(name string) (*Emoji, *Response, error) {
-	r, err := c.DoAPIGet(c.emojiByNameRoute(name), "")
+func (c *Client4) GetEmojiByName(ctx context.Context, name string) (*Emoji, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.emojiByNameRoute(name), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6727,8 +6638,8 @@ func (c *Client4) GetEmojiByName(name string) (*Emoji, *Response, error) {
 }
 
 // GetEmojiImage returns the emoji image.
-func (c *Client4) GetEmojiImage(emojiId string) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(c.emojiRoute(emojiId)+"/image", "")
+func (c *Client4) GetEmojiImage(ctx context.Context, emojiId string) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.emojiRoute(emojiId)+"/image", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6743,12 +6654,12 @@ func (c *Client4) GetEmojiImage(emojiId string) ([]byte, *Response, error) {
 }
 
 // SearchEmoji returns a list of emoji matching some search criteria.
-func (c *Client4) SearchEmoji(search *EmojiSearch) ([]*Emoji, *Response, error) {
+func (c *Client4) SearchEmoji(ctx context.Context, search *EmojiSearch) ([]*Emoji, *Response, error) {
 	buf, err := json.Marshal(search)
 	if err != nil {
 		return nil, nil, NewAppError("SearchEmoji", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.emojisRoute()+"/search", buf)
+	r, err := c.DoAPIPostBytes(ctx, c.emojisRoute()+"/search", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6761,9 +6672,9 @@ func (c *Client4) SearchEmoji(search *EmojiSearch) ([]*Emoji, *Response, error) 
 }
 
 // AutocompleteEmoji returns a list of emoji starting with or matching name.
-func (c *Client4) AutocompleteEmoji(name string, etag string) ([]*Emoji, *Response, error) {
+func (c *Client4) AutocompleteEmoji(ctx context.Context, name string, etag string) ([]*Emoji, *Response, error) {
 	query := fmt.Sprintf("?name=%v", name)
-	r, err := c.DoAPIGet(c.emojisRoute()+"/autocomplete"+query, "")
+	r, err := c.DoAPIGet(ctx, c.emojisRoute()+"/autocomplete"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6778,12 +6689,12 @@ func (c *Client4) AutocompleteEmoji(name string, etag string) ([]*Emoji, *Respon
 // Reaction Section
 
 // SaveReaction saves an emoji reaction for a post. Returns the saved reaction if successful, otherwise an error will be returned.
-func (c *Client4) SaveReaction(reaction *Reaction) (*Reaction, *Response, error) {
+func (c *Client4) SaveReaction(ctx context.Context, reaction *Reaction) (*Reaction, *Response, error) {
 	buf, err := json.Marshal(reaction)
 	if err != nil {
 		return nil, nil, NewAppError("SaveReaction", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.reactionsRoute(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.reactionsRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6796,8 +6707,8 @@ func (c *Client4) SaveReaction(reaction *Reaction) (*Reaction, *Response, error)
 }
 
 // GetReactions returns a list of reactions to a post.
-func (c *Client4) GetReactions(postId string) ([]*Reaction, *Response, error) {
-	r, err := c.DoAPIGet(c.postRoute(postId)+"/reactions", "")
+func (c *Client4) GetReactions(ctx context.Context, postId string) ([]*Reaction, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.postRoute(postId)+"/reactions", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6810,8 +6721,8 @@ func (c *Client4) GetReactions(postId string) ([]*Reaction, *Response, error) {
 }
 
 // DeleteReaction deletes reaction of a user in a post.
-func (c *Client4) DeleteReaction(reaction *Reaction) (*Response, error) {
-	r, err := c.DoAPIDelete(c.userRoute(reaction.UserId) + c.postRoute(reaction.PostId) + fmt.Sprintf("/reactions/%v", reaction.EmojiName))
+func (c *Client4) DeleteReaction(ctx context.Context, reaction *Reaction) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.userRoute(reaction.UserId)+c.postRoute(reaction.PostId)+fmt.Sprintf("/reactions/%v", reaction.EmojiName))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6820,8 +6731,8 @@ func (c *Client4) DeleteReaction(reaction *Reaction) (*Response, error) {
 }
 
 // FetchBulkReactions returns a map of postIds and corresponding reactions
-func (c *Client4) GetBulkReactions(postIds []string) (map[string][]*Reaction, *Response, error) {
-	r, err := c.DoAPIPost(c.postsRoute()+"/ids/reactions", ArrayToJSON(postIds))
+func (c *Client4) GetBulkReactions(ctx context.Context, postIds []string) (map[string][]*Reaction, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.postsRoute()+"/ids/reactions", ArrayToJSON(postIds))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6833,59 +6744,11 @@ func (c *Client4) GetBulkReactions(postIds []string) (map[string][]*Reaction, *R
 	return reactions, BuildResponse(r), nil
 }
 
-func (c *Client4) GetTopReactionsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopReactionList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/reactions"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topReactions *TopReactionList
-	if err := json.NewDecoder(r.Body).Decode(&topReactions); err != nil {
-		return nil, nil, NewAppError("GetTopReactionsForTeamSince", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topReactions, BuildResponse(r), nil
-}
-
-func (c *Client4) GetTopReactionsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopReactionList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-
-	if teamId != "" {
-		query += fmt.Sprintf("&team_id=%v", teamId)
-	}
-
-	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/reactions"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topReactions *TopReactionList
-	if err := json.NewDecoder(r.Body).Decode(&topReactions); err != nil {
-		return nil, nil, NewAppError("GetTopReactionsForUserSince", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topReactions, BuildResponse(r), nil
-}
-
-func (c *Client4) GetTopDMsForUserSince(timeRange string, page int, perPage int) (*TopDMList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-
-	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/dms"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topDMs *TopDMList
-	if jsonErr := json.NewDecoder(r.Body).Decode(&topDMs); jsonErr != nil {
-		return nil, nil, NewAppError("GetTopReactionsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return topDMs, BuildResponse(r), nil
-}
-
 // Timezone Section
 
 // GetSupportedTimezone returns a page of supported timezones on the system.
-func (c *Client4) GetSupportedTimezone() ([]string, *Response, error) {
-	r, err := c.DoAPIGet(c.timezonesRoute(), "")
+func (c *Client4) GetSupportedTimezone(ctx context.Context) ([]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.timezonesRoute(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6898,11 +6761,11 @@ func (c *Client4) GetSupportedTimezone() ([]string, *Response, error) {
 // Open Graph Metadata Section
 
 // OpenGraph return the open graph metadata for a particular url if the site have the metadata.
-func (c *Client4) OpenGraph(url string) (map[string]string, *Response, error) {
+func (c *Client4) OpenGraph(ctx context.Context, url string) (map[string]string, *Response, error) {
 	requestBody := make(map[string]string)
 	requestBody["url"] = url
 
-	r, err := c.DoAPIPost(c.openGraphRoute(), MapToJSON(requestBody))
+	r, err := c.DoAPIPost(ctx, c.openGraphRoute(), MapToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6913,8 +6776,8 @@ func (c *Client4) OpenGraph(url string) (map[string]string, *Response, error) {
 // Jobs Section
 
 // GetJob gets a single job.
-func (c *Client4) GetJob(id string) (*Job, *Response, error) {
-	r, err := c.DoAPIGet(c.jobsRoute()+fmt.Sprintf("/%v", id), "")
+func (c *Client4) GetJob(ctx context.Context, id string) (*Job, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.jobsRoute()+fmt.Sprintf("/%v", id), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6927,8 +6790,8 @@ func (c *Client4) GetJob(id string) (*Job, *Response, error) {
 }
 
 // GetJobs gets all jobs, sorted with the job that was created most recently first.
-func (c *Client4) GetJobs(page int, perPage int) ([]*Job, *Response, error) {
-	r, err := c.DoAPIGet(c.jobsRoute()+fmt.Sprintf("?page=%v&per_page=%v", page, perPage), "")
+func (c *Client4) GetJobs(ctx context.Context, page int, perPage int) ([]*Job, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.jobsRoute()+fmt.Sprintf("?page=%v&per_page=%v", page, perPage), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6941,8 +6804,8 @@ func (c *Client4) GetJobs(page int, perPage int) ([]*Job, *Response, error) {
 }
 
 // GetJobsByType gets all jobs of a given type, sorted with the job that was created most recently first.
-func (c *Client4) GetJobsByType(jobType string, page int, perPage int) ([]*Job, *Response, error) {
-	r, err := c.DoAPIGet(c.jobsRoute()+fmt.Sprintf("/type/%v?page=%v&per_page=%v", jobType, page, perPage), "")
+func (c *Client4) GetJobsByType(ctx context.Context, jobType string, page int, perPage int) ([]*Job, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.jobsRoute()+fmt.Sprintf("/type/%v?page=%v&per_page=%v", jobType, page, perPage), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6955,12 +6818,12 @@ func (c *Client4) GetJobsByType(jobType string, page int, perPage int) ([]*Job, 
 }
 
 // CreateJob creates a job based on the provided job struct.
-func (c *Client4) CreateJob(job *Job) (*Job, *Response, error) {
+func (c *Client4) CreateJob(ctx context.Context, job *Job) (*Job, *Response, error) {
 	buf, err := json.Marshal(job)
 	if err != nil {
 		return nil, nil, NewAppError("CreateJob", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.jobsRoute(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.jobsRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6973,8 +6836,8 @@ func (c *Client4) CreateJob(job *Job) (*Job, *Response, error) {
 }
 
 // CancelJob requests the cancellation of the job with the provided Id.
-func (c *Client4) CancelJob(jobId string) (*Response, error) {
-	r, err := c.DoAPIPost(c.jobsRoute()+fmt.Sprintf("/%v/cancel", jobId), "")
+func (c *Client4) CancelJob(ctx context.Context, jobId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.jobsRoute()+fmt.Sprintf("/%v/cancel", jobId), "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6983,8 +6846,8 @@ func (c *Client4) CancelJob(jobId string) (*Response, error) {
 }
 
 // DownloadJob downloads the results of the job
-func (c *Client4) DownloadJob(jobId string) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(c.jobsRoute()+fmt.Sprintf("/%v/download", jobId), "")
+func (c *Client4) DownloadJob(ctx context.Context, jobId string) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.jobsRoute()+fmt.Sprintf("/%v/download", jobId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7000,8 +6863,8 @@ func (c *Client4) DownloadJob(jobId string) ([]byte, *Response, error) {
 // Roles Section
 
 // GetAllRoles returns a list of all the roles.
-func (c *Client4) GetAllRoles() ([]*Role, *Response, error) {
-	r, err := c.DoAPIGet(c.rolesRoute(), "")
+func (c *Client4) GetAllRoles(ctx context.Context) ([]*Role, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.rolesRoute(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7014,8 +6877,8 @@ func (c *Client4) GetAllRoles() ([]*Role, *Response, error) {
 }
 
 // GetRole gets a single role by ID.
-func (c *Client4) GetRole(id string) (*Role, *Response, error) {
-	r, err := c.DoAPIGet(c.rolesRoute()+fmt.Sprintf("/%v", id), "")
+func (c *Client4) GetRole(ctx context.Context, id string) (*Role, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.rolesRoute()+fmt.Sprintf("/%v", id), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7028,8 +6891,8 @@ func (c *Client4) GetRole(id string) (*Role, *Response, error) {
 }
 
 // GetRoleByName gets a single role by Name.
-func (c *Client4) GetRoleByName(name string) (*Role, *Response, error) {
-	r, err := c.DoAPIGet(c.rolesRoute()+fmt.Sprintf("/name/%v", name), "")
+func (c *Client4) GetRoleByName(ctx context.Context, name string) (*Role, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.rolesRoute()+fmt.Sprintf("/name/%v", name), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7042,8 +6905,8 @@ func (c *Client4) GetRoleByName(name string) (*Role, *Response, error) {
 }
 
 // GetRolesByNames returns a list of roles based on the provided role names.
-func (c *Client4) GetRolesByNames(roleNames []string) ([]*Role, *Response, error) {
-	r, err := c.DoAPIPost(c.rolesRoute()+"/names", ArrayToJSON(roleNames))
+func (c *Client4) GetRolesByNames(ctx context.Context, roleNames []string) ([]*Role, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.rolesRoute()+"/names", ArrayToJSON(roleNames))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7056,12 +6919,12 @@ func (c *Client4) GetRolesByNames(roleNames []string) ([]*Role, *Response, error
 }
 
 // PatchRole partially updates a role in the system. Any missing fields are not updated.
-func (c *Client4) PatchRole(roleId string, patch *RolePatch) (*Role, *Response, error) {
+func (c *Client4) PatchRole(ctx context.Context, roleId string, patch *RolePatch) (*Role, *Response, error) {
 	buf, err := json.Marshal(patch)
 	if err != nil {
 		return nil, nil, NewAppError("PatchRole", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.rolesRoute()+fmt.Sprintf("/%v/patch", roleId), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.rolesRoute()+fmt.Sprintf("/%v/patch", roleId), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7076,12 +6939,12 @@ func (c *Client4) PatchRole(roleId string, patch *RolePatch) (*Role, *Response, 
 // Schemes Section
 
 // CreateScheme creates a new Scheme.
-func (c *Client4) CreateScheme(scheme *Scheme) (*Scheme, *Response, error) {
+func (c *Client4) CreateScheme(ctx context.Context, scheme *Scheme) (*Scheme, *Response, error) {
 	buf, err := json.Marshal(scheme)
 	if err != nil {
 		return nil, nil, NewAppError("CreateScheme", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.schemesRoute(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.schemesRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7094,8 +6957,8 @@ func (c *Client4) CreateScheme(scheme *Scheme) (*Scheme, *Response, error) {
 }
 
 // GetScheme gets a single scheme by ID.
-func (c *Client4) GetScheme(id string) (*Scheme, *Response, error) {
-	r, err := c.DoAPIGet(c.schemeRoute(id), "")
+func (c *Client4) GetScheme(ctx context.Context, id string) (*Scheme, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.schemeRoute(id), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7108,8 +6971,8 @@ func (c *Client4) GetScheme(id string) (*Scheme, *Response, error) {
 }
 
 // GetSchemes ets all schemes, sorted with the most recently created first, optionally filtered by scope.
-func (c *Client4) GetSchemes(scope string, page int, perPage int) ([]*Scheme, *Response, error) {
-	r, err := c.DoAPIGet(c.schemesRoute()+fmt.Sprintf("?scope=%v&page=%v&per_page=%v", scope, page, perPage), "")
+func (c *Client4) GetSchemes(ctx context.Context, scope string, page int, perPage int) ([]*Scheme, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.schemesRoute()+fmt.Sprintf("?scope=%v&page=%v&per_page=%v", scope, page, perPage), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7122,8 +6985,8 @@ func (c *Client4) GetSchemes(scope string, page int, perPage int) ([]*Scheme, *R
 }
 
 // DeleteScheme deletes a single scheme by ID.
-func (c *Client4) DeleteScheme(id string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.schemeRoute(id))
+func (c *Client4) DeleteScheme(ctx context.Context, id string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.schemeRoute(id))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7132,12 +6995,12 @@ func (c *Client4) DeleteScheme(id string) (*Response, error) {
 }
 
 // PatchScheme partially updates a scheme in the system. Any missing fields are not updated.
-func (c *Client4) PatchScheme(id string, patch *SchemePatch) (*Scheme, *Response, error) {
+func (c *Client4) PatchScheme(ctx context.Context, id string, patch *SchemePatch) (*Scheme, *Response, error) {
 	buf, err := json.Marshal(patch)
 	if err != nil {
 		return nil, nil, NewAppError("PatchScheme", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.schemeRoute(id)+"/patch", buf)
+	r, err := c.DoAPIPutBytes(ctx, c.schemeRoute(id)+"/patch", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7150,8 +7013,8 @@ func (c *Client4) PatchScheme(id string, patch *SchemePatch) (*Scheme, *Response
 }
 
 // GetTeamsForScheme gets the teams using this scheme, sorted alphabetically by display name.
-func (c *Client4) GetTeamsForScheme(schemeId string, page int, perPage int) ([]*Team, *Response, error) {
-	r, err := c.DoAPIGet(c.schemeRoute(schemeId)+fmt.Sprintf("/teams?page=%v&per_page=%v", page, perPage), "")
+func (c *Client4) GetTeamsForScheme(ctx context.Context, schemeId string, page int, perPage int) ([]*Team, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.schemeRoute(schemeId)+fmt.Sprintf("/teams?page=%v&per_page=%v", page, perPage), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7164,8 +7027,8 @@ func (c *Client4) GetTeamsForScheme(schemeId string, page int, perPage int) ([]*
 }
 
 // GetChannelsForScheme gets the channels using this scheme, sorted alphabetically by display name.
-func (c *Client4) GetChannelsForScheme(schemeId string, page int, perPage int) (ChannelList, *Response, error) {
-	r, err := c.DoAPIGet(c.schemeRoute(schemeId)+fmt.Sprintf("/channels?page=%v&per_page=%v", page, perPage), "")
+func (c *Client4) GetChannelsForScheme(ctx context.Context, schemeId string, page int, perPage int) (ChannelList, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.schemeRoute(schemeId)+fmt.Sprintf("/channels?page=%v&per_page=%v", page, perPage), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7182,15 +7045,15 @@ func (c *Client4) GetChannelsForScheme(schemeId string, page int, perPage int) (
 // Plugin Section
 
 // UploadPlugin takes an io.Reader stream pointing to the contents of a .tar.gz plugin.
-func (c *Client4) UploadPlugin(file io.Reader) (*Manifest, *Response, error) {
-	return c.uploadPlugin(file, false)
+func (c *Client4) UploadPlugin(ctx context.Context, file io.Reader) (*Manifest, *Response, error) {
+	return c.uploadPlugin(ctx, file, false)
 }
 
-func (c *Client4) UploadPluginForced(file io.Reader) (*Manifest, *Response, error) {
-	return c.uploadPlugin(file, true)
+func (c *Client4) UploadPluginForced(ctx context.Context, file io.Reader) (*Manifest, *Response, error) {
+	return c.uploadPlugin(ctx, file, true)
 }
 
-func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response, error) {
+func (c *Client4) uploadPlugin(ctx context.Context, file io.Reader, force bool) (*Manifest, *Response, error) {
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 
@@ -7241,11 +7104,11 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 	return &m, BuildResponse(rp), nil
 }
 
-func (c *Client4) InstallPluginFromURL(downloadURL string, force bool) (*Manifest, *Response, error) {
+func (c *Client4) InstallPluginFromURL(ctx context.Context, downloadURL string, force bool) (*Manifest, *Response, error) {
 	forceStr := c.boolString(force)
 
 	url := fmt.Sprintf("%s?plugin_download_url=%s&force=%s", c.pluginsRoute()+"/install_from_url", url.QueryEscape(downloadURL), forceStr)
-	r, err := c.DoAPIPost(url, "")
+	r, err := c.DoAPIPost(ctx, url, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7259,12 +7122,12 @@ func (c *Client4) InstallPluginFromURL(downloadURL string, force bool) (*Manifes
 }
 
 // InstallMarketplacePlugin will install marketplace plugin.
-func (c *Client4) InstallMarketplacePlugin(request *InstallMarketplacePluginRequest) (*Manifest, *Response, error) {
+func (c *Client4) InstallMarketplacePlugin(ctx context.Context, request *InstallMarketplacePluginRequest) (*Manifest, *Response, error) {
 	buf, err := json.Marshal(request)
 	if err != nil {
 		return nil, nil, NewAppError("InstallMarketplacePlugin", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.pluginsRoute()+"/marketplace", string(buf))
+	r, err := c.DoAPIPost(ctx, c.pluginsRoute()+"/marketplace", string(buf))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7278,8 +7141,8 @@ func (c *Client4) InstallMarketplacePlugin(request *InstallMarketplacePluginRequ
 }
 
 // GetPlugins will return a list of plugin manifests for currently active plugins.
-func (c *Client4) GetPlugins() (*PluginsResponse, *Response, error) {
-	r, err := c.DoAPIGet(c.pluginsRoute(), "")
+func (c *Client4) GetPlugins(ctx context.Context) (*PluginsResponse, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.pluginsRoute(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7294,8 +7157,8 @@ func (c *Client4) GetPlugins() (*PluginsResponse, *Response, error) {
 
 // GetPluginStatuses will return the plugins installed on any server in the cluster, for reporting
 // to the administrator via the system console.
-func (c *Client4) GetPluginStatuses() (PluginStatuses, *Response, error) {
-	r, err := c.DoAPIGet(c.pluginsRoute()+"/statuses", "")
+func (c *Client4) GetPluginStatuses(ctx context.Context) (PluginStatuses, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.pluginsRoute()+"/statuses", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7308,8 +7171,8 @@ func (c *Client4) GetPluginStatuses() (PluginStatuses, *Response, error) {
 }
 
 // RemovePlugin will disable and delete a plugin.
-func (c *Client4) RemovePlugin(id string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.pluginRoute(id))
+func (c *Client4) RemovePlugin(ctx context.Context, id string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.pluginRoute(id))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7318,8 +7181,8 @@ func (c *Client4) RemovePlugin(id string) (*Response, error) {
 }
 
 // GetWebappPlugins will return a list of plugins that the webapp should download.
-func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response, error) {
-	r, err := c.DoAPIGet(c.pluginsRoute()+"/webapp", "")
+func (c *Client4) GetWebappPlugins(ctx context.Context) ([]*Manifest, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.pluginsRoute()+"/webapp", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7333,8 +7196,8 @@ func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response, error) {
 }
 
 // EnablePlugin will enable an plugin installed.
-func (c *Client4) EnablePlugin(id string) (*Response, error) {
-	r, err := c.DoAPIPost(c.pluginRoute(id)+"/enable", "")
+func (c *Client4) EnablePlugin(ctx context.Context, id string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.pluginRoute(id)+"/enable", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7343,8 +7206,8 @@ func (c *Client4) EnablePlugin(id string) (*Response, error) {
 }
 
 // DisablePlugin will disable an enabled plugin.
-func (c *Client4) DisablePlugin(id string) (*Response, error) {
-	r, err := c.DoAPIPost(c.pluginRoute(id)+"/disable", "")
+func (c *Client4) DisablePlugin(ctx context.Context, id string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.pluginRoute(id)+"/disable", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7353,7 +7216,7 @@ func (c *Client4) DisablePlugin(id string) (*Response, error) {
 }
 
 // GetMarketplacePlugins will return a list of plugins that an admin can install.
-func (c *Client4) GetMarketplacePlugins(filter *MarketplacePluginFilter) ([]*MarketplacePlugin, *Response, error) {
+func (c *Client4) GetMarketplacePlugins(ctx context.Context, filter *MarketplacePluginFilter) ([]*MarketplacePlugin, *Response, error) {
 	route := c.pluginsRoute() + "/marketplace"
 	u, err := url.Parse(route)
 	if err != nil {
@@ -7362,7 +7225,7 @@ func (c *Client4) GetMarketplacePlugins(filter *MarketplacePluginFilter) ([]*Mar
 
 	filter.ApplyToURL(u)
 
-	r, err := c.DoAPIGet(u.String(), "")
+	r, err := c.DoAPIGet(ctx, u.String(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7377,13 +7240,13 @@ func (c *Client4) GetMarketplacePlugins(filter *MarketplacePluginFilter) ([]*Mar
 }
 
 // UpdateChannelScheme will update a channel's scheme.
-func (c *Client4) UpdateChannelScheme(channelId, schemeId string) (*Response, error) {
+func (c *Client4) UpdateChannelScheme(ctx context.Context, channelId, schemeId string) (*Response, error) {
 	sip := &SchemeIDPatch{SchemeID: &schemeId}
 	buf, err := json.Marshal(sip)
 	if err != nil {
 		return nil, NewAppError("UpdateChannelScheme", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.channelSchemeRoute(channelId), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.channelSchemeRoute(channelId), buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7392,13 +7255,13 @@ func (c *Client4) UpdateChannelScheme(channelId, schemeId string) (*Response, er
 }
 
 // UpdateTeamScheme will update a team's scheme.
-func (c *Client4) UpdateTeamScheme(teamId, schemeId string) (*Response, error) {
+func (c *Client4) UpdateTeamScheme(ctx context.Context, teamId, schemeId string) (*Response, error) {
 	sip := &SchemeIDPatch{SchemeID: &schemeId}
 	buf, err := json.Marshal(sip)
 	if err != nil {
 		return nil, NewAppError("UpdateTeamScheme", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.teamSchemeRoute(teamId), buf)
+	r, err := c.DoAPIPutBytes(ctx, c.teamSchemeRoute(teamId), buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7407,9 +7270,9 @@ func (c *Client4) UpdateTeamScheme(teamId, schemeId string) (*Response, error) {
 }
 
 // GetRedirectLocation retrieves the value of the 'Location' header of an HTTP response for a given URL.
-func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response, error) {
+func (c *Client4) GetRedirectLocation(ctx context.Context, urlParam, etag string) (string, *Response, error) {
 	url := fmt.Sprintf("%s?url=%s", c.redirectLocationRoute(), url.QueryEscape(urlParam))
-	r, err := c.DoAPIGet(url, etag)
+	r, err := c.DoAPIGet(ctx, url, etag)
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -7418,9 +7281,9 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response,
 }
 
 // SetServerBusy will mark the server as busy, which disables non-critical services for `secs` seconds.
-func (c *Client4) SetServerBusy(secs int) (*Response, error) {
+func (c *Client4) SetServerBusy(ctx context.Context, secs int) (*Response, error) {
 	url := fmt.Sprintf("%s?seconds=%d", c.serverBusyRoute(), secs)
-	r, err := c.DoAPIPost(url, "")
+	r, err := c.DoAPIPost(ctx, url, "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7429,8 +7292,8 @@ func (c *Client4) SetServerBusy(secs int) (*Response, error) {
 }
 
 // ClearServerBusy will mark the server as not busy.
-func (c *Client4) ClearServerBusy() (*Response, error) {
-	r, err := c.DoAPIDelete(c.serverBusyRoute())
+func (c *Client4) ClearServerBusy(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.serverBusyRoute())
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7440,8 +7303,8 @@ func (c *Client4) ClearServerBusy() (*Response, error) {
 
 // GetServerBusy returns the current ServerBusyState including the time when a server marked busy
 // will automatically have the flag cleared.
-func (c *Client4) GetServerBusy() (*ServerBusyState, *Response, error) {
-	r, err := c.DoAPIGet(c.serverBusyRoute(), "")
+func (c *Client4) GetServerBusy(ctx context.Context) (*ServerBusyState, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.serverBusyRoute(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7455,10 +7318,10 @@ func (c *Client4) GetServerBusy() (*ServerBusyState, *Response, error) {
 }
 
 // RegisterTermsOfServiceAction saves action performed by a user against a specific terms of service.
-func (c *Client4) RegisterTermsOfServiceAction(userId, termsOfServiceId string, accepted bool) (*Response, error) {
+func (c *Client4) RegisterTermsOfServiceAction(ctx context.Context, userId, termsOfServiceId string, accepted bool) (*Response, error) {
 	url := c.userTermsOfServiceRoute(userId)
 	data := map[string]any{"termsOfServiceId": termsOfServiceId, "accepted": accepted}
-	r, err := c.DoAPIPost(url, StringInterfaceToJSON(data))
+	r, err := c.DoAPIPost(ctx, url, StringInterfaceToJSON(data))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7467,9 +7330,9 @@ func (c *Client4) RegisterTermsOfServiceAction(userId, termsOfServiceId string, 
 }
 
 // GetTermsOfService fetches the latest terms of service
-func (c *Client4) GetTermsOfService(etag string) (*TermsOfService, *Response, error) {
+func (c *Client4) GetTermsOfService(ctx context.Context, etag string) (*TermsOfService, *Response, error) {
 	url := c.termsOfServiceRoute()
-	r, err := c.DoAPIGet(url, etag)
+	r, err := c.DoAPIGet(ctx, url, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7482,9 +7345,9 @@ func (c *Client4) GetTermsOfService(etag string) (*TermsOfService, *Response, er
 }
 
 // GetUserTermsOfService fetches user's latest terms of service action if the latest action was for acceptance.
-func (c *Client4) GetUserTermsOfService(userId, etag string) (*UserTermsOfService, *Response, error) {
+func (c *Client4) GetUserTermsOfService(ctx context.Context, userId, etag string) (*UserTermsOfService, *Response, error) {
 	url := c.userTermsOfServiceRoute(userId)
-	r, err := c.DoAPIGet(url, etag)
+	r, err := c.DoAPIGet(ctx, url, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7497,10 +7360,10 @@ func (c *Client4) GetUserTermsOfService(userId, etag string) (*UserTermsOfServic
 }
 
 // CreateTermsOfService creates new terms of service.
-func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *Response, error) {
+func (c *Client4) CreateTermsOfService(ctx context.Context, text, userId string) (*TermsOfService, *Response, error) {
 	url := c.termsOfServiceRoute()
 	data := map[string]any{"text": text}
-	r, err := c.DoAPIPost(url, StringInterfaceToJSON(data))
+	r, err := c.DoAPIPost(ctx, url, StringInterfaceToJSON(data))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7512,8 +7375,8 @@ func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *R
 	return &tos, BuildResponse(r), nil
 }
 
-func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response, error) {
-	r, err := c.DoAPIGet(c.groupRoute(groupID), etag)
+func (c *Client4) GetGroup(ctx context.Context, groupID, etag string) (*Group, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.groupRoute(groupID), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7525,12 +7388,12 @@ func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response, error) {
 	return &g, BuildResponse(r), nil
 }
 
-func (c *Client4) CreateGroup(group *Group) (*Group, *Response, error) {
+func (c *Client4) CreateGroup(ctx context.Context, group *Group) (*Group, *Response, error) {
 	groupJSON, err := json.Marshal(group)
 	if err != nil {
 		return nil, nil, NewAppError("CreateGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes("/groups", groupJSON)
+	r, err := c.DoAPIPostBytes(ctx, "/groups", groupJSON)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7542,8 +7405,8 @@ func (c *Client4) CreateGroup(group *Group) (*Group, *Response, error) {
 	return &p, BuildResponse(r), nil
 }
 
-func (c *Client4) DeleteGroup(groupID string) (*Group, *Response, error) {
-	r, err := c.DoAPIDelete(c.groupRoute(groupID))
+func (c *Client4) DeleteGroup(ctx context.Context, groupID string) (*Group, *Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.groupRoute(groupID))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7555,8 +7418,8 @@ func (c *Client4) DeleteGroup(groupID string) (*Group, *Response, error) {
 	return &p, BuildResponse(r), nil
 }
 
-func (c *Client4) RestoreGroup(groupID string, etag string) (*Group, *Response, error) {
-	r, err := c.DoAPIPost(c.groupRoute(groupID)+"/restore", "")
+func (c *Client4) RestoreGroup(ctx context.Context, groupID string, etag string) (*Group, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.groupRoute(groupID)+"/restore", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7568,12 +7431,12 @@ func (c *Client4) RestoreGroup(groupID string, etag string) (*Group, *Response, 
 	return &p, BuildResponse(r), nil
 }
 
-func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Response, error) {
+func (c *Client4) PatchGroup(ctx context.Context, groupID string, patch *GroupPatch) (*Group, *Response, error) {
 	payload, err := json.Marshal(patch)
 	if err != nil {
 		return nil, nil, NewAppError("PatchGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPut(c.groupRoute(groupID)+"/patch", string(payload))
+	r, err := c.DoAPIPut(ctx, c.groupRoute(groupID)+"/patch", string(payload))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7585,12 +7448,12 @@ func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Respon
 	return &g, BuildResponse(r), nil
 }
 
-func (c *Client4) UpsertGroupMembers(groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
+func (c *Client4) UpsertGroupMembers(ctx context.Context, groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
 	payload, err := json.Marshal(userIds)
 	if err != nil {
 		return nil, nil, NewAppError("UpsertGroupMembers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.groupRoute(groupID)+"/members", payload)
+	r, err := c.DoAPIPostBytes(ctx, c.groupRoute(groupID)+"/members", payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7602,12 +7465,12 @@ func (c *Client4) UpsertGroupMembers(groupID string, userIds *GroupModifyMembers
 	return g, BuildResponse(r), nil
 }
 
-func (c *Client4) DeleteGroupMembers(groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
+func (c *Client4) DeleteGroupMembers(ctx context.Context, groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
 	payload, err := json.Marshal(userIds)
 	if err != nil {
 		return nil, nil, NewAppError("DeleteGroupMembers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIDeleteBytes(c.groupRoute(groupID)+"/members", payload)
+	r, err := c.DoAPIDeleteBytes(ctx, c.groupRoute(groupID)+"/members", payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7619,13 +7482,13 @@ func (c *Client4) DeleteGroupMembers(groupID string, userIds *GroupModifyMembers
 	return g, BuildResponse(r), nil
 }
 
-func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
+func (c *Client4) LinkGroupSyncable(ctx context.Context, groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
 	payload, err := json.Marshal(patch)
 	if err != nil {
 		return nil, nil, NewAppError("LinkGroupSyncable", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	url := fmt.Sprintf("%s/link", c.groupSyncableRoute(groupID, syncableID, syncableType))
-	r, err := c.DoAPIPost(url, string(payload))
+	r, err := c.DoAPIPost(ctx, url, string(payload))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7637,9 +7500,9 @@ func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType Gro
 	return &gs, BuildResponse(r), nil
 }
 
-func (c *Client4) UnlinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType) (*Response, error) {
+func (c *Client4) UnlinkGroupSyncable(ctx context.Context, groupID, syncableID string, syncableType GroupSyncableType) (*Response, error) {
 	url := fmt.Sprintf("%s/link", c.groupSyncableRoute(groupID, syncableID, syncableType))
-	r, err := c.DoAPIDelete(url)
+	r, err := c.DoAPIDelete(ctx, url)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7647,8 +7510,8 @@ func (c *Client4) UnlinkGroupSyncable(groupID, syncableID string, syncableType G
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) GetGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, etag string) (*GroupSyncable, *Response, error) {
-	r, err := c.DoAPIGet(c.groupSyncableRoute(groupID, syncableID, syncableType), etag)
+func (c *Client4) GetGroupSyncable(ctx context.Context, groupID, syncableID string, syncableType GroupSyncableType, etag string) (*GroupSyncable, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.groupSyncableRoute(groupID, syncableID, syncableType), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7660,8 +7523,8 @@ func (c *Client4) GetGroupSyncable(groupID, syncableID string, syncableType Grou
 	return &gs, BuildResponse(r), nil
 }
 
-func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableType, etag string) ([]*GroupSyncable, *Response, error) {
-	r, err := c.DoAPIGet(c.groupSyncablesRoute(groupID, syncableType), etag)
+func (c *Client4) GetGroupSyncables(ctx context.Context, groupID string, syncableType GroupSyncableType, etag string) ([]*GroupSyncable, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.groupSyncablesRoute(groupID, syncableType), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7673,12 +7536,12 @@ func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableTy
 	return list, BuildResponse(r), nil
 }
 
-func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
+func (c *Client4) PatchGroupSyncable(ctx context.Context, groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
 	payload, err := json.Marshal(patch)
 	if err != nil {
 		return nil, nil, NewAppError("PatchGroupSyncable", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPut(c.groupSyncableRoute(groupID, syncableID, syncableType)+"/patch", string(payload))
+	r, err := c.DoAPIPut(ctx, c.groupSyncableRoute(groupID, syncableID, syncableType)+"/patch", string(payload))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7690,10 +7553,10 @@ func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType Gr
 	return &gs, BuildResponse(r), nil
 }
 
-func (c *Client4) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int, etag string) ([]*UserWithGroups, int64, *Response, error) {
+func (c *Client4) TeamMembersMinusGroupMembers(ctx context.Context, teamID string, groupIDs []string, page, perPage int, etag string) ([]*UserWithGroups, int64, *Response, error) {
 	groupIDStr := strings.Join(groupIDs, ",")
 	query := fmt.Sprintf("?group_ids=%s&page=%d&per_page=%d", groupIDStr, page, perPage)
-	r, err := c.DoAPIGet(c.teamRoute(teamID)+"/members_minus_group_members"+query, etag)
+	r, err := c.DoAPIGet(ctx, c.teamRoute(teamID)+"/members_minus_group_members"+query, etag)
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
 	}
@@ -7706,10 +7569,10 @@ func (c *Client4) TeamMembersMinusGroupMembers(teamID string, groupIDs []string,
 	return ugc.Users, ugc.Count, BuildResponse(r), nil
 }
 
-func (c *Client4) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int, etag string) ([]*UserWithGroups, int64, *Response, error) {
+func (c *Client4) ChannelMembersMinusGroupMembers(ctx context.Context, channelID string, groupIDs []string, page, perPage int, etag string) ([]*UserWithGroups, int64, *Response, error) {
 	groupIDStr := strings.Join(groupIDs, ",")
 	query := fmt.Sprintf("?group_ids=%s&page=%d&per_page=%d", groupIDStr, page, perPage)
-	r, err := c.DoAPIGet(c.channelRoute(channelID)+"/members_minus_group_members"+query, etag)
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelID)+"/members_minus_group_members"+query, etag)
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
 	}
@@ -7721,12 +7584,12 @@ func (c *Client4) ChannelMembersMinusGroupMembers(channelID string, groupIDs []s
 	return ugc.Users, ugc.Count, BuildResponse(r), nil
 }
 
-func (c *Client4) PatchConfig(config *Config) (*Config, *Response, error) {
+func (c *Client4) PatchConfig(ctx context.Context, config *Config) (*Config, *Response, error) {
 	buf, err := json.Marshal(config)
 	if err != nil {
 		return nil, nil, NewAppError("PatchConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.configRoute()+"/patch", buf)
+	r, err := c.DoAPIPutBytes(ctx, c.configRoute()+"/patch", buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7737,8 +7600,8 @@ func (c *Client4) PatchConfig(config *Config) (*Config, *Response, error) {
 	return cfg, BuildResponse(r), d.Decode(&cfg)
 }
 
-func (c *Client4) GetChannelModerations(channelID string, etag string) ([]*ChannelModeration, *Response, error) {
-	r, err := c.DoAPIGet(c.channelRoute(channelID)+"/moderations", etag)
+func (c *Client4) GetChannelModerations(ctx context.Context, channelID string, etag string) ([]*ChannelModeration, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelID)+"/moderations", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7752,13 +7615,13 @@ func (c *Client4) GetChannelModerations(channelID string, etag string) ([]*Chann
 	return ch, BuildResponse(r), nil
 }
 
-func (c *Client4) PatchChannelModerations(channelID string, patch []*ChannelModerationPatch) ([]*ChannelModeration, *Response, error) {
+func (c *Client4) PatchChannelModerations(ctx context.Context, channelID string, patch []*ChannelModerationPatch) ([]*ChannelModeration, *Response, error) {
 	payload, err := json.Marshal(patch)
 	if err != nil {
 		return nil, nil, NewAppError("PatchChannelModerations", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	r, err := c.DoAPIPut(c.channelRoute(channelID)+"/moderations/patch", string(payload))
+	r, err := c.DoAPIPut(ctx, c.channelRoute(channelID)+"/moderations/patch", string(payload))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7772,8 +7635,8 @@ func (c *Client4) PatchChannelModerations(channelID string, patch []*ChannelMode
 	return ch, BuildResponse(r), nil
 }
 
-func (c *Client4) GetKnownUsers() ([]string, *Response, error) {
-	r, err := c.DoAPIGet(c.usersRoute()+"/known", "")
+func (c *Client4) GetKnownUsers(ctx context.Context) ([]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/known", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7784,12 +7647,12 @@ func (c *Client4) GetKnownUsers() ([]string, *Response, error) {
 }
 
 // PublishUserTyping publishes a user is typing websocket event based on the provided TypingRequest.
-func (c *Client4) PublishUserTyping(userID string, typingRequest TypingRequest) (*Response, error) {
+func (c *Client4) PublishUserTyping(ctx context.Context, userID string, typingRequest TypingRequest) (*Response, error) {
 	buf, err := json.Marshal(typingRequest)
 	if err != nil {
 		return nil, NewAppError("PublishUserTyping", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.publishUserTypingRoute(userID), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.publishUserTypingRoute(userID), buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7797,8 +7660,8 @@ func (c *Client4) PublishUserTyping(userID string, typingRequest TypingRequest) 
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezones bool, etag string) ([]*ChannelMemberCountByGroup, *Response, error) {
-	r, err := c.DoAPIGet(c.channelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
+func (c *Client4) GetChannelMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool, etag string) ([]*ChannelMemberCountByGroup, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7812,13 +7675,13 @@ func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezon
 	return ch, BuildResponse(r), nil
 }
 
-func (c *Client4) RequestTrialLicenseWithExtraFields(trialRequest *TrialLicenseRequest) (*Response, error) {
+func (c *Client4) RequestTrialLicenseWithExtraFields(ctx context.Context, trialRequest *TrialLicenseRequest) (*Response, error) {
 	b, err := json.Marshal(trialRequest)
 	if err != nil {
 		return nil, NewAppError("RequestTrialLicense", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	r, err := c.DoAPIPost("/trial-license", string(b))
+	r, err := c.DoAPIPost(ctx, "/trial-license", string(b))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7829,12 +7692,12 @@ func (c *Client4) RequestTrialLicenseWithExtraFields(trialRequest *TrialLicenseR
 
 // RequestTrialLicense will request a trial license and install it in the server
 // DEPRECATED - USE RequestTrialLicenseWithExtraFields (this method remains for backwards compatibility)
-func (c *Client4) RequestTrialLicense(users int) (*Response, error) {
+func (c *Client4) RequestTrialLicense(ctx context.Context, users int) (*Response, error) {
 	b, err := json.Marshal(map[string]any{"users": users, "terms_accepted": true})
 	if err != nil {
 		return nil, NewAppError("RequestTrialLicense", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost("/trial-license", string(b))
+	r, err := c.DoAPIPost(ctx, "/trial-license", string(b))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7843,8 +7706,8 @@ func (c *Client4) RequestTrialLicense(users int) (*Response, error) {
 }
 
 // GetGroupStats retrieves stats for a Mattermost Group
-func (c *Client4) GetGroupStats(groupID string) (*GroupStats, *Response, error) {
-	r, err := c.DoAPIGet(c.groupRoute(groupID)+"/stats", "")
+func (c *Client4) GetGroupStats(ctx context.Context, groupID string) (*GroupStats, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.groupRoute(groupID)+"/stats", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7856,9 +7719,9 @@ func (c *Client4) GetGroupStats(groupID string) (*GroupStats, *Response, error) 
 	return &gs, BuildResponse(r), nil
 }
 
-func (c *Client4) GetSidebarCategoriesForTeamForUser(userID, teamID, etag string) (*OrderedSidebarCategories, *Response, error) {
+func (c *Client4) GetSidebarCategoriesForTeamForUser(ctx context.Context, userID, teamID, etag string) (*OrderedSidebarCategories, *Response, error) {
 	route := c.userCategoryRoute(userID, teamID)
-	r, err := c.DoAPIGet(route, etag)
+	r, err := c.DoAPIGet(ctx, route, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7871,13 +7734,13 @@ func (c *Client4) GetSidebarCategoriesForTeamForUser(userID, teamID, etag string
 	return cat, BuildResponse(r), nil
 }
 
-func (c *Client4) CreateSidebarCategoryForTeamForUser(userID, teamID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response, error) {
+func (c *Client4) CreateSidebarCategoryForTeamForUser(ctx context.Context, userID, teamID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response, error) {
 	payload, err := json.Marshal(category)
 	if err != nil {
 		return nil, nil, NewAppError("CreateSidebarCategoryForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	route := c.userCategoryRoute(userID, teamID)
-	r, err := c.DoAPIPostBytes(route, payload)
+	r, err := c.DoAPIPostBytes(ctx, route, payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7890,14 +7753,14 @@ func (c *Client4) CreateSidebarCategoryForTeamForUser(userID, teamID string, cat
 	return cat, BuildResponse(r), nil
 }
 
-func (c *Client4) UpdateSidebarCategoriesForTeamForUser(userID, teamID string, categories []*SidebarCategoryWithChannels) ([]*SidebarCategoryWithChannels, *Response, error) {
+func (c *Client4) UpdateSidebarCategoriesForTeamForUser(ctx context.Context, userID, teamID string, categories []*SidebarCategoryWithChannels) ([]*SidebarCategoryWithChannels, *Response, error) {
 	payload, err := json.Marshal(categories)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateSidebarCategoriesForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	route := c.userCategoryRoute(userID, teamID)
 
-	r, err := c.DoAPIPutBytes(route, payload)
+	r, err := c.DoAPIPutBytes(ctx, route, payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7912,9 +7775,9 @@ func (c *Client4) UpdateSidebarCategoriesForTeamForUser(userID, teamID string, c
 	return cat, BuildResponse(r), nil
 }
 
-func (c *Client4) GetSidebarCategoryOrderForTeamForUser(userID, teamID, etag string) ([]string, *Response, error) {
+func (c *Client4) GetSidebarCategoryOrderForTeamForUser(ctx context.Context, userID, teamID, etag string) ([]string, *Response, error) {
 	route := c.userCategoryRoute(userID, teamID) + "/order"
-	r, err := c.DoAPIGet(route, etag)
+	r, err := c.DoAPIGet(ctx, route, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7922,13 +7785,13 @@ func (c *Client4) GetSidebarCategoryOrderForTeamForUser(userID, teamID, etag str
 	return ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
-func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(userID, teamID string, order []string) ([]string, *Response, error) {
+func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, userID, teamID string, order []string) ([]string, *Response, error) {
 	payload, err := json.Marshal(order)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateSidebarCategoryOrderForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	route := c.userCategoryRoute(userID, teamID) + "/order"
-	r, err := c.DoAPIPutBytes(route, payload)
+	r, err := c.DoAPIPutBytes(ctx, route, payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7936,9 +7799,9 @@ func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(userID, teamID string
 	return ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
-func (c *Client4) GetSidebarCategoryForTeamForUser(userID, teamID, categoryID, etag string) (*SidebarCategoryWithChannels, *Response, error) {
+func (c *Client4) GetSidebarCategoryForTeamForUser(ctx context.Context, userID, teamID, categoryID, etag string) (*SidebarCategoryWithChannels, *Response, error) {
 	route := c.userCategoryRoute(userID, teamID) + "/" + categoryID
-	r, err := c.DoAPIGet(route, etag)
+	r, err := c.DoAPIGet(ctx, route, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7952,13 +7815,13 @@ func (c *Client4) GetSidebarCategoryForTeamForUser(userID, teamID, categoryID, e
 	return cat, BuildResponse(r), nil
 }
 
-func (c *Client4) UpdateSidebarCategoryForTeamForUser(userID, teamID, categoryID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response, error) {
+func (c *Client4) UpdateSidebarCategoryForTeamForUser(ctx context.Context, userID, teamID, categoryID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response, error) {
 	payload, err := json.Marshal(category)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateSidebarCategoryForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	route := c.userCategoryRoute(userID, teamID) + "/" + categoryID
-	r, err := c.DoAPIPutBytes(route, payload)
+	r, err := c.DoAPIPutBytes(ctx, route, payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7973,8 +7836,8 @@ func (c *Client4) UpdateSidebarCategoryForTeamForUser(userID, teamID, categoryID
 }
 
 // CheckIntegrity performs a database integrity check.
-func (c *Client4) CheckIntegrity() ([]IntegrityCheckResult, *Response, error) {
-	r, err := c.DoAPIPost("/integrity", "")
+func (c *Client4) CheckIntegrity(ctx context.Context) ([]IntegrityCheckResult, *Response, error) {
+	r, err := c.DoAPIPost(ctx, "/integrity", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7986,9 +7849,9 @@ func (c *Client4) CheckIntegrity() ([]IntegrityCheckResult, *Response, error) {
 	return results, BuildResponse(r), nil
 }
 
-func (c *Client4) GetNotices(lastViewed int64, teamId string, client NoticeClientType, clientVersion, locale, etag string) (NoticeMessages, *Response, error) {
+func (c *Client4) GetNotices(ctx context.Context, lastViewed int64, teamId string, client NoticeClientType, clientVersion, locale, etag string) (NoticeMessages, *Response, error) {
 	url := fmt.Sprintf("/system/notices/%s?lastViewed=%d&client=%s&clientVersion=%s&locale=%s", teamId, lastViewed, client, clientVersion, locale)
-	r, err := c.DoAPIGet(url, etag)
+	r, err := c.DoAPIGet(ctx, url, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8000,8 +7863,8 @@ func (c *Client4) GetNotices(lastViewed int64, teamId string, client NoticeClien
 	return notices, BuildResponse(r), nil
 }
 
-func (c *Client4) MarkNoticesViewed(ids []string) (*Response, error) {
-	r, err := c.DoAPIPut("/system/notices/view", ArrayToJSON(ids))
+func (c *Client4) MarkNoticesViewed(ctx context.Context, ids []string) (*Response, error) {
+	r, err := c.DoAPIPut(ctx, "/system/notices/view", ArrayToJSON(ids))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8009,12 +7872,12 @@ func (c *Client4) MarkNoticesViewed(ids []string) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) CompleteOnboarding(request *CompleteOnboardingRequest) (*Response, error) {
+func (c *Client4) CompleteOnboarding(ctx context.Context, request *CompleteOnboardingRequest) (*Response, error) {
 	buf, err := json.Marshal(request)
 	if err != nil {
 		return nil, NewAppError("CompleteOnboarding", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.systemRoute()+"/onboarding/complete", string(buf))
+	r, err := c.DoAPIPost(ctx, c.systemRoute()+"/onboarding/complete", string(buf))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8024,12 +7887,12 @@ func (c *Client4) CompleteOnboarding(request *CompleteOnboardingRequest) (*Respo
 }
 
 // CreateUpload creates a new upload session.
-func (c *Client4) CreateUpload(us *UploadSession) (*UploadSession, *Response, error) {
+func (c *Client4) CreateUpload(ctx context.Context, us *UploadSession) (*UploadSession, *Response, error) {
 	buf, err := json.Marshal(us)
 	if err != nil {
 		return nil, nil, NewAppError("CreateUpload", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.uploadsRoute(), buf)
+	r, err := c.DoAPIPostBytes(ctx, c.uploadsRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8043,8 +7906,8 @@ func (c *Client4) CreateUpload(us *UploadSession) (*UploadSession, *Response, er
 }
 
 // GetUpload returns the upload session for the specified uploadId.
-func (c *Client4) GetUpload(uploadId string) (*UploadSession, *Response, error) {
-	r, err := c.DoAPIGet(c.uploadRoute(uploadId), "")
+func (c *Client4) GetUpload(ctx context.Context, uploadId string) (*UploadSession, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.uploadRoute(uploadId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8058,8 +7921,8 @@ func (c *Client4) GetUpload(uploadId string) (*UploadSession, *Response, error) 
 
 // GetUploadsForUser returns the upload sessions created by the specified
 // userId.
-func (c *Client4) GetUploadsForUser(userId string) ([]*UploadSession, *Response, error) {
-	r, err := c.DoAPIGet(c.userRoute(userId)+"/uploads", "")
+func (c *Client4) GetUploadsForUser(ctx context.Context, userId string) ([]*UploadSession, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/uploads", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8073,9 +7936,9 @@ func (c *Client4) GetUploadsForUser(userId string) ([]*UploadSession, *Response,
 
 // UploadData performs an upload. On success it returns
 // a FileInfo object.
-func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Response, error) {
+func (c *Client4) UploadData(ctx context.Context, uploadId string, data io.Reader) (*FileInfo, *Response, error) {
 	url := c.uploadRoute(uploadId)
-	r, err := c.DoAPIRequestReader("POST", c.APIURL+url, data, nil)
+	r, err := c.DoAPIRequestReader(ctx, "POST", c.APIURL+url, data, nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8090,9 +7953,9 @@ func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Respo
 	return &fi, BuildResponse(r), nil
 }
 
-func (c *Client4) UpdatePassword(userId, currentPassword, newPassword string) (*Response, error) {
+func (c *Client4) UpdatePassword(ctx context.Context, userId, currentPassword, newPassword string) (*Response, error) {
 	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
-	r, err := c.DoAPIPut(c.userRoute(userId)+"/password", MapToJSON(requestBody))
+	r, err := c.DoAPIPut(ctx, c.userRoute(userId)+"/password", MapToJSON(requestBody))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8102,8 +7965,8 @@ func (c *Client4) UpdatePassword(userId, currentPassword, newPassword string) (*
 
 // Cloud Section
 
-func (c *Client4) GetCloudProducts() ([]*Product, *Response, error) {
-	r, err := c.DoAPIGet(c.cloudRoute()+"/products", "")
+func (c *Client4) GetCloudProducts(ctx context.Context) ([]*Product, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.cloudRoute()+"/products", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8115,8 +7978,8 @@ func (c *Client4) GetCloudProducts() ([]*Product, *Response, error) {
 	return cloudProducts, BuildResponse(r), nil
 }
 
-func (c *Client4) GetSelfHostedProducts() ([]*Product, *Response, error) {
-	r, err := c.DoAPIGet(c.cloudRoute()+"/products/selfhosted", "")
+func (c *Client4) GetSelfHostedProducts(ctx context.Context) ([]*Product, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.cloudRoute()+"/products/selfhosted", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8128,8 +7991,8 @@ func (c *Client4) GetSelfHostedProducts() ([]*Product, *Response, error) {
 	return products, BuildResponse(r), nil
 }
 
-func (c *Client4) GetProductLimits() (*ProductLimits, *Response, error) {
-	r, err := c.DoAPIGet(c.cloudRoute()+"/limits", "")
+func (c *Client4) GetProductLimits(ctx context.Context) (*ProductLimits, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.cloudRoute()+"/limits", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8141,8 +8004,8 @@ func (c *Client4) GetProductLimits() (*ProductLimits, *Response, error) {
 	return productLimits, BuildResponse(r), nil
 }
 
-func (c *Client4) CreateCustomerPayment() (*StripeSetupIntent, *Response, error) {
-	r, err := c.DoAPIPost(c.cloudRoute()+"/payment", "")
+func (c *Client4) CreateCustomerPayment(ctx context.Context) (*StripeSetupIntent, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.cloudRoute()+"/payment", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8154,12 +8017,12 @@ func (c *Client4) CreateCustomerPayment() (*StripeSetupIntent, *Response, error)
 	return setupIntent, BuildResponse(r), nil
 }
 
-func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodRequest) (*Response, error) {
+func (c *Client4) ConfirmCustomerPayment(ctx context.Context, confirmRequest *ConfirmPaymentMethodRequest) (*Response, error) {
 	json, err := json.Marshal(confirmRequest)
 	if err != nil {
 		return nil, NewAppError("ConfirmCustomerPayment", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.cloudRoute()+"/payment/confirm", json)
+	r, err := c.DoAPIPostBytes(ctx, c.cloudRoute()+"/payment/confirm", json)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8168,12 +8031,12 @@ func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodReq
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) RequestCloudTrial(cloudTrialRequest *StartCloudTrialRequest) (*Subscription, *Response, error) {
+func (c *Client4) RequestCloudTrial(ctx context.Context, cloudTrialRequest *StartCloudTrialRequest) (*Subscription, *Response, error) {
 	payload, err := json.Marshal(cloudTrialRequest)
 	if err != nil {
 		return nil, nil, NewAppError("RequestCloudTrial", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.cloudRoute()+"/request-trial", payload)
+	r, err := c.DoAPIPutBytes(ctx, c.cloudRoute()+"/request-trial", payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8185,8 +8048,8 @@ func (c *Client4) RequestCloudTrial(cloudTrialRequest *StartCloudTrialRequest) (
 	return subscription, BuildResponse(r), nil
 }
 
-func (c *Client4) ValidateWorkspaceBusinessEmail() (*Response, error) {
-	r, err := c.DoAPIPost(c.cloudRoute()+"/validate-workspace-business-email", "")
+func (c *Client4) ValidateWorkspaceBusinessEmail(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.cloudRoute()+"/validate-workspace-business-email", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8195,13 +8058,13 @@ func (c *Client4) ValidateWorkspaceBusinessEmail() (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) (int, error) {
+func (c *Client4) NotifyAdmin(ctx context.Context, nr *NotifyAdminToUpgradeRequest) (int, error) {
 	nrJSON, err := json.Marshal(nr)
 	if err != nil {
 		return 0, err
 	}
 
-	r, err := c.DoAPIPost("/users/notify-admin", string(nrJSON))
+	r, err := c.DoAPIPost(ctx, "/users/notify-admin", string(nrJSON))
 	if err != nil {
 		return r.StatusCode, err
 	}
@@ -8211,13 +8074,13 @@ func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) (int, error) {
 	return r.StatusCode, nil
 }
 
-func (c *Client4) TriggerNotifyAdmin(nr *NotifyAdminToUpgradeRequest) (int, error) {
+func (c *Client4) TriggerNotifyAdmin(ctx context.Context, nr *NotifyAdminToUpgradeRequest) (int, error) {
 	nrJSON, err := json.Marshal(nr)
 	if err != nil {
 		return 0, err
 	}
 
-	r, err := c.DoAPIPost("/users/trigger-notify-admin-posts", string(nrJSON))
+	r, err := c.DoAPIPost(ctx, "/users/trigger-notify-admin-posts", string(nrJSON))
 	if err != nil {
 		return r.StatusCode, err
 	}
@@ -8227,9 +8090,9 @@ func (c *Client4) TriggerNotifyAdmin(nr *NotifyAdminToUpgradeRequest) (int, erro
 	return r.StatusCode, nil
 }
 
-func (c *Client4) ValidateBusinessEmail(email *ValidateBusinessEmailRequest) (*Response, error) {
+func (c *Client4) ValidateBusinessEmail(ctx context.Context, email *ValidateBusinessEmailRequest) (*Response, error) {
 	payload, _ := json.Marshal(email)
-	r, err := c.DoAPIPostBytes(c.cloudRoute()+"/validate-business-email", payload)
+	r, err := c.DoAPIPostBytes(ctx, c.cloudRoute()+"/validate-business-email", payload)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8238,8 +8101,8 @@ func (c *Client4) ValidateBusinessEmail(email *ValidateBusinessEmailRequest) (*R
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
-	r, err := c.DoAPIGet(c.cloudRoute()+"/customer", "")
+func (c *Client4) GetCloudCustomer(ctx context.Context) (*CloudCustomer, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.cloudRoute()+"/customer", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8251,8 +8114,8 @@ func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
 	return cloudCustomer, BuildResponse(r), nil
 }
 
-func (c *Client4) GetSubscriptionStatus(licenseId string) (*SubscriptionLicenseSelfServeStatusResponse, *Response, error) {
-	r, err := c.DoAPIGet(fmt.Sprintf("%s%s?licenseID=%s", c.cloudRoute(), "/subscription/self-serve-status", licenseId), "")
+func (c *Client4) GetSubscriptionStatus(ctx context.Context, licenseId string) (*SubscriptionLicenseSelfServeStatusResponse, *Response, error) {
+	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s%s?licenseID=%s", c.cloudRoute(), "/subscription/self-serve-status", licenseId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8264,8 +8127,8 @@ func (c *Client4) GetSubscriptionStatus(licenseId string) (*SubscriptionLicenseS
 	return status, BuildResponse(r), nil
 }
 
-func (c *Client4) GetSubscription() (*Subscription, *Response, error) {
-	r, err := c.DoAPIGet(c.cloudRoute()+"/subscription", "")
+func (c *Client4) GetSubscription(ctx context.Context) (*Subscription, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.cloudRoute()+"/subscription", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8277,8 +8140,8 @@ func (c *Client4) GetSubscription() (*Subscription, *Response, error) {
 	return subscription, BuildResponse(r), nil
 }
 
-func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response, error) {
-	r, err := c.DoAPIGet(c.cloudRoute()+"/subscription/invoices", "")
+func (c *Client4) GetInvoicesForSubscription(ctx context.Context) ([]*Invoice, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.cloudRoute()+"/subscription/invoices", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8290,12 +8153,12 @@ func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response, error) {
 	return invoices, BuildResponse(r), nil
 }
 
-func (c *Client4) UpdateCloudCustomer(customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response, error) {
+func (c *Client4) UpdateCloudCustomer(ctx context.Context, customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response, error) {
 	customerBytes, err := json.Marshal(customerInfo)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateCloudCustomer", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.cloudRoute()+"/customer", customerBytes)
+	r, err := c.DoAPIPutBytes(ctx, c.cloudRoute()+"/customer", customerBytes)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8307,12 +8170,12 @@ func (c *Client4) UpdateCloudCustomer(customerInfo *CloudCustomerInfo) (*CloudCu
 	return customer, BuildResponse(r), nil
 }
 
-func (c *Client4) UpdateCloudCustomerAddress(address *Address) (*CloudCustomer, *Response, error) {
+func (c *Client4) UpdateCloudCustomerAddress(ctx context.Context, address *Address) (*CloudCustomer, *Response, error) {
 	addressBytes, err := json.Marshal(address)
 	if err != nil {
 		return nil, nil, NewAppError("UpdateCloudCustomerAddress", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPutBytes(c.cloudRoute()+"/customer/address", addressBytes)
+	r, err := c.DoAPIPutBytes(ctx, c.cloudRoute()+"/customer/address", addressBytes)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8324,12 +8187,12 @@ func (c *Client4) UpdateCloudCustomerAddress(address *Address) (*CloudCustomer, 
 	return customer, BuildResponse(r), nil
 }
 
-func (c *Client4) BootstrapSelfHostedSignup(req BootstrapSelfHostedSignupRequest) (*BootstrapSelfHostedSignupResponse, *Response, error) {
+func (c *Client4) BootstrapSelfHostedSignup(ctx context.Context, req BootstrapSelfHostedSignupRequest) (*BootstrapSelfHostedSignupResponse, *Response, error) {
 	reqBytes, err := json.Marshal(req)
 	if err != nil {
 		return nil, nil, NewAppError("BootstrapSelfHostedSignup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.hostedCustomerRoute()+"/bootstrap", reqBytes)
+	r, err := c.DoAPIPostBytes(ctx, c.hostedCustomerRoute()+"/bootstrap", reqBytes)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8341,8 +8204,8 @@ func (c *Client4) BootstrapSelfHostedSignup(req BootstrapSelfHostedSignupRequest
 	return res, BuildResponse(r), nil
 }
 
-func (c *Client4) ListImports() ([]string, *Response, error) {
-	r, err := c.DoAPIGet(c.importsRoute(), "")
+func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.importsRoute(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8350,8 +8213,8 @@ func (c *Client4) ListImports() ([]string, *Response, error) {
 	return ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
-func (c *Client4) ListExports() ([]string, *Response, error) {
-	r, err := c.DoAPIGet(c.exportsRoute(), "")
+func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.exportsRoute(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8359,8 +8222,8 @@ func (c *Client4) ListExports() ([]string, *Response, error) {
 	return ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
-func (c *Client4) DeleteExport(name string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.exportRoute(name))
+func (c *Client4) DeleteExport(ctx context.Context, name string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.exportRoute(name))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8368,14 +8231,14 @@ func (c *Client4) DeleteExport(name string) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) DownloadExport(name string, wr io.Writer, offset int64) (int64, *Response, error) {
+func (c *Client4) DownloadExport(ctx context.Context, name string, wr io.Writer, offset int64) (int64, *Response, error) {
 	var headers map[string]string
 	if offset > 0 {
 		headers = map[string]string{
 			HeaderRange: fmt.Sprintf("bytes=%d-", offset),
 		}
 	}
-	r, err := c.DoAPIRequestWithHeaders(http.MethodGet, c.APIURL+c.exportRoute(name), "", headers)
+	r, err := c.DoAPIRequestWithHeaders(ctx, http.MethodGet, c.APIURL+c.exportRoute(name), "", headers)
 	if err != nil {
 		return 0, BuildResponse(r), err
 	}
@@ -8387,7 +8250,23 @@ func (c *Client4) DownloadExport(name string, wr io.Writer, offset int64) (int64
 	return n, BuildResponse(r), nil
 }
 
-func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOpts) (*Threads, *Response, error) {
+func (c *Client4) GeneratePresignedURL(ctx context.Context, name string) (*PresignURLResponse, *Response, error) {
+	r, err := c.DoAPIRequest(ctx, http.MethodPost, c.APIURL+c.exportRoute(name)+"/presign-url", "", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	res := &PresignURLResponse{}
+	err = json.NewDecoder(r.Body).Decode(res)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GeneratePresignedURL", "model.client.json_decode.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return res, BuildResponse(r), nil
+}
+
+func (c *Client4) GetUserThreads(ctx context.Context, userId, teamId string, options GetUserThreadsOpts) (*Threads, *Response, error) {
 	v := url.Values{}
 	if options.Since != 0 {
 		v.Set("since", fmt.Sprintf("%d", options.Since))
@@ -8421,7 +8300,7 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 		url += "?" + v.Encode()
 	}
 
-	r, err := c.DoAPIGet(url, "")
+	r, err := c.DoAPIGet(ctx, url, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8433,12 +8312,12 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	return &threads, BuildResponse(r), nil
 }
 
-func (c *Client4) GetUserThread(userId, teamId, threadId string, extended bool) (*ThreadResponse, *Response, error) {
+func (c *Client4) GetUserThread(ctx context.Context, userId, teamId, threadId string, extended bool) (*ThreadResponse, *Response, error) {
 	url := c.userThreadRoute(userId, teamId, threadId)
 	if extended {
 		url += "?extended=true"
 	}
-	r, err := c.DoAPIGet(url, "")
+	r, err := c.DoAPIGet(ctx, url, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8450,8 +8329,8 @@ func (c *Client4) GetUserThread(userId, teamId, threadId string, extended bool) 
 	return &thread, BuildResponse(r), nil
 }
 
-func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) (*Response, error) {
-	r, err := c.DoAPIPut(fmt.Sprintf("%s/read", c.userThreadsRoute(userId, teamId)), "")
+func (c *Client4) UpdateThreadsReadForUser(ctx context.Context, userId, teamId string) (*Response, error) {
+	r, err := c.DoAPIPut(ctx, fmt.Sprintf("%s/read", c.userThreadsRoute(userId, teamId)), "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8460,8 +8339,8 @@ func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) (*Response, er
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) SetThreadUnreadByPostId(userId, teamId, threadId, postId string) (*ThreadResponse, *Response, error) {
-	r, err := c.DoAPIPost(fmt.Sprintf("%s/set_unread/%s", c.userThreadRoute(userId, teamId, threadId), postId), "")
+func (c *Client4) SetThreadUnreadByPostId(ctx context.Context, userId, teamId, threadId, postId string) (*ThreadResponse, *Response, error) {
+	r, err := c.DoAPIPost(ctx, fmt.Sprintf("%s/set_unread/%s", c.userThreadRoute(userId, teamId, threadId), postId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8472,8 +8351,8 @@ func (c *Client4) SetThreadUnreadByPostId(userId, teamId, threadId, postId strin
 	return &thread, BuildResponse(r), nil
 }
 
-func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) (*ThreadResponse, *Response, error) {
-	r, err := c.DoAPIPut(fmt.Sprintf("%s/read/%d", c.userThreadRoute(userId, teamId, threadId), timestamp), "")
+func (c *Client4) UpdateThreadReadForUser(ctx context.Context, userId, teamId, threadId string, timestamp int64) (*ThreadResponse, *Response, error) {
+	r, err := c.DoAPIPut(ctx, fmt.Sprintf("%s/read/%d", c.userThreadRoute(userId, teamId, threadId), timestamp), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8484,13 +8363,13 @@ func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, times
 	return &thread, BuildResponse(r), nil
 }
 
-func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, state bool) (*Response, error) {
+func (c *Client4) UpdateThreadFollowForUser(ctx context.Context, userId, teamId, threadId string, state bool) (*Response, error) {
 	var err error
 	var r *http.Response
 	if state {
-		r, err = c.DoAPIPut(c.userThreadRoute(userId, teamId, threadId)+"/following", "")
+		r, err = c.DoAPIPut(ctx, c.userThreadRoute(userId, teamId, threadId)+"/following", "")
 	} else {
-		r, err = c.DoAPIDelete(c.userThreadRoute(userId, teamId, threadId) + "/following")
+		r, err = c.DoAPIDelete(ctx, c.userThreadRoute(userId, teamId, threadId)+"/following")
 	}
 	if err != nil {
 		return BuildResponse(r), err
@@ -8500,9 +8379,9 @@ func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, sta
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) GetAllSharedChannels(teamID string, page, perPage int) ([]*SharedChannel, *Response, error) {
+func (c *Client4) GetAllSharedChannels(ctx context.Context, teamID string, page, perPage int) ([]*SharedChannel, *Response, error) {
 	url := fmt.Sprintf("%s/%s?page=%d&per_page=%d", c.sharedChannelsRoute(), teamID, page, perPage)
-	r, err := c.DoAPIGet(url, "")
+	r, err := c.DoAPIGet(ctx, url, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8514,9 +8393,9 @@ func (c *Client4) GetAllSharedChannels(teamID string, page, perPage int) ([]*Sha
 	return channels, BuildResponse(r), nil
 }
 
-func (c *Client4) GetRemoteClusterInfo(remoteID string) (RemoteClusterInfo, *Response, error) {
+func (c *Client4) GetRemoteClusterInfo(ctx context.Context, remoteID string) (RemoteClusterInfo, *Response, error) {
 	url := fmt.Sprintf("%s/remote_info/%s", c.sharedChannelsRoute(), remoteID)
-	r, err := c.DoAPIGet(url, "")
+	r, err := c.DoAPIGet(ctx, url, "")
 	if err != nil {
 		return RemoteClusterInfo{}, BuildResponse(r), err
 	}
@@ -8528,10 +8407,10 @@ func (c *Client4) GetRemoteClusterInfo(remoteID string) (RemoteClusterInfo, *Res
 	return rci, BuildResponse(r), nil
 }
 
-func (c *Client4) GetAncillaryPermissions(subsectionPermissions []string) ([]string, *Response, error) {
+func (c *Client4) GetAncillaryPermissions(ctx context.Context, subsectionPermissions []string) ([]string, *Response, error) {
 	var returnedPermissions []string
 	url := fmt.Sprintf("%s/ancillary?subsection_permissions=%s", c.permissionsRoute(), strings.Join(subsectionPermissions, ","))
-	r, err := c.DoAPIGet(url, "")
+	r, err := c.DoAPIGet(ctx, url, "")
 	if err != nil {
 		return returnedPermissions, BuildResponse(r), err
 	}
@@ -8541,9 +8420,9 @@ func (c *Client4) GetAncillaryPermissions(subsectionPermissions []string) ([]str
 	return returnedPermissions, BuildResponse(r), nil
 }
 
-func (c *Client4) GetUsersWithInvalidEmails(page, perPage int) ([]*User, *Response, error) {
+func (c *Client4) GetUsersWithInvalidEmails(ctx context.Context, page, perPage int) ([]*User, *Response, error) {
 	query := fmt.Sprintf("/invalid_emails?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(c.usersRoute()+query, "")
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8558,8 +8437,8 @@ func (c *Client4) GetUsersWithInvalidEmails(page, perPage int) ([]*User, *Respon
 	return list, BuildResponse(r), nil
 }
 
-func (c *Client4) GetAppliedSchemaMigrations() ([]AppliedMigration, *Response, error) {
-	r, err := c.DoAPIGet(c.systemRoute()+"/schema/version", "")
+func (c *Client4) GetAppliedSchemaMigrations(ctx context.Context) ([]AppliedMigration, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/schema/version", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8574,8 +8453,8 @@ func (c *Client4) GetAppliedSchemaMigrations() ([]AppliedMigration, *Response, e
 // Usage Section
 
 // GetPostsUsage returns rounded off total usage of posts for the instance
-func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
-	r, err := c.DoAPIGet(c.usageRoute()+"/posts", "")
+func (c *Client4) GetPostsUsage(ctx context.Context) (*PostsUsage, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.usageRoute()+"/posts", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8588,8 +8467,8 @@ func (c *Client4) GetPostsUsage() (*PostsUsage, *Response, error) {
 
 // GetStorageUsage returns the file storage usage for the instance,
 // rounded down the most signigicant digit
-func (c *Client4) GetStorageUsage() (*StorageUsage, *Response, error) {
-	r, err := c.DoAPIGet(c.usageRoute()+"/storage", "")
+func (c *Client4) GetStorageUsage(ctx context.Context) (*StorageUsage, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.usageRoute()+"/storage", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8601,8 +8480,8 @@ func (c *Client4) GetStorageUsage() (*StorageUsage, *Response, error) {
 }
 
 // GetTeamsUsage returns total usage of teams for the instance
-func (c *Client4) GetTeamsUsage() (*TeamsUsage, *Response, error) {
-	r, err := c.DoAPIGet(c.usageRoute()+"/teams", "")
+func (c *Client4) GetTeamsUsage(ctx context.Context) (*TeamsUsage, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.usageRoute()+"/teams", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8613,22 +8492,8 @@ func (c *Client4) GetTeamsUsage() (*TeamsUsage, *Response, error) {
 	return usage, BuildResponse(r), err
 }
 
-func (c *Client4) GetNewTeamMembersSince(teamID string, timeRange string, page int, perPage int) (*NewTeamMembersList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-	r, err := c.DoAPIGet(c.teamRoute(teamID)+"/top/team_members"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var newTeamMembersList *NewTeamMembersList
-	if jsonErr := json.NewDecoder(r.Body).Decode(&newTeamMembersList); jsonErr != nil {
-		return nil, nil, NewAppError("GetNewTeamMembersSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return newTeamMembersList, BuildResponse(r), nil
-}
-
-func (c *Client4) SelfHostedSignupAvailable() (*Response, error) {
-	r, err := c.DoAPIGet(c.hostedCustomerRoute()+"/signup_available", "")
+func (c *Client4) SelfHostedSignupAvailable(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIGet(ctx, c.hostedCustomerRoute()+"/signup_available", "")
 
 	if err != nil {
 		return BuildResponse(r), err
@@ -8638,13 +8503,13 @@ func (c *Client4) SelfHostedSignupAvailable() (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) SelfHostedSignupCustomer(form *SelfHostedCustomerForm) (*Response, *SelfHostedSignupCustomerResponse, error) {
+func (c *Client4) SelfHostedSignupCustomer(ctx context.Context, form *SelfHostedCustomerForm) (*Response, *SelfHostedSignupCustomerResponse, error) {
 	payloadBytes, err := json.Marshal(form)
 	if err != nil {
 		return nil, nil, NewAppError("SelfHostedSignupCustomer", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	r, err := c.DoAPIPost(c.hostedCustomerRoute()+"/customer", string(payloadBytes))
+	r, err := c.DoAPIPost(ctx, c.hostedCustomerRoute()+"/customer", string(payloadBytes))
 
 	if err != nil {
 		return BuildResponse(r), nil, err
@@ -8664,13 +8529,13 @@ func (c *Client4) SelfHostedSignupCustomer(form *SelfHostedCustomerForm) (*Respo
 	return BuildResponse(r), &response, nil
 }
 
-func (c *Client4) SelfHostedSignupConfirm(form *SelfHostedConfirmPaymentMethodRequest) (*Response, *SelfHostedSignupConfirmClientResponse, error) {
+func (c *Client4) SelfHostedSignupConfirm(ctx context.Context, form *SelfHostedConfirmPaymentMethodRequest) (*Response, *SelfHostedSignupConfirmClientResponse, error) {
 	payloadBytes, err := json.Marshal(form)
 	if err != nil {
 		return nil, nil, NewAppError("SelfHostedSignupConfirm", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	r, err := c.DoAPIPost(c.hostedCustomerRoute()+"/confirm", string(payloadBytes))
+	r, err := c.DoAPIPost(ctx, c.hostedCustomerRoute()+"/confirm", string(payloadBytes))
 
 	if err != nil {
 		return BuildResponse(r), nil, err
@@ -8693,8 +8558,8 @@ func (c *Client4) SelfHostedSignupConfirm(form *SelfHostedConfirmPaymentMethodRe
 	return BuildResponse(r), &response, nil
 }
 
-func (c *Client4) GetSelfHostedInvoices() (*Response, []*Invoice, error) {
-	r, err := c.DoAPIGet(c.hostedCustomerRoute()+"/invoices", "")
+func (c *Client4) GetSelfHostedInvoices(ctx context.Context) (*Response, []*Invoice, error) {
+	r, err := c.DoAPIGet(ctx, c.hostedCustomerRoute()+"/invoices", "")
 
 	if err != nil {
 		return BuildResponse(r), nil, err
@@ -8717,8 +8582,8 @@ func (c *Client4) GetSelfHostedInvoices() (*Response, []*Invoice, error) {
 	return BuildResponse(r), invoices, nil
 }
 
-func (c *Client4) GetPostInfo(postId string) (*PostInfo, *Response, error) {
-	r, err := c.DoAPIGet(c.postRoute(postId)+"/info", "")
+func (c *Client4) GetPostInfo(ctx context.Context, postId string) (*PostInfo, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.postRoute(postId)+"/info", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8731,8 +8596,8 @@ func (c *Client4) GetPostInfo(postId string) (*PostInfo, *Response, error) {
 	return info, BuildResponse(r), nil
 }
 
-func (c *Client4) AcknowledgePost(postId, userId string) (*PostAcknowledgement, *Response, error) {
-	r, err := c.DoAPIPost(c.userRoute(userId)+c.postRoute(postId)+"/ack", "")
+func (c *Client4) AcknowledgePost(ctx context.Context, postId, userId string) (*PostAcknowledgement, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.userRoute(userId)+c.postRoute(postId)+"/ack", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8744,8 +8609,8 @@ func (c *Client4) AcknowledgePost(postId, userId string) (*PostAcknowledgement, 
 	return ack, BuildResponse(r), nil
 }
 
-func (c *Client4) UnacknowledgePost(postId, userId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.userRoute(userId) + c.postRoute(postId) + "/ack")
+func (c *Client4) UnacknowledgePost(ctx context.Context, postId, userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.userRoute(userId)+c.postRoute(postId)+"/ack")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8753,8 +8618,8 @@ func (c *Client4) UnacknowledgePost(postId, userId string) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
-	r, err := c.DoAPIPost(c.ldapRoute()+"/users/"+userID+"/group_sync_memberships", "")
+func (c *Client4) AddUserToGroupSyncables(ctx context.Context, userID string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.ldapRoute()+"/users/"+userID+"/group_sync_memberships", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8762,8 +8627,8 @@ func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) CheckCWSConnection(userId string) (*Response, error) {
-	r, err := c.DoAPIGet(c.cloudRoute()+"/healthz", "")
+func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Response, error) {
+	r, err := c.DoAPIGet(ctx, c.cloudRoute()+"/healthz", "")
 
 	if err != nil {
 		return BuildResponse(r), err
@@ -8773,43 +8638,12 @@ func (c *Client4) CheckCWSConnection(userId string) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-// Worktemplates sections
-
-func (c *Client4) worktemplatesRoute() string {
-	return "/worktemplates"
-}
-
-// GetWorktemplateCategories returns categories of worktemplates
-func (c *Client4) GetWorktemplateCategories() ([]*WorkTemplateCategory, *Response, error) {
-	r, err := c.DoAPIGet(c.worktemplatesRoute()+"/categories", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var categories []*WorkTemplateCategory
-	err = json.NewDecoder(r.Body).Decode(&categories)
-	return categories, BuildResponse(r), err
-}
-
-func (c *Client4) GetWorkTemplatesByCategory(category string) ([]*WorkTemplate, *Response, error) {
-	r, err := c.DoAPIGet(c.worktemplatesRoute()+"/categories/"+category+"/templates", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var templates []*WorkTemplate
-	err = json.NewDecoder(r.Body).Decode(&templates)
-	return templates, BuildResponse(r), err
-}
-
-func (c *Client4) SubmitTrueUpReview(req map[string]any) (*Response, error) {
+func (c *Client4) SubmitTrueUpReview(ctx context.Context, req map[string]any) (*Response, error) {
 	reqBytes, err := json.Marshal(req)
 	if err != nil {
 		return nil, NewAppError("SubmitTrueUpReview", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.licenseRoute()+"/review", reqBytes)
+	r, err := c.DoAPIPostBytes(ctx, c.licenseRoute()+"/review", reqBytes)
 	if err != nil {
 		return BuildResponse(r), nil
 	}

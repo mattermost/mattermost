@@ -10,9 +10,9 @@ import (
 	graphql "github.com/graph-gophers/graphql-go"
 	_ "github.com/mattermost/go-i18n/i18n"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/web"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 type Routes struct {
@@ -135,12 +135,7 @@ type Routes struct {
 
 	Permissions *mux.Router // 'api/v4/permissions'
 
-	InsightsForTeam *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/top'
-	InsightsForUser *mux.Router // 'api/v4/users/me/top'
-
 	Usage *mux.Router // 'api/v4/usage'
-
-	WorkTemplates *mux.Router // 'api/v4/worktemplates'
 
 	HostedCustomer *mux.Router // 'api/v4/hosted_customer'
 
@@ -266,12 +261,7 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Permissions = api.BaseRoutes.APIRoot.PathPrefix("/permissions").Subrouter()
 
-	api.BaseRoutes.InsightsForTeam = api.BaseRoutes.Team.PathPrefix("/top").Subrouter()
-	api.BaseRoutes.InsightsForUser = api.BaseRoutes.Users.PathPrefix("/me/top").Subrouter()
-
 	api.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix("/usage").Subrouter()
-
-	api.BaseRoutes.WorkTemplates = api.BaseRoutes.APIRoot.PathPrefix("/worktemplates").Subrouter()
 
 	api.BaseRoutes.HostedCustomer = api.BaseRoutes.APIRoot.PathPrefix("/hosted_customer").Subrouter()
 
@@ -318,9 +308,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitSharedChannels()
 	api.InitPermissions()
 	api.InitExport()
-	api.InitInsights()
 	api.InitUsage()
-	api.InitWorkTemplate()
 	api.InitHostedCustomer()
 	api.InitDrafts()
 	if err := api.InitGraphQL(); err != nil {

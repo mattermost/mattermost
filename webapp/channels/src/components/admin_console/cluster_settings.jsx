@@ -14,9 +14,10 @@ import ExternalLink from 'components/external_link';
 
 import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
-import ClusterTableContainer from './cluster_table_container.jsx';
-import SettingsGroup from './settings_group.jsx';
+import ClusterTableContainer from './cluster_table_container';
+import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
+import DocLinks from 'utils/constants';
 
 export default class ClusterSettings extends AdminSettings {
     getConfigFromState = (config) => {
@@ -87,7 +88,7 @@ export default class ClusterSettings extends AdminSettings {
                             link: (msg) => (
                                 <ExternalLink
                                     location='cluster_settings'
-                                    href='http://docs.mattermost.com/deployment/cluster.html'
+                                    href={DocLinks.HIGH_AVAILABILITY_CLUSTER}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -114,7 +115,7 @@ export default class ClusterSettings extends AdminSettings {
                             link: (msg) => (
                                 <ExternalLink
                                     location='cluster_settings'
-                                    href='http://docs.mattermost.com/deployment/cluster.html'
+                                    href={DocLinks.HIGH_AVAILABILITY_CLUSTER}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -157,7 +158,7 @@ export default class ClusterSettings extends AdminSettings {
                                 link: (msg) => (
                                     <ExternalLink
                                         location='cluster_settings'
-                                        href='http://docs.mattermost.com/deployment/cluster.html'
+                                        href={DocLinks.HIGH_AVAILABILITY_CLUSTER}
                                     >
                                         {msg}
                                     </ExternalLink>

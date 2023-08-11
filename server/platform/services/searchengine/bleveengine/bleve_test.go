@@ -11,13 +11,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/searchlayer"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/searchtest"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
+	"github.com/mattermost/mattermost/server/v8/channels/store/searchtest"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
 type BleveEngineTestSuite struct {
@@ -49,7 +49,12 @@ func (s *BleveEngineTestSuite) setupStore() {
 		driverName = model.DatabaseDriverPostgres
 	}
 	s.SQLSettings = storetest.MakeSqlSettings(driverName, false)
-	s.SQLStore = sqlstore.New(*s.SQLSettings, nil)
+
+	var err error
+	s.SQLStore, err = sqlstore.New(*s.SQLSettings, nil)
+	if err != nil {
+		s.Require().FailNow("Cannot initialize store: %s", err.Error())
+	}
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()

@@ -43,10 +43,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with about link 1
             key="about_link"
             location="header_footer_template"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="About"
-              id="web.footer.about"
-            />
+            About
           </ExternalLink>
         </span>
       </div>
@@ -98,10 +95,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with all links 1`
             key="about_link"
             location="header_footer_template"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="About"
-              id="web.footer.about"
-            />
+            About
           </ExternalLink>
           <ExternalLink
             className="footer-link"
@@ -110,10 +104,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with all links 1`
             key="privacy_link"
             location="header_footer_template"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="Privacy Policy"
-              id="web.footer.privacy"
-            />
+            Privacy Policy
           </ExternalLink>
           <ExternalLink
             className="footer-link"
@@ -122,10 +113,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with all links 1`
             key="terms_link"
             location="header_footer_template"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="Terms"
-              id="web.footer.terms"
-            />
+            Terms
           </ExternalLink>
           <ExternalLink
             className="footer-link"
@@ -134,10 +122,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with all links 1`
             key="help_link"
             location="header_footer_template"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="Help"
-              id="web.footer.help"
-            />
+            Help
           </ExternalLink>
         </span>
       </div>
@@ -235,10 +220,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with help link 1`
             key="help_link"
             location="header_footer_template"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="Help"
-              id="web.footer.help"
-            />
+            Help
           </ExternalLink>
         </span>
       </div>
@@ -290,10 +272,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with privacy poli
             key="privacy_link"
             location="header_footer_template"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="Privacy Policy"
-              id="web.footer.privacy"
-            />
+            Privacy Policy
           </ExternalLink>
         </span>
       </div>
@@ -345,10 +324,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with term of serv
             key="terms_link"
             location="header_footer_template"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="Terms"
-              id="web.footer.terms"
-            />
+            Terms
           </ExternalLink>
         </span>
       </div>

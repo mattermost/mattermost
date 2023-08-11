@@ -6,23 +6,21 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/searchlayer"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 type SqlPostStore struct {
@@ -1923,13 +1921,11 @@ func (s *SqlPostStore) buildSearchPostFilterClause(teamID string, fromUsers []st
 	}
 
 	// Sub-query builder.
-	sb := s.getSubQueryBuilder().
-		Select("Id").
-		From("Users, TeamMembers").
-		Where(sq.Expr("Users.Id = TeamMembers.UserId"))
-	if teamID != "" {
-		sb = sb.Where(sq.Eq{"TeamMembers.TeamId": teamID})
-	}
+	sb := s.getSubQueryBuilder().Select("Id").From("Users, TeamMembers").Where(
+		sq.And{
+			sq.Eq{"TeamMembers.TeamId": teamID},
+			sq.Expr("Users.Id = TeamMembers.UserId"),
+		})
 	sb = s.buildSearchUserFilterClause(fromUsers, false, userByUsername, sb)
 	sb = s.buildSearchUserFilterClause(excludedUsers, true, userByUsername, sb)
 	subQuery, subQueryArgs, err := sb.ToSql()
@@ -2552,6 +2548,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 }
 
 // GetMaxPostSize returns the maximum number of runes that may be stored in a post.
+// For any changes, accordingly update the markdown maxLen here - markdown/inspect.go.
 func (s *SqlPostStore) GetMaxPostSize() int {
 	s.maxPostSizeOnce.Do(func() {
 		s.maxPostSizeCached = s.determineMaxPostSize()
@@ -2709,7 +2706,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 }
 
 //nolint:unparam
-func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID, teamId string, page, perPage int) (*model.PostSearchResults, error) {
+func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
 	// Since we don't support paging for DB search, we just return nothing for later pages
 	if page > 0 {
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
@@ -2719,22 +2716,11 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 		return nil, err
 	}
 
-	now := model.GetMillis()
+	var wg sync.WaitGroup
+
 	pchan := make(chan store.StoreResult, len(paramsList))
 
-	var wg sync.WaitGroup
 	for _, params := range paramsList {
-		// Deliberately keeping non-alphanumeric characters to
-		// prevent surprises in UI.
-		buf, err := json.Marshal(params)
-		if err != nil {
-			return nil, err
-		}
-		err = s.LogRecentSearch(userID, buf, now)
-		if err != nil {
-			return nil, err
-		}
-
 		// remove any unquoted term that contains only non-alphanumeric chars
 		// ex: abcd "**" && abc     >>     abcd "**" abc
 		params.Terms = removeNonAlphaNumericUnquotedTerms(params.Terms, " ")
@@ -2743,7 +2729,7 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 
 		go func(params *model.SearchParams) {
 			defer wg.Done()
-			postList, err := s.search(teamId, userID, params, false, false)
+			postList, err := s.search(teamId, userId, params, false, false)
 			pchan <- store.StoreResult{Data: postList, NErr: err}
 		}(params)
 	}
@@ -2764,103 +2750,6 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 	posts.SortByCreateAt()
 
 	return model.MakePostSearchResults(posts, nil), nil
-}
-
-const lastSearchesLimit = 5
-
-func (s *SqlPostStore) LogRecentSearch(userID string, searchQuery []byte, createAt int64) (err error) {
-	transaction, err := s.GetMasterX().Beginx()
-	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
-	}
-
-	defer finalizeTransactionX(transaction, &err)
-
-	var lastSearchPointer int
-	var queryStr string
-	// get search_pointer
-	// We coalesce to -1 because we want to start from 0
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		queryStr = `SELECT COALESCE((props->>'last_search_pointer')::integer, -1)
-			FROM Users
-			WHERE Id=?`
-	} else {
-		queryStr = `SELECT COALESCE(CAST(JSON_EXTRACT(Props, '$.last_search_pointer') as unsigned), -1)
-			FROM Users
-			WHERE Id=?`
-	}
-	err = transaction.Get(&lastSearchPointer, queryStr, userID)
-	if err != nil {
-		return errors.Wrapf(err, "failed to find last_search_pointer for user=%s", userID)
-	}
-
-	// (ptr+1)%lastSearchesLimit
-	lastSearchPointer = (lastSearchPointer + 1) % lastSearchesLimit
-
-	if s.IsBinaryParamEnabled() {
-		searchQuery = AppendBinaryFlag(searchQuery)
-	}
-
-	// insert at pointer
-	query := s.getQueryBuilder().
-		Insert("RecentSearches").
-		Columns("UserId", "SearchPointer", "Query", "CreateAt").
-		Values(userID, lastSearchPointer, searchQuery, createAt)
-
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid, searchpointer) DO UPDATE SET Query = ?, CreateAt = ?", searchQuery, createAt))
-	} else {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Query = ?, CreateAt = ?", searchQuery, createAt))
-	}
-
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return errors.Wrap(err, "log_recent_search_tosql")
-	}
-
-	if _, err2 := transaction.Exec(queryString, args...); err2 != nil {
-		return errors.Wrapf(err2, "failed to upsert recent_search for user=%s", userID)
-	}
-
-	// write ptr on users prop
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		_, err = transaction.Exec(`UPDATE Users
-			SET Props = jsonb_set(Props, $1, $2)
-			WHERE Id = $3`, jsonKeyPath("last_search_pointer"), jsonStringVal(strconv.Itoa(lastSearchPointer)), userID)
-	} else {
-		_, err = transaction.Exec(`UPDATE Users
-			SET Props = JSON_SET(Props, ?, ?)
-			WHERE Id = ?`, "$.last_search_pointer", strconv.Itoa(lastSearchPointer), userID)
-	}
-	if err != nil {
-		return errors.Wrapf(err, "failed to update last_search_pointer for user=%s", userID)
-	}
-
-	if err2 := transaction.Commit(); err2 != nil {
-		return errors.Wrap(err2, "commit_transaction")
-	}
-
-	return nil
-}
-
-func (s *SqlPostStore) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, error) {
-	params := [][]byte{}
-	err := s.GetReplicaX().Select(&params, `SELECT query
-		FROM RecentSearches
-		WHERE UserId=?
-		ORDER BY CreateAt DESC`, userID)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get recent searches for user=%s", userID)
-	}
-
-	res := make([]*model.SearchParams, len(params))
-	for i, param := range params {
-		err = json.Unmarshal(param, &res[i])
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to unmarshal recent search query for user=%s", userID)
-		}
-	}
-	return res, nil
 }
 
 func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {
@@ -2910,6 +2799,30 @@ func (s *SqlPostStore) deleteThread(transaction *sqlxTxWrapper, postId string, d
 	_, err = transaction.Exec(queryString, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to mark thread for root post %s as deleted", postId)
+	}
+
+	return s.deleteThreadFiles(transaction, postId, deleteAtTime)
+}
+
+func (s *SqlPostStore) deleteThreadFiles(transaction *sqlxTxWrapper, postID string, deleteAtTime int64) error {
+	var query sq.UpdateBuilder
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = s.getQueryBuilder().Update("FileInfo").
+			Set("DeleteAt", deleteAtTime).
+			From("Posts")
+	} else {
+		query = s.getQueryBuilder().Update("FileInfo", "Posts").
+			Set("FileInfo.DeleteAt", deleteAtTime)
+	}
+
+	query = query.Where(sq.And{
+		sq.Expr("FileInfo.PostId = Posts.Id"),
+		sq.Eq{"Posts.RootId": postID},
+	})
+
+	_, err := transaction.ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to mark files of thread post %s as deleted", postID)
 	}
 
 	return nil
@@ -3144,163 +3057,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		}
 	}
 	return nil
-}
-
-func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error) {
-	var botsFilterExpr string
-	/*
-		Channel.Name is of the format userId1__userId2.
-		Using this, self dms, and bot dms can be filtered.
-	*/
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		botsFilterExpr = `SPLIT_PART(Channels.Name, '__', 1) NOT IN (SELECT UserId FROM Bots)
-		AND SPLIT_PART(Channels.Name, '__', 2) NOT IN (SELECT UserId FROM Bots)
-		`
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		botsFilterExpr = `SUBSTRING_INDEX(Channels.Name, '__', 1) NOT IN (SELECT UserId FROM Bots)
-		AND SUBSTRING_INDEX(Channels.Name, '__', -1) NOT IN (SELECT UserId FROM Bots)
-		`
-	}
-
-	channelSelector := s.getQueryBuilder().Select("Id", "TotalMsgCount").From("Channels").Join("ChannelMembers as cm on cm.ChannelId = Channels.Id").
-		Where(sq.And{
-			sq.Expr("Channels.Type = 'D'"),
-			sq.Eq{"cm.UserId": userID},
-			sq.NotEq{"Channels.Name": fmt.Sprintf("%s__%s", userID, userID)},
-			sq.Expr(botsFilterExpr),
-		})
-	var aggregator string
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		aggregator = "group_concat(distinct cm.UserId) as Participants"
-	} else {
-		aggregator = "string_agg(distinct cm.UserId, ',') as Participants"
-	}
-
-	topDMsBuilder := s.getQueryBuilder().Select("count(p.Id) as MessageCount", aggregator, "vch.Id as ChannelId").FromSelect(channelSelector, "vch").
-		Join("ChannelMembers as cm on cm.ChannelId = vch.Id").
-		Join("Posts as p on p.ChannelId = vch.Id").
-		Where(sq.And{
-			sq.Gt{
-				"p.UpdateAt": since,
-			},
-			sq.Eq{
-				"p.DeleteAt": 0,
-			},
-		}).GroupBy("vch.id")
-
-	// following where clause filters out all archived DMs with "deleted" users, that has only 1 user-id in Participants column.
-	archivedDMsFilter := s.getQueryBuilder().Select("MessageCount", "Participants", "ChannelId").FromSelect(topDMsBuilder, "top_dms").
-		Where(sq.Expr("POSITION(',' IN Participants) > 0"))
-
-	archivedDMsFilter = archivedDMsFilter.OrderBy("MessageCount DESC").Limit(uint64(limit + 1)).Offset(uint64(offset))
-
-	topDMs := make([]*model.TopDM, 0)
-	sql, args, err := archivedDMsFilter.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "GetTopDMsForUserSince_ToSql")
-	}
-	err = s.GetReplicaX().Select(&topDMs, sql, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find top DMs for user-id: %s", userID)
-	}
-
-	// fill SecondParticipant column
-	topDMs, err = postProcessTopDMs(s, userID, topDMs, since)
-	if err != nil {
-		return nil, err
-	}
-	return model.GetTopDMListWithPagination(topDMs, limit), nil
-}
-
-func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM, since int64) ([]*model.TopDM, error) {
-	var topDMsFiltered = []*model.TopDM{}
-	var secondParticipantIds []string
-	var channelIds []string
-
-	// identify second participant in a list of participants
-	for _, topDM := range topDMs {
-		participants := strings.Split(topDM.Participants, ",")
-		var secondParticipantId string
-		// divide message count by 2, because it's counted twice due to channel memberships being 2 for dms.
-		topDM.MessageCount = topDM.MessageCount / 2
-		if participants[0] == userID {
-			secondParticipantId = participants[1]
-		} else {
-			secondParticipantId = participants[0]
-		}
-		secondParticipantIds = append(secondParticipantIds, secondParticipantId)
-		channelIds = append(channelIds, topDM.ChannelId)
-	}
-
-	// get user profiles
-	users, err := s.User().GetProfileByIds(context.Background(), secondParticipantIds, &store.UserGetByIdsOpts{}, true)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get second participants' information")
-	}
-
-	// get outgoing message count for userId
-	outgoingMessagesQuery := s.getQueryBuilder().Select("ch.Id as ChannelId, count(p.Id) as MessageCount").From("Channels as ch").
-		Join("Posts as p on p.ChannelId=ch.Id").Where(
-		sq.And{
-			sq.Gt{
-				"p.UpdateAt": since,
-			},
-			sq.Eq{
-				"p.DeleteAt": 0,
-			},
-			sq.Eq{
-				"ch.Id": channelIds,
-			},
-			sq.Eq{
-				"p.UserId": userID,
-			},
-		}).GroupBy("ch.Id")
-
-	outgoingMessages := make([]*model.OutgoingMessageQueryResult, 0)
-	sql, args, err := outgoingMessagesQuery.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "GetTopDMsForUserSince_outgoingMessagesQuery_ToSql")
-	}
-	err = s.GetReplicaX().Select(&outgoingMessages, sql, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find top DMs for user-id: %s", userID)
-	}
-
-	// create map of channelId -> MessageCount
-	outgoingMessagesMap := make(map[string]int)
-	for _, outgoingMessage := range outgoingMessages {
-		outgoingMessagesMap[outgoingMessage.ChannelId] = outgoingMessage.MessageCount
-	}
-
-	// create map of userId -> User
-	usersMap := make(map[string]*model.User)
-	for _, user := range users {
-		usersMap[user.Id] = user
-	}
-
-	for index, topDM := range topDMs {
-		if secondParticipantIds[index] == "-1" {
-			return nil, errors.Wrapf(err, "failed to find second user for topDM: %s", userID)
-		}
-		user := usersMap[secondParticipantIds[index]]
-		topDM.SecondParticipant = &model.TopDMInsightUserInformation{
-			InsightUserInformation: model.InsightUserInformation{
-				Id:                user.Id,
-				LastPictureUpdate: user.LastPictureUpdate,
-				FirstName:         user.FirstName,
-				LastName:          user.LastName,
-				Username:          user.Username,
-				NickName:          user.Nickname,
-			},
-			Position: user.Position,
-		}
-
-		topDM.OutgoingMessageCount = int64(outgoingMessagesMap[topDM.ChannelId])
-		topDMsFiltered = append(topDMsFiltered, topDM)
-	}
-
-	return topDMsFiltered, nil
 }
 
 func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {

@@ -23,8 +23,6 @@ import {StaticPage} from 'types/store/lhs';
 
 import GlobalThreadsLink from 'components/threading/global_threads_link';
 import DraftsLink from 'components/drafts/drafts_link/drafts_link';
-import ActivityAndInsightsLink
-    from 'components/activity_and_insights/activity_and_insights_link/activity_and_insights_link';
 
 import {Team} from '@mattermost/types/teams';
 import {ChannelCategory} from '@mattermost/types/channel_categories';
@@ -535,7 +533,6 @@ export default class SidebarList extends React.PureComponent<Props, State> {
 
             // NOTE: id attribute added to temporarily support the desktop app's at-mention DOM scraping of the old sidebar
             <>
-                <ActivityAndInsightsLink/>
                 <GlobalThreadsLink/>
                 <DraftsLink/>
                 <div

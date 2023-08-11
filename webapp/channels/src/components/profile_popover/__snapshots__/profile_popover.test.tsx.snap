@@ -132,6 +132,7 @@ exports[`components/ProfilePopover should disable start call button when user is
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -219,6 +220,7 @@ exports[`components/ProfilePopover should disable start call button when user is
                       "mfa_active": false,
                       "nickname": "",
                       "notify_props": Object {
+                        "calls_desktop_sound": "true",
                         "channel": "false",
                         "comments": "never",
                         "desktop": "default",
@@ -315,6 +317,7 @@ exports[`components/ProfilePopover should disable start call button when user is
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -477,6 +480,7 @@ exports[`components/ProfilePopover should hide add-to-channel option if not on t
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -581,6 +585,7 @@ exports[`components/ProfilePopover should hide add-to-channel option if not on t
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -743,6 +748,7 @@ exports[`components/ProfilePopover should match snapshot 1`] = `
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -830,6 +836,7 @@ exports[`components/ProfilePopover should match snapshot 1`] = `
                       "mfa_active": false,
                       "nickname": "",
                       "notify_props": Object {
+                        "calls_desktop_sound": "true",
                         "channel": "false",
                         "comments": "never",
                         "desktop": "default",
@@ -930,6 +937,7 @@ exports[`components/ProfilePopover should match snapshot 1`] = `
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -1107,6 +1115,7 @@ exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -1195,6 +1204,7 @@ exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
                       "mfa_active": false,
                       "nickname": "",
                       "notify_props": Object {
+                        "calls_desktop_sound": "true",
                         "channel": "false",
                         "comments": "never",
                         "desktop": "default",
@@ -1296,6 +1306,7 @@ exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -1459,6 +1470,7 @@ exports[`components/ProfilePopover should match snapshot when calls are disabled
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -1546,6 +1558,7 @@ exports[`components/ProfilePopover should match snapshot when calls are disabled
                       "mfa_active": false,
                       "nickname": "",
                       "notify_props": Object {
+                        "calls_desktop_sound": "true",
                         "channel": "false",
                         "comments": "never",
                         "desktop": "default",
@@ -1612,6 +1625,7 @@ exports[`components/ProfilePopover should match snapshot when calls are disabled
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -1781,6 +1795,7 @@ exports[`components/ProfilePopover should match snapshot with custom status 1`] 
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -1906,6 +1921,7 @@ exports[`components/ProfilePopover should match snapshot with custom status 1`] 
                       "mfa_active": false,
                       "nickname": "",
                       "notify_props": Object {
+                        "calls_desktop_sound": "true",
                         "channel": "false",
                         "comments": "never",
                         "desktop": "default",
@@ -2006,6 +2022,7 @@ exports[`components/ProfilePopover should match snapshot with custom status 1`] 
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -2175,6 +2192,7 @@ exports[`components/ProfilePopover should match snapshot with custom status expi
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -2262,6 +2280,7 @@ exports[`components/ProfilePopover should match snapshot with custom status expi
                       "mfa_active": false,
                       "nickname": "",
                       "notify_props": Object {
+                        "calls_desktop_sound": "true",
                         "channel": "false",
                         "comments": "never",
                         "desktop": "default",
@@ -2362,6 +2381,7 @@ exports[`components/ProfilePopover should match snapshot with custom status expi
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -2524,6 +2544,7 @@ exports[`components/ProfilePopover should match snapshot with custom status not 
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -2648,6 +2669,7 @@ exports[`components/ProfilePopover should match snapshot with custom status not 
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -2810,6 +2832,7 @@ exports[`components/ProfilePopover should match snapshot with last active displa
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -2897,6 +2920,7 @@ exports[`components/ProfilePopover should match snapshot with last active displa
                       "mfa_active": false,
                       "nickname": "",
                       "notify_props": Object {
+                        "calls_desktop_sound": "true",
                         "channel": "false",
                         "comments": "never",
                         "desktop": "default",
@@ -2997,6 +3021,7 @@ exports[`components/ProfilePopover should match snapshot with last active displa
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -3134,6 +3159,7 @@ exports[`components/ProfilePopover should match snapshot with no last active dis
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -3221,6 +3247,7 @@ exports[`components/ProfilePopover should match snapshot with no last active dis
                       "mfa_active": false,
                       "nickname": "",
                       "notify_props": Object {
+                        "calls_desktop_sound": "true",
                         "channel": "false",
                         "comments": "never",
                         "desktop": "default",
@@ -3321,6 +3348,7 @@ exports[`components/ProfilePopover should match snapshot with no last active dis
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -3434,6 +3462,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
         "mfa_active": false,
         "nickname": "",
         "notify_props": Object {
+          "calls_desktop_sound": "true",
           "channel": "false",
           "comments": "never",
           "desktop": "default",
@@ -3537,7 +3566,6 @@ exports[`components/ProfilePopover should show the start call button when isCall
       isCustomStatusExpired={false}
       isInCurrentTeam={true}
       isMobileView={false}
-      isRHS={false}
       isTeamAdmin={false}
       lastActivityTimestamp={1632146562846}
       src="src"
@@ -3569,6 +3597,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
           "mfa_active": false,
           "nickname": "",
           "notify_props": Object {
+            "calls_desktop_sound": "true",
             "channel": "false",
             "comments": "never",
             "desktop": "default",
@@ -3912,6 +3941,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                         "mfa_active": false,
                         "nickname": "",
                         "notify_props": Object {
+                          "calls_desktop_sound": "true",
                           "channel": "false",
                           "comments": "never",
                           "desktop": "default",
@@ -3992,6 +4022,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                           "mfa_active": false,
                           "nickname": "",
                           "notify_props": Object {
+                            "calls_desktop_sound": "true",
                             "channel": "false",
                             "comments": "never",
                             "desktop": "default",
@@ -4161,6 +4192,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                                     "mfa_active": false,
                                     "nickname": "",
                                     "notify_props": Object {
+                                      "calls_desktop_sound": "true",
                                       "channel": "false",
                                       "comments": "never",
                                       "desktop": "default",
@@ -4223,6 +4255,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                                       "mfa_active": false,
                                       "nickname": "",
                                       "notify_props": Object {
+                                        "calls_desktop_sound": "true",
                                         "channel": "false",
                                         "comments": "never",
                                         "desktop": "default",
@@ -4392,6 +4425,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                         "mfa_active": false,
                         "nickname": "",
                         "notify_props": Object {
+                          "calls_desktop_sound": "true",
                           "channel": "false",
                           "comments": "never",
                           "desktop": "default",
@@ -4472,6 +4506,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                           "mfa_active": false,
                           "nickname": "",
                           "notify_props": Object {
+                            "calls_desktop_sound": "true",
                             "channel": "false",
                             "comments": "never",
                             "desktop": "default",

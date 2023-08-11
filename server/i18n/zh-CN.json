@@ -7097,7 +7097,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost 强烈建议超过 500 个用户的部署使用用户管理，服务器群集和性能监视等功能。与我们联系以了解更多信息，并让我们知道我们将如何提供帮助。\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/) ，并接收产品电子邮件。"
+    "translation": "Mattermost 强烈建议超过 500 个用户的部署使用用户管理，服务器群集和性能监视等功能。与我们联系以了解更多信息，并让我们知道我们将如何提供帮助。\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/pl/privacy-policy/) ，并接收产品电子邮件。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
@@ -7113,7 +7113,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "当在 Mattermost 上有众多对话时，知道在哪里查找重要信息可能是一个挑战。如果要向大量受众广播消息，则可以设置只读的公告频道，任何人都可以加入，但只有频道管理员可以发布消息。\n\n[了解有关创建只读公告频道的更多信息](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/)，并接收产品电子邮件。"
+    "translation": "当在 Mattermost 上有众多对话时，知道在哪里查找重要信息可能是一个挑战。如果要向大量受众广播消息，则可以设置只读的公告频道，任何人都可以加入，但只有频道管理员可以发布消息。\n\n[了解有关创建只读公告频道的更多信息](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/pl/privacy-policy/)，并接收产品电子邮件。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
@@ -7129,7 +7129,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "您的 Mattermost 系统现在有 200 个用户。当您将 Mattermost 与组织的单一登录提供商连接时，用户无需重新输入凭据即可访问 Mattermost。我们建议您将 SAML 2.0 提供商与 Mattermost 服务器集成。[了解有关与 SAML 2.0 集成的更多信息](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)。\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议t](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/)，并接收产品电子邮件。"
+    "translation": "您的 Mattermost 系统现在有 200 个用户。当您将 Mattermost 与组织的单一登录提供商连接时，用户无需重新输入凭据即可访问 Mattermost。我们建议您将 SAML 2.0 提供商与 Mattermost 服务器集成。[了解有关与 SAML 2.0 集成的更多信息](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)。\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议t](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/pl/privacy-policy/)，并接收产品电子邮件。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
@@ -7141,7 +7141,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "您的 Mattermost 系统拥有 100 多个用户。随着用户群的增长，配置新帐户会变得很耗时。我们建议您集成组织的 Active Directory / LDAP，这将使拥有帐户的任何人都可以访问 Mattermost。\n\n[了解有关与AD / LDAP集成的更多信息](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/) ，并接收产品电子邮件。"
+    "translation": "您的 Mattermost 系统拥有 100 多个用户。随着用户群的增长，配置新帐户会变得很耗时。我们建议您集成组织的 Active Directory / LDAP，这将使拥有帐户的任何人都可以访问 Mattermost。\n\n[了解有关与AD / LDAP集成的更多信息](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/pl/privacy-policy/) ，并接收产品电子邮件。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
@@ -7161,7 +7161,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "您的 Mattermost 系统启用了多重身份验证，让户可以选择使用密码以外的其他身份验证方法来保护自己的帐户。为了提高整个系统的安全性，您可以要求所有 Mattermost 帐户都使用多重身份验证。\n\n[了解有关实施多重身份验证的更多信息](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)。\n\n单击“开始试用”，即表示我同意 [Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/)，并接收产品电子邮件。"
+    "translation": "您的 Mattermost 系统启用了多重身份验证，让户可以选择使用密码以外的其他身份验证方法来保护自己的帐户。为了提高整个系统的安全性，您可以要求所有 Mattermost 帐户都使用多重身份验证。\n\n[了解有关实施多重身份验证的更多信息](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)。\n\n单击“开始试用”，即表示我同意 [Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/pl/privacy-policy/)，并接收产品电子邮件。"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -7181,7 +7181,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "项目通常涉及组织内部和外部的人员。使用访客帐户，您可以将外部合作伙伴带入您的 Mattermost 系统并指定他们可以与谁合作以及看到什么。\n\n[了解有关启用访客帐户的更多信息](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)。\n\n单击“开始试用”，即表示我同意 [Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/)，并接收产品电子邮件。"
+    "translation": "项目通常涉及组织内部和外部的人员。使用访客帐户，您可以将外部合作伙伴带入您的 Mattermost 系统并指定他们可以与谁合作以及看到什么。\n\n[了解有关启用访客帐户的更多信息](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)。\n\n单击“开始试用”，即表示我同意 [Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/pl/privacy-policy/)，并接收产品电子邮件。"
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -7385,7 +7385,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "您的 Mattermost 系统现有几个团队。许多团队都有自己喜欢的协调和协作方式，包括如何创建频道，谁可以邀请新的团队成员以及如何管理集成。使用团队覆盖方案，您可以自定义每个团队中的用户权限，以满足他们的特定需求。\n\n[了解有关使用高级权限的更多信息](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)。\n\n单击开始试用，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/) ，并接收产品电子邮件。"
+    "translation": "您的 Mattermost 系统现有几个团队。许多团队都有自己喜欢的协调和协作方式，包括如何创建频道，谁可以邀请新的团队成员以及如何管理集成。使用团队覆盖方案，您可以自定义每个团队中的用户权限，以满足他们的特定需求。\n\n[了解有关使用高级权限的更多信息](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)。\n\n单击开始试用，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/pl/privacy-policy/) ，并接收产品电子邮件。"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_body",
@@ -7397,7 +7397,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "您的 Mattermost 系统包含大量消息。默认的 Mattermost 数据库搜索在大约 250 万个帖子市开始显示性能下降。 Elasticsearch 在拥有超过 500 万个帖子时可以帮助避免重大性能问题，例如超时，搜索和提示问题。与我们联系以了解更多信息，并让我们知道我们将如何提供帮助。\n\n[了解有关提高性能的更多信息](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/) ，并接收产品电子邮件。"
+    "translation": "您的 Mattermost 系统包含大量消息。默认的 Mattermost 数据库搜索在大约 250 万个帖子市开始显示性能下降。 Elasticsearch 在拥有超过 500 万个帖子时可以帮助避免重大性能问题，例如超时，搜索和提示问题。与我们联系以了解更多信息，并让我们知道我们将如何提供帮助。\n\n[了解有关提高性能的更多信息](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/pl/privacy-policy/) ，并接收产品电子邮件。"
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
@@ -7413,7 +7413,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "频道有助于改善沟通，但是随着 Mattermost 的用户加入并创建频道，保持系统井井有条的挑战越来越大。使用高级权限，您可以设置哪些用户或角色可以执行某些操作，包括管理频道设置与成员，使用 @channel 或 @here 标记广泛的用户组以及创建新的 Webhook。\n\n[了解有关使用高级权限的更多信息](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议t](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/)，并接收产品电子邮件。"
+    "translation": "频道有助于改善沟通，但是随着 Mattermost 的用户加入并创建频道，保持系统井井有条的挑战越来越大。使用高级权限，您可以设置哪些用户或角色可以执行某些操作，包括管理频道设置与成员，使用 @channel 或 @here 标记广泛的用户组以及创建新的 Webhook。\n\n[了解有关使用高级权限的更多信息](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议t](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/pl/privacy-policy/)，并接收产品电子邮件。"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
@@ -9466,10 +9466,6 @@
   {
     "id": "worktemplate.category.companywide",
     "translation": "全公司"
-  },
-  {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "不正确的时间范围。"
   },
   {
     "id": "model.group.name.reserved_name.app_error",

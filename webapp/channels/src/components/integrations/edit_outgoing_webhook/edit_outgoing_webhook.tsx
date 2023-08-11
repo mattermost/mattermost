@@ -10,7 +10,7 @@ import {ServerError} from '@mattermost/types/errors';
 
 import {getHistory} from 'utils/browser_history';
 import ConfirmModal from 'components/confirm_modal';
-import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook.jsx';
+import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook';
 import LoadingScreen from 'components/loading_screen';
 
 const HEADER = {id: 'integrations.edit', defaultMessage: 'Edit'};

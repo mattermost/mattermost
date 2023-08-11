@@ -19,17 +19,17 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mfa"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 )
 
 const (
@@ -217,19 +217,6 @@ func (a *App) IsFirstUserAccount() bool {
 	return a.ch.srv.platform.IsFirstUserAccount()
 }
 
-func (a *App) IsFirstAdmin(user *model.User) bool {
-	if !user.IsSystemAdmin() {
-		return false
-	}
-
-	adminID, err := a.Srv().Store().User().GetFirstSystemAdminID()
-	if err != nil {
-		return false
-	}
-
-	return adminID == user.Id
-}
-
 // CreateUser creates a user and sets several fields of the returned User struct to
 // their zero values.
 func (a *App) CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError) {
@@ -297,14 +284,6 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: ruser.Id, Value: "0"}
 
 	preferences := model.Preferences{recommendedNextStepsPref, tutorialStepPref}
-
-	if a.Config().FeatureFlags.InsightsEnabled {
-		// We don't want to show the insights intro modal for new users
-		preferences = append(preferences, model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryInsights, Name: model.PreferenceNameInsights, Value: "{\"insights_modal_viewed\":true}"})
-	} else {
-		preferences = append(preferences, model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryInsights, Name: model.PreferenceNameInsights, Value: "{\"insights_modal_viewed\":false}"})
-	}
-
 	if err := a.Srv().Store().Preference().Save(preferences); err != nil {
 		c.Logger().Warn("Encountered error saving user preferences", mlog.Err(err))
 	}
@@ -1107,7 +1086,6 @@ func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, as
 }
 
 func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
-	userAuth.Password = ""
 	if _, err := a.Srv().Store().User().UpdateAuthData(userID, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -1513,7 +1491,7 @@ func (a *App) InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppE
 		return model.NewAppError("InvalidatePasswordRecoveryTokensForUser", "api.user.invalidate_password_recovery_tokens.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	var appErr *model.AppError = nil
+	var appErr *model.AppError
 	for _, token := range tokens {
 		tokenExtra := struct {
 			UserId string

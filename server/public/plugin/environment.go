@@ -13,9 +13,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/public/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 var ErrNotFound = errors.New("Item not found")
@@ -103,36 +103,9 @@ func scanSearchPath(path string) ([]*model.BundleInfo, error) {
 	return ret, nil
 }
 
-var pluginIDBlocklist = map[string]bool{
-	"playbooks": true,
-	"com.mattermost.plugin-incident-response":   true,
-	"com.mattermost.plugin-incident-management": true,
-	"focalboard": true,
-}
-
-func PluginIDIsBlocked(id string) bool {
-	_, ok := pluginIDBlocklist[id]
-	return ok
-}
-
 // Returns a list of all plugins within the environment.
 func (env *Environment) Available() ([]*model.BundleInfo, error) {
-	rawList, err := scanSearchPath(env.pluginDir)
-	if err != nil {
-		return nil, err
-	}
-
-	// Filter any plugins that match the blocklist
-	filteredList := make([]*model.BundleInfo, 0, len(rawList))
-	for _, bundleInfo := range rawList {
-		if PluginIDIsBlocked(bundleInfo.Manifest.Id) {
-			env.logger.Debug("Plugin ignored by blocklist", mlog.String("plugin_id", bundleInfo.Manifest.Id))
-		} else {
-			filteredList = append(filteredList, bundleInfo)
-		}
-	}
-
-	return filteredList, nil
+	return scanSearchPath(env.pluginDir)
 }
 
 // Returns a list of prepackaged plugins available in the local prepackaged_plugins folder.

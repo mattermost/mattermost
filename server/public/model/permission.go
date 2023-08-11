@@ -21,6 +21,10 @@ type Permission struct {
 
 var PermissionInviteUser *Permission
 var PermissionAddUserToTeam *Permission
+
+// Deprecated: PermissionUseSlashCommands is not longer used. It's only kept for backwards compatibility.
+// See https://mattermost.atlassian.net/browse/MM-52574 for more details.
+var PermissionUseSlashCommands *Permission
 var PermissionManageSlashCommands *Permission
 var PermissionManageOthersSlashCommands *Permission
 var PermissionCreatePublicChannel *Permission
@@ -47,6 +51,7 @@ var PermissionDeletePublicChannel *Permission
 var PermissionDeletePrivateChannel *Permission
 var PermissionEditOtherUsers *Permission
 var PermissionReadChannel *Permission
+var PermissionReadChannelContent *Permission
 var PermissionReadPublicChannelGroups *Permission
 var PermissionReadPrivateChannelGroups *Permission
 var PermissionReadPublicChannel *Permission
@@ -389,6 +394,12 @@ func initializePermissions() {
 		"authentication.permissions.add_user_to_team.description",
 		PermissionScopeTeam,
 	}
+	PermissionUseSlashCommands = &Permission{
+		"use_slash_commands",
+		"authentication.permissions.team_use_slash_commands.name",
+		"authentication.permissions.team_use_slash_commands.description",
+		PermissionScopeChannel,
+	}
 	PermissionManageSlashCommands = &Permission{
 		"manage_slash_commands",
 		"authentication.permissions.manage_slash_commands.name",
@@ -549,6 +560,12 @@ func initializePermissions() {
 		"read_channel",
 		"authentication.permissions.read_channel.name",
 		"authentication.permissions.read_channel.description",
+		PermissionScopeChannel,
+	}
+	PermissionReadChannelContent = &Permission{
+		"read_channel_content",
+		"authentication.permissions.read_channel_content.name",
+		"authentication.permissions.read_channel_content.description",
 		PermissionScopeChannel,
 	}
 	PermissionReadPublicChannelGroups = &Permission{
@@ -2308,6 +2325,7 @@ func initializePermissions() {
 	}
 
 	ChannelScopedPermissions := []*Permission{
+		PermissionUseSlashCommands,
 		PermissionManagePublicChannelMembers,
 		PermissionManagePrivateChannelMembers,
 		PermissionManageChannelRoles,
@@ -2318,6 +2336,7 @@ func initializePermissions() {
 		PermissionDeletePublicChannel,
 		PermissionDeletePrivateChannel,
 		PermissionReadChannel,
+		PermissionReadChannelContent,
 		PermissionReadPublicChannelGroups,
 		PermissionReadPrivateChannelGroups,
 		PermissionAddReaction,

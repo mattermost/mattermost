@@ -317,6 +317,59 @@ describe('posts', () => {
             });
         });
 
+        it('should remove deleted post from other post embeds', () => {
+            const post1 = {id: 'post1', message: 'Post 1'};
+            const post2 = {
+                id: 'post2',
+                message: 'Post 2',
+                metadata: {
+                    embeds: [
+                        {
+                            type: 'permalink',
+                            data: {
+                                post_id: 'post1',
+                            },
+                        },
+                    ],
+                },
+            };
+            const post3 = {
+                id: 'post3',
+                message: 'Post 3',
+                metadata: {
+                    embeds: [
+                        {
+                            type: 'permalink',
+                            data: {
+                                post_id: 'post1',
+                            },
+                        },
+                        {
+                            type: 'permalink',
+                            data: {
+                                post_id: 'post2',
+                            },
+                        },
+                    ],
+                },
+            };
+
+            const state = deepFreeze({
+                post1,
+                post2,
+                post3,
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: PostTypes.POST_DELETED,
+                data: {id: 'post1'},
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.post2.metadata.embeds.length).toBe(0);
+            expect(nextState.post3.metadata.embeds.length).toBe(1);
+        });
+
         it('should not remove the rest of the thread when deleting a comment', () => {
             const state = deepFreeze({
                 post1: {id: 'post1'},
