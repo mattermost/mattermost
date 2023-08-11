@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {Channel} from '@mattermost/types/channels';
 import {TextboxClass, TextboxElement} from 'components/textbox';
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
@@ -13,6 +13,12 @@ import {Emoji} from '@mattermost/types/emojis';
 import {FileInfo} from '@mattermost/types/files';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 import {PluginComponent} from 'types/store/plugins';
+import { useSelector } from 'react-redux';
+import {GlobalState} from 'types/store';
+import { getConfig } from 'mattermost-redux/selectors/entities/general';
+import { connectionErrorCount } from 'selectors/views/system';
+import {canUploadFiles as canUploadFilesSelector} from 'utils/file_utils';
+import Constants from 'utils/constants';
 
 type Props = {
     message: string;
@@ -30,9 +36,6 @@ type Props = {
     textboxRef: React.RefObject<TextboxClass>;
     currentUserId: string;
     showEmojiPicker: boolean;
-    uploadsProgressPercent: {
-        [clientID: string]: FilePreviewInfo;
-    },
     errorClass: string | null;
     serverError: (ServerError & {
         submittedMessage?: string | undefined;
@@ -43,14 +46,9 @@ type Props = {
     removePreview: (id: string) => void;
     setShowPreview: (newPreviewValue: boolean) => void;
     shouldShowPreview: boolean;
-    maxPostSize: number;
     canPost: boolean;
     applyMarkdown: (params: ApplyMarkdownOptions) => void;
     useChannelMentions: boolean;
-    badConnection: boolean;
-    canUploadFiles: boolean;
-    enableEmojiPicker: boolean;
-    enableGifPicker: boolean;
     handleBlur: () => void;
     postError?: React.ReactNode;
     handlePostError: (postError: React.ReactNode) => void;
@@ -63,17 +61,14 @@ type Props = {
     handleEmojiClick:  (emoji: Emoji) => void;
     hideEmojiPicker: () => void;
     toggleAdvanceTextEditor: () => void;
-    handleUploadProgress: (filePreviewInfo: FilePreviewInfo) => void;
     handleUploadError: (err: string | ServerError | null, clientId?: string | undefined, channelId?: string | undefined) => void;
     handleFileUploadComplete: (fileInfos: FileInfo[], clientIds: string[], channelId: string, rootId?: string | undefined) => void;
     handleUploadStart: (clientIds: string[], channelId: string) => void;
     handleFileUploadChange: () => void;
-    getFileUploadTarget: () => HTMLInputElement | null;
     fileUploadRef: React.RefObject<FileUploadClass>;
     formId?: string;
     formClass?: string;
     formRef?: React.RefObject<HTMLFormElement>;
-    postEditorActions?: PluginComponent[];
     onPluginUpdateText: (message: string) => void;
 }
 const Foo = ({
@@ -91,7 +86,6 @@ const Foo = ({
     textboxRef,
     currentUserId,
     showEmojiPicker,
-    uploadsProgressPercent,
     errorClass,
     serverError,
     isFormattingBarHidden,
@@ -100,14 +94,9 @@ const Foo = ({
     removePreview,
     setShowPreview,
     shouldShowPreview,
-    maxPostSize,
     canPost,
     applyMarkdown,
     useChannelMentions,
-    badConnection,
-    canUploadFiles,
-    enableEmojiPicker,
-    enableGifPicker,
     handleBlur,
     postError,
     handlePostError,
@@ -120,20 +109,26 @@ const Foo = ({
     handleEmojiClick,
     hideEmojiPicker,
     toggleAdvanceTextEditor,
-    handleUploadProgress,
     handleUploadError,
     handleFileUploadComplete,
     handleUploadStart,
     handleFileUploadChange,
-    getFileUploadTarget,
     fileUploadRef,
     formId,
     formClass,
     formRef,
-    postEditorActions,
     onPluginUpdateText,
 }: Props) => {
+    const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{[clientID: string]: FilePreviewInfo}>({});
     const textEditorChannelId = currentChannel?.id || channelId || '';
+
+    const enableEmojiPicker = useSelector<GlobalState, boolean>((state) => getConfig(state).EnableEmojiPicker === 'true');
+    const enableGifPicker = useSelector<GlobalState, boolean>((state) => getConfig(state).EnableGifPicker === 'true');
+    const badConnection = useSelector<GlobalState, boolean>((state) => connectionErrorCount(state) > 1);
+    const canUploadFiles = useSelector<GlobalState, boolean>((state) => canUploadFilesSelector(getConfig(state)));
+    const maxPostSize = useSelector<GlobalState, number>((state) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
+    const postEditorActions = useSelector<GlobalState, PluginComponent[] | undefined>((state) => state.plugins.components.PostEditorAction);
+
     const pluginItems = postEditorActions?.map((item) => {
         if (!item.component) {
             return null;
@@ -156,8 +151,19 @@ const Foo = ({
             />
         );
     }) || [];
-
     const additionalControls = [priorityControls, ...pluginItems].filter(Boolean);
+
+    const getFileUploadTarget = () => {
+        return textboxRef.current?.getInputBox();
+    };
+
+    const handleUploadProgress = (filePreviewInfo: FilePreviewInfo) => {
+        const newUploadsProgressPercent = {
+            ...uploadsProgressPercent,
+            [filePreviewInfo.clientId]: filePreviewInfo,
+        };
+        setUploadsProgressPercent(newUploadsProgressPercent);
+    };
 
     return (
         <form

@@ -27,8 +27,6 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {PreferenceType} from '@mattermost/types/preferences';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 
-import {connectionErrorCount} from 'selectors/views/system';
-
 import {AdvancedTextEditor, Constants, StoragePrefixes} from 'utils/constants';
 import {getCurrentLocale} from 'selectors/i18n';
 
@@ -45,8 +43,6 @@ import {showPreviewOnCreateComment} from 'selectors/views/textbox';
 import {setShowPreviewOnCreateComment} from 'actions/views/textbox';
 import {openModal} from 'actions/views/modals';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
-
-import {canUploadFiles} from 'utils/file_utils';
 
 import AdvancedCreateComment from './advanced_create_comment';
 
@@ -74,9 +70,6 @@ function makeMapStateToProps() {
         const license = getLicense(state);
         const currentUserId = getCurrentUserId(state);
         const enableConfirmNotificationsToChannel = config.EnableConfirmNotificationsToChannel === 'true';
-        const enableEmojiPicker = config.EnableEmojiPicker === 'true';
-        const enableGifPicker = config.EnableGifPicker === 'true';
-        const badConnection = connectionErrorCount(state) > 1;
         const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
         const canPost = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST);
         const useChannelMentions = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
@@ -87,7 +80,6 @@ function makeMapStateToProps() {
         const groupsWithAllowReference = useLDAPGroupMentions || useCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, channel.team_id, channel.id) : null;
         const isFormattingBarHidden = getBool(state, Constants.Preferences.ADVANCED_TEXT_EDITOR, AdvancedTextEditor.COMMENT);
         const currentTeamId = getCurrentTeamId(state);
-        const postEditorActions = state.plugins.components.PostEditorAction;
 
         return {
             currentTeamId,
@@ -101,12 +93,8 @@ function makeMapStateToProps() {
             ctrlSend: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             createPostErrorId: err.server_error_id,
             enableConfirmNotificationsToChannel,
-            enableEmojiPicker,
-            enableGifPicker,
             locale: getCurrentLocale(state),
-            maxPostSize: parseInt(config.MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT,
             rhsExpanded: getIsRhsExpanded(state),
-            badConnection,
             isTimezoneEnabled,
             selectedPostFocussedAt: getSelectedPostFocussedAt(state),
             canPost,
@@ -116,8 +104,6 @@ function makeMapStateToProps() {
             useLDAPGroupMentions,
             channelMemberCountsByGroup,
             useCustomGroupMentions,
-            canUploadFiles: canUploadFiles(config),
-            postEditorActions,
         };
     };
 }

@@ -107,9 +107,6 @@ type Props = {
     // Determines if the current user can edit the post
     canPost: boolean;
 
-    // Determines if the user is allowed to upload files
-    canUploadFiles: boolean;
-
     // Called to clear file uploads in progress
     clearCommentDraftUploads: () => void;
 
@@ -142,18 +139,6 @@ type Props = {
 
     // Determines if @channel should warn in this channel
     enableConfirmNotificationsToChannel: boolean;
-
-    // Determines if the emoji picker is enabled
-    enableEmojiPicker: boolean;
-
-    // Determines if the gif picker is enabled.
-    enableGifPicker: boolean;
-
-    // Determines if the connection may be bad to warn user
-    badConnection: boolean;
-
-    // Determines the maximum length of a post
-    maxPostSize: number;
 
     // Determines if the RHS is in expanded state
     rhsExpanded: boolean;
@@ -193,12 +178,10 @@ type Props = {
     useCustomGroupMentions: boolean;
     isFormattingBarHidden: boolean;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
-    postEditorActions: PluginComponent[];
 }
 
 type State = {
     showEmojiPicker: boolean;
-    uploadsProgressPercent: {[clientID: string]: FilePreviewInfo};
     renderScrollbar: boolean;
     scrollbarWidth: number;
     draft?: PostDraft;
@@ -262,7 +245,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         this.state = {
             showEmojiPicker: false,
-            uploadsProgressPercent: {},
             renderScrollbar: false,
             scrollbarWidth: 0,
             errorClass: null,
@@ -1044,11 +1026,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.focusTextbox();
     };
 
-    handleUploadProgress = (filePreviewInfo: FilePreviewInfo) => {
-        const uploadsProgressPercent = {...this.state.uploadsProgressPercent, [filePreviewInfo.clientId]: filePreviewInfo};
-        this.setState({uploadsProgressPercent});
-    };
-
     handleFileUploadComplete = (fileInfos: FileInfo[], clientIds: string[], _: string, rootId?: string) => {
         const draft = this.draftsForPost[rootId!]!;
         const uploadsInProgress = [...draft.uploadsInProgress];
@@ -1147,10 +1124,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.saveDraftFrame = window.setTimeout(() => {}, Constants.SAVE_DRAFT_TIMEOUT);
     };
 
-    getFileUploadTarget = () => {
-        return this.textboxRef.current?.getInputBox();
-    };
-
     toggleAdvanceTextEditor = () => {
         this.setState({
             isFormattingBarHidden:
@@ -1219,7 +1192,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 currentUserId={this.props.currentUserId}
                 message={draft.message}
                 showEmojiPicker={this.state.showEmojiPicker}
-                uploadsProgressPercent={this.state.uploadsProgressPercent}
                 channelId={this.props.channelId}
                 postId={this.props.rootId}
                 errorClass={this.state.errorClass}
@@ -1230,14 +1202,9 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 removePreview={this.removePreview}
                 setShowPreview={this.setShowPreview}
                 shouldShowPreview={this.props.shouldShowPreview}
-                maxPostSize={this.props.maxPostSize}
                 canPost={this.props.canPost}
                 applyMarkdown={this.applyMarkdown}
                 useChannelMentions={this.props.useChannelMentions}
-                badConnection={this.props.badConnection}
-                canUploadFiles={this.props.canUploadFiles}
-                enableEmojiPicker={this.props.enableEmojiPicker}
-                enableGifPicker={this.props.enableGifPicker}
                 handleBlur={this.handleBlur}
                 postError={this.state.postError}
                 handlePostError={this.handlePostError}
@@ -1251,16 +1218,13 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 handleEmojiClick={this.handleEmojiClick}
                 hideEmojiPicker={this.hideEmojiPicker}
                 toggleAdvanceTextEditor={this.toggleAdvanceTextEditor}
-                handleUploadProgress={this.handleUploadProgress}
                 handleUploadError={this.handleUploadError}
                 handleFileUploadComplete={this.handleFileUploadComplete}
                 handleUploadStart={this.handleUploadStart}
                 handleFileUploadChange={this.handleFileUploadChange}
-                getFileUploadTarget={this.getFileUploadTarget}
                 fileUploadRef={this.fileUploadRef}
                 isThreadView={this.props.isThreadView}
                 onPluginUpdateText={this.onPluginUpdateText}
-                postEditorActions={this.props.postEditorActions}
             />
         )
     }

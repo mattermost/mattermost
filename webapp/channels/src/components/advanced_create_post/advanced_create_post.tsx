@@ -128,24 +128,10 @@ type Props = {
     // Data used for calling edit of post
     currentUsersLatestPost?: Post | null;
 
-    //Whether or not file upload is allowed.
-    canUploadFiles: boolean;
-
-    //Whether to show the emoji picker.
-    enableEmojiPicker: boolean;
-
-    //Whether to show the gif picker.
-    enableGifPicker: boolean;
-
     //Whether to check with the user before notifying the whole channel.
     enableConfirmNotificationsToChannel: boolean;
 
-    //The maximum length of a post
-    maxPostSize: number;
     emojiMap: EmojiMap;
-
-    //If our connection is bad
-    badConnection: boolean;
 
     //Whether to display a confirmation modal to reset status.
     userIsOutOfOffice: boolean;
@@ -234,7 +220,6 @@ type Props = {
     channelMemberCountsByGroup: ChannelMemberCountsByGroup;
     useLDAPGroupMentions: boolean;
     useCustomGroupMentions: boolean;
-    postEditorActions: PluginComponent[];
 }
 
 type State = {
@@ -242,7 +227,6 @@ type State = {
     caretPosition: number;
     submitting: boolean;
     showEmojiPicker: boolean;
-    uploadsProgressPercent: {[clientID: string]: FilePreviewInfo};
     renderScrollbar: boolean;
     scrollbarWidth: number;
     currentChannel: Channel;
@@ -295,7 +279,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             caretPosition: props.draft.message.length,
             submitting: false,
             showEmojiPicker: false,
-            uploadsProgressPercent: {},
             renderScrollbar: false,
             scrollbarWidth: 0,
             currentChannel: props.currentChannel,
@@ -974,14 +957,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.focusTextbox();
     };
 
-    handleUploadProgress = (filePreviewInfo: FilePreviewInfo) => {
-        const uploadsProgressPercent = {
-            ...this.state.uploadsProgressPercent,
-            [filePreviewInfo.clientId]: filePreviewInfo,
-        };
-        this.setState({uploadsProgressPercent});
-    };
-
     handleFileUploadComplete = (fileInfos: FileInfo[], clientIds: string[], channelId: string) => {
         const draft = {...this.draftsForChannel[channelId]!};
 
@@ -1109,10 +1084,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         this.focusTextboxIfNecessary(e);
-    };
-
-    getFileUploadTarget = () => {
-        return this.textboxRef.current?.getInputBox();
     };
 
     fillMessageFromHistory() {
@@ -1583,14 +1554,13 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         return (
             <Foo
                 location={Locations.CENTER}
+                textboxRef={this.textboxRef}
                 currentUserId={this.props.currentUserId}
-                postError={this.state.postError}
                 message={this.state.message}
                 showEmojiPicker={this.state.showEmojiPicker}
-                uploadsProgressPercent={this.state.uploadsProgressPercent}
                 currentChannel={this.state.currentChannel}
-                postId={''}
                 channelId={this.props.currentChannel.id}
+                postId={''}
                 errorClass={this.state.errorClass}
                 serverError={this.state.serverError}
                 isFormattingBarHidden={this.state.isFormattingBarHidden}
@@ -1600,15 +1570,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 removePreview={this.removePreview}
                 setShowPreview={this.setShowPreview}
                 shouldShowPreview={this.props.shouldShowPreview}
-                maxPostSize={this.props.maxPostSize}
                 canPost={canPost}
                 applyMarkdown={this.applyMarkdown}
                 useChannelMentions={this.props.useChannelMentions}
-                badConnection={this.props.badConnection}
-                canUploadFiles={this.props.canUploadFiles}
-                enableEmojiPicker={this.props.enableEmojiPicker}
-                enableGifPicker={this.props.enableGifPicker}
                 handleBlur={this.handleBlur}
+                postError={this.state.postError}
                 handlePostError={this.handlePostError}
                 emitTypingEvent={this.emitTypingEvent}
                 handleMouseUpKeyUp={this.handleMouseUpKeyUp}
@@ -1620,15 +1586,12 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 handleEmojiClick={this.handleEmojiClick}
                 hideEmojiPicker={this.hideEmojiPicker}
                 toggleAdvanceTextEditor={this.toggleAdvanceTextEditor}
-                handleUploadProgress={this.handleUploadProgress}
                 handleUploadError={this.handleUploadError}
                 handleFileUploadComplete={this.handleFileUploadComplete}
                 handleUploadStart={this.handleUploadStart}
                 handleFileUploadChange={this.handleFileUploadChange}
-                getFileUploadTarget={this.getFileUploadTarget}
                 fileUploadRef={this.fileUploadRef}
                 prefillMessage={this.prefillMessage}
-                textboxRef={this.textboxRef}
                 disableSend={!this.isValidPersistentNotifications()}
                 priorityLabel={this.hasPrioritySet() ? (
                     <PriorityLabels
@@ -1654,7 +1617,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 formRef={this.topDiv}
                 formClass={centerClass}
                 onPluginUpdateText={this.onPluginUpdateText}
-                postEditorActions={this.props.postEditorActions}
             />
         )
     }

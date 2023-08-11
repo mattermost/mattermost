@@ -80,12 +80,9 @@ function makeMapStateToProps() {
         const isRemoteDraft = state.views.drafts.remotes[`${StoragePrefixes.DRAFT}${currentChannel.id}`] || false;
         const latestReplyablePostId = getLatestReplyablePostId(state);
         const currentChannelMembersCount = getCurrentChannelStats(state) ? getCurrentChannelStats(state).member_count : 1;
-        const enableEmojiPicker = config.EnableEmojiPicker === 'true';
-        const enableGifPicker = config.EnableGifPicker === 'true';
         const enableConfirmNotificationsToChannel = config.EnableConfirmNotificationsToChannel === 'true';
         const currentUserId = getCurrentUserId(state);
         const userIsOutOfOffice = getStatusForUserId(state, currentUserId) === UserStatuses.OUT_OF_OFFICE;
-        const badConnection = connectionErrorCount(state) > 1;
         const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
         const shortcutReactToLastPostEmittedFrom = getShortcutReactToLastPostEmittedFrom(state);
         const canPost = haveICurrentChannelPermission(state, Permissions.CREATE_POST);
@@ -104,7 +101,6 @@ function makeMapStateToProps() {
         const tourStep = isGuestUser ? OnboardingTourStepsForGuestUsers.SEND_MESSAGE : OnboardingTourSteps.SEND_MESSAGE;
         const showSendTutorialTip = enableTutorial && tutorialStep === tourStep;
         const isFormattingBarHidden = getBool(state, Preferences.ADVANCED_TEXT_EDITOR, AdvancedTextEditor.POST);
-        const postEditorActions = state.plugins.components.PostEditorAction;
 
         return {
             currentTeamId,
@@ -123,16 +119,11 @@ function makeMapStateToProps() {
             latestReplyablePostId,
             locale: getCurrentLocale(state),
             currentUsersLatestPost: getCurrentUsersLatestPost(state, ''),
-            canUploadFiles: canUploadFiles(config),
-            enableEmojiPicker,
-            enableGifPicker,
             enableConfirmNotificationsToChannel,
-            maxPostSize: parseInt(config.MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT,
             userIsOutOfOffice,
             rhsExpanded: getIsRhsExpanded(state),
             rhsOpen: getIsRhsOpen(state),
             emojiMap: getEmojiMap(state),
-            badConnection,
             isTimezoneEnabled,
             shortcutReactToLastPostEmittedFrom,
             canPost,
@@ -144,7 +135,6 @@ function makeMapStateToProps() {
             isLDAPEnabled,
             useCustomGroupMentions,
             isPostPriorityEnabled: isPostPriorityEnabled(state),
-            postEditorActions,
         };
     };
 }
