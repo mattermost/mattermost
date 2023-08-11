@@ -831,7 +831,14 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		th := Setup(t)
 		t.Cleanup(th.TearDown)
 
-		err := os.Chdir(th.tempWorkspace)
+		wd, err := os.Getwd()
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.Chdir(wd)
+			require.NoError(t, err)
+		})
+
+		err = os.Chdir(th.tempWorkspace)
 		require.NoError(t, err)
 
 		// Make a prepackaged_plugins directory for use with the tests.
