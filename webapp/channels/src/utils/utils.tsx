@@ -851,10 +851,6 @@ export function setCaretPosition(input: HTMLInputElement, pos: number) {
     setSelectionRange(input, pos, pos);
 }
 
-export function scrollbarWidth(el: HTMLElement) {
-    return el.offsetWidth - el.clientWidth;
-}
-
 export function isValidUsername(name: string) {
     let error;
     if (!name) {
