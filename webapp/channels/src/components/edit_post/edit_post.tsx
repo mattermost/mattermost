@@ -1,19 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
+import classNames from 'classnames';
+
 import {EmoticonPlusOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import type {Post} from '@mattermost/types/posts';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import DeletePostModal from 'components/delete_post_modal';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import Textbox from 'components/textbox';
+import type {TextboxClass, TextboxElement} from 'components/textbox';
 
+import type {ModalData} from 'types/actions';
+import type {PostDraft} from 'types/store/draft';
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {
     formatGithubCodePaste,
     formatMarkdownMessage,
@@ -25,14 +34,6 @@ import {postMessageOnKeyPress, splitMessageBasedOnCaretPosition} from 'utils/pos
 import * as Utils from 'utils/utils';
 
 import EditPostFooter from './edit_post_footer';
-
-import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
-import type {Post} from '@mattermost/types/posts';
-import type {TextboxClass, TextboxElement} from 'components/textbox';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ModalData} from 'types/actions';
-import type {PostDraft} from 'types/store/draft';
-import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 
 type DialogProps = {
     post?: Post;

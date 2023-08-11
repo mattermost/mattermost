@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {EmojiCategory} from '@mattermost/types/emojis';
+
 import * as Emoji from 'utils/emoji';
 
 import type {Category, Categories} from '../types';
-import type {EmojiCategory} from '@mattermost/types/emojis';
 
 export const RECENT = 'recent';
 export const SEARCH_RESULTS = 'searchResults';

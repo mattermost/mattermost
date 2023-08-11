@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 import * as reactIntl from 'react-intl';
+
+import {mount} from 'enzyme';
 
 import enMessages from 'i18n/en.json';
 import esMessages from 'i18n/es.json';
@@ -11,7 +12,6 @@ import {mockStore} from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
 
 import PostAriaLabelDiv from './post_aria_label_div';
-
 import type {Props} from './post_aria_label_div';
 
 jest.mock('react-intl', () => ({

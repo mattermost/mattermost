@@ -3,14 +3,14 @@
 
 import {combineReducers} from 'redux';
 
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+
 import {ChannelCategoryTypes, UserTypes} from 'mattermost-redux/action_types';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 import {removeItem} from 'mattermost-redux/utils/array_utils';
 
-import {ActionTypes} from 'utils/constants';
-
-import type {ChannelCategory} from '@mattermost/types/channel_categories';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import type {DraggingState} from 'types/store';
+import {ActionTypes} from 'utils/constants';
 
 export function unreadFilterEnabled(state = false, action: GenericAction) {
     switch (action.type) {

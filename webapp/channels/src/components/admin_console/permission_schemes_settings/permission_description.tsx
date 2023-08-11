@@ -2,8 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useRef} from 'react';
+import type {MouseEvent} from 'react';
 import {Overlay} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
+
+import type {Role} from '@mattermost/types/roles';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import Tooltip from 'components/tooltip';
@@ -11,8 +14,6 @@ import Tooltip from 'components/tooltip';
 import {generateId} from 'utils/utils';
 
 import type {AdditionalValues} from './permissions_tree/types';
-import type {Role} from '@mattermost/types/roles';
-import type {MouseEvent} from 'react';
 
 type Props = {
     id: string;

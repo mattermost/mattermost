@@ -14,9 +14,8 @@ import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
-import Constants, {RHSStates} from 'utils/constants';
-
 import type {GlobalState} from 'types/store';
+import Constants, {RHSStates} from 'utils/constants';
 
 const AtMentionsButton = (): JSX.Element => {
     const {formatMessage} = useIntl();

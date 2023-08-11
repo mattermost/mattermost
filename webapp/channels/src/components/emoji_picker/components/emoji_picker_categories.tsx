@@ -2,18 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
+import type {KeyboardEvent} from 'react';
+
+import type {EmojiCategory} from '@mattermost/types/emojis';
 
 import EmojiPickerCategory from 'components/emoji_picker/components/emoji_picker_category';
 import {
     NavigationDirection,
 } from 'components/emoji_picker/types';
-import {calculateCategoryRowIndex} from 'components/emoji_picker/utils';
-
-import type {EmojiCategory} from '@mattermost/types/emojis';
 import type {
     Categories,
     CategoryOrEmojiRow} from 'components/emoji_picker/types';
-import type {KeyboardEvent} from 'react';
+import {calculateCategoryRowIndex} from 'components/emoji_picker/utils';
 
 interface Props {
     isFiltering: boolean;

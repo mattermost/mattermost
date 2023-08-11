@@ -2,18 +2,20 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {TeamSearchOpts, TeamsWithCount} from '@mattermost/types/teams';
 
 import {getTeams as fetchTeams, searchTeams} from 'mattermost-redux/actions/teams';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getTeams} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+
+import type {GlobalState} from 'types/store';
 
 import TeamList from './team_list';
-
-import type {TeamSearchOpts, TeamsWithCount} from '@mattermost/types/teams';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 type Actions = {
     searchTeams(term: string, opts: TeamSearchOpts): Promise<{data: TeamsWithCount}>;

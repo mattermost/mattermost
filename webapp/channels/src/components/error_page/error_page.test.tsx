@@ -4,13 +4,13 @@
 import React from 'react';
 import {BrowserRouter} from 'react-router-dom';
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {ErrorPageTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ErrorPage from './error_page';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 describe('ErrorPage', () => {
     it('displays cloud archived page correctly', () => {

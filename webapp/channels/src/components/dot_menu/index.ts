@@ -1,8 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ComponentProps} from 'react';
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Post} from '@mattermost/types/posts';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -13,6 +18,7 @@ import {getCurrentTeamId, getCurrentTeam, getTeam} from 'mattermost-redux/select
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 
 import {
@@ -26,6 +32,8 @@ import {
 import {openModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
@@ -34,13 +42,6 @@ import {allAtMentions} from 'utils/text_formatting';
 import {getSiteURL} from 'utils/url';
 
 import DotMenu from './dot_menu';
-
-import type {Post} from '@mattermost/types/posts';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {ComponentProps} from 'react';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {ModalData} from 'types/actions';
-import type {GlobalState} from 'types/store';
 
 type Props = {
     post: Post;

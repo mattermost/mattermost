@@ -5,15 +5,15 @@ import React, {memo, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 
 import Avatar from 'components/widgets/users/avatar';
 
 import {Constants} from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
 
 import './draft_title.scss';
 

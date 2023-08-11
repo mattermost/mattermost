@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import type {ComponentProps} from 'react';
+
+import {shallow} from 'enzyme';
 
 import AdvancedSettingsDisplay from 'components/user_settings/advanced/user_settings_advanced';
 
 import {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {isMac} from 'utils/user_agent';
-
-import type {ComponentProps} from 'react';
 
 jest.mock('actions/global_actions');
 jest.mock('utils/user_agent');

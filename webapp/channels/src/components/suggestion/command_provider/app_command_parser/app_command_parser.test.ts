@@ -11,6 +11,8 @@ import {
 import {
     AppCallResponseTypes,
 } from './app_command_parser_dependencies';
+import type {
+    AutocompleteSuggestion} from './app_command_parser_dependencies';
 import {
     reduxTestState,
     testBindings,
@@ -19,9 +21,6 @@ import {
     Client4,
     checkForExecuteSuggestion,
 } from './tests/app_command_parser_test_dependencies';
-
-import type {
-    AutocompleteSuggestion} from './app_command_parser_dependencies';
 import type {
     AppBinding} from './tests/app_command_parser_test_dependencies';
 

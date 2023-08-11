@@ -3,7 +3,10 @@
 
 import {connect} from 'react-redux';
 import {withRouter, matchPath} from 'react-router-dom';
+
+import type {Location} from 'history';
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
@@ -20,11 +23,9 @@ import {
 } from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import ChannelHeaderMobile from './channel_header_mobile';
-
-import type {Location} from 'history';
-import type {Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import ChannelHeaderMobile from './channel_header_mobile';
 
 const isCurrentChannelMuted = createSelector(
     'isCurrentChannelMuted',

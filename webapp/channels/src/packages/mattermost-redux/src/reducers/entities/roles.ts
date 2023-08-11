@@ -3,9 +3,9 @@
 
 import {combineReducers} from 'redux';
 
-import {RoleTypes, UserTypes} from 'mattermost-redux/action_types';
-
 import type {Role} from '@mattermost/types/roles';
+
+import {RoleTypes, UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function pending(state: Set<string> = new Set(), action: GenericAction) {

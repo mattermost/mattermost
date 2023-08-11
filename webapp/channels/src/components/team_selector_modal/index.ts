@@ -2,18 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, AnyAction, Dispatch} from 'redux';
 
 import {getTeams as loadTeams, searchTeams} from 'mattermost-redux/actions/teams';
 import {getTeams} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setModalSearchTerm} from 'actions/views/search';
 
-import TeamSelectorModal from './team_selector_modal';
-
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, AnyAction, Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import TeamSelectorModal from './team_selector_modal';
 
 function mapStateToProps(state: GlobalState) {
     const searchTerm = state.views.search.modalSearch;

@@ -3,16 +3,16 @@
 
 import React from 'react';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
 import Menu from 'components/widgets/menu/menu';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
 

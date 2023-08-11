@@ -5,11 +5,11 @@ import React, {useCallback, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import GroupsUsers from './group/group_users';
-
-import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
 

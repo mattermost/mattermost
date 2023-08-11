@@ -4,7 +4,11 @@
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
+
 import styled from 'styled-components';
+
+import type {PostAcknowledgement} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
@@ -13,8 +17,6 @@ import Nbsp from 'components/html_entities/nbsp';
 import Timestamp from 'components/timestamp';
 import Avatar from 'components/widgets/users/avatar';
 
-import type {PostAcknowledgement} from '@mattermost/types/posts';
-import type {UserProfile} from '@mattermost/types/users';
 import type {GlobalState} from 'types/store';
 
 type Props = {

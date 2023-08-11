@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {useMeasurePunchouts} from '@mattermost/components';
 
 import CRTTourTip from './crt_tour_tip';
-
-import type {ReactNode} from 'react';
 
 const CRTUnreadTutorialTip = () => {
     const {formatMessage} = useIntl();

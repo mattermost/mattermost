@@ -1,26 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import classNames from 'classnames';
+
 import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Channel} from '@mattermost/types/channels';
+import type {Emoji} from '@mattermost/types/emojis';
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo} from '@mattermost/types/files';
 
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import FilePreview from 'components/file_preview';
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileUpload from 'components/file_upload';
+import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import MessageSubmitError from 'components/message_submit_error';
 import MsgTyping from 'components/msg_typing';
 import OverlayTrigger from 'components/overlay_trigger';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import Textbox from 'components/textbox';
+import type {TextboxElement} from 'components/textbox';
+import type TextboxClass from 'components/textbox/textbox';
 import Tooltip from 'components/tooltip';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
+import type {PostDraft} from 'types/store/draft';
 import Constants, {Locations} from 'utils/constants';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import * as Utils from 'utils/utils';
 
 import FormattingBar from './formatting_bar';
@@ -30,17 +41,6 @@ import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar/toggle_formatting_bar';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {Emoji} from '@mattermost/types/emojis';
-import type {ServerError} from '@mattermost/types/errors';
-import type {FileInfo} from '@mattermost/types/files';
-import type {FilePreviewInfo} from 'components/file_preview/file_preview';
-import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
-import type {TextboxElement} from 'components/textbox';
-import type TextboxClass from 'components/textbox/textbox';
-import type {PostDraft} from 'types/store/draft';
-import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 
 import './advanced_text_editor.scss';
 

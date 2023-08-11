@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {CSSProperties} from 'react';
 
 import type {Column} from './data_grid';
-import type {CSSProperties} from 'react';
 
 import './data_grid.scss';
 

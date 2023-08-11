@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {RefObject} from 'react';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import {a11yFocus} from 'utils/utils';
-
-import type {RefObject} from 'react';
 
 export type Tab = {
     icon: string;

@@ -3,6 +3,8 @@
 
 import expect from 'expect';
 
+import type {Post, PostOrderBlock} from '@mattermost/types/posts';
+
 import {
     ChannelTypes,
     GeneralTypes,
@@ -15,8 +17,6 @@ import * as reducers from 'mattermost-redux/reducers/entities/posts';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 import {TestHelper} from 'utils/test_helper';
-
-import type {Post, PostOrderBlock} from '@mattermost/types/posts';
 
 function toPostsRecord(partials: Record<string, Partial<Post>>): Record<string, Post> {
     const result: Record<string, Post> = {};

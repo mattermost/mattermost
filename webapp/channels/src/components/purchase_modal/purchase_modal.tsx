@@ -3,14 +3,23 @@
 
 /* eslint-disable max-lines */
 
+import type {ReactNode} from 'react';
+import React from 'react';
+import type {IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+
 import {Elements} from '@stripe/react-stripe-js';
+import type {Stripe, StripeCardElementChangeEvent} from '@stripe/stripe-js';
 import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
 import classnames from 'classnames';
 import {isEmpty} from 'lodash';
-import React from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
 
+import type {Address, CloudCustomer, Product, Invoice, Feedback} from '@mattermost/types/cloud';
 import {areShippingDetailsValid} from '@mattermost/types/cloud';
+import type {Team} from '@mattermost/types/teams';
+
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent, pageVisited} from 'actions/telemetry_actions';
 
@@ -28,13 +37,16 @@ import {STRIPE_CSS_SRC} from 'components/payment_form/stripe';
 import PricingModal from 'components/pricing_modal';
 import RootPortal from 'components/root_portal';
 import SeatsCalculator, {errorInvalidNumber} from 'components/seats_calculator';
+import type {Seats} from 'components/seats_calculator';
 import Consequences from 'components/seats_calculator/consequences';
 import SwitchToYearlyPlanConfirmModal from 'components/switch_to_yearly_plan_confirm_modal';
 import Tooltip from 'components/tooltip';
 import StarMarkSvg from 'components/widgets/icons/star_mark_icon';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
+import type {ModalData} from 'types/actions';
 import {areBillingDetailsValid} from 'types/cloud/sku';
+import type {BillingDetails} from 'types/cloud/sku';
 import {
     Constants,
     TELEMETRY_CATEGORIES,
@@ -50,17 +62,6 @@ import {localizeMessage, getNextBillingDate, getBlankAddressWithCountry} from 'u
 
 import IconMessage from './icon_message';
 import ProcessPaymentSetup from './process_payment_setup';
-
-import type {Address, CloudCustomer, Product, Invoice, Feedback} from '@mattermost/types/cloud';
-import type {Team} from '@mattermost/types/teams';
-import type {Stripe, StripeCardElementChangeEvent} from '@stripe/stripe-js';
-import type {Seats} from 'components/seats_calculator';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ReactNode} from 'react';
-import type {IntlShape} from 'react-intl';
-import type {ModalData} from 'types/actions';
-import type {BillingDetails} from 'types/cloud/sku';
 
 import 'components/payment_form/payment_form.scss';
 

@@ -4,7 +4,11 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import type {Role} from '@mattermost/types/roles';
+
 import GeneralConstants from 'mattermost-redux/constants/general';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
@@ -22,10 +26,6 @@ import {localizeMessage} from 'utils/utils';
 import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
 import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
 import PermissionsTreePlaybooks from '../permissions_tree_playbooks';
-
-import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import type {Role} from '@mattermost/types/roles';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 type Props = {
     config: Partial<ClientConfig>;

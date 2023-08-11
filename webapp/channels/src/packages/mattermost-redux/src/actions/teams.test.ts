@@ -5,17 +5,17 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import type {Team} from '@mattermost/types/teams';
+
 import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/teams';
 import {loadMeREST} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {General, RequestStatus} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-
-import type {Team} from '@mattermost/types/teams';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 const OK_RESPONSE = {status: 'OK'};
 

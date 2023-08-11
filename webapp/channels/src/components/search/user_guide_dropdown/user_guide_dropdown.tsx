@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
+
+import classNames from 'classnames';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -17,7 +19,6 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
-import type {WrappedComponentProps} from 'react-intl';
 
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 

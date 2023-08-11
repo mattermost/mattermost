@@ -5,14 +5,14 @@ import React from 'react';
 import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
 
+import type {ReactWrapper} from 'enzyme';
+
 import {Client4} from 'mattermost-redux/client';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
 import RenewalLink from './renewal_link';
-
-import type {ReactWrapper} from 'enzyme';
 
 const initialState = {
     views: {

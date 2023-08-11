@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
 
+import {mount} from 'enzyme';
+import type {DeepPartial} from 'redux';
+
 import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
+import type {GlobalState} from 'types/store';
 
 import ExternalLink from '.';
-
-import type {DeepPartial} from 'redux';
-import type {GlobalState} from 'types/store';
 
 describe('components/external_link', () => {
     const initialState: DeepPartial<GlobalState> = {

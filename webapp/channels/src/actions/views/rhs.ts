@@ -2,7 +2,10 @@
 // See LICENSE.txt for license information.
 
 import debounce from 'lodash/debounce';
+import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
+
+import type {Post} from '@mattermost/types/posts';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getChannel} from 'mattermost-redux/actions/channels';
@@ -21,19 +24,16 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import type {Action, ActionResult, DispatchFunc, GenericAction, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState} from 'selectors/rhs';
 
+import type {GlobalState} from 'types/store';
+import type {RhsState} from 'types/store/rhs';
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 import * as Utils from 'utils/utils';
-
-import type {Post} from '@mattermost/types/posts';
-import type {Action, ActionResult, DispatchFunc, GenericAction, GetStateFunc} from 'mattermost-redux/types/actions';
-import type {AnyAction} from 'redux';
-import type {GlobalState} from 'types/store';
-import type {RhsState} from 'types/store/rhs';
 
 function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {

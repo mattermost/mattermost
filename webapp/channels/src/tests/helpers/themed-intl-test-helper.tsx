@@ -3,11 +3,11 @@
 
 import React from 'react';
 
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
 import {mountWithIntl} from './intl-test-helper';
-
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 const stubValue = '#fff';
 const DEFAULT_THEME: Theme = {

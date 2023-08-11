@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import {Modal, Button} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import classNames from 'classnames';
+
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {requestTrialLicense} from 'actions/admin_actions';
 import {validateBusinessEmail} from 'actions/cloud';
@@ -22,17 +24,15 @@ import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBo
 import DropdownInput from 'components/dropdown_input';
 import ExternalLink from 'components/external_link';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
+import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
+import type {GlobalState} from 'types/store';
 import {AboutLinks, LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {COUNTRIES} from 'utils/countries';
 import {t} from 'utils/i18n';
 
 import AirGappedModal from './air_gapped_modal';
 import StartTrialFormModalResult from './failure_modal';
-
-import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-import type {GlobalState} from 'types/store';
 
 import './start_trial_form_modal.scss';
 

@@ -3,11 +3,11 @@
 
 import {connect} from 'react-redux';
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {ChannelsSettings} from './channel_settings';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

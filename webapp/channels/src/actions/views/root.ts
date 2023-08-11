@@ -4,15 +4,14 @@
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {loadMe, loadMeREST} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 
 import en from 'i18n/en.json';
-import {ActionTypes} from 'utils/constants';
-
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import type {GlobalState} from 'types/store';
 import type {Translations} from 'types/store/i18n';
+import {ActionTypes} from 'utils/constants';
 
 const pluginTranslationSources: Record<string, TranslationPluginFunction> = {};
 

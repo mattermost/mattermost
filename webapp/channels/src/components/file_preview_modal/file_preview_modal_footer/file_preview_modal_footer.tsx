@@ -3,12 +3,12 @@
 
 import React, {memo} from 'react';
 
-import FilePreviewModalInfo from '../file_preview_modal_info/file_preview_modal_info';
-import FilePreviewModalMainActions from '../file_preview_modal_main_actions/file_preview_modal_main_actions';
-
-import type {LinkInfo} from '../types';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
+
+import FilePreviewModalInfo from '../file_preview_modal_info/file_preview_modal_info';
+import FilePreviewModalMainActions from '../file_preview_modal_main_actions/file_preview_modal_main_actions';
+import type {LinkInfo} from '../types';
 
 import './file_preview_modal_footer.scss';
 

@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile, UserProfileWithLastViewAt} from '@mattermost/types/users';
+
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getMyChannelMemberships, getAllDmChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import {getDirectChannelName} from 'mattermost-redux/utils/channel_utils';
-
-import type {GlobalState} from '@mattermost/types/store';
-import type {UserProfile, UserProfileWithLastViewAt} from '@mattermost/types/users';
 
 export function makeAddLastViewAtToProfiles(): (state: GlobalState, profiles: UserProfile[]) => UserProfileWithLastViewAt[] {
     return createSelector(

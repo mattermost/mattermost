@@ -2,8 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
 import {withRouter} from 'react-router-dom';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {ClientConfig} from '@mattermost/types/config';
+import type {Team} from '@mattermost/types/teams';
 
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getTeamsUnreadStatuses} from 'mattermost-redux/selectors/entities/channels';
@@ -14,21 +20,16 @@ import {
     getJoinableTeamIds,
     getMyTeams,
 } from 'mattermost-redux/selectors/entities/teams';
+import type {GenericAction, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {switchTeam, updateTeamsOrderForUser} from 'actions/team_actions';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getIsLhsOpen} from 'selectors/lhs';
 
+import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
 
 import TeamSidebar from './team_sidebar';
-
-import type {ClientConfig} from '@mattermost/types/config';
-import type {Team} from '@mattermost/types/teams';
-import type {GenericAction, GetStateFunc} from 'mattermost-redux/types/actions';
-import type {ConnectedProps} from 'react-redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const config: Partial<ClientConfig> = getConfig(state);

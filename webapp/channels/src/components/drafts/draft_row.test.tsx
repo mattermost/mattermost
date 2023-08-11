@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
+
+import {shallow} from 'enzyme';
+
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
+import type {Draft} from 'selectors/drafts';
 
 import mockStore from 'tests/test_store';
 
 import DraftRow from './draft_row';
-
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
-import type {Draft} from 'selectors/drafts';
 
 describe('components/drafts/drafts_row', () => {
     const baseProps = {

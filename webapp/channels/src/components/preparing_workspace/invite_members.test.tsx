@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ComponentProps} from 'react';
 
 import {withIntl} from 'tests/helpers/intl-test-helper';
 import {fireEvent, render, screen} from 'tests/react_testing_utils';
 
 import InviteMembers from './invite_members';
-
-import type {ComponentProps} from 'react';
 
 describe('InviteMembers component', () => {
     let defaultProps: ComponentProps<any>;

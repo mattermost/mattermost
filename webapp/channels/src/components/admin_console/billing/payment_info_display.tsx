@@ -12,9 +12,9 @@ import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
 
-import PaymentDetails from './payment_details';
-
 import type {GlobalState} from 'types/store';
+
+import PaymentDetails from './payment_details';
 
 import './payment_info_display.scss';
 

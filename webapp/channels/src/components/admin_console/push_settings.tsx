@@ -4,18 +4,18 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {AdminConfig, ClientLicense, EmailSettings} from '@mattermost/types/config';
+
 import ExternalLink from 'components/external_link';
 
 import {Constants, DocLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import AdminSettings from './admin_settings';
+import type {BaseProps, BaseState} from './admin_settings';
 import DropdownSetting from './dropdown_setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
-
-import type {BaseProps, BaseState} from './admin_settings';
-import type {AdminConfig, ClientLicense, EmailSettings} from '@mattermost/types/config';
 
 type Props = BaseProps & {
     config: AdminConfig;

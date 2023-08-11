@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {goToLastViewedChannel} from 'actions/views/channel';
 
 import CloseChannel from './close_channel';
-
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
 
 const mapDispatchToProps = (dispatch: Dispatch<GenericAction>) => ({
     actions: bindActionCreators({

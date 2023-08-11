@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import hoistStatics from 'hoist-non-react-statics';
 import React from 'react';
+
+import hoistStatics from 'hoist-non-react-statics';
 
 type DeferredRenderWrapperState = {
     shouldRender: boolean;

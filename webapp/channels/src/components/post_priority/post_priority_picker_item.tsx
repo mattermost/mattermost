@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+
 import styled from 'styled-components';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';

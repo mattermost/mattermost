@@ -1,9 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {throttle} from 'lodash';
 import React, {useRef, useState, useEffect, useCallback, memo, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
+import type {FixedSizeList} from 'react-window';
+import type InfiniteLoader from 'react-window-infinite-loader';
+
+import {throttle} from 'lodash';
+
+import type {Emoji, EmojiCategory} from '@mattermost/types/emojis';
 
 import {isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
@@ -23,15 +28,12 @@ import {
     CUSTOM_EMOJI_SEARCH_THROTTLE_TIME_MS,
 } from 'components/emoji_picker/constants';
 import {NavigationDirection} from 'components/emoji_picker/types';
+import type {CategoryOrEmojiRow, Categories, EmojiCursor, EmojiPosition, EmojiRow} from 'components/emoji_picker/types';
 import {createCategoryAndEmojiRows, getCursorProperties, getUpdatedCategoriesAndAllEmojis} from 'components/emoji_picker/utils';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 
 import type {PropsFromRedux} from './index';
-import type {Emoji, EmojiCategory} from '@mattermost/types/emojis';
-import type {CategoryOrEmojiRow, Categories, EmojiCursor, EmojiPosition, EmojiRow} from 'components/emoji_picker/types';
-import type {FixedSizeList} from 'react-window';
-import type InfiniteLoader from 'react-window-infinite-loader';
 
 interface Props extends PropsFromRedux {
     filter: string;

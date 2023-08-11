@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Preferences} from 'mattermost-redux/constants';
@@ -9,10 +10,9 @@ import {isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import PerformanceDebuggingSection from './performance_debugging_section';
-
-import type {ConnectedProps} from 'react-redux';
 import type {GlobalState} from 'types/store';
+
+import PerformanceDebuggingSection from './performance_debugging_section';
 
 function mapStateToProps(state: GlobalState) {
     return {

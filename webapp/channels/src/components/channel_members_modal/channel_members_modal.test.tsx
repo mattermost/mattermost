@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
+
+import {shallow} from 'enzyme';
+
+import type {ChannelType} from '@mattermost/types/channels';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
 
 import ChannelMembersModal from './channel_members_modal';
-
-import type {ChannelType} from '@mattermost/types/channels';
 
 describe('components/ChannelMembersModal', () => {
     const baseProps = {

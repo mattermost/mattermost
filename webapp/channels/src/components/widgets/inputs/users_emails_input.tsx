@@ -1,11 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
+import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {components} from 'react-select';
+import type {FormatOptionLabelMeta, InputActionMeta, InputProps, OptionsType, Styles, ValueType} from 'react-select';
 import AsyncCreatable from 'react-select/async-creatable';
+
+import classNames from 'classnames';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {isEmail} from 'mattermost-redux/utils/helpers';
@@ -22,10 +27,6 @@ import Avatar from 'components/widgets/users/avatar';
 
 import {t} from 'utils/i18n';
 import {getDisplayName, getLongDisplayNameParts, imageURLForUser} from 'utils/utils';
-
-import type {UserProfile} from '@mattermost/types/users';
-import type {RefObject} from 'react';
-import type {FormatOptionLabelMeta, InputActionMeta, InputProps, OptionsType, Styles, ValueType} from 'react-select';
 
 import './users_emails_input.scss';
 

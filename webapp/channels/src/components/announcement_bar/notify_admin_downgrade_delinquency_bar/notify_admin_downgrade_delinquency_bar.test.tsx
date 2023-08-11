@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ComponentProps} from 'react';
 import * as reactRedux from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -20,8 +21,6 @@ import {CloudProducts, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants'
 import {TestHelper} from 'utils/test_helper';
 
 import NotifyAdminDowngradeDeliquencyBar, {BannerPreferenceName} from './index';
-
-import type {ComponentProps} from 'react';
 
 type RenderComponentArgs = {
     props?: Partial<ComponentProps<typeof NotifyAdminDowngradeDeliquencyBar>>;

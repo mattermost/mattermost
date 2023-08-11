@@ -7,11 +7,10 @@ import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/
 
 import {getCurrentLocale} from 'selectors/i18n';
 
+import type {GlobalState} from 'types/store';
 import {getCurrentDateForTimezone} from 'utils/timezone';
 
 import SearchDateSuggestion from './search_date_suggestion';
-
-import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const timezone = getCurrentTimezone(state);

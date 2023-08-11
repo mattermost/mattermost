@@ -3,9 +3,9 @@
 
 import {combineReducers} from 'redux';
 
-import {ActionTypes} from 'utils/constants';
-
 import type {GenericAction} from 'mattermost-redux/types/actions';
+
+import {ActionTypes} from 'utils/constants';
 
 function remotes(state: Record<string, boolean> = {}, action: GenericAction) {
     switch (action.type) {

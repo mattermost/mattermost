@@ -4,24 +4,24 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {ServerError} from '@mattermost/types/errors';
+import type {TeamMembership, Team} from '@mattermost/types/teams';
+import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
+
 import GeneralConstants from 'mattermost-redux/constants/general';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import AddUsersToTeamModal from 'components/add_users_to_team_modal';
+import type {FilterOptions} from 'components/admin_console/filter/filter';
 import UserGrid from 'components/admin_console/user_grid/user_grid';
+import type {BaseMembership} from 'components/admin_console/user_grid/user_grid_role_dropdown';
 import ToggleModalButton from 'components/toggle_modal_button';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
-
-import type {ServerError} from '@mattermost/types/errors';
-import type {TeamMembership, Team} from '@mattermost/types/teams';
-import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
-import type {FilterOptions} from 'components/admin_console/filter/filter';
-import type {BaseMembership} from 'components/admin_console/user_grid/user_grid_role_dropdown';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 type Props = {
     teamId: string;

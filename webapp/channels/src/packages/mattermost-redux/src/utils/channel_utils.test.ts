@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+
 import {
     areChannelMentionsIgnored,
     filterChannelsMatchingTerm,
@@ -11,9 +14,6 @@ import {
 
 import TestHelper from '../../test/test_helper';
 import {General, Users} from '../constants';
-
-import type {ChannelNotifyProps} from '@mattermost/types/channels';
-import type {Post} from '@mattermost/types/posts';
 
 describe('ChannelUtils', () => {
     it('areChannelMentionsIgnored', () => {

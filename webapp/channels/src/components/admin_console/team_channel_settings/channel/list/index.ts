@@ -2,20 +2,21 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
 
 import {getAllChannelsWithCount as getData, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
+import type {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
+import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 
 import List from './channel_list';
-
-import type {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
-import type {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
-import type {GlobalState} from 'types/store';
 
 const compareByDisplayName = (a: {display_name: string}, b: {display_name: string}) => a.display_name.localeCompare(b.display_name);
 

@@ -14,9 +14,8 @@ import loadingIcon from 'images/spinner-48x48-blue.apng';
 
 import Description from './description';
 import {Animations, mapAnimationReasonToClass} from './steps';
-import Title from './title';
-
 import type {PreparingWorkspacePageProps} from './steps';
+import Title from './title';
 
 import './launching_workspace.scss';
 

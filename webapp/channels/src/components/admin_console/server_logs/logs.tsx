@@ -1,14 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {debounce} from 'lodash';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import AdminHeader from 'components/widgets/admin_console/admin_header';
-
-import LogList from './log_list';
-import PlainLogList from './plain_log_list';
+import {debounce} from 'lodash';
 
 import type {
     LogFilter,
@@ -16,7 +12,13 @@ import type {
     LogObject,
     LogServerNames,
 } from '@mattermost/types/admin';
+
 import type {ActionFunc} from 'mattermost-redux/types/actions';
+
+import AdminHeader from 'components/widgets/admin_console/admin_header';
+
+import LogList from './log_list';
+import PlainLogList from './plain_log_list';
 
 type Props = {
     logs: LogObject[];

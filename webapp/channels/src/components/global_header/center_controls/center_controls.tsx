@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+
 import styled from 'styled-components';
+
+import type {ProductIdentifier} from '@mattermost/types/products';
 
 import Pluggable from 'plugins/pluggable';
 import {isChannels} from 'utils/products';
 
 import GlobalSearchNav from './global_search_nav/global_search_nav';
 import UserGuideDropdown from './user_guide_dropdown';
-
-import type {ProductIdentifier} from '@mattermost/types/products';
 
 const CenterControlsContainer = styled.div`
     display: flex;

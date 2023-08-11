@@ -4,6 +4,12 @@
 import React from 'react';
 import {FormattedDate, FormattedMessage} from 'react-intl';
 
+import type {AnalyticsRow} from '@mattermost/types/admin';
+import type {ClientLicense} from '@mattermost/types/config';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
+
 import {General} from 'mattermost-redux/constants';
 
 import * as AdminActions from 'actions/admin_actions';
@@ -23,12 +29,6 @@ import {StatTypes} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
 
 import {formatPostsPerDayData, formatUsersWithPostsPerDayData, synchronizeChartLabels} from '../format';
-
-import type {AnalyticsRow} from '@mattermost/types/admin';
-import type {ClientLicense} from '@mattermost/types/config';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 const LAST_ANALYTICS_TEAM = 'last_analytics_team';
 

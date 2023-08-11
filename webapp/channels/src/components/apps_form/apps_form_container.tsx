@@ -3,16 +3,16 @@
 
 import React from 'react';
 import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import type {AppContext, AppField, AppForm, AppFormValues, FormResponseData, AppLookupResponse} from '@mattermost/types/apps';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
+import type {DoAppSubmit, DoAppFetchForm, DoAppLookup, DoAppCallResult, PostEphemeralCallResponseForContext} from 'types/apps';
 import {createCallRequest, makeCallErrorResponse} from 'utils/apps';
 
 import AppsForm from './apps_form_component';
-
-import type {AppContext, AppField, AppForm, AppFormValues, FormResponseData, AppLookupResponse} from '@mattermost/types/apps';
-import type {IntlShape} from 'react-intl';
-import type {DoAppSubmit, DoAppFetchForm, DoAppLookup, DoAppCallResult, PostEphemeralCallResponseForContext} from 'types/apps';
 
 type Props = {
     intl: IntlShape;

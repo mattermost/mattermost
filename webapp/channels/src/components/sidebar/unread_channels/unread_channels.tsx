@@ -4,10 +4,10 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import {SidebarCategoryHeaderStatic} from '../sidebar_category_header';
 import SidebarChannel from '../sidebar_channel';
-
-import type {Channel} from '@mattermost/types/channels';
 
 type Props = {
     setChannelRef: (channelId: string, ref: HTMLLIElement) => void;

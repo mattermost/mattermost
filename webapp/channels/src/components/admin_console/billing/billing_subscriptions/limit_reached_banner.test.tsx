@@ -3,6 +3,9 @@
 
 import React from 'react';
 
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile, UsersState} from '@mattermost/types/users';
+
 import {Preferences} from 'mattermost-redux/constants';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
@@ -16,9 +19,6 @@ import {fireEvent, renderWithFullContext, screen} from 'tests/react_testing_util
 import {CloudProducts} from 'utils/constants';
 
 import LimitReachedBanner from './limit_reached_banner';
-
-import type {GlobalState} from '@mattermost/types/store';
-import type {UserProfile, UsersState} from '@mattermost/types/users';
 
 const upgradeCloudKey = getPreferenceKey(Preferences.CATEGORY_UPGRADE_CLOUD, Preferences.SYSTEM_CONSOLE_LIMIT_REACHED);
 

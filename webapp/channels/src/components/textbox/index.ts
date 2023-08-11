@@ -2,7 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -11,17 +15,14 @@ import {makeGetProfilesForThread} from 'mattermost-redux/selectors/entities/post
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {Action} from 'mattermost-redux/types/actions';
 
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsersInChannel} from 'actions/views/channel';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
 
 import Textbox from './textbox';
-
 import type {Props as TextboxProps} from './textbox';
-import type {GlobalState} from '@mattermost/types/store';
-import type {Action} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 type Props = {
     channelId: string;

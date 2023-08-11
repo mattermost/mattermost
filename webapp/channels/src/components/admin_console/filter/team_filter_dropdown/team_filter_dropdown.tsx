@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
+
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
@@ -15,7 +17,6 @@ import * as Utils from 'utils/utils';
 import TeamFilterCheckbox from './team_filter_checkbox';
 
 import type {FilterOption, FilterValues} from '../filter';
-import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
 
 import './team_filter_dropdown.scss';
 import '../filter.scss';

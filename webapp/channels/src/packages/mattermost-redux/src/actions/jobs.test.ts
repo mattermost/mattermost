@@ -3,13 +3,13 @@
 
 import nock from 'nock';
 
+import type {Job} from '@mattermost/types/jobs';
+
 import * as Actions from 'mattermost-redux/actions/jobs';
 import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-
-import type {Job} from '@mattermost/types/jobs';
 
 const OK_RESPONSE = {status: 'OK'};
 

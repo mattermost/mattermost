@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import classNames from 'classnames';
+
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, MagnifyIcon, AccountOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {isPrivateChannel} from 'mattermost-redux/utils/channel_utils';
 
@@ -25,9 +28,6 @@ import {localizeMessage, localizeAndFormatMessage} from 'utils/utils';
 
 import Menu from './widgets/menu/menu';
 import MenuWrapper from './widgets/menu/menu_wrapper';
-
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 
@@ -299,9 +299,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
             listContent = (
                 <div
                     className='no-channel-message'
-                    aria-label={this.state.channelSearchValue.length > 0 ?
-                        localizeAndFormatMessage(t('more_channels.noMore'), 'No results for {text}', {text: this.state.channelSearchValue}) :
-                        localizeMessage('widgets.channels_input.empty', 'No channels found')
+                    aria-label={this.state.channelSearchValue.length > 0 ? localizeAndFormatMessage(t('more_channels.noMore'), 'No results for {text}', {text: this.state.channelSearchValue}) : localizeMessage('widgets.channels_input.empty', 'No channels found')
                     }
                 >
                     <MagnifyingGlassSVG/>

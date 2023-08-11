@@ -3,11 +3,11 @@
 
 import React from 'react';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 
 import Header from './header';
-
-import type {Channel} from '@mattermost/types/channels';
 
 describe('channel_info_rhs/header', () => {
     test('should the current channel name', () => {

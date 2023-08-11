@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {InputHTMLAttributes} from 'react';
 import {useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
 import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
-import type {InputHTMLAttributes} from 'react';
-import type {MessageDescriptor} from 'react-intl';
 
 export type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'placeholder'> & {
     placeholder: MessageDescriptor & {

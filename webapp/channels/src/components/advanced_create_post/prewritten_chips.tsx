@@ -3,15 +3,16 @@
 
 import React, {useMemo, memo} from 'react';
 import {useIntl} from 'react-intl';
+
 import styled from 'styled-components';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
 import Chip from 'components/common/chip/chip';
 
 import {t} from 'utils/i18n';
-
-import type {Channel} from '@mattermost/types/channels';
 
 type Props = {
     prefillMessage: (msg: string, shouldFocus: boolean) => void;

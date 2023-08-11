@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ElementsConsumer, CardElement} from '@stripe/react-stripe-js';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {toRgbValues} from 'utils/utils';
-
+import {ElementsConsumer, CardElement} from '@stripe/react-stripe-js';
 import type {StripeElements, StripeCardElement, StripeCardElementChangeEvent} from '@stripe/stripe-js';
+
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+
+import {toRgbValues} from 'utils/utils';
 
 import 'components/widgets/inputs/input/input.scss';
 

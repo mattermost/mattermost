@@ -3,6 +3,9 @@
 
 import React from 'react';
 import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
 
@@ -23,16 +26,13 @@ import LeaveTeamIcon from 'components/widgets/icons/leave_team_icon';
 import Menu from 'components/widgets/menu/menu';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
+import type {ModalData} from 'types/actions';
+import type {PluginComponent} from 'types/store/plugins';
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {Constants, LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {makeUrlSafe} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
-
-import type {UserProfile} from '@mattermost/types/users';
-import type {IntlShape} from 'react-intl';
-import type {ModalData} from 'types/actions';
-import type {PluginComponent} from 'types/store/plugins';
 
 export type Props = {
     mobile: boolean;

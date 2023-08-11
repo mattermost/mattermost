@@ -3,6 +3,8 @@
 
 import isEmpty from 'lodash/isEmpty';
 
+import type {Emoji, EmojiCategory, SystemEmoji} from '@mattermost/types/emojis';
+
 import {isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import {
@@ -14,11 +16,6 @@ import {
     RECENT_EMOJI_CATEGORY,
     CATEGORIES,
 } from 'components/emoji_picker/constants';
-
-import {EmojiIndicesByCategory, Emojis as EmojisJson} from 'utils/emoji';
-import {compareEmojis, convertEmojiSkinTone, emojiMatchesSkin, getSkin} from 'utils/emoji_utils';
-
-import type {Emoji, EmojiCategory, SystemEmoji} from '@mattermost/types/emojis';
 import type {
     Categories,
     Category,
@@ -28,7 +25,10 @@ import type {
     EmojiPosition,
     EmojiCursor,
 } from 'components/emoji_picker/types';
+
+import {EmojiIndicesByCategory, Emojis as EmojisJson} from 'utils/emoji';
 import type EmojiMap from 'utils/emoji_map';
+import {compareEmojis, convertEmojiSkinTone, emojiMatchesSkin, getSkin} from 'utils/emoji_utils';
 
 export function isCategoryHeaderRow(row: CategoryOrEmojiRow): row is CategoryHeaderRow {
     return row.type === CATEGORY_HEADER_ROW;

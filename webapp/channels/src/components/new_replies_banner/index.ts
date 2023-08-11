@@ -2,20 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {Post} from '@mattermost/types/posts';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {updateThreadToastStatus} from 'actions/views/threads';
 
-import NewRepliesBanner from './new_replies_banner';
-
-import type {Post} from '@mattermost/types/posts';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import NewRepliesBanner from './new_replies_banner';
 
 type Props = {
     threadId: Post['id'];

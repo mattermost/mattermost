@@ -9,6 +9,7 @@ import {GenericModal} from '@mattermost/components';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal} from 'actions/views/modals';
@@ -25,10 +26,8 @@ import ExternalLink from 'components/external_link';
 import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import LearnMoreTrialModalStep from './learn_more_trial_modal_step';
-import StartTrialBtn from './start_trial_btn';
-
 import type {LearnMoreTrialModalStepProps} from './learn_more_trial_modal_step';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import StartTrialBtn from './start_trial_btn';
 
 import './learn_more_trial_modal.scss';
 

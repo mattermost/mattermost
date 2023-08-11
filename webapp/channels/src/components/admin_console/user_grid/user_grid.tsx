@@ -4,19 +4,19 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {ChannelMembership} from '@mattermost/types/channels';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
 import DataGrid from 'components/admin_console/data_grid/data_grid';
+import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import type {FilterOptions} from 'components/admin_console/filter/filter';
 import Tag from 'components/widgets/tag/tag';
 
 import UserGridName from './user_grid_name';
 import UserGridRemove from './user_grid_remove';
 import UserGridRoleDropdown from './user_grid_role_dropdown';
-
 import type {BaseMembership} from './user_grid_role_dropdown';
-import type {ChannelMembership} from '@mattermost/types/channels';
-import type {TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
-import type {FilterOptions} from 'components/admin_console/filter/filter';
 
 import './user_grid.scss';
 

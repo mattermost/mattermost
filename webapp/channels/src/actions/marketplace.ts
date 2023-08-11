@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AppCall, AppExpand, AppFormValues} from '@mattermost/types/apps';
+import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+
 import {Client4} from 'mattermost-redux/client';
 import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {getFilter, getPlugin} from 'selectors/views/marketplace';
 
 import {intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
+import type {DoAppCallResult} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
 
+import type {GlobalState} from 'types/store';
 import {createCallContext, createCallRequest} from 'utils/apps';
 import {ActionTypes} from 'utils/constants';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForContext} from './apps';
-
-import type {AppCall, AppExpand, AppFormValues} from '@mattermost/types/apps';
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
-import type {DoAppCallResult} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import type {GlobalState} from 'types/store';
 
 export function fetchRemoteListing(): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {

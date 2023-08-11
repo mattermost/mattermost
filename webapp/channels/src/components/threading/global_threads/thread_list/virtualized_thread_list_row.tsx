@@ -5,6 +5,8 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {areEqual} from 'react-window';
 
+import type {UserThread} from '@mattermost/types/threads';
+
 import SearchHintSVG from 'components/common/svg_images_components/search_hint_svg';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
@@ -15,8 +17,6 @@ import {ShortcutKeyVariant} from 'components/shortcut_key';
 import {Constants} from 'utils/constants';
 
 import ThreadItem from '../thread_item';
-
-import type {UserThread} from '@mattermost/types/threads';
 
 type Props = {
     data: {

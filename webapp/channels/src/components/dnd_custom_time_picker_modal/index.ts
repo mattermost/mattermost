@@ -3,7 +3,9 @@
 
 import React from 'react';
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {setStatus} from 'mattermost-redux/actions/users';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
@@ -13,7 +15,6 @@ import {getCurrentLocale} from 'selectors/i18n';
 
 import {makeAsyncComponent} from 'components/async_load';
 
-import type {Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
 
 const DndCustomTimePicker = makeAsyncComponent('DndCustomTimePicker', React.lazy(() => import('./dnd_custom_time_picker_modal')));

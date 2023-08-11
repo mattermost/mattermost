@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {Tooltip} from 'react-bootstrap';
+
+import classNames from 'classnames';
 
 import OverlayTrigger from 'components/overlay_trigger';
 

@@ -6,18 +6,17 @@ import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {Invoice} from '@mattermost/types/cloud';
+
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
+import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
-
-import './billing_history_modal.scss';
 
 import BillingHistoryTable from './billing_history_table';
 
-import type {Invoice} from '@mattermost/types/cloud';
-import type {GlobalState} from 'types/store';
-
+import './billing_history_modal.scss';
 import './billing_history.scss';
 
 type BillingHistoryModalProps = {

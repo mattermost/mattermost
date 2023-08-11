@@ -5,6 +5,12 @@ import React, {useState, useEffect, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {withRouter} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
+
+import type {Feedback, Product} from '@mattermost/types/cloud';
+import type {Team} from '@mattermost/types/teams';
+
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {subscribeCloudSubscription} from 'actions/cloud';
 import {closeModal} from 'actions/views/modals';
@@ -17,14 +23,9 @@ import ProgressBar, {ProcessState} from 'components/icon_message_with_progress_b
 import IconMessage from 'components/purchase_modal/icon_message';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
+import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
-
-import type {Feedback, Product} from '@mattermost/types/cloud';
-import type {Team} from '@mattermost/types/teams';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-import type {RouteComponentProps} from 'react-router-dom';
-import type {GlobalState} from 'types/store';
 
 type Props = RouteComponentProps & {
     onBack: () => void;

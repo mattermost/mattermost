@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import {Client4} from 'mattermost-redux/client';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
@@ -13,8 +15,6 @@ import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
 import {displayEntireNameForUser} from 'utils/utils';
-
-import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
     currentUserId: string;

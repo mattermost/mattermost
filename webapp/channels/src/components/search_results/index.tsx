@@ -3,6 +3,9 @@
 
 import {connect} from 'react-redux';
 
+import type {FileSearchResultItem} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
+
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getSearchFilesResults} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -18,12 +21,10 @@ import {
     getIsSearchGettingMore,
 } from 'selectors/rhs';
 
-import SearchResults from './search_results';
-
-import type {StateProps, OwnProps} from './types';
-import type {FileSearchResultItem} from '@mattermost/types/files';
-import type {Post} from '@mattermost/types/posts';
 import type {GlobalState} from 'types/store';
+
+import SearchResults from './search_results';
+import type {StateProps, OwnProps} from './types';
 
 function makeMapStateToProps() {
     let results: Post[];

@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
+
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {TestHelper} from 'utils/test_helper';
 
 import UsersToRemove from './users_to_remove';
-
-import type {TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
 
 describe('components/admin_console/team_channel_settings/group/UsersToRemove', () => {
     function createUser(id: string, username: string, bot: boolean): UserProfile {

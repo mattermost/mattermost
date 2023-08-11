@@ -2,7 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {ModalData} from 'types/actions.js';
+import type {GlobalState} from 'types/store/index.js';
+
+import type {FileInfo} from '@mattermost/types/files';
+import type {CommandArgs} from '@mattermost/types/integrations';
+import type {Post} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {getChannelTimezones, getChannelMemberCountsByGroup} from 'mattermost-redux/actions/channels';
 import {
@@ -26,6 +35,7 @@ import {get, getInt, getBool, isCustomGroupsEnabled} from 'mattermost-redux/sele
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getStatusForUserId, getUser, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult, GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions.js';
 
 import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
@@ -45,20 +55,11 @@ import {showPreviewOnCreatePost} from 'selectors/views/textbox';
 
 import {OnboardingTourSteps, TutorialTourName, OnboardingTourStepsForGuestUsers} from 'components/tours';
 
+import type {PostDraft} from 'types/store/draft';
 import {AdvancedTextEditor, Constants, Preferences, StoragePrefixes, UserStatuses} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
 
 import AdvancedCreatePost from './advanced_create_post';
-
-import type {FileInfo} from '@mattermost/types/files';
-import type {CommandArgs} from '@mattermost/types/integrations';
-import type {Post} from '@mattermost/types/posts';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {ActionResult, GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions.js';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {ModalData} from 'types/actions.js';
-import type {PostDraft} from 'types/store/draft';
-import type {GlobalState} from 'types/store/index.js';
 
 function makeMapStateToProps() {
     const getMessageInHistoryItem = makeGetMessageInHistoryItem(Posts.MESSAGE_TYPES.POST as any);

@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ComponentType, MouseEvent, ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 
-import type {ComponentType, MouseEvent, ReactNode} from 'react';
 import type {ModalData} from 'types/actions';
 
 type Props = {

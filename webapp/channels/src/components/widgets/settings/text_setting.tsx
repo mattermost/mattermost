@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ChangeEvent, ReactNode} from 'react';
 
 import Setting from './setting';
-
-import type {ChangeEvent, ReactNode} from 'react';
 
 const INPUT_TYPES = ['text', 'textarea', 'number', 'email', 'tel', 'url', 'password'] as const;
 export type InputTypes = typeof INPUT_TYPES[number];

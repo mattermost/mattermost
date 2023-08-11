@@ -3,9 +3,9 @@
 
 import * as PreferencesSelectors from 'mattermost-redux/selectors/entities/preferences';
 
-import * as Lhs from './lhs';
-
 import type {GlobalState} from 'types/store';
+
+import * as Lhs from './lhs';
 
 jest.mock('selectors/drafts', () => ({
     makeGetDraftsCount: jest.fn().mockImplementation(() => jest.fn()),

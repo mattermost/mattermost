@@ -4,6 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {Permissions} from 'mattermost-redux/constants';
 
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
@@ -11,9 +14,6 @@ import TeamPermissionGate from 'components/permissions_gates/team_permission_gat
 
 import BackstageCategory from './backstage_category';
 import BackstageSection from './backstage_section';
-
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
     team: Team;

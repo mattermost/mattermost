@@ -4,6 +4,13 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Bot as BotType} from '@mattermost/types/bots';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
@@ -13,12 +20,6 @@ import {getSiteURL} from 'utils/url';
 import * as Utils from 'utils/utils';
 
 import Bot, {matchesFilter} from './bot';
-
-import type {Bot as BotType} from '@mattermost/types/bots';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 type Props = {
 

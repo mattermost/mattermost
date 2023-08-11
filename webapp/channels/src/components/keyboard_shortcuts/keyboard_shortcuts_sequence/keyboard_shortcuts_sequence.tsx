@@ -4,14 +4,14 @@
 import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 
+import type {FormatXMLElementFn, PrimitiveType} from 'intl-messageformat';
+
 import {ShortcutKeyVariant, ShortcutKey} from 'components/shortcut_key';
 
 import {isMac} from 'utils/user_agent';
 
 import {isMessageDescriptor} from './keyboard_shortcuts';
-
 import type {KeyboardShortcutDescriptor} from './keyboard_shortcuts';
-import type {FormatXMLElementFn, PrimitiveType} from 'intl-messageformat';
 
 import './keyboard_shortcuts_sequence.scss';
 

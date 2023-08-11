@@ -7,6 +7,8 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -18,13 +20,11 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
 
+import type {GlobalState} from 'types/store';
 import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
 
 import ThreeDaysLeftTrialCard from './three_days_left_trial_modal_card';
-
 import type {ThreeDaysLeftTrialCardProps} from './three_days_left_trial_modal_card';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-import type {GlobalState} from 'types/store';
 
 import './three_days_left_trial_modal.scss';
 

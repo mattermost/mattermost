@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
+
 import {ToPaidPlanBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_paid_plan_nudge_banner';
 import {ToYearlyNudgeBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_yearly_nudge_banner';
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
@@ -19,8 +21,6 @@ import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal
 import ShowThreeDaysLeftTrialModal from './show_tree_days_left_trial_modal/show_three_days_left_trial_modal';
 import TextDismissableBar from './text_dismissable_bar';
 import VersionBar from './version_bar';
-
-import type {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
 
 type Props = {
     license?: ClientLicense;

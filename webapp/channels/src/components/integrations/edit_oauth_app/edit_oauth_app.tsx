@@ -4,16 +4,17 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {OAuthApp} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import ConfirmModal from 'components/confirm_modal';
 import LoadingScreen from 'components/loading_screen';
 
 import {getHistory} from 'utils/browser_history';
 
 import AbstractOAuthApp from '../abstract_oauth_app.jsx';
-
-import type {OAuthApp} from '@mattermost/types/integrations';
-import type {Team} from '@mattermost/types/teams';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 const HEADER = {id: 'integrations.edit', defaultMessage: 'Edit'};
 const FOOTER = {id: 'update_incoming_webhook.update', defaultMessage: 'Update'};

@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
+
+import classNames from 'classnames';
+
+import type {ChannelType} from '@mattermost/types/channels';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
@@ -13,8 +16,6 @@ import LockCircleSolidIcon from 'components/widgets/icons/lock_circle_solid_icon
 import UpgradeBadge from 'components/widgets/icons/upgrade_badge_icon';
 
 import {Constants} from 'utils/constants';
-
-import type {ChannelType} from '@mattermost/types/channels';
 
 import './public-private-selector.scss';
 

@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useState, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import classNames from 'classnames';
+
+import type {AuthChangeResponse} from '@mattermost/types/users';
 
 import {emailToOAuth} from 'actions/admin_actions.jsx';
 
@@ -14,10 +17,8 @@ import Constants, {ClaimErrors} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {localizeMessage, toTitleCase} from 'utils/utils';
 
-import ErrorLabel from './error_label';
-
 import type {SubmitOptions} from './email_to_ldap';
-import type {AuthChangeResponse} from '@mattermost/types/users';
+import ErrorLabel from './error_label';
 
 type Props = {
     newType: string | null;

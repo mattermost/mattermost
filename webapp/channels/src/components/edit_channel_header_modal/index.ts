@@ -2,24 +2,25 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import {patchChannel} from 'mattermost-redux/actions/channels';
 import {Preferences} from 'mattermost-redux/constants';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setShowPreviewOnEditChannelHeaderModal} from 'actions/views/textbox';
 import {showPreviewOnEditChannelHeaderModal} from 'selectors/views/textbox';
 
+import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 import {isFeatureEnabled} from 'utils/utils';
 
 import EditChannelHeaderModal from './edit_channel_header_modal';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     return {

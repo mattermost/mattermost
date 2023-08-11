@@ -5,21 +5,21 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import type {Post, PostList} from '@mattermost/types/posts';
+import type {GlobalState} from '@mattermost/types/store';
+
 import {PostTypes, UserTypes} from 'mattermost-redux/action_types';
 import {getChannelStats} from 'mattermost-redux/actions/channels';
 import {createCustomEmoji} from 'mattermost-redux/actions/emojis';
 import * as Actions from 'mattermost-redux/actions/posts';
 import {loadMeREST} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
 import {Preferences, Posts, RequestStatus} from '../constants';
-
-import type {Post, PostList} from '@mattermost/types/posts';
-import type {GlobalState} from '@mattermost/types/store';
-import type {ActionResult, GetStateFunc} from 'mattermost-redux/types/actions';
 
 const OK_RESPONSE = {status: 'OK'};
 

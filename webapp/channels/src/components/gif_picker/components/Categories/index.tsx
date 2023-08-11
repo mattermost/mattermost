@@ -4,17 +4,17 @@
 import React, {PureComponent} from 'react';
 import {connect} from 'react-redux';
 
+import type {GfycatAPIItem, GfycatAPITag} from '@mattermost/types/gifs';
+
 import {requestCategoriesList, requestCategoriesListIfNeeded, saveSearchBarText, saveSearchScrollPosition, searchTextUpdate} from 'mattermost-redux/actions/gifs';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import InfiniteScroll from 'components/gif_picker/components/InfiniteScroll';
-
-import {getImageSrc} from 'utils/post_utils';
-
-import type {GfycatAPIItem, GfycatAPITag} from '@mattermost/types/gifs';
 import type {appProps} from 'components/gif_picker/gif_picker';
+
 import type {GlobalState} from 'types/store';
+import {getImageSrc} from 'utils/post_utils';
 
 import './Categories.scss';
 

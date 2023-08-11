@@ -3,7 +3,11 @@
 
 import React from 'react';
 import {useIntl} from 'react-intl';
+
 import styled from 'styled-components';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -13,9 +17,6 @@ import UserProfileElement from 'components/user_profile';
 
 import EditableArea from './components/editable_area';
 import LineLimiter from './components/linelimiter';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
 
 const Usernames = styled.p`
     font-family: Metropolis, sans-serif;

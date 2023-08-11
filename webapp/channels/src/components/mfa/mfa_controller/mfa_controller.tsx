@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Route, Switch} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
@@ -14,8 +15,6 @@ import logoImage from 'images/logo.png';
 
 import Confirm from '../confirm';
 import Setup from '../setup';
-
-import type {RouteComponentProps} from 'react-router-dom';
 
 type Location = {
     search: string;

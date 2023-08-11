@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import marked from 'marked';
+import type {MarkedOptions} from 'marked';
 
 import EmojiMap from 'utils/emoji_map';
 import * as PostUtils from 'utils/post_utils';
@@ -9,8 +10,6 @@ import * as TextFormatting from 'utils/text_formatting';
 import {getScheme, isUrlSafe, shouldOpenInNewTab} from 'utils/url';
 
 import {parseImageDimensions} from './helpers';
-
-import type {MarkedOptions} from 'marked';
 
 export default class Renderer extends marked.Renderer {
     private formattingOptions: TextFormatting.TextFormattingOptions;
@@ -260,9 +259,7 @@ function unescapeHtmlEntities(html: string) {
         if (n === 'colon') {
             return ':';
         } else if (n.charAt(0) === '#') {
-            return n.charAt(1) === 'x' ?
-                String.fromCharCode(parseInt(n.substring(2), 16)) :
-                String.fromCharCode(Number(n.substring(1)));
+            return n.charAt(1) === 'x' ? String.fromCharCode(parseInt(n.substring(2), 16)) : String.fromCharCode(Number(n.substring(1)));
         }
         return '';
     });

@@ -3,9 +3,9 @@
 
 import {combineReducers} from 'redux';
 
-import {PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
-
 import type {PreferenceType} from '@mattermost/types/preferences';
+
+import {PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function getKey(preference: PreferenceType) {

@@ -3,12 +3,12 @@
 
 import {combineReducers} from 'redux';
 
+import type {GeneralRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+
 import {GeneralTypes} from 'mattermost-redux/action_types';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {handleRequest, initialRequestState} from './helpers';
-
-import type {GeneralRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function websocket(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
     if (action.type === GeneralTypes.WEBSOCKET_CLOSED) {

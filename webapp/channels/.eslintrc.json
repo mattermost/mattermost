@@ -46,10 +46,14 @@
           "internal",
           "sibling",
           "parent",
-          "index",
-          "type"
+          "index"
         ],
         "pathGroups": [
+          {
+            "pattern": "react{*,*/**}",
+            "group": "builtin",
+            "position": "before"
+          },
           {
             "pattern": "@mattermost/**",
             "group": "external",
@@ -75,7 +79,8 @@
           "order": "asc",
           "caseInsensitive": true
         },
-        "pathGroupsExcludedImportTypes": ["type"]
+        "distinctGroup": true,
+        "pathGroupsExcludedImportTypes": ["builtin"]
       }
     ],
     "no-undefined": 0,

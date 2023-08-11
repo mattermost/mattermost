@@ -1,10 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {Tooltip} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import classNames from 'classnames';
+
+import type {AppBinding} from '@mattermost/types/apps';
+import type {Post} from '@mattermost/types/posts';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -13,22 +18,18 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import OverlayTrigger from 'components/overlay_trigger';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
+import type {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import Pluggable from 'plugins/pluggable';
+import type {ModalData} from 'types/actions';
+import type {HandleBindingClick, PostEphemeralCallResponseForPost, OpenAppsModal} from 'types/apps';
+import type {PluginComponent} from 'types/store/plugins';
 import {createCallContext} from 'utils/apps';
 import {Locations, Constants, ModalIdentifiers} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
 import * as Utils from 'utils/utils';
-
-import type {AppBinding} from '@mattermost/types/apps';
-import type {Post} from '@mattermost/types/posts';
-import type {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
-import type {IntlShape} from 'react-intl';
-import type {ModalData} from 'types/actions';
-import type {HandleBindingClick, PostEphemeralCallResponseForPost, OpenAppsModal} from 'types/apps';
-import type {PluginComponent} from 'types/store/plugins';
 
 import './actions_menu.scss';
 

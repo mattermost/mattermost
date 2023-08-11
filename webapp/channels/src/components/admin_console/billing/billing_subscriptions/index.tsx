@@ -5,6 +5,8 @@ import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import {getCloudSubscription, getCloudProducts, getCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {
     getSubscriptionProduct,
@@ -12,6 +14,7 @@ import {
     getCloudCustomer as selectCloudCustomer,
     getCloudErrors,
 } from 'mattermost-redux/selectors/entities/cloud';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {pageVisited} from 'actions/telemetry_actions';
 
@@ -46,9 +49,6 @@ import {ToYearlyNudgeBanner} from './to_yearly_nudge_banner';
 
 import BillingSummary from '../billing_summary';
 import PlanDetails from '../plan_details';
-
-import type {GlobalState} from '@mattermost/types/store';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import './billing_subscriptions.scss';
 

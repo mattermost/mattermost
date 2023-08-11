@@ -8,9 +8,8 @@ import {useSelector} from 'react-redux';
 import {Preferences} from 'mattermost-redux/constants';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
-import {isMac} from 'utils/user_agent';
-
 import type {GlobalState} from 'types/store';
+import {isMac} from 'utils/user_agent';
 
 type Props = {
     onSave: () => void;

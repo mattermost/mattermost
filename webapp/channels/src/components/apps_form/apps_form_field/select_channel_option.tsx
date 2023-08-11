@@ -3,9 +3,9 @@
 
 import React from 'react';
 import {components} from 'react-select';
+import type {OptionProps} from 'react-select';
 
 import type {AppSelectOption} from '@mattermost/types/apps';
-import type {OptionProps} from 'react-select';
 
 const {Option} = components;
 export const SelectChannelOption = (props: OptionProps<AppSelectOption>) => {

@@ -1,12 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CategorySorting} from '@mattermost/types/channel_categories';
-
-import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-
 import type {Bot} from '@mattermost/types/bots';
+import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel, ChannelMembership, ChannelNotifyProps, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {Invoice, Product, Subscription, CloudCustomer} from '@mattermost/types/cloud';
@@ -22,6 +18,10 @@ import type {Role} from '@mattermost/types/roles';
 import type {Session} from '@mattermost/types/sessions';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
+
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+
 import type {ProductComponent} from 'types/store/plugins';
 
 export class TestHelper {

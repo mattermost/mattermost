@@ -4,13 +4,13 @@
 import {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {Product} from '@mattermost/types/cloud';
+
 import {
     getCloudSubscription as getCloudSubscriptionAction,
 } from 'mattermost-redux/actions/cloud';
 import {getCloudSubscription, getCloudProducts, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-
-import type {Product} from '@mattermost/types/cloud';
 
 export default function useGetSubscription(): Product | undefined {
     const cloudSubscription = useSelector(getCloudSubscription);

@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {Emoji} from '@mattermost/types/emojis';
+
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import OverlayTrigger from 'components/overlay_trigger';
@@ -12,8 +14,6 @@ import Tooltip from 'components/tooltip';
 import {Locations} from 'utils/constants';
 
 import EmojiItem from './recent_reactions_emoji_item';
-
-import type {Emoji} from '@mattermost/types/emojis';
 
 type LocationTypes = 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT';
 

@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {isValidElement} from 'react';
 import {NavLink, Route} from 'react-router-dom';
+
+import classNames from 'classnames';
 
 type Props = {
     icon: JSX.Element;

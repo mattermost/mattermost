@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import moment from 'moment';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import moment from 'moment';
+
+import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -14,8 +17,6 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {getSkuDisplayName} from 'utils/subscription';
 import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
-
-import type {ClientLicense} from '@mattermost/types/config';
 
 import './renew_license_card.scss';
 

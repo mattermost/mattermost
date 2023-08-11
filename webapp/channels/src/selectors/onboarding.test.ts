@@ -8,9 +8,8 @@ import {getShowTaskListBool} from 'selectors/onboarding';
 import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
-import {RecommendedNextStepsLegacy, Preferences} from 'utils/constants';
-
 import type {GlobalState} from 'types/store';
+import {RecommendedNextStepsLegacy, Preferences} from 'utils/constants';
 
 describe('selectors/onboarding', () => {
     describe('getShowTaskListBool', () => {

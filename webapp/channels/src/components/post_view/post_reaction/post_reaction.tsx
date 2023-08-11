@@ -1,9 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import classNames from 'classnames';
+import type {Dispatch} from 'redux';
+
+import type {Emoji} from '@mattermost/types/emojis';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
@@ -15,9 +19,6 @@ import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
 import {Locations} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
-
-import type {Emoji} from '@mattermost/types/emojis';
-import type {Dispatch} from 'redux';
 
 const TOP_OFFSET = -7;
 

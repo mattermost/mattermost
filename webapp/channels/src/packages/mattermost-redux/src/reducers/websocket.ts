@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
-
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function getInitialState() {

@@ -3,17 +3,18 @@
 
 import {batchActions} from 'redux-batched-actions';
 
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo} from '@mattermost/types/files';
+
 import {FileTypes} from 'mattermost-redux/action_types';
 import {getLogErrorAction} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 
 import {localizeMessage} from 'utils/utils';
-
-import type {ServerError} from '@mattermost/types/errors';
-import type {FileInfo} from '@mattermost/types/files';
-import type {FilePreviewInfo} from 'components/file_preview/file_preview';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 export interface UploadFile {
     file: File;
@@ -92,8 +93,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                     try {
                         const errorResponse = JSON.parse(xhr.response);
                         errorMessage =
-                        (errorResponse?.id && errorResponse?.message) ? localizeMessage(errorResponse.id, errorResponse.message) :
-                            localizeMessage('file_upload.generic_error', 'There was a problem uploading your files.');
+                        (errorResponse?.id && errorResponse?.message) ? localizeMessage(errorResponse.id, errorResponse.message) : localizeMessage('file_upload.generic_error', 'There was a problem uploading your files.');
                     } catch (e) {
                         errorMessage = localizeMessage('file_upload.generic_error', 'There was a problem uploading your files.');
                     }
@@ -128,9 +128,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                     dispatch(batchActions([uploadFailureAction, getLogErrorAction(errorResponse)]));
                     onError(errorResponse, clientId, channelId, rootId);
                 } else {
-                    const errorMessage = xhr.status === 0 || !xhr.status ?
-                        localizeMessage('file_upload.generic_error', 'There was a problem uploading your files.') :
-                        localizeMessage('channel_loader.unknown_error', 'We received an unexpected status code from the server.') + ' (' + xhr.status + ')';
+                    const errorMessage = xhr.status === 0 || !xhr.status ? localizeMessage('file_upload.generic_error', 'There was a problem uploading your files.') : localizeMessage('channel_loader.unknown_error', 'We received an unexpected status code from the server.') + ' (' + xhr.status + ')';
 
                     dispatch({
                         type: FileTypes.UPLOAD_FILES_FAILURE,

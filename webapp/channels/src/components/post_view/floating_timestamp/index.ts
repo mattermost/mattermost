@@ -9,9 +9,9 @@ import * as PostListUtils from 'mattermost-redux/utils/post_list';
 import {getToastStatus} from 'selectors/views/channel';
 import {getThreadToastStatus} from 'selectors/views/threads';
 
-import FloatingTimestamp from './floating_timestamp';
-
 import type {GlobalState} from 'types/store';
+
+import FloatingTimestamp from './floating_timestamp';
 
 type OwnProps = {
     postId: string;

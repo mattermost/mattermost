@@ -5,18 +5,18 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import type {Team, TeamSearchOpts, TeamsWithCount} from '@mattermost/types/teams';
+
 import {debounce} from 'mattermost-redux/actions/helpers';
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';
+import type {Column} from 'components/admin_console/data_grid/data_grid';
+import type {FilterOptions} from 'components/admin_console/filter/filter';
 import {PAGE_SIZE} from 'components/admin_console/team_channel_settings/abstract_list';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 
 import {getHistory} from 'utils/browser_history';
 import * as Utils from 'utils/utils';
-
-import type {Team, TeamSearchOpts, TeamsWithCount} from '@mattermost/types/teams';
-import type {Column} from 'components/admin_console/data_grid/data_grid';
-import type {FilterOptions} from 'components/admin_console/filter/filter';
 
 import './team_list.scss';
 

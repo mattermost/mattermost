@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type React from 'react';
+
 import type {WebSocketClient} from '@mattermost/client';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import type {PluginAnalyticsRow} from '@mattermost/types/admin';
@@ -10,8 +12,9 @@ import type {ClientPluginManifest} from '@mattermost/types/plugins';
 import type {Post, PostEmbed} from '@mattermost/types/posts';
 import type {ProductScope} from '@mattermost/types/products';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
+
 import type {NewPostMessageProps} from 'actions/new_post';
-import type React from 'react';
+
 import type {GlobalState} from 'types/store';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;

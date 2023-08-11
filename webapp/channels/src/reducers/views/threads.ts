@@ -5,11 +5,10 @@ import {findKey} from 'lodash';
 import {combineReducers} from 'redux';
 
 import {PostTypes, UserTypes} from 'mattermost-redux/action_types';
-
-import {Threads, ActionTypes} from 'utils/constants';
-
 import type {GenericAction} from 'mattermost-redux/types/actions';
+
 import type {ViewsState} from 'types/store/views';
+import {Threads, ActionTypes} from 'utils/constants';
 
 export const selectedThreadIdInTeam = (state: ViewsState['threads']['selectedThreadIdInTeam'] = {}, action: GenericAction) => {
     switch (action.type) {

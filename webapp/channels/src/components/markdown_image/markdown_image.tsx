@@ -2,6 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {PureComponent} from 'react';
+import type {MouseEvent} from 'react';
+
+import type {Post, PostImage} from '@mattermost/types/posts';
 
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
@@ -10,11 +13,8 @@ import MarkdownImageExpand from 'components/markdown_image_expand';
 import SizeAwareImage from 'components/size_aware_image';
 
 import brokenImageIcon from 'images/icons/brokenimage.png';
-import Constants, {ModalIdentifiers} from 'utils/constants';
-
-import type {Post, PostImage} from '@mattermost/types/posts';
-import type {MouseEvent} from 'react';
 import type {ModalData} from 'types/actions';
+import Constants, {ModalIdentifiers} from 'utils/constants';
 
 export type Props = {
     alt: string;

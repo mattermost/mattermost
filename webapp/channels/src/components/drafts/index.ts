@@ -9,9 +9,9 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {makeGetDrafts} from 'selectors/drafts';
 
-import Drafts from './drafts';
-
 import type {GlobalState} from 'types/store';
+
+import Drafts from './drafts';
 
 function makeMapStateToProps() {
     const getDrafts = makeGetDrafts();

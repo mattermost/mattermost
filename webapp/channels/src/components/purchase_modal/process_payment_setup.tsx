@@ -3,7 +3,16 @@
 
 import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 import {withRouter} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
+
+import type {Stripe} from '@stripe/stripe-js';
+
+import type {Address, Feedback, Product} from '@mattermost/types/cloud';
+import type {Team} from '@mattermost/types/teams';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 
@@ -12,19 +21,12 @@ import CreditCardSvg from 'components/common/svg_images_components/credit_card_s
 import PaymentFailedSvg from 'components/common/svg_images_components/payment_failed_svg';
 import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
 
+import type {BillingDetails} from 'types/cloud/sku';
 import {RecurringIntervals, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getNextBillingDate} from 'utils/utils';
 
 import IconMessage from './icon_message';
-
-import type {Address, Feedback, Product} from '@mattermost/types/cloud';
-import type {Team} from '@mattermost/types/teams';
-import type {Stripe} from '@stripe/stripe-js';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {IntlShape} from 'react-intl';
-import type {RouteComponentProps} from 'react-router-dom';
-import type {BillingDetails} from 'types/cloud/sku';
 
 import './process_payment.css';
 

@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import Provider from './provider';
-import SearchDateSuggestion from './search_date_suggestion';
-
 import type {ResultsCallback} from './provider';
+import SearchDateSuggestion from './search_date_suggestion';
 
 type DateItem = {label: string; date: string};
 

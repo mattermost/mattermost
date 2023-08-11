@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
 import React from 'react';
 
-import ExternalLink from 'components/external_link';
-import {localizeMessage} from 'utils/utils';
+import PropTypes from 'prop-types';
 
 import type {ClientConfig} from '@mattermost/types/config';
+
+import ExternalLink from 'components/external_link';
+
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
     config: Partial<ClientConfig> | undefined;

@@ -3,11 +3,11 @@
 
 import {useState} from 'react';
 
+import type {NotifyAdminRequest} from '@mattermost/types/cloud';
+
 import {Client4} from 'mattermost-redux/client';
 
 import {trackEvent} from 'actions/telemetry_actions';
-
-import type {NotifyAdminRequest} from '@mattermost/types/cloud';
 
 export const NotifyStatus = {
     NotStarted: 'NOT_STARTED',

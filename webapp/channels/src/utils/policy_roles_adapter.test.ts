@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Role} from '@mattermost/types/roles';
+
 import {Permissions} from 'mattermost-redux/constants/index';
 
 import {rolesFromMapping, mappingValueFromRoles} from 'utils/policy_roles_adapter';
-
-import type {Role} from '@mattermost/types/roles';
 
 describe('PolicyRolesAdapter', () => {
     let roles: Record<string, any> = {};

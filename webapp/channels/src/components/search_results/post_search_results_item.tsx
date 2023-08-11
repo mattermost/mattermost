@@ -3,11 +3,11 @@
 
 import React from 'react';
 
+import type {Post} from '@mattermost/types/posts';
+
 import PostComponent from 'components/post';
 
 import {Locations} from 'utils/constants';
-
-import type {Post} from '@mattermost/types/posts';
 
 type Props = {
     a11yIndex: number;

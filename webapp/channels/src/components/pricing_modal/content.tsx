@@ -6,6 +6,8 @@ import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {Feedback} from '@mattermost/types/cloud';
+
 import {
     getCloudSubscription as selectCloudSubscription,
     getSubscriptionProduct as selectSubscriptionProduct,
@@ -13,6 +15,7 @@ import {
 } from 'mattermost-redux/selectors/entities/cloud';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {subscribeCloudSubscription} from 'actions/cloud';
 import {trackEvent} from 'actions/telemetry_actions';
@@ -42,9 +45,6 @@ import Card, {BlankCard, ButtonCustomiserClasses} from './card';
 import ContactSalesCTA from './contact_sales_cta';
 import StartTrialCaution from './start_trial_caution';
 import StarterDisclaimerCTA from './starter_disclaimer_cta';
-
-import type {Feedback} from '@mattermost/types/cloud';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import './content.scss';
 

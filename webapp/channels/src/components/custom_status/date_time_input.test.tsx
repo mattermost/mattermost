@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import moment from 'moment-timezone';
 import React from 'react';
 import {Provider} from 'react-redux';
+
+import {shallow} from 'enzyme';
+import moment from 'moment-timezone';
 
 import {General} from 'mattermost-redux/constants';
 

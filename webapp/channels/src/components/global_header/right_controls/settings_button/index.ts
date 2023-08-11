@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
 import SettingsButton from './settings_button';
-
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {

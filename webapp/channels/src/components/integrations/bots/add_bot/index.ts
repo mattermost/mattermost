@@ -2,7 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {RouteComponentProps} from 'react-router-dom';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {createBot, patchBot} from 'mattermost-redux/actions/bots';
 import {updateUserRoles, uploadProfileImage, setDefaultProfileImage, createUserAccessToken} from 'mattermost-redux/actions/users';
@@ -11,14 +14,12 @@ import {getBotAccounts} from 'mattermost-redux/selectors/entities/bots';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+
+import type {GlobalState} from 'types/store';
 
 import AddBot from './add_bot';
-
 import type {Props} from './add_bot';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-import type {RouteComponentProps} from 'react-router-dom';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 type OwnProps = {
 

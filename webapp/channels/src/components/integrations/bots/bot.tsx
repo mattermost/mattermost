@@ -2,8 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ChangeEvent, SyntheticEvent, ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
+
+import type {Bot as BotType} from '@mattermost/types/bots';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import Markdown from 'components/markdown';
@@ -11,12 +18,6 @@ import SaveButton from 'components/save_button';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import * as Utils from 'utils/utils';
-
-import type {Bot as BotType} from '@mattermost/types/bots';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ChangeEvent, SyntheticEvent, ReactNode} from 'react';
 
 export function matchesFilter(bot: BotType, filter?: string, owner?: UserProfile): boolean {
     if (!filter) {

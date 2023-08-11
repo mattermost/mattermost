@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+
 import {sendMembersInvites, sendGuestsInvites} from 'actions/invite_actions';
 
 import mockStore from 'tests/test_store';
 import {ConsolePages} from 'utils/constants';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 jest.mock('actions/team_actions', () => ({
     addUsersToTeam: () => ({ // since we are using addUsersToTeamGracefully, this call will always succeed

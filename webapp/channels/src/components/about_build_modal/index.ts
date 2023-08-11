@@ -5,9 +5,9 @@ import {connect} from 'react-redux';
 
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import AboutBuildModal from './about_build_modal';
-
 import type {GlobalState} from 'types/store';
+
+import AboutBuildModal from './about_build_modal';
 
 function mapStateToProps(state: GlobalState) {
     return {

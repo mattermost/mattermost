@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+
+import classNames from 'classnames';
 
 import FeatureRestrictedModal from 'components/feature_restricted_modal/feature_restricted_modal';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -12,8 +14,6 @@ import Tooltip from 'components/tooltip';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {Constants, LicenseSkus, ModalIdentifiers} from 'utils/constants';
-
-import type {MessageDescriptor} from 'react-intl';
 
 import './restricted_indicator.scss';
 

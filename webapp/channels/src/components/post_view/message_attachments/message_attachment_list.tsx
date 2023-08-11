@@ -3,11 +3,12 @@
 
 import React from 'react';
 
-import MessageAttachment from './message_attachment';
-
 import type {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
 import type {PostImage} from '@mattermost/types/posts';
+
 import type {TextFormattingOptions} from 'utils/text_formatting';
+
+import MessageAttachment from './message_attachment';
 
 type Props = {
 

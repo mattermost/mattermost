@@ -5,9 +5,9 @@ import {connect} from 'react-redux';
 
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import MFAController from './mfa_controller';
-
 import type {GlobalState} from 'types/store';
+
+import MFAController from './mfa_controller';
 
 function mapStateToProps(state: GlobalState) {
     const license = getLicense(state);

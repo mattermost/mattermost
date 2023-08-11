@@ -4,6 +4,10 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {AdminConfig} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import BlockableLink from 'components/admin_console/blockable_link';
 import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS, DAYS} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
 import Card from 'components/card/card';
@@ -13,10 +17,6 @@ import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid
 
 import {getHistory} from 'utils/browser_history';
 import * as Utils from 'utils/utils';
-
-import type {AdminConfig} from '@mattermost/types/config';
-import type {ServerError} from '@mattermost/types/errors';
-import type {DeepPartial} from '@mattermost/types/utilities';
 
 import './global_policy_form.scss';
 

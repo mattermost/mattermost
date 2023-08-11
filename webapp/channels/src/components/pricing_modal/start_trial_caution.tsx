@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {useIntl} from 'react-intl';
+
 import styled from 'styled-components';
 
 import ExternalLink from 'components/external_link';

@@ -4,9 +4,8 @@
 import React from 'react';
 
 import Provider from './provider';
-import {SuggestionContainer} from './suggestion';
-
 import type {ResultsCallback} from './provider';
+import {SuggestionContainer} from './suggestion';
 import type {SuggestionProps} from './suggestion';
 
 interface MenuAction {

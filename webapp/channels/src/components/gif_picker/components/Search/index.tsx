@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {throttle} from 'lodash';
 import React, {PureComponent} from 'react';
 import {connect} from 'react-redux';
+
+import {throttle} from 'lodash';
+
+import type {GfycatAPIItem} from '@mattermost/types/gifs';
 
 import {searchIfNeededInitial, searchGfycat} from 'mattermost-redux/actions/gifs';
 
 import SearchGrid from 'components/gif_picker/components/SearchGrid';
-
-import type {GfycatAPIItem} from '@mattermost/types/gifs';
 import type {appProps} from 'components/gif_picker/gif_picker';
+
 import type {GlobalState} from 'types/store';
 
 const GIF_SEARCH_THROTTLE_TIME_MS = 1000;

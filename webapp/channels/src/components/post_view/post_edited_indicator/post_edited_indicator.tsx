@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MouseEvent} from 'react';
 import {useIntl} from 'react-intl';
 
 import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
@@ -14,7 +15,6 @@ import Tooltip from 'components/tooltip';
 import {isSameDay, isWithinLastWeek, isYesterday} from 'utils/datetime';
 
 import type {Props} from './index';
-import type {MouseEvent} from 'react';
 
 const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, postOwner, post, canEdit, actions}: Props): JSX.Element | null => {
     const {formatMessage, formatDate, formatTime} = useIntl();

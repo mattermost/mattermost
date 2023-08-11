@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import {getImageSrc} from 'utils/post_utils';
-
 import type {PostImage} from '@mattermost/types/posts';
+
+import {getImageSrc} from 'utils/post_utils';
 
 interface Props {
     children: (src: string) => React.ReactNode;

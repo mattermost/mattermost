@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ActivityEntry, Post} from '@mattermost/types/posts';
+import type {GlobalState} from '@mattermost/types/store';
+
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
@@ -24,9 +27,6 @@ import {
 
 import TestHelper from '../../test/test_helper';
 import {Posts, Preferences} from '../constants';
-
-import type {ActivityEntry, Post} from '@mattermost/types/posts';
-import type {GlobalState} from '@mattermost/types/store';
 
 describe('makeFilterPostsAndAddSeparators', () => {
     it('filter join/leave posts', () => {

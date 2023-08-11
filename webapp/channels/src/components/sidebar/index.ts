@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {Preferences} from 'mattermost-redux/constants';
@@ -11,6 +13,7 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {createCategory, clearChannelSelection} from 'actions/views/channel_sidebar';
 import {closeModal, openModal} from 'actions/views/modals';
@@ -21,14 +24,11 @@ import {getIsMobileView} from 'selectors/views/browser';
 import {isUnreadFilterEnabled} from 'selectors/views/channel_sidebar';
 import {isModalOpen} from 'selectors/views/modals';
 
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 
 import Sidebar from './sidebar';
-
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
-import type {ModalData} from 'types/actions';
-import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const currentTeam = getCurrentTeam(state);

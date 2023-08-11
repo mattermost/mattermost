@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
+
+import {shallow} from 'enzyme';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
@@ -11,7 +12,6 @@ import {CloudProducts} from 'utils/constants';
 import {makeEmptyLimits, makeEmptyUsage} from 'utils/limits_test';
 
 import FeatureList from './feature_list';
-
 import type {FeatureListProps} from './feature_list';
 
 function renderFeatureList(props: FeatureListProps, deep?: boolean) {
@@ -34,17 +34,15 @@ function renderFeatureList(props: FeatureListProps, deep?: boolean) {
     };
 
     const store = mockStore(state);
-    const wrapper = deep ?
-        mountWithIntl(
-            <Provider store={store}>
-                <FeatureList {...props}/>
-            </Provider>,
-        ) :
-        shallow(
-            <Provider store={store}>
-                <FeatureList {...props}/>
-            </Provider>,
-        );
+    const wrapper = deep ? mountWithIntl(
+        <Provider store={store}>
+            <FeatureList {...props}/>
+        </Provider>,
+    ) : shallow(
+        <Provider store={store}>
+            <FeatureList {...props}/>
+        </Provider>,
+    );
 
     return wrapper;
 }

@@ -3,14 +3,13 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import {getModule} from 'module_registry';
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
 import {latinise} from 'utils/latinise';
 import * as TextFormatting from 'utils/text_formatting';
-
-import type {IntlShape} from 'react-intl';
 
 type WindowObject = {
     location: {

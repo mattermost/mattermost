@@ -2,10 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React, {createRef} from 'react';
+import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 
+import type {AdminConfig} from '@mattermost/types/config';
+import type {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+import type {JobTypeBase, JobType} from '@mattermost/types/jobs';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import DataGrid from 'components/admin_console/data_grid/data_grid';
+import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import JobsTable from 'components/admin_console/jobs';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
@@ -16,14 +25,6 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import {getHistory} from 'utils/browser_history';
 import {JobTypes} from 'utils/constants';
 import * as Utils from 'utils/utils';
-
-import type {AdminConfig} from '@mattermost/types/config';
-import type {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
-import type {JobTypeBase, JobType} from '@mattermost/types/jobs';
-import type {DeepPartial} from '@mattermost/types/utilities';
-import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {RefObject} from 'react';
 
 import './data_retention_settings.scss';
 
@@ -600,7 +601,7 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                                                 id='admin.data_retention.createJob.instructions'
                                                 defaultMessage='Daily time to check policies and run delete job:'
                                             />
-                                            {this.state.showEditJobTime ?
+                                            {this.state.showEditJobTime ? (
                                                 <ReactSelect
                                                     id={'JobSelectTime'}
                                                     className={'JobSelectTime'}
@@ -634,13 +635,14 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                                                         this.showEditJobTime(true);
                                                     }}
                                                     menuIsOpen={this.state.showEditJobTime}
-                                                /> :
+                                                />
+                                            ) : (
                                                 <span
                                                     className='JobSelectedtime'
                                                 >
                                                     <b>{this.getJobStartTime()}</b>
                                                 </span>
-                                            }
+                                            )}
                                             <a
                                                 className='EditJobTime'
                                                 onClick={() => this.showEditJobTime(true)}

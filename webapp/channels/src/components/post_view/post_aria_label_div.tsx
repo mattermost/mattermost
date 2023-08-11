@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import {usePostAriaLabel} from 'utils/post_utils';
-
 import type {Post} from '@mattermost/types/posts';
+
+import {usePostAriaLabel} from 'utils/post_utils';
 
 export type Props = React.HTMLProps<HTMLDivElement> & {
     post: Post;

@@ -8,7 +8,6 @@ import Permissions from 'mattermost-redux/constants/permissions';
 
 import SystemRolePermissionDropdown from './system_role_permission_dropdown';
 import {noAccess, writeAccess, readAccess, mixedAccess} from './types';
-
 import type {PermissionsToUpdate, PermissionToUpdate, SystemSection, PermissionAccess} from './types';
 
 import './system_role_permissions.scss';

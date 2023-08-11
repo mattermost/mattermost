@@ -1,8 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
+
+import type {ChannelType} from '@mattermost/types/channels';
+import type {CloudUsage} from '@mattermost/types/cloud';
 
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
@@ -16,9 +20,6 @@ import {PostListRowListIds} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import PostListRow from './post_list_row';
-
-import type {ChannelType} from '@mattermost/types/channels';
-import type {CloudUsage} from '@mattermost/types/cloud';
 
 describe('components/post_view/post_list_row', () => {
     const defaultProps = {

@@ -3,17 +3,17 @@
 
 import React from 'react';
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {Client4} from 'mattermost-redux/client';
 
 import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from 'components/self_hosted_purchases/constants';
 
 import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import type {GlobalState} from 'types/store';
 import {TestHelper as TH} from 'utils/test_helper';
 
 import PurchaseInProgressModal from './';
-
-import type {DeepPartial} from '@mattermost/types/utilities';
-import type {GlobalState} from 'types/store';
 
 jest.mock('mattermost-redux/client', () => {
     const original = jest.requireActual('mattermost-redux/client');

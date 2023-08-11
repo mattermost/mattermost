@@ -3,15 +3,15 @@
 
 import React from 'react';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {PreferenceType} from '@mattermost/types/preferences';
+
 import {trackEvent} from 'actions/telemetry_actions';
 
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {PreferenceType} from '@mattermost/types/preferences';
 
 type Props = {
     channel: Channel;

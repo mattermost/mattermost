@@ -2,8 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useCallback} from 'react';
+import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector, shallowEqual} from 'react-redux';
+
+import type {UserThread} from '@mattermost/types/threads';
 
 import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
 import {Preferences} from 'mattermost-redux/constants';
@@ -18,15 +21,12 @@ import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
+import type {GlobalState} from 'types/store';
 import {t} from 'utils/i18n';
 import {getSiteURL} from 'utils/url';
 import {copyToClipboard} from 'utils/utils';
 
 import {useThreadRouting} from '../../hooks';
-
-import type {UserThread} from '@mattermost/types/threads';
-import type {ReactNode} from 'react';
-import type {GlobalState} from 'types/store';
 
 import './thread_menu.scss';
 

@@ -4,8 +4,14 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
@@ -15,16 +21,10 @@ import {getRoleForTrackFlow} from 'utils/utils';
 
 import {InviteType} from './invite_as';
 import InviteView, {initializeInviteState} from './invite_view';
+import type {InviteState} from './invite_view';
 import NoPermissionsView from './no_permissions_view';
 import ResultView, {defaultResultState} from './result_view';
-
-import type {InviteState} from './invite_view';
 import type {ResultState, InviteResults} from './result_view';
-import type {Channel} from '@mattermost/types/channels';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-import type {IntlShape} from 'react-intl';
 
 import './invitation_modal.scss';
 

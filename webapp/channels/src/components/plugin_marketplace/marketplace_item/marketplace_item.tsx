@@ -1,8 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
+
+import classNames from 'classnames';
+
+import type {MarketplaceLabel} from '@mattermost/types/marketplace';
 
 import ExternalLink from 'components/external_link';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -11,8 +14,6 @@ import PluginIcon from 'components/widgets/icons/plugin_icon';
 import Tag from 'components/widgets/tag/tag';
 
 import {Constants} from 'utils/constants';
-
-import type {MarketplaceLabel} from '@mattermost/types/marketplace';
 
 // Label renders a tag showing a name and a description in a tooltip.
 // If a URL is provided, clicking on the tag will open the URL in a new tab.

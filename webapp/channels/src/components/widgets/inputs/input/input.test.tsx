@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
 import React from 'react';
+
+import {mount, shallow} from 'enzyme';
 
 import OverlayTrigger from 'components/overlay_trigger';
 

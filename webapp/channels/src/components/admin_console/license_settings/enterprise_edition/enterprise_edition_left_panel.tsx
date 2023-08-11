@@ -1,10 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
+import type {RefObject} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
+
+import classNames from 'classnames';
+
+import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
@@ -22,9 +26,6 @@ import {useQuery} from 'utils/http_utils';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 import {getSkuDisplayName} from 'utils/subscription';
 import {getRemainingDaysFromFutureTimestamp, toTitleCase} from 'utils/utils';
-
-import type {ClientLicense} from '@mattermost/types/config';
-import type {RefObject} from 'react';
 
 import './enterprise_edition.scss';
 

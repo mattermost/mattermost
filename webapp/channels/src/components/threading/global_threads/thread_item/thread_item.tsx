@@ -1,13 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
+import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import classNames from 'classnames';
+
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
+import type {UserThread} from '@mattermost/types/threads';
 
 import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/actions/threads';
@@ -28,6 +33,7 @@ import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
 
+import type {GlobalState} from 'types/store';
 import {CrtTutorialSteps, Preferences} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
@@ -37,11 +43,6 @@ import {THREADING_TIME} from '../../common/options';
 import {useThreadRouting} from '../../hooks';
 import ThreadMenu from '../thread_menu';
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Post} from '@mattermost/types/posts';
-import type {UserThread} from '@mattermost/types/threads';
-import type {MouseEvent} from 'react';
-import type {GlobalState} from 'types/store';
 import './thread_item.scss';
 
 export type OwnProps = {

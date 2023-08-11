@@ -3,7 +3,10 @@
 
 import React from 'react';
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {addPostReminder} from 'mattermost-redux/actions/posts';
 import {Preferences} from 'mattermost-redux/constants';
@@ -13,8 +16,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {makeAsyncComponent} from 'components/async_load';
 
-import type {ConnectedProps} from 'react-redux';
-import type {Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
 
 const PostReminderCustomTimePicker = makeAsyncComponent('PostReminderCustomTimePicker', React.lazy(() => import('./post_reminder_custom_time_picker_modal')));

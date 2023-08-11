@@ -3,14 +3,14 @@
 
 import React from 'react';
 
-import PostEditedIndicator from 'components/post_view/post_edited_indicator';
-
-import messageHtmlToComponent from 'utils/message_html_to_component';
-import {formatText} from 'utils/text_formatting';
-
 import type {PostImage, PostType} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
+
+import PostEditedIndicator from 'components/post_view/post_edited_indicator';
+
 import type EmojiMap from 'utils/emoji_map';
+import messageHtmlToComponent from 'utils/message_html_to_component';
+import {formatText} from 'utils/text_formatting';
 import type {ChannelNamesMap, TextFormattingOptions, MentionKey} from 'utils/text_formatting';
 
 type Props = {

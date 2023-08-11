@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
 
 import {getCurrentChannelId, makeGetChannel, makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {getAutoSortedCategoryIds, getDraggingState, isChannelSelected} from 'selectors/views/channel_sidebar';
 
-import SidebarChannel from './sidebar_channel';
-
-import type {ConnectedProps} from 'react-redux';
 import type {GlobalState} from 'types/store';
+
+import SidebarChannel from './sidebar_channel';
 
 type OwnProps = {
     channelId: string;

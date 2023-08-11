@@ -1,10 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
+
+import classNames from 'classnames';
+
+import type {AdminConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import PluginState from 'mattermost-redux/constants/plugins';
 
@@ -18,13 +22,10 @@ import {DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import AdminSettings from '../admin_settings';
+import type {BaseProps, BaseState} from '../admin_settings';
 import BooleanSetting from '../boolean_setting';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
-
-import type {BaseProps, BaseState} from '../admin_settings';
-import type {AdminConfig} from '@mattermost/types/config';
-import type {DeepPartial} from '@mattermost/types/utilities';
 
 const PluginItemState = ({state}: {state: number}) => {
     switch (state) {
@@ -208,16 +209,17 @@ const PluginItem = ({
                 className={deactivating || isDisabled ? 'disabled' : ''}
                 onClick={handleDisable}
             >
-                {deactivating ?
+                {deactivating ? (
                     <FormattedMessage
                         id='admin.plugin.disabling'
                         defaultMessage='Disabling...'
-                    /> :
+                    />
+                ) : (
                     <FormattedMessage
                         id='admin.plugin.disable'
                         defaultMessage='Disable'
                     />
-                }
+                )}
             </a>
         );
     } else {
@@ -227,16 +229,17 @@ const PluginItem = ({
                 className={activating || isDisabled ? 'disabled' : ''}
                 onClick={handleEnable}
             >
-                {activating ?
+                {activating ? (
                     <FormattedMessage
                         id='admin.plugin.enabling'
                         defaultMessage='Enabling...'
-                    /> :
+                    />
+                ) : (
                     <FormattedMessage
                         id='admin.plugin.enable'
                         defaultMessage='Enable'
                     />
-                }
+                )}
             </a>
         );
     }

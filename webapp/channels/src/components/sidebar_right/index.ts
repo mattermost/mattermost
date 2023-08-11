@@ -4,7 +4,10 @@
 import {memo} from 'react';
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -21,13 +24,10 @@ import {
     getPreviousRhsState,
 } from 'selectors/rhs';
 
+import type {GlobalState} from 'types/store';
 import {RHSStates} from 'utils/constants';
 
 import SidebarRight from './sidebar_right';
-
-import type {RouteComponentProps} from 'react-router-dom';
-import type {Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState, props: RouteComponentProps) {
     const rhsState = getRhsState(state);

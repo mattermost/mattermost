@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import Menu from 'components/widgets/menu/menu';
-
 import type {Channel} from '@mattermost/types/channels';
+
+import Menu from 'components/widgets/menu/menu';
 
 type Action = {
     showChannelMembers: (channelId: string, editMembers: boolean) => void;

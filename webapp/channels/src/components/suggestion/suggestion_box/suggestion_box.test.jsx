@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, mount} from 'enzyme';
 import React from 'react';
+
+import {shallow, mount} from 'enzyme';
 
 import AtMentionProvider from 'components/suggestion/at_mention_provider/at_mention_provider.jsx';
 import CommandProvider from 'components/suggestion/command_provider/command_provider';

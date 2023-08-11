@@ -9,9 +9,9 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {getChannelURL} from 'selectors/urls';
 
-import ChannelDraft from './channel_draft';
-
 import type {GlobalState} from 'types/store';
+
+import ChannelDraft from './channel_draft';
 
 type OwnProps = {
     id: string;

@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
+
+import {mount, shallow} from 'enzyme';
+import type {DeepPartial} from 'redux';
 
 import ExternalImage from 'components/external_image';
 
 import mockStore from 'tests/test_store';
+import type {GlobalState} from 'types/store';
 
 import YoutubeVideo from './youtube_video';
-
-import type {DeepPartial} from 'redux';
-import type {GlobalState} from 'types/store';
 
 jest.mock('actions/integration_actions');
 

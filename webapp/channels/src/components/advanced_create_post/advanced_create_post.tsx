@@ -3,13 +3,23 @@
 
 /* eslint-disable max-lines */
 
-import {isNil} from 'lodash';
 import React from 'react';
 
+import {isNil} from 'lodash';
+
+import type {Channel, ChannelMemberCountsByGroup} from '@mattermost/types/channels';
+import type {Emoji} from '@mattermost/types/emojis';
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo} from '@mattermost/types/files';
 import {GroupSource} from '@mattermost/types/groups';
+import type {Group} from '@mattermost/types/groups';
+import type {CommandArgs} from '@mattermost/types/integrations';
 import {PostPriority} from '@mattermost/types/posts';
+import type {Post, PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {Posts} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -18,11 +28,17 @@ import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_ed
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
+import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
 import PostPriorityPickerOverlay from 'components/post_priority/post_priority_picker_overlay';
 import ResetStatusModal from 'components/reset_status_modal';
+import type TextboxClass from 'components/textbox/textbox';
 
+import type {ModalData} from 'types/actions';
+import type {PostDraft} from 'types/store/draft';
+import type {PluginComponent} from 'types/store/plugins';
 import Constants, {
     StoragePrefixes,
     ModalIdentifiers,
@@ -31,9 +47,11 @@ import Constants, {
     Preferences,
     AdvancedTextEditor as AdvancedTextEditorConst,
 } from 'utils/constants';
+import type EmojiMap from 'utils/emoji_map';
 import {execCommandInsertText} from 'utils/exec_commands';
 import * as Keyboard from 'utils/keyboard';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {
     getHtmlTable,
     hasHtmlLink,
@@ -58,24 +76,6 @@ import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import PriorityLabels from './priority_labels';
-
-import type {Channel, ChannelMemberCountsByGroup} from '@mattermost/types/channels';
-import type {Emoji} from '@mattermost/types/emojis';
-import type {ServerError} from '@mattermost/types/errors';
-import type {FileInfo} from '@mattermost/types/files';
-import type {Group} from '@mattermost/types/groups';
-import type {CommandArgs} from '@mattermost/types/integrations';
-import type {Post, PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {FilePreviewInfo} from 'components/file_preview/file_preview';
-import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
-import type TextboxClass from 'components/textbox/textbox';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ModalData} from 'types/actions';
-import type {PostDraft} from 'types/store/draft';
-import type {PluginComponent} from 'types/store/plugins';
-import type EmojiMap from 'utils/emoji_map';
-import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 
 const KeyCodes = Constants.KeyCodes;
 

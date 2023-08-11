@@ -3,12 +3,12 @@
 
 import {connect} from 'react-redux';
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import AnyTeamPermissionGate from './any_team_permission_gate';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 type Props = {
     permissions: string[];

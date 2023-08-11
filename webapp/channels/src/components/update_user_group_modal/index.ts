@@ -2,20 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {CustomGroupPatch} from '@mattermost/types/groups';
 
 import {patchGroup} from 'mattermost-redux/actions/groups';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
+import type {Action, ActionResult} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
-import UpdateUserGroupModal from './update_user_group_modal';
-
-import type {CustomGroupPatch} from '@mattermost/types/groups';
-import type {Action, ActionResult} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
+
+import UpdateUserGroupModal from './update_user_group_modal';
 
 type OwnProps = {
     groupId: string;

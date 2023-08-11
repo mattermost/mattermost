@@ -3,14 +3,6 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import {AdminTypes} from 'mattermost-redux/action_types';
-import {Client4} from 'mattermost-redux/client';
-
-import {logError} from './errors';
-import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
-
-import {General} from '../constants';
-
 import type {LogFilter} from '@mattermost/types/admin';
 import type {
     ChannelSearchOpts,
@@ -25,7 +17,15 @@ import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import type {
     TeamSearchOpts,
 } from '@mattermost/types/teams';
+
+import {AdminTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
 import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+
+import {logError} from './errors';
+import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
+
+import {General} from '../constants';
 
 export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo}: LogFilter): ActionFunc {
     const logFilter = {

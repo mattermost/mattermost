@@ -2,10 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ChangeEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team} from '@mattermost/types/teams';
+import type {GetFilteredUsersStatsOpts, UserProfile, UsersStats} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {Permissions} from 'mattermost-redux/constants';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
@@ -21,12 +27,6 @@ import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import SystemUsersList from './list';
-
-import type {ServerError} from '@mattermost/types/errors';
-import type {Team} from '@mattermost/types/teams';
-import type {GetFilteredUsersStatsOpts, UserProfile, UsersStats} from '@mattermost/types/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-import type {ChangeEvent} from 'react';
 
 const USER_ID_LENGTH = 26;
 const USERS_PER_PAGE = 50;

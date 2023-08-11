@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {CSSTransition} from 'react-transition-group';
-
 import type {ReactNode} from 'react';
+import {CSSTransition} from 'react-transition-group';
 
 const ANIMATION_DURATION = 350;
 

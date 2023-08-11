@@ -1,29 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import classNames from 'classnames';
+
 import {GenericModal} from '@mattermost/components';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import Permissions from 'mattermost-redux/constants/permissions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import LoadingScreen from 'components/loading_screen';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import SearchableChannelList from 'components/searchable_channel_list';
 
+import type {ModalData} from 'types/actions';
+import type {RhsState} from 'types/store/rhs';
 import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getRelativeChannelURL} from 'utils/url';
 import {localizeMessage} from 'utils/utils';
-
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ModalData} from 'types/actions';
-import type {RhsState} from 'types/store/rhs';
 
 import './browse_channels.scss';
 

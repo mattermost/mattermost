@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import type {FormEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {shallow} from 'enzyme';
 
 import AbstractCommand from 'components/integrations/abstract_command';
 
 import {TestHelper} from 'utils/test_helper';
-
-import type {FormEvent} from 'react';
 
 describe('components/integrations/AbstractCommand', () => {
     const header = {id: 'Header', defaultMessage: 'Header'};

@@ -2,23 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {Group, GroupSearachParams} from '@mattermost/types/groups';
 
 import {getGroups, getGroupsByUserIdPaginated, searchGroups} from 'mattermost-redux/actions/groups';
 import {getAllAssociatedGroupsForReference, getMyAllowReferencedGroups, searchAllowReferencedGroups, searchMyAllowReferencedGroups} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setModalSearchTerm} from 'actions/views/search';
 import {isModalOpen} from 'selectors/views/modals';
 
+import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 
 import UserGroupsModal from './user_groups_modal';
-
-import type {Group, GroupSearachParams} from '@mattermost/types/groups';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
-import type {GlobalState} from 'types/store';
 
 type Actions = {
     getGroups: (

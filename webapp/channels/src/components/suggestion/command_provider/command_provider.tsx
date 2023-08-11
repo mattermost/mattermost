@@ -3,13 +3,17 @@
 
 import React from 'react';
 
+import type {Store} from 'redux';
+
 import {DockWindowIcon} from '@mattermost/compass-icons/components';
+import type {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integrations';
 
 import {Client4} from 'mattermost-redux/client';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 
 import globalStore from 'stores/redux_store';
 
+import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
@@ -17,13 +21,9 @@ import {AppCommandParser} from './app_command_parser/app_command_parser';
 import {intlShim} from './app_command_parser/app_command_parser_dependencies';
 
 import Provider from '../provider';
-import {SuggestionContainer} from '../suggestion';
-
 import type {ResultsCallback} from '../provider';
+import {SuggestionContainer} from '../suggestion';
 import type {SuggestionProps} from '../suggestion';
-import type {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integrations';
-import type {Store} from 'redux';
-import type {GlobalState} from 'types/store';
 
 const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;

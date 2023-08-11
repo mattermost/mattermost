@@ -3,8 +3,11 @@
 
 import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
+import type {Channel} from '@mattermost/types/channels';
 import {SyncableType} from '@mattermost/types/groups';
+import type {Group} from '@mattermost/types/groups';
 
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
 import ListModal, {DEFAULT_NUM_PER_PAGE} from 'components/list_modal';
@@ -13,13 +16,9 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import groupsAvatar from 'images/groups-avatar.png';
+import type {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {Group} from '@mattermost/types/groups';
-import type {IntlShape} from 'react-intl';
-import type {ModalData} from 'types/actions';
 
 type Props = {
     channel: Channel;

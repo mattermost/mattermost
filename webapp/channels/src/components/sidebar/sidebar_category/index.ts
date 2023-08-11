@@ -2,21 +2,23 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
 
 import {setCategoryCollapsed, setCategorySorting} from 'mattermost-redux/actions/channel_categories';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {getDraggingState, makeGetFilteredChannelIdsForCategory} from 'selectors/views/channel_sidebar';
 
-import SidebarCategory from './sidebar_category';
-
-import type {ChannelCategory} from '@mattermost/types/channel_categories';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import SidebarCategory from './sidebar_category';
 
 type OwnProps = {
     category: ChannelCategory;

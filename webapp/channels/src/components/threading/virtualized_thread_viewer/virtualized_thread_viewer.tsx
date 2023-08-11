@@ -1,9 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DynamicSizeList} from 'dynamic-virtualized-list';
 import React, {PureComponent} from 'react';
+import type {RefObject} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
+
+import {DynamicSizeList} from 'dynamic-virtualized-list';
+import type {OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {isDateLine, isStartOfNewMessages, isCreateComment} from 'mattermost-redux/utils/post_list';
 
@@ -11,6 +18,7 @@ import NewRepliesBanner from 'components/new_replies_banner';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import {THREADING_TIME as BASE_THREADING_TIME} from 'components/threading/common/options';
 
+import type {FakePost} from 'types/store/rhs';
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import {getNewMessageIndex, getPreviousPostId, getLatestPostId} from 'utils/post_utils';
@@ -18,13 +26,6 @@ import * as Utils from 'utils/utils';
 
 import CreateComment from './create_comment';
 import Row from './thread_viewer_row';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {Post} from '@mattermost/types/posts';
-import type {UserProfile} from '@mattermost/types/users';
-import type {OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
-import type {RefObject} from 'react';
-import type {FakePost} from 'types/store/rhs';
 
 type Props = {
     channel: Channel;

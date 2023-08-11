@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {GlobalState} from 'types/store';
 import {TestHelper} from 'utils/test_helper';
 
 import {makeGetMentionKeysForPost} from './index';
-
-import type {GlobalState} from 'types/store';
 
 describe('makeGetMentionKeysForPost', () => {
     const channel = TestHelper.getChannelMock({});

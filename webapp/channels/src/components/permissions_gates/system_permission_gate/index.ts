@@ -5,9 +5,9 @@ import {connect} from 'react-redux';
 
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
-import SystemPermissionGate from './system_permission_gate';
-
 import type {GlobalState} from 'types/store';
+
+import SystemPermissionGate from './system_permission_gate';
 
 type Props = {
     permissions: string[];

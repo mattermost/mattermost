@@ -5,14 +5,14 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {Audit} from '@mattermost/types/audits';
+import type {GlobalState} from '@mattermost/types/store';
+
 import {getCurrentUser, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import AuditRow from '../audit_row/audit_row';
 import holders from '../holders';
-
-import type {Audit} from '@mattermost/types/audits';
-import type {GlobalState} from '@mattermost/types/store';
 
 type Props = {
     audit: Audit;

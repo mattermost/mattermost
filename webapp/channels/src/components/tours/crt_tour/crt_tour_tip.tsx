@@ -4,7 +4,6 @@
 import React from 'react';
 
 import {ChannelsTourTip, TutorialTourName} from 'components/tours';
-
 import type {ChannelsTourTipProps} from 'components/tours';
 
 const CRTTourTip = (props: Omit<ChannelsTourTipProps, 'tourCategory'>) => {

@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ScopeTypes} from 'mattermost-redux/constants/schemes';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
-import {getTeams} from 'mattermost-redux/selectors/entities/teams';
-
 import type {Channel} from '@mattermost/types/channels';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {GlobalState} from '@mattermost/types/store';
 import type {Team} from '@mattermost/types/teams';
+
+import {ScopeTypes} from 'mattermost-redux/constants/schemes';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getTeams} from 'mattermost-redux/selectors/entities/teams';
 
 export function getSchemes(state: GlobalState): {
     [x: string]: Scheme;

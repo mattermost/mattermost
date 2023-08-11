@@ -2,10 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ChangeEvent, FormEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import type {Bot, BotPatch} from '@mattermost/types/bots';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {General} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
@@ -20,12 +26,6 @@ import {getHistory} from 'utils/browser_history';
 import {AcceptedProfileImageTypes, Constants, DeveloperLinks, ValidationErrors} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
 import * as Utils from 'utils/utils';
-
-import type {Bot, BotPatch} from '@mattermost/types/bots';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ChangeEvent, FormEvent} from 'react';
 
 const roleOptionSystemAdmin = 'System Admin';
 const roleOptionMember = 'Member';

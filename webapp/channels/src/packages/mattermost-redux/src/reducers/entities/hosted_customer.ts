@@ -3,13 +3,12 @@
 
 import {combineReducers} from 'redux';
 
-import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
-
-import {HostedCustomerTypes} from 'mattermost-redux/action_types';
-
 import type {Invoice, Product} from '@mattermost/types/cloud';
+import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
 import type {TrueUpReviewProfileReducer, TrueUpReviewStatusReducer} from '@mattermost/types/hosted_customer';
 import type {ValueOf} from '@mattermost/types/utilities';
+
+import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 interface SelfHostedProducts {

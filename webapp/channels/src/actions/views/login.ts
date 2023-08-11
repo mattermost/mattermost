@@ -3,12 +3,12 @@
 
 import {batchActions} from 'redux-batched-actions';
 
+import type {ServerError} from '@mattermost/types/errors';
+
 import {UserTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {Client4} from 'mattermost-redux/client';
-
-import type {ServerError} from '@mattermost/types/errors';
 import type {ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
 
 export function login(loginId: string, password: string, mfaToken = ''): ActionFunc {

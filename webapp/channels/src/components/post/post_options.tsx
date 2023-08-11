@@ -1,9 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classnames from 'classnames';
 import React, {useEffect, useRef, useState} from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import classnames from 'classnames';
+
+import type {Emoji} from '@mattermost/types/emojis';
+import type {Post} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants/index';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
@@ -15,13 +20,9 @@ import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
 import PostRecentReactions from 'components/post_view/post_recent_reactions';
 
+import type {PluginComponent} from 'types/store/plugins';
 import {Locations} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
-
-import type {Emoji} from '@mattermost/types/emojis';
-import type {Post} from '@mattermost/types/posts';
-import type {ReactNode} from 'react';
-import type {PluginComponent} from 'types/store/plugins';
 
 type Props = {
     post: Post;

@@ -4,10 +4,9 @@
 import {combineReducers} from 'redux';
 
 import {ChannelTypes, PostTypes, UserTypes, GeneralTypes} from 'mattermost-redux/action_types';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes, Constants} from 'utils/constants';
-
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function postVisibility(state: {[channelId: string]: number} = {}, action: GenericAction) {
     switch (action.type) {

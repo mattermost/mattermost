@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
-import EmojiPickerOverlay from './emoji_picker_overlay';
-
-import type {ConnectedProps} from 'react-redux';
 import type {GlobalState} from 'types/store';
+
+import EmojiPickerOverlay from './emoji_picker_overlay';
 
 function mapStateToProps(state: GlobalState) {
     return {

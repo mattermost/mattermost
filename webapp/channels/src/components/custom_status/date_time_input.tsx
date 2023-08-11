@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DateTime} from 'luxon';
-import moment from 'moment-timezone';
 import React, {useEffect, useState, useCallback, useRef} from 'react';
+import type {DayModifiers, DayPickerProps} from 'react-day-picker';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
+
+import {DateTime} from 'luxon';
+import type {Moment} from 'moment-timezone';
+import moment from 'moment-timezone';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
@@ -21,13 +24,10 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 import {localizeMessage} from 'utils/utils';
-
-import type {Moment} from 'moment-timezone';
-import type {DayModifiers, DayPickerProps} from 'react-day-picker';
-import type {A11yFocusEventDetail} from 'utils/constants';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 

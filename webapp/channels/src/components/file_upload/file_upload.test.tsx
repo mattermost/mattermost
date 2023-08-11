@@ -2,18 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MouseEvent, DragEvent, ChangeEvent} from 'react';
+
+import type {FileInfo} from '@mattermost/types/files';
 
 import {General} from 'mattermost-redux/constants';
 
 import FileUpload from 'components/file_upload/file_upload';
+import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {clearFileInput} from 'utils/utils';
-
-import type {FileInfo} from '@mattermost/types/files';
-import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
-import type {MouseEvent, DragEvent, ChangeEvent} from 'react';
 import type {FilesWillUploadHook} from 'types/store/plugins';
+import {clearFileInput} from 'utils/utils';
 
 const generatedIdRegex = /[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/;
 

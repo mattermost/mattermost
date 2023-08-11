@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {NavLink} from 'react-router-dom';
-
 import type {ReactNode} from 'react';
+import {NavLink} from 'react-router-dom';
 
 type Props = {
     name: string;

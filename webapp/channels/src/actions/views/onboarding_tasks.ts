@@ -3,19 +3,18 @@
 
 import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import InvitationModal from 'components/invitation_modal';
 
+import type {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, ModalIdentifiers} from 'utils/constants';
 
 import {openModal} from './modals';
-
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import type {GlobalState} from 'types/store';
 
 export function switchToChannels() {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {

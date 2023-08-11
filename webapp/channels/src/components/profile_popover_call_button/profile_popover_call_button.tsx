@@ -4,13 +4,13 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {useDispatch} from 'react-redux';
 
-import {createDirectChannel} from 'mattermost-redux/actions/channels';
-
-import {Constants} from 'utils/constants';
-
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+
+import {createDirectChannel} from 'mattermost-redux/actions/channels';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import type {PluginComponent} from 'types/store/plugins';
+import {Constants} from 'utils/constants';
 
 type Props = {
     channelMember?: ChannelMembership;

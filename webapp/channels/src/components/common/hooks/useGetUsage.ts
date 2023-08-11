@@ -4,6 +4,8 @@
 import {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {CloudUsage} from '@mattermost/types/cloud';
+
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getUsage} from 'mattermost-redux/selectors/entities/usage';
 
@@ -14,8 +16,6 @@ import {
 } from 'actions/cloud';
 
 import {useIsLoggedIn} from 'components/global_header/hooks';
-
-import type {CloudUsage} from '@mattermost/types/cloud';
 
 export default function useGetUsage(): CloudUsage {
     const usage = useSelector(getUsage);

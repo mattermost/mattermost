@@ -3,18 +3,18 @@
 
 import {connect} from 'react-redux';
 
+import type {UserTimezone} from '@mattermost/types/users';
+
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezoneFull, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
+import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
 
 import * as RelativeRanges from './relative_ranges';
 import Timestamp, {supportsHourCycle} from './timestamp';
-
 import type {Props as TimestampProps} from './timestamp';
-import type {UserTimezone} from '@mattermost/types/users';
-import type {GlobalState} from 'types/store';
 
 type Props = {
     userTimezone?: UserTimezone;

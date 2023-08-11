@@ -4,6 +4,10 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {ChannelMembership} from '@mattermost/types/channels';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
@@ -12,10 +16,6 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
-
-import type {ChannelMembership} from '@mattermost/types/channels';
-import type {TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
 
 export type BaseMembership = {
     user_id: string;

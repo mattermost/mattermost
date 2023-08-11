@@ -33,9 +33,7 @@ const CarouselButton = ({direction, moveSlide, disabled, btnsStyle = BtnStyle.BU
         moveSlide();
     };
 
-    const text = direction === Destination.NEXT ?
-        formatMessage({id: 'carousel.nextButton', defaultMessage: 'Next'}) :
-        formatMessage({id: 'carousel.PreviousButton', defaultMessage: 'Previous'});
+    const text = direction === Destination.NEXT ? formatMessage({id: 'carousel.nextButton', defaultMessage: 'Next'}) : formatMessage({id: 'carousel.PreviousButton', defaultMessage: 'Previous'});
 
     const disabledClass = disabled ? ' disabled' : '';
     const orientation = direction === Destination.NEXT ? 'right' : 'left';

@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FINISHED} from './constant';
-
 import type React from 'react';
+
+import {FINISHED} from './constant';
 
 export type ActionType = 'next' | 'prev' | 'dismiss' | 'jump' | 'skipped'
 

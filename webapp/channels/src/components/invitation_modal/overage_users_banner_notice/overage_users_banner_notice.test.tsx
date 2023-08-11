@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General} from 'mattermost-redux/constants';
 
@@ -14,14 +16,12 @@ import {
     renderWithIntlAndStore,
     screen,
 } from 'tests/react_testing_utils';
+import type {GlobalState} from 'types/store';
 import {LicenseLinks, OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
 import OverageUsersBannerNotice from './index';
-
-import type {DeepPartial} from '@mattermost/types/utilities';
-import type {GlobalState} from 'types/store';
 
 type RenderComponentArgs = {
     store?: any;

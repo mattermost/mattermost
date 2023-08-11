@@ -5,9 +5,9 @@ import {connect} from 'react-redux';
 
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
-import TeamPermissionGate from './team_permission_gate';
-
 import type {GlobalState} from 'types/store';
+
+import TeamPermissionGate from './team_permission_gate';
 
 type Props = {
     teamId: string;

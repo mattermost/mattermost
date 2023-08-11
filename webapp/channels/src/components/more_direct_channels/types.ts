@@ -3,6 +3,7 @@
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
+
 import type {Value} from 'components/multiselect/multiselect';
 
 // Not to be confused with the GroupChannel type used for LDAP groups

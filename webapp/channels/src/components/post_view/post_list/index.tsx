@@ -2,11 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {markChannelAsRead, markChannelAsViewed} from 'mattermost-redux/actions/channels';
 import {RequestStatus} from 'mattermost-redux/constants';
 import {getRecentPostsChunkInChannel, makeGetPostsChunkAroundPost, getUnreadPostsChunk, getPost, isPostsChunkIncludingUnreadsPosts, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
+import type {Action} from 'mattermost-redux/types/actions';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {makePreparePostIdsForPostList} from 'mattermost-redux/utils/post_list';
 
@@ -21,14 +24,11 @@ import {
 } from 'actions/views/channel';
 import {getIsMobileView} from 'selectors/views/browser';
 
+import type {GlobalState} from 'types/store';
 import {getLatestPostId} from 'utils/post_utils';
 
 import PostList from './post_list';
-
 import type {Props as PostListProps} from './post_list';
-import type {Action} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
-import type {GlobalState} from 'types/store';
 
 const isFirstLoad = (state: GlobalState, channelId: string) => !state.entities.posts.postsInChannel[channelId];
 const memoizedGetLatestPostId = memoizeResult((postIds: string[]) => getLatestPostId(postIds));

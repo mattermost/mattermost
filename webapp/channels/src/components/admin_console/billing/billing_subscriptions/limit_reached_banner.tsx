@@ -5,6 +5,8 @@ import React from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {Product} from '@mattermost/types/cloud';
+
 import {Preferences} from 'mattermost-redux/constants';
 import {getHasDismissedSystemConsoleLimitReached} from 'mattermost-redux/selectors/entities/preferences';
 
@@ -16,8 +18,6 @@ import {useSaveBool} from 'components/common/hooks/useSavePreferences';
 
 import {CloudProducts} from 'utils/constants';
 import {anyUsageDeltaExceededLimit} from 'utils/limits';
-
-import type {Product} from '@mattermost/types/cloud';
 
 import './limit_reached_banner.scss';
 

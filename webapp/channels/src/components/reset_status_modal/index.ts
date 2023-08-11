@@ -2,23 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store/index.js';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserStatus} from '@mattermost/types/users';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {setStatus} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions.js';
 
 import {autoResetStatus} from 'actions/user_actions';
 
 import ResetStatusModal from './reset_status_modal';
-
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserStatus} from '@mattermost/types/users';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions.js';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store/index.js';
 
 function mapStateToProps(state: GlobalState) {
     const {currentUserId} = state.entities.users;

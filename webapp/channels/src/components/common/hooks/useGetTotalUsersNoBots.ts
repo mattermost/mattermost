@@ -5,7 +5,6 @@ import {useEffect, useState} from 'react';
 import {useDispatch} from 'react-redux';
 
 import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
-
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 const useGetTotalUsersNoBots = (includeInactive = false): number => {

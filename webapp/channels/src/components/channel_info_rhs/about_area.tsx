@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+
 import styled from 'styled-components';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import Constants from 'utils/constants';
 
 import AboutAreaChannel from './about_area_channel';
 import AboutAreaDM from './about_area_dm';
 import AboutAreaGM from './about_area_gm';
-
 import type {DMUser} from './channel_info_rhs';
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
 
 const Container = styled.div`
     overflow-wrap: anywhere;

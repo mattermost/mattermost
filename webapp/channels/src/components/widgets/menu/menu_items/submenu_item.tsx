@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
+import type {CSSProperties} from 'react';
+
+import classNames from 'classnames';
 
 import {showMobileSubMenuModal} from 'actions/global_actions';
 
+import type {Menu} from 'types/store/plugins';
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
-
-import type {CSSProperties} from 'react';
-import type {Menu} from 'types/store/plugins';
 
 import './menu_item.scss';
 
@@ -184,9 +184,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                         const hasDivider = s.id === 'ChannelMenu-moveToDivider';
                         let aria = ariaLabel;
                         if (s.action) {
-                            aria = s.text === selectedValueText ?
-                                s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.selected', 'selected') :
-                                s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.notSelected', 'not selected');
+                            aria = s.text === selectedValueText ? s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.selected', 'selected') : s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.notSelected', 'not selected');
                         }
                         return (
                             <span

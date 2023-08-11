@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {getFilePublicLink} from 'mattermost-redux/actions/files';
 import * as Selectors from 'mattermost-redux/selectors/entities/files';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import GetPublicLinkModal from './get_public_link_modal';
-
-import type {GlobalState} from '@mattermost/types/store';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {ConnectedProps} from 'react-redux';
-import type {Dispatch} from 'redux';
 
 function mapStateToProps(state: GlobalState) {
     const filePublicLink: unknown = Selectors.getFilePublicLink(state)?.link;

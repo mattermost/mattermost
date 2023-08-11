@@ -91,9 +91,7 @@ const GroupRow = (props: Props) => {
             return (
                 <a href='#'>
                     <LoadingSpinner
-                        text={props.mattermost_group_id ?
-                            formatMessage({id: 'admin.group_settings.group_row.unlinking', defaultMessage: 'Unlinking'}) :
-                            formatMessage({id: 'admin.group_settings.group_row.linking', defaultMessage: 'Linking'})}
+                        text={props.mattermost_group_id ? formatMessage({id: 'admin.group_settings.group_row.unlinking', defaultMessage: 'Unlinking'}) : formatMessage({id: 'admin.group_settings.group_row.linking', defaultMessage: 'Linking'})}
                     />
                 </a>
             );

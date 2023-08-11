@@ -5,14 +5,15 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {Audit} from '@mattermost/types/audits';
+import type {Channel} from '@mattermost/types/channels';
+
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
+
+import type {GlobalState} from 'types/store';
 
 import AuditRow from '../audit_row/audit_row';
 import holders from '../holders';
-
-import type {Audit} from '@mattermost/types/audits';
-import type {Channel} from '@mattermost/types/channels';
-import type {GlobalState} from 'types/store';
 
 type Props = {
     audit: Audit;

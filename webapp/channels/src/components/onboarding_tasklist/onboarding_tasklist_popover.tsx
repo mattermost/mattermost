@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {RefObject} from 'react';
 import {usePopper} from 'react-popper';
 import {CSSTransition} from 'react-transition-group';
-import styled from 'styled-components';
 
 import type {Placement} from 'popper.js';
-import type {RefObject} from 'react';
+import styled from 'styled-components';
 
 const Overlay = styled.div`
     background-color: rgba(0, 0, 0, 0.5);

@@ -4,6 +4,9 @@
 import {uniq} from 'lodash';
 import {batchActions} from 'redux-batched-actions';
 
+import type {Post} from '@mattermost/types/posts';
+import type {UserThread, UserThreadList} from '@mattermost/types/threads';
+
 import {ThreadTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
 import {getMissingFilesByPosts} from 'mattermost-redux/actions/files';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
@@ -15,14 +18,11 @@ import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/pre
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThread as getThreadSelector, getThreadItemsInChannel} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {forceLogoutIfNecessary} from './helpers';
 import {getPostThread} from './posts';
-
-import type {Post} from '@mattermost/types/posts';
-import type {UserThread, UserThreadList} from '@mattermost/types/threads';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 type ExtendedPost = Post & { system_post_ids?: string[] };
 

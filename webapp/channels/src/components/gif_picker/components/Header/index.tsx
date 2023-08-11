@@ -6,15 +6,15 @@ import {connect} from 'react-redux';
 
 import {saveSearchBarText, searchTextUpdate} from 'mattermost-redux/actions/gifs';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity, makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
 
 import SearchBar from 'components/gif_picker/components/SearchBar';
+import type {appProps} from 'components/gif_picker/gif_picker';
 import constants from 'components/gif_picker/utils/constants';
 import GifReactionsIcon from 'components/widgets/icons/gif_reactions_icon';
 import GifTrendingIcon from 'components/widgets/icons/gif_trending_icon';
 
-import type {appProps} from 'components/gif_picker/gif_picker';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import type {GlobalState} from 'types/store';
 
 import './Header.scss';

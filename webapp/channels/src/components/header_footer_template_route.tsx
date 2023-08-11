@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Route} from 'react-router-dom';
-
 import type {ComponentType} from 'react';
+import {Route} from 'react-router-dom';
 import type {RouteProps} from 'react-router-dom';
 
 const HeaderFooterTemplate = React.lazy(() => import('components/header_footer_template'));

@@ -4,14 +4,14 @@
 import remove from 'lodash/remove';
 import {combineReducers} from 'redux';
 
-import {UserTypes} from 'mattermost-redux/action_types';
-
-import {ActionTypes} from 'utils/constants';
-
 import type {ClientPluginManifest} from '@mattermost/types/plugins';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
+
+import {UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
+
 import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
+import {ActionTypes} from 'utils/constants';
 
 function hasMenuId(menu: Menu|PluginComponent, menuId: string) {
     if (!menu.subMenu) {

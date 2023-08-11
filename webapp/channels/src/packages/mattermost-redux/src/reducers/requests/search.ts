@@ -3,12 +3,12 @@
 
 import {combineReducers} from 'redux';
 
+import type {SearchRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+
 import {SearchTypes} from 'mattermost-redux/action_types';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {handleRequest, initialRequestState} from './helpers';
-
-import type {SearchRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function flaggedPosts(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
     if (action.type === SearchTypes.REMOVE_SEARCH_POSTS) {

@@ -7,9 +7,9 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getVisibleDmGmLimit} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import LimitVisibleGMsDMs from './limit_visible_gms_dms';
-
 import type {GlobalState} from 'types/store';
+
+import LimitVisibleGMsDMs from './limit_visible_gms_dms';
 
 function mapStateToProps(state: GlobalState) {
     return {

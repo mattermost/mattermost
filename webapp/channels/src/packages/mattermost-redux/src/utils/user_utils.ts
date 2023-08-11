@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {localizeMessage} from 'mattermost-redux/utils/i18n_utils';
-
-import {General, Preferences} from '../constants';
-
 import type {ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
+
+import {localizeMessage} from 'mattermost-redux/utils/i18n_utils';
+
+import {General, Preferences} from '../constants';
 
 export function getFullName(user: UserProfile): string {
     if (user.first_name && user.last_name) {

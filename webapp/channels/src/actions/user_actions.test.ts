@@ -1,6 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel, ChannelMembership, ChannelMessageCount} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {Preferences, General} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
@@ -10,11 +15,6 @@ import store from 'stores/redux_store';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import mockStore from 'tests/test_store';
-
-import type {Channel, ChannelMembership, ChannelMessageCount} from '@mattermost/types/channels';
-import type {Post} from '@mattermost/types/posts';
-import type {Team, TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
 import type {GlobalState} from 'types/store';
 
 jest.mock('mattermost-redux/actions/users', () => {

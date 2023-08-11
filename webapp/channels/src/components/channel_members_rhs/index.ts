@@ -2,7 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {AnyAction, Dispatch} from 'redux';
+
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {loadMyChannelMemberAndRole} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
@@ -30,16 +36,11 @@ import {closeRightHandSide, goBack, setEditChannelMembers} from 'actions/views/r
 import {setChannelMembersRhsSearchTerm} from 'actions/views/search';
 import {getIsEditingMembers, getPreviousRhsState} from 'selectors/rhs';
 
+import type {GlobalState} from 'types/store';
 import {Constants, RHSStates} from 'utils/constants';
 
 import RHS from './channel_members_rhs';
-
 import type {Props, ChannelMember} from './channel_members_rhs';
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
-import type {AnyAction, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 const buildProfileList = (
     profilesInCurrentChannel: UserProfile[],

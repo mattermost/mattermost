@@ -2,6 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode} from 'react';
+
+import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
@@ -11,9 +14,6 @@ import Constants, {FileTypes} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import FileProgressPreview from './file_progress_preview';
-
-import type {FileInfo} from '@mattermost/types/files';
-import type {ReactNode} from 'react';
 
 type UploadInfo = {
     name: string;

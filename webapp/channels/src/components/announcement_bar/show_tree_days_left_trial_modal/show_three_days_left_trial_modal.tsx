@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import moment from 'moment';
 import {useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
+
+import moment from 'moment';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
@@ -11,6 +12,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal, closeModal} from 'actions/views/modals';
@@ -20,15 +22,13 @@ import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
 import ThreeDaysLeftTrialModal from 'components/three_days_left_trial_modal/three_days_left_trial_modal';
 
+import type {GlobalState} from 'types/store';
 import {
     Preferences,
     TELEMETRY_CATEGORIES,
     ModalIdentifiers,
     CloudBanners,
 } from 'utils/constants';
-
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-import type {GlobalState} from 'types/store';
 
 const ShowThreeDaysLeftTrialModal = () => {
     const license = useSelector(getLicense);

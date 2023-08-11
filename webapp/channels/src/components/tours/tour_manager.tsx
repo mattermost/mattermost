@@ -2,7 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {useCallback, useEffect, useState} from 'react';
+import type React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {savePreferences as storeSavePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
@@ -20,6 +23,9 @@ import {
     useGetTourSteps,
     useHandleNavigationAndExtraActions,
 } from 'components/tours';
+import type {
+    ActionType,
+    ChannelsTourTipManager} from 'components/tours';
 
 import {
     AutoTourStatus,
@@ -28,12 +34,6 @@ import {
     SKIPPED,
     TTNameMapToATStatusKey,
 } from './constant';
-
-import type {GlobalState} from '@mattermost/types/store';
-import type {
-    ActionType,
-    ChannelsTourTipManager} from 'components/tours';
-import type React from 'react';
 
 export const useTourTipManager = (tourCategory: string): ChannelsTourTipManager => {
     const [show, setShow] = useState(false);

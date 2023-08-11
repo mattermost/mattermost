@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ComponentProps} from 'react';
 import {connect} from 'react-redux';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
@@ -24,14 +25,12 @@ import {
 import {getIsRhsExpanded} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
+import type {GlobalState} from 'types/store';
 import {CrtThreadPaneSteps, Preferences} from 'utils/constants';
 import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
 import {allAtMentions} from 'utils/text_formatting';
 
 import RhsHeaderPost from './rhs_header_post';
-
-import type {ComponentProps} from 'react';
-import type {GlobalState} from 'types/store';
 
 type OwnProps = Pick<ComponentProps<typeof RhsHeaderPost>, 'rootPostId'>
 

@@ -6,18 +6,18 @@ import {
     applyMiddleware,
     legacy_createStore,
 } from 'redux';
+import type {
+    Reducer,
+    Store} from 'redux';
 import thunk from 'redux-thunk';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {createReducer} from './helpers';
 import initialState from './initial_state';
 import reducerRegistry from './reducer_registry';
 
 import serviceReducers from '../reducers';
-
-import type {GlobalState} from '@mattermost/types/store';
-import type {
-    Reducer,
-    Store} from 'redux';
 
 /**
  * Configures and constructs the redux store. Accepts the following parameters:

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import * as Selectors from 'mattermost-redux/selectors/entities/i18n';
 
 import TestHelper from '../../../test/test_helper';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 describe('Selectors.I18n', () => {
     describe('getCurrentUserLocale', () => {

@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ComponentProps} from 'react';
 
 import {render, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import PostProfilePicture from './post_profile_picture';
-
-import type {ComponentProps} from 'react';
 
 type Props = ComponentProps<typeof PostProfilePicture>;
 

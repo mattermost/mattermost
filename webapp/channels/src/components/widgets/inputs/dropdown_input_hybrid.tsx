@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useState, useEffect, useRef} from 'react';
-import ReactSelect, {components} from 'react-select';
-
 import type {CSSProperties} from 'react';
+import ReactSelect, {components} from 'react-select';
 import type {Props as SelectProps, IndicatorContainerProps, ControlProps, OptionProps} from 'react-select';
+
+import classNames from 'classnames';
 
 import 'components/widgets/inputs/input/input.scss';
 import './dropdown_input_hybrid.scss';
@@ -127,15 +127,13 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
     }, [focused, inputFocused]);
 
     const getMenuStyles = () =>
-        (showInput ?
-            {
-                menu: (provided: CSSProperties) => ({
-                    ...provided,
-                    width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '0px',
-                    left: inputRef.current ? `-${inputRef.current.offsetWidth}px` : '0px',
-                }),
-            } :
-            {});
+        (showInput ? {
+            menu: (provided: CSSProperties) => ({
+                ...provided,
+                width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '0px',
+                left: inputRef.current ? `-${inputRef.current.offsetWidth}px` : '0px',
+            }),
+        } : {});
 
     const onInputBlur = () => setInputFocused(false);
 

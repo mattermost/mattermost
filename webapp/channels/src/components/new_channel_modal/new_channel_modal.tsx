@@ -1,14 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import crypto from 'crypto';
 import React, {useState} from 'react';
 import {Tooltip} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import classNames from 'classnames';
+import crypto from 'crypto';
+
 import {GenericModal} from '@mattermost/components';
+import type {Board} from '@mattermost/types/boards';
+import type {ChannelType, Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
 
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {createChannel} from 'mattermost-redux/actions/channels';
@@ -17,6 +21,7 @@ import Preferences from 'mattermost-redux/constants/preferences';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {switchToChannel} from 'actions/views/channel';
 import {closeModal} from 'actions/views/modals';
@@ -27,15 +32,10 @@ import URLInput from 'components/widgets/inputs/url_input/url_input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 
 import Pluggable from 'plugins/pluggable';
+import type {GlobalState} from 'types/store';
 import Constants, {ItemStatus, ModalIdentifiers} from 'utils/constants';
 import {cleanUpUrlable, validateChannelUrl, getSiteURL} from 'utils/url';
 import {localizeMessage} from 'utils/utils';
-
-import type {Board} from '@mattermost/types/boards';
-import type {ChannelType, Channel} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-import type {GlobalState} from 'types/store';
 
 import './new_channel_modal.scss';
 

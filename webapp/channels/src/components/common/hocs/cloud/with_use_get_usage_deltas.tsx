@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ComponentType} from 'react';
 
 import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
-
-import type {ComponentType} from 'react';
 
 function withUseGetUsageDelta<T>(WrappedComponent: ComponentType<T>) {
     return (props: T) => {

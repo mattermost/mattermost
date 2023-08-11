@@ -3,13 +3,12 @@
 
 import React from 'react';
 import {OverlayTrigger as OriginalOverlayTrigger} from 'react-bootstrap'; // eslint-disable-line no-restricted-imports
+import type {OverlayTriggerProps} from 'react-bootstrap';
 import {IntlContext} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 import {Provider} from 'react-redux';
 
 import store from 'stores/redux_store.jsx';
-
-import type {OverlayTriggerProps} from 'react-bootstrap';
-import type {IntlShape} from 'react-intl';
 
 export type BaseOverlayTrigger = OriginalOverlayTrigger & {
     hide: () => void;

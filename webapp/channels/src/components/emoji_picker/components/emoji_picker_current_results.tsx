@@ -1,20 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import throttle from 'lodash/throttle';
 import React, {forwardRef, memo, useCallback} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {FixedSizeList} from 'react-window';
+import type {ListItemKeySelector, ListOnScrollProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
-import EmojiPickerCategoryOrEmojiRow from 'components/emoji_picker/components/emoji_picker_category_or_emoji_row';
-import {ITEM_HEIGHT, EMOJI_ROWS_OVERSCAN_COUNT, EMOJI_CONTAINER_HEIGHT, CUSTOM_EMOJIS_PER_PAGE, EMOJI_SCROLL_THROTTLE_DELAY} from 'components/emoji_picker/constants';
-import {isCategoryHeaderRow} from 'components/emoji_picker/utils';
+import throttle from 'lodash/throttle';
 
 import type {Emoji, EmojiCategory, CustomEmoji, SystemEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
+
+import EmojiPickerCategoryOrEmojiRow from 'components/emoji_picker/components/emoji_picker_category_or_emoji_row';
+import {ITEM_HEIGHT, EMOJI_ROWS_OVERSCAN_COUNT, EMOJI_CONTAINER_HEIGHT, CUSTOM_EMOJIS_PER_PAGE, EMOJI_SCROLL_THROTTLE_DELAY} from 'components/emoji_picker/constants';
 import type {CategoryOrEmojiRow, EmojiCursor} from 'components/emoji_picker/types';
-import type {ListItemKeySelector, ListOnScrollProps} from 'react-window';
+import {isCategoryHeaderRow} from 'components/emoji_picker/utils';
 
 interface Props {
     categoryOrEmojisRows: CategoryOrEmojiRow[];

@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import isEmpty from 'lodash/isEmpty';
-import moment from 'moment';
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+
+import isEmpty from 'lodash/isEmpty';
+import moment from 'moment';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
@@ -17,8 +20,6 @@ import UpgradeLink from 'components/widgets/links/upgrade_link';
 
 import {CloudBanners, Preferences} from 'utils/constants';
 import {getBrowserTimezone} from 'utils/timezone';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 import './cloud_trial_banner.scss';
 

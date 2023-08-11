@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
+import type {ShallowWrapper} from 'enzyme';
+
+import type {ChannelType} from '@mattermost/types/channels';
 
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import FileSearchResultItem from './file_search_result_item';
-
-import type {ChannelType} from '@mattermost/types/channels';
-import type {ShallowWrapper} from 'enzyme';
 
 describe('components/file_search_result/FileSearchResultItem', () => {
     const baseProps = {

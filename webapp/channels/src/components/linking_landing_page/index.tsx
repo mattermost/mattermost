@@ -7,9 +7,9 @@ import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
-import LinkingLandingPage from './linking_landing_page';
-
 import type {GlobalState} from 'types/store';
+
+import LinkingLandingPage from './linking_landing_page';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

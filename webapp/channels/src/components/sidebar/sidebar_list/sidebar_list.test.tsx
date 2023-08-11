@@ -1,10 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import type {MovementMode, DropResult} from 'react-beautiful-dnd';
+
+import {shallow} from 'enzyme';
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {ChannelType} from '@mattermost/types/channels';
+import type {TeamType} from '@mattermost/types/teams';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
@@ -12,10 +16,6 @@ import {DraggingStates, DraggingStateTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import SidebarList from './sidebar_list';
-
-import type {ChannelType} from '@mattermost/types/channels';
-import type {TeamType} from '@mattermost/types/teams';
-import type {MovementMode, DropResult} from 'react-beautiful-dnd';
 
 describe('SidebarList', () => {
     const currentChannel = TestHelper.getChannelMock({

@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, mount} from 'enzyme';
 import React from 'react';
+
+import {shallow, mount} from 'enzyme';
 
 import LoginMfa from 'components/login/login_mfa';
 import SaveButton from 'components/save_button';

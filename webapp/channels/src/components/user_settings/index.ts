@@ -3,11 +3,11 @@
 
 import {connect} from 'react-redux';
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import UserSettings from './user_settings';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 function mapStateToProps(state: GlobalState) {
     return {

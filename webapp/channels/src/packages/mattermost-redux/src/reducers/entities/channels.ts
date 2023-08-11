@@ -4,13 +4,6 @@
 import {isEqual} from 'lodash';
 import {combineReducers} from 'redux';
 
-import {AdminTypes, ChannelTypes, UserTypes, SchemeTypes, GroupTypes, PostTypes} from 'mattermost-redux/action_types';
-import {General} from 'mattermost-redux/constants';
-import {MarkUnread} from 'mattermost-redux/constants/channels';
-import {channelListToMap, splitRoles} from 'mattermost-redux/utils/channel_utils';
-
-import messageCounts from './channels/message_counts';
-
 import type {
     Channel,
     ChannelMembership,
@@ -26,7 +19,14 @@ import type {
     RelationOneToOne,
     IDMappedObjects,
 } from '@mattermost/types/utilities';
+
+import {AdminTypes, ChannelTypes, UserTypes, SchemeTypes, GroupTypes, PostTypes} from 'mattermost-redux/action_types';
+import {General} from 'mattermost-redux/constants';
+import {MarkUnread} from 'mattermost-redux/constants/channels';
 import type {GenericAction} from 'mattermost-redux/types/actions';
+import {channelListToMap, splitRoles} from 'mattermost-redux/utils/channel_utils';
+
+import messageCounts from './channels/message_counts';
 
 function removeMemberFromChannels(state: RelationOneToOne<Channel, Record<string, ChannelMembership>>, action: GenericAction) {
     const nextState = {...state};

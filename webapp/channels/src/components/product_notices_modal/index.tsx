@@ -2,22 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {ClientConfig} from '@mattermost/types/config';
+import type {ProductNotices} from '@mattermost/types/product_notices';
 
 import {getInProductNotices, updateNoticesAsViewed} from 'mattermost-redux/actions/teams';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {getSocketStatus} from 'selectors/views/websocket';
 
-import ProductNoticesModal from './product_notices_modal';
-
-import type {ClientConfig} from '@mattermost/types/config';
-import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-import type {ConnectedProps} from 'react-redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import ProductNoticesModal from './product_notices_modal';
 
 type Actions = {
     getInProductNotices: (teamId: string, client: string, clientVersion: string) => Promise<{

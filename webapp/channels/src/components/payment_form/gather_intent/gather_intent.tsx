@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {JSXElementConstructor} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {TypePurchases} from '@mattermost/types/cloud';
+
+import type {GatherIntentModalProps} from './gather_intent_modal';
 import {GatherIntentSubmittedModal} from './gather_intent_submitted_modal';
 import {useGatherIntent} from './useGatherIntent';
 
-import type {GatherIntentModalProps} from './gather_intent_modal';
-import type {TypePurchases} from '@mattermost/types/cloud';
-import type {JSXElementConstructor} from 'react';
 import './gather_intent.scss';
 
 interface GatherIntentProps {

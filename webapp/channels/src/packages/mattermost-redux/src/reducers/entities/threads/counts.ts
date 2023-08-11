@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelTypes, TeamTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
-import {General} from 'mattermost-redux/constants';
-
-import type {ExtraData} from './types';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team, TeamUnread} from '@mattermost/types/teams';
 import type {ThreadsState, UserThread} from '@mattermost/types/threads';
+
+import {ChannelTypes, TeamTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
+import {General} from 'mattermost-redux/constants';
 import type {GenericAction} from 'mattermost-redux/types/actions';
+
+import type {ExtraData} from './types';
 
 function isDmGmChannel(channelType: Channel['type']) {
     return channelType === General.DM_CHANNEL || channelType === General.GM_CHANNEL;

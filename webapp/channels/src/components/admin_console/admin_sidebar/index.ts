@@ -2,28 +2,29 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {PluginsResponse} from '@mattermost/types/plugins';
 
 import {getPlugins} from 'mattermost-redux/actions/admin';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {getAdminDefinition, getConsoleAccess} from 'selectors/admin_console';
 import {getNavigationBlocked} from 'selectors/views/admin';
 
 import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
 
+import type {GlobalState} from 'types/store';
 import {isMobile} from 'utils/utils';
 
 import AdminSidebar from './admin_sidebar';
-
-import type {PluginsResponse} from '@mattermost/types/plugins';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-import type {ConnectedProps} from 'react-redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const license = getLicense(state);

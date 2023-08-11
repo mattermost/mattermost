@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
+
 import {Permissions} from 'mattermost-redux/constants';
 
-import {mapStateToProps} from './index';
-
-import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from 'types/store';
+
+import {mapStateToProps} from './index';
 
 describe('mapStateToProps', () => {
     const currentTeamId = 'team-id';

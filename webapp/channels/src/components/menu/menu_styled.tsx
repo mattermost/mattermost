@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import MuiMenu from '@mui/material/Menu';
-import {styled} from '@mui/material/styles';
-
 import type {MenuProps as MuiMenuProps} from '@mui/material/Menu';
+import {styled} from '@mui/material/styles';
 
 interface Props extends MuiMenuProps {
     asSubMenu?: boolean;

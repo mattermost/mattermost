@@ -9,7 +9,6 @@ import mockStore from 'tests/test_store';
 import {LicenseSkus} from 'utils/constants';
 
 import EnterpriseEditionRightPanel from './enterprise_edition_right_panel';
-
 import type {EnterpriseEditionProps} from './enterprise_edition_right_panel';
 
 const initialState = {

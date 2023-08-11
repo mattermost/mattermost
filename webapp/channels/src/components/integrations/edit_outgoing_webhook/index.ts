@@ -2,18 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
-
-import {getOutgoingHook, updateOutgoingHook} from 'mattermost-redux/actions/integrations';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-import EditOutgoingWebhook from './edit_outgoing_webhook';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
 import type {GlobalState} from '@mattermost/types/store';
+
+import {getOutgoingHook, updateOutgoingHook} from 'mattermost-redux/actions/integrations';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import EditOutgoingWebhook from './edit_outgoing_webhook';
 
 type OwnProps = {
     location: {

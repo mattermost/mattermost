@@ -2,22 +2,23 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {addUsersToGroup, archiveGroup, removeUsersFromGroup} from 'mattermost-redux/actions/groups';
 import {Permissions} from 'mattermost-redux/constants';
 import {getGroup as getGroupById, isMyGroup} from 'mattermost-redux/selectors/entities/groups';
 import {haveIGroupPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
-import ViewUserGroupModalHeader from './view_user_group_modal_header';
-
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
+
+import ViewUserGroupModalHeader from './view_user_group_modal_header';
 
 type Actions = {
     openModal: <P>(modalData: ModalData<P>) => void;

@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {CollapsedThreads} from '@mattermost/types/config';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -9,9 +11,6 @@ import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selec
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
-
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {GlobalState} from '@mattermost/types/store';
 
 export function getMyPreferences(state: GlobalState): { [x: string]: PreferenceType } {
     return state.entities.preferences.myPreferences;

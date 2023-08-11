@@ -3,27 +3,27 @@
 
 import {batchActions} from 'redux-batched-actions';
 
+import type {Draft as ServerDraft} from '@mattermost/types/drafts';
+import type {FileInfo} from '@mattermost/types/files';
+import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Client4} from 'mattermost-redux/client';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {setGlobalItem} from 'actions/storage';
 import {makeGetDrafts} from 'selectors/drafts';
 import {getConnectionId} from 'selectors/general';
 import {getGlobalItem} from 'selectors/storage';
 
-import {ActionTypes, StoragePrefixes} from 'utils/constants';
-
-import type {Draft as ServerDraft} from '@mattermost/types/drafts';
-import type {FileInfo} from '@mattermost/types/files';
-import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+import {ActionTypes, StoragePrefixes} from 'utils/constants';
 
 type Draft = {
     key: keyof GlobalState['storage']['storage'];

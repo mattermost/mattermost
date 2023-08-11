@@ -14,12 +14,11 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {getEmojiMap} from 'selectors/emojis';
 
+import type {GlobalState} from 'types/store';
+import type {ChannelNamesMap, MentionKey} from 'utils/text_formatting';
 import {getSiteURL} from 'utils/url';
 
 import Markdown from './markdown';
-
-import type {GlobalState} from 'types/store';
-import type {ChannelNamesMap, MentionKey} from 'utils/text_formatting';
 
 type Props = {
     channelNamesMap?: ChannelNamesMap;

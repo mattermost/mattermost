@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import moment from 'moment';
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+
+import moment from 'moment';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {checkHadPriorTrial, isCurrentLicenseCloud, getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
@@ -18,8 +21,6 @@ import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
 import {CloudProducts, LicenseSkus} from 'utils/constants';
 import {getBrowserTimezone} from 'utils/timezone';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 function ADLDAPUpsellBanner() {
     const [show, setShow] = useState(true);

@@ -5,13 +5,13 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import CopyText from 'components/copy_text';
-
-import DeleteIntegrationLink from './delete_integration_link';
-
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
+
+import CopyText from 'components/copy_text';
+
+import DeleteIntegrationLink from './delete_integration_link';
 
 type Props = {
 

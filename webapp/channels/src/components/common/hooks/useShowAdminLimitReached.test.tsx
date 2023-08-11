@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactPortal} from 'react';
 import {Provider} from 'react-redux';
 
 import * as useGetLimitsHook from 'components/common/hooks/useGetLimits';
@@ -14,8 +15,6 @@ import {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import useShowAdminLimitReached from './useShowAdminLimitReached';
-
-import type {ReactPortal} from 'react';
 
 function TestComponent() {
     useShowAdminLimitReached();

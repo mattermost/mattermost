@@ -3,13 +3,14 @@
 
 import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
-
-import FormatAudit from './format_audit';
+import type {IntlShape} from 'react-intl';
 
 import type {Audit} from '@mattermost/types/audits';
 import type {UserProfile} from '@mattermost/types/users';
+
 import type {ActionFunc} from 'mattermost-redux/types/actions';
-import type {IntlShape} from 'react-intl';
+
+import FormatAudit from './format_audit';
 
 type Props = {
     intl: IntlShape;

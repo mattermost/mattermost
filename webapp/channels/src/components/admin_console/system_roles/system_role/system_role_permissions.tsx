@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {Role} from '@mattermost/types/roles';
+
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
@@ -12,9 +14,7 @@ import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import SystemRolePermission from './system_role_permission';
-
 import type {PermissionsToUpdate, PermissionToUpdate, SystemSection} from './types';
-import type {Role} from '@mattermost/types/roles';
 
 import './system_role_permissions.scss';
 

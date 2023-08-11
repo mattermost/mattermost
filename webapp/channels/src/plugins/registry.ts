@@ -4,6 +4,12 @@
 import React from 'react';
 import {isValidElementType} from 'react-is';
 
+import type {Reducer} from 'redux';
+
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {FileInfo} from '@mattermost/types/files';
+import type {ProductScope} from '@mattermost/types/products';
+
 import reducerRegistry from 'mattermost-redux/store/reducer_registry';
 
 import {
@@ -15,6 +21,8 @@ import {showRHSPlugin, hideRHSPlugin, toggleRHSPlugin} from 'actions/views/rhs';
 import {
     registerPluginTranslationsSource,
 } from 'actions/views/root';
+import type {
+    TranslationPluginFunction} from 'actions/views/root';
 import {
     registerPluginWebSocketEvent,
     unregisterPluginWebSocketEvent,
@@ -23,18 +31,11 @@ import {
 } from 'actions/websocket_actions.jsx';
 import store from 'stores/redux_store.jsx';
 
+import type {GlobalState} from 'types/store';
+import type {PluginComponent, PluginsState, ProductComponent, NeedsTeamComponent} from 'types/store/plugins';
 import {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
 import {generateId} from 'utils/utils';
-
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {FileInfo} from '@mattermost/types/files';
-import type {ProductScope} from '@mattermost/types/products';
-import type {
-    TranslationPluginFunction} from 'actions/views/root';
-import type {Reducer} from 'redux';
-import type {GlobalState} from 'types/store';
-import type {PluginComponent, PluginsState, ProductComponent, NeedsTeamComponent} from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
 

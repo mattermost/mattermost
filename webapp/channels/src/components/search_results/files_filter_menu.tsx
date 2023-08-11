@@ -8,11 +8,10 @@ import {FilterVariantIcon} from '@mattermost/compass-icons/components';
 
 import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
 import OverlayTrigger from 'components/overlay_trigger';
+import type {SearchFilterType} from 'components/search/types';
 import Tooltip from 'components/tooltip';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-
-import type {SearchFilterType} from 'components/search/types';
 
 import './files_filter_menu.scss';
 

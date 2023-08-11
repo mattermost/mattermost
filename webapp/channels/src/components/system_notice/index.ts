@@ -2,7 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -17,11 +21,8 @@ import {dismissNotice} from 'actions/views/notice';
 import Notices from 'components/system_notice/notices';
 import SystemNotice from 'components/system_notice/system_notice';
 
-import {Preferences} from 'utils/constants';
-
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+import {Preferences} from 'utils/constants';
 
 function makeMapStateToProps() {
     const getCategory = makeGetCategory();

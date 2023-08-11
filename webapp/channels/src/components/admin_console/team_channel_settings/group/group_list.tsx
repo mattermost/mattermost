@@ -4,13 +4,13 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import AbstractList from 'components/admin_console/team_channel_settings/abstract_list';
-
-import GroupRow from './group_row';
-
 import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
+
+import AbstractList from 'components/admin_console/team_channel_settings/abstract_list';
+
+import GroupRow from './group_row';
 
 const Header = () => {
     return (

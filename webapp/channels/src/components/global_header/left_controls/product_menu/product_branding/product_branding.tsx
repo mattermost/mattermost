@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+
 import styled from 'styled-components';
 
 import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports

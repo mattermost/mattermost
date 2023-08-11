@@ -3,13 +3,14 @@
 
 import React from 'react';
 
-import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
-
-import {useDelinquencyModalController} from './useDelinquencyModalController';
-
 import type {Subscription} from '@mattermost/types/cloud';
 import type {PreferenceType} from '@mattermost/types/preferences';
+
+import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
+
 import type {ModalData} from 'types/actions';
+
+import {useDelinquencyModalController} from './useDelinquencyModalController';
 
 interface DelinquencyModalControllerProps {
     userIsAdmin: boolean;

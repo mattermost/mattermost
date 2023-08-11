@@ -5,17 +5,18 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {Group} from '@mattermost/types/groups';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import AddUsersToGroupModal from 'components/add_users_to_group_modal';
 import LocalizedIcon from 'components/localized_icon';
 
+import type {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import ViewUserGroupHeaderSubMenu from '../view_user_group_header_sub_menu';
-
-import type {Group} from '@mattermost/types/groups';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ModalData} from 'types/actions';
 
 export type Props = {
     groupId: string;

@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
+import type {ComponentType} from 'react';
+
+import {mount} from 'enzyme';
 
 import withUseGetUsageDeltas from './with_use_get_usage_deltas';
-
-import type {ComponentType} from 'react';
 
 jest.mock('components/common/hooks/useGetUsageDeltas', () => jest.fn(() => ({
     teams: {

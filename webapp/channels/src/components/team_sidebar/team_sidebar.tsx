@@ -1,11 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
+import type {DroppableProvided, DropResult} from 'react-beautiful-dnd';
 import Scrollbars from 'react-custom-scrollbars';
 import {FormattedMessage} from 'react-intl';
+import type {RouteComponentProps} from 'react-router-dom';
+
+import classNames from 'classnames';
+
+import type {Team} from '@mattermost/types/teams';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
@@ -20,9 +25,6 @@ import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 import * as Utils from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
-import type {Team} from '@mattermost/types/teams';
-import type {DroppableProvided, DropResult} from 'react-beautiful-dnd';
-import type {RouteComponentProps} from 'react-router-dom';
 
 export interface Props extends PropsFromRedux {
     location: RouteComponentProps['location'];

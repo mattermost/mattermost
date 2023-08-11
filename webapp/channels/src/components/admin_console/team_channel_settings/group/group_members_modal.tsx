@@ -5,9 +5,9 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import MemberListGroup from 'components/admin_console/member_list_group';
-
 import type {Group} from '@mattermost/types/groups';
+
+import MemberListGroup from 'components/admin_console/member_list_group';
 
 type Props = {
     group: Group;

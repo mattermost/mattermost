@@ -8,9 +8,8 @@ import Popover from 'components/widgets/popover';
 
 import Constants from 'utils/constants';
 
-import SuggestionList from './suggestion_list';
-
 import type {UserProfile} from './command_provider/app_command_parser/app_command_parser_dependencies';
+import SuggestionList from './suggestion_list';
 
 interface Item extends UserProfile {
     type: string;

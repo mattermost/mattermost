@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {Draggable} from 'react-beautiful-dnd';
 import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 import {Link} from 'react-router-dom';
+
+import classNames from 'classnames';
 
 import {mark, trackEvent} from 'actions/telemetry_actions.jsx';
 
@@ -20,8 +22,6 @@ import TeamIcon from 'components/widgets/team_icon/team_icon';
 import Constants from 'utils/constants';
 import {isDesktopApp} from 'utils/user_agent';
 import {localizeMessage} from 'utils/utils';
-
-import type {IntlShape} from 'react-intl';
 
 interface Props {
     btnClass?: string;

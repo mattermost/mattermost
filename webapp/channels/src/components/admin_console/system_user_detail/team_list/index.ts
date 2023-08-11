@@ -2,7 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Team, TeamMembership} from '@mattermost/types/teams';
 
 import {
     getTeamsForUser,
@@ -10,15 +14,13 @@ import {
     removeUserFromTeam,
     updateTeamMemberSchemeRoles,
 } from 'mattermost-redux/actions/teams';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {getCurrentLocale} from 'selectors/i18n';
 
-import TeamList from './team_list';
-
-import type {Team, TeamMembership} from '@mattermost/types/teams';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import TeamList from './team_list';
 
 type Actions = {
     getTeamsData: (userId: string) => Promise<{data: Team[]}>;

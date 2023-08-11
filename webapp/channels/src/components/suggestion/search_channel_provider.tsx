@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ServerError} from '@mattermost/types/errors';
+
+import type {ActionFunc} from 'mattermost-redux/types/actions.js';
 import {isDirectChannel, isGroupChannel, sortChannelsByTypeListAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
 import {getCurrentLocale} from 'selectors/i18n';
@@ -8,13 +11,10 @@ import store from 'stores/redux_store.jsx';
 
 import Constants from 'utils/constants';
 
-import Provider from './provider';
-import SearchChannelSuggestion from './search_channel_suggestion';
-
 import type {Channel} from './command_provider/app_command_parser/app_command_parser_dependencies.js';
+import Provider from './provider';
 import type {ResultsCallback} from './provider';
-import type {ServerError} from '@mattermost/types/errors';
-import type {ActionFunc} from 'mattermost-redux/types/actions.js';
+import SearchChannelSuggestion from './search_channel_suggestion';
 
 const getState = store.getState;
 

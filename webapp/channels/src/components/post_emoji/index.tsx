@@ -7,9 +7,9 @@ import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
 
 import {getEmojiMap} from 'selectors/emojis';
 
-import PostEmoji from './post_emoji';
-
 import type {GlobalState} from 'types/store';
+
+import PostEmoji from './post_emoji';
 
 type Props = {
     name: string;

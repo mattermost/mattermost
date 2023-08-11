@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import type {ComponentProps} from 'react';
+
+import {shallow} from 'enzyme';
 
 import {TestHelper} from 'utils/test_helper';
 
 import BackstageCategory from './backstage_category';
 import BackstageSidebar from './backstage_sidebar';
-
-import type {ComponentProps} from 'react';
 
 describe('components/backstage/components/BackstageSidebar', () => {
     const defaultProps: ComponentProps<typeof BackstageSidebar> = {

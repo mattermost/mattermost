@@ -2,7 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {ModalData} from 'types/actions.js';
+import type {GlobalState} from 'types/store/index.js';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {getChannelTimezones, getChannelMemberCountsByGroup} from 'mattermost-redux/actions/channels';
 import {resetCreatePostRequest, resetHistoryIndex} from 'mattermost-redux/actions/posts';
@@ -16,6 +22,7 @@ import {makeGetMessageInHistoryItem} from 'mattermost-redux/selectors/entities/p
 import {getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionFunc, ActionResult, DispatchFunc} from 'mattermost-redux/types/actions.js';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {
@@ -33,17 +40,11 @@ import {getPostDraft, getIsRhsExpanded, getSelectedPostFocussedAt} from 'selecto
 import {connectionErrorCount} from 'selectors/views/system';
 import {showPreviewOnCreateComment} from 'selectors/views/textbox';
 
+import type {PostDraft} from 'types/store/draft';
 import {AdvancedTextEditor, Constants, StoragePrefixes} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
 
 import AdvancedCreateComment from './advanced_create_comment';
-
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {ActionFunc, ActionResult, DispatchFunc} from 'mattermost-redux/types/actions.js';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {ModalData} from 'types/actions.js';
-import type {PostDraft} from 'types/store/draft';
-import type {GlobalState} from 'types/store/index.js';
 
 type OwnProps = {
     rootId: string;

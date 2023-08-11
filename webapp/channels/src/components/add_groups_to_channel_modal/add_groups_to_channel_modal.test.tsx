@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
 
 import {SyncableType} from '@mattermost/types/groups';
 
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal/add_groups_to_channel_modal';
-
 import type {Props} from 'components/add_groups_to_channel_modal/add_groups_to_channel_modal';
 
 describe('components/AddGroupsToChannelModal', () => {

@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {memo} from 'react';
+import type {HTMLAttributes} from 'react';
+
+import classNames from 'classnames';
 
 import {Client4} from 'mattermost-redux/client';
 
 import BotDefaultIcon from 'images/bot_default_icon.png';
-
-import type {HTMLAttributes} from 'react';
 
 import './avatar.scss';
 

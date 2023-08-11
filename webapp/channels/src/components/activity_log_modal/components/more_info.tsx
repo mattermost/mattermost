@@ -4,9 +4,9 @@
 import React from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 
-import {getMonthLong} from 'utils/i18n';
-
 import type {Session} from '@mattermost/types/sessions';
+
+import {getMonthLong} from 'utils/i18n';
 
 type Props = {
     locale: string;

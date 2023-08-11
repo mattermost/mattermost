@@ -4,13 +4,13 @@
 import isEqual from 'lodash/isEqual';
 import {combineReducers} from 'redux';
 
-import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
-
 import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
 import type {UserAccessToken, UserProfile, UserStatus} from '@mattermost/types/users';
 import type {RelationOneToMany, IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
+
+import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function profilesToSet(state: RelationOneToMany<Team, UserProfile>, action: GenericAction) {

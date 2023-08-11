@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
+
+import type {Command} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
 import EditCommand from 'components/integrations/edit_command/edit_command';
 
 import {TestHelper} from 'utils/test_helper';
-
-import type {Command} from '@mattermost/types/integrations';
-import type {Team} from '@mattermost/types/teams';
 
 describe('components/integrations/EditCommand', () => {
     const getCustomTeamCommands = jest.fn(

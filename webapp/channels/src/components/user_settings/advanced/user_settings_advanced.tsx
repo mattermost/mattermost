@@ -4,7 +4,13 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
@@ -20,11 +26,6 @@ import {a11yFocus, localizeMessage} from 'utils/utils';
 
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
-
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ReactNode} from 'react';
 
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 

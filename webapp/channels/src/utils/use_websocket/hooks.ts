@@ -3,9 +3,9 @@
 
 import {useContext, useEffect} from 'react';
 
-import {WebSocketContext} from './context';
-
 import type {WebSocketClient, WebSocketMessage} from '@mattermost/client';
+
+import {WebSocketContext} from './context';
 
 export type UseWebSocketOptions = {
     handler: (msg: WebSocketMessage) => void;

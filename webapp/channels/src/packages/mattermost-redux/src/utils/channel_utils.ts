@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {MarkUnread} from 'mattermost-redux/constants/channels';
-
-import {displayUsername} from './user_utils';
-
-import {General, Users} from '../constants';
-
 import type {Channel, ChannelType, ChannelMembership, ChannelNotifyProps, ChannelMessageCount} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UsersState, UserProfile, UserNotifyProps} from '@mattermost/types/users';
 import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from '@mattermost/types/utilities';
+
+import {MarkUnread} from 'mattermost-redux/constants/channels';
+
+import {displayUsername} from './user_utils';
+
+import {General, Users} from '../constants';
 
 const channelTypeOrder: Record<ChannelType, number> = {
     [General.OPEN_CHANNEL]: 0,

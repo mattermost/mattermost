@@ -2,7 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ChangeEvent, MouseEvent, ReactNode} from 'react';
 import {FormattedMessage, FormattedDate} from 'react-intl';
+
+import type {Team} from '@mattermost/types/teams';
 
 import LocalizedInput from 'components/localized_input/localized_input';
 import SettingItemMax from 'components/setting_item_max';
@@ -17,8 +20,6 @@ import {imageURLForTeam, isMobile, localizeMessage, moveCursorToEnd} from 'utils
 import OpenInvite from './open_invite';
 
 import type {PropsFromRedux, OwnProps} from '.';
-import type {Team} from '@mattermost/types/teams';
-import type {ChangeEvent, MouseEvent, ReactNode} from 'react';
 
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 

@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
 
 import CustomURLSchemesSetting from 'components/admin_console/custom_url_schemes_setting';
 import LocalizedInput from 'components/localized_input/localized_input';

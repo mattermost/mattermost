@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
+
+import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
 import {Preferences} from 'mattermost-redux/constants';
 
 import UserProfile from './user_profile';
-
-import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
 describe('components/UserProfile', () => {
     const baseProps = {

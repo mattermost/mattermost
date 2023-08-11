@@ -1,12 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {History} from 'history';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {GlobalState} from '@mattermost/types/store';
+
 import {joinChannel, getChannelByNameAndTeamName, getChannelMember, markGroupChannelOpen, fetchMyChannelsAndMembersREST} from 'mattermost-redux/actions/channels';
 import {getUser, getUserByUsername, getUserByEmail} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {getChannelByName, getOtherChannels, getChannel, getChannelsNameMapInTeam, getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getCurrentUserId, getUserByUsername as selectUserByUsername, getUser as selectUser, getUserByEmail as selectUserByEmail} from 'mattermost-redux/selectors/entities/users';
+import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
@@ -17,10 +23,6 @@ import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import type {Match, MatchAndHistory} from './channel_identifier_router';
-import type {Channel} from '@mattermost/types/channels';
-import type {GlobalState} from '@mattermost/types/store';
-import type {History} from 'history';
-import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
 
 const LENGTH_OF_ID = 26;
 const LENGTH_OF_GROUP_ID = 40;

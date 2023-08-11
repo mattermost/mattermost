@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
+
+import type {OutgoingWebhook} from '@mattermost/types/integrations';
 
 import EditOutgoingWebhook
     from 'components/integrations/edit_outgoing_webhook/edit_outgoing_webhook';
 
 import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
-
-import type {OutgoingWebhook} from '@mattermost/types/integrations';
 
 describe('components/integrations/EditOutgoingWebhook', () => {
     const team = TestHelper.getTeamMock();

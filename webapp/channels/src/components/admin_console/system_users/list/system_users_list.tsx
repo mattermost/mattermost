@@ -4,6 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {getUserAccessTokensForUser} from 'mattermost-redux/actions/users';
 
 import ManageRolesModal from 'components/admin_console/manage_roles_modal';
@@ -19,9 +22,6 @@ import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import SystemUsersDropdown from '../system_users_dropdown';
-
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
     users: UserProfile[];

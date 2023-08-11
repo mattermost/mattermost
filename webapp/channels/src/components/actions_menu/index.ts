@@ -1,8 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ComponentProps} from 'react';
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {AppBinding} from '@mattermost/types/apps';
+import type {Post} from '@mattermost/types/posts';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {AppBindingLocations} from 'mattermost-redux/constants/apps';
@@ -11,6 +17,7 @@ import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general'
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
@@ -19,17 +26,12 @@ import {makeFetchBindings, postEphemeralCallResponseForPost, handleBindingClick,
 import {openModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import ActionsMenu from './actions_menu';
-import {makeGetPostOptionBinding} from './selectors';
-
-import type {AppBinding} from '@mattermost/types/apps';
-import type {Post} from '@mattermost/types/posts';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {ComponentProps} from 'react';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 import type {ModalData} from 'types/actions';
 import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
 import type {GlobalState} from 'types/store';
+
+import ActionsMenu from './actions_menu';
+import {makeGetPostOptionBinding} from './selectors';
 
 type Props = {
     post: Post;

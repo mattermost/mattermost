@@ -3,11 +3,11 @@
 
 import React from 'react';
 
+import type {FileInfo} from '@mattermost/types/files';
+
 import FileInfoPreview from 'components/file_info_preview';
 
 import Constants from 'utils/constants';
-
-import type {FileInfo} from '@mattermost/types/files';
 
 type Props = {
     fileInfo: FileInfo;

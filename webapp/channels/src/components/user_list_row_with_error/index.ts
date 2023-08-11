@@ -3,12 +3,13 @@
 
 import {connect} from 'react-redux';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
-import UserListRow from './user_list_row_with_error';
-
-import type {UserProfile} from '@mattermost/types/users';
 import type {GlobalState} from 'types/store';
+
+import UserListRow from './user_list_row_with_error';
 
 type OwnProps = {
     user: UserProfile;

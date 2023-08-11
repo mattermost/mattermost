@@ -2,23 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ChangeEvent, FormEvent} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFullName} from 'mattermost-redux/utils/user_utils';
 
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import SearchChannelWithPermissionsProvider from 'components/suggestion/search_channel_with_permissions_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
+import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 
 import {placeCaretAtEnd} from 'utils/utils';
-
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
-import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ChangeEvent, FormEvent} from 'react';
 
 export type Props = {
 

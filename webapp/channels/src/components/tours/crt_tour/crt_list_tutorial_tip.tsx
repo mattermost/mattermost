@@ -11,9 +11,9 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
 
-import CRTTourTip from './crt_tour_tip';
-
 import type {GlobalState} from 'types/store';
+
+import CRTTourTip from './crt_tour_tip';
 
 const translate = {x: -6, y: 62};
 

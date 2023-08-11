@@ -3,8 +3,9 @@
 
 jest.mock('utils/browser_history');
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
 
 import MfaSection from 'components/user_settings/security/mfa_section/mfa_section';
 

@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import type {RefObject} from 'react';
+
+import {shallow} from 'enzyme';
 
 import {General} from 'mattermost-redux/constants';
 
 import AtMention from 'components/at_mention/at_mention';
 
 import {TestHelper} from 'utils/test_helper';
-
-import type {RefObject} from 'react';
 
 /* eslint-disable global-require */
 

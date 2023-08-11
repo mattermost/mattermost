@@ -2,19 +2,20 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import {patchChannel} from 'mattermost-redux/actions/channels';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import type {ActionFunc, GenericAction, ActionResult} from 'mattermost-redux/types/actions';
 
+import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 
 import EditChannelPurposeModal from './edit_channel_purpose_modal';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {ActionFunc, GenericAction, ActionResult} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
-import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     return {

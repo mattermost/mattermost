@@ -4,6 +4,9 @@
 import React from 'react';
 import {FormattedDate, FormattedMessage} from 'react-intl';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile as UserProfileRedux} from '@mattermost/types/users';
+
 import {Permissions} from 'mattermost-redux/constants';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
@@ -23,9 +26,6 @@ import * as Utils from 'utils/utils';
 
 import AddMembersButton from './add_members_button';
 import PluggableIntroButtons from './pluggable_intro_buttons';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile as UserProfileRedux} from '@mattermost/types/users';
 
 type Props = {
     currentUserId: string;

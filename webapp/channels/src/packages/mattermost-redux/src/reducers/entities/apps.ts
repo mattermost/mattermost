@@ -3,11 +3,11 @@
 
 import {combineReducers} from 'redux';
 
-import {AppsTypes} from 'mattermost-redux/action_types';
-import {validateBindings} from 'mattermost-redux/utils/apps';
-
 import type {AppBinding, AppCommandFormMap, AppsState} from '@mattermost/types/apps';
+
+import {AppsTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
+import {validateBindings} from 'mattermost-redux/utils/apps';
 
 export function mainBindings(state: AppBinding[] = [], action: GenericAction): AppBinding[] {
     switch (action.type) {

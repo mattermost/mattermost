@@ -1,12 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
 import {Draggable, Droppable} from 'react-beautiful-dnd';
 import {FormattedMessage} from 'react-intl';
 
+import classNames from 'classnames';
+
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {localizeMessage} from 'mattermost-redux/utils/i18n_utils';
@@ -19,6 +23,7 @@ import KeyboardShortcutSequence, {
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
+import type {DraggingState} from 'types/store';
 import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isKeyPressed} from 'utils/keyboard';
@@ -30,11 +35,6 @@ import AddChannelsCtaButton from '../add_channels_cta_button';
 import InviteMembersButton from '../invite_members_button';
 import {SidebarCategoryHeader} from '../sidebar_category_header';
 import SidebarChannel from '../sidebar_channel';
-
-import type {ChannelCategory} from '@mattermost/types/channel_categories';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {MouseEvent, KeyboardEvent} from 'react';
-import type {DraggingState} from 'types/store';
 
 type Props = {
     category: ChannelCategory;

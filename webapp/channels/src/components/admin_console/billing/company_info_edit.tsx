@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getName} from 'country-list';
 import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
+
+import {getName} from 'country-list';
 
 import {getCloudCustomer, updateCloudCustomer, updateCloudCustomerAddress} from 'mattermost-redux/actions/cloud';
 
@@ -18,10 +19,9 @@ import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import Input from 'components/widgets/inputs/input/input';
 
+import type {GlobalState} from 'types/store';
 import {COUNTRIES} from 'utils/countries';
 import * as Utils from 'utils/utils';
-
-import type {GlobalState} from 'types/store';
 
 import './company_info_edit.scss';
 

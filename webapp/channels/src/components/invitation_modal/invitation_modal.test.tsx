@@ -2,7 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {IntlShape} from 'react-intl';
 import {Provider} from 'react-redux';
+
+import type {Team} from '@mattermost/types/teams';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
@@ -14,13 +17,10 @@ import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
 import InvitationModal, {View, InvitationModal as BaseInvitationModal} from './invitation_modal';
+import type {Props} from './invitation_modal';
 import InviteView from './invite_view';
 import NoPermissionsView from './no_permissions_view';
 import ResultView from './result_view';
-
-import type {Props} from './invitation_modal';
-import type {Team} from '@mattermost/types/teams';
-import type {IntlShape} from 'react-intl';
 
 const defaultProps: Props = deepFreeze({
     actions: {

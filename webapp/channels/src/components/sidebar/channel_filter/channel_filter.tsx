@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import classNames from 'classnames';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -13,8 +15,6 @@ import Tooltip from 'components/tooltip';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-
-import type {IntlShape} from 'react-intl';
 
 type Props = {
     intl: IntlShape;

@@ -3,6 +3,7 @@
 
 import {memo} from 'react';
 import {connect} from 'react-redux';
+
 import {compose} from 'redux';
 
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -11,10 +12,10 @@ import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/tea
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
-import ThreadItem from './thread_item';
-
-import type {OwnProps} from './thread_item';
 import type {GlobalState} from 'types/store';
+
+import ThreadItem from './thread_item';
+import type {OwnProps} from './thread_item';
 
 function makeMapStateToProps() {
     const getPostsForThread = makeGetPostsForThread();

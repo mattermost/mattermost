@@ -7,9 +7,8 @@ import {makeGenerateCombinedPost} from 'mattermost-redux/utils/post_list';
 
 import Post from 'components/post';
 
-import {shouldShowDotMenu} from 'utils/post_utils';
-
 import type {GlobalState} from 'types/store';
+import {shouldShowDotMenu} from 'utils/post_utils';
 
 type Props = {
     combinedId: string;

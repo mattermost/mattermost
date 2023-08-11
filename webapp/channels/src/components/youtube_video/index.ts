@@ -7,9 +7,9 @@ import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels'
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getOpenGraphMetadataForUrl} from 'mattermost-redux/selectors/entities/posts';
 
-import YoutubeVideo from './youtube_video';
-
 import type {GlobalState} from 'types/store';
+
+import YoutubeVideo from './youtube_video';
 
 type OwnProps = {
     postId: string;

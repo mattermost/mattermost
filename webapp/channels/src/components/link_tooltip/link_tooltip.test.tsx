@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import type {ReactPortal} from 'react';
 import ReactDOM from 'react-dom';
 
-import LinkTooltip from 'components/link_tooltip/link_tooltip';
+import {shallow} from 'enzyme';
 
-import type {ReactPortal} from 'react';
+import LinkTooltip from 'components/link_tooltip/link_tooltip';
 
 describe('components/link_tooltip/link_tooltip', () => {
     test('should match snapshot', () => {

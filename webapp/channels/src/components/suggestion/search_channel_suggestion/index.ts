@@ -3,13 +3,14 @@
 
 import {connect} from 'react-redux';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import SearchChannelSuggestion from './search_channel_suggestion';
-
-import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from 'types/store';
+
+import SearchChannelSuggestion from './search_channel_suggestion';
 
 type OwnProps = {
     item: Channel;

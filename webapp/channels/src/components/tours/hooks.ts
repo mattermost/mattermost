@@ -16,6 +16,7 @@ import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
 import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName} from 'components/onboarding_tasks';
 
 import {useGetPluginsActivationState} from 'plugins/useGetPluginsActivationState';
+import type {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
 
 import {
@@ -26,8 +27,6 @@ import {
     TTNameMapToTourSteps,
     TutorialTourName,
 } from './constant';
-
-import type {GlobalState} from 'types/store';
 
 export const useGetTourSteps = (tourCategory: string) => {
     const isGuestUser = useSelector((state: GlobalState) => isCurrentUserGuestUser(state));

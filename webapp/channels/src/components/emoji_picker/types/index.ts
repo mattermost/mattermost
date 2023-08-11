@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {EmojiCategory, Emoji, SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
+
 import type {
     CATEGORY_HEADER_ROW,
     EMOJIS_ROW,

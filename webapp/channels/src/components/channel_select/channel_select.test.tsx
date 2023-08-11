@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
+
+import type {ChannelType} from '@mattermost/types/channels';
 
 import ChannelSelect from 'components/channel_select/channel_select';
 
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
-
-import type {ChannelType} from '@mattermost/types/channels';
 
 describe('components/ChannelSelect', () => {
     const defaultProps = {

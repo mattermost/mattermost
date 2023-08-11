@@ -2,7 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
@@ -18,10 +21,7 @@ import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import {SuggestionContainer} from '../suggestion';
-
 import type {SuggestionProps} from '../suggestion';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ReactNode} from 'react';
 
 export interface Item extends UserProfile {
     display_name: string;

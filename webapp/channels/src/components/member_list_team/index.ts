@@ -2,7 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {GetTeamMembersOpts, TeamStats, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getTeamStats, getTeamMembers} from 'mattermost-redux/actions/teams';
 import {searchProfiles} from 'mattermost-redux/actions/users';
@@ -10,18 +15,15 @@ import {Permissions} from 'mattermost-redux/constants';
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getMembersInCurrentTeam, getCurrentTeamStats} from 'mattermost-redux/selectors/entities/teams';
 import {getProfilesInCurrentTeam, searchProfilesInCurrentTeam} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, GenericAction, ActionResult} from 'mattermost-redux/types/actions';
 
 import {loadStatusesForProfilesList} from 'actions/status_actions';
 import {loadProfilesAndTeamMembers, loadTeamMembersForProfilesList} from 'actions/user_actions';
 import {setModalSearchTerm} from 'actions/views/search';
 
-import MemberListTeam from './member_list_team';
-
-import type {GetTeamMembersOpts, TeamStats, TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionFunc, GenericAction, ActionResult} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import MemberListTeam from './member_list_team';
 
 type Props = {
     teamId: string;

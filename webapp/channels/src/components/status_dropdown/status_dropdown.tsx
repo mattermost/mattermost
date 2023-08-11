@@ -1,15 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
+import type {ReactNode} from 'react';
 import {injectIntl, FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import classNames from 'classnames';
 
 import StatusIcon from '@mattermost/compass-components/components/status-icon'; // eslint-disable-line no-restricted-imports
 import Text from '@mattermost/compass-components/components/text'; // eslint-disable-line no-restricted-imports
+import type {TUserStatus} from '@mattermost/compass-components/shared'; // eslint-disable-line no-restricted-imports
 import {AccountOutlineIcon, CheckIcon, ExitToAppIcon} from '@mattermost/compass-icons/components';
 import {PulsatingDot} from '@mattermost/components';
+import type {PreferenceType} from '@mattermost/types/preferences';
 import {CustomStatusDuration} from '@mattermost/types/users';
+import type {UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
+
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import * as GlobalActions from 'actions/global_actions';
 
@@ -27,20 +35,13 @@ import EmojiIcon from 'components/widgets/icons/emoji_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Avatar from 'components/widgets/users/avatar/avatar';
+import type {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
 
+import type {ModalData} from 'types/actions';
 import {Constants, ModalIdentifiers, UserStatuses} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
 import {localizeMessage} from 'utils/utils';
-
-import type {TUserStatus} from '@mattermost/compass-components/shared'; // eslint-disable-line no-restricted-imports
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
-import type {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-import type {ReactNode} from 'react';
-import type {IntlShape} from 'react-intl';
-import type {ModalData} from 'types/actions';
 
 import './status_dropdown.scss';
 

@@ -1,8 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AppCallResponse, AppForm, AppCallRequest, AppContext, AppBinding} from '@mattermost/types/apps';
+import type {CommandArgs} from '@mattermost/types/integrations';
+import type {Post} from '@mattermost/types/posts';
+
 import {Client4} from 'mattermost-redux/client';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
+import type {Action, ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
 import {cleanForm} from 'mattermost-redux/utils/apps';
 
 import {openModal} from 'actions/views/modals';
@@ -15,11 +20,6 @@ import {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
 
 import {sendEphemeralPost} from './global_actions';
-
-import type {AppCallResponse, AppForm, AppCallRequest, AppContext, AppBinding} from '@mattermost/types/apps';
-import type {CommandArgs} from '@mattermost/types/integrations';
-import type {Post} from '@mattermost/types/posts';
-import type {Action, ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
 
 export function handleBindingClick<Res=unknown>(binding: AppBinding, context: AppContext, intl: any): ActionFunc {
     return async (dispatch: DispatchFunc) => {
@@ -114,9 +114,7 @@ export function doAppSubmit<Res=unknown>(inCall: AppCallRequest, intl: any): Act
                     window.open(res.navigate_to_url);
                     return {data: res};
                 }
-                const navigateURL = res.navigate_to_url.startsWith(getSiteURL()) ?
-                    res.navigate_to_url.slice(getSiteURL().length) :
-                    res.navigate_to_url;
+                const navigateURL = res.navigate_to_url.startsWith(getSiteURL()) ? res.navigate_to_url.slice(getSiteURL().length) : res.navigate_to_url;
                 getHistory().push(navigateURL);
                 return {data: res};
             }

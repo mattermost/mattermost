@@ -4,6 +4,7 @@
 import React, {useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+
 import styled from 'styled-components';
 
 import {getCloudProducts, getCloudSubscription} from 'mattermost-redux/actions/cloud';
@@ -12,12 +13,11 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
 import Constants, {CloudProducts} from 'utils/constants';
-
-import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 
 const UpgradeButton = styled.button`
 background: var(--denim-button-bg);

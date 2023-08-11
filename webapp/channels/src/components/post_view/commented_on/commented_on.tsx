@@ -4,14 +4,14 @@
 import React, {PureComponent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile as UserProfileType} from '@mattermost/types/users';
+
 import CommentedOnFilesMessage from 'components/post_view/commented_on_files_message';
 import UserProfile from 'components/user_profile/user_profile';
 
 import {stripMarkdown} from 'utils/markdown';
 import * as Utils from 'utils/utils';
-
-import type {Post} from '@mattermost/types/posts';
-import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
 type Props = {
     enablePostUsernameOverride?: boolean;

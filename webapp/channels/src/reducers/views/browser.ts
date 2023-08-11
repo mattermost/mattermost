@@ -3,9 +3,9 @@
 
 import {combineReducers} from 'redux';
 
-import {ActionTypes, WindowSizes} from 'utils/constants';
-
 import type {GenericAction} from 'mattermost-redux/types/actions';
+
+import {ActionTypes, WindowSizes} from 'utils/constants';
 
 function focused(state = true, action: GenericAction) {
     switch (action.type) {

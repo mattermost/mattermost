@@ -9,9 +9,9 @@ import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/tea
 import {getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import RhsCard from './rhs_card';
-
 import type {GlobalState} from 'types/store';
+
+import RhsCard from './rhs_card';
 
 function mapStateToProps(state: GlobalState) {
     const selected = getSelectedPostCard(state);

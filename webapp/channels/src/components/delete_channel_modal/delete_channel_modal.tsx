@@ -5,12 +5,12 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
-
-import type {Channel} from '@mattermost/types/channels';
 
 export type Props = {
     onExited: () => void;

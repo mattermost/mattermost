@@ -5,6 +5,9 @@ import React from 'react';
 import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team} from '@mattermost/types/teams';
+
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import ExternalLink from 'components/external_link';
@@ -14,9 +17,6 @@ import Tooltip from 'components/tooltip';
 import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
 import * as URL from 'utils/url';
-
-import type {ServerError} from '@mattermost/types/errors';
-import type {Team} from '@mattermost/types/teams';
 
 type State = {
     isLoading: boolean;

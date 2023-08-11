@@ -3,18 +3,20 @@
 
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Post} from '@mattermost/types/posts';
 
 import {makeGetCommentCountForPost} from 'mattermost-redux/selectors/entities/posts';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {deleteAndRemovePost} from 'actions/post_actions';
 
-import DeletePostModal from './delete_post_modal';
-
-import type {Post} from '@mattermost/types/posts';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import DeletePostModal from './delete_post_modal';
 
 type Actions = {
     deleteAndRemovePost: (post: Post) => Promise<{data: boolean}>;

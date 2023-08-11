@@ -4,7 +4,10 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+
 import styled from 'styled-components';
+
+import type {Product} from '@mattermost/types/cloud';
 
 import {getCloudProducts} from 'mattermost-redux/selectors/entities/cloud';
 
@@ -16,8 +19,6 @@ import useGetLimits from 'components/common/hooks/useGetLimits';
 import {CloudProducts, ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {fallbackStarterLimits, asGBString, hasSomeLimits} from 'utils/limits';
-
-import type {Product} from '@mattermost/types/cloud';
 
 const Disclaimer = styled.div`
 margin-bottom: 8px;

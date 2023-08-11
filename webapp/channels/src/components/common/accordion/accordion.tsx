@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useState} from 'react';
+import type {RefObject} from 'react';
+
+import classNames from 'classnames';
 
 import AccordionCard from './accordion_card';
-
-import type {RefObject} from 'react';
 
 import './accordion.scss';
 

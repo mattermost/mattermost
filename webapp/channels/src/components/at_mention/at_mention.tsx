@@ -4,6 +4,9 @@
 import React from 'react';
 import {Overlay} from 'react-bootstrap';
 
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {Client4} from 'mattermost-redux/client';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
@@ -15,9 +18,6 @@ import {isKeyPressed} from 'utils/keyboard';
 import {popOverOverlayPosition} from 'utils/position_utils';
 import {getUserOrGroupFromMentionName} from 'utils/post_utils';
 import {getViewportSize} from 'utils/utils';
-
-import type {Group} from '@mattermost/types/groups';
-import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
     currentUserId: string;

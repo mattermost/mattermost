@@ -5,6 +5,8 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import {Permissions} from 'mattermost-redux/constants';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
@@ -21,8 +23,6 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
-
-import type {Channel} from '@mattermost/types/channels';
 
 import './add_members_button.scss';
 

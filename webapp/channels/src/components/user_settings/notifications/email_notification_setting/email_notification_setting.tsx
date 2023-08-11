@@ -2,20 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserNotifyProps} from '@mattermost/types/users';
 
 import {getEmailInterval} from 'mattermost-redux/utils/notify_props';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
 
 import {Preferences, NotificationLevels} from 'utils/constants';
 import {a11yFocus, localizeMessage} from 'utils/utils';
-
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserNotifyProps} from '@mattermost/types/users';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
-import type {RefObject} from 'react';
 
 const SECONDS_PER_MINUTE = 60;
 

@@ -2,7 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {ChannelStats} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
+import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
 import {getChannelStats} from 'mattermost-redux/actions/channels';
 import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
@@ -10,19 +16,15 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannelMembersInChannels, getAllChannelStats, getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {makeGetProfilesInChannel, makeSearchProfilesInChannel, filterProfiles, getFilteredUsersStats as selectFilteredUsersStats} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult, ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
 
 import {loadProfilesAndReloadChannelMembers, searchProfilesAndChannelMembers} from 'actions/user_actions';
 import {setUserGridSearch, setUserGridFilters} from 'actions/views/search';
 
-import ChannelMembers from './channel_members';
-
-import type {ChannelStats} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
-import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
-import type {ActionResult, ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import ChannelMembers from './channel_members';
 
 type Props = {
     channelId: string;

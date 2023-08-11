@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {Channel, ChannelStats} from '@mattermost/types/channels';
+
 import {
     act,
     fireEvent,
@@ -12,8 +14,6 @@ import {
 import Constants from 'utils/constants';
 
 import Menu from './menu';
-
-import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
 describe('channel_info_rhs/menu', () => {
     const defaultProps = {

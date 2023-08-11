@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {Children, isValidElement, cloneElement} from 'react';
+
+import classNames from 'classnames';
 
 import CardBody from './card_body';
 import CardHeader from './card_header';

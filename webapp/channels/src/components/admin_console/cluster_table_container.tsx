@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {PureComponent} from 'react';
+import type {MouseEvent} from 'react';
+
+import type {ClusterInfo} from '@mattermost/types/admin';
 
 import {getClusterStatus} from 'actions/admin_actions.jsx';
 
 import ClusterTable from './cluster_table';
 
 import LoadingScreen from '../loading_screen';
-
-import type {ClusterInfo} from '@mattermost/types/admin';
-import type {MouseEvent} from 'react';
 
 interface State {
     clusterInfos: ClusterInfo[] | null;

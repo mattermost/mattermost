@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Preferences} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
@@ -12,8 +13,6 @@ import * as Selectors from './channel_categories';
 
 import mergeObjects from '../../../test/merge_objects';
 import TestHelper from '../../../test/test_helper';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 const ch = TestHelper.getChannelMock;
 

@@ -3,9 +3,8 @@
 
 import * as Selectors from 'selectors/storage';
 
-import {getPrefix} from 'utils/storage_utils';
-
 import type {GlobalState} from 'types/store';
+import {getPrefix} from 'utils/storage_utils';
 
 describe('Selectors.Storage', () => {
     const testState = {

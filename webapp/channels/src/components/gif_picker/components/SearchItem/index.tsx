@@ -4,10 +4,10 @@
 import React, {PureComponent} from 'react';
 import {connect} from 'react-redux';
 
-import {getImageSrc} from 'utils/post_utils';
-
 import type {GfycatAPIItem} from '@mattermost/types/gifs';
+
 import type {GlobalState} from 'types/store';
+import {getImageSrc} from 'utils/post_utils';
 
 import './SearchItem.scss';
 

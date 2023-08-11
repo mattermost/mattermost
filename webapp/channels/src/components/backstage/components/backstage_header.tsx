@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode} from 'react';
 
 import LocalizedIcon from 'components/localized_icon';
 
 import {t} from 'utils/i18n';
-
-import type {ReactNode} from 'react';
 
 type Props = {
     children?: ReactNode;

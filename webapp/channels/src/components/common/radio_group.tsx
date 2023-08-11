@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode} from 'react';
 
 import Tag from 'components/widgets/tag/tag';
-
-import type {ReactNode} from 'react';
 
 type RadioGroupProps = {
     id: string;

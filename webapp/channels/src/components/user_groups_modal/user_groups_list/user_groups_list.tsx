@@ -4,6 +4,10 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Group, GroupPermissions} from '@mattermost/types/groups';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
@@ -11,14 +15,11 @@ import ViewUserGroupModal from 'components/view_user_group_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
+import type {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import ADLDAPUpsellBanner from '../ad_ldap_upsell_banner';
-
-import type {Group, GroupPermissions} from '@mattermost/types/groups';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ModalData} from 'types/actions';
 
 export type Props = {
     groups: Group[];

@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {CSSProperties} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import type {Audit} from '@mattermost/types/audits';
 
 import ComplianceReports from 'components/admin_console/compliance_reports';
 import AuditTable from 'components/audit_table';
 import LoadingScreen from 'components/loading_screen';
 import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
-
-import type {Audit} from '@mattermost/types/audits';
-import type {CSSProperties} from 'react';
 
 type Props = {
     isLicensed: boolean;

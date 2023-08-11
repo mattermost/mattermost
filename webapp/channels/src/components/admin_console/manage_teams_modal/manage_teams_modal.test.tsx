@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
 import React from 'react';
 import {act} from 'react-dom/test-utils';
 import {IntlProvider} from 'react-intl';
+
+import type {ReactWrapper} from 'enzyme';
+import {mount, shallow} from 'enzyme';
 
 import {General} from 'mattermost-redux/constants';
 
@@ -13,8 +15,6 @@ import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage
 import {TestHelper} from 'utils/test_helper';
 
 import ManageTeamsDropdown from './manage_teams_dropdown';
-
-import type {ReactWrapper} from 'enzyme';
 
 describe('ManageTeamsModal', () => {
     const baseProps = {

@@ -2,16 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {loadTranslations} from 'actions/views/root';
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 
-import IntlProvider from './intl_provider';
-
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import IntlProvider from './intl_provider';
 
 function mapStateToProps(state: GlobalState) {
     const locale = getCurrentLocale(state);

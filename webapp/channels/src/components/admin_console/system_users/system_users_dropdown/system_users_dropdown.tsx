@@ -4,6 +4,12 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Bot} from '@mattermost/types/bots';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {UserProfile} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {Permissions} from 'mattermost-redux/constants';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
@@ -21,12 +27,6 @@ import {Constants} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getSiteURL} from 'utils/url';
 import * as Utils from 'utils/utils';
-
-import type {Bot} from '@mattermost/types/bots';
-import type {AdminConfig} from '@mattermost/types/config';
-import type {ServerError} from '@mattermost/types/errors';
-import type {UserProfile} from '@mattermost/types/users';
-import type {DeepPartial} from '@mattermost/types/utilities';
 
 const ROWS_FROM_BOTTOM_TO_OPEN_UP = 3;
 const TOTAL_USERS_TO_OPEN_UP = 5;

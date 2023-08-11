@@ -1,8 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
+import type {ComponentProps} from 'react';
+
+import {mount} from 'enzyme';
+
+import type {UserThread} from '@mattermost/types/threads';
 
 import Timestamp from 'components/timestamp';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
@@ -14,9 +18,6 @@ import {mockStore} from 'tests/test_store';
 import ThreadFooter from './thread_footer';
 
 import FollowButton from '../../common/follow_button';
-
-import type {UserThread} from '@mattermost/types/threads';
-import type {ComponentProps} from 'react';
 
 describe('components/threading/channel_threads/thread_footer', () => {
     const baseState = {

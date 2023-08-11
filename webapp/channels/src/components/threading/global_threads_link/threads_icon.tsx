@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import type {HTMLAttributes} from 'react';
 
 const ThreadsIcon = (attrs: HTMLAttributes<SVGElement>) => {

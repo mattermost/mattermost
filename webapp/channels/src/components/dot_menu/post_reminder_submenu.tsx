@@ -6,6 +6,7 @@ import {FormattedMessage, FormattedDate, FormattedTime, useIntl} from 'react-int
 import {useDispatch} from 'react-redux';
 
 import {ChevronRightIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Post} from '@mattermost/types/posts';
 
 import {addPostReminder} from 'mattermost-redux/actions/posts';
 
@@ -17,8 +18,6 @@ import PostReminderCustomTimePicker from 'components/post_reminder_custom_time_p
 import {ModalIdentifiers} from 'utils/constants';
 import {toUTCUnix} from 'utils/datetime';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
-
-import type {Post} from '@mattermost/types/posts';
 
 type Props = {
     userId: string;

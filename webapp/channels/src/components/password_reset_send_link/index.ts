@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
-
-import {sendPasswordResetEmail} from 'mattermost-redux/actions/users';
-
-import PasswordResetSendLink from './password_reset_send_link';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import type {ServerError} from '@mattermost/types/errors';
+
+import {sendPasswordResetEmail} from 'mattermost-redux/actions/users';
 import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import PasswordResetSendLink from './password_reset_send_link';
 
 type Actions = {
     sendPasswordResetEmail: (emal: string) => Promise<{data: any; error: ServerError}>;

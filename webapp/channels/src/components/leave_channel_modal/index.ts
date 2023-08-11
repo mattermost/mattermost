@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {leaveChannel} from 'actions/views/channel';
 
 import LeaveChannelModal from './leave_channel_modal';
-
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {

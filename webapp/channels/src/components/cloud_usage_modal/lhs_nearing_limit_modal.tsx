@@ -16,11 +16,10 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
+import type {Message} from 'utils/i18n';
 import {fallbackStarterLimits, asGBString, LimitTypes} from 'utils/limits';
 
 import CloudUsageModal from './index';
-
-import type {Message} from 'utils/i18n';
 
 export default function LHSNearingLimitsModal() {
     const dispatch = useDispatch();

@@ -3,7 +3,9 @@
 
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {Posts} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -15,10 +17,9 @@ import {makePreparePostIdsForPostList} from 'mattermost-redux/utils/post_list';
 
 import {updateToastStatus} from 'actions/views/channel';
 
-import ToastWrapper from './toast_wrapper';
-
-import type {Dispatch} from 'redux';
 import type {GlobalState} from 'types/store/index';
+
+import ToastWrapper from './toast_wrapper';
 
 interface OwnProps {
     atLatestPost?: boolean;

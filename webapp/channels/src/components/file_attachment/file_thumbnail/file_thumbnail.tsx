@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {FileInfo} from '@mattermost/types/files';
+
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import Constants, {FileTypes} from 'utils/constants';
@@ -11,8 +13,6 @@ import {
     getIconClassName,
     isGIFImage,
 } from 'utils/utils';
-
-import type {FileInfo} from '@mattermost/types/files';
 
 type Props = {
     enableSVGs: boolean;

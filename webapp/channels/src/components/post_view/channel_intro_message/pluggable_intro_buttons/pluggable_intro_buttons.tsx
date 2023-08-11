@@ -4,6 +4,7 @@
 import React from 'react';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+
 import type {PluginComponent} from 'types/store/plugins';
 
 type Props = {

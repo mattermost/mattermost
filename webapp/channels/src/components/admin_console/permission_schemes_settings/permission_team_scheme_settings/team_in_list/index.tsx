@@ -2,16 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {getTeamStats as loadTeamStats} from 'mattermost-redux/actions/teams';
 import {getTeamStats} from 'mattermost-redux/selectors/entities/teams';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import TeamInList from './team_in_list';
-
-import type {GlobalState} from '@mattermost/types/store';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
 
 function mapStateToProps(state: GlobalState) {
     return {

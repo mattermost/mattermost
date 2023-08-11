@@ -3,12 +3,12 @@
 
 import {combineReducers} from 'redux';
 
+import type {TeamsRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+
 import {TeamTypes} from 'mattermost-redux/action_types';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {handleRequest, initialRequestState} from './helpers';
-
-import type {TeamsRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function getMyTeams(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
     return handleRequest(

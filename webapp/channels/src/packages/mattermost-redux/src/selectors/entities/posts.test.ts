@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Posts, Preferences} from 'mattermost-redux/constants';
-import * as Selectors from 'mattermost-redux/selectors/entities/posts';
-import {makeGetProfilesForReactions} from 'mattermost-redux/selectors/entities/users';
-import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
-
-import TestHelper from '../../../test/test_helper';
-
 import type {Post} from '@mattermost/types/posts';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
+
+import {Posts, Preferences} from 'mattermost-redux/constants';
+import * as Selectors from 'mattermost-redux/selectors/entities/posts';
 import type {PostWithFormatData} from 'mattermost-redux/selectors/entities/posts';
+import {makeGetProfilesForReactions} from 'mattermost-redux/selectors/entities/users';
+import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
+
+import TestHelper from '../../../test/test_helper';
 
 const p = (override: Partial<PostWithFormatData>) => Object.assign(TestHelper.getPostMock(override), override);
 

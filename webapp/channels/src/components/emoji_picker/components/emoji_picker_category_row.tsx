@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
+import type {CSSProperties} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {EmojiCategory} from '@mattermost/types/emojis';
-import type {CSSProperties} from 'react';
 
 interface Props {
     categoryName: EmojiCategory;

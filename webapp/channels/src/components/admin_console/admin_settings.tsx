@@ -4,15 +4,15 @@
 import React from 'react';
 import {Overlay} from 'react-bootstrap';
 
+import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import Tooltip from 'components/tooltip';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {localizeMessage} from 'utils/utils';
-
-import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
-import type {DeepPartial} from '@mattermost/types/utilities';
 
 export type BaseProps = {
     config?: DeepPartial<AdminConfig>;

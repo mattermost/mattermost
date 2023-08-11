@@ -5,6 +5,10 @@ import React from 'react';
 import * as redux from 'react-redux';
 import {Provider} from 'react-redux';
 
+import type {Subscription, Product} from '@mattermost/types/cloud';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile, UsersState} from '@mattermost/types/users';
+
 import * as cloudActions from 'actions/cloud';
 
 import {renderWithIntl, screen} from 'tests/react_testing_utils';
@@ -13,10 +17,6 @@ import {Constants, CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 
 import Limits from './limits';
-
-import type {Subscription, Product} from '@mattermost/types/cloud';
-import type {GlobalState} from '@mattermost/types/store';
-import type {UserProfile, UsersState} from '@mattermost/types/users';
 
 const freeLimits = {
     messages: {

@@ -3,6 +3,9 @@
 
 import {connect} from 'react-redux';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
@@ -10,12 +13,10 @@ import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/pre
 
 import {makePrepareReplyIdsForThreadViewer, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
-import ThreadViewerVirtualized from './virtualized_thread_viewer';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {Post} from '@mattermost/types/posts';
 import type {GlobalState} from 'types/store';
 import type {FakePost} from 'types/store/rhs';
+
+import ThreadViewerVirtualized from './virtualized_thread_viewer';
 
 type OwnProps = {
     channel: Channel;

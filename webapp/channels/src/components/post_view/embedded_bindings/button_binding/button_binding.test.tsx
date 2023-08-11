@@ -3,6 +3,9 @@
 
 import React from 'react';
 
+import type {AppBinding, AppCallResponse} from '@mattermost/types/apps';
+import type {Post} from '@mattermost/types/posts';
+
 import {
     renderWithIntlAndStore,
     screen,
@@ -11,9 +14,6 @@ import {
 } from 'tests/react_testing_utils';
 
 import ButtonBinding, {ButtonBinding as ButtonBindingUnwrapped} from './button_binding';
-
-import type {AppBinding, AppCallResponse} from '@mattermost/types/apps';
-import type {Post} from '@mattermost/types/posts';
 
 describe('components/post_view/embedded_bindings/button_binding/', () => {
     const post = {

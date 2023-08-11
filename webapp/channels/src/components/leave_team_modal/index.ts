@@ -2,22 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {removeUserFromTeam as leaveTeam} from 'mattermost-redux/actions/teams';
 import {getMyChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {toggleSideBarRightMenuAction} from 'actions/global_actions';
 
+import type {GlobalState} from 'types/store';
 import {Constants} from 'utils/constants';
 
 import LeaveTeamModal from './leave_team_modal';
-
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 function getNumOfPrivateChannels(state: GlobalState) {
     const channels = getMyChannels(state);

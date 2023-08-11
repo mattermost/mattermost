@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import classNames from 'classnames';
+
+import type {GlobalState} from '@mattermost/types/store';
+
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import Tag from './tag';
-
 import type {TagSize} from './tag';
-import type {GlobalState} from '@mattermost/types/store';
 
 type Props = {
     className?: string;

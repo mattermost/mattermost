@@ -3,9 +3,17 @@
 
 /* eslint-disable max-lines */
 
-import deepEqual from 'fast-deep-equal';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import deepEqual from 'fast-deep-equal';
+import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
+import type {Timezone} from 'timezones.json';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile, UserTimezone} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -22,12 +30,6 @@ import {a11yFocus} from 'utils/utils';
 
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
-
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserProfile, UserTimezone} from '@mattermost/types/users';
-import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {Timezone} from 'timezones.json';
 
 const Preferences = Constants.Preferences;
 

@@ -2,20 +2,23 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getProfilesNotInGroup, searchProfiles, getProfiles} from 'mattermost-redux/actions/users';
 import {getProfilesNotInCurrentGroup, getUserStatuses, getProfiles as getUsers} from 'mattermost-redux/selectors/entities/users';
+import type {Action, ActionResult} from 'mattermost-redux/types/actions';
 
 import {loadStatusesForProfilesList} from 'actions/status_actions';
 
-import AddUserToGroupMultiSelect from './add_user_to_group_multiselect';
-
-import type {UserProfile} from '@mattermost/types/users';
 import type {Value} from 'components/multiselect/multiselect';
-import type {Action, ActionResult} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
 import type {GlobalState} from 'types/store';
+
+import AddUserToGroupMultiSelect from './add_user_to_group_multiselect';
 
 type UserProfileValue = Value & UserProfile;
 

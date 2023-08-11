@@ -2,9 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo, useRef} from 'react';
+import type {ChangeEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import ReactSelect from 'react-select';
+import type {ValueType} from 'react-select';
+
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
 
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
@@ -16,10 +20,6 @@ import {notificationSounds} from 'utils/notification_sounds';
 import Describe from './describe';
 import ExtraInfo from './extra_info';
 import SectionTitle from './section_title';
-
-import type {ChannelNotifyProps} from '@mattermost/types/channels';
-import type {ChangeEvent} from 'react';
-import type {ValueType} from 'react-select';
 
 type SelectedOption = {
     label: string;

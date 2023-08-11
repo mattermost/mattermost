@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React, {memo, useState} from 'react';
+import {FormattedMessage} from 'react-intl';
+import {useDispatch} from 'react-redux';
+
 import {
     FloatingFocusManager,
     autoUpdate,
@@ -15,18 +19,14 @@ import {
     useRole,
 } from '@floating-ui/react-dom-interactions';
 import classNames from 'classnames';
-import React, {memo, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
 
 import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {acknowledgePost, unacknowledgePost} from 'mattermost-redux/actions/posts';
 
 import PostAcknowledgementsUserPopover from './post_acknowledgements_users_popover';
-
-import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
-import type {UserProfile} from '@mattermost/types/users';
 
 import './post_acknowledgements.scss';
 

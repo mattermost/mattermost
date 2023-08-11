@@ -4,14 +4,14 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import type {Audit} from '@mattermost/types/audits';
+
 import {toTitleCase} from 'utils/utils';
 
 import AuditRow from './audit_row/audit_row';
 import ChannelRow from './channel_row/channel_row';
 import holders from './holders';
 import UserRow from './user_row/user_row';
-
-import type {Audit} from '@mattermost/types/audits';
 
 export type Props = {
     audit: Audit;

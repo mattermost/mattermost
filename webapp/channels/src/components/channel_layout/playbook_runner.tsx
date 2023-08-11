@@ -5,6 +5,10 @@ import {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch} from 'react-router-dom';
 
+import type {AnyAction, Dispatch} from 'redux';
+
+import type {Channel} from '@mattermost/types/channels';
+
 import {IntegrationTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getChannelByTeamIdAndChannelName} from 'mattermost-redux/selectors/entities/channels';
@@ -14,8 +18,6 @@ import {generateId} from 'mattermost-redux/utils/helpers';
 import {switchToChannel} from 'actions/views/channel';
 import {getLastViewedChannelNameByTeamName} from 'selectors/local_storage';
 
-import type {Channel} from '@mattermost/types/channels';
-import type {AnyAction, Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
 
 interface MatchParams {

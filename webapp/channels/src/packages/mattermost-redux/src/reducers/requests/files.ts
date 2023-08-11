@@ -3,13 +3,13 @@
 
 import {combineReducers} from 'redux';
 
+import type {FilesRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+
 import {FileTypes} from 'mattermost-redux/action_types';
 import {RequestStatus} from 'mattermost-redux/constants';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {initialRequestState} from './helpers';
-
-import type {FilesRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 export function handleUploadFilesRequest(
     REQUEST: string,

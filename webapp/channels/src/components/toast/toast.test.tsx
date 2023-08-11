@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
+import type {ReactWrapper} from 'enzyme';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import * as Utils from 'utils/utils';
 
 import Toast from './toast';
-
 import type {Props} from './toast';
-import type {ReactWrapper} from 'enzyme';
 
 describe('components/Toast', () => {
     const defaultProps: Props = {

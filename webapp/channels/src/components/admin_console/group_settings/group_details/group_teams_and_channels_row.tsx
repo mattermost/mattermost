@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import {isNil} from 'lodash';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import classNames from 'classnames';
+import {isNil} from 'lodash';
 
 import ConfirmModal from 'components/confirm_modal';
 import GlobeIcon from 'components/widgets/icons/globe_icon';
@@ -82,13 +83,9 @@ State
         let dropDown = null;
         if (!isNil(schemeAdmin)) {
             let currentRole = member;
-            let roleToBe = this.props.type.includes('team') ?
-                teamAdmin :
-                channelAdmin;
+            let roleToBe = this.props.type.includes('team') ? teamAdmin : channelAdmin;
             if (schemeAdmin) {
-                currentRole = this.props.type.includes('team') ?
-                    teamAdmin :
-                    channelAdmin;
+                currentRole = this.props.type.includes('team') ? teamAdmin : channelAdmin;
                 roleToBe = member;
             }
             dropDown = (
@@ -131,9 +128,7 @@ State
                 <i
                     className={
                         'fa ' +
-                        (this.props.collapsed ?
-                            'fa-caret-right' :
-                            'fa-caret-down')
+                        (this.props.collapsed ? 'fa-caret-right' : 'fa-caret-down')
                     }
                     onClick={this.toggleCollapse}
                 />

@@ -4,6 +4,7 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
+
 import styled from 'styled-components';
 
 import {getCloudSubscription as selectCloudSubscription, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';

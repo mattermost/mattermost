@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
 import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 
 import configureStore from 'store';
 
 import * as Actions from './channel_sidebar';
-
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
 describe('adjustTargetIndexForMove', () => {
     const channelIds = ['one', 'twoDeleted', 'three', 'four', 'fiveDeleted', 'six', 'seven'];

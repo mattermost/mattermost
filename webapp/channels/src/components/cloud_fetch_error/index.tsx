@@ -8,11 +8,10 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {retryFailedCloudFetches} from 'actions/cloud';
 import {retryFailedHostedCustomerFetches} from 'actions/hosted_customer';
-
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import './cloud_fetch_error.scss';
 

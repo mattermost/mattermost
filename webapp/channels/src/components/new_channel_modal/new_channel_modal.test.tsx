@@ -14,12 +14,11 @@ import {
     userEvent,
     waitFor,
 } from 'tests/react_testing_utils';
+import type {GlobalState} from 'types/store';
 import {suitePluginIds} from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
 
 import NewChannelModal from './new_channel_modal';
-
-import type {GlobalState} from 'types/store';
 
 jest.mock('mattermost-redux/actions/channels');
 

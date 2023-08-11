@@ -3,12 +3,12 @@
 
 import {combineReducers} from 'redux';
 
+import type {ChannelsRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+
 import {ChannelTypes} from 'mattermost-redux/action_types';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {handleRequest, initialRequestState} from './helpers';
-
-import type {ChannelsRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function myChannels(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
     return handleRequest(

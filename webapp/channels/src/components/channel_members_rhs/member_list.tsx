@@ -4,15 +4,15 @@
 import React, {memo, useEffect, useRef, useState} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {VariableSizeList} from 'react-window';
+import type {ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
-import {ListItemType} from './channel_members_rhs';
-import Member from './member';
-
-import type {ChannelMember, ListItem} from './channel_members_rhs';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
-import type {ListChildComponentProps} from 'react-window';
+
+import {ListItemType} from './channel_members_rhs';
+import type {ChannelMember, ListItem} from './channel_members_rhs';
+import Member from './member';
 
 export interface Props {
     channel: Channel;

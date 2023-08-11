@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import SelectTeamItem from './select_team_item';
+import {shallow} from 'enzyme';
 
 import type {Team} from '@mattermost/types/teams';
+
+import SelectTeamItem from './select_team_item';
 
 describe('components/select_team/components/SelectTeamItem', () => {
     const baseProps = {

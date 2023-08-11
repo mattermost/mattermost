@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import SaveButton from 'components/save_button';
@@ -10,7 +11,6 @@ import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {a11yFocus} from 'utils/utils';
 
-import type {ReactNode} from 'react';
 type Props = {
 
     // Array of inputs selection

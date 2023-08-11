@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {shallow} from 'enzyme';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import {TestHelper} from 'utils/test_helper';
 
@@ -11,7 +14,6 @@ import AbstractList from './abstract_list';
 import GroupRow from './group/group_row';
 
 import type {TeamWithMembership} from '../system_user_detail/team_list/types';
-import type {Channel} from '@mattermost/types/channels';
 
 describe('admin_console/team_channel_settings/AbstractList', () => {
     const header = (

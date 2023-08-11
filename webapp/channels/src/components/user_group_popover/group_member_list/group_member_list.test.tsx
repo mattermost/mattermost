@@ -5,6 +5,8 @@ import React from 'react';
 import {Provider} from 'react-redux';
 import {BrowserRouter} from 'react-router-dom';
 
+import type {ReactWrapper} from 'enzyme';
+
 import {General} from 'mattermost-redux/constants';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
@@ -14,11 +16,9 @@ import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
 
 import GroupMemberList from './group_member_list';
-
-import {Load} from '../user_group_popover';
-
 import type {GroupMember} from './group_member_list';
-import type {ReactWrapper} from 'enzyme';
+
+import {Load} from '../constants';
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),

@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {useDispatch} from 'react-redux';
+
+import classNames from 'classnames';
+
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
 
@@ -17,8 +20,6 @@ import Sidebar from 'components/sidebar';
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 import {isInternetExplorer, isEdge} from 'utils/user_agent';
-
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 const BODY_CLASS_FOR_CHANNEL = ['app__body', 'channel-view'];
 

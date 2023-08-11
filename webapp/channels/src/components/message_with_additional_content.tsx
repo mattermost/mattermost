@@ -3,12 +3,13 @@
 
 import React from 'react';
 
+import type {Post} from '@mattermost/types/posts';
+
 import {Posts} from 'mattermost-redux/constants';
 
 import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
 import PostMessageView from 'components/post_view/post_message_view';
 
-import type {Post} from '@mattermost/types/posts';
 import type {PluginsState} from 'types/store/plugins';
 
 type Props = {

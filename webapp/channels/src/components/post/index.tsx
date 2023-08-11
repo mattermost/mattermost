@@ -2,13 +2,20 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {AnyAction, Dispatch} from 'redux';
+
+import type {Emoji} from '@mattermost/types/emojis';
+import type {Post} from '@mattermost/types/posts';
 
 import {setActionsMenuInitialisationState} from 'mattermost-redux/actions/preferences';
 import {General} from 'mattermost-redux/constants';
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled} from 'mattermost-redux/selectors/entities/posts';
+import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {
     get,
     getBool,
@@ -24,6 +31,7 @@ import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 's
 import {getHighlightedPostId, getRhsState, getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
+import type {GlobalState} from 'types/store';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
 import {areConsecutivePostsBySameUser, canDeletePost, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
@@ -31,13 +39,6 @@ import {getDisplayNameByUser} from 'utils/utils';
 
 import {removePostCloseRHSDeleteDraft} from './actions';
 import PostComponent from './post_component';
-
-import type {Emoji} from '@mattermost/types/emojis';
-import type {Post} from '@mattermost/types/posts';
-import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
-import type {ConnectedProps} from 'react-redux';
-import type {AnyAction, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 interface OwnProps {
     post?: Post | UserActivityPost;

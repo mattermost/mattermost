@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelTypes, PostTypes, TeamTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
-
-import type {ExtraData} from './types';
 import type {Team} from '@mattermost/types/teams';
 import type {ThreadsState, UserThread} from '@mattermost/types/threads';
 import type {IDMappedObjects, RelationOneToMany} from '@mattermost/types/utilities';
+
+import {ChannelTypes, PostTypes, TeamTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
+
+import type {ExtraData} from './types';
 
 type State = ThreadsState['threadsInTeam'] | ThreadsState['unreadThreadsInTeam'];
 

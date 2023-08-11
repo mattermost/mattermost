@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import type {RouteComponentProps} from 'react-router-dom';
 
 import AdvancedCreatePost from 'components/advanced_create_post';
 import ChannelHeader from 'components/channel_header';
@@ -12,7 +13,6 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import PostView from 'components/post_view';
 
 import type {PropsFromRedux} from './index';
-import type {RouteComponentProps} from 'react-router-dom';
 
 export type Props = PropsFromRedux & RouteComponentProps<{
     postid?: string;

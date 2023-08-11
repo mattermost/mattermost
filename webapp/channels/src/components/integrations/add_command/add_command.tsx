@@ -3,14 +3,15 @@
 
 import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import {useHistory} from 'react-router-dom';
-
-import AbstractCommand from '../abstract_command';
 
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
+
 import type {ActionResult} from 'mattermost-redux/types/actions.js';
-import type {MessageDescriptor} from 'react-intl';
+
+import AbstractCommand from '../abstract_command';
 
 export type Props = {
 

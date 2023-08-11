@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
+
+import classNames from 'classnames';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -17,6 +18,8 @@ import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import UserSettingsModal from 'components/user_settings/modal';
 
 import Pluggable from 'plugins/pluggable';
+import type {ModalData} from 'types/actions';
+import type {RhsState} from 'types/store/rhs';
 import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
@@ -25,9 +28,6 @@ import ChannelNavigator from './channel_navigator';
 import MobileSidebarHeader from './mobile_sidebar_header';
 import SidebarHeader from './sidebar_header';
 import SidebarList from './sidebar_list';
-
-import type {ModalData} from 'types/actions';
-import type {RhsState} from 'types/store/rhs';
 
 type Props = {
     teamId: string;

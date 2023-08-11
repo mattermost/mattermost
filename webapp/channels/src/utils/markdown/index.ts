@@ -7,12 +7,11 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import store from 'stores/redux_store.jsx';
 
+import type EmojiMap from 'utils/emoji_map';
 import RemoveMarkdown from 'utils/markdown/remove_markdown';
 import {convertEntityToCharacter} from 'utils/text_formatting';
 
 import Renderer from './renderer';
-
-import type EmojiMap from 'utils/emoji_map';
 
 const removeMarkdown = new RemoveMarkdown();
 

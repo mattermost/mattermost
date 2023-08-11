@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {ErrorTypes} from 'mattermost-redux/action_types';
-
 import type {GenericAction} from 'mattermost-redux/types/actions';
 export default ((state: Array<{error: any;displayable?: boolean;date: string}> = [], action: GenericAction) => {
     switch (action.type) {

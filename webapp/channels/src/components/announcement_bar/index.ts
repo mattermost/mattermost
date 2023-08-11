@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {getCloudSubscription, getCloudCustomer} from 'mattermost-redux/actions/cloud';
@@ -12,14 +14,13 @@ import {getConfig, getLicense, warnMetricsStatus as getWarnMetricsStatus} from '
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getDisplayableErrors} from 'mattermost-redux/selectors/errors';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {dismissNotice} from 'actions/views/notice';
 
-import AnnouncementBarController from './announcement_bar_controller';
-
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import AnnouncementBarController from './announcement_bar_controller';
 
 function mapStateToProps(state: GlobalState) {
     const canViewSystemErrors = haveISystemPermission(state, {permission: Permissions.MANAGE_SYSTEM});

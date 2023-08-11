@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import moment from 'moment';
 import React, {useEffect} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+
+import moment from 'moment';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
@@ -19,8 +22,6 @@ import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 import {AnnouncementBarTypes, CloudBanners, CloudProducts, Preferences} from 'utils/constants';
 import {t} from 'utils/i18n';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 import './to_paid_plan_nudge_banner.scss';
 

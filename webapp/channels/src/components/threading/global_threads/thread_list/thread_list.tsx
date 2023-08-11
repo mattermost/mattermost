@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isEmpty} from 'lodash';
 import React, {memo, useCallback, useEffect} from 'react';
+import type {PropsWithChildren} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {isEmpty} from 'lodash';
+
 import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
+import type {UserThread} from '@mattermost/types/threads';
 
 import {getThreads, markAllThreadsInTeamRead} from 'mattermost-redux/actions/threads';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
@@ -22,6 +25,7 @@ import CRTUnreadTutorialTip from 'components/tours/crt_tour/crt_unread_tutorial_
 import Header from 'components/widgets/header';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 
+import type {GlobalState} from 'types/store';
 import {A11yClassNames, Constants, CrtTutorialSteps, ModalIdentifiers, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 
@@ -31,11 +35,7 @@ import BalloonIllustration from '../../common/balloon_illustration';
 import Button from '../../common/button';
 import {useThreadRouting} from '../../hooks';
 import MarkAllThreadsAsReadModal from '../mark_all_threads_as_read_modal';
-
 import type {MarkAllThreadsAsReadModalProps} from '../mark_all_threads_as_read_modal';
-import type {UserThread} from '@mattermost/types/threads';
-import type {PropsWithChildren} from 'react';
-import type {GlobalState} from 'types/store';
 
 import './thread_list.scss';
 

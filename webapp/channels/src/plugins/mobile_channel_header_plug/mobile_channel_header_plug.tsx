@@ -3,17 +3,17 @@
 
 import React from 'react';
 import {injectIntl} from 'react-intl';
-
-import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-
-import {createCallContext} from 'utils/apps';
+import type {IntlShape} from 'react-intl';
 
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+
+import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import type {IntlShape} from 'react-intl';
+
 import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForChannel} from 'types/apps';
 import type {PluginComponent} from 'types/store/plugins';
+import {createCallContext} from 'utils/apps';
 
 type Props = {
 

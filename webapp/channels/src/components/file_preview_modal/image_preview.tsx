@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import {getFilePreviewUrl, getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
-
 import type {FileInfo} from '@mattermost/types/files';
+
+import {getFilePreviewUrl, getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import './image_preview.scss';
 

@@ -2,22 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
 
 import {getDataRetentionCustomPolicyTeams, searchDataRetentionCustomPolicyTeams as searchTeams} from 'mattermost-redux/actions/admin';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
 import {getTeamsInPolicy, searchTeamsInPolicy} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 import {teamListToMap, filterTeamsStartingWithTerm} from 'mattermost-redux/utils/team_utils';
 
 import {setTeamListSearch} from 'actions/views/search';
 
-import TeamList from './team_list';
-
-import type {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
-import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import TeamList from './team_list';
 
 type OwnProps = {
     policyId?: string;

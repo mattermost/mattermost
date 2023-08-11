@@ -4,13 +4,13 @@
 import React from 'react';
 import {Provider} from 'react-redux';
 
+import type {Audit} from '@mattermost/types/audits';
+
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
 import FormatAudit from './format_audit';
-
 import type {Props} from './format_audit';
-import type {Audit} from '@mattermost/types/audits';
 
 describe('components/audit_table/audit_row/AuditRow', () => {
     const baseProps = {

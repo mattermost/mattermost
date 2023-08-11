@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Parser, ProcessNodeDefinitions} from 'html-to-react';
 import React from 'react';
+
+import {Parser, ProcessNodeDefinitions} from 'html-to-react';
 
 import AtMention from 'components/at_mention';
 import AtPlanMention from 'components/at_plan_mention';

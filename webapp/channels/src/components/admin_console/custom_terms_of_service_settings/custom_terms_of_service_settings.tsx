@@ -4,7 +4,11 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
+import type {TermsOfService} from '@mattermost/types/terms_of_service';
+
 import AdminSettings from 'components/admin_console/admin_settings';
+import type {BaseProps, BaseState} from 'components/admin_console/admin_settings';
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
@@ -12,10 +16,6 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 
 import {Constants} from 'utils/constants';
-
-import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
-import type {TermsOfService} from '@mattermost/types/terms_of_service';
-import type {BaseProps, BaseState} from 'components/admin_console/admin_settings';
 
 type Props = BaseProps & {
     actions: {

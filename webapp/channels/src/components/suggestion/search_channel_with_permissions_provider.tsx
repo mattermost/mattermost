@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import {logError} from 'mattermost-redux/actions/errors';
 import {Permissions} from 'mattermost-redux/constants';
 import {
@@ -13,6 +15,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
 import store from 'stores/redux_store.jsx';
@@ -20,12 +23,9 @@ import store from 'stores/redux_store.jsx';
 import {Constants} from 'utils/constants';
 
 import Provider from './provider';
-import {SuggestionContainer} from './suggestion';
-
 import type {ResultsCallback} from './provider';
+import {SuggestionContainer} from './suggestion';
 import type {SuggestionProps} from './suggestion';
-import type {Channel} from '@mattermost/types/channels';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 interface WrappedChannel {
     channel: Channel;

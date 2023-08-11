@@ -2,20 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {FileInfo} from '@mattermost/types/files';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
-import FileSearchResultItem from './file_search_result_item';
-
-import type {FileInfo} from '@mattermost/types/files';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {ConnectedProps} from 'react-redux';
-import type {Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
 import type {FileDropdownPluginComponent} from 'types/store/plugins';
+
+import FileSearchResultItem from './file_search_result_item';
 
 export type OwnProps = {
     channelId: string;

@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Constants, ActionTypes, WindowSizes} from 'utils/constants';
-
 import type {GenericAction} from 'mattermost-redux/types/actions';
+
+import {Constants, ActionTypes, WindowSizes} from 'utils/constants';
 
 export function emitBrowserWindowResized(windowSize?: string): GenericAction {
     let newWindowSize = windowSize;

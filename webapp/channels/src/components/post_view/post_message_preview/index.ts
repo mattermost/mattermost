@@ -2,7 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {PostPreviewMetadata} from '@mattermost/types/posts';
 
 import {General} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -11,18 +15,15 @@ import {getPost, isPostPriorityEnabled} from 'mattermost-redux/selectors/entitie
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {toggleEmbedVisibility} from 'actions/post_actions';
 import {isEmbedVisible} from 'selectors/posts';
 
+import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
 
 import PostMessagePreview from './post_message_preview';
-
-import type {PostPreviewMetadata} from '@mattermost/types/posts';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 export type OwnProps = {
     metadata: PostPreviewMetadata;

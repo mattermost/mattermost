@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link, useRouteMatch, useLocation, matchPath} from 'react-router-dom';
+
+import classNames from 'classnames';
 
 import {PulsatingDot} from '@mattermost/components';
 
@@ -27,6 +28,7 @@ import CollapsedReplyThreadsModal
 import CRTWelcomeTutorialTip
     from 'components/tours/crt_tour/crt_welcome_tutorial_tip';
 
+import type {GlobalState} from 'types/store';
 import Constants, {
     CrtTutorialSteps,
     CrtTutorialTriggerSteps,
@@ -39,8 +41,6 @@ import {t} from 'utils/i18n';
 import ThreadsIcon from './threads_icon';
 
 import {useThreadRouting} from '../hooks';
-
-import type {GlobalState} from 'types/store';
 
 import './global_threads_link.scss';
 

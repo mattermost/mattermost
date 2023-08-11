@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ComponentProps} from 'react';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 
@@ -14,8 +15,6 @@ import {render} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import SearchBar from './search_bar';
-
-import type {ComponentProps} from 'react';
 
 const suggestionProviders = [
     new SearchDateProvider(),

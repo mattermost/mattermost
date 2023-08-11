@@ -7,6 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {pageVisited} from 'actions/telemetry_actions';
 
@@ -14,8 +15,6 @@ import CloudFetchError from 'components/cloud_fetch_error';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import CompanyInfoDisplay from './company_info_display';
-
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 type Props = Record<string, never>;
 

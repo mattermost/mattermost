@@ -3,15 +3,16 @@
 
 import React from 'react';
 
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import {t} from 'utils/i18n';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import AbstractList from './abstract_list';
 import TeamRow from './team_row';
-
 import type {TeamWithMembership} from './types';
-import type {Team, TeamMembership} from '@mattermost/types/teams';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 const headerLabels = [
     {

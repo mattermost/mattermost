@@ -16,7 +16,6 @@ import {
     highlightCurrentMentions,
     parseSearchTerms, autolinkChannelMentions,
 } from 'utils/text_formatting';
-
 import type {ChannelNamesMap} from 'utils/text_formatting';
 
 const emptyEmojiMap = new EmojiMap(new Map());

@@ -18,7 +18,6 @@ import SelfHostedExpansionModal from 'components/self_hosted_purchases/self_host
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import {useControlModal} from './useControlModal';
-
 import type {ControlModal} from './useControlModal';
 
 interface HookOptions{

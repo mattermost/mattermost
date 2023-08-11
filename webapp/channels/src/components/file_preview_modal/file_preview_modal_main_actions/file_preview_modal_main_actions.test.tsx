@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
 import React from 'react';
+import type {ComponentProps} from 'react';
+
+import {mount, shallow} from 'enzyme';
 
 import * as fileActions from 'mattermost-redux/actions/files';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
+import type {GlobalState} from 'types/store';
 import {TestHelper} from 'utils/test_helper';
 import * as Utils from 'utils/utils';
 
 import FilePreviewModalMainActions from './file_preview_modal_main_actions';
-
-import type {ComponentProps} from 'react';
-import type {GlobalState} from 'types/store';
 
 const mockDispatch = jest.fn();
 let mockState: GlobalState;

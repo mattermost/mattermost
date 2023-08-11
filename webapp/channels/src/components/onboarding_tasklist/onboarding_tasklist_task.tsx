@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+
 import styled from 'styled-components';
 
 import {CompletedAnimation} from './onboarding_tasklist_animations';

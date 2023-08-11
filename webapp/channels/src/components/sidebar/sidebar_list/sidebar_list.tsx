@@ -1,13 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import debounce from 'lodash/debounce';
 import React from 'react';
+import type {CSSProperties} from 'react';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
+import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
 import Scrollbars from 'react-custom-scrollbars';
 import {FormattedMessage} from 'react-intl';
+
+import classNames from 'classnames';
+import debounce from 'lodash/debounce';
 import {SpringSystem} from 'rebound';
+import type {Spring} from 'rebound';
+
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
 
@@ -16,6 +24,8 @@ import {trackEvent} from 'actions/telemetry_actions';
 import DraftsLink from 'components/drafts/drafts_link/drafts_link';
 import GlobalThreadsLink from 'components/threading/global_threads_link';
 
+import type {DraggingState} from 'types/store';
+import type {StaticPage} from 'types/store/lhs';
 import * as ChannelUtils from 'utils/channel_utils';
 import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -24,15 +34,6 @@ import * as Utils from 'utils/utils';
 import SidebarCategory from '../sidebar_category';
 import UnreadChannelIndicator from '../unread_channel_indicator';
 import UnreadChannels from '../unread_channels';
-
-import type {ChannelCategory} from '@mattermost/types/channel_categories';
-import type {Channel} from '@mattermost/types/channels';
-import type {Team} from '@mattermost/types/teams';
-import type {CSSProperties} from 'react';
-import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
-import type {Spring} from 'rebound';
-import type {DraggingState} from 'types/store';
-import type {StaticPage} from 'types/store/lhs';
 
 export function renderView(props: any) {
     return (

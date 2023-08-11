@@ -4,15 +4,15 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {ServerError} from '@mattermost/types/errors';
+import type {OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+
 import ConfirmModal from 'components/confirm_modal';
 import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook';
 import LoadingScreen from 'components/loading_screen';
 
 import {getHistory} from 'utils/browser_history';
-
-import type {ServerError} from '@mattermost/types/errors';
-import type {OutgoingWebhook} from '@mattermost/types/integrations';
-import type {Team} from '@mattermost/types/teams';
 
 const HEADER = {id: 'integrations.edit', defaultMessage: 'Edit'};
 const FOOTER = {id: 'update_outgoing_webhook.update', defaultMessage: 'Update'};

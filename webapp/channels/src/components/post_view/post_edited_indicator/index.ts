@@ -2,7 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {Post} from '@mattermost/types/posts';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
@@ -13,15 +17,13 @@ import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/
 
 import {openShowEditHistory} from 'actions/views/rhs';
 
+import type {Props as TimestampProps} from 'components/timestamp/timestamp';
+
+import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
 import {isPostOwner, canEditPost} from 'utils/post_utils';
 
 import PostEditedIndicator from './post_edited_indicator';
-
-import type {Post} from '@mattermost/types/posts';
-import type {Props as TimestampProps} from 'components/timestamp/timestamp';
-import type {Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     postId?: string;

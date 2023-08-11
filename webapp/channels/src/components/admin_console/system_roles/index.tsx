@@ -5,9 +5,9 @@ import {connect} from 'react-redux';
 
 import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
 
-import SystemRoles from './system_roles';
-
 import type {GlobalState} from 'types/store';
+
+import SystemRoles from './system_roles';
 
 function mapStateToProps(state: GlobalState) {
     return {

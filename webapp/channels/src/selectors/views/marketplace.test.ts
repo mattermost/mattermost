@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {AuthorType, ReleaseStage} from '@mattermost/types/marketplace';
+import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 
 import {
     getPlugins,
@@ -14,7 +15,6 @@ import {
     getError,
 } from 'selectors/views/marketplace';
 
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 import type {GlobalState} from 'types/store';
 
 describe('marketplace', () => {

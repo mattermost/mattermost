@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import type {ComponentProps} from 'react';
+
+import {shallow} from 'enzyme';
 
 import {getThreads} from 'mattermost-redux/actions/threads';
 
@@ -17,8 +19,6 @@ import ThreadList, {ThreadFilter} from './thread_list';
 import VirtualizedThreadList from './virtualized_thread_list';
 
 import Button from '../../common/button';
-
-import type {ComponentProps} from 'react';
 
 jest.mock('mattermost-redux/actions/threads');
 jest.mock('actions/views/modals');

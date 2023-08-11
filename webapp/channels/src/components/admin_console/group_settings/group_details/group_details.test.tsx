@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import GroupDetails from 'components/admin_console/group_settings/group_details/group_details';
+import {shallow} from 'enzyme';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 import type {Group, GroupChannel, GroupTeam} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
+
+import GroupDetails from 'components/admin_console/group_settings/group_details/group_details';
 
 describe('components/admin_console/group_settings/group_details/GroupDetails', () => {
     const defaultProps = {

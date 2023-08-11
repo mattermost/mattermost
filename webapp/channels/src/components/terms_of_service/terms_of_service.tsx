@@ -5,6 +5,8 @@ import React from 'react';
 import {Button, ButtonGroup} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {TermsOfService as ReduxTermsOfService} from '@mattermost/types/terms_of_service';
+
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -17,11 +19,9 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
+import type EmojiMap from 'utils/emoji_map';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 import {formatText} from 'utils/text_formatting';
-
-import type {TermsOfService as ReduxTermsOfService} from '@mattermost/types/terms_of_service';
-import type EmojiMap from 'utils/emoji_map';
 
 export interface UpdateMyTermsOfServiceStatusResponse {
     terms_of_service_create_at: number;

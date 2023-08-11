@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {saveTheme, deleteTeamSpecificThemes} from 'mattermost-redux/actions/preferences';
 import {getTheme, makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
@@ -10,12 +12,10 @@ import {getCurrentTeamId, getMyTeamsCount} from 'mattermost-redux/selectors/enti
 
 import {openModal} from 'actions/views/modals';
 
+import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
 
 import UserSettingsTheme from './user_settings_theme';
-
-import type {Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 function makeMapStateToProps() {
     const getThemeCategory = makeGetCategory();

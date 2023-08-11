@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import type {ComponentProps} from 'react';
+
+import {shallow} from 'enzyme';
 
 import PermissionGroup from 'components/admin_console/permission_schemes_settings/permission_group';
 import PermissionsTreePlaybooks from 'components/admin_console/permission_schemes_settings/permissions_tree_playbooks';
@@ -10,7 +12,6 @@ import PermissionsTreePlaybooks from 'components/admin_console/permission_scheme
 import {LicenseSkus} from 'utils/constants';
 
 import type {Group, Permission} from './permissions_tree/types';
-import type {ComponentProps} from 'react';
 
 describe('components/admin_console/permission_schemes_settings/permissions_tree_playbooks', () => {
     const defaultProps: ComponentProps<typeof PermissionsTreePlaybooks> = {

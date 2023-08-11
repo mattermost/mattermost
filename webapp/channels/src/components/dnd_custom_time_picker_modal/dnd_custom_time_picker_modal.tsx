@@ -1,13 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+import type {DayPickerProps} from 'react-day-picker';
+import {FormattedMessage} from 'react-intl';
+
 import classNames from 'classnames';
 import {DateTime} from 'luxon';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 import {GenericModal} from '@mattermost/components';
+import type {UserStatus} from '@mattermost/types/users';
+
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import DatePicker from 'components/date_picker';
@@ -16,15 +22,10 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import Constants, {A11yCustomEventTypes, UserStatuses} from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
 import {toUTCUnix} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {localizeMessage} from 'utils/utils';
-
-import type {UserStatus} from '@mattermost/types/users';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-import type {DayPickerProps} from 'react-day-picker';
-import type {A11yFocusEventDetail} from 'utils/constants';
 
 import './dnd_custom_time_picker_modal.scss';
 

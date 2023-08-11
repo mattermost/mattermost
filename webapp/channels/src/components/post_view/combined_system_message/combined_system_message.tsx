@@ -3,18 +3,18 @@
 
 import React from 'react';
 import {injectIntl} from 'react-intl';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts} from 'mattermost-redux/constants';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import Markdown from 'components/markdown';
 
 import {t} from 'utils/i18n';
 
 import LastUsers from './last_users';
-
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 const {
     JOIN_CHANNEL, ADD_TO_CHANNEL, REMOVE_FROM_CHANNEL, LEAVE_CHANNEL,

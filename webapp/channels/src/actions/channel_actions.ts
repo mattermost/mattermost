@@ -3,6 +3,12 @@
 
 import {batchActions} from 'redux-batched-actions';
 
+import type {Channel, ChannelMembership, ServerChannel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
+import type {Role} from '@mattermost/types/roles';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {ChannelTypes, PreferenceTypes, RoleTypes} from 'mattermost-redux/action_types';
 import * as ChannelActions from 'mattermost-redux/actions/channels';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -12,6 +18,7 @@ import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redu
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {
     getChannelsAndChannelMembersQueryString,
@@ -19,23 +26,16 @@ import {
     transformToReceivedChannelMembersReducerPayload,
     CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE,
 } from 'actions/channel_queries';
+import type {
+    ChannelsAndChannelMembersQueryResponseType,
+    GraphQLChannel,
+    GraphQLChannelMember} from 'actions/channel_queries';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded, loadProfilesForSidebar} from 'actions/user_actions';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants, Preferences, NotificationLevels} from 'utils/constants';
 import {getDirectChannelName} from 'utils/utils';
-
-import type {Channel, ChannelMembership, ServerChannel} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
-import type {Role} from '@mattermost/types/roles';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {
-    ChannelsAndChannelMembersQueryResponseType,
-    GraphQLChannel,
-    GraphQLChannelMember} from 'actions/channel_queries';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFunc {
     return async (dispatch, getState) => {

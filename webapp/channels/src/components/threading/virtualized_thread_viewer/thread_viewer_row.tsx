@@ -3,19 +3,19 @@
 
 import React, {memo} from 'react';
 
+import type {Post} from '@mattermost/types/posts';
+
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
 import PostComponent from 'components/post';
 import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
 import DateSeparator from 'components/post_view/date_separator';
 import NewMessageSeparator from 'components/post_view/new_message_separator/new_message_separator';
+import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 import {Locations} from 'utils/constants';
 
 import Reply from './reply';
-
-import type {Post} from '@mattermost/types/posts';
-import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 type Props = {
     a11yIndex: number;

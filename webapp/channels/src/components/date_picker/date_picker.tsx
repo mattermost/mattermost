@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React, {useCallback, useEffect, useState} from 'react';
+import {DayPicker} from 'react-day-picker';
+import type {DayPickerProps} from 'react-day-picker';
+
 import {
     useFloating,
     autoUpdate,
@@ -11,13 +15,9 @@ import {
     FloatingFocusManager,
     useDismiss,
 } from '@floating-ui/react-dom-interactions';
-import React, {useCallback, useEffect, useState} from 'react';
-import {DayPicker} from 'react-day-picker';
+import type {Locale} from 'date-fns';
 
 import {getDatePickerLocalesForDateFns} from 'utils/utils';
-
-import type {Locale} from 'date-fns';
-import type {DayPickerProps} from 'react-day-picker';
 
 import 'react-day-picker/dist/style.css';
 import './date_picker.scss';

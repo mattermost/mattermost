@@ -3,16 +3,16 @@
 
 import React from 'react';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+
 import {RequestStatus} from 'mattermost-redux/constants';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
 import RenameChannelModal from './rename_channel_modal';
-
 import type {RenameChannelModal as RenameChannelModalClass} from './rename_channel_modal';
-import type {Channel} from '@mattermost/types/channels';
-import type {Team} from '@mattermost/types/teams';
 
 describe('components/RenameChannelModal', () => {
     const channel: Channel = TestHelper.getChannelMock({

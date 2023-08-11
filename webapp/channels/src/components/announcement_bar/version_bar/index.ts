@@ -3,9 +3,9 @@
 
 import {connect} from 'react-redux';
 
-import VersionBar from './version_bar';
-
 import type {GlobalState} from '@mattermost/types/store';
+
+import VersionBar from './version_bar';
 
 function mapStateToProps(state: GlobalState) {
     return {

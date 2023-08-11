@@ -3,14 +3,15 @@
 
 import React from 'react';
 
-import Provider from './provider';
-import {SuggestionContainer} from './suggestion';
-
-import type {ResultsCallback} from './provider';
-import type {SuggestionProps} from './suggestion';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
+
 import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import Provider from './provider';
+import type {ResultsCallback} from './provider';
+import {SuggestionContainer} from './suggestion';
+import type {SuggestionProps} from './suggestion';
 
 type ChannelSearchFunc = (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => (ActionResult | Promise<ActionResult | ActionResult[]>);
 

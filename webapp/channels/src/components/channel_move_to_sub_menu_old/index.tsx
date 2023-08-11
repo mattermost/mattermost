@@ -11,11 +11,14 @@ import {
     StarOutlineIcon,
     FolderMoveOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import type {Channel} from '@mattermost/types/channels';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
@@ -25,13 +28,9 @@ import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 import EditCategoryModal from 'components/edit_category_modal';
 import Menu from 'components/widgets/menu/menu';
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
-
-import type {ChannelCategory} from '@mattermost/types/channel_categories';
-import type {Channel} from '@mattermost/types/channels';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import type {GlobalState} from 'types/store';
 import type {Menu as MenuType} from 'types/store/plugins';
+import Constants, {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;

@@ -5,7 +5,9 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {GenericModalProps} from '@mattermost/components';
 import {GenericModal} from '@mattermost/components';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
@@ -13,9 +15,6 @@ import {getUserByEmail} from 'mattermost-redux/selectors/entities/users';
 
 import {useControlPurchaseInProgressModal} from 'components/common/hooks/useControlModal';
 import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
-
-import type {GenericModalProps} from '@mattermost/components';
-import type {GlobalState} from '@mattermost/types/store';
 
 import './index.scss';
 

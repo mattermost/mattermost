@@ -3,10 +3,9 @@
 
 import {WebsocketEvents} from 'mattermost-redux/constants';
 import typingReducer from 'mattermost-redux/reducers/entities/typing';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import TestHelper from '../../../test/test_helper';
-
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 describe('Reducers.Typing', () => {
     it('initial state', async () => {

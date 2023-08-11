@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
+import type {GlobalState} from '@mattermost/types/store';
+
 import {General, Permissions} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {sortChannelsByDisplayName, getDirectChannelName} from 'mattermost-redux/utils/channel_utils';
@@ -10,9 +13,6 @@ import * as Selectors from './channels';
 
 import TestHelper from '../../..//test/test_helper';
 import mergeObjects from '../../../test/merge_objects';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {GlobalState} from '@mattermost/types/store';
 
 const sortUsernames = (a: string, b: string) => a.localeCompare(b, General.DEFAULT_LOCALE, {numeric: true});
 

@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ComponentType} from 'react';
 
 import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTrialFormModal';
-
-import type {ComponentType} from 'react';
 
 export default function withOpenStartTrialFormModal<T>(WrappedComponent: ComponentType<T>) {
     return (props: T) => {

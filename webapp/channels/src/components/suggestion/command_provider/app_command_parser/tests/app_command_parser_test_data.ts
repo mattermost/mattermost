@@ -4,7 +4,6 @@
 import {
     AppFieldTypes,
 } from './app_command_parser_test_dependencies';
-
 import type {
     AppBinding,
     AppForm} from './app_command_parser_test_dependencies';

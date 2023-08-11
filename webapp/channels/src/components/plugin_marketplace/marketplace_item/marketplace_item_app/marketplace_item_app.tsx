@@ -4,13 +4,13 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {MarketplaceLabel} from '@mattermost/types/marketplace';
+
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {localizeMessage} from 'utils/utils';
 
 import MarketplaceItem from '../marketplace_item';
-
-import type {MarketplaceLabel} from '@mattermost/types/marketplace';
 
 export type MarketplaceItemAppProps = {
     id: string;

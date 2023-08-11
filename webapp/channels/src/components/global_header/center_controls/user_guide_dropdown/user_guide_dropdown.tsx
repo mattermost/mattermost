@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
@@ -17,7 +18,6 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
-import type {WrappedComponentProps} from 'react-intl';
 
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 

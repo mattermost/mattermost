@@ -8,11 +8,10 @@ import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {setGlobalItem} from 'actions/storage';
 
 import mockStore from 'tests/test_store';
+import type {PostDraft} from 'types/store/draft';
 import {StoragePrefixes} from 'utils/constants';
 
 import {removeDraft, setGlobalDraftSource, updateDraft} from './drafts';
-
-import type {PostDraft} from 'types/store/draft';
 
 jest.mock('mattermost-redux/client', () => {
     const original = jest.requireActual('mattermost-redux/client');

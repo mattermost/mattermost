@@ -3,6 +3,10 @@
 
 import {connect} from 'react-redux';
 
+import type {Reaction as ReactionType} from '@mattermost/types/reactions';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, makeGetProfilesForReactions} from 'mattermost-redux/selectors/entities/users';
@@ -11,10 +15,6 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 import * as Utils from 'utils/utils';
 
 import ReactionTooltip from './reaction_tooltip';
-
-import type {Reaction as ReactionType} from '@mattermost/types/reactions';
-import type {GlobalState} from '@mattermost/types/store';
-import type {UserProfile} from '@mattermost/types/users';
 
 type OwnProps = {
     reactions: ReactionType[];

@@ -4,6 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserStatus} from '@mattermost/types/users';
+
 import {Preferences} from 'mattermost-redux/constants';
 
 import ConfirmModal from 'components/confirm_modal';
@@ -11,9 +14,6 @@ import ConfirmModal from 'components/confirm_modal';
 import {UserStatuses} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {toTitleCase} from 'utils/utils';
-
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserStatus} from '@mattermost/types/users';
 
 t('modal.manual_status.auto_responder.message_');
 t('modal.manual_status.auto_responder.message_away');

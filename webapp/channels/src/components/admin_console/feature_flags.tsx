@@ -4,9 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import AdminHeader from 'components/widgets/admin_console/admin_header';
-
 import type {AdminConfig} from '@mattermost/types/config';
+
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 type Props = {
     config: AdminConfig;

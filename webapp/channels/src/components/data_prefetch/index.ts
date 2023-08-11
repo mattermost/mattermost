@@ -2,7 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {PostList} from '@mattermost/types/posts';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {getCurrentChannelId, getUnreadChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
@@ -13,14 +19,10 @@ import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {prefetchChannelPosts} from 'actions/views/channel';
 import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
+import type {GlobalState} from 'types/store';
+
 import {trackPreloadedChannels} from './actions';
 import DataPrefetch from './data_prefetch';
-
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {PostList} from '@mattermost/types/posts';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 type Actions = {
     prefetchChannelPosts: (channelId: string, delay?: number) => Promise<{data: PostList}>;

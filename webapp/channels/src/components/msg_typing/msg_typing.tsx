@@ -4,10 +4,10 @@
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {WebSocketMessage} from '@mattermost/client';
+
 import {SocketEvents} from 'utils/constants';
 import {useWebSocket} from 'utils/use_websocket';
-
-import type {WebSocketMessage} from '@mattermost/client';
 
 type Props = {
     channelId: string;

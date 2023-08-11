@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Tooltip as RBTooltip} from 'react-bootstrap';
-
 import type {CSSProperties} from 'react';
+import {Tooltip as RBTooltip} from 'react-bootstrap';
 
 type Props = {
     id?: string;

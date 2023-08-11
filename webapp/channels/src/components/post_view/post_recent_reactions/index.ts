@@ -2,18 +2,21 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {Emoji} from '@mattermost/types/emojis';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {addReaction} from 'actions/post_actions';
 import {getEmojiMap} from 'selectors/emojis';
 import {getCurrentLocale} from 'selectors/i18n';
 
-import PostReaction from './post_recent_reactions';
-
-import type {Emoji} from '@mattermost/types/emojis';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import PostReaction from './post_recent_reactions';
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {

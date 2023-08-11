@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, useRef} from 'react';
-import {Transition} from 'react-transition-group';
-import scrollIntoView from 'smooth-scroll-into-view-if-needed';
-
 import type {CSSProperties} from 'react';
+import {Transition} from 'react-transition-group';
+
+import scrollIntoView from 'smooth-scroll-into-view-if-needed';
 
 import './auto_height_switcher.scss';
 

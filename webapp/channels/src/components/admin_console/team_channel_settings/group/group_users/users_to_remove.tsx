@@ -4,21 +4,21 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import GeneralConstants from 'mattermost-redux/constants/general';
-
-import DataGrid from 'components/admin_console/data_grid/data_grid';
-import UserGridName from 'components/admin_console/user_grid/user_grid_name';
-
-import UsersToRemoveGroups from './users_to_remove_groups';
-import GroupUsersRole from './users_to_remove_role';
-
 import type {ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
+
+import GeneralConstants from 'mattermost-redux/constants/general';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import DataGrid from 'components/admin_console/data_grid/data_grid';
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import UserGridName from 'components/admin_console/user_grid/user_grid_name';
+
+import UsersToRemoveGroups from './users_to_remove_groups';
+import GroupUsersRole from './users_to_remove_role';
 
 import './users_to_remove.scss';
 

@@ -7,9 +7,9 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import PermissionsTree from './permissions_tree';
-
 import type {GlobalState} from 'types/store';
+
+import PermissionsTree from './permissions_tree';
 
 export const EXCLUDED_PERMISSIONS = [
     Permissions.VIEW_MEMBERS,

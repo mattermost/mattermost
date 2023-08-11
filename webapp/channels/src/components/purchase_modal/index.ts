@@ -3,13 +3,17 @@
 
 import React from 'react';
 import {connect} from 'react-redux';
+
+import type {Stripe} from '@stripe/stripe-js';
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {getCloudProducts, getCloudSubscription, getInvoices} from 'mattermost-redux/actions/cloud';
 import {getClientConfig} from 'mattermost-redux/actions/general';
 import {getAdminAnalytics} from 'mattermost-redux/selectors/entities/admin';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import type {Action} from 'mattermost-redux/types/actions';
 
 import {completeStripeAddPaymentMethod, subscribeCloudSubscription} from 'actions/cloud';
 import {closeModal, openModal} from 'actions/views/modals';
@@ -20,16 +24,12 @@ import {makeAsyncComponent} from 'components/async_load';
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 import {getStripePublicKey} from 'components/payment_form/stripe';
 
-import {ModalIdentifiers} from 'utils/constants';
-import {getCloudContactSalesLink, getCloudSupportLink} from 'utils/contact_support_sales';
-import {findOnlyYearlyProducts} from 'utils/products';
-
-import type {Stripe} from '@stripe/stripe-js';
-import type {Action} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 import type {ModalData} from 'types/actions';
 import type {BillingDetails} from 'types/cloud/sku';
 import type {GlobalState} from 'types/store';
+import {ModalIdentifiers} from 'utils/constants';
+import {getCloudContactSalesLink, getCloudSupportLink} from 'utils/contact_support_sales';
+import {findOnlyYearlyProducts} from 'utils/products';
 
 const PurchaseModal = makeAsyncComponent('PurchaseModal', React.lazy(() => import('./purchase_modal')));
 

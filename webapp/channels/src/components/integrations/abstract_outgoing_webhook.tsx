@@ -2,8 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ChangeEventHandler, FormEvent, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
+
+import type {OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import ChannelSelect from 'components/channel_select';
@@ -13,11 +18,6 @@ import SpinnerButton from 'components/spinner_button';
 
 import {DocLinks} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
-
-import type {OutgoingWebhook} from '@mattermost/types/integrations';
-import type {Team} from '@mattermost/types/teams';
-import type {ChangeEventHandler, FormEvent, MouseEvent} from 'react';
-import type {MessageDescriptor} from 'react-intl';
 
 interface State {
     callbackUrls: string;

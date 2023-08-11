@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import classNames from 'classnames';
+
+import type {flagPost, unflagPost} from 'actions/post_actions';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
@@ -13,8 +16,6 @@ import FlagIconFilled from 'components/widgets/icons/flag_icon_filled';
 import Constants, {Locations, A11yCustomEventTypes} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
-
-import type {flagPost, unflagPost} from 'actions/post_actions';
 
 export type Actions = {
     flagPost: typeof flagPost;

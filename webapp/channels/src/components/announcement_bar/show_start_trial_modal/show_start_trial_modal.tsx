@@ -4,10 +4,13 @@
 import {useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
+import type {PreferenceType} from '@mattermost/types/preferences';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {isModalOpen} from 'selectors/views/modals';
@@ -15,16 +18,13 @@ import {isModalOpen} from 'selectors/views/modals';
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
 import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTrialFormModal';
 
+import type {GlobalState} from 'types/store';
 import {
     Preferences,
     Constants,
     TELEMETRY_CATEGORIES,
     ModalIdentifiers,
 } from 'utils/constants';
-
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-import type {GlobalState} from 'types/store';
 
 const ShowStartTrialModal = () => {
     const isUserAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));

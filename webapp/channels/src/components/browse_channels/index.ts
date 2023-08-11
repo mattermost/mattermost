@@ -2,7 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import {getChannels, getArchivedChannels, joinChannel, getChannelsMemberCount} from 'mattermost-redux/actions/channels';
 import {RequestStatus} from 'mattermost-redux/constants';
@@ -11,6 +15,7 @@ import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCoun
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {Action, ActionResult} from 'mattermost-redux/types/actions';
 
 import {searchMoreChannels} from 'actions/channel_actions';
 import {setGlobalItem} from 'actions/storage';
@@ -19,15 +24,11 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {makeGetGlobalItem} from 'selectors/storage';
 
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 import Constants, {StoragePrefixes} from 'utils/constants';
 
 import BrowseChannels from './browse_channels';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {Action, ActionResult} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {ModalData} from 'types/actions';
-import type {GlobalState} from 'types/store';
 
 const getChannelsWithoutArchived = createSelector(
     'getChannelsWithoutArchived',

@@ -2,25 +2,27 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getMembersInTeams} from 'mattermost-redux/selectors/entities/teams';
 import {filterProfiles} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult, GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
 
 import {loadChannelMembersForProfilesList, loadTeamMembersForProfilesList} from 'actions/user_actions';
 import {setModalSearchTerm, setModalFilters} from 'actions/views/search';
 
-import UsersToRemove from './users_to_remove';
-
-import type {Filters, Memberships} from './users_to_remove';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionResult, GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import UsersToRemove from './users_to_remove';
+import type {Filters, Memberships} from './users_to_remove';
 
 type Props = {
     members: UserProfile[];

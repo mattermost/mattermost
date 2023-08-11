@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import {shallow} from 'enzyme';
+
 import ChannelNavigator from './channel_navigator';
+import type {Props} from './channel_navigator';
 
 import AddChannelDropdown from '../add_channel_dropdown';
-
-import type {Props} from './channel_navigator';
 
 let props: Props;
 

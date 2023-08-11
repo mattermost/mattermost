@@ -2,12 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React, {createRef} from 'react';
+import type {RefObject} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {Group} from '@mattermost/types/groups';
 import {GroupSource} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
@@ -19,11 +23,6 @@ import * as Utils from 'utils/utils';
 
 import ViewUserGroupListItem from './view_user_group_list_item';
 import ViewUserGroupModalHeader from './view_user_group_modal_header';
-
-import type {Group} from '@mattermost/types/groups';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {RefObject} from 'react';
 
 import './view_user_group_modal.scss';
 
@@ -213,10 +212,11 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                 />
                 <Modal.Body>
                     {this.mentionName()}
-                    {((users.length === 0 && !this.props.searchTerm && !this.state.loading) || !group) ?
+                    {((users.length === 0 && !this.props.searchTerm && !this.state.loading) || !group) ? (
                         <NoResultsIndicator
                             variant={NoResultsVariant.UserGroupMembers}
-                        /> :
+                        />
+                    ) : (
                         <>
                             <div className='user-groups-search'>
                                 <Input
@@ -235,21 +235,21 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                                 ref={this.divScrollRef}
                             >
                                 {(users.length !== 0) &&
-                                    <h2 className='group-member-count'>
-                                        <FormattedMessage
-                                            id='view_user_group_modal.memberCount'
-                                            defaultMessage='{member_count} {member_count, plural, one {Member} other {Members}}'
-                                            values={{
-                                                member_count: this.state.memberCount,
-                                            }}
-                                        />
-                                    </h2>
+                                <h2 className='group-member-count'>
+                                    <FormattedMessage
+                                        id='view_user_group_modal.memberCount'
+                                        defaultMessage='{member_count} {member_count, plural, one {Member} other {Members}}'
+                                        values={{
+                                            member_count: this.state.memberCount,
+                                        }}
+                                    />
+                                </h2>
                                 }
                                 {(users.length === 0 && this.props.searchTerm) &&
-                                    <NoResultsIndicator
-                                        variant={NoResultsVariant.ChannelSearch}
-                                        titleValues={{channelName: `"${this.props.searchTerm}"`}}
-                                    />
+                                <NoResultsIndicator
+                                    variant={NoResultsVariant.ChannelSearch}
+                                    titleValues={{channelName: `"${this.props.searchTerm}"`}}
+                                />
                                 }
                                 {users.map((user) => {
                                     return (
@@ -267,7 +267,7 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                                 }
                             </div>
                         </>
-                    }
+                    )}
                 </Modal.Body>
             </Modal>
         );

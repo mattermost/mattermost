@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
-
 import type {CSSProperties} from 'react';
+import {useIntl} from 'react-intl';
 
 export default function MattermostLogo(props: React.HTMLAttributes<HTMLSpanElement>) {
     const {formatMessage} = useIntl();

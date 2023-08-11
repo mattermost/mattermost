@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import type {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {Provider} from 'react-redux';
+
+import {shallow} from 'enzyme';
 
 import TeamUrl from 'components/create_team/components/team_url/team_url';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 import Constants from 'utils/constants';
-
-import type {Button} from 'react-bootstrap';
 
 jest.mock('images/logo.png', () => 'logo.png');
 

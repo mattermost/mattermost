@@ -2,19 +2,21 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {DataRetentionCustomPolicies} from '@mattermost/types/data_retention';
+import type {JobTypeBase, JobType} from '@mattermost/types/jobs';
 
 import {getDataRetentionCustomPolicies as fetchDataRetentionCustomPolicies, deleteDataRetentionCustomPolicy, updateConfig} from 'mattermost-redux/actions/admin';
 import {createJob, getJobsByType} from 'mattermost-redux/actions/jobs';
 import {getDataRetentionCustomPolicies, getDataRetentionCustomPoliciesCount} from 'mattermost-redux/selectors/entities/admin';
+import type {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+
+import type {GlobalState} from 'types/store';
 
 import DataRetentionSettings from './data_retention_settings';
-
-import type {DataRetentionCustomPolicies} from '@mattermost/types/data_retention';
-import type {JobTypeBase, JobType} from '@mattermost/types/jobs';
-import type {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
-import type {GlobalState} from 'types/store';
 
 type Actions = {
     getDataRetentionCustomPolicies: () => Promise<{ data: DataRetentionCustomPolicies}>;

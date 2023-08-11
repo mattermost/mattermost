@@ -3,10 +3,10 @@
 
 import {combineReducers} from 'redux';
 
-import {FileTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
-
 import type {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
+
+import {FileTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 export function files(state: Record<string, FileInfo> = {}, action: GenericAction) {

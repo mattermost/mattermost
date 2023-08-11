@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+
 import styled from 'styled-components';
 
 import BackgroundPillSymbol from 'components/widgets/background_pill_symbol';

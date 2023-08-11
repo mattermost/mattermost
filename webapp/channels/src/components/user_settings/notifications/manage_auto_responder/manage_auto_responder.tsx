@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ChangeEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import SettingItemMax from 'components/setting_item_max';
 
 import {localizeMessage} from 'utils/utils';
-
-import type {ChangeEvent} from 'react';
 
 const MESSAGE_MAX_LENGTH = 200;
 

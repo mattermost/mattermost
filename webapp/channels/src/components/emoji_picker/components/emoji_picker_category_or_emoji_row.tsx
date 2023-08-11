@@ -3,14 +3,14 @@
 
 import React, {memo} from 'react';
 import {areEqual} from 'react-window';
+import type {ListChildComponentProps} from 'react-window';
+
+import type {CustomEmoji, Emoji, SystemEmoji} from '@mattermost/types/emojis';
 
 import EmojiPickerCategorySection from 'components/emoji_picker/components/emoji_picker_category_row';
 import EmojiPickerItem from 'components/emoji_picker/components/emoji_picker_item';
-import {isCategoryHeaderRow} from 'components/emoji_picker/utils';
-
-import type {CustomEmoji, Emoji, SystemEmoji} from '@mattermost/types/emojis';
 import type {CategoryOrEmojiRow, EmojiCursor} from 'components/emoji_picker/types';
-import type {ListChildComponentProps} from 'react-window';
+import {isCategoryHeaderRow} from 'components/emoji_picker/utils';
 
 interface Props extends ListChildComponentProps<CategoryOrEmojiRow[]> {
     cursorRowIndex: number;

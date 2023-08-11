@@ -2,8 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useRef} from 'react';
+import type {ComponentType} from 'react';
 import {Route, Switch} from 'react-router-dom';
+import type {match} from 'react-router-dom';
+
 import {createGlobalStyle} from 'styled-components';
+
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import Emoji from 'components/emoji';
 import AddEmoji from 'components/emoji/add_emoji';
@@ -26,11 +32,6 @@ import Pluggable from 'plugins/pluggable';
 
 import BackstageNavbar from './components/backstage_navbar';
 import BackstageSidebar from './components/backstage_sidebar';
-
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ComponentType} from 'react';
-import type {match} from 'react-router-dom';
 
 type ExtraProps = Pick<Props, 'user' | 'team'> & {scrollToTop: () => void}
 

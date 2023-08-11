@@ -3,10 +3,6 @@
 
 import {combineReducers} from 'redux';
 
-import {AdminTypes, UserTypes} from 'mattermost-redux/action_types';
-import {Stats} from 'mattermost-redux/constants';
-import PluginState from 'mattermost-redux/constants/plugins';
-
 import type {ClusterInfo, AnalyticsRow} from '@mattermost/types/admin';
 import type {Audit} from '@mattermost/types/audits';
 import type {Compliance} from '@mattermost/types/compliance';
@@ -18,6 +14,10 @@ import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/type
 import type {Team} from '@mattermost/types/teams';
 import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
+
+import {AdminTypes, UserTypes} from 'mattermost-redux/action_types';
+import {Stats} from 'mattermost-redux/constants';
+import PluginState from 'mattermost-redux/constants/plugins';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function logs(state: string[] = [], action: GenericAction) {

@@ -64,12 +64,12 @@ export default function ResultModal({type, icon, title, subtitle, primaryButtonT
                         buttonHandler={primaryButtonHandler}
                         className={'success'}
                         formattedTertiaryButonText={
-                            contactSupportButtonVisible ?
+                            contactSupportButtonVisible ? (
                                 <FormattedMessage
                                     id={'admin.billing.deleteWorkspace.resultModal.ContactSupport'}
                                     defaultMessage={'Contact Support'}
-                                /> :
-                                undefined
+                                />
+                            ) : undefined
                         }
                         tertiaryButtonHandler={contactSupportButtonVisible ? openContactSupport : undefined}
                     />

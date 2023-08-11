@@ -3,6 +3,11 @@
 
 import nock from 'nock';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {Role} from '@mattermost/types/roles';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {Client4} from 'mattermost-redux/client';
 
 import {
@@ -18,11 +23,6 @@ import {loadProfilesForSidebar} from 'actions/user_actions';
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import configureStore from 'store';
 import mockStore from 'tests/test_store';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {Role} from '@mattermost/types/roles';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
 
 const initialState = {
     entities: {

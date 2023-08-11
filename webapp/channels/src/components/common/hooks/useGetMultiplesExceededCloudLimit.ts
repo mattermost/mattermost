@@ -3,9 +3,9 @@
 
 import {useMemo} from 'react';
 
-import {limitThresholds, LimitTypes} from 'utils/limits';
-
 import type {CloudUsage, Limits} from '@mattermost/types/cloud';
+
+import {limitThresholds, LimitTypes} from 'utils/limits';
 
 type LimitsKeys = typeof LimitTypes[keyof typeof LimitTypes];
 

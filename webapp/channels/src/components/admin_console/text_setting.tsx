@@ -4,10 +4,9 @@
 import React from 'react';
 
 import TextSetting from 'components/widgets/settings/text_setting';
+import type {Props as WidgetTextSettingProps} from 'components/widgets/settings/text_setting';
 
 import SetByEnv from './set_by_env';
-
-import type {Props as WidgetTextSettingProps} from 'components/widgets/settings/text_setting';
 
 interface Props extends WidgetTextSettingProps {
     setByEnv: boolean;

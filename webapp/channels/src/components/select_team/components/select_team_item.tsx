@@ -2,6 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode, MouseEvent} from 'react';
+
+import type {Team} from '@mattermost/types/teams';
 
 import LocalizedIcon from 'components/localized_icon';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -10,9 +13,6 @@ import TeamInfoIcon from 'components/widgets/icons/team_info_icon';
 
 import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
-
-import type {Team} from '@mattermost/types/teams';
-import type {ReactNode, MouseEvent} from 'react';
 
 type Props = {
     team: Team;

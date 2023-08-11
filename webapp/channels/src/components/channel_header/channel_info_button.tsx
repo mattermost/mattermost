@@ -3,17 +3,18 @@
 
 import React, {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+
 import styled from 'styled-components';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import {closeRightHandSide, showChannelInfo} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 
+import type {RhsState} from 'types/store/rhs';
 import {RHSStates} from 'utils/constants';
 
 import HeaderIconWrapper from './components/header_icon_wrapper';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {RhsState} from 'types/store/rhs';
 
 interface Props {
     channel: Channel;

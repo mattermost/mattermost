@@ -2,22 +2,23 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {toggleEmbedVisibility} from 'actions/post_actions';
 import {isEmbedVisible} from 'selectors/posts';
 
-import PostBodyAdditionalContent from './post_body_additional_content';
+import type {GlobalState} from 'types/store';
+import type {PostWillRenderEmbedPluginComponent} from 'types/store/plugins';
 
+import PostBodyAdditionalContent from './post_body_additional_content';
 import type {
     Props,
 } from './post_body_additional_content';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
-import type {PostWillRenderEmbedPluginComponent} from 'types/store/plugins';
 
 function mapStateToProps(state: GlobalState, ownProps: Omit<Props, 'appsEnabled' | 'actions'>) {
     return {

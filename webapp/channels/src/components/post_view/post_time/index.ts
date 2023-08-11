@@ -7,9 +7,9 @@ import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/tea
 
 import {getIsMobileView} from 'selectors/views/browser';
 
-import PostTime from './post_time';
-
 import type {GlobalState} from 'types/store';
+
+import PostTime from './post_time';
 
 type OwnProps = {
     teamName?: string;

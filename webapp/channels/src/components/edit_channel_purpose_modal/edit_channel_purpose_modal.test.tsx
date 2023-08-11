@@ -3,15 +3,15 @@
 
 import React from 'react';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal/edit_channel_purpose_modal';
+import type {EditChannelPurposeModal as EditChannelPurposeModalClass} from 'components/edit_channel_purpose_modal/edit_channel_purpose_modal';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {EditChannelPurposeModal as EditChannelPurposeModalClass} from 'components/edit_channel_purpose_modal/edit_channel_purpose_modal';
 
 describe('comoponents/EditChannelPurposeModal', () => {
     const channel = TestHelper.getChannelMock({

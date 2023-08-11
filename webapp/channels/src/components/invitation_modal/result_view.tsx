@@ -11,7 +11,6 @@ import {t} from 'utils/i18n';
 
 import {InviteType} from './invite_as';
 import ResultTable from './result_table';
-
 import type {InviteResult} from './result_table';
 
 import './result_view.scss';

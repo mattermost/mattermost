@@ -5,15 +5,14 @@ import React from 'react';
 import {Provider} from 'react-redux';
 
 import {PostPriority} from '@mattermost/types/posts';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
+import type {PostDraft} from 'types/store/draft';
 import * as utils from 'utils/utils';
 
 import PanelBody from './panel_body';
-
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
-import type {PostDraft} from 'types/store/draft';
 
 describe('components/drafts/panel/panel_body', () => {
     const baseProps = {

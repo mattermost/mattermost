@@ -3,9 +3,17 @@
 
 import {useMemo} from 'react';
 import {useIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {Group} from '@mattermost/types/groups';
+import type {Post, PostPriorityMetadata} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {Permissions, Posts} from 'mattermost-redux/constants';
@@ -18,6 +26,7 @@ import {get, getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mat
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetDisplayName, getCurrentUserId, getUser, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
+import type {UserMentionKey} from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
@@ -27,6 +36,7 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 import {getEmojiMap} from 'selectors/emojis';
 import {getIsMobileView} from 'selectors/views/browser';
 
+import type {GlobalState} from 'types/store';
 import Constants, {PostListRowListIds, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {formatWithRenderer} from 'utils/markdown';
@@ -34,19 +44,8 @@ import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {allAtMentions} from 'utils/text_formatting';
 import {isMobile} from 'utils/user_agent';
 
-import * as Emoticons from './emoticons';
-
 import type EmojiMap from './emoji_map';
-import type {Channel} from '@mattermost/types/channels';
-import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import type {ServerError} from '@mattermost/types/errors';
-import type {Group} from '@mattermost/types/groups';
-import type {Post, PostPriorityMetadata} from '@mattermost/types/posts';
-import type {Reaction} from '@mattermost/types/reactions';
-import type {UserProfile} from '@mattermost/types/users';
-import type {UserMentionKey} from 'mattermost-redux/selectors/entities/users';
-import type {IntlShape} from 'react-intl';
-import type {GlobalState} from 'types/store';
+import * as Emoticons from './emoticons';
 
 const CHANNEL_SWITCH_IGNORE_ENTER_THRESHOLD_MS = 500;
 

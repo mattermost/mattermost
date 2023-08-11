@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
@@ -15,7 +16,6 @@ import Avatar from 'components/widgets/users/avatar';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import ResultTable from './result_table';
-
 import type {Props} from './result_table';
 
 let props: Props = {

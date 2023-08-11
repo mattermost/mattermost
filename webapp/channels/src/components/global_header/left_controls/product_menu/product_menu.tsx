@@ -4,6 +4,7 @@
 import React, {useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+
 import styled from 'styled-components';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
@@ -28,6 +29,7 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useGetPluginsActivationState} from 'plugins/useGetPluginsActivationState';
+import type {GlobalState} from 'types/store';
 import {ExploreOtherToolsTourSteps, suitePluginIds} from 'utils/constants';
 import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
 
@@ -36,8 +38,6 @@ import ProductMenuItem from './product_menu_item';
 import ProductMenuList from './product_menu_list';
 
 import {useClickOutsideRef} from '../../hooks';
-
-import type {GlobalState} from 'types/store';
 
 export const ProductMenuContainer = styled.nav`
     display: flex;

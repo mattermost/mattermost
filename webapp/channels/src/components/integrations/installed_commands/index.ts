@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {deleteCommand, regenCommandToken} from 'mattermost-redux/actions/integrations';
 import {Permissions} from 'mattermost-redux/constants';
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import type {GenericAction, ActionResult, ActionFunc} from 'mattermost-redux/types/actions';
 
 import InstalledCommands from './installed_commands';
-
-import type {GlobalState} from '@mattermost/types/store';
-import type {GenericAction, ActionResult, ActionFunc} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 type Props = {
     team: {

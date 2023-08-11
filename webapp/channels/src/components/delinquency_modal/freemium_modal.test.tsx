@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ComponentProps} from 'react';
 import * as reactRedux from 'react-redux';
 
 import {trackEvent} from 'actions/telemetry_actions';
@@ -14,8 +15,6 @@ import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {LimitTypes} from 'utils/limits';
 
 import {FreemiumModal} from './freemium_modal';
-
-import type {ComponentProps} from 'react';
 
 type RenderComponentArgs = {
     props?: Partial<ComponentProps<typeof FreemiumModal>>;

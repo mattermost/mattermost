@@ -7,15 +7,15 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
 import AlertSvg from 'components/common/svg_images_components/alert_svg';
 
-import {ModalIdentifiers} from 'utils/constants';
-
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import type {GlobalState} from 'types/store';
+import {ModalIdentifiers} from 'utils/constants';
 
 import './confirm_license_removal_modal.scss';
 

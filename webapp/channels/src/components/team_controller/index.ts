@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+import type {RouteComponentProps} from 'react-router-dom';
 
 import {fetchAllMyTeamsChannelsAndChannelMembersREST, fetchMyChannelsAndMembersREST, viewChannel} from 'mattermost-redux/actions/channels';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
@@ -16,13 +18,10 @@ import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 
 import {initializeTeam, joinTeam} from 'components/team_controller/actions';
 
+import type {GlobalState} from 'types/store';
 import {checkIfMFARequired} from 'utils/route';
 
 import TeamController from './team_controller';
-
-import type {ConnectedProps} from 'react-redux';
-import type {RouteComponentProps} from 'react-router-dom';
-import type {GlobalState} from 'types/store';
 
 type Params = {
     url: string;

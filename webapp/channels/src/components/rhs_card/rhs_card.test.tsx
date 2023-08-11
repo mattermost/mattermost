@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import type {ComponentProps} from 'react';
 
+import {shallow} from 'enzyme';
+
+import type {PostPluginComponent} from 'types/store/plugins';
+import type {RhsState} from 'types/store/rhs';
 import {TestHelper} from 'utils/test_helper';
 
 import RhsCard from './rhs_card';
-
-import type {ComponentProps} from 'react';
-import type {PostPluginComponent} from 'types/store/plugins';
-import type {RhsState} from 'types/store/rhs';
 
 describe('comoponents/rhs_card/RhsCard', () => {
     const post = TestHelper.getPostMock({

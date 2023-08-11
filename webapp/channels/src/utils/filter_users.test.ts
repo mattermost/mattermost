@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {getUserOptionsFromFilter, searchUserOptionsFromFilter, isActive} from './filter_users';
-
 import type {FilterOptions} from './filter_users';
 
 describe('filter_users', () => {

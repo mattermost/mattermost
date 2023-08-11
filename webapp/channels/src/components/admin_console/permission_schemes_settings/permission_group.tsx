@@ -2,17 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import type {Role} from '@mattermost/types/roles';
 
 import {PermissionsScope} from 'utils/constants';
 
 import PermissionCheckbox from './permission_checkbox';
 import PermissionDescription from './permission_description';
 import PermissionRow from './permission_row';
-
 import type {AdditionalValues, Permission, Permissions} from './permissions_tree/types';
-import type {Role} from '@mattermost/types/roles';
-import type {MouseEvent} from 'react';
 
 type Props = {
     id: string;

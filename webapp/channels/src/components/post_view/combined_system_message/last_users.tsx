@@ -3,14 +3,13 @@
 
 import React from 'react';
 import {injectIntl} from 'react-intl';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import {Posts} from 'mattermost-redux/constants';
 
 import Markdown from 'components/markdown';
 
 import {t} from 'utils/i18n';
-
-import type {IntlShape, MessageDescriptor} from 'react-intl';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 
 const typeMessage = {

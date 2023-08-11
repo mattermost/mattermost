@@ -4,11 +4,11 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Role} from '@mattermost/types/roles';
+
 import PermissionCheckbox from './permission_checkbox';
 import PermissionDescription from './permission_description';
-
 import type {AdditionalValues} from './permissions_tree/types';
-import type {Role} from '@mattermost/types/roles';
 
 type Props = {
     id: string;

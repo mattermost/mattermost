@@ -3,9 +3,8 @@
 
 import {getBool as getBoolPreference} from 'mattermost-redux/selectors/entities/preferences';
 
-import {Preferences} from 'utils/constants';
-
 import type {GlobalState} from 'types/store';
+import {Preferences} from 'utils/constants';
 
 export const arePreviewsCollapsed = (state: GlobalState) => {
     return getBoolPreference(

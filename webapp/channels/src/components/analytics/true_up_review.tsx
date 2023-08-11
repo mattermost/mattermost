@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import moment from 'moment';
 import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+
+import classNames from 'classnames';
+import moment from 'moment';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -26,8 +29,6 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import {DocLinks, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {getIsStarterLicense, getIsGovSku} from 'utils/license_utils';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 import './true_up_review.scss';
 
@@ -120,16 +121,17 @@ const TrueUpReview: React.FC = () => {
             className={classNames('btn btn-primary TrueUpReview__submit', {'TrueUpReview__submit--error': trueUpReviewError})}
             onClick={handleSubmitReview}
         >
-            {isAirGapped ?
+            {isAirGapped ? (
                 <FormattedMessage
                     id='admin.billing.trueUpReview.button_download'
                     defaultMessage='Download Data'
-                /> :
+                />
+            ) : (
                 <FormattedMessage
                     id='admin.billing.trueUpReview.button_share'
                     defaultMessage='Share to Mattermost'
                 />
-            }
+            )}
         </button>
     );
 

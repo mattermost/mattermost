@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React, {PureComponent} from 'react';
+import type {ReactNode} from 'react';
 import {connect} from 'react-redux';
 
 import {saveAppProps} from 'mattermost-redux/actions/gifs';
 
 import Header from 'components/gif_picker/components/Header';
-
 import type {appProps} from 'components/gif_picker/gif_picker';
-import type {ReactNode} from 'react';
 
 const mapDispatchToProps = ({
     saveAppProps,

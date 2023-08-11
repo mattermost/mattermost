@@ -6,6 +6,8 @@ import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
@@ -35,8 +37,6 @@ import {findSelfHostedProductBySku} from 'utils/hosted_customer';
 import Card, {ButtonCustomiserClasses} from './card';
 import ContactSalesCTA from './contact_sales_cta';
 import StartTrialCaution from './start_trial_caution';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 import './content.scss';
 

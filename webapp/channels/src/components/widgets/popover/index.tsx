@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {Popover as BSPopover} from 'react-bootstrap';
-
 import type {Sizes as BSSizes} from 'react-bootstrap';
 
 const SizeMap = {xs: 'xsmall', sm: 'small', md: 'medium', lg: 'large'};

@@ -7,10 +7,10 @@ import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 
-import ThreadDraft from './thread_draft';
-
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+
+import ThreadDraft from './thread_draft';
 
 type OwnProps = {
     id: string;

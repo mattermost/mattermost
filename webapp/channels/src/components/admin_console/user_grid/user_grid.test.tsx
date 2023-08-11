@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
+
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {TestHelper} from 'utils/test_helper';
 
 import UserGrid from './user_grid';
-
-import type {TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
 
 describe('components/admin_console/user_grid/UserGrid', () => {
     function createUser(id: string, username: string, bot: boolean): UserProfile {

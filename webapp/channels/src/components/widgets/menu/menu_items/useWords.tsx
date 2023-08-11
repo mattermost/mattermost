@@ -2,18 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 
+import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
+
+import type {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import NotifyAdminCTA from 'components/notify_admin_cta/notify_admin_cta';
 
 import {MattermostFeatures, LicenseSkus} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {limitThresholds, asGBString, inK, LimitTypes} from 'utils/limits';
-
-import type {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
-import type {ReactNode} from 'react';
 
 interface Words {
     title: React.ReactNode;

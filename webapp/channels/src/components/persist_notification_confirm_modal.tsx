@@ -6,17 +6,16 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getPersistentNotificationIntervalMinutes, getPersistentNotificationMaxRecipients} from 'mattermost-redux/selectors/entities/posts';
 
+import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 import {makeGetUserOrGroupMentionCountFromMessage} from 'utils/post_utils';
 
 import {HasNoMentions, HasSpecialMentions} from './post_priority/error_messages';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
-import type {GlobalState} from 'types/store';
 
 type Props = {
     currentChannelTeammateUsername?: UserProfile['username'];

@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {FileInfo} from '@mattermost/types/files';
+import type {GroupChannel} from '@mattermost/types/groups';
+import type {Post} from '@mattermost/types/posts';
+
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
@@ -10,6 +14,7 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
 
 import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
@@ -22,6 +27,7 @@ import {isEmbedVisible, isInlineImageVisible} from 'selectors/posts';
 import {getSelectedPostId, getSelectedPostCardId, getRhsState} from 'selectors/rhs';
 import {getGlobalItem} from 'selectors/storage';
 
+import type {GlobalState} from 'types/store';
 import {
     ActionTypes,
     Constants,
@@ -32,13 +38,7 @@ import {matchEmoticons} from 'utils/emoticons';
 import * as UserAgent from 'utils/user_agent';
 
 import {completePostReceive} from './new_post';
-
 import type {NewPostMessageProps} from './new_post';
-import type {FileInfo} from '@mattermost/types/files';
-import type {GroupChannel} from '@mattermost/types/groups';
-import type {Post} from '@mattermost/types/posts';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import type {GlobalState} from 'types/store';
 
 export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {

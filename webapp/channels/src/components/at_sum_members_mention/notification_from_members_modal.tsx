@@ -5,9 +5,12 @@ import React, {useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
+
 import styled from 'styled-components';
 
 import {GenericModal} from '@mattermost/components';
+import type {ChannelMembership} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -23,12 +26,9 @@ import {isModalOpen} from 'selectors/views/modals';
 import {ListItemType} from 'components/channel_members_rhs/channel_members_rhs';
 import MemberList from 'components/channel_members_rhs/member_list';
 
+import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
-
-import type {ChannelMembership} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
-import type {GlobalState} from 'types/store';
 
 import './notification_from_members_modal.scss';
 

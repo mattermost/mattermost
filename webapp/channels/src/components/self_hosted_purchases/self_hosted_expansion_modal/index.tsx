@@ -1,12 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {StripeCardElementChangeEvent} from '@stripe/stripe-js';
+import classNames from 'classnames';
+
+import type {SelfHostedSignupCustomerResponse} from '@mattermost/types/hosted_customer';
 import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
+import type {ValueOf} from '@mattermost/types/utilities';
 
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
@@ -15,6 +19,7 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getSelfHostedSignupProgress} from 'mattermost-redux/selectors/entities/hosted_customer';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, getFilteredUsersStats} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {confirmSelfHostedExpansion} from 'actions/hosted_customer';
 import {pageVisited} from 'actions/telemetry_actions';
@@ -26,6 +31,7 @@ import useLoadStripe from 'components/common/hooks/useLoadStripe';
 import BackgroundSvg from 'components/common/svg_images_components/background_svg';
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import CardInput from 'components/payment_form/card_input';
+import type {CardInputType} from 'components/payment_form/card_input';
 import RootPortal from 'components/root_portal';
 import Address from 'components/self_hosted_purchases/address';
 import ContactSalesLink from 'components/self_hosted_purchases/contact_sales_link';
@@ -43,12 +49,6 @@ import Submitting from './submitting';
 
 import {STORAGE_KEY_EXPANSION_IN_PROGRESS} from '../constants';
 import StripeProvider from '../stripe_provider';
-
-import type {SelfHostedSignupCustomerResponse} from '@mattermost/types/hosted_customer';
-import type {ValueOf} from '@mattermost/types/utilities';
-import type {StripeCardElementChangeEvent} from '@stripe/stripe-js';
-import type {CardInputType} from 'components/payment_form/card_input';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import './self_hosted_expansion_modal.scss';
 

@@ -2,8 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
+import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
+
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {requestCloudTrial, validateWorkspaceBusinessEmail, getCloudLimits} from 'actions/cloud';
 import {trackEvent} from 'actions/telemetry_actions';
@@ -17,8 +20,6 @@ import {ModalIdentifiers, TELEMETRY_CATEGORIES, LicenseLinks} from 'utils/consta
 
 import RequestBusinessEmailModal from './request_business_email_modal';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-import type {ReactNode} from 'react';
 import './cloud_start_trial_btn.scss';
 
 export type CloudStartTrialBtnProps = {

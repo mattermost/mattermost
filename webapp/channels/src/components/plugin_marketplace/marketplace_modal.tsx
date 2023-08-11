@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {ReactNode} from 'react';
 import {Tabs, Tab} from 'react-bootstrap';
+import type {SelectCallback} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
+
+import debounce from 'lodash/debounce';
 
 import {MagnifyIcon} from '@mattermost/compass-icons/components';
 import {FooterPagination, GenericModal} from '@mattermost/components';
@@ -14,6 +17,7 @@ import {FooterPagination, GenericModal} from '@mattermost/components';
 import {getPluginStatuses} from 'mattermost-redux/actions/admin';
 import {setFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/actions/general';
 import {getFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/selectors/entities/general';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {fetchListing, filterListing} from 'actions/marketplace';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -24,14 +28,10 @@ import {isModalOpen} from 'selectors/views/modals';
 import LoadingScreen from 'components/loading_screen';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
+import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 
 import MarketplaceList, {ITEMS_PER_PAGE} from './marketplace_list/marketplace_list';
-
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ReactNode} from 'react';
-import type {SelectCallback} from 'react-bootstrap';
-import type {GlobalState} from 'types/store';
 
 import './marketplace_modal.scss';
 

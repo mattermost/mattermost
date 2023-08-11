@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, mount} from 'enzyme';
 import React from 'react';
+
+import {shallow, mount} from 'enzyme';
 
 import PostMessageView from 'components/post_view/post_message_view/post_message_view';
 

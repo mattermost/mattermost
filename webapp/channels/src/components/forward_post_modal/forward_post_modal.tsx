@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useRef, useState} from 'react';
 import {FormattedList, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
+import type {ValueType} from 'react-select';
+
+import classNames from 'classnames';
 
 import {GenericModal} from '@mattermost/components';
+import type {PostPreviewMetadata} from '@mattermost/types/posts';
 
 import {General, Permissions} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -18,17 +21,15 @@ import {getPermalinkURL} from 'selectors/urls';
 import NotificationBox from 'components/notification_box';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 
+import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
 import ForwardPostChannelSelect, {makeSelectedChannelOption} from './forward_post_channel_select';
+import type {ChannelOption} from './forward_post_channel_select';
 import ForwardPostCommentInput from './forward_post_comment_input';
 
-import type {ChannelOption} from './forward_post_channel_select';
 import type {ActionProps, OwnProps, PropsFromRedux} from './index';
-import type {PostPreviewMetadata} from '@mattermost/types/posts';
-import type {ValueType} from 'react-select';
-import type {GlobalState} from 'types/store';
 
 import './forward_post_modal.scss';
 

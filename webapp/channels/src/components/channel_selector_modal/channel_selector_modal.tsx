@@ -5,15 +5,16 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import MultiSelect from 'components/multiselect/multiselect';
+import type {Value} from 'components/multiselect/multiselect';
 
 import Constants from 'utils/constants';
 import {localizeMessage, compareChannels} from 'utils/utils';
-
-import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
-import type {Value} from 'components/multiselect/multiselect';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 type ChannelWithTeamDataValue = ChannelWithTeamData & Value;
 

@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React, {PureComponent} from 'react';
+import type {CSSProperties} from 'react';
 import {Tab, Tabs} from 'react-bootstrap';
+
+import type {Emoji} from '@mattermost/types/emojis';
 
 import {makeAsyncComponent} from 'components/async_load';
 import EmojiPicker from 'components/emoji_picker';
 import EmojiPickerHeader from 'components/emoji_picker/components/emoji_picker_header';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 import GfycatIcon from 'components/widgets/icons/gfycat_icon';
-
-import type {Emoji} from '@mattermost/types/emojis';
-import type {CSSProperties} from 'react';
 
 const GifPicker = makeAsyncComponent('GifPicker', React.lazy(() => import('components/gif_picker/gif_picker')));
 

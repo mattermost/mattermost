@@ -1,11 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import debounce from 'lodash/debounce';
 import React, {useState, useEffect, useRef} from 'react';
+import type {ChangeEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {CSSTransition} from 'react-transition-group';
+
+import debounce from 'lodash/debounce';
+
+import type {Team} from '@mattermost/types/teams';
 
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
@@ -23,11 +27,8 @@ import OrganizationStatus, {TeamApiError} from './organization_status';
 import PageBody from './page_body';
 import PageLine from './page_line';
 import {Animations, mapAnimationReasonToClass} from './steps';
-import Title from './title';
-
 import type {Form, PreparingWorkspacePageProps} from './steps';
-import type {Team} from '@mattermost/types/teams';
-import type {ChangeEvent} from 'react';
+import Title from './title';
 
 import './organization.scss';
 

@@ -7,7 +7,6 @@ import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import TopButtons from './top_buttons';
-
 import type {Props} from './top_buttons';
 
 const mockOnCopyTextClick = jest.fn();

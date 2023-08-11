@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {autocompleteChannels} from 'mattermost-redux/actions/channels';
-
-import {autocompleteUsersInChannel} from 'actions/views/channel';
-
-import {Constants} from 'utils/constants';
-
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {AutocompleteSuggestion} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
+
+import {autocompleteChannels} from 'mattermost-redux/actions/channels';
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {autocompleteUsersInChannel} from 'actions/views/channel';
+
 import type {GlobalState} from 'types/store';
+import {Constants} from 'utils/constants';
 
 export const COMMAND_SUGGESTION_CHANNEL = Constants.Integrations.COMMAND_SUGGESTION_CHANNEL;
 export const COMMAND_SUGGESTION_USER = Constants.Integrations.COMMAND_SUGGESTION_USER;

@@ -1,14 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import moment from 'moment-timezone';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch} from 'react-router-dom';
 
+import classNames from 'classnames';
+import type {Moment} from 'moment-timezone';
+import moment from 'moment-timezone';
+
 import {GenericModal} from '@mattermost/components';
+import type {Emoji} from '@mattermost/types/emojis';
+import type {UserCustomStatus} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {setCustomStatusInitialisationState} from 'mattermost-redux/actions/preferences';
@@ -28,17 +32,13 @@ import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
+import type {GlobalState} from 'types/store';
 import {A11yCustomEventTypes, Constants, ModalIdentifiers} from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 import {localizeMessage} from 'utils/utils';
-
-import type {Emoji} from '@mattermost/types/emojis';
-import type {UserCustomStatus} from '@mattermost/types/users';
-import type {Moment} from 'moment-timezone';
-import type {GlobalState} from 'types/store';
-import type {A11yFocusEventDetail} from 'utils/constants';
 
 import 'components/category_modal.scss';
 import './custom_status.scss';

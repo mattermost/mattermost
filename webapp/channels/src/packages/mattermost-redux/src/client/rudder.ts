@@ -5,9 +5,9 @@
 // See https://github.com/rudderlabs/rudder-sdk-js#step-1-install-rudderstack-using-the-code-snippet
 import * as rudderAnalytics from 'rudder-sdk-js';
 
-import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
-
 import type {TelemetryHandler} from '@mattermost/client';
+
+import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 export {rudderAnalytics};
 

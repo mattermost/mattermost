@@ -8,7 +8,12 @@ import {
     defineMessages,
     injectIntl,
 } from 'react-intl';
+import type {
+    IntlShape} from 'react-intl';
 import {Provider} from 'react-redux';
+
+import type {StatusOK} from '@mattermost/types/client4';
+import type {UserProfile} from '@mattermost/types/users';
 
 import store from 'stores/redux_store.jsx';
 
@@ -18,11 +23,6 @@ import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as NotificationSounds from 'utils/notification_sounds';
 import * as Utils from 'utils/utils';
-
-import type {StatusOK} from '@mattermost/types/client4';
-import type {UserProfile} from '@mattermost/types/users';
-import type {
-    IntlShape} from 'react-intl';
 
 const UserSettings = React.lazy(() => import(/* webpackPrefetch: true */ 'components/user_settings'));
 const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ '../../settings_sidebar'));

@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {shallow} from 'enzyme';
+import type {ReactWrapper} from 'enzyme';
 
 import DisplayName from 'components/create_team/components/display_name';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import Constants from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
-
-import type {ReactWrapper} from 'enzyme';
 
 jest.mock('images/logo.png', () => 'logo.png');
 

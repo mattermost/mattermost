@@ -2,21 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {IntlShape} from 'react-intl';
 
 import {SelfHostedSignupProgress} from '@mattermost/types/cloud';
+import type {ExperimentalSettings, PluginSettings, SSOSettings, Office365Settings} from '@mattermost/types/config';
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import AdminDefinition from 'components/admin_console/admin_definition';
 import AdminSidebar from 'components/admin_console/admin_sidebar/admin_sidebar';
+import type {Props} from 'components/admin_console/admin_sidebar/admin_sidebar';
 
 import {samplePlugin1} from 'tests/helpers/admin_console_plugin_index_sample_pluings';
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {generateIndex} from 'utils/admin_console_index';
-
-import type {ExperimentalSettings, PluginSettings, SSOSettings, Office365Settings} from '@mattermost/types/config';
-import type {Props} from 'components/admin_console/admin_sidebar/admin_sidebar';
-import type {IntlShape} from 'react-intl';
 
 jest.mock('utils/utils', () => {
     const original = jest.requireActual('utils/utils');

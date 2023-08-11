@@ -3,11 +3,11 @@
 
 import React from 'react';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import {Client4} from 'mattermost-redux/client';
 
 import ProfilePicture from 'components/profile_picture';
-
-import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
     user: UserProfile;

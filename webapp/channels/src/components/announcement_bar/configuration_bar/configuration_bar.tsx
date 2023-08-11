@@ -2,8 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 import {Link} from 'react-router-dom';
+
+import type {ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
+import type {PreferenceType} from '@mattermost/types/preferences';
+
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -22,12 +29,6 @@ import {getViewportSize} from 'utils/utils';
 import AnnouncementBar from '../default_announcement_bar';
 import RenewalLink from '../renewal_link/';
 import TextDismissableBar from '../text_dismissable_bar';
-
-import type {ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-import type {ReactNode} from 'react';
-import type {IntlShape} from 'react-intl';
 
 type Props = {
     config?: Partial<ClientConfig>;

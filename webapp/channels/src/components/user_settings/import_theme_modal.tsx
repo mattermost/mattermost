@@ -4,11 +4,10 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
-
-import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import type {WrappedComponentProps} from 'react-intl';
+import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
 
 interface Props extends WrappedComponentProps {
     callback: ((args: Theme) => void) | null;

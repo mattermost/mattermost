@@ -10,12 +10,11 @@ import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
+import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 
 import Content from './content';
 import SelfHostedContent from './self_hosted_content';
-
-import type {GlobalState} from 'types/store';
 
 import './pricing_modal.scss';
 

@@ -2,10 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
+import type {CSSProperties} from 'react';
 import {FormattedMessage} from 'react-intl';
+
 import styled from 'styled-components';
 
 import {CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
+import type {PostPriorityMetadata} from '@mattermost/types/posts';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import {HasNoMentions, HasSpecialMentions} from 'components/post_priority/error_messages';
@@ -13,9 +16,6 @@ import PriorityLabel from 'components/post_priority/post_priority_label';
 import Tooltip from 'components/tooltip';
 
 import Constants from 'utils/constants';
-
-import type {PostPriorityMetadata} from '@mattermost/types/posts';
-import type {CSSProperties} from 'react';
 
 type Props = {
     canRemove: boolean;

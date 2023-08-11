@@ -1,8 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import type {ComponentProps} from 'react';
+
+import type {DynamicSizeList} from 'dynamic-virtualized-list';
+import {shallow} from 'enzyme';
 
 import {DATE_LINE} from 'mattermost-redux/utils/post_list';
 
@@ -11,9 +14,6 @@ import PostListRow from 'components/post_view/post_list_row';
 import {PostListRowListIds, PostRequestTypes} from 'utils/constants';
 
 import PostList from './post_list_virtualized';
-
-import type {DynamicSizeList} from 'dynamic-virtualized-list';
-import type {ComponentProps} from 'react';
 
 describe('PostList', () => {
     const baseActions = {

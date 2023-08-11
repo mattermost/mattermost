@@ -5,11 +5,16 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import type {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
+
 import {debounce} from 'mattermost-redux/actions/helpers';
+import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';
+import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import type {FilterOptions} from 'components/admin_console/filter/filter';
 import TeamFilterDropdown from 'components/admin_console/filter/team_filter_dropdown';
 import {PAGE_SIZE} from 'components/admin_console/team_channel_settings/abstract_list';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
@@ -20,11 +25,6 @@ import LockIcon from 'components/widgets/icons/lock_icon';
 import {getHistory} from 'utils/browser_history';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
-
-import type {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
-import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
-import type {FilterOptions} from 'components/admin_console/filter/filter';
-import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
 import './channel_list.scss';
 

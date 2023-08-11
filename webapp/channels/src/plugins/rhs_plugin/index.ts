@@ -5,10 +5,10 @@ import {connect} from 'react-redux';
 
 import {getPluggableId} from 'selectors/rhs';
 
-import RHSPlugin from './rhs_plugin';
-
 import type {GlobalState} from 'types/store';
 import type {PluginComponent} from 'types/store/plugins';
+
+import RHSPlugin from './rhs_plugin';
 
 function mapStateToProps(state: GlobalState) {
     const rhsPlugins: PluginComponent[] = state.plugins.components.RightHandSidebarComponent;

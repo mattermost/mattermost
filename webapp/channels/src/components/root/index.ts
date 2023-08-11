@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {getFirstAdminSetupComplete} from 'mattermost-redux/actions/general';
 import {getProfiles} from 'mattermost-redux/actions/users';
@@ -11,6 +13,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {shouldShowTermsOfService, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {Action} from 'mattermost-redux/types/actions';
 
 import {migrateRecentEmojis} from 'actions/emoji_actions';
 import {emitBrowserWindowResized} from 'actions/views/browser';
@@ -25,13 +28,10 @@ import {
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {initializeProducts} from 'plugins/products';
+import type {GlobalState} from 'types/store/index';
 
 import Root from './root';
-
 import type {Actions} from './root';
-import type {Action} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store/index';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

@@ -5,6 +5,11 @@ import React from 'react';
 import {Overlay} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {Redirect} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
@@ -29,11 +34,6 @@ import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import {Constants} from 'utils/constants';
 import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
-
-import type {ServerError} from '@mattermost/types/errors';
-import type {Team, TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {RouteComponentProps} from 'react-router-dom';
 
 import './system_user_detail.scss';
 

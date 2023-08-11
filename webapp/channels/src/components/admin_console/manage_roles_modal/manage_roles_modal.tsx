@@ -5,8 +5,11 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -17,9 +20,6 @@ import Avatar from 'components/widgets/users/avatar';
 
 import {isSuccess} from 'types/actions';
 import {DeveloperLinks} from 'utils/constants';
-
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export type Props = {
     show: boolean;

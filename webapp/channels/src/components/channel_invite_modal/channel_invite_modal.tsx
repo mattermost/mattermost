@@ -5,11 +5,17 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
+
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermost-redux/utils/user_utils';
 
 import InvitationModal from 'components/invitation_modal';
 import MultiSelect from 'components/multiselect/multiselect';
+import type {Value} from 'components/multiselect/multiselect';
 import ProfilePicture from 'components/profile_picture';
 import ToggleModalButton from 'components/toggle_modal_button';
 import AddIcon from 'components/widgets/icons/fa_add_icon';
@@ -18,12 +24,6 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
-import type {Value} from 'components/multiselect/multiselect';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 const USERS_PER_PAGE = 50;
 const USERS_FROM_DMS = 10;
@@ -275,14 +275,13 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                             <span>{displayName}</span>
                             {option.is_bot && <BotTag/>}
                             {isGuest(option.roles) && <GuestTag className='popoverlist'/>}
-                            {displayName === option.username ?
-                                null :
+                            {displayName === option.username ? null : (
                                 <span
                                     className='ml-2 light flex-auto'
                                 >
                                     {'@'}{option.username}
                                 </span>
-                            }
+                            )}
                             <span
                                 className='ml-2 light flex-auto'
                             >

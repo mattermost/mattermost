@@ -5,14 +5,14 @@ import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {Placement} from 'tippy.js';
+
 import {TourTip, useMeasurePunchouts} from '@mattermost/components';
 
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {Preferences} from 'mattermost-redux/constants';
 
 import {showNewChannelWithBoardPulsatingDot} from 'selectors/plugins';
-
-import type {Placement} from 'tippy.js';
 
 type Props = {
     pulsatingDotPlacement?: Omit<Placement, 'auto'| 'auto-end'>;

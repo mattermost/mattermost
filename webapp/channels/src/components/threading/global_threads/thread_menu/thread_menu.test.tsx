@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+import type {ComponentProps} from 'react';
+
 import {shallow} from 'enzyme';
 import {set} from 'lodash';
-import React from 'react';
 
 import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
 
@@ -16,12 +18,10 @@ import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import Menu from 'components/widgets/menu/menu';
 
 import {fakeDate} from 'tests/helpers/date';
+import type {GlobalState} from 'types/store';
 import {copyToClipboard} from 'utils/utils';
 
 import ThreadMenu from '../thread_menu';
-
-import type {ComponentProps} from 'react';
-import type {GlobalState} from 'types/store';
 
 jest.mock('mattermost-redux/actions/threads');
 jest.mock('actions/views/threads');

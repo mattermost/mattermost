@@ -8,14 +8,13 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import QuickSwitchModal from 'components/quick_switch_modal';
 
+import type {ModalData} from 'types/actions';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import ChannelFilter from '../channel_filter';
-
-import type {ModalData} from 'types/actions';
 
 export type Props = {
     canGoForward: boolean;

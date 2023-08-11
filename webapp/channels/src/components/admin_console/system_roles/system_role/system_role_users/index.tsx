@@ -2,22 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getFilteredUsersStats, getProfiles, searchProfiles} from 'mattermost-redux/actions/users';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getProfiles as selectProfiles, getFilteredUsersStats as selectFilteredUserStats, makeSearchProfilesStartingWithTerm, filterProfiles} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
 
 import {setUserGridSearch} from 'actions/views/search';
 
-import SystemRoleUsers from './system_role_users';
-
-import type {Props} from './system_role_users';
-import type {UserProfile} from '@mattermost/types/users';
-import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import SystemRoleUsers from './system_role_users';
+import type {Props} from './system_role_users';
 
 type OwnProps = {
     roleName: string;

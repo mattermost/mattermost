@@ -1,11 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {cloneDeep} from 'lodash';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {cloneDeep} from 'lodash';
+
 import {SyncableType} from '@mattermost/types/groups';
+import type {Group, SyncablePatch} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
@@ -24,11 +30,6 @@ import {TeamProfile} from './team_profile';
 import {NeedDomainsError, NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
 import RemoveConfirmModal from '../../remove_confirm_modal';
 import SaveChangesPanel from '../../save_changes_panel';
-
-import type {Group, SyncablePatch} from '@mattermost/types/groups';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export type Props = {
     teamID: string;

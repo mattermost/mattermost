@@ -2,24 +2,26 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {getProfilesInGroup as getUsersInGroup, searchProfiles} from 'mattermost-redux/actions/users';
 import {getGroup as getGroupById} from 'mattermost-redux/selectors/entities/groups';
 import {getProfilesInGroup, searchProfilesInGroup} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 import {setModalSearchTerm} from 'actions/views/search';
 
-import ViewUserGroupModal from './view_user_group_modal';
-
-import type {Group} from '@mattermost/types/groups';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
+
+import ViewUserGroupModal from './view_user_group_modal';
 
 type Actions = {
     getGroup: (groupId: string, includeMemberCount: boolean) => Promise<{data: Group}>;

@@ -5,6 +5,8 @@ import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {Post} from '@mattermost/types/posts';
+import type {UserThread} from '@mattermost/types/threads';
 import {threadIsSynthetic} from '@mattermost/types/threads';
 
 import {setThreadFollow, getThread as fetchThread} from 'mattermost-redux/actions/threads';
@@ -23,8 +25,6 @@ import Timestamp from 'components/timestamp';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Avatars from 'components/widgets/users/avatars';
 
-import type {Post} from '@mattermost/types/posts';
-import type {UserThread} from '@mattermost/types/threads';
 import type {GlobalState} from 'types/store';
 
 import './thread_footer.scss';

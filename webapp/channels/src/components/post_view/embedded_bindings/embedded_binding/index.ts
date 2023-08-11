@@ -3,11 +3,11 @@
 
 import {connect} from 'react-redux';
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
 import EmbeddedBinding from './embedded_binding';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 function mapStateToProps(state: GlobalState) {
     return {

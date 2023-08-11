@@ -4,6 +4,7 @@
 import type {Channel} from '@mattermost/types/channels';
 import type {Post, PostType} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
+
 import type {RHSStates} from 'utils/constants';
 
 export type SearchType = '' | 'files' | 'messages';

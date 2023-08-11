@@ -6,6 +6,7 @@ import {FormattedDate, FormattedMessage, FormattedNumber} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -21,8 +22,6 @@ import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
 import {BillingSchemes, CloudLinks, TrialPeriodDays, ModalIdentifiers} from 'utils/constants';
-
-import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 
 export const noBillingHistory = (
     <div className='BillingSummary__noBillingHistory'>

@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import UserSettingsSecurity from './user_settings_security';
+import {shallow} from 'enzyme';
 
 import type {UserProfile} from '@mattermost/types/users';
+
 import type * as Utils from 'utils/utils';
+
+import UserSettingsSecurity from './user_settings_security';
 
 jest.mock('utils/utils', () => {
     const original = jest.requireActual('utils/utils');

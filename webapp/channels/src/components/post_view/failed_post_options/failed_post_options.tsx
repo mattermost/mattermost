@@ -2,13 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
+
 import type {ExtendedPost} from 'mattermost-redux/actions/posts';
 import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import type {MouseEvent} from 'react';
 
 type CreatePostAction =
     (post: Post, files: FileInfo[]) => (dispatch: DispatchFunc) => Promise<{data?: boolean}>;

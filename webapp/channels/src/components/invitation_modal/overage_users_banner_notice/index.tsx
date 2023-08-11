@@ -5,6 +5,8 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {PreferenceType} from '@mattermost/types/preferences';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
@@ -17,13 +19,11 @@ import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpa
 import {useExpandOverageUsersCheck} from 'components/common/hooks/useExpandOverageUsersCheck';
 import ExternalLink from 'components/external_link';
 
+import type {GlobalState} from 'types/store';
 import {LicenseLinks, StatTypes, Preferences, ConsolePages} from 'utils/constants';
 import {getIsGovSku} from 'utils/license_utils';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 import {getSiteURL} from 'utils/url';
-
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {GlobalState} from 'types/store';
 
 import './overage_users_banner_notice.scss';
 

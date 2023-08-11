@@ -3,12 +3,12 @@
 
 import React, {memo} from 'react';
 
+import type {Post} from '@mattermost/types/posts';
+
 import PostComponent from 'components/post';
+import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 import {Locations} from 'utils/constants';
-
-import type {Post} from '@mattermost/types/posts';
-import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 type Props = {
     a11yIndex: number;

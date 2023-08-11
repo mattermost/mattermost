@@ -1,7 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {Channel} from '@mattermost/types/channels';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
@@ -20,9 +23,6 @@ import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled} from 'mattermost-r
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
-import type {ChannelCategory} from '@mattermost/types/channel_categories';
-import type {Channel} from '@mattermost/types/channels';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
 import type {DraggingState, GlobalState} from 'types/store';
 
 export function isUnreadFilterEnabled(state: GlobalState): boolean {

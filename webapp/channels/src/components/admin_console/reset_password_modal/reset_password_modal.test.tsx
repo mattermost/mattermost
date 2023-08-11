@@ -1,17 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {shallow} from 'enzyme';
+
+import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
 import ResetPasswordModal from './reset_password_modal';
-
-import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 describe('components/admin_console/reset_password_modal/reset_password_modal.tsx', () => {
     const emptyFunction = jest.fn();

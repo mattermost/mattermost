@@ -2,23 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React, {createRef} from 'react';
+import type {ChangeEvent, ClipboardEvent, MouseEvent, RefObject} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
 
 import LocalizedIcon from 'components/localized_icon';
 import OverlayTrigger from 'components/overlay_trigger';
+import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import Popover from 'components/widgets/popover';
 
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import ColorChooser from '../color_chooser/color_chooser';
-
-import type {BaseOverlayTrigger} from 'components/overlay_trigger';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import type {ChangeEvent, ClipboardEvent, MouseEvent, RefObject} from 'react';
-import type {MessageDescriptor} from 'react-intl';
 
 const COPY_SUCCESS_INTERVAL = 3000;
 

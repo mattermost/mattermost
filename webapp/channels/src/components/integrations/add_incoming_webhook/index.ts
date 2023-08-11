@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
-
-import {createIncomingHook} from 'mattermost-redux/actions/integrations';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-import AddIncomingWebhook from './add_incoming_webhook';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {GlobalState} from '@mattermost/types/store';
+
+import {createIncomingHook} from 'mattermost-redux/actions/integrations';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import type {Action, GenericAction} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import AddIncomingWebhook from './add_incoming_webhook';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

@@ -3,14 +3,14 @@
 
 import React from 'react';
 
+import type {Post, PostImage as PostImageMetadata} from '@mattermost/types/posts';
+
 import ExternalImage from 'components/external_image';
 import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
 
-import {ModalIdentifiers} from 'utils/constants';
-
-import type {Post, PostImage as PostImageMetadata} from '@mattermost/types/posts';
 import type {ModalData} from 'types/actions';
+import {ModalIdentifiers} from 'utils/constants';
 
 interface Props {
     imageMetadata: PostImageMetadata;

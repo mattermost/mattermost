@@ -16,14 +16,13 @@ import {trackEvent} from 'actions/telemetry_actions';
 import {useDelinquencySubscription} from 'components/common/hooks/useDelinquencySubscription';
 import {NotifyStatus, useGetNotifyAdmin} from 'components/common/hooks/useGetNotifyAdmin';
 
+import type {GlobalState} from 'types/store';
 import {
     AnnouncementBarTypes, CloudProducts, CloudProductToSku, MattermostFeatures, Preferences, TELEMETRY_CATEGORIES,
 } from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import AnnouncementBar from '../default_announcement_bar';
-
-import type {GlobalState} from 'types/store';
 
 export const BannerPreferenceName = 'notify_upgrade_workspace_banner';
 

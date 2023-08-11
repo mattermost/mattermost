@@ -4,11 +4,19 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {StatusOK} from '@mattermost/types/client4';
+import type {ClientLicense} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import {trackEvent} from 'actions/telemetry_actions';
 
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import type {ModalData} from 'types/actions';
 import {AboutLinks, CloudLinks, ModalIdentifiers} from 'utils/constants';
 import {isLicenseExpired, isLicenseExpiring, isTrialLicense, isEnterpriseOrE20License, licenseSKUWithFirstLetterCapitalized} from 'utils/license_utils';
 
@@ -24,13 +32,6 @@ import TeamEditionLeftPanel from './team_edition/team_edition_left_panel';
 import TeamEditionRightPanel from './team_edition/team_edition_right_panel';
 import TrialBanner from './trial_banner/trial_banner';
 import TrialLicenseCard from './trial_license_card/trial_license_card';
-
-import type {StatusOK} from '@mattermost/types/client4';
-import type {ClientLicense} from '@mattermost/types/config';
-import type {ServerError} from '@mattermost/types/errors';
-import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ModalData} from 'types/actions';
 
 import './license_settings.scss';
 

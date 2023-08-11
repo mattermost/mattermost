@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Team} from '@mattermost/types/teams';
+
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import NextIcon from 'components/widgets/icons/fa_next_icon';
@@ -11,8 +13,6 @@ import NextIcon from 'components/widgets/icons/fa_next_icon';
 import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
-
-import type {Team} from '@mattermost/types/teams';
 
 type CreateTeamState = {
     team?: Partial<Team>;

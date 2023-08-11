@@ -4,15 +4,15 @@
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {ClientLicense} from '@mattermost/types/config';
+import type {Role} from '@mattermost/types/roles';
+
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import EditPostTimeLimitButton from '../edit_post_time_limit_button';
 import EditPostTimeLimitModal from '../edit_post_time_limit_modal';
 import PermissionGroup from '../permission_group';
-
 import type {Permissions as PermissionsType} from '../permissions_tree/types';
-import type {ClientLicense} from '@mattermost/types/config';
-import type {Role} from '@mattermost/types/roles';
 
 type Props = {
     license: ClientLicense;

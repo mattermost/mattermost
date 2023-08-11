@@ -1,28 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel, ChannelType} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+
 import {TeamTypes} from 'mattermost-redux/action_types';
 import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import JoinPrivateChannelModal from 'components/join_private_channel_modal';
 
+import type {GlobalState} from 'types/store';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import {getHistory} from './browser_history';
 import {cleanUpUrlable} from './url';
-
-import type {Channel, ChannelType} from '@mattermost/types/channels';
-import type {Team} from '@mattermost/types/teams';
-import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
-import type {GlobalState} from 'types/store';
 
 export function canManageMembers(state: GlobalState, channel: Channel) {
     if (channel.type === Constants.PRIVATE_CHANNEL) {

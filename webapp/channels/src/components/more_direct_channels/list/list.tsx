@@ -4,15 +4,15 @@
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import MultiSelect from 'components/multiselect/multiselect';
 
 import Constants from 'utils/constants';
 
 import ListItem from '../list_item';
 import {optionValue} from '../types';
-
 import type {Option, OptionValue} from '../types';
-import type {UserProfile} from '@mattermost/types/users';
 
 const MAX_SELECTABLE_VALUES = Constants.MAX_USERS_IN_GM - 1;
 export const USERS_PER_PAGE = 50;

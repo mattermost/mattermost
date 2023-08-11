@@ -1,14 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import MuiMenuList from '@mui/material/MenuList';
 import React, {
     useState,
     useEffect,
     useMemo,
     useCallback,
 } from 'react';
+import type {
+    ReactNode,
+    MouseEvent,
+    KeyboardEvent,
+    SyntheticEvent} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+
+import MuiMenuList from '@mui/material/MenuList';
 
 import {GenericModal} from '@mattermost/components';
 
@@ -26,12 +32,6 @@ import {isKeyPressed} from 'utils/keyboard';
 
 import {MenuContext} from './menu_context';
 import {MuiMenuStyled} from './menu_styled';
-
-import type {
-    ReactNode,
-    MouseEvent,
-    KeyboardEvent,
-    SyntheticEvent} from 'react';
 
 const OVERLAY_TIME_DELAY = 500;
 const MENU_OPEN_ANIMATION_DURATION = 150;

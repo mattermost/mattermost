@@ -2,8 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {CSSProperties} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+
+import type {WarnMetricStatus} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {GetFilteredUsersStatsOpts, UsersStats, UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -15,12 +22,6 @@ import {ModalIdentifiers, WarnMetricTypes} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getSiteURL} from 'utils/url';
 import * as Utils from 'utils/utils';
-
-import type {WarnMetricStatus} from '@mattermost/types/config';
-import type {ServerError} from '@mattermost/types/errors';
-import type {GetFilteredUsersStatsOpts, UsersStats, UserProfile} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {CSSProperties} from 'react';
 
 type Props = {
     user: UserProfile;

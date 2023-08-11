@@ -3,11 +3,12 @@
 
 import React from 'react';
 
-import EmbeddedBinding from './embedded_binding';
-
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Post} from '@mattermost/types/posts';
+
 import type {TextFormattingOptions} from 'utils/text_formatting';
+
+import EmbeddedBinding from './embedded_binding';
 
 type Props = {
 

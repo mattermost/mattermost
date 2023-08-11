@@ -7,7 +7,6 @@ import {useIntl} from 'react-intl';
 import {PostPriority} from '@mattermost/types/posts';
 
 import Tag from 'components/widgets/tag/tag';
-
 import type {TagSize} from 'components/widgets/tag/tag';
 
 type Props = {

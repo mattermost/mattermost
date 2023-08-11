@@ -4,6 +4,7 @@
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+
 import styled from 'styled-components';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -18,10 +19,9 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import NotifyAdminCTA from 'components/notify_admin_cta/notify_admin_cta';
 import Tooltip from 'components/tooltip';
 
+import type {GlobalState} from 'types/store';
 import {CloudProducts, LicenseSkus, MattermostFeatures, Preferences} from 'utils/constants';
 import {asGBString} from 'utils/limits';
-
-import type {GlobalState} from 'types/store';
 
 interface FileLimitSnoozePreference {
     lastSnoozeTimestamp: number;

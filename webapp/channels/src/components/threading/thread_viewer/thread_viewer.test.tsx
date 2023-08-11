@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import {fakeDate} from 'tests/helpers/date';
-import {TestHelper} from 'utils/test_helper';
+import {shallow} from 'enzyme';
 
-import ThreadViewer from './thread_viewer';
-
-import type {Props} from './thread_viewer';
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
+
+import {fakeDate} from 'tests/helpers/date';
 import type {FakePost} from 'types/store/rhs';
+import {TestHelper} from 'utils/test_helper';
+
+import ThreadViewer from './thread_viewer';
+import type {Props} from './thread_viewer';
 
 describe('components/threading/ThreadViewer', () => {
     const post: Post = TestHelper.getPostMock({

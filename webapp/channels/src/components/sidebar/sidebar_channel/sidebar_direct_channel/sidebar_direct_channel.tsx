@@ -3,6 +3,11 @@
 
 import React from 'react';
 import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -14,11 +19,6 @@ import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
 
 import SidebarChannelLink from '../sidebar_channel_link';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserProfile} from '@mattermost/types/users';
-import type {IntlShape} from 'react-intl';
 
 type Props = {
     intl: IntlShape;

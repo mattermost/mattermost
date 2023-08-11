@@ -3,7 +3,9 @@
 
 import {batchActions} from 'redux-batched-actions';
 
+import type {OrderedChannelCategories, ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {Channel} from '@mattermost/types/channels';
 
 import {ChannelCategoryTypes, ChannelTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -18,17 +20,14 @@ import {
     getCategoryInTeamWithChannel,
 } from 'mattermost-redux/selectors/entities/channel_categories';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {insertMultipleWithoutDuplicates, insertWithoutDuplicates, removeItem} from 'mattermost-redux/utils/array_utils';
-
-import {General} from '../constants';
-
-import type {OrderedChannelCategories, ChannelCategory} from '@mattermost/types/channel_categories';
-import type {Channel} from '@mattermost/types/channels';
 import type {
     ActionFunc,
     DispatchFunc,
     GetStateFunc,
 } from 'mattermost-redux/types/actions';
+import {insertMultipleWithoutDuplicates, insertWithoutDuplicates, removeItem} from 'mattermost-redux/utils/array_utils';
+
+import {General} from '../constants';
 
 export function expandCategory(categoryId: string) {
     return setCategoryCollapsed(categoryId, false);

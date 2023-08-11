@@ -2,19 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {updateUserPassword} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
+import type {GlobalState} from 'types/store';
 import {getPasswordConfig} from 'utils/utils';
 
 import ResetPasswordModal from './reset_password_modal';
-
-import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
-import type {GlobalState} from 'types/store';
 
 type Actions = {
     updateUserPassword: (userId: string, currentPassword: string, password: string) => ActionResult;

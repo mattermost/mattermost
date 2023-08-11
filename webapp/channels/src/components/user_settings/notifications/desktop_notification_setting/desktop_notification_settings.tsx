@@ -2,20 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ChangeEvent, RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
+import type {ValueType} from 'react-select';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
 
 import {NotificationLevels} from 'utils/constants';
 import {t} from 'utils/i18n';
 import * as NotificationSounds from 'utils/notification_sounds';
 import * as Utils from 'utils/utils';
-
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
-import type {ChangeEvent, RefObject} from 'react';
-import type {ValueType} from 'react-select';
 
 type SelectedOption = {
     label: string;

@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import type {getOptionValue} from 'react-select/src/builtins';
 
 import LoadingScreen from 'components/loading_screen';
 
@@ -10,7 +11,6 @@ import Constants from 'utils/constants';
 import {cmdOrCtrlPressed} from 'utils/keyboard';
 
 import type {Value} from './multiselect';
-import type {getOptionValue} from 'react-select/src/builtins';
 
 export type Props<T extends Value> = {
     ariaLabelRenderer: getOptionValue<T>;

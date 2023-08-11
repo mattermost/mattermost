@@ -5,9 +5,9 @@ import {connect} from 'react-redux';
 
 import {getCurrentLocale} from 'selectors/i18n';
 
-import TextboxLinks from './textbox_links';
-
 import type {GlobalState} from 'types/store';
+
+import TextboxLinks from './textbox_links';
 
 function mapStateToProps(state: GlobalState) {
     return ({

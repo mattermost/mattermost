@@ -4,13 +4,13 @@
 import {useState, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {MetadataGatherWireTransferKeys} from '@mattermost/types/cloud';
 import {TypePurchases} from '@mattermost/types/cloud';
 
 import {updateCloudCustomer} from 'mattermost-redux/actions/cloud';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import type {MetadataGatherWireTransferKeys} from '@mattermost/types/cloud';
 import type {GlobalState} from 'types/store';
 
 interface UseGatherIntentArgs {

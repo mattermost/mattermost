@@ -3,10 +3,16 @@
 
 import {cloneDeep, set} from 'lodash';
 import {batchActions} from 'redux-batched-actions';
+import type {MockStoreEnhanced} from 'redux-mock-store';
+
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import * as SearchActions from 'mattermost-redux/actions/search';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {
@@ -36,18 +42,12 @@ import {
 } from 'actions/views/rhs';
 
 import mockStore from 'tests/test_store';
-import {ActionTypes, RHSStates, Constants} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
-import {getBrowserUtcOffset} from 'utils/timezone';
-
-import type {Post} from '@mattermost/types/posts';
-import type {UserProfile} from '@mattermost/types/users';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-import type {MockStoreEnhanced} from 'redux-mock-store';
 import type {GlobalState} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
 import type {ViewsState} from 'types/store/views';
+import {ActionTypes, RHSStates, Constants} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
+import {getBrowserUtcOffset} from 'utils/timezone';
 
 const currentChannelId = '123';
 const currentTeamId = '321';

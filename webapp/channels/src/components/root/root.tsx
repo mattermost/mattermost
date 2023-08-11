@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+import {Route, Switch, Redirect} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
+
 import classNames from 'classnames';
 import deepEqual from 'fast-deep-equal';
 import throttle from 'lodash/throttle';
-import React from 'react';
-import {Route, Switch, Redirect} from 'react-router-dom';
 
 import {ServiceEnvironment} from '@mattermost/types/config';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
@@ -16,8 +19,10 @@ import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/r
 import {General} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, isCurrentUserSystemAdmin, checkIsFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {loadRecentlyUsedCustomEmojis} from 'actions/emoji_actions';
 import * as GlobalActions from 'actions/global_actions';
@@ -47,6 +52,7 @@ import TeamSidebar from 'components/team_sidebar';
 import webSocketClient from 'client/web_websocket_client.jsx';
 import {initializePlugins} from 'plugins';
 import Pluggable from 'plugins/pluggable';
+import type {ProductComponent, PluginComponent} from 'types/store/plugins';
 import A11yController from 'utils/a11y_controller';
 import Constants, {StoragePrefixes, WindowSizes} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
@@ -57,12 +63,6 @@ import * as Utils from 'utils/utils';
 import {applyLuxonDefaults} from './effects';
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
-
-import type {UserProfile} from '@mattermost/types/users';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {RouteComponentProps} from 'react-router-dom';
-import type {ProductComponent, PluginComponent} from 'types/store/plugins';
 
 import 'plugins/export.js';
 

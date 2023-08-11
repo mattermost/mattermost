@@ -3,9 +3,8 @@
 
 import semver from 'semver';
 
-import {suitePluginIds} from 'utils/constants';
-
 import type {GlobalState} from 'types/store';
+import {suitePluginIds} from 'utils/constants';
 
 export function isCallsEnabled(state: GlobalState, minVersion = '0.4.2') {
     return Boolean(state.plugins.plugins[suitePluginIds.calls] &&

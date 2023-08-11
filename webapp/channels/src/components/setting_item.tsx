@@ -2,11 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode, RefObject} from 'react';
 
 import SettingItemMin from 'components/setting_item_min';
-
 import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
-import type {ReactNode, RefObject} from 'react';
 
 type Props = {
 

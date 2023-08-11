@@ -1,12 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import throttle from 'lodash/throttle';
 import React, {useState, useEffect, useRef, useCallback} from 'react';
+import type {FormEvent} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link, useLocation, useHistory} from 'react-router-dom';
+
+import classNames from 'classnames';
+import throttle from 'lodash/throttle';
+
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {loadMe, loadMeREST} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
@@ -16,6 +21,7 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {getIsOnboardingFlowEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeamByName, getMyTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
@@ -26,11 +32,15 @@ import {login} from 'actions/views/login';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import AlertBanner from 'components/alert_banner';
+import type {ModeType, AlertBannerProps} from 'components/alert_banner';
+import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
 import WomanWithChatsSVG from 'components/common/svg_images_components/woman_with_chats_svg';
 import ExternalLink from 'components/external_link';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
+import type {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
+import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
 import LoadingScreen from 'components/loading_screen';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
@@ -42,22 +52,13 @@ import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
+import type {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
 import {showNotification} from 'utils/notifications';
 import {setCSRFFromCookie} from 'utils/utils';
 
 import LoginMfa from './login_mfa';
-
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ModeType, AlertBannerProps} from 'components/alert_banner';
-import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
-import type {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
-import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-import type {FormEvent} from 'react';
-import type {GlobalState} from 'types/store';
 
 import './login.scss';
 

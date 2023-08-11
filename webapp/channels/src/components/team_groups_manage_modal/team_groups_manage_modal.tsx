@@ -3,8 +3,11 @@
 
 import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import {SyncableType} from '@mattermost/types/groups';
+import type {Group, SyncablePatch} from '@mattermost/types/groups';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 import ConfirmModal from 'components/confirm_modal';
@@ -14,13 +17,9 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import groupsAvatar from 'images/groups-avatar.png';
+import type {ModalData} from 'types/actions';
 import {ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
-
-import type {Group, SyncablePatch} from '@mattermost/types/groups';
-import type {Team, TeamMembership} from '@mattermost/types/teams';
-import type {IntlShape} from 'react-intl';
-import type {ModalData} from 'types/actions';
 
 type Props = {
     intl: IntlShape;

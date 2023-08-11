@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import AlertIcon from 'components/widgets/icons/alert_icon';
@@ -13,8 +15,6 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import {imageURLForUser, getLongDisplayName} from 'utils/utils';
-
-import type {UserProfile} from '@mattermost/types/users';
 
 import './result_table.scss';
 

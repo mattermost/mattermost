@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useCallback, memo, useRef} from 'react';
-
 import type {match} from 'react-router-dom';
 
 type Props = {

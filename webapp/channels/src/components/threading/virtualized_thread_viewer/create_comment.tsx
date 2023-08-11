@@ -5,6 +5,8 @@ import React, {memo, forwardRef, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
 import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -14,11 +16,8 @@ import AdvancedCreateComment from 'components/advanced_create_comment';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import BasicSeparator from 'components/widgets/separator/basic-separator';
 
-import Constants from 'utils/constants';
-
-import type {Post} from '@mattermost/types/posts';
-import type {UserProfile} from '@mattermost/types/users';
 import type {GlobalState} from 'types/store';
+import Constants from 'utils/constants';
 
 type Props = {
     focusOnMount: boolean;

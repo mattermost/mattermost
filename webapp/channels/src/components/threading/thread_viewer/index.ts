@@ -2,7 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserThread} from '@mattermost/types/threads';
 
 import {fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
 import {getNewestPostThread, getPostThread} from 'mattermost-redux/actions/posts';
@@ -14,19 +19,16 @@ import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/pre
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {selectPostCard} from 'actions/views/rhs';
 import {updateThreadLastOpened} from 'actions/views/threads';
 import {getHighlightedPostId, getSelectedPostFocussedAt} from 'selectors/rhs';
 import {getSocketStatus} from 'selectors/views/websocket';
 
-import ThreadViewer from './thread_viewer';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {UserThread} from '@mattermost/types/threads';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import ThreadViewer from './thread_viewer';
 
 type OwnProps = {
     rootPostId: string;

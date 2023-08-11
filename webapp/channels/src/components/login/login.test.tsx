@@ -1,12 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, mount} from 'enzyme';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {MemoryRouter} from 'react-router-dom';
 
+import {shallow, mount} from 'enzyme';
+
+import type {ClientConfig} from '@mattermost/types/config';
+
 import {RequestStatus} from 'mattermost-redux/constants';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -17,11 +21,8 @@ import SaveButton from 'components/save_button';
 import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
-import Constants, {WindowSizes} from 'utils/constants';
-
-import type {ClientConfig} from '@mattermost/types/config';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 import type {GlobalState} from 'types/store';
+import Constants, {WindowSizes} from 'utils/constants';
 
 let mockState: GlobalState;
 let mockLocation = {pathname: '', search: '', hash: ''};

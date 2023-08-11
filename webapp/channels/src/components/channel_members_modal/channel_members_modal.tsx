@@ -5,13 +5,13 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import ChannelInviteModal from 'components/channel_invite_modal';
 import MemberListChannel from 'components/member_list_channel';
 
-import {ModalIdentifiers} from 'utils/constants';
-
-import type {Channel} from '@mattermost/types/channels';
 import type {ModalData} from 'types/actions';
+import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
 

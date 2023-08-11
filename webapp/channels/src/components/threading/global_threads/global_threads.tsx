@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import {isEmpty} from 'lodash';
 import React, {memo, useCallback, useEffect, useState} from 'react';
+import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 import {Link, useRouteMatch} from 'react-router-dom';
+
+import classNames from 'classnames';
+import {isEmpty} from 'lodash';
 
 import {getThreadCounts, getThreads} from 'mattermost-redux/actions/threads';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
@@ -30,6 +32,7 @@ import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import Header from 'components/widgets/header';
 
+import type {GlobalState} from 'types/store/index';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 import {Constants, PreviousViewedTypes} from 'utils/constants';
 
@@ -39,9 +42,6 @@ import ThreadPane from './thread_pane';
 import ChatIllustration from '../common/chat_illustration';
 import {useThreadRouting} from '../hooks';
 import ThreadViewer from '../thread_viewer';
-
-import type {ReactNode} from 'react';
-import type {GlobalState} from 'types/store/index';
 
 import './global_threads.scss';
 

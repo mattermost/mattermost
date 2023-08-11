@@ -3,12 +3,12 @@
 
 import React from 'react';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 import ManageLanguages from './manage_languages';
-
 import type {ManageLanguage as ManageLanguageClass} from './manage_languages';
-import type {UserProfile} from '@mattermost/types/users';
 
 describe('components/user_settings/display/manage_languages/manage_languages', () => {
     const user = {

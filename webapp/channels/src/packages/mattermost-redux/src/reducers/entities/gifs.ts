@@ -4,7 +4,6 @@
 import {combineReducers} from 'redux';
 
 import {GifTypes} from 'mattermost-redux/action_types';
-
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 type ReducerMap = {[actionType: string]: (state: any, action: GenericAction) => any};
@@ -123,17 +122,13 @@ const TERM_SELECTOR: ReducerMap = {
                 ...state[action.searchText],
                 isFetching: false,
                 items: typeof state[action.searchText] !== 'undefined' &&
-                    state[action.searchText].items ?
-                    [...state[action.searchText].items, ...newItems] :
-                    newItems,
+                    state[action.searchText].items ? [...state[action.searchText].items, ...newItems] : newItems,
                 moreRemaining:
                     typeof state[action.searchText] !== 'undefined' &&
-                    state[action.searchText].items ?
-                        [
+                    state[action.searchText].items ? [
                             ...state[action.searchText].items,
                             ...action.gfycats,
-                        ].length < action.found :
-                        action.gfycats.length < action.found,
+                        ].length < action.found : action.gfycats.length < action.found,
                 count: action.count,
                 found: action.found,
                 start: action.start,
@@ -154,9 +149,7 @@ const TERM_SELECTOR: ReducerMap = {
                 ...state[action.searchText],
                 isFetching: false,
                 items: typeof state[action.searchText] !== 'undefined' &&
-                    state[action.searchText].items ?
-                    [...state[action.searchText].items, ...newItems] :
-                    newItems,
+                    state[action.searchText].items ? [...state[action.searchText].items, ...newItems] : newItems,
                 cursor: action.cursor,
                 moreRemaining: Boolean(action.cursor),
             },

@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import {getMissingProfilesByIds, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {General, Preferences, WebsocketEvents} from 'mattermost-redux/constants';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-
-import type {GlobalState} from '@mattermost/types/store';
 import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 function getTimeBetweenTypingEvents(state: GlobalState) {

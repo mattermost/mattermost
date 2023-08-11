@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import marked from 'marked';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import marked from 'marked';
 
 import FormattedMarkdownMessage, {CustomRenderer} from 'components/formatted_markdown_message';
 

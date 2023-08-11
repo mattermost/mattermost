@@ -4,6 +4,9 @@
 import React, {useCallback} from 'react';
 import {useSelector} from 'react-redux';
 
+import type {PostPriorityMetadata} from '@mattermost/types/posts';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
 import PriorityLabels from 'components/advanced_create_post/priority_labels';
@@ -11,11 +14,8 @@ import FilePreview from 'components/file_preview';
 import Markdown from 'components/markdown';
 import ProfilePicture from 'components/profile_picture';
 
-import {imageURLForUser, handleFormattedTextClick} from 'utils/utils';
-
-import type {PostPriorityMetadata} from '@mattermost/types/posts';
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import type {PostDraft} from 'types/store/draft';
+import {imageURLForUser, handleFormattedTextClick} from 'utils/utils';
 
 import './panel_body.scss';
 

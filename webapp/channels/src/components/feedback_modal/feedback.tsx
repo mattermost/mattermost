@@ -3,18 +3,17 @@
 
 import React, {useState} from 'react';
 import {injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
+import type {Feedback} from '@mattermost/types/cloud';
 
 import {closeModal} from 'actions/views/modals';
 
 import RadioButtonGroup from 'components/common/radio_group';
 
 import {ModalIdentifiers} from 'utils/constants';
-
-import type {Feedback} from '@mattermost/types/cloud';
-import type {WrappedComponentProps} from 'react-intl';
 
 import './feedback.scss';
 

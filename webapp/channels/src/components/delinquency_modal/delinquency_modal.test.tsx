@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ComponentProps} from 'react';
 import * as reactRedux from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -13,8 +14,6 @@ import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 import {ModalIdentifiers, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import DeliquencyModal from './delinquency_modal';
-
-import type {ComponentProps} from 'react';
 
 type RenderComponentArgs = {
     props?: Partial<ComponentProps<typeof DeliquencyModal>>;

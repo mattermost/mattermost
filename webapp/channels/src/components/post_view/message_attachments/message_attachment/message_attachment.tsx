@@ -1,8 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import truncate from 'lodash/truncate';
 import React from 'react';
+import type {CSSProperties} from 'react';
+
+import truncate from 'lodash/truncate';
+
+import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
+import type {
+    MessageAttachment as MessageAttachmentType,
+    MessageAttachmentField,
+} from '@mattermost/types/message_attachments';
+import type {PostImage} from '@mattermost/types/posts';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -13,24 +24,15 @@ import Markdown from 'components/markdown';
 import ShowMore from 'components/post_view/show_more';
 import SizeAwareImage from 'components/size_aware_image';
 
+import type {ModalData} from 'types/actions';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
+import type {TextFormattingOptions} from 'utils/text_formatting';
 import {isUrlSafe} from 'utils/url';
 import * as Utils from 'utils/utils';
 
 import ActionButton from '../action_button';
 import ActionMenu from '../action_menu';
-
-import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
-import type {
-    MessageAttachment as MessageAttachmentType,
-    MessageAttachmentField,
-} from '@mattermost/types/message_attachments';
-import type {PostImage} from '@mattermost/types/posts';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {CSSProperties} from 'react';
-import type {ModalData} from 'types/actions';
-import type {TextFormattingOptions} from 'utils/text_formatting';
 
 type Props = {
 

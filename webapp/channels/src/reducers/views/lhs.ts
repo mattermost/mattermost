@@ -4,10 +4,9 @@
 import {combineReducers} from 'redux';
 
 import {TeamTypes, UserTypes} from 'mattermost-redux/action_types';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
-
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function isOpen(state = false, action: GenericAction) {
     switch (action.type) {

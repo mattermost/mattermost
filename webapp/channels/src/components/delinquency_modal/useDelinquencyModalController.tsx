@@ -4,19 +4,19 @@
 import {useEffect, useState} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
+import type {Subscription} from '@mattermost/types/cloud';
+import type {PreferenceType} from '@mattermost/types/preferences';
+
 import {getCloudProducts} from 'mattermost-redux/actions/cloud';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 
 import {setItem} from 'actions/storage';
 import {makeGetItem} from 'selectors/storage';
 
+import type {ModalData} from 'types/actions';
 import {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
 
 import DelinquencyModal from './delinquency_modal';
-
-import type {Subscription} from '@mattermost/types/cloud';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {ModalData} from 'types/actions';
 
 const SESSION_MODAL_ITEM = `${StoragePrefixes.DELINQUENCY}hide_downgrade_modal`;
 

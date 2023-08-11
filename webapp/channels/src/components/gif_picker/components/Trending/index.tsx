@@ -4,6 +4,8 @@
 import React, {PureComponent} from 'react';
 import {connect} from 'react-redux';
 
+import type {GfycatAPIItem} from '@mattermost/types/gifs';
+
 import {
     searchCategory,
     searchIfNeededInitial,
@@ -11,8 +13,6 @@ import {
 } from 'mattermost-redux/actions/gifs';
 
 import SearchGrid from 'components/gif_picker/components/SearchGrid';
-
-import type {GfycatAPIItem} from '@mattermost/types/gifs';
 import type {appProps} from 'components/gif_picker/gif_picker';
 
 const mapDispatchToProps = ({

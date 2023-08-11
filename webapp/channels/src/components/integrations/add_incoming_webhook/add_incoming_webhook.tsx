@@ -3,13 +3,13 @@
 
 import React from 'react';
 
+import type {IncomingWebhook} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+
 import AbstractIncomingWebhook from 'components/integrations/abstract_incoming_webhook';
 
 import {getHistory} from 'utils/browser_history';
 import {t} from 'utils/i18n';
-
-import type {IncomingWebhook} from '@mattermost/types/integrations';
-import type {Team} from '@mattermost/types/teams';
 
 const HEADER = {id: t('integrations.add'), defaultMessage: 'Add'};
 const FOOTER = {id: t('add_incoming_webhook.save'), defaultMessage: 'Save'};

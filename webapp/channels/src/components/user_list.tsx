@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import LoadingScreen from 'components/loading_screen';
-
-import UserListRow from './user_list_row';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
-import type {ReactNode} from 'react';
+
+import LoadingScreen from 'components/loading_screen';
+
+import UserListRow from './user_list_row';
 
 type Props = {
     rowComponentType?: React.ComponentType<any>;

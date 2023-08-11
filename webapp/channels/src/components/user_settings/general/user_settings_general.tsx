@@ -5,6 +5,9 @@
 
 import React from 'react';
 import {defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
@@ -19,9 +22,6 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
 import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
-
-import type {UserProfile} from '@mattermost/types/users';
-import type {IntlShape} from 'react-intl';
 
 const holders = defineMessages({
     usernameReserved: {

@@ -2,15 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {doAppSubmit, doAppFetchForm, doAppLookup, postEphemeralCallResponseForContext} from 'actions/apps';
 
-import AppsFormContainer from './apps_form_container';
-
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 import type {DoAppSubmit, DoAppFetchForm, DoAppLookup, PostEphemeralCallResponseForContext} from 'types/apps';
+
+import AppsFormContainer from './apps_form_container';
 
 type Actions = {
     doAppSubmit: DoAppSubmit<any>;

@@ -3,11 +3,11 @@
 
 import {connect} from 'react-redux';
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import ChannelPermissionGate from './channel_permission_gate';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 type Props = {
     channelId?: string;

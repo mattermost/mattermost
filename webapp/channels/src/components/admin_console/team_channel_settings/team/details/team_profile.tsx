@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import {noop} from 'lodash';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+
+import classNames from 'classnames';
+import {noop} from 'lodash';
+
+import type {Team} from '@mattermost/types/teams';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
@@ -25,8 +28,6 @@ import TeamIcon from 'components/widgets/team_icon/team_icon';
 import {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {imageURLForTeam, localizeMessage} from 'utils/utils';
-
-import type {Team} from '@mattermost/types/teams';
 
 import './team_profile.scss';
 

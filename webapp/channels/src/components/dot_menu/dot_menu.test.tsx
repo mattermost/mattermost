@@ -3,17 +3,17 @@
 
 import React from 'react';
 
+import type {PostType} from '@mattermost/types/posts';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import type {GlobalState} from 'types/store';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import DotMenu from './dot_menu';
-
 import type {DotMenuClass} from './dot_menu';
-import type {PostType} from '@mattermost/types/posts';
-import type {DeepPartial} from '@mattermost/types/utilities';
-import type {GlobalState} from 'types/store';
 
 jest.mock('./utils');
 

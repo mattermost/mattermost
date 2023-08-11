@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import moment from 'moment';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {matchPath, useLocation} from 'react-router-dom';
+
+import moment from 'moment';
 
 import {GenericModal} from '@mattermost/components';
 
@@ -23,12 +24,11 @@ import HandsSvg from 'components/common/svg_images_components/hands_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
 import PersonWithChecklistSvg from 'components/common/svg_images_components/person_with_checklist';
 
+import type {GlobalState} from 'types/store';
 import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import TrialBenefitsModalStep from './trial_benefits_modal_step';
-
 import type {TrialBenefitsModalStepProps} from './trial_benefits_modal_step';
-import type {GlobalState} from 'types/store';
 
 import './trial_benefits_modal.scss';
 

@@ -2,6 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import {favoriteChannel, unfavoriteChannel, markChannelAsRead} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -18,13 +21,10 @@ import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {openModal} from 'actions/views/modals';
 import {getCategoriesForCurrentTeam, getDisplayedChannels} from 'selectors/views/channel_sidebar';
 
+import type {GlobalState} from 'types/store';
 import {getSiteURL} from 'utils/url';
 
 import SidebarChannelMenu from './sidebar_channel_menu';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {ConnectedProps} from 'react-redux';
-import type {GlobalState} from 'types/store';
 
 export type OwnProps = {
     channel: Channel;

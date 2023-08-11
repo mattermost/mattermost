@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {GlobalState} from 'types/store/index.js';
+
+import type {Action, GenericAction} from 'mattermost-redux/types/actions.js';
 
 import {closeModal} from 'actions/views/modals';
 
 import ModalController from './modal_controller';
-
-import type {Action, GenericAction} from 'mattermost-redux/types/actions.js';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store/index.js';
 
 function mapStateToProps(state: GlobalState) {
     return {

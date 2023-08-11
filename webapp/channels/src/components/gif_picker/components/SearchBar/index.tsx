@@ -2,22 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React, {Component} from 'react';
+import type {ChangeEvent, FormEvent, RefObject} from 'react';
 import {connect} from 'react-redux';
+
+import type {GfycatAPITag} from '@mattermost/types/gifs';
 
 import {saveSearchScrollPosition, saveSearchBarText, searchTextUpdate} from 'mattermost-redux/actions/gifs';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity, makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
 
 import LocalizedInput from 'components/localized_input/localized_input';
 import GifSearchClearIcon from 'components/widgets/icons/gif_search_clear_icon';
 import GifSearchIcon from 'components/widgets/icons/gif_search_icon';
 
-import {t} from 'utils/i18n';
-
-import type {GfycatAPITag} from '@mattermost/types/gifs';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import type {ChangeEvent, FormEvent, RefObject} from 'react';
 import type {GlobalState} from 'types/store';
+import {t} from 'utils/i18n';
 
 import './SearchBar.scss';
 

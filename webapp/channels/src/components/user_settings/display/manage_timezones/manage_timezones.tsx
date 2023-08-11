@@ -4,17 +4,18 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
+import type {ValueType} from 'react-select';
 
+import type {Timezone} from 'timezones.json';
+
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getTimezoneLabel} from 'mattermost-redux/utils/timezone_utils';
 
 import SettingItemMax from 'components/setting_item_max';
 
 import {getBrowserTimezone} from 'utils/timezone';
-
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ValueType} from 'react-select';
-import type {Timezone} from 'timezones.json';
 
 type Actions = {
     updateMe: (user: UserProfile) => Promise<ActionResult>;

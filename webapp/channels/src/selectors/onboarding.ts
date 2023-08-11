@@ -7,10 +7,9 @@ import {getCurrentUser, isFirstAdmin} from 'mattermost-redux/selectors/entities/
 
 import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
 
+import type {GlobalState} from 'types/store';
 import {RecommendedNextStepsLegacy, Preferences} from 'utils/constants';
 import {isMobile} from 'utils/utils';
-
-import type {GlobalState} from 'types/store';
 
 const getCategory = makeGetCategory();
 export const getABTestPreferences = (() => {

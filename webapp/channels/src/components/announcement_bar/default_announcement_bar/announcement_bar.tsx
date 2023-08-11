@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {WarnMetricStatus} from '@mattermost/types/config';
+
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
@@ -14,8 +16,6 @@ import WarnMetricAckModal from 'components/warn_metric_ack_modal';
 
 import {Constants, AnnouncementBarTypes, ModalIdentifiers} from 'utils/constants';
 import {isStringContainingUrl} from 'utils/url';
-
-import type {WarnMetricStatus} from '@mattermost/types/config';
 
 type Props = {
     id?: string;

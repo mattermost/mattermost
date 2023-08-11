@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import SidebarChannel from 'components/sidebar/sidebar_channel/sidebar_channel';
+import {shallow} from 'enzyme';
 
 import type {ChannelType} from '@mattermost/types/channels';
+
+import SidebarChannel from 'components/sidebar/sidebar_channel/sidebar_channel';
 
 describe('components/sidebar/sidebar_channel', () => {
     const baseProps = {

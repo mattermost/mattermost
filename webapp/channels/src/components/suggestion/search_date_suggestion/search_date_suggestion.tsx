@@ -4,12 +4,13 @@
 import React from 'react';
 import {DayPicker} from 'react-day-picker';
 
+import type {Locale} from 'date-fns';
+
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 
 import type {SuggestionProps} from '../suggestion';
-import type {Locale} from 'date-fns';
 
 import 'react-day-picker/dist/style.css';
 

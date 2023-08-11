@@ -6,11 +6,11 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 import {FixedSizeList} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
+import type {UserThread} from '@mattermost/types/threads';
+
 import {Constants} from 'utils/constants';
 
 import Row from './virtualized_thread_list_row';
-
-import type {UserThread} from '@mattermost/types/threads';
 
 type Props = {
     ids: Array<UserThread['id']>;

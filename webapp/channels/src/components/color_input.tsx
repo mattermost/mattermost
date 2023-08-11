@@ -3,9 +3,9 @@
 
 import React from 'react';
 import {ChromePicker} from 'react-color';
-import tinycolor from 'tinycolor2';
-
 import type {ColorResult} from 'react-color';
+
+import tinycolor from 'tinycolor2';
 
 type Props = {
     id: string;

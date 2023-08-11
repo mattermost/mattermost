@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
 import type {MouseEventHandler} from 'react';
+import {FormattedMessage} from 'react-intl';
 
 type Props = {
     handleEmojiPickerClose: MouseEventHandler;

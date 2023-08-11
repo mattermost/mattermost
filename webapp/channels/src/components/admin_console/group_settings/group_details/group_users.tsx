@@ -4,15 +4,16 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import GroupUsersRow from 'components/admin_console/group_settings/group_details/group_users_row';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 
 import {getSiteURL} from 'utils/url';
-
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 const GROUP_MEMBERS_PAGE_SIZE = 20;
 
@@ -57,17 +58,13 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
     nextPage = async () => {
         const {total, members, groupID, getMembers} = this.props;
         const page =
-            (this.state.page + 1) * GROUP_MEMBERS_PAGE_SIZE >= total ?
-                this.state.page :
-                this.state.page + 1;
+            (this.state.page + 1) * GROUP_MEMBERS_PAGE_SIZE >= total ? this.state.page : this.state.page + 1;
         if (page === this.state.page) {
             return;
         }
 
         const numberOfMembersToLoad =
-            (page + 1) * GROUP_MEMBERS_PAGE_SIZE >= total ?
-                total :
-                (page + 1) * GROUP_MEMBERS_PAGE_SIZE;
+            (page + 1) * GROUP_MEMBERS_PAGE_SIZE >= total ? total : (page + 1) * GROUP_MEMBERS_PAGE_SIZE;
         if (members.length >= numberOfMembersToLoad) {
             this.setState({page});
             return;

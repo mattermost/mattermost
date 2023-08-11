@@ -2,8 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
+
+import type {CloudUsage} from '@mattermost/types/cloud';
+import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
 
@@ -24,10 +28,6 @@ import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
 import SelectTeamItem from './components/select_team_item';
-
-import type {CloudUsage} from '@mattermost/types/cloud';
-import type {Team} from '@mattermost/types/teams';
-import type {ReactNode, MouseEvent} from 'react';
 
 export const TEAMS_PER_PAGE = 30;
 const TEAM_MEMBERSHIP_DENIAL_ERROR_ID = 'api.team.add_members.user_denied';

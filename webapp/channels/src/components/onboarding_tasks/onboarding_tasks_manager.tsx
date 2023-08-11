@@ -42,12 +42,11 @@ import {
     TutorialTourName,
 } from 'components/tours';
 
+import type {GlobalState} from 'types/store';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES, ExploreOtherToolsTourSteps} from 'utils/constants';
 
 import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName, TaskNameMapToSteps} from './constants';
 import {generateTelemetryTag} from './utils';
-
-import type {GlobalState} from 'types/store';
 
 const getCategory = makeGetCategory();
 

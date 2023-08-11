@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {shallow} from 'enzyme';
+
+import type {Group} from '@mattermost/types/groups';
 
 import {TestHelper} from 'utils/test_helper';
 
 import GroupList from './group_list';
-
-import type {Group} from '@mattermost/types/groups';
 
 describe('admin_console/team_channel_settings/group/GroupList', () => {
     test('should match snapshot', () => {

@@ -5,15 +5,15 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
+import type {Limits, CloudUsage} from '@mattermost/types/cloud';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
-import WorkspaceLimitsPanel, {messageToElement} from './workspace_limits_panel';
-
-import type {Limits, CloudUsage} from '@mattermost/types/cloud';
 import type {Message} from 'utils/i18n';
+
+import WorkspaceLimitsPanel, {messageToElement} from './workspace_limits_panel';
 
 import './mini_modal.scss';
 

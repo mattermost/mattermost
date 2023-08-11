@@ -6,9 +6,9 @@ import {connect} from 'react-redux';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import GuestPermissionsTree from './guest_permissions_tree';
-
 import type {GlobalState} from 'types/store';
+
+import GuestPermissionsTree from './guest_permissions_tree';
 
 export const GUEST_INCLUDED_PERMISSIONS = [
     Permissions.CREATE_PRIVATE_CHANNEL,

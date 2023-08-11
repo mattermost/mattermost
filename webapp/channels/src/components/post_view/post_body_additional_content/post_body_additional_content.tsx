@@ -3,6 +3,9 @@
 
 import React from 'react';
 
+import type {AppBinding} from '@mattermost/types/apps';
+import type {Post, PostEmbed} from '@mattermost/types/posts';
+
 import {getEmbedFromMetadata} from 'mattermost-redux/utils/post_utils';
 
 import MessageAttachmentList from 'components/post_view/message_attachments/message_attachment_list';
@@ -12,13 +15,10 @@ import PostMessagePreview from 'components/post_view/post_message_preview';
 import YoutubeVideo from 'components/youtube_video';
 
 import webSocketClient from 'client/web_websocket_client.jsx';
-
-import EmbeddedBindings from '../embedded_bindings/embedded_bindings';
-
-import type {AppBinding} from '@mattermost/types/apps';
-import type {Post, PostEmbed} from '@mattermost/types/posts';
 import type {PostWillRenderEmbedPluginComponent} from 'types/store/plugins';
 import type {TextFormattingOptions} from 'utils/text_formatting';
+
+import EmbeddedBindings from '../embedded_bindings/embedded_bindings';
 
 export type Props = {
     post: Post;

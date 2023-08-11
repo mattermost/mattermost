@@ -40,18 +40,15 @@ type Props = {
 const ConvertConfirmModal = ({show, onConfirm, onCancel, displayName, toPublic}: Props) => {
     const toPublicMsg = 'When you convert **{displayName}** to a public channel, history and membership are preserved. Public channels are discoverable and can by joined by users on the system without invitation.  \n \nAre you sure you want to convert **{displayName}** to a public channel?';
     const toPrivateMsg = 'When you convert **{displayName}** to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.  \n \nAre you sure you want to convert **{displayName}** to a private channel?';
-    const messageId = toPublic ? t('admin.team_channel_settings.convertConfirmModal.toPublicMessage') :
-        t('admin.team_channel_settings.convertConfirmModal.toPrivateMessage');
+    const messageId = toPublic ? t('admin.team_channel_settings.convertConfirmModal.toPublicMessage') : t('admin.team_channel_settings.convertConfirmModal.toPrivateMessage');
 
     const toPublicTitle = 'Convert {displayName} to a public channel?';
     const toPrivateTitle = 'Convert {displayName} to a private channel?';
-    const titleId = toPublic ? t('admin.team_channel_settings.convertConfirmModal.toPublicTitle') :
-        t('admin.team_channel_settings.convertConfirmModal.toPrivateTitle');
+    const titleId = toPublic ? t('admin.team_channel_settings.convertConfirmModal.toPublicTitle') : t('admin.team_channel_settings.convertConfirmModal.toPrivateTitle');
 
     const toPublicConfirmMsg = 'Yes, convert to public channel';
     const toPrivateConfirmMsg = 'Yes, convert to private channel';
-    const confirmMsgId = toPublic ? t('admin.team_channel_settings.convertConfirmModal.toPublicConfirm') :
-        t('admin.team_channel_settings.convertConfirmModal.toPrivateConfirm');
+    const confirmMsgId = toPublic ? t('admin.team_channel_settings.convertConfirmModal.toPublicConfirm') : t('admin.team_channel_settings.convertConfirmModal.toPrivateConfirm');
 
     const title = (
         <FormattedMessage

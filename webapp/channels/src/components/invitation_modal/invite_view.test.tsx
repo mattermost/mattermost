@@ -5,6 +5,8 @@ import React from 'react';
 import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
 
+import type {Team} from '@mattermost/types/teams';
+
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 import store from 'stores/redux_store.jsx';
@@ -16,9 +18,7 @@ import {generateId} from 'utils/utils';
 
 import InviteAs, {InviteType} from './invite_as';
 import InviteView from './invite_view';
-
 import type {Props} from './invite_view';
-import type {Team} from '@mattermost/types/teams';
 
 const defaultProps: Props = deepFreeze({
     setInviteAs: jest.fn(),

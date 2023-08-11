@@ -3,11 +3,11 @@
 
 import React from 'react';
 
+import type {ReactWrapper} from 'enzyme';
+
 import InfiniteScroll from 'components/common/infinite_scroll';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-
-import type {ReactWrapper} from 'enzyme';
 
 describe('/components/common/InfiniteScroll', () => {
     const baseProps = {

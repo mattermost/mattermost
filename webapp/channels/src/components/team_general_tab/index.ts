@@ -2,20 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Team} from '@mattermost/types/teams';
 
 import {getTeam, patchTeam, removeTeamIcon, setTeamIcon, regenerateTeamInviteId} from 'mattermost-redux/actions/teams';
 import {Permissions} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import type {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+
+import type {GlobalState} from 'types/store/index';
 
 import TeamGeneralTab from './team_general_tab';
-
-import type {Team} from '@mattermost/types/teams';
-import type {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-import type {ConnectedProps} from 'react-redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store/index';
 
 export type OwnProps = {
     updateSection: (section: string) => void;

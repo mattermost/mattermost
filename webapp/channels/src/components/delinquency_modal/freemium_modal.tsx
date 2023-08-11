@@ -17,9 +17,8 @@ import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurch
 
 import {TELEMETRY_CATEGORIES} from 'utils/constants';
 import {t} from 'utils/i18n';
-import {LimitTypes} from 'utils/limits';
-
 import type {Message} from 'utils/i18n';
+import {LimitTypes} from 'utils/limits';
 
 import './delinquency_modal.scss';
 

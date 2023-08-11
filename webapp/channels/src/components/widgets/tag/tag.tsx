@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {memo, useMemo} from 'react';
+import type {MouseEventHandler} from 'react';
+
+import classNames from 'classnames';
 import styled, {css} from 'styled-components';
 
 import glyphMap from '@mattermost/compass-icons/components';
-
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
-import type {MouseEventHandler} from 'react';
 
 export type TagVariant = 'info' | 'success' | 'warning' | 'danger';
 

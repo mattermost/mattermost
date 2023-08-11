@@ -42,7 +42,6 @@ import {
     getAppRHSCommandForm,
     makeRHSAppBindingSelector,
 } from './app_command_parser_dependencies';
-
 import type {
     AppCallRequest,
     AppBinding,

@@ -12,13 +12,12 @@ import {
     renderWithIntl,
     screen,
 } from 'tests/react_testing_utils';
+import type {
+    RenderResult} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {ModalIdentifiers} from 'utils/constants';
 
 import StartTrialFormModal from '.';
-
-import type {
-    RenderResult} from 'tests/react_testing_utils';
 
 jest.mock('actions/telemetry_actions.jsx', () => {
     const original = jest.requireActual('actions/telemetry_actions.jsx');

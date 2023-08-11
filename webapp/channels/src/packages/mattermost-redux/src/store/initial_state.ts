@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {zeroStateLimitedViews} from '../reducers/entities/posts';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 const state: GlobalState = {
     entities: {

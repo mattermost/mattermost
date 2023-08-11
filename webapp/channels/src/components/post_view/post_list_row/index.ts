@@ -2,24 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getCloudLimits, getCloudLimitsLoaded} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getLimitedViews, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getUsage} from 'mattermost-redux/selectors/entities/usage';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
 
+import type {GlobalState} from 'types/store';
 import {PostListRowListIds} from 'utils/constants';
 
 import PostListRow from './post_list_row';
-
 import type {PostListRowProps} from './post_list_row';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import type {Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 type OwnProps = Pick<PostListRowProps, 'listId'>
 

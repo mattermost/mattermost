@@ -4,17 +4,17 @@
 import React from 'react';
 import Scrollbars from 'react-custom-scrollbars';
 import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import LocalizedInput from 'components/localized_input/localized_input';
 import QuickInput from 'components/quick_input';
 import UserList from 'components/user_list';
 
 import {t} from 'utils/i18n';
-
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {IntlShape} from 'react-intl';
 
 const NEXT_BUTTON_TIMEOUT = 500;
 

@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
+
 import styled from 'styled-components';
 
 import useCopyText from 'components/common/hooks/useCopyText';

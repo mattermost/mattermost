@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, mount} from 'enzyme';
 import React from 'react';
+
+import type {Chart, ChartData} from 'chart.js';
+import {shallow, mount} from 'enzyme';
 
 import DoughnutChart from 'components/analytics/doughnut_chart';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-
-import type {Chart, ChartData} from 'chart.js';
 
 jest.mock('chart.js');
 

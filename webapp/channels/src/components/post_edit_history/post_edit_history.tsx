@@ -6,7 +6,10 @@ import Scrollbars from 'react-custom-scrollbars';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import type {Post} from '@mattermost/types/posts';
+
 import {getPostEditHistory} from 'mattermost-redux/actions/posts';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
 import LoadingScreen from 'components/loading_screen';
@@ -15,8 +18,6 @@ import SearchResultsHeader from 'components/search_results_header';
 import EditedPostItem from './edited_post_item';
 
 import type {PropsFromRedux} from './index';
-import type {Post} from '@mattermost/types/posts';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import './post_edit_history.scss';
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (

@@ -5,9 +5,9 @@ import {connect} from 'react-redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import Integrations from './integrations';
-
 import type {GlobalState} from 'types/store';
+
+import Integrations from './integrations';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

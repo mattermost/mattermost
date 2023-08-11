@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {createBrowserHistory} from 'history';
+import type {History} from 'history';
 
 import {getModule} from 'module_registry';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion} from 'utils/user_agent';
-
-import type {History} from 'history';
 
 const b = createBrowserHistory({basename: window.basename});
 const isDesktop = isDesktopApp() && isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), '5.0.0');

@@ -6,7 +6,6 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 
 import * as I18n from 'i18n/i18n';
-
 import type {GlobalState} from 'types/store';
 import type {Translations} from 'types/store/i18n';
 

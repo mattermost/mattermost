@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
+
+import {mount, shallow} from 'enzyme';
 
 import LoadingImagePreview from 'components/loading_image_preview';
 import SizeAwareImage from 'components/size_aware_image';

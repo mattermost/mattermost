@@ -3,7 +3,9 @@
 
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
+
 import {bindActionCreators, compose} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {getTeams} from 'mattermost-redux/actions/teams';
@@ -19,12 +21,10 @@ import {addUserToTeam} from 'actions/team_actions';
 
 import withUseGetUsageDelta from 'components/common/hocs/cloud/with_use_get_usage_deltas';
 
+import type {GlobalState} from 'types/store';
 import {isCloudLicense} from 'utils/license_utils';
 
 import SelectTeam from './select_team';
-
-import type {Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ReactNode, MouseEventHandler} from 'react';
+import type {OverlayTriggerProps} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import OverlayTrigger from 'components/overlay_trigger';
@@ -11,9 +13,6 @@ import UnreadAboveIcon from 'components/widgets/icons/unread_above_icon';
 import UnreadBelowIcon from 'components/widgets/icons/unread_below_icon';
 
 import Constants from 'utils/constants';
-
-import type {ReactNode, MouseEventHandler} from 'react';
-import type {OverlayTriggerProps} from 'react-bootstrap';
 
 import './toast.scss';
 

@@ -6,10 +6,10 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {matchPath} from 'react-router-dom';
 
+import type {Post} from '@mattermost/types/posts';
+
 import {getHistory} from 'utils/browser_history';
 import * as UserAgent from 'utils/user_agent';
-
-import type {Post} from '@mattermost/types/posts';
 
 const urlFormatForDMGMPermalink = '/:teamName/messages/:username/:postid';
 const urlFormatForChannelPermalink = '/:teamName/channels/:channelname/:postid';

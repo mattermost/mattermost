@@ -5,7 +5,10 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
+
 import {Client4} from 'mattermost-redux/client';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import RevokeTokenButton from 'components/admin_console/revoke_token_button';
@@ -14,9 +17,6 @@ import LoadingScreen from 'components/loading_screen';
 import Avatar from 'components/widgets/users/avatar';
 
 import {DeveloperLinks} from 'utils/constants';
-
-import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 export type Props = {
 

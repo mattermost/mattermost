@@ -3,11 +3,11 @@
 
 import {combineReducers} from 'redux';
 
-import {EmojiTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
-
 import type {EmojisState, CustomEmoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
+
+import {EmojiTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 export function customEmoji(state: IDMappedObjects<CustomEmoji> = {}, action: GenericAction): IDMappedObjects<CustomEmoji> {

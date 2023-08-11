@@ -2,22 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Group} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
 
 import {getGroupsNotAssociatedToTeam, linkGroupSyncable, getAllGroupsAssociatedToTeam} from 'mattermost-redux/actions/groups';
 import {getGroupsNotAssociatedToTeam as selectGroupsNotAssociatedToTeam} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setModalSearchTerm} from 'actions/views/search';
 
-import AddGroupsToTeamModal from './add_groups_to_team_modal';
-
-import type {Actions} from './add_groups_to_team_modal';
-import type {Group} from '@mattermost/types/groups';
-import type {Team} from '@mattermost/types/teams';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import AddGroupsToTeamModal from './add_groups_to_team_modal';
+import type {Actions} from './add_groups_to_team_modal';
 
 type Props = {
     team?: Team;

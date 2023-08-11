@@ -7,6 +7,11 @@ import React from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import type {OAuthApp} from '@mattermost/types/integrations';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import AccessHistoryModal from 'components/access_history_modal';
 import ActivityLogModal from 'components/activity_log_modal';
 import ExternalLink from 'components/external_link';
@@ -22,10 +27,6 @@ import * as Utils from 'utils/utils';
 
 import MfaSection from './mfa_section';
 import UserAccessTokenSection from './user_access_token_section';
-
-import type {OAuthApp} from '@mattermost/types/integrations';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 const SECTION_MFA = 'mfa';
 const SECTION_PASSWORD = 'password';

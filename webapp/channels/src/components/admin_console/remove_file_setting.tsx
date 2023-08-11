@@ -2,11 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {PureComponent} from 'react';
+import type {MouseEvent} from 'react';
 
 import Setting from './setting';
-
 import type {Props as SettingsProps} from './setting';
-import type {MouseEvent} from 'react';
 
 type Props = SettingsProps & {
     id: string;

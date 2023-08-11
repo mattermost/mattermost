@@ -4,10 +4,10 @@
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {openModal as openModalAction} from 'actions/views/modals';
+
 import ConfirmModalRedux from 'components/confirm_modal_redux';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
-
-import type {openModal as openModalAction} from 'actions/views/modals';
 
 const ModalId = 'delete_integration_confirm';
 

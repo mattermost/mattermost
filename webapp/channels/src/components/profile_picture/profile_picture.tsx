@@ -2,17 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ComponentProps} from 'react';
+
 import styled from 'styled-components';
 
 import OverlayTrigger from 'components/overlay_trigger';
+import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ProfilePopover from 'components/profile_popover';
 import StatusIcon from 'components/status_icon';
 import StatusIconNew from 'components/status_icon_new';
 import Avatar, {getAvatarWidth} from 'components/widgets/users/avatar';
-
-import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import type {TAvatarSizeToken} from 'components/widgets/users/avatar';
-import type {ComponentProps} from 'react';
 
 import './profile_picture.scss';
 

@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Team} from '@mattermost/types/teams';
+
 import {General} from 'mattermost-redux/constants';
 
 import * as TeamUtils from 'utils/team_utils';
 import {TestHelper as TH} from 'utils/test_helper';
-
-import type {Team} from '@mattermost/types/teams';
 
 describe('TeamUtils.filterAndSortTeamsByDisplayName', () => {
     const teamA = TH.getTeamMock({id: 'team_id_a', name: 'team-a', display_name: 'Team A', delete_at: 0});

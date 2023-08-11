@@ -2,7 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {
     getGroup as fetchGroup,
@@ -21,15 +25,12 @@ import {
     getGroupTeams,
 } from 'mattermost-redux/selectors/entities/groups';
 import {getProfilesInGroup as selectProfilesInGroup} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import GroupDetails from './group_details';
-
 import type {Props} from './group_details';
-import type {GlobalState} from '@mattermost/types/store';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 type OwnProps = {
     match: {

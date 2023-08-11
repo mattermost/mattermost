@@ -5,9 +5,9 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import BackIcon from 'components/widgets/icons/fa_back_icon';
-
 import type {Team} from '@mattermost/types/teams';
+
+import BackIcon from 'components/widgets/icons/fa_back_icon';
 
 type Props = {
     team?: Team;

@@ -13,6 +13,8 @@ import {
     LockOutlineIcon,
     AccountMultipleOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {getLicense, getServerVersion} from 'mattermost-redux/selectors/entities/general';
 
@@ -21,6 +23,7 @@ import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import {ConsolePages} from 'utils/constants';
 
 import {ItemStatus} from './dashboard.type';
+import type {DataModel, Options} from './dashboard.type';
 import {runAccessChecks} from './dashboard_checks/access';
 import {runConfigChecks} from './dashboard_checks/config';
 import {runDataPrivacyChecks} from './dashboard_checks/data_privacy';
@@ -29,10 +32,6 @@ import {runPerformanceChecks} from './dashboard_checks/performance';
 import {runUpdateChecks} from './dashboard_checks/updates';
 
 import {daysToLicenseExpire, isEnterpriseOrE20License, getIsStarterLicense} from '../../../utils/license_utils';
-
-import type {DataModel, Options} from './dashboard.type';
-import type {AdminConfig} from '@mattermost/types/config';
-import type {GlobalState} from '@mattermost/types/store';
 
 export const impactModifiers: Record<ItemStatus, number> = {
     [ItemStatus.NONE]: 1,

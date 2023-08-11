@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import GeneralTab from 'components/team_general_tab';
-
 import type {Team} from '@mattermost/types/teams';
+
+import GeneralTab from 'components/team_general_tab';
 
 type Props = {
     activeTab: string;

@@ -3,7 +3,9 @@
 
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
+
 import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {
     favoriteChannel,
@@ -30,6 +32,7 @@ import {
     getUser,
     makeGetProfilesInChannel,
 } from 'mattermost-redux/selectors/entities/users';
+import type {Action} from 'mattermost-redux/types/actions';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
 import {goToLastViewedChannel} from 'actions/views/channel';
@@ -45,15 +48,12 @@ import {getAnnouncementBarCount} from 'selectors/views/announcement_bar';
 import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
 import {isModalOpen} from 'selectors/views/modals';
 
+import type {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
 
 import ChannelHeader from './channel_header';
-
 import type {Props} from './channel_header';
-import type {Action} from 'mattermost-redux/types/actions';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-import type {GlobalState} from 'types/store';
 
 const EMPTY_CHANNEL = {};
 const EMPTY_CHANNEL_STATS = {member_count: 0, guest_count: 0, pinnedpost_count: 0, files_count: 0};

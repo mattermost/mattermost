@@ -2,19 +2,21 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 import {getGroupsAssociatedToChannel, unlinkGroupSyncable, patchGroupSyncable} from 'mattermost-redux/actions/groups';
+import type {Action} from 'mattermost-redux/types/actions';
 
 import {closeModal, openModal} from 'actions/views/modals';
 
-import ChannelGroupsManageModal from './channel_groups_manage_modal';
-
-import type {GlobalState} from '@mattermost/types/store';
-import type {Action} from 'mattermost-redux/types/actions';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 import type {ModalData} from 'types/actions';
+
+import ChannelGroupsManageModal from './channel_groups_manage_modal';
 
 const mapStateToProps = (state: GlobalState, ownProps: any) => {
     return {

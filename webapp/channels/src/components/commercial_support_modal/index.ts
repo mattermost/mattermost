@@ -6,9 +6,9 @@ import {connect} from 'react-redux';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import CommercialSupportModal from './commercial_support_modal';
-
 import type {GlobalState} from 'types/store';
+
+import CommercialSupportModal from './commercial_support_modal';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);

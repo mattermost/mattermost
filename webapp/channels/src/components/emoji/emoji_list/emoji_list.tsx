@@ -2,7 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ChangeEvent, ChangeEventHandler} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import type {CustomEmoji} from '@mattermost/types/emojis';
+import type {ServerError} from '@mattermost/types/errors';
 
 import {deleteCustomEmoji} from 'mattermost-redux/actions/emojis';
 import {Emoji} from 'mattermost-redux/constants';
@@ -16,10 +20,6 @@ import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/fa_search_icon';
 
 import {t} from 'utils/i18n';
-
-import type {CustomEmoji} from '@mattermost/types/emojis';
-import type {ServerError} from '@mattermost/types/errors';
-import type {ChangeEvent, ChangeEventHandler} from 'react';
 
 const EMOJI_PER_PAGE = 50;
 const EMOJI_SEARCH_DELAY_MILLISECONDS = 200;

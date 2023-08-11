@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {Emoji} from '@mattermost/types/emojis';
+
 import {autocompleteCustomEmojis} from 'mattermost-redux/actions/emojis';
 import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
@@ -14,11 +16,9 @@ import {compareEmojis, emojiMatchesSkin} from 'utils/emoji_utils';
 import * as Emoticons from 'utils/emoticons';
 
 import Provider from './provider';
-import {SuggestionContainer} from './suggestion';
-
 import type {ResultsCallback} from './provider';
+import {SuggestionContainer} from './suggestion';
 import type {SuggestionProps} from './suggestion';
-import type {Emoji} from '@mattermost/types/emojis';
 
 export const MIN_EMOTICON_LENGTH = 2;
 export const EMOJI_CATEGORY_SUGGESTION_BLOCKLIST = ['skintone'];

@@ -7,11 +7,10 @@ import {get} from 'mattermost-redux/selectors/entities/preferences';
 
 import {getIsRhsExpanded, getIsRhsOpen} from 'selectors/rhs';
 
+import type {GlobalState} from 'types/store';
 import {Preferences} from 'utils/constants';
 
 import ShowMore from './show_more';
-
-import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     return {

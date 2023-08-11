@@ -2,16 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+
+import type {PostAction} from '@mattermost/types/integration_actions';
 
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsers} from 'actions/user_actions';
 import {selectAttachmentMenuAction} from 'actions/views/posts';
 
-import ActionMenu from './action_menu';
-
-import type {PostAction} from '@mattermost/types/integration_actions';
-import type {ConnectedProps} from 'react-redux';
 import type {GlobalState} from 'types/store';
+
+import ActionMenu from './action_menu';
 
 export type OwnProps = {
     postId: string;

@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -14,15 +16,13 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SaveButton from 'components/save_button';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isMobile} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
-
-import type {UserProfile} from '@mattermost/types/users';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
 
 const SECTION_TOKENS = 'tokens';
 const TOKEN_CREATING = 'creating';

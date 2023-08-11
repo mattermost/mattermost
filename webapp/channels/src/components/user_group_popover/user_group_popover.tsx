@@ -1,12 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {debounce} from 'lodash';
 import React, {useEffect, useCallback, useState, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+
+import {debounce} from 'lodash';
 import styled from 'styled-components';
 
 import {CloseIcon, MagnifyIcon} from '@mattermost/compass-icons/components';
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {QuickInput} from 'components/quick_input/quick_input';
 import GroupMemberList from 'components/user_group_popover/group_member_list';
@@ -14,24 +19,16 @@ import UserGroupsModal from 'components/user_groups_modal';
 import ViewUserGroupModal from 'components/view_user_group_modal';
 import Popover from 'components/widgets/popover';
 
+import type {ModalData} from 'types/actions';
 import Constants, {A11yClassNames, A11yCustomEventTypes, ModalIdentifiers} from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {shouldFocusMainTextbox} from 'utils/post_utils';
 
+import {Load} from './constants';
 import useShouldClose from './useShouldClose';
 
-import type {Group} from '@mattermost/types/groups';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {ModalData} from 'types/actions';
-import type {A11yFocusEventDetail} from 'utils/constants';
 import './user_group_popover.scss';
-
-export enum Load {
-    DONE,
-    LOADING,
-    FAILED,
-}
 
 export type Props = {
 

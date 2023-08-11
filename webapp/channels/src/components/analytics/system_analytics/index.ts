@@ -5,9 +5,9 @@ import {connect} from 'react-redux';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import SystemAnalytics from './system_analytics';
-
 import type {GlobalState} from 'types/store';
+
+import SystemAnalytics from './system_analytics';
 
 function mapStateToProps(state: GlobalState) {
     const license = getLicense(state);

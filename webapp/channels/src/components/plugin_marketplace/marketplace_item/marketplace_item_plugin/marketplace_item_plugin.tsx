@@ -1,11 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
+
+import classNames from 'classnames';
 import semver from 'semver';
+
+import type {MarketplaceLabel} from '@mattermost/types/marketplace';
+import type {PluginStatusRedux} from '@mattermost/types/plugins';
 
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
@@ -15,9 +19,6 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import {localizeMessage} from 'utils/utils';
 
 import MarketplaceItem from '../marketplace_item';
-
-import type {MarketplaceLabel} from '@mattermost/types/marketplace';
-import type {PluginStatusRedux} from '@mattermost/types/plugins';
 
 type UpdateVersionProps = {
     version: string;

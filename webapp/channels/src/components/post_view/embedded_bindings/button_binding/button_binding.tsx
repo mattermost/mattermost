@@ -3,20 +3,20 @@
 
 import React from 'react';
 import {injectIntl} from 'react-intl';
-
-import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-
-import Markdown from 'components/markdown';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-
-import {createCallContext} from 'utils/apps';
+import type {IntlShape} from 'react-intl';
 
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
+
+import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {IntlShape} from 'react-intl';
+
+import Markdown from 'components/markdown';
+import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+
 import type {PostEphemeralCallResponseForPost, HandleBindingClick, OpenAppsModal} from 'types/apps';
+import {createCallContext} from 'utils/apps';
 
 type Props = {
     intl: IntlShape;

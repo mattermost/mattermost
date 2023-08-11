@@ -5,7 +5,6 @@ import {FileSizes} from 'utils/file_utils';
 import {limitThresholds, LimitTypes} from 'utils/limits';
 
 import useGetHighestThresholdCloudLimit from './useGetHighestThresholdCloudLimit';
-
 import type {LimitSummary} from './useGetHighestThresholdCloudLimit';
 
 jest.mock('react', () => ({

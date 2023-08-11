@@ -3,6 +3,9 @@
 
 import {connect} from 'react-redux';
 
+import type {PluginRedux} from '@mattermost/types/plugins';
+import type {GlobalState} from '@mattermost/types/store';
+
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
@@ -10,6 +13,7 @@ import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 
 import {getAdminConsoleCustomComponents} from 'selectors/admin_console';
 
+import type {AdminConsolePluginComponent} from 'types/store/plugins';
 import {appsPluginID} from 'utils/apps';
 import {Constants} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
@@ -19,10 +23,6 @@ import getEnablePluginSetting from './enable_plugin_setting';
 
 import {it} from '../admin_definition';
 import SchemaAdminSettings from '../schema_admin_settings';
-
-import type {PluginRedux} from '@mattermost/types/plugins';
-import type {GlobalState} from '@mattermost/types/store';
-import type {AdminConsolePluginComponent} from 'types/store/plugins';
 
 type OwnProps = { match: { params: { plugin_id: string } } }
 

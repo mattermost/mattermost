@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AppBinding, AppForm} from '@mattermost/types/apps';
+
 import {AppsTypes} from 'mattermost-redux/action_types';
 
 import * as Reducers from './apps';
-
-import type {AppBinding, AppForm} from '@mattermost/types/apps';
 
 describe('bindings', () => {
     const initialState: AppBinding[] = [];

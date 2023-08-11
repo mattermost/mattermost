@@ -3,6 +3,7 @@
 
 import React, {FormEvent, memo} from 'react';
 import {useIntl} from 'react-intl';
+
 import styled from 'styled-components';
 
 import {SendIcon} from '@mattermost/compass-icons/components';

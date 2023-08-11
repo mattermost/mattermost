@@ -3,10 +3,10 @@
 
 import React from 'react';
 import {Link} from 'react-router-dom';
+
 import styled from 'styled-components';
 
 import glyphMap, {CheckIcon} from '@mattermost/compass-icons/components';
-
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 export interface ProductMenuItemProps {

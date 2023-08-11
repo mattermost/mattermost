@@ -4,11 +4,10 @@
 import {combineReducers} from 'redux';
 
 import {SelfHostedSignupProgress} from '@mattermost/types/cloud';
-
-import {CloudTypes} from 'mattermost-redux/action_types';
-
 import type {Product, Subscription, CloudCustomer, Invoice, Limits, LicenseSelfServeStatusReducer} from '@mattermost/types/cloud';
 import type {ValueOf} from '@mattermost/types/utilities';
+
+import {CloudTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 export function subscription(state: Subscription | null = null, action: GenericAction) {

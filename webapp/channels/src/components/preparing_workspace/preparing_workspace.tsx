@@ -4,6 +4,9 @@
 import React, {useState, useCallback, useEffect, useRef, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import type {RouterProps} from 'react-router-dom';
+
+import type {Team} from '@mattermost/types/teams';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {getFirstAdminSetupComplete as getFirstAdminSetupCompleteAction} from 'mattermost-redux/actions/general';
@@ -14,6 +17,7 @@ import {getFirstAdminSetupComplete, getConfig, getLicense} from 'mattermost-redu
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 
@@ -40,14 +44,10 @@ import {
     PLUGIN_NAME_TO_ID_MAP,
     mapStepToPrevious,
 } from './steps';
-
 import type {
     WizardStep,
     AnimationReason,
     Form} from './steps';
-import type {Team} from '@mattermost/types/teams';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import type {RouterProps} from 'react-router-dom';
 
 import './preparing_workspace.scss';
 

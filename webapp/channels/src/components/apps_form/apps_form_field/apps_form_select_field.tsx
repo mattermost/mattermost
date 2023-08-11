@@ -5,6 +5,10 @@ import React from 'react';
 import ReactSelect from 'react-select';
 import AsyncSelect from 'react-select/async';
 
+import type {AppField, AppSelectOption} from '@mattermost/types/apps';
+import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {Channel} from '@mattermost/types/channels';
+
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
@@ -12,10 +16,6 @@ import {imageURLForUser} from 'utils/utils';
 
 import {SelectChannelOption} from './select_channel_option';
 import {SelectUserOption} from './select_user_option';
-
-import type {AppField, AppSelectOption} from '@mattermost/types/apps';
-import type {UserAutocomplete} from '@mattermost/types/autocomplete';
-import type {Channel} from '@mattermost/types/channels';
 
 export type Props = {
     field: AppField;

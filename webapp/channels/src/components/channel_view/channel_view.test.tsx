@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import ChannelView from './channel_view';
+import {shallow} from 'enzyme';
 
+import ChannelView from './channel_view';
 import type {Props} from './channel_view';
 
 describe('components/channel_view', () => {

@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {GlobalState as BaseGlobalState} from '@mattermost/types/store';
+
 import type {PluginsState} from './plugins';
 import type {ViewsState} from './views';
-import type {GlobalState as BaseGlobalState} from '@mattermost/types/store';
 
 export type DraggingState = {
     state?: string;

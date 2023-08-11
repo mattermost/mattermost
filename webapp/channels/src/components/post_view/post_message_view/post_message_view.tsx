@@ -4,18 +4,18 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Post} from '@mattermost/types/posts';
+
 import {Posts} from 'mattermost-redux/constants';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import PostMarkdown from 'components/post_markdown';
 import ShowMore from 'components/post_view/show_more';
+import type {AttachmentTextOverflowType} from 'components/post_view/show_more/show_more';
 
 import Pluggable from 'plugins/pluggable';
-import * as Utils from 'utils/utils';
-
-import type {Post} from '@mattermost/types/posts';
-import type {AttachmentTextOverflowType} from 'components/post_view/show_more/show_more';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import type {TextFormattingOptions} from 'utils/text_formatting';
+import * as Utils from 'utils/utils';
 
 type Props = {
     post: Post; /* The post to render the message for */

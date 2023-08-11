@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+
 import {bindActionCreators} from 'redux';
+import type {AnyAction, Dispatch} from 'redux';
 
 import {
     showMentions,
@@ -14,10 +16,9 @@ import {
 } from 'actions/views/rhs';
 import {getIsRhsExpanded} from 'selectors/rhs';
 
-import RhsCardHeader from './rhs_card_header';
-
-import type {AnyAction, Dispatch} from 'redux';
 import type {GlobalState} from 'types/store';
+
+import RhsCardHeader from './rhs_card_header';
 
 function mapStateToProps(state: GlobalState) {
     return {

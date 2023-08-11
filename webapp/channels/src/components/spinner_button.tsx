@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {PureComponent} from 'react';
+import type {ButtonHTMLAttributes, ReactNode} from 'react';
 
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-
-import type {ButtonHTMLAttributes, ReactNode} from 'react';
 
 type Props = {
     children?: ReactNode;

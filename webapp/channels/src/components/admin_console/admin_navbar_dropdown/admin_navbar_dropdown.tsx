@@ -3,6 +3,9 @@
 
 import React from 'react';
 import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import type {Team} from '@mattermost/types/teams';
 
 import * as GlobalActions from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -17,9 +20,6 @@ import {t} from 'utils/i18n';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import MenuItemBlockableLink from './menu_item_blockable_link';
-
-import type {Team} from '@mattermost/types/teams';
-import type {IntlShape} from 'react-intl';
 
 type Props = {
     intl: IntlShape;

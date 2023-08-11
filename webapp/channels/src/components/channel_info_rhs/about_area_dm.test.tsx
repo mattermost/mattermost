@@ -4,14 +4,14 @@
 import React from 'react';
 import {Provider} from 'react-redux';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {renderWithIntl, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import Constants from 'utils/constants';
 
 import AboutAreaDM from './about_area_dm';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
 
 const initialState = {
     entities: {

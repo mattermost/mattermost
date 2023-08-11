@@ -3,12 +3,12 @@
 
 import React from 'react';
 
+import type {OpenGraphMetadata} from '@mattermost/types/posts';
+
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
 
 import {getVideoId, ytRegex, handleYoutubeTime} from 'utils/youtube';
-
-import type {OpenGraphMetadata} from '@mattermost/types/posts';
 
 type Props = {
     postId: string;

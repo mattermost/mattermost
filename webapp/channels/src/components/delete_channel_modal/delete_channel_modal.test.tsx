@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
-import DeleteChannelModal from 'components/delete_channel_modal/delete_channel_modal';
-
-import {getHistory} from 'utils/browser_history';
+import {shallow} from 'enzyme';
 
 import type {Channel, ChannelType} from '@mattermost/types/channels';
+
+import DeleteChannelModal from 'components/delete_channel_modal/delete_channel_modal';
 import type {Props} from 'components/delete_channel_modal/delete_channel_modal';
+
+import {getHistory} from 'utils/browser_history';
 
 describe('components/delete_channel_modal', () => {
     const channel: Channel = {

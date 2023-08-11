@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+
 import {StorageTypes} from 'utils/constants';
 import {getPrefix} from 'utils/storage_utils';
-
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 export function setItem(name: string, value: string) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {

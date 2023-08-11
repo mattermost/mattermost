@@ -4,16 +4,16 @@
 import React, {useCallback} from 'react';
 
 import {GroupSource} from '@mattermost/types/groups';
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import LocalizedIcon from 'components/localized_icon';
 import Avatar from 'components/widgets/users/avatar';
 
 import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
-
-import type {Group} from '@mattermost/types/groups';
-import type {UserProfile} from '@mattermost/types/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export type Props = {
     groupId: string;

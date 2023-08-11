@@ -10,6 +10,7 @@ import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {verifyUserEmail, getMe} from 'mattermost-redux/actions/users';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -20,8 +21,6 @@ import LoadingScreen from 'components/loading_screen';
 
 import {AnnouncementBarTypes, AnnouncementBarMessages, Constants} from 'utils/constants';
 import {getRoleFromTrackFlow} from 'utils/utils';
-
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import './do_verify_email.scss';
 
