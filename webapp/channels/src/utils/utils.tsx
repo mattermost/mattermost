@@ -309,13 +309,6 @@ export function getIconClassName(fileTypeIn: string) {
     return 'generic';
 }
 
-export function getMenuItemIcon(name: string, dangerous?: boolean) {
-    const colorClass = dangerous ? 'MenuItem__compass-icon-dangerous' : 'MenuItem__compass-icon';
-    return (
-        <span className={`${name} ${colorClass}`}/>
-    );
-}
-
 export function toTitleCase(str: string): string {
     function doTitleCase(txt: string) {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
