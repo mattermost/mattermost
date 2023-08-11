@@ -70,6 +70,7 @@ export type ClusterInfo = {
     config_hash: string;
     ipaddress: string;
     hostname: string;
+    schema_version: string;
 };
 
 export type AnalyticsRow = {

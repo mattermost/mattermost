@@ -87,6 +87,7 @@ function makeMapStateToProps() {
         const groupsWithAllowReference = useLDAPGroupMentions || useCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, channel.team_id, channel.id) : null;
         const isFormattingBarHidden = getBool(state, Constants.Preferences.ADVANCED_TEXT_EDITOR, AdvancedTextEditor.COMMENT);
         const currentTeamId = getCurrentTeamId(state);
+        const postEditorActions = state.plugins.components.PostEditorAction;
 
         return {
             currentTeamId,
@@ -116,6 +117,7 @@ function makeMapStateToProps() {
             channelMemberCountsByGroup,
             useCustomGroupMentions,
             canUploadFiles: canUploadFiles(config),
+            postEditorActions,
         };
     };
 }
