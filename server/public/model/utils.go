@@ -732,6 +732,11 @@ func IsValidHTTPURL(rawURL string) bool {
 	return true
 }
 
+func IsValidURI(rawURI string) bool {
+	_, err := url.ParseRequestURI(rawURI)
+	return err == nil
+}
+
 func IsValidId(value string) bool {
 	if len(value) != 26 {
 		return false

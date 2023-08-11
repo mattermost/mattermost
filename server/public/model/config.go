@@ -3749,7 +3749,7 @@ func (s *SamlSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if *s.IdpDescriptorURL == "" || !IsValidHTTPURL(*s.IdpDescriptorURL) {
+		if *s.IdpDescriptorURL == "" || !IsValidURI(*s.IdpDescriptorURL) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "", http.StatusBadRequest)
 		}
 

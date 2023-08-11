@@ -948,6 +948,48 @@ func TestSanitizeUnicode(t *testing.T) {
 	}
 }
 
+func TestIsValidURI(t *testing.T) {
+	cases := []struct {
+		Description string
+		Input       string
+		Expected    bool
+	}{
+		{
+			Description: "empty string",
+			Input:       "",
+			Expected:    false,
+		},
+		{
+			Description: "random string",
+			Input:       "random",
+			Expected:    false,
+		},
+		{
+			Description: "valid URL",
+			Input:       "http://mattermost.com",
+			Expected:    true,
+		},
+		{
+			Description: "valid URN",
+			Input:       "urn:ec.europa.eu:eulogin:saml",
+			Expected:    true,
+		},
+		{
+			Description: "valid ldap URI",
+			Input:       "ldap://idp.matermost.com/o=Example,c=US",
+			Expected:    true,
+		},
+	}
+
+	for _, testCase := range cases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, testCase.Expected, IsValidURI(testCase.Input))
+		})
+	}
+}
+
 func TestIsValidChannelIdentifier(t *testing.T) {
 	cases := []struct {
 		Description string
