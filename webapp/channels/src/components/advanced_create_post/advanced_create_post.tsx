@@ -1558,40 +1558,18 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         return Object.values(this.getSpecialMentions()).includes(true);
     };
 
+    onPluginUpdateText = (message: string) => {
+        this.setState({
+            message,
+        });
+        this.handleDraftChange({
+            ...this.props.draft,
+            message,
+        });
+    }
+
     render() {
         const {draft, canPost} = this.props;
-
-        const pluginItems = this.props.postEditorActions?.
-            map((item) => {
-                if (!item.component) {
-                    return null;
-                }
-
-                const Component = item.component as any;
-                return (
-                    <Component
-                        key={item.id}
-                        draft={draft}
-                        getSelectedText={() => {
-                            const input = this.textboxRef.current?.getInputBox();
-
-                            return {
-                                start: input.selectionStart,
-                                end: input.selectionEnd,
-                            };
-                        }}
-                        updateText={(message: string) => {
-                            this.setState({
-                                message,
-                            });
-                            this.handleDraftChange({
-                                ...this.props.draft,
-                                message,
-                            });
-                        }}
-                    />
-                );
-            });
 
         let centerClass = '';
         if (!this.props.fullWidthTextBox) {
@@ -1672,10 +1650,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                             disabled={this.props.shouldShowPreview}
                         />
                     ): undefined}
-                pluginItems={pluginItems}
                 formId={'create_post'}
                 formRef={this.topDiv}
                 formClass={centerClass}
+                onPluginUpdateText={this.onPluginUpdateText}
+                postEditorActions={this.props.postEditorActions}
             />
         )
     }

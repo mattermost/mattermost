@@ -12,6 +12,7 @@ import {
 import {Emoji} from '@mattermost/types/emojis';
 import {FileInfo} from '@mattermost/types/files';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import {PluginComponent} from 'types/store/plugins';
 
 type Props = {
     message: string;
@@ -69,10 +70,11 @@ type Props = {
     handleFileUploadChange: () => void;
     getFileUploadTarget: () => HTMLInputElement | null;
     fileUploadRef: React.RefObject<FileUploadClass>;
-    pluginItems?: (JSX.Element | null)[];
     formId?: string;
     formClass?: string;
     formRef?: React.RefObject<HTMLFormElement>;
+    postEditorActions?: PluginComponent[];
+    onPluginUpdateText: (message: string) => void;
 }
 const Foo = ({
     message,
@@ -125,12 +127,36 @@ const Foo = ({
     handleFileUploadChange,
     getFileUploadTarget,
     fileUploadRef,
-    pluginItems = [],
     formId,
     formClass,
     formRef,
+    postEditorActions,
+    onPluginUpdateText,
 }: Props) => {
     const textEditorChannelId = currentChannel?.id || channelId || '';
+    const pluginItems = postEditorActions?.map((item) => {
+        if (!item.component) {
+            return null;
+        }
+
+        const Component = item.component as any;
+        return (
+            <Component
+                key={item.id}
+                draft={draft}
+                getSelectedText={() => {
+                    const input = textboxRef.current?.getInputBox();
+
+                    return {
+                        start: input.selectionStart,
+                        end: input.selectionEnd,
+                    };
+                }}
+                updateText={onPluginUpdateText}
+            />
+        );
+    }) || [];
+
     const additionalControls = [priorityControls, ...pluginItems].filter(Boolean);
 
     return (
