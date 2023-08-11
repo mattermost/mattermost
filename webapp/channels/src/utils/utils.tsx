@@ -56,7 +56,6 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import {FileInfo} from '@mattermost/types/files';
 import {Team} from '@mattermost/types/teams';
-import {Post} from '@mattermost/types/posts';
 import {UserProfile} from '@mattermost/types/users';
 import {Channel} from '@mattermost/types/channels';
 
@@ -1218,14 +1217,6 @@ export function clearFileInput(elm: HTMLInputElement) {
     } catch (e) {
         // Do nothing
     }
-}
-
-export function getRootId(post: Post) {
-    return post.root_id === '' ? post.id : post.root_id;
-}
-
-export function getRootPost(postList: Post[]) {
-    return postList.find((post) => post.root_id === '');
 }
 
 export function localizeMessage(id: string, defaultMessage?: string) {

@@ -486,7 +486,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         >
             <Textbox
                 tabIndex={0}
-                rootId={editingPost.post ? Utils.getRootId(editingPost.post) : ''}
+                rootId={editingPost.post ? editingPost.post.root_id : ''}
                 onChange={handleChange}
                 onKeyPress={handleEditKeyPress}
                 onKeyDown={handleKeyDown}
