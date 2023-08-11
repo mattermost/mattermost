@@ -244,26 +244,6 @@ func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
 	return nil
 }
 
-// DeleteOrphanedRows removes entries from Reactions when a corresponding post no longer exists.
-func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// We need the extra level of nesting to deal with MySQL's locking
-	const query = `
-	DELETE FROM Reactions WHERE PostId IN (
-		SELECT * FROM (
-			SELECT PostId FROM Reactions
-			LEFT JOIN Posts ON Reactions.PostId = Posts.Id
-			WHERE Posts.Id IS NULL
-			LIMIT ?
-		) AS A
-	)`
-	result, err := s.GetMasterX().Exec(query, limit)
-	if err != nil {
-		return
-	}
-	deleted, err = result.RowsAffected()
-	return
-}
-
 func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
 	txn, err := s.GetMasterX().Beginx()
 	if err != nil {
