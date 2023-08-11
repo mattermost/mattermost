@@ -1666,6 +1666,10 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 		return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	if err := a.Srv().Store().Reaction().PermanentDeleteByUser(user.Id); err != nil {
+		return model.NewAppError("PermanentDeleteUser", "app.reaction.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	if err := a.Srv().Store().Bot().PermanentDelete(user.Id); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {

@@ -205,6 +205,45 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	return nil
 }
 
+func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
+	now := model.GetMillis()
+	postIds := []string{}
+
+	err := s.GetReplicaX().Select(&postIds, "SELECT PostId FROM Reactions WHERE UserId = ?", userId)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get Reactions with userId=%s", userId)
+	}
+
+	txn, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return err
+	}
+	defer finalizeTransactionX(txn, &err)
+
+	query := s.getQueryBuilder().
+		Delete("Reactions").
+		Where(sq.Eq{"UserId": userId})
+
+	_, err = txn.ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete reactions with userId=%s", userId)
+	}
+
+	for _, postId := range postIds {
+		_, err := txn.Exec(UpdatePostHasReactionsOnDeleteQuery, now, postId, postId)
+		if err != nil {
+			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
+				mlog.String("post_id", postId),
+				mlog.Err(err))
+		}
+	}
+
+	if err = txn.Commit(); err != nil {
+		return err
+	}
+	return nil
+}
+
 // DeleteOrphanedRows removes entries from Reactions when a corresponding post no longer exists.
 func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
 	// We need the extra level of nesting to deal with MySQL's locking
@@ -225,10 +264,10 @@ func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err err
 	return
 }
 
-func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (deleted int64, err error) {
+func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
 	txn, err := s.GetMasterX().Beginx()
 	if err != nil {
-		return 0, err
+		return err
 	}
 	defer finalizeTransactionX(txn, &err)
 
@@ -238,19 +277,18 @@ func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDelet
 			sq.Eq{"PostId": r.Ids},
 		)
 
-	result, err := txn.ExecBuilder(query)
+	_, err = txn.ExecBuilder(query)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to delete channel with ids=%s", r.Ids)
+		return errors.Wrapf(err, "failed to delete orphaned reactions with postIds=%s", r.Ids)
 	}
 	err = deleteFromRetentionIdsTx(txn, r.Id)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	if err = txn.Commit(); err != nil {
-		return 0, err
+		return err
 	}
-	deleted, err = result.RowsAffected()
-	return
+	return nil
 }
 
 func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {

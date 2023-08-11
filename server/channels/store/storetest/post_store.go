@@ -1411,6 +1411,30 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	o2, err = ss.Post().Save(o2)
 	require.NoError(t, err)
 
+	r1 := &model.Reaction{}
+	r1.ChannelId = o1.ChannelId
+	r1.UserId = o2.UserId
+	r1.PostId = o1.Id
+	r1.EmojiName = "smile"
+	r1, err = ss.Reaction().Save(r1)
+	require.NoError(t, err)
+
+	r2 := &model.Reaction{}
+	r2.ChannelId = o1.ChannelId
+	r2.UserId = o1.UserId
+	r2.PostId = o2.Id
+	r2.EmojiName = "wave"
+	r2, err = ss.Reaction().Save(r2)
+	require.NoError(t, err)
+
+	r3 := &model.Reaction{}
+	r3.ChannelId = o1.ChannelId
+	r3.UserId = model.NewId()
+	r3.PostId = o1.Id
+	r3.EmojiName = "sad"
+	r3, err = ss.Reaction().Save(r3)
+	require.NoError(t, err)
+
 	channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
 		DisplayName: "DisplayName2",
@@ -1423,6 +1447,14 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	o3.UserId = model.NewId()
 	o3.Message = NewTestId()
 	o3, err = ss.Post().Save(o3)
+	require.NoError(t, err)
+
+	r4 := &model.Reaction{}
+	r4.ChannelId = channel2.Id
+	r4.UserId = model.NewId()
+	r4.PostId = o3.Id
+	r4.EmojiName = "angry"
+	r4, err = ss.Reaction().Save(r4)
 	require.NoError(t, err)
 
 	channel3, err := ss.Channel().Save(&model.Channel{
@@ -1475,8 +1507,21 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err, "Deleted id shouldn't have failed")
 
+	reactions, err := ss.Reaction().GetForPost(o1.Id, false)
+	require.NoError(t, err, "Reactions should exist")
+	require.Equal(t, 2, len(reactions))
+	emojis := []string{"smile", "sad"}
+	for _, reaction := range reactions {
+		emojis = append(emojis)
+		require.Contains(t, emojis, reaction.EmojiName)
+	}
+
 	_, err = ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
+
+	reactions, err = ss.Reaction().GetForPost(o2.Id, false)
+	require.NoError(t, err, "No error for not found")
+	require.Equal(t, 0, len(reactions))
 
 	thread, err = ss.Thread().Get(o5.Id)
 	require.NoError(t, err)
@@ -1488,6 +1533,18 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	thread, err = ss.Thread().Get(o5.Id)
 	require.NoError(t, err)
 	require.Nil(t, thread)
+
+	reactions, err = ss.Reaction().GetForPost(o3.Id, false)
+	require.NoError(t, err, "No error for not found")
+	require.Equal(t, 0, len(reactions))
+
+	reactions, err = ss.Reaction().GetForPost(o1.Id, false)
+	require.NoError(t, err, "Reactions should exist")
+	require.Equal(t, 2, len(reactions))
+	for _, reaction := range reactions {
+		emojis = append(emojis)
+		require.Contains(t, emojis, reaction.EmojiName)
+	}
 
 	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
@@ -3938,7 +3995,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err, "Should have found post 3 after purge")
 
-	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 0, 1000)
+	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(rows))
 	require.Equal(t, 2, len(rows[0].Ids))
@@ -3959,7 +4016,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, int64(2), deleted)
 
-		rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 0, 1000)
+		rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(rows))
 
@@ -3967,7 +4024,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, int64(1), deleted)
 
-		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 0, 1000)
+		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
 		require.NoError(t, err)
 		require.Equal(t, 3, len(rows))
 	})

@@ -108,7 +108,7 @@ type RetentionPolicyStore interface {
 	GetTeamPoliciesCountForUser(userID string) (int64, error)
 	GetChannelPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForChannel, error)
 	GetChannelPoliciesCountForUser(userID string) (int64, error)
-	GetIdsForDeletionByTableName(tableName string, offset, limit int) ([]*model.RetentionIdsForDeletion, error)
+	GetIdsForDeletionByTableName(tableName string, limit int) ([]*model.RetentionIdsForDeletion, error)
 }
 
 type TeamStore interface {
@@ -707,8 +707,9 @@ type ReactionStore interface {
 	DeleteAllWithEmojiName(emojiName string) error
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 	DeleteOrphanedRows(limit int) (int64, error)
-	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error)
+	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	PermanentDeleteByUser(userID string) error
 }
 
 type JobStore interface {

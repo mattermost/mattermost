@@ -8158,21 +8158,21 @@ func (s *RetryLayerReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
 
 }
 
-func (s *RetryLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
+func (s *RetryLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
 
 	tries := 0
 	for {
-		result, err := s.ReactionStore.DeleteOrphanedRowsByIds(r)
+		err := s.ReactionStore.DeleteOrphanedRowsByIds(r)
 		if err == nil {
-			return result, nil
+			return nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -8236,6 +8236,27 @@ func (s *RetryLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int6
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerReactionStore) PermanentDeleteByUser(userID string) error {
+
+	tries := 0
+	for {
+		err := s.ReactionStore.PermanentDeleteByUser(userID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -8641,11 +8662,11 @@ func (s *RetryLayerRetentionPolicyStore) GetCount() (int64, error) {
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, offset int, limit int) ([]*model.RetentionIdsForDeletion, error) {
+func (s *RetryLayerRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, limit int) ([]*model.RetentionIdsForDeletion, error) {
 
 	tries := 0
 	for {
-		result, err := s.RetentionPolicyStore.GetIdsForDeletionByTableName(tableName, offset, limit)
+		result, err := s.RetentionPolicyStore.GetIdsForDeletionByTableName(tableName, limit)
 		if err == nil {
 			return result, nil
 		}

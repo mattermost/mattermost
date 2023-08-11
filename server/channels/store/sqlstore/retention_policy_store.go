@@ -848,15 +848,14 @@ func scanRetentionIdsForDeletion(rows *sql.Rows, isPostgres bool) ([]*model.Rete
 	return idsForDeletion, nil
 }
 
-func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, offset, limit int) ([]*model.RetentionIdsForDeletion, error) {
+func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, limit int) ([]*model.RetentionIdsForDeletion, error) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("RetentionIdsForDeletion").
 		Where(
 			sq.Eq{"TableName": tableName},
 		).
-		Limit(uint64(limit)).
-		Offset(uint64(offset))
+		Limit(uint64(limit))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -867,7 +866,7 @@ func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string,
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get ids for deletion")
 	}
-	defer deferClose(rows, &err)
+	defer rows.Close()
 
 	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
 	idsForDeletion, err := scanRetentionIdsForDeletion(rows, isPostgres)
@@ -930,7 +929,7 @@ type RetentionPolicyBatchDeletionInfo struct {
 	NowMillis           int64
 	GlobalPolicyEndTime int64
 	Limit               int64
-	UseTransaction      bool
+	StoreDeletedIds     bool
 }
 
 // genericPermanentDeleteBatchForRetentionPolicies is a helper function for tables
@@ -1045,7 +1044,7 @@ func genericRetentionPoliciesDeletion(
 		return 0, errors.Wrap(err, r.Table+"_tosql")
 	}
 
-	if r.UseTransaction {
+	if r.StoreDeletedIds {
 		txn, err := s.GetMasterX().Beginx()
 		if err != nil {
 			return 0, err
@@ -1057,7 +1056,7 @@ func genericRetentionPoliciesDeletion(
 			query = `
 			DELETE FROM ` + r.Table + ` WHERE ` + primaryKeysStr + ` IN (
 			` + query + `
-			) RETURNING ` + r.PrimaryKeys[0]
+			) RETURNING ` + r.Table + `.` + r.PrimaryKeys[0]
 			rows, err := txn.Query(query, args...)
 			if err != nil {
 				return 0, errors.Wrap(err, "failed to delete "+r.Table)

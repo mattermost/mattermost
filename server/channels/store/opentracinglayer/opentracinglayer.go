@@ -7190,7 +7190,7 @@ func (s *OpenTracingLayerReactionStore) DeleteOrphanedRows(limit int) (int64, er
 	return result, err
 }
 
-func (s *OpenTracingLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
+func (s *OpenTracingLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.DeleteOrphanedRowsByIds")
 	s.Root.Store.SetContext(newCtx)
@@ -7199,13 +7199,13 @@ func (s *OpenTracingLayerReactionStore) DeleteOrphanedRowsByIds(r *model.Retenti
 	}()
 
 	defer span.Finish()
-	result, err := s.ReactionStore.DeleteOrphanedRowsByIds(r)
+	err := s.ReactionStore.DeleteOrphanedRowsByIds(r)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return result, err
+	return err
 }
 
 func (s *OpenTracingLayerReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
@@ -7260,6 +7260,24 @@ func (s *OpenTracingLayerReactionStore) PermanentDeleteBatch(endTime int64, limi
 	}
 
 	return result, err
+}
+
+func (s *OpenTracingLayerReactionStore) PermanentDeleteByUser(userID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.PermanentDeleteByUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ReactionStore.PermanentDeleteByUser(userID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
@@ -7604,7 +7622,7 @@ func (s *OpenTracingLayerRetentionPolicyStore) GetCount() (int64, error) {
 	return result, err
 }
 
-func (s *OpenTracingLayerRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, offset int, limit int) ([]*model.RetentionIdsForDeletion, error) {
+func (s *OpenTracingLayerRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, limit int) ([]*model.RetentionIdsForDeletion, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.GetIdsForDeletionByTableName")
 	s.Root.Store.SetContext(newCtx)
@@ -7613,7 +7631,7 @@ func (s *OpenTracingLayerRetentionPolicyStore) GetIdsForDeletionByTableName(tabl
 	}()
 
 	defer span.Finish()
-	result, err := s.RetentionPolicyStore.GetIdsForDeletionByTableName(tableName, offset, limit)
+	result, err := s.RetentionPolicyStore.GetIdsForDeletionByTableName(tableName, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

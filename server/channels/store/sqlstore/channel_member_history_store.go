@@ -175,7 +175,7 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(n
 		NowMillis:           now,
 		GlobalPolicyEndTime: globalPolicyEndTime,
 		Limit:               limit,
-		UseTransaction:      false,
+		StoreDeletedIds:     false,
 	}, s.SqlStore, cursor)
 }
 
