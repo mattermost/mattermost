@@ -191,7 +191,8 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 
 	pluginsEnvironment := pm.getPluginsEnv()
 	if pluginsEnvironment == nil {
-		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
+		err := model.NewAppError("ServePluginMetricsRequest", "app.plugin.disabled.app_error",
+			nil, "Enable plugins to serve plugin metric requests", http.StatusNotImplemented)
 		mlog.Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
