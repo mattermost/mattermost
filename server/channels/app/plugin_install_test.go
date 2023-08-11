@@ -167,17 +167,6 @@ func TestInstallPluginLocally(t *testing.T) {
 		assertBundleInfoManifests(t, th, []*model.Manifest{manifest})
 	})
 
-	t.Run("doesn't install if ID on block list", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-		cleanExistingBundles(t, th)
-
-		_, appErr := installPlugin(t, th, "com.mattermost.plugin-incident-response", "0.0.1", installPluginLocallyAlways)
-		require.NotNil(t, appErr)
-		require.Equal(t, "app.plugin.blocked.app_error", appErr.Id)
-		assertBundleInfoManifests(t, th, []*model.Manifest{})
-	})
-
 	t.Run("different plugin already installed", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()

@@ -18,9 +18,15 @@ type ExtendedFixtures = {
     pages: typeof pages;
 };
 
+type AxeBuilderOptions = {
+    disableColorContrast?: boolean;
+    disableLinkInTextBlock?: boolean;
+};
+
 export const test = base.extend<ExtendedFixtures>({
-    axe: async ({page}, use) => {
-        const ab = new AxeBuilderExtended(page);
+    // eslint-disable-next-line no-empty-pattern
+    axe: async ({}, use) => {
+        const ab = new AxeBuilderExtended();
         await use(ab);
     },
     pw: async ({browser, viewport}, use) => {
@@ -93,24 +99,29 @@ class PlaywrightExtended {
 }
 
 class AxeBuilderExtended {
-    /**
-     * Each page should have its own Axe Builder to specifically list known issues
-     * which are to be excluded from being scanned until issues are fixed.
-     * Excluded element should have a corresponding ticket.
-     */
-
-    // '<site_url>/login'
-    readonly loginPage: () => AxeBuilder;
+    readonly builder: (page: Page, options?: AxeBuilderOptions) => AxeBuilder;
 
     // See https://github.com/dequelabs/axe-core/blob/master/doc/API.md#axe-core-tags
     readonly tags: string[] = ['wcag2a', 'wcag2aa'];
 
-    // See https://github.com/dequelabs/axe-core/blob/master/doc/rule-descriptions.md#wcag-20-level-a--aa-rules
-    readonly disabledRules: string[] = [];
+    constructor() {
+        this.builder = (page: Page, options: AxeBuilderOptions = {}) => {
+            // See https://github.com/dequelabs/axe-core/blob/master/doc/rule-descriptions.md#wcag-20-level-a--aa-rules
+            const disabledRules: string[] = [];
 
-    constructor(page: Page) {
-        this.loginPage = () => {
-            return new AxeBuilder({page}).withTags(this.tags).disableRules(this.disabledRules);
+            if (options.disableColorContrast) {
+                // Disabled in pages due to impact to overall theme of Mattermost.
+                // Option: make use of custom theme to improve color contrast.
+                disabledRules.push('color-contrast');
+            }
+
+            if (options.disableLinkInTextBlock) {
+                // Disabled in pages due to impact to overall theme of Mattermost.
+                // Option: make use of custom theme to improve color contrast.
+                disabledRules.push('link-in-text-block');
+            }
+
+            return new AxeBuilder({page}).withTags(this.tags).disableRules(disabledRules);
         };
     }
 

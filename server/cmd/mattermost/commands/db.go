@@ -113,7 +113,10 @@ func initDbCmdF(command *cobra.Command, _ []string) error {
 	}
 	defer configStore.Close()
 
-	sqlStore := sqlstore.New(configStore.Get().SqlSettings, nil)
+	sqlStore, err := sqlstore.New(configStore.Get().SqlSettings, nil)
+	if err != nil {
+		return errors.Wrap(err, "failed to initialize store")
+	}
 	defer sqlStore.Close()
 
 	CommandPrettyPrintln("Database store correctly initialised")
