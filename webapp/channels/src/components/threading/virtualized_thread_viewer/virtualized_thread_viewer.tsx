@@ -35,12 +35,12 @@ type Props = {
     replyListIds: string[];
     selected: Post | FakePost;
     useRelativeTimestamp: boolean;
+    isMobileView: boolean;
     isThreadView: boolean;
 }
 
 type State = {
     createCommentHeight: number;
-    isMobile: boolean;
     isScrolling: boolean;
     topRhsPostId?: string;
     userScrolled: boolean;
@@ -93,7 +93,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         super(props);
 
         const postIndex = this.getInitialPostIndex();
-        const isMobile = Utils.isMobile();
 
         this.initRangeToRender = [
             Math.max(postIndex - 30, 0),
@@ -107,7 +106,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
         this.state = {
             createCommentHeight: 0,
-            isMobile,
             isScrolling: false,
             userScrolled: false,
             userScrolledToBottom: false,
@@ -122,12 +120,10 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
     componentDidMount() {
         this.mounted = true;
-        window.addEventListener('resize', this.handleWindowResize);
     }
 
     componentWillUnmount() {
         this.mounted = false;
-        window.removeEventListener('resize', this.handleWindowResize);
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -152,15 +148,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
     canLoadMorePosts() {
         return Promise.resolve();
     }
-
-    handleWindowResize = () => {
-        const isMobile = Utils.isMobile();
-        if (isMobile !== this.state.isMobile) {
-            this.setState({
-                isMobile,
-            });
-        }
-    };
 
     initScrollToIndex = (): {index: number; position: string; offset?: number} => {
         const {highlightedPostId, replyListIds} = this.props;
@@ -204,7 +191,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             updatedState.userScrolled = true;
             updatedState.userScrolledToBottom = userScrolledToBottom;
 
-            if (this.state.isMobile) {
+            if (this.props.isMobileView) {
                 if (!this.state.isScrolling) {
                     updatedState.isScrolling = true;
                 }
@@ -238,7 +225,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         overscanStartIndex,
         overscanStopIndex,
     }: OnItemsRenderedArgs) => {
-        if (this.state.isMobile) {
+        if (this.props.isMobileView) {
             this.updateFloatingTimestamp(visibleStartIndex);
         }
         this.setState({
@@ -428,11 +415,11 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
     };
 
     render() {
-        const {isMobile, topRhsPostId} = this.state;
+        const {topRhsPostId} = this.state;
 
         return (
             <>
-                {isMobile && topRhsPostId && !this.props.useRelativeTimestamp && (
+                {this.props.isMobileView && topRhsPostId && !this.props.useRelativeTimestamp && (
                     <FloatingTimestamp
                         isRhsPost={true}
                         isScrolling={this.state.isScrolling}

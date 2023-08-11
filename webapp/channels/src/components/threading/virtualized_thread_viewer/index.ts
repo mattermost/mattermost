@@ -13,9 +13,10 @@ import {Post} from '@mattermost/types/posts';
 
 import {FakePost} from 'types/store/rhs';
 
+import {getIsMobileView} from 'selectors/views/browser';
 import {makePrepareReplyIdsForThreadViewer, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import ThreadViewerVirtualized from './virtualized_thread_viewer';
 
@@ -50,6 +51,7 @@ function makeMapStateToProps() {
         return {
             currentUserId,
             directTeammate,
+            isMobileView: getIsMobileView(state),
             lastPost,
             replyListIds,
         };
