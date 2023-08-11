@@ -971,7 +971,7 @@ func TestIsValidURI(t *testing.T) {
 		},
 		{
 			Description: "valid URN",
-			Input:       "urn:ec.europa.eu:eulogin:saml",
+			Input:       "urn:ec.mattermost.com:mmlogin:saml",
 			Expected:    true,
 		},
 		{
