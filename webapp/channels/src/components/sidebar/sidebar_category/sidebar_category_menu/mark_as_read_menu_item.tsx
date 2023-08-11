@@ -48,7 +48,7 @@ const MarkAsUnreadItem = ({
         <Menu.Item
             id={`view-${id}`}
             onClick={onClick}
-            aria-haspopup={true}
+            aria-haspopup={numChannels > 1}
             leadingElement={<MarkAsUnreadIcon size={18}/>}
             labels={(
                 <FormattedMessage
