@@ -69,7 +69,7 @@ const PasswordInput = React.forwardRef((
                 <button
                     id='password_toggle'
                     type='button'
-                    aria-label={placeHolder}
+                    aria-label={formatMessage({id: 'widget.passwordInput.passwordToggle', defaultMessage: 'Show or hide password'})}
                     className='password-input-toggle'
                     onClick={toggleShowPassword}
                     disabled={disabled}

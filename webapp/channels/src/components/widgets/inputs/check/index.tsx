@@ -8,6 +8,7 @@ import './check.scss';
 
 type Props = {
     id: string;
+    ariaLabel: string;
     name: string;
     text: ReactNode;
     onChange: () => void;
@@ -15,14 +16,17 @@ type Props = {
 }
 
 function CheckInput(props: Props) {
+    const {id, ariaLabel, text, ...rest} = props;
+
     return (
         <div className='check-input'>
             <input
-                {...props}
-                data-testid={props.id}
+                {...rest}
+                aria-label={ariaLabel}
+                data-testid={id}
                 type='checkbox'
             />
-            <span className='text'>{props.text}</span>
+            <span className='text'>{text}</span>
         </div>
     );
 }

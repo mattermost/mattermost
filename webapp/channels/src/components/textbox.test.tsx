@@ -71,10 +71,8 @@ describe('components/TextBox', () => {
                 handlePostError={() => {}}
                 suggestionListPosition='top'
                 emojiEnabled={true}
-                isRHS={true}
                 disabled={true}
                 badConnection={true}
-                listenForMentionKeyClick={true}
                 preview={true}
                 openWhenEmpty={true}
             />,

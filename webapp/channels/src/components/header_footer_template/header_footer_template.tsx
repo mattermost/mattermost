@@ -3,9 +3,9 @@
 
 import PropTypes from 'prop-types';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
+import {localizeMessage} from 'utils/utils';
 
 import type {ClientConfig} from '@mattermost/types/config';
 
@@ -58,10 +58,7 @@ export default class NotLoggedIn extends React.PureComponent<Props> {
                     location='header_footer_template'
                     href={this.props.config.AboutLink}
                 >
-                    <FormattedMessage
-                        id='web.footer.about'
-                        defaultMessage='About'
-                    />
+                    {localizeMessage('web.footer.about', 'About')}
                 </ExternalLink>,
             );
         }
@@ -75,10 +72,7 @@ export default class NotLoggedIn extends React.PureComponent<Props> {
                     location='header_footer_template'
                     href={this.props.config.PrivacyPolicyLink}
                 >
-                    <FormattedMessage
-                        id='web.footer.privacy'
-                        defaultMessage='Privacy Policy'
-                    />
+                    {localizeMessage('web.footer.privacy', 'Privacy Policy')}
                 </ExternalLink>,
             );
         }
@@ -92,10 +86,7 @@ export default class NotLoggedIn extends React.PureComponent<Props> {
                     location='header_footer_template'
                     href={this.props.config.TermsOfServiceLink}
                 >
-                    <FormattedMessage
-                        id='web.footer.terms'
-                        defaultMessage='Terms'
-                    />
+                    {localizeMessage('web.footer.terms', 'Terms')}
                 </ExternalLink>,
             );
         }
@@ -109,10 +100,7 @@ export default class NotLoggedIn extends React.PureComponent<Props> {
                     location='header_footer_template'
                     href={this.props.config.HelpLink}
                 >
-                    <FormattedMessage
-                        id='web.footer.help'
-                        defaultMessage='Help'
-                    />
+                    {localizeMessage('web.footer.help', 'Help')}
                 </ExternalLink>,
             );
         }

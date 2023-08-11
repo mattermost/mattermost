@@ -40,7 +40,22 @@ window.Luxon = require('luxon');
 window.StyledComponents = require('styled-components');
 
 // Functions exposed on window for plugins to use.
-window.PostUtils = {formatText, messageHtmlToComponent};
+window.PostUtils = {
+    formatText,
+    messageHtmlToComponent: (html, ...otherArgs) => {
+        // Previously, this function took an extra isRHS argument as the second parameter. For backwards compatibility,
+        // support calling this as either messageHtmlToComponent(html, options) or messageHtmlToComponent(html, isRhs, options)
+
+        let options;
+        if (otherArgs.length === 2) {
+            options = otherArgs[1];
+        } else if (otherArgs.length === 1 && typeof otherArgs[0] === 'object') {
+            options = otherArgs[0];
+        }
+
+        return messageHtmlToComponent(html, options);
+    },
+};
 window.openInteractiveDialog = openInteractiveDialog;
 window.useNotifyAdmin = useNotifyAdmin;
 window.WebappUtils = {

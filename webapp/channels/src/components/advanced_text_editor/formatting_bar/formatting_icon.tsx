@@ -75,6 +75,7 @@ export const IconContainer = styled.button`
 `;
 
 interface FormattingIconProps {
+    id?: string;
     mode: MarkdownMode;
     onClick?: () => void;
     className?: string;
@@ -133,7 +134,7 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
     const bodyAction = (
         <IconContainer
             type='button'
-            id={`FormattingControl_${mode}`}
+            id={props.id || `FormattingControl_${mode}`}
             onClick={onClick}
             aria-label={buttonAriaLabel}
             {...otherProps}

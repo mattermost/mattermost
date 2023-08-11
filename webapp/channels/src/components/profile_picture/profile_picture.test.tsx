@@ -44,7 +44,6 @@ describe('components/ProfilePicture', () => {
         const props: Props = {
             ...baseProps,
             size: 'xl',
-            isRHS: true,
             hasMention: true,
         };
         const wrapper = shallow(
@@ -71,7 +70,6 @@ describe('components/ProfilePicture', () => {
             ...baseProps,
             username: 'username',
             size: 'xs',
-            isRHS: true,
             hasMention: true,
         };
         const wrapper = shallow(

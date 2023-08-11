@@ -19,7 +19,6 @@ type Props = {
     enablePostIconOverride: boolean;
     hasImageProxy: boolean;
     isBusy?: boolean;
-    isRHS?: boolean;
     post: Post;
     status?: string;
     user: UserProfile;
@@ -83,7 +82,6 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
             availabilityStatusOnPosts,
             compactDisplay,
             isBusy,
-            isRHS,
             post,
             user,
             isBot,
@@ -110,7 +108,6 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
             <ProfilePicture
                 hasMention={hasMention}
                 isBusy={isBusy}
-                isRHS={isRHS}
                 size='md'
                 src={src}
                 profileSrc={profileSrc}

@@ -15,7 +15,6 @@ import type {Post, PostType} from '@mattermost/types/posts';
 describe('components/PostMarkdown', () => {
     const baseProps = {
         imageProps: {},
-        isRHS: false,
         message: 'message',
         post: TestHelper.getPostMock(),
         mentionKeys: [{key: 'a'}, {key: 'b'}, {key: 'c'}],

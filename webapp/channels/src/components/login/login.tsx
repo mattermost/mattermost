@@ -363,8 +363,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const onWindowFocus = useCallback(() => {
         if (extraParam === Constants.SIGNIN_VERIFIED && emailParam) {
             passwordInput.current?.focus();
-        } else {
-            loginIdInput.current?.focus();
         }
     }, [emailParam, extraParam]);
 

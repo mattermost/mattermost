@@ -141,7 +141,6 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                         userId={member.user.id}
                         src={profileSrc}
                         hide={hideProfilePopover}
-                        isRHS={true}
                         hideStatus={member.user.is_bot}
                     />
                 }
@@ -149,7 +148,6 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                 <span className='ProfileSpan'>
                     <Avatar>
                         <ProfilePicture
-                            isRHS={true}
                             popoverPlacement='left'
                             size='sm'
                             status={member.status}

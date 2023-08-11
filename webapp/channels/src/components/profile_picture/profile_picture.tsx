@@ -24,7 +24,6 @@ type Props = {
     hasMention?: boolean;
     isBusy?: boolean;
     isEmoji?: boolean;
-    isRHS?: boolean;
     profileSrc?: string;
     size?: ComponentProps<typeof Avatar>['size'];
     src: string;
@@ -46,7 +45,6 @@ type Props = {
 export default class ProfilePicture extends React.PureComponent<Props> {
     public static defaultProps = {
         size: 'md',
-        isRHS: false,
         isEmoji: false,
         hasMention: false,
         wrapperClass: '',
@@ -85,7 +83,6 @@ export default class ProfilePicture extends React.PureComponent<Props> {
                             src={profileSrc}
                             isBusy={this.props.isBusy}
                             hide={this.hideProfilePopover}
-                            isRHS={this.props.isRHS}
                             channelId={this.props.channelId}
                             hasMention={this.props.hasMention}
                             overwriteIcon={this.props.overwriteIcon}

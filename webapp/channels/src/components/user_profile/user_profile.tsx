@@ -143,7 +143,6 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
                             isBusy={isBusy}
                             hide={this.hideProfilePopover}
                             hideStatus={hideStatus}
-                            isRHS={isRHS}
                             hasMention={hasMention}
                             overwriteName={overwriteName}
                             overwriteIcon={overwriteIcon}
