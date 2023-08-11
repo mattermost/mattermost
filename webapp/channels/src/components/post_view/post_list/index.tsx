@@ -36,7 +36,7 @@ const memoizedGetLatestPostId = memoizeResult((postIds: string[]) => getLatestPo
 
 interface Props {
     focusedPostId?: string;
-    unreadChunkTimeStamp: number;
+    unreadChunkTimeStamp?: number;
     changeUnreadChunkTimeStamp: (lastViewedAt: number) => void;
     channelId: string;
 }
