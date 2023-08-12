@@ -15,7 +15,7 @@ import {PostDraft} from 'types/store/draft';
 import {getGlobalItem} from 'selectors/storage';
 import {makeGetDrafts} from 'selectors/drafts';
 
-import {ActionTypes, StoragePrefixes} from 'utils/constants';
+import Constants, {ActionTypes, StoragePrefixes} from 'utils/constants';
 
 import type {Draft as ServerDraft} from '@mattermost/types/drafts';
 import type {UserProfile} from '@mattermost/types/users';
@@ -24,6 +24,7 @@ import {FileInfo} from '@mattermost/types/files';
 import {PreferenceType} from '@mattermost/types/preferences';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import Preferences from 'mattermost-redux/constants/preferences';
+import { isDraftEmpty } from 'utils/draft';
 
 type Draft = {
     key: keyof GlobalState['storage']['storage'];
@@ -91,36 +92,63 @@ export function removeDraft(key: string, channelId: string, rootId = '') {
     };
 }
 
-export function updateDraft(key: string, value: PostDraft|null, rootId = '', save = false) {
+const draftSaveTimeouts: {[key: string]: NodeJS.Timeout | undefined} = {};
+function clearDraftTimeout(key: string) {
+    const currentTimetout = draftSaveTimeouts[key]
+    if (currentTimetout) {
+        clearTimeout(currentTimetout);
+        delete draftSaveTimeouts[key];
+    }
+}
+
+export function updateDraft(key: string, value: PostDraft, save = false, instant = false) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        clearDraftTimeout(key);
         const state = getState() as GlobalState;
-        let updatedValue: PostDraft|null = null;
-        if (value) {
-            const timestamp = new Date().getTime();
-            const data = getGlobalItem(state, key, {});
-            updatedValue = {
-                ...value,
-                createAt: data.createAt || timestamp,
-                updateAt: timestamp,
-            };
-        }
+        const timestamp = new Date().getTime();
+        const data = getGlobalItem(state, key, {});
+        const updatedValue = {
+            ...value,
+            createAt: data.createAt || timestamp,
+            updateAt: timestamp,
+        };
 
-        dispatch(setGlobalDraft(key, updatedValue, false));
+        const connectionId = getConnectionId(state);
+        const userId = getCurrentUserId(state);
+        const syncServerDrafts = syncedDraftsAreAllowedAndEnabled(state) && save;
 
-        if (syncedDraftsAreAllowedAndEnabled(state) && save && updatedValue) {
-            const connectionId = getConnectionId(state);
-            const userId = getCurrentUserId(state);
-            try {
-                await upsertDraft(updatedValue, userId, rootId, connectionId);
-            } catch (error) {
-                return {data: false, error};
+        const action = async () => {
+            dispatch(setGlobalDraft(key, updatedValue, false));
+
+            if (syncServerDrafts) {
+                try {
+                    if (isDraftEmpty(value)) {
+                        await Client4.deleteDraft(value.channelId, value.rootId, connectionId);
+                    } else {
+                        await upsertDraft(updatedValue, userId, connectionId);
+                    }
+                } catch (error) {
+                    return {data: false, error}
+                }
             }
+
+            return {data: true}
         }
+        
+        if (instant) {
+            return action();
+        }
+
+        draftSaveTimeouts[key] = setTimeout(() => {
+            clearDraftTimeout(key);
+            action();
+        }, Constants.SAVE_DRAFT_TIMEOUT)
+    
         return {data: true};
     };
 }
 
-function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', connectionId: string) {
+function upsertDraft(draft: PostDraft, userId: UserProfile['id'], connectionId: string) {
     const fileIds = draft.fileInfos.map((file) => file.id);
     const newDraft = {
         create_at: draft.createAt || 0,
@@ -128,7 +156,7 @@ function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', c
         delete_at: 0,
         user_id: userId,
         channel_id: draft.channelId,
-        root_id: draft.rootId || rootId,
+        root_id: draft.rootId,
         message: draft.message,
         props: draft.props,
         file_ids: fileIds,
@@ -201,7 +229,6 @@ export function transformServerDraft(draft: ServerDraft): Draft {
             createAt: draft.create_at,
             updateAt: draft.update_at,
             metadata,
-            show: true,
         },
     };
 }

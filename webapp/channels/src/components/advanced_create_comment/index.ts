@@ -109,7 +109,7 @@ function makeMapStateToProps() {
 }
 
 function makeOnUpdateCommentDraft(channelId: string) {
-    return (draft: PostDraft, save = false) => updateCommentDraft({...draft, channelId}, save);
+    return (draft: PostDraft, save = false, instant = false) => updateCommentDraft({...draft, channelId}, save, instant);
 }
 
 type Actions = {

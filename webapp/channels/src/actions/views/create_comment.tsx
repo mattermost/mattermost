@@ -45,9 +45,9 @@ export function clearCommentDraftUploads() {
     });
 }
 
-export function updateCommentDraft(draft: PostDraft, save = false) {
+export function updateCommentDraft(draft: PostDraft, save = false, instant = false) {
     const key = `${StoragePrefixes.COMMENT_DRAFT}${draft.rootId}`;
-    return updateDraft(key, draft ?? null, draft.rootId, save);
+    return updateDraft(key, draft, save, instant);
 }
 
 export function makeOnMoveHistoryIndex(rootId: string, direction: number) {

@@ -71,12 +71,9 @@ import {ModalData} from 'types/actions';
 import {FilePreviewInfo} from '../file_preview/file_preview';
 import PriorityLabels from './priority_labels';
 import Foo from 'components/advanced_text_editor/foo';
+import { isDraftEmpty } from 'utils/draft';
 
 const KeyCodes = Constants.KeyCodes;
-
-function isDraftEmpty(draft: PostDraft): boolean {
-    return !draft || (!draft.message && draft.fileInfos.length === 0);
-}
 
 type TextboxElement = HTMLInputElement | HTMLTextAreaElement;
 
@@ -188,7 +185,7 @@ type Props = {
         runSlashCommandWillBePostedHooks: (originalMessage: string, originalArgs: CommandArgs) => ActionResult;
 
         // func called for setting drafts
-        setDraft: (name: string, value: PostDraft | null, draftChannelId: string, save?: boolean) => void;
+        setDraft: (name: string, value: PostDraft | null, draftChannelId: string, save?: boolean, instant?: boolean) => void;
 
         // func called for editing posts
         setEditingPost: (postId?: string, refocusId?: string, title?: string, isRHS?: boolean) => void;
@@ -247,7 +244,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     private lastChannelSwitchAt = 0;
     private draftsForChannel: {[channelID: string]: PostDraft | null} = {};
     private lastOrientation?: string;
-    private saveDraftFrame?: number | null;
     private isDraftSubmitting = false;
 
     private textboxRef: React.RefObject<TextboxClass>;
@@ -310,7 +306,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         if (prevProps.currentChannel.id !== currentChannel.id) {
             this.lastChannelSwitchAt = Date.now();
             this.focusTextbox();
-            this.saveDraftWithShow(prevProps);
+            this.saveDraft(prevProps);
             this.getChannelMemberCountsByGroup();
         }
 
@@ -334,7 +330,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         document.removeEventListener('keydown', this.documentKeyHandler);
         window.removeEventListener('beforeunload', this.unloadHandler);
         this.removeOrientationListeners();
-        this.saveDraftWithShow();
+        this.saveDraft();
     }
 
     getChannelMemberCountsByGroup = () => {
@@ -352,31 +348,13 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     unloadHandler = () => {
-        this.saveDraftWithShow();
+        this.saveDraft();
     };
 
-    saveDraftWithShow = (props = this.props) => {
-        if (this.saveDraftFrame && props.currentChannel) {
+    saveDraft = (props = this.props) => {
+        if (props.currentChannel) {
             const channelId = props.currentChannel.id;
-            const draft = this.draftsForChannel[channelId];
-
-            if (draft) {
-                this.draftsForChannel[channelId] = {
-                    ...draft,
-                    show: !isDraftEmpty(draft),
-                } as PostDraft;
-            }
-        }
-
-        this.saveDraft(props, true);
-    };
-
-    saveDraft = (props = this.props, save = false) => {
-        if (this.saveDraftFrame && props.currentChannel) {
-            const channelId = props.currentChannel.id;
-            props.actions.setDraft(StoragePrefixes.DRAFT + channelId, this.draftsForChannel[channelId], channelId, save);
-            clearTimeout(this.saveDraftFrame);
-            this.saveDraftFrame = null;
+            props.actions.setDraft(StoragePrefixes.DRAFT + channelId, this.draftsForChannel[channelId], channelId, true);
         }
     };
 
@@ -544,10 +522,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             postError: null,
             showFormat: false,
         });
-
-        if (this.saveDraftFrame) {
-            clearTimeout(this.saveDraftFrame);
-        }
 
         this.isDraftSubmitting = false;
         this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);
@@ -882,19 +856,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
     handleDraftChange = (draft: PostDraft, instant = false) => {
         const channelId = this.props.currentChannel.id;
-
-        if (this.saveDraftFrame) {
-            clearTimeout(this.saveDraftFrame);
-        }
-
-        if (instant) {
-            this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, draft, channelId);
-        } else {
-            this.saveDraftFrame = window.setTimeout(() => {
-                this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, draft, channelId);
-            }, Constants.SAVE_DRAFT_TIMEOUT);
-        }
-
+        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, draft, channelId, false, instant);
         this.draftsForChannel[channelId] = draft;
     };
 
@@ -1039,12 +1001,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.draftsForChannel[channelId] = modifiedDraft;
 
         this.handleFileUploadChange();
-
-        if (this.saveDraftFrame) {
-            clearTimeout(this.saveDraftFrame);
-        }
-
-        this.saveDraftFrame = null;
     };
 
     focusTextboxIfNecessary = (e: KeyboardEvent) => {
@@ -1355,7 +1311,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
     handleBlur = () => {
         if (!this.isDraftSubmitting) {
-            this.saveDraftWithShow();
+            this.saveDraft();
         }
 
         this.lastBlurAt = Date.now();

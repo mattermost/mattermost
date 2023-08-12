@@ -56,6 +56,7 @@ import PostDeletedModal from 'components/post_deleted_modal';
 import {FilePreviewInfo} from 'components/file_preview/file_preview';
 import {TextboxClass, TextboxElement} from 'components/textbox';
 import Foo from 'components/advanced_text_editor/foo';
+import { isDraftEmpty } from 'utils/draft';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -111,7 +112,7 @@ type Props = {
     clearCommentDraftUploads: () => void;
 
     // Called when comment draft needs to be updated
-    onUpdateCommentDraft: (draft: PostDraft, save?: boolean) => void;
+    onUpdateCommentDraft: (draft: PostDraft, save?: boolean, instant?: boolean) => void;
 
     // Called when submitting the comment
     onSubmit: (draft: PostDraft, options: {ignoreSlash: boolean}) => void;
@@ -193,16 +194,10 @@ type State = {
     isFormattingBarHidden: boolean;
 };
 
-function isDraftEmpty(draft: PostDraft): boolean {
-    return !draft || (!draft.message && draft.fileInfos.length === 0);
-}
-
 class AdvancedCreateComment extends React.PureComponent<Props, State> {
     private lastBlurAt = 0;
     private draftsForPost: {[postID: string]: PostDraft | null} = {};
     private doInitialScrollToBottom = false;
-
-    private saveDraftFrame?: number | null;
 
     private isDraftSubmitting = false;
     private isDraftEdited = false;
@@ -267,7 +262,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         document.addEventListener('paste', this.pasteHandler);
         document.addEventListener('keydown', this.focusTextboxIfNecessary);
-        window.addEventListener('beforeunload', this.saveDraftWithShow);
+        window.addEventListener('beforeunload', this.saveDraft);
         this.getChannelMemberCountsByGroup();
 
         // When draft.message is not empty, set doInitialScrollToBottom to true so that
@@ -282,7 +277,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.props.resetCreatePostRequest?.();
         document.removeEventListener('paste', this.pasteHandler);
         document.removeEventListener('keydown', this.focusTextboxIfNecessary);
-        window.removeEventListener('beforeunload', this.saveDraftWithShow);
+        window.removeEventListener('beforeunload', this.saveDraft);
         this.saveDraftOnUnmount();
     }
 
@@ -333,43 +328,16 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     };
 
     saveDraftOnUnmount = () => {
-        if (!this.isDraftEdited || !this.state.draft || this.props.rootDeleted) {
+        if (!this.isDraftEdited || this.props.rootDeleted) {
             return;
         }
 
-        const updatedDraft = {
-            ...this.state.draft,
-            show: !isDraftEmpty(this.state.draft),
-        } as PostDraft;
 
-        this.props.onUpdateCommentDraft(updatedDraft, true);
+        this.props.onUpdateCommentDraft(this.state.draft, true);
     };
 
-    saveDraftWithShow = () => {
-        this.setState((prev) => {
-            if (prev.draft) {
-                return {
-                    draft: {
-                        ...prev.draft,
-                        show: !isDraftEmpty(prev.draft),
-                    } as PostDraft,
-                };
-            }
-
-            return {
-                draft: prev.draft,
-            };
-        }, () => {
-            this.saveDraft(true);
-        });
-    };
-
-    saveDraft = (save = false) => {
-        if (this.saveDraftFrame) {
-            clearTimeout(this.saveDraftFrame);
-            this.props.onUpdateCommentDraft(this.state.draft, save);
-            this.saveDraftFrame = null;
-        }
+    saveDraft = () => {
+        this.props.onUpdateCommentDraft(this.state.draft, true);
     };
 
     setShowPreview = (newPreviewValue: boolean) => {
@@ -427,7 +395,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         event.preventDefault();
 
-        const message = this.state.draft?.message ?? '';
+        const message = this.state.draft.message;
 
         // execCommand's insertText' triggers a 'change' event, hence we need not set respective state explicitly.
         if (shouldApplyLinkMarkdown) {
@@ -480,7 +448,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             return;
         }
 
-        const draft = this.state.draft!;
+        const draft = this.state.draft;
 
         let newMessage: string;
         if (draft.message === '') {
@@ -511,7 +479,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     };
 
     handleGifClick = (gif: string) => {
-        const draft = this.state.draft!;
+        const draft = this.state.draft;
 
         let newMessage: string;
         if (draft.message === '') {
@@ -557,7 +525,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             useLDAPGroupMentions,
             useCustomGroupMentions,
         } = this.props;
-        const draft = this.state.draft!;
+        const draft = this.state.draft;
         const notificationsToChannel = enableConfirmNotificationsToChannel && useChannelMentions;
         let memberNotifyCount = 0;
         let channelTimezoneCount = 0;
@@ -644,7 +612,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             e.preventDefault();
         }
 
-        const draft = this.state.draft!;
+        const draft = this.state.draft;
         const enableAddButton = this.shouldEnableAddButton();
 
         if (!enableAddButton) {
@@ -702,10 +670,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             return;
         }
 
-        if (this.saveDraftFrame) {
-            clearTimeout(this.saveDraftFrame);
-        }
-
         this.isDraftSubmitting = false;
         this.setState({draft: {...this.props.draft, uploadsInProgress: []}});
         this.draftsForPost[this.props.rootId] = null;
@@ -716,7 +680,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         const {allowSending} = postMessageOnKeyPress(
             e,
-            this.state.draft!.message,
+            this.state.draft.message,
             Boolean(ctrlSend),
             Boolean(codeBlockOnCtrlEnter),
             0,
@@ -763,8 +727,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             serverError = null;
         }
 
-        const draft = this.state.draft!;
-        const show = isDraftEmpty(draft) ? false : draft.show;
+        const draft = this.state.draft;
+        const show = !isDraftEmpty(draft);
         const updatedDraft = {...draft, message, show};
 
         this.handleDraftChange(updatedDraft);
@@ -780,21 +744,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     handleDraftChange = (draft: PostDraft, save = false, instant = false) => {
         this.isDraftEdited = true;
 
-        if (this.saveDraftFrame) {
-            clearTimeout(this.saveDraftFrame);
-        }
-
-        const saveDraft = () => {
-            this.props.onUpdateCommentDraft(draft, save);
-        };
-
-        if (instant) {
-            saveDraft();
-        } else {
-            this.saveDraftFrame = window.setTimeout(() => {
-                saveDraft();
-            }, Constants.SAVE_DRAFT_TIMEOUT);
-        }
+        this.props.onUpdateCommentDraft(draft, save, instant);
         this.draftsForPost[draft.rootId] = draft;
     };
 
@@ -1108,12 +1058,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.draftsForPost[this.props.rootId] = modifiedDraft;
 
         this.handleFileUploadChange();
-
-        if (this.saveDraftFrame) {
-            clearTimeout(this.saveDraftFrame);
-        }
-
-        this.saveDraftFrame = null;
     };
 
     toggleAdvanceTextEditor = () => {
@@ -1157,7 +1101,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
     handleBlur = () => {
         if (!this.isDraftSubmitting) {
-            this.saveDraftWithShow();
+            this.saveDraft();
         }
         this.lastBlurAt = Date.now();
     };
