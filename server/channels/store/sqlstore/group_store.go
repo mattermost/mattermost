@@ -380,22 +380,16 @@ func (s *SqlGroupStore) Restore(groupID string) (*model.Group, error) {
 }
 
 func (s *SqlGroupStore) GetMember(groupID, userID string) (*model.GroupMember, error) {
-	query, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Select("*").
 		From("GroupMembers").
 		Where(sq.Eq{"UserId": userID}).
 		Where(sq.Eq{"GroupId": groupID}).
-		Where(sq.Eq{"DeleteAt": 0}).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "get_member_query")
-	}
+		Where(sq.Eq{"DeleteAt": 0})
 	var groupMember model.GroupMember
-	err = s.GetReplicaX().Get(&groupMember, query, args...)
-	if err != nil {
+	if err := s.GetReplicaX().GetBuilder(&groupMember, builder); err != nil {
 		return nil, errors.Wrap(err, "GetMember")
 	}
-
 	return &groupMember, nil
 }
 
