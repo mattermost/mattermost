@@ -271,9 +271,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             this.focusTextbox();
         }
 
-        document.addEventListener('paste', this.pasteHandler);
         document.addEventListener('keydown', this.focusTextboxIfNecessary);
-        window.addEventListener('beforeunload', this.saveDraft);
         this.getChannelMemberCountsByGroup();
 
         // When draft.message is not empty, set doInitialScrollToBottom to true so that
@@ -286,9 +284,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
     componentWillUnmount() {
         this.props.resetCreatePostRequest?.();
-        document.removeEventListener('paste', this.pasteHandler);
         document.removeEventListener('keydown', this.focusTextboxIfNecessary);
-        window.removeEventListener('beforeunload', this.saveDraft);
         this.saveDraftOnUnmount();
     }
 
@@ -371,43 +367,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }, () => {
             Utils.setCaretPosition(textbox, newCaretPosition);
         });
-    };
-
-    pasteHandler = (event: ClipboardEvent) => {
-        const {clipboardData, target} = event;
-
-        if (!clipboardData || !clipboardData.items || !target || (target as TextboxElement)?.id !== 'reply_textbox') {
-            return;
-        }
-
-        const {selectionStart, selectionEnd} = target as TextboxElement;
-
-        const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
-        const hasTextUrl = isTextUrl(clipboardData);
-        const hasHTMLLinks = hasHtmlLink(clipboardData);
-        const htmlTable = getHtmlTable(clipboardData);
-        const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
-        const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
-
-        if (!htmlTable && !hasHTMLLinks && !shouldApplyLinkMarkdown) {
-            return;
-        }
-
-        event.preventDefault();
-
-        const message = this.state.draft.message;
-
-        // execCommand's insertText' triggers a 'change' event, hence we need not set respective state explicitly.
-        if (shouldApplyLinkMarkdown) {
-            const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
-            execCommandInsertText(formattedLink);
-        } else if (shouldApplyGithubCodeBlock) {
-            const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
-            execCommandInsertText(formattedCodeBlock);
-        } else {
-            const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, this.state.caretPosition);
-            execCommandInsertText(formattedMarkdown);
-        }
     };
 
     handleNotifyAllConfirmation = () => {
@@ -978,6 +937,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 onMessageChange={this.onMessageChange}
                 loadNextMessage={this.loadNextMessage}
                 loadPrevMessage={this.loadPrevMessage}
+                caretPosition={this.state.caretPosition}
+                saveDraft={this.saveDraft}
             />
         );
     }

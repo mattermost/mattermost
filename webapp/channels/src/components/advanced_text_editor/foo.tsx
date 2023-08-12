@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Channel} from '@mattermost/types/channels';
 import {TextboxClass, TextboxElement} from 'components/textbox';
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
@@ -27,6 +27,9 @@ import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 import * as UserAgent from 'utils/user_agent';
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import { isNil } from 'lodash';
+import { formatGithubCodePaste, formatMarkdownLinkMessage, formatMarkdownMessage, getHtmlTable, hasHtmlLink, isGitHubCodeBlock, isTextUrl } from 'utils/paste';
+import { execCommandInsertText } from 'utils/exec_commands';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -83,6 +86,8 @@ type Props = {
     loadPrevMessage: (e: React.KeyboardEvent) => void;
     loadNextMessage: (e: React.KeyboardEvent) => void;
     replyToLastPost?: (e: React.KeyboardEvent) => void;
+    caretPosition?: number;
+    saveDraft: () => void;
 }
 const Foo = ({
     message,
@@ -93,6 +98,7 @@ const Foo = ({
     showSendTutorialTip,
     onKeyPress,
     isThreadView,
+    prefillMessage,
     disableSend,
     priorityLabel,
     priorityControls,
@@ -134,6 +140,8 @@ const Foo = ({
     loadPrevMessage,
     loadNextMessage,
     replyToLastPost,
+    caretPosition,
+    saveDraft,
 }: Props) => {
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{[clientID: string]: FilePreviewInfo}>({});
     const textEditorChannelId = currentChannel?.id || channelId || '';
@@ -151,6 +159,57 @@ const Foo = ({
     const onPluginUpdateText = (message: string) => {
         onMessageChange(message);
     };
+
+    const pasteHandler = useCallback((event: ClipboardEvent) => {
+        const {clipboardData, target} = event;
+
+        const textboxId = location === Locations.RHS_COMMENT ? 'reply_textbox' : 'post_textbox';
+
+        if (!clipboardData || !clipboardData.items || !target || (target as TextboxElement)?.id !== textboxId) {
+            return;
+        }
+
+        const {selectionStart, selectionEnd} = target as TextboxElement;
+
+        const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
+        const hasTextUrl = isTextUrl(clipboardData);
+        const hasHTMLLinks = hasHtmlLink(clipboardData);
+        const htmlTable = getHtmlTable(clipboardData);
+        const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
+        const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
+
+        if (!htmlTable && !hasHTMLLinks && !shouldApplyLinkMarkdown) {
+            return;
+        }
+
+        event.preventDefault();
+
+        // execCommand's insertText' triggers a 'change' event, hence we need not set respective state explicitly.
+        if (shouldApplyLinkMarkdown) {
+            const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
+            execCommandInsertText(formattedLink);
+        } else if (shouldApplyGithubCodeBlock) {
+            const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
+            execCommandInsertText(formattedCodeBlock);
+        } else {
+            const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, caretPosition);
+            execCommandInsertText(formattedMarkdown);
+        }
+    }, [message, caretPosition]);
+
+    useEffect(() => {
+        document.addEventListener('paste', pasteHandler);
+        return () => {
+            document.removeEventListener('paste', pasteHandler);
+        }
+    }, [pasteHandler]);
+
+    useEffect(() => {
+        window.addEventListener('beforeunload', saveDraft);
+        return () => {
+            window.removeEventListener('beforeunload', saveDraft);
+        }
+    }, [saveDraft]);
 
     const pluginItems = postEditorActions?.map((item) => {
         if (!item.component) {
@@ -436,6 +495,7 @@ const Foo = ({
                 additionalControls={additionalControls}
                 showSendTutorialTip={showSendTutorialTip}
                 disableSend={disableSend}
+                prefillMessage={prefillMessage}
             />
         </form>
     );

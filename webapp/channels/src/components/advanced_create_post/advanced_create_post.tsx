@@ -288,9 +288,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         actions.setShowPreview(false);
         actions.clearDraftUploads();
         this.focusTextbox();
-        document.addEventListener('paste', this.pasteHandler);
         document.addEventListener('keydown', this.documentKeyHandler);
-        window.addEventListener('beforeunload', this.unloadHandler);
         this.setOrientationListeners();
         this.getChannelMemberCountsByGroup();
     }
@@ -320,19 +318,13 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
-        document.removeEventListener('paste', this.pasteHandler);
         document.removeEventListener('keydown', this.documentKeyHandler);
-        window.removeEventListener('beforeunload', this.unloadHandler);
         this.removeOrientationListeners();
         this.saveDraft();
     }
 
     getChannelMemberCountsByGroup = () => {
         this.props.actions.getChannelMemberCountsFromMessage(this.props.currentChannel.id, this.state.message);
-    };
-
-    unloadHandler = () => {
-        this.saveDraft();
     };
 
     saveDraft = (props = this.props) => {
@@ -844,43 +836,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.draftsForChannel[channelId] = draft;
     };
 
-    pasteHandler = (event: ClipboardEvent) => {
-        const {clipboardData, target} = event;
-
-        if (!clipboardData || !clipboardData.items || !target || ((target as TextboxElement)?.id !== 'post_textbox')) {
-            return;
-        }
-
-        const {selectionStart, selectionEnd} = target as TextboxElement;
-
-        const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
-        const hasTextUrl = isTextUrl(clipboardData);
-        const hasHTMLLinks = hasHtmlLink(clipboardData);
-        const htmlTable = getHtmlTable(clipboardData);
-        const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
-        const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
-
-        if (!htmlTable && !hasHTMLLinks && !shouldApplyLinkMarkdown) {
-            return;
-        }
-
-        event.preventDefault();
-
-        const message = this.state.message;
-
-        // execCommand's insertText' triggers a 'change' event, hence we need not set respective state explicitly.
-        if (shouldApplyLinkMarkdown) {
-            const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
-            execCommandInsertText(formattedLink);
-        } else if (shouldApplyGithubCodeBlock) {
-            const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
-            execCommandInsertText(formattedCodeBlock);
-        } else {
-            const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, this.state.caretPosition);
-            execCommandInsertText(formattedMarkdown);
-        }
-    };
-
     handleFileUploadChange = () => {
         this.focusTextbox();
     };
@@ -1352,6 +1307,8 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 replyToLastPost={this.replyToLastPost}
                 loadNextMessage={this.loadNextMessage}
                 loadPrevMessage={this.loadPrevMessage}
+                caretPosition={this.state.caretPosition}
+                saveDraft={this.saveDraft}
             />
         );
     }
