@@ -85,6 +85,7 @@ describe('components/AdvancedCreateComment', () => {
         useLDAPGroupMentions: true,
         useCustomGroupMentions: true,
         openModal: jest.fn(),
+        postEditorActions: [],
     };
 
     const emptyDraft: any = {

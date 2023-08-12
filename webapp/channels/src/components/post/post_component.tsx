@@ -14,7 +14,7 @@ import Constants, {A11yCustomEventTypes, A11yFocusEventDetail, AppEvents, Locati
 
 import * as PostUtils from 'utils/post_utils';
 
-import {PostPluginComponent} from 'types/store/plugins';
+import {PostPluginComponent, PluginComponent} from 'types/store/plugins';
 
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import DateSeparator from 'components/post_view/date_separator';
@@ -118,6 +118,7 @@ export type Props = {
     isPostPriorityEnabled: boolean;
     isCardOpen?: boolean;
     canDelete?: boolean;
+    pluginActions: PluginComponent[];
 };
 
 const PostComponent = (props: Props): JSX.Element => {

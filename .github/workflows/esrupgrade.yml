@@ -13,6 +13,7 @@ on:
 jobs:
   esr-upgrade-5_37-7_8:
     name: Run ESR upgrade script from 5.37 to 7.8
+    if: github.repository_owner == 'mattermost'
     uses: ./.github/workflows/esrupgrade-common.yml
     with:
       db-dump-url: https://lt-public-data.s3.amazonaws.com/47K_537_mysql_collationfixed.sql.gz
@@ -20,6 +21,7 @@ jobs:
       final-version: 7.8
   esr-upgrade-5_37-6_3:
     name: Run ESR upgrade script from 5.37 to 6.3
+    if: github.repository_owner == 'mattermost'
     uses: ./.github/workflows/esrupgrade-common.yml
     with:
       db-dump-url: https://lt-public-data.s3.amazonaws.com/47K_537_mysql_collationfixed.sql.gz
@@ -27,6 +29,7 @@ jobs:
       final-version: 6.3
   esr-upgrade-6_3-7_8:
     name: Run ESR upgrade script from 6.3 to 7.8
+    if: github.repository_owner == 'mattermost'
     uses: ./.github/workflows/esrupgrade-common.yml
     with:
       db-dump-url: https://lt-public-data.s3.amazonaws.com/47K_63_mysql.sql.gz
