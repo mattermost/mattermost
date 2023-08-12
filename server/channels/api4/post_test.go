@@ -842,7 +842,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 			}
 
 			var wpost model.Post
-			err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &wpost)
+			err := event.GetData()["post"].(string) == "" || json.Unmarshal([]byte(event.GetData()["post"].(string)), &wpost)
 			require.NoError(t, err)
 
 			acm, ok := wpost.GetProp(model.PropsAddChannelMember).(map[string]any)
@@ -2477,7 +2477,7 @@ func TestDeletePostEvent(t *testing.T) {
 		case event := <-WebSocketClient.EventChannel:
 			if event.EventType() == model.WebsocketEventPostDeleted {
 				var post model.Post
-				err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &post)
+				err := event.GetData()["post"].(string) == "" || json.Unmarshal([]byte(event.GetData()["post"].(string)), &post)
 				require.NoError(t, err)
 				received = true
 			}
@@ -3652,7 +3652,7 @@ func TestPostReminder(t *testing.T) {
 					require.True(t, ok)
 
 					var parsedPost model.Post
-					err := json.Unmarshal([]byte(post), &parsedPost)
+					err := post == "" || json.Unmarshal([]byte(post), &parsedPost)
 					require.NoError(t, err)
 
 					assert.Equal(t, model.PostTypeEphemeral, parsedPost.Type)

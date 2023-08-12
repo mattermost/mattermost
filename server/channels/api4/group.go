@@ -350,7 +350,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var patch *model.GroupSyncablePatch
 	err = json.Unmarshal(body, &patch)
-	if err != nil || patch == nil {
+	if len(body) == 0 || err != nil || patch == nil {
 		c.SetInvalidParamWithErr(fmt.Sprintf("Group%s", syncableType), err)
 		return
 	}
@@ -525,7 +525,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var patch *model.GroupSyncablePatch
 	err = json.Unmarshal(body, &patch)
-	if err != nil || patch == nil {
+	if len(body) == 0 || err != nil || patch == nil {
 		c.SetInvalidParamWithErr(fmt.Sprintf("Group[%s]Patch", syncableType), err)
 		return
 	}

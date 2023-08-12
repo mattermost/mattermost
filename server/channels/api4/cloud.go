@@ -140,7 +140,7 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var subscriptionChange *model.SubscriptionChange
-	if err = json.Unmarshal(bodyBytes, &subscriptionChange); err != nil {
+	if err = json.Unmarshal(bodyBytes, &subscriptionChange); len(bodyBytes) == 0 || err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
@@ -219,7 +219,7 @@ func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
 	// this value will not be empty when both emails (user admin and CWS customer) are not business email and
 	// a new business email was provided via the request business email modal
 	var startTrialRequest *model.StartCloudTrialRequest
-	if err = json.Unmarshal(bodyBytes, &startTrialRequest); err != nil {
+	if err = json.Unmarshal(bodyBytes, &startTrialRequest); len(bodyBytes) == 0 || err != nil {
 		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
@@ -261,7 +261,7 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var emailToValidate *model.ValidateBusinessEmailRequest
 	err = json.Unmarshal(bodyBytes, &emailToValidate)
-	if err != nil {
+	if len(bodyBytes) == 0 || err != nil {
 		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
@@ -353,7 +353,7 @@ func getSelfHostedProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
 		sanitizedProducts := []model.UserFacingProduct{}
 		err = json.Unmarshal(byteProductsData, &sanitizedProducts)
-		if err != nil {
+		if byteProductsData == nil || err != nil {
 			c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
@@ -399,7 +399,7 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
 		sanitizedProducts := []model.UserFacingProduct{}
 		err = json.Unmarshal(byteProductsData, &sanitizedProducts)
-		if err != nil {
+		if byteProductsData == nil || err != nil {
 			c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
@@ -531,7 +531,7 @@ func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var customerInfo *model.CloudCustomerInfo
-	if err = json.Unmarshal(bodyBytes, &customerInfo); err != nil {
+	if err = json.Unmarshal(bodyBytes, &customerInfo); len(bodyBytes) == 0 || err != nil {
 		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
@@ -574,7 +574,7 @@ func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	var address *model.Address
-	if err = json.Unmarshal(bodyBytes, &address); err != nil {
+	if err = json.Unmarshal(bodyBytes, &address); len(bodyBytes) == 0 || err != nil {
 		c.Err = model.NewAppError("Api4.updateCloudCustomerAddress", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
@@ -656,7 +656,7 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	var confirmRequest *model.ConfirmPaymentMethodRequest
-	if err = json.Unmarshal(bodyBytes, &confirmRequest); err != nil {
+	if err = json.Unmarshal(bodyBytes, &confirmRequest); len(bodyBytes) == 0 || err != nil {
 		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
@@ -762,7 +762,7 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var event *model.CWSWebhookPayload
-	if err = json.Unmarshal(bodyBytes, &event); err != nil {
+	if err = json.Unmarshal(bodyBytes, &event); len(bodyBytes) == 0 || err != nil {
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -881,7 +881,7 @@ func selfServeDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	var deleteRequest *model.WorkspaceDeletionRequest
-	if err = json.Unmarshal(bodyBytes, &deleteRequest); err != nil {
+	if err = json.Unmarshal(bodyBytes, &deleteRequest); len(bodyBytes) == 0 || err != nil {
 		c.Err = model.NewAppError("Api4.selfServeDeleteWorkspace", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}

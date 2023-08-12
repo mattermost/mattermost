@@ -361,7 +361,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	for node, logLines := range logs {
 		for _, log := range logLines {
 			err2 := json.Unmarshal([]byte(log), &result)
-			if err2 == nil {
+			if len([]byte(log)) == 0 || err2 == nil {
 				logsJSON[node] = append(logsJSON[node], result)
 			} else {
 				mlog.Warn("Error parsing log line in Server Logs")

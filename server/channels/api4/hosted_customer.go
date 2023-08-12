@@ -119,7 +119,7 @@ func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var form *model.SelfHostedCustomerForm
-	if err = json.Unmarshal(bodyBytes, &form); err != nil {
+	if err = json.Unmarshal(bodyBytes, &form); len(bodyBytes) == 0 || err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
@@ -163,7 +163,7 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var confirm model.SelfHostedConfirmPaymentMethodRequest
 	err = json.Unmarshal(bodyBytes, &confirm)
-	if err != nil {
+	if len(bodyBytes) == 0 || err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
@@ -312,7 +312,7 @@ func handleSubscribeToNewsletter(c *Context, w http.ResponseWriter, r *http.Requ
 
 	req := new(model.SubscribeNewsletterRequest)
 	err = json.Unmarshal(bodyBytes, req)
-	if err != nil {
+	if len(bodyBytes) == 0 || err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
@@ -348,7 +348,7 @@ func selfHostedConfirmExpand(c *Context, w http.ResponseWriter, r *http.Request)
 
 	var confirm model.SelfHostedConfirmPaymentMethodRequest
 	err = json.Unmarshal(bodyBytes, &confirm)
-	if err != nil {
+	if len(bodyBytes) == 0 || err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}

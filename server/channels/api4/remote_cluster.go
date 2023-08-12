@@ -55,7 +55,7 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var ping model.RemoteClusterPing
-	if err := json.Unmarshal(frame.Msg.Payload, &ping); err != nil {
+	if err := json.Unmarshal(frame.Msg.Payload, &ping); len(frame.Msg.Payload) == 0 || err != nil {
 		c.SetInvalidParamWithErr("msg.payload", err)
 		return
 	}
@@ -161,7 +161,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	var confirm model.RemoteClusterInvite
-	if jsonErr := json.Unmarshal(frame.Msg.Payload, &confirm); jsonErr != nil {
+	if jsonErr := json.Unmarshal(frame.Msg.Payload, &confirm); len(frame.Msg.Payload) == 0 || jsonErr != nil {
 		c.SetInvalidParam("msg.payload")
 		return
 	}

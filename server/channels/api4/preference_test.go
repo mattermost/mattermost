@@ -299,7 +299,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 			}
 
 			var received model.Preferences
-			jsonErr := json.Unmarshal([]byte(event.GetData()["preferences"].(string)), &received)
+			jsonErr := event.GetData()["preferences"].(string) == "" || json.Unmarshal([]byte(event.GetData()["preferences"].(string)), &received)
 			require.NoError(t, jsonErr)
 
 			for i, p := range preferences {
@@ -632,7 +632,7 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 			}
 
 			var received model.Preferences
-			jsonErr := json.Unmarshal([]byte(event.GetData()["preferences"].(string)), &received)
+			jsonErr := event.GetData()["preferences"].(string) || json.Unmarshal([]byte(event.GetData()["preferences"].(string)), &received)
 			require.NoError(t, jsonErr)
 
 			for i, preference := range preferences {

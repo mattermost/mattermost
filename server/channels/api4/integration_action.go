@@ -40,7 +40,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		err = json.Unmarshal([]byte(cookieStr), &cookie)
-		if err != nil {
+		if cookieStr == "" || err != nil {
 			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			return
 		}
