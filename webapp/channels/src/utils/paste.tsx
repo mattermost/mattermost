@@ -4,6 +4,10 @@
 import turndownService from 'utils/turndown';
 import {splitMessageBasedOnCaretPosition, splitMessageBasedOnTextSelection} from 'utils/post_utils';
 import {DEFAULT_PLACEHOLDER_URL} from 'utils/markdown/apply_markdown';
+import {execCommandInsertText} from './exec_commands';
+import {Locations} from 'utils/constants';
+import {isNil} from 'lodash';
+import type {TextboxElement} from 'components/textbox';
 
 export function parseHtmlTable(html: string): HTMLTableElement | null {
     return new DOMParser().parseFromString(html, 'text/html').querySelector('table');
@@ -139,4 +143,41 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
 
     const markdownLink = `[${selectedText}](${clipboardUrl})`;
     return markdownLink;
+}
+
+export function pasteHandler(event: ClipboardEvent, location: string, message: string, caretPosition?: number) {
+    const {clipboardData, target} = event;
+
+    const textboxId = location === Locations.RHS_COMMENT ? 'reply_textbox' : 'post_textbox';
+
+    if (!clipboardData || !clipboardData.items || !target || (target as TextboxElement)?.id !== textboxId) {
+        return;
+    }
+
+    const {selectionStart, selectionEnd} = target as TextboxElement;
+
+    const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
+    const hasTextUrl = isTextUrl(clipboardData);
+    const hasHTMLLinks = hasHtmlLink(clipboardData);
+    const htmlTable = getHtmlTable(clipboardData);
+    const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
+    const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
+
+    if (!htmlTable && !hasHTMLLinks && !shouldApplyLinkMarkdown) {
+        return;
+    }
+
+    event.preventDefault();
+
+    // execCommand's insertText' triggers a 'change' event, hence we need not set respective state explicitly.
+    if (shouldApplyLinkMarkdown) {
+        const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
+        execCommandInsertText(formattedLink);
+    } else if (shouldApplyGithubCodeBlock) {
+        const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
+        execCommandInsertText(formattedCodeBlock);
+    } else {
+        const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, caretPosition);
+        execCommandInsertText(formattedMarkdown);
+    }
 }

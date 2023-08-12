@@ -4,7 +4,6 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-import {isNil} from 'lodash';
 
 import {PreferenceType} from '@mattermost/types/preferences';
 import {Group, GroupSource} from '@mattermost/types/groups';
@@ -32,16 +31,6 @@ import {
     splitMessageBasedOnCaretPosition,
     groupsMentionedInText,
 } from 'utils/post_utils';
-import {
-    getHtmlTable,
-    hasHtmlLink,
-    formatMarkdownMessage,
-    isGitHubCodeBlock,
-    formatGithubCodePaste,
-    isTextUrl,
-    formatMarkdownLinkMessage,
-} from 'utils/paste';
-import {execCommandInsertText} from 'utils/exec_commands';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';

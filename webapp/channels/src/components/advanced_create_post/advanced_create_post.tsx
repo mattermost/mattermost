@@ -4,7 +4,6 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-import {isNil} from 'lodash';
 
 import {Posts} from 'mattermost-redux/constants';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
@@ -40,19 +39,9 @@ import {
     mentionsMinusSpecialMentionsInText,
     hasRequestedPersistentNotifications,
 } from 'utils/post_utils';
-import {
-    getHtmlTable,
-    hasHtmlLink,
-    formatMarkdownMessage,
-    formatGithubCodePaste,
-    isGitHubCodeBlock,
-    formatMarkdownLinkMessage,
-    isTextUrl,
-} from 'utils/paste';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import EmojiMap from 'utils/emoji_map';
-import {execCommandInsertText} from 'utils/exec_commands';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
