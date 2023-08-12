@@ -1652,3 +1652,19 @@ func (s SqlTeamStore) GroupSyncedTeamCount() (int64, error) {
 
 	return count, nil
 }
+
+// IsUserAdminOfATeam implements store.TeamStore.
+func (s SqlTeamStore) IsUserAdminOfATeam(email string) (bool, error) {
+	teamIds := []string{}
+	query, args, err := s.getQueryBuilder().Select("id").From("teams").Where(sq.Eq{"email": email}).ToSql()
+	if err != nil {
+		return false, errors.Wrap(err, "team_tosql")
+	}
+
+	err = s.GetReplicaX().Select(&teamIds, query, args...)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to find Teams where email=%s is admin", email)
+	}
+
+	return len(teamIds) > 0, nil
+}

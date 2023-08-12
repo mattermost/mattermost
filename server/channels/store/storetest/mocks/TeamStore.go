@@ -758,6 +758,30 @@ func (_m *TeamStore) InvalidateAllTeamIdsForUser(userID string) {
 	_m.Called(userID)
 }
 
+// IsUserAdminOfATeam provides a mock function with given fields: email
+func (_m *TeamStore) IsUserAdminOfATeam(email string) (bool, error) {
+	ret := _m.Called(email)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (bool, error)); ok {
+		return rf(email)
+	}
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(email)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(email)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // MigrateTeamMembers provides a mock function with given fields: fromTeamID, fromUserID
 func (_m *TeamStore) MigrateTeamMembers(fromTeamID string, fromUserID string) (map[string]string, error) {
 	ret := _m.Called(fromTeamID, fromUserID)

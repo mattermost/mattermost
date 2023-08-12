@@ -171,6 +171,8 @@ type TeamStore interface {
 	// GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
 	// users belong.
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
+
+	IsUserAdminOfATeam(email string) (bool, error)
 }
 
 type ChannelStore interface {
