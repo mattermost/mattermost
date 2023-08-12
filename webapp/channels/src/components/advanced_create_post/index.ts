@@ -24,7 +24,7 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentChannelId, getCurrentChannel, getCurrentChannelStats, getChannelMemberCountsByGroup as selectChannelMemberCountsByGroup} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId, getStatusForUserId, getUser, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getChannelTimezones, getChannelMemberCountsByGroup} from 'mattermost-redux/actions/channels';
+import {getChannelTimezones} from 'mattermost-redux/actions/channels';
 import {get, getInt, getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -44,7 +44,6 @@ import {
 import {Permissions, Posts, Preferences as PreferencesRedux} from 'mattermost-redux/constants';
 
 import {addReaction, createPost, setEditingPost, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
-import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import {scrollPostListToBottom} from 'actions/views/channel';
 import {selectPostFromRightHandSideSearchByPostId} from 'actions/views/rhs';
 import {setShowPreviewOnCreatePost} from 'actions/views/textbox';
@@ -63,6 +62,7 @@ import {OnboardingTourSteps, TutorialTourName, OnboardingTourStepsForGuestUsers}
 import {PreferenceType} from '@mattermost/types/preferences';
 
 import AdvancedCreatePost from './advanced_create_post';
+import {getChannelMemberCountsFromMessage} from 'actions/channel_actions';
 
 function makeMapStateToProps() {
     const getMessageInHistoryItem = makeGetMessageInHistoryItem(Posts.MESSAGE_TYPES.POST as any);
@@ -161,9 +161,8 @@ type Actions = {
     getChannelTimezones: (channelId: string) => ActionResult;
     scrollPostListToBottom: () => void;
     emitShortcutReactToLastPostFrom: (emittedFrom: string) => void;
-    getChannelMemberCountsByGroup: (channelId: string, includeTimezones: boolean) => void;
+    getChannelMemberCountsFromMessage: (channelId: string, message: string) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
-    searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
 }
 
 function setDraft(key: string, value: PostDraft, draftChannelId: string, save = false, instant = false) {
@@ -204,9 +203,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
             runSlashCommandWillBePostedHooks,
             scrollPostListToBottom,
             setShowPreview: setShowPreviewOnCreatePost,
-            getChannelMemberCountsByGroup,
+            getChannelMemberCountsFromMessage,
             savePreferences,
-            searchAssociatedGroupsForReference,
         }, dispatch),
     };
 }

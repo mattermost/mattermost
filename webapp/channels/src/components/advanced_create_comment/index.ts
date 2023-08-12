@@ -20,7 +20,7 @@ import {getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entitie
 import {getAllChannelStats, getChannelMemberCountsByGroup as selectChannelMemberCountsByGroup} from 'mattermost-redux/selectors/entities/channels';
 import {makeGetMessageInHistoryItem} from 'mattermost-redux/selectors/entities/posts';
 import {moveHistoryIndexBack, moveHistoryIndexForward, resetCreatePostRequest, resetHistoryIndex} from 'mattermost-redux/actions/posts';
-import {getChannelTimezones, getChannelMemberCountsByGroup} from 'mattermost-redux/actions/channels';
+import {getChannelTimezones} from 'mattermost-redux/actions/channels';
 import {Permissions, Preferences, Posts} from 'mattermost-redux/constants';
 import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -41,9 +41,9 @@ import {getPostDraft, getIsRhsExpanded, getSelectedPostFocussedAt} from 'selecto
 import {showPreviewOnCreateComment} from 'selectors/views/textbox';
 import {setShowPreviewOnCreateComment} from 'actions/views/textbox';
 import {openModal} from 'actions/views/modals';
-import {searchAssociatedGroupsForReference} from 'actions/views/group';
 
 import AdvancedCreateComment from './advanced_create_comment';
+import {getChannelMemberCountsFromMessage} from 'actions/channel_actions';
 
 type OwnProps = {
     rootId: string;
@@ -123,10 +123,9 @@ type Actions = {
     getChannelTimezones: (channelId: string) => Promise<ActionResult>;
     emitShortcutReactToLastPostFrom: (location: string) => void;
     setShowPreview: (showPreview: boolean) => void;
-    getChannelMemberCountsByGroup: (channelID: string, includeTimezones: boolean) => void;
+    getChannelMemberCountsFromMessage: (channelID: string, message: string) => void;
     openModal: <P>(modalData: ModalData<P>) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
-    searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
 };
 
 function makeMapDispatchToProps() {
@@ -175,10 +174,9 @@ function makeMapDispatchToProps() {
                 getChannelTimezones,
                 emitShortcutReactToLastPostFrom,
                 setShowPreview: setShowPreviewOnCreateComment,
-                getChannelMemberCountsByGroup,
+                getChannelMemberCountsFromMessage,
                 openModal,
                 savePreferences,
-                searchAssociatedGroupsForReference,
             },
             dispatch,
         );

@@ -31,7 +31,6 @@ import {
     isErrorInvalidSlashCommand,
     splitMessageBasedOnCaretPosition,
     groupsMentionedInText,
-    mentionsMinusSpecialMentionsInText,
 } from 'utils/post_utils';
 import {
     getHtmlTable,
@@ -158,7 +157,8 @@ type Props = {
     scrollToBottom?: () => void;
 
     // Group member mention
-    getChannelMemberCountsByGroup: (channelID: string, isTimezoneEnabled: boolean) => void;
+    getChannelMemberCountsFromMessage: (channelID: string, message: string) => void;
+
     groupsWithAllowReference: Map<string, Group> | null;
     channelMemberCountsByGroup: ChannelMemberCountsByGroup;
     focusOnMount?: boolean;
@@ -167,7 +167,6 @@ type Props = {
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
     useCustomGroupMentions: boolean;
     isFormattingBarHidden: boolean;
-    searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
 }
 
 type State = {
@@ -326,17 +325,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     }
 
     getChannelMemberCountsByGroup = () => {
-        const {useLDAPGroupMentions, useCustomGroupMentions, channelId, isTimezoneEnabled, searchAssociatedGroupsForReference, getChannelMemberCountsByGroup, draft, currentTeamId} = this.props;
-
-        if ((useLDAPGroupMentions || useCustomGroupMentions) && channelId) {
-            const mentions = mentionsMinusSpecialMentionsInText(draft.message);
-
-            if (mentions.length === 1) {
-                searchAssociatedGroupsForReference(mentions[0], currentTeamId, channelId);
-            } else if (mentions.length > 1) {
-                getChannelMemberCountsByGroup(channelId, isTimezoneEnabled);
-            }
-        }
+        this.props.getChannelMemberCountsFromMessage(this.props.channelId, this.props.draft.message);
     };
 
     saveDraftOnUnmount = () => {

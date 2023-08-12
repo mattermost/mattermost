@@ -201,12 +201,10 @@ type Props = {
         //Function to set or unset emoji picker for last message
         emitShortcutReactToLastPostFrom: (emittedFrom: string) => void;
 
-        getChannelMemberCountsByGroup: (channelId: string, includeTimezones: boolean) => void;
+        getChannelMemberCountsFromMessage: (channelId: string, message: string) => void;
 
         //Function used to advance the tutorial forward
         savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
-
-        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
     };
 
     groupsWithAllowReference: Map<string, Group> | null;
@@ -330,17 +328,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     }
 
     getChannelMemberCountsByGroup = () => {
-        const {useLDAPGroupMentions, useCustomGroupMentions, currentChannel, isTimezoneEnabled, actions} = this.props;
-
-        if ((useLDAPGroupMentions || useCustomGroupMentions) && currentChannel.id) {
-            const mentions = mentionsMinusSpecialMentionsInText(this.state.message);
-
-            if (mentions.length === 1) {
-                actions.searchAssociatedGroupsForReference(mentions[0], this.props.currentTeamId, currentChannel.id);
-            } else if (mentions.length > 1) {
-                actions.getChannelMemberCountsByGroup(currentChannel.id, isTimezoneEnabled);
-            }
-        }
+        this.props.actions.getChannelMemberCountsFromMessage(this.props.currentChannel.id, this.state.message);
     };
 
     unloadHandler = () => {
