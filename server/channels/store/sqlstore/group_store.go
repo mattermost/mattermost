@@ -477,11 +477,16 @@ func (s *SqlGroupStore) GetMemberUsersSortedPage(groupID string, page int, perPa
 func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
-	if err := s.GetReplicaX().Get(&model.Group{}, "SELECT * FROM UserGroups WHERE Id = ?", groupID); err != nil {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{"Id": groupID})
+
+	if err := s.GetReplicaX().GetBuilder(&model.Group{}, builder); err != nil {
 		return nil, errors.Wrap(err, "GetNonMemberUsersPage")
 	}
 
-	query := s.getQueryBuilder().
+	builder = s.getQueryBuilder().
 		Select("u.*").
 		From("Users u").
 		LeftJoin("GroupMembers ON (GroupMembers.UserId = u.Id AND GroupMembers.GroupId = ?)", groupID).
@@ -491,14 +496,9 @@ func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage 
 		Offset(uint64(page * perPage)).
 		OrderBy("u.Username ASC")
 
-	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+	builder = applyViewRestrictionsFilter(builder, viewRestrictions, true)
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "")
-	}
-
-	if err := s.GetReplicaX().Select(&groupMembers, queryString, args...); err != nil {
+	if err := s.GetReplicaX().SelectBuilder(&groupMembers, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to find member Users for Group with id=%s", groupID)
 	}
 
