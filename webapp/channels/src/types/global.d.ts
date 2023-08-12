@@ -6,5 +6,5 @@ declare interface Error {
     name: string;
     message: string;
     stack?: string;
-    server_error_id?:string;
+    server_error_id?: string;
 }

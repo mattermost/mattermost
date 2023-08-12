@@ -217,26 +217,23 @@ function isDraftEmpty(draft: PostDraft): boolean {
 }
 
 class AdvancedCreateComment extends React.PureComponent<Props, State> {
-    
     // public because accessed in advanced_create_comment.test.tsx
     public draftsForPost: {[postID: string]: PostDraft | null} = {};
     public doInitialScrollToBottom = false;
-    
 
     // textBoxRef is accessed in advanced_create_comment.test.tsx
     private textboxRef: React.RefObject<TextboxClass>;
     get TextBoxRef() {
         return this.textboxRef;
-    } 
-    set TextBoxRef(newTextBoxRef:any) {
-        this.textboxRef= newTextBoxRef;
+    }
+    set TextBoxRef(newTextBoxRef: any) {
+        this.textboxRef = newTextBoxRef;
     }
     private lastBlurAt = 0;
     private saveDraftFrame?: number | null;
 
     private isDraftSubmitting = false;
     private isDraftEdited = false;
-
 
     private readonly fileUploadRef: React.RefObject<FileUploadClass>;
 
