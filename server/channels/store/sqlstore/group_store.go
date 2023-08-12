@@ -622,7 +622,10 @@ func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.Grou
 }
 
 func (s *SqlGroupStore) PermanentDeleteMembersByUser(userId string) error {
-	if _, err := s.GetMasterX().Exec("DELETE FROM GroupMembers WHERE UserId = ?", userId); err != nil {
+	builder := s.getQueryBuilder().
+		Delete("GroupMembers").
+		Where(sq.Eq{"UserId": userId})
+	if _, err := s.GetMasterX().ExecBuilder(builder); err != nil {
 		return errors.Wrapf(err, "failed to permanent delete GroupMember with userId=%s", userId)
 	}
 	return nil
