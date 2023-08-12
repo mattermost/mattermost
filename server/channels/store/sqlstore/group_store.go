@@ -395,18 +395,17 @@ func (s *SqlGroupStore) GetMember(groupID, userID string) (*model.GroupMember, e
 func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
-	query := `
-		SELECT
-			Users.*
-		FROM
-			GroupMembers
-			JOIN Users ON Users.Id = GroupMembers.UserId
-		WHERE
-			GroupMembers.DeleteAt = 0
-			AND Users.DeleteAt = 0
-			AND GroupId = ?`
+	builder := s.getQueryBuilder().
+		Select("Users.*").
+		From("GroupMembers").
+		Join("Users ON Users.Id = GroupMembers.UserId").
+		Where(sq.Eq{
+			"GroupMembers.DeleteAt": 0,
+			"Users.DeleteAt":        0,
+			"GroupId":               groupID,
+		})
 
-	if err := s.GetReplicaX().Select(&groupMembers, query, groupID); err != nil {
+	if err := s.GetReplicaX().SelectBuilder(&groupMembers, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to find member Users for Group with id=%s", groupID)
 	}
 
