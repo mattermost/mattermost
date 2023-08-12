@@ -111,10 +111,7 @@ type Props = {
     clearCommentDraftUploads: () => void;
 
     // Called when comment draft needs to be updated
-    onUpdateCommentDraft: (draft?: PostDraft, save?: boolean) => void;
-
-    // Called when comment draft needs to be updated for a specific root ID
-    updateCommentDraftWithRootId: (rootID: string, draft: PostDraft, save?: boolean) => void;
+    onUpdateCommentDraft: (draft: PostDraft, save?: boolean) => void;
 
     // Called when submitting the comment
     onSubmit: (draft: PostDraft, options: {ignoreSlash: boolean}) => void;
@@ -181,10 +178,10 @@ type Props = {
 }
 
 type State = {
+    draft: PostDraft;
     showEmojiPicker: boolean;
     renderScrollbar: boolean;
     scrollbarWidth: number;
-    draft?: PostDraft;
     rootId?: string;
     messageInHistory?: string;
     createPostErrorId?: string;
@@ -222,7 +219,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             createPostErrorId: props.createPostErrorId,
             rootId: props.rootId,
             messageInHistory: props.messageInHistory,
-            draft: state.draft || {...props.draft, caretPosition: props.draft.message.length, uploadsInProgress: []},
         };
 
         const rootChanged = props.rootId !== state.rootId || props.draft.rootId !== state.draft?.rootId;
@@ -251,7 +247,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             serverError: null,
             showFormat: false,
             isFormattingBarHidden: props.isFormattingBarHidden,
-            caretPosition: props.draft.caretPosition,
+            caretPosition: props.draft.message.length,
+            draft: {...props.draft, uploadsInProgress: []},
         };
 
         this.textboxRef = React.createRef();
@@ -780,7 +777,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.draftsForPost[this.props.rootId] = updatedDraft;
     };
 
-    handleDraftChange = (draft: PostDraft, rootId?: string, save = false, instant = false) => {
+    handleDraftChange = (draft: PostDraft, save = false, instant = false) => {
         this.isDraftEdited = true;
 
         if (this.saveDraftFrame) {
@@ -788,11 +785,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }
 
         const saveDraft = () => {
-            if (typeof rootId == 'undefined') {
-                this.props.onUpdateCommentDraft(draft);
-            } else {
-                this.props.updateCommentDraftWithRootId(rootId, draft, save);
-            }
+            this.props.onUpdateCommentDraft(draft, save);
         };
 
         if (instant) {
@@ -802,7 +795,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 saveDraft();
             }, Constants.SAVE_DRAFT_TIMEOUT);
         }
-        this.draftsForPost[this.props.rootId] = draft;
+        this.draftsForPost[draft.rootId] = draft;
     };
 
     handleMouseUpKeyUp = (e: React.MouseEvent | React.KeyboardEvent) => {
@@ -1027,27 +1020,26 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     };
 
     handleFileUploadComplete = (fileInfos: FileInfo[], clientIds: string[], _: string, rootId?: string) => {
-        const draft = this.draftsForPost[rootId!]!;
-        const uploadsInProgress = [...draft.uploadsInProgress];
-        const newFileInfos = sortFileInfos([...draft.fileInfos, ...fileInfos], this.props.locale);
+        const draft = {...this.draftsForPost[rootId!]!};
 
         // remove each finished file from uploads
         for (let i = 0; i < clientIds.length; i++) {
-            const index = uploadsInProgress.indexOf(clientIds[i]);
+            if (draft.uploadsInProgress) {
+                const index = draft.uploadsInProgress.indexOf(clientIds[i]);
 
-            if (index !== -1) {
-                uploadsInProgress.splice(index, 1);
+                if (index !== -1) {
+                    draft.uploadsInProgress.splice(index, 1);
+                }
             }
         }
 
-        const modifiedDraft = {
-            ...draft,
-            fileInfos: newFileInfos,
-            uploadsInProgress,
-        };
-        this.handleDraftChange(modifiedDraft, rootId!, true, true);
+        if (draft.fileInfos) {
+            draft.fileInfos = sortFileInfos(draft.fileInfos.concat(fileInfos), this.props.locale);
+        }
+
+        this.handleDraftChange(draft, true, true);
         if (this.props.rootId === rootId) {
-            this.setState({draft: modifiedDraft});
+            this.setState({draft});
         }
     };
 
@@ -1065,7 +1057,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 ...draft,
                 uploadsInProgress,
             };
-            this.props.updateCommentDraftWithRootId(rootId, modifiedDraft, true);
+            this.props.onUpdateCommentDraft(modifiedDraft, true);
             this.draftsForPost[rootId] = modifiedDraft;
             if (this.props.rootId === rootId) {
                 this.setState({draft: modifiedDraft});
@@ -1121,7 +1113,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             clearTimeout(this.saveDraftFrame);
         }
 
-        this.saveDraftFrame = window.setTimeout(() => {}, Constants.SAVE_DRAFT_TIMEOUT);
+        this.saveDraftFrame = null;
     };
 
     toggleAdvanceTextEditor = () => {

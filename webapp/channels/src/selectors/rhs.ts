@@ -128,30 +128,15 @@ export function getIsSearchGettingMore(state: GlobalState): boolean {
     return state.entities.search.isSearchGettingMore;
 }
 
-export function makeGetChannelDraft() {
-    const defaultDraft = Object.freeze({message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId: '', rootId: ''});
-    const getDraft = makeGetGlobalItemWithDefault(defaultDraft);
-
-    return (state: GlobalState, channelId: string): PostDraft => {
-        const draft = getDraft(state, StoragePrefixes.DRAFT + channelId);
-        if (
-            typeof draft.message !== 'undefined' &&
-            typeof draft.uploadsInProgress !== 'undefined' &&
-            typeof draft.fileInfos !== 'undefined'
-        ) {
-            return draft;
-        }
-
-        return defaultDraft;
-    };
-}
-
 export function getPostDraft(state: GlobalState, prefixId: string, suffixId: string): PostDraft {
     const defaultDraft = {message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId: '', rootId: ''};
 
     if (prefixId === StoragePrefixes.COMMENT_DRAFT) {
         defaultDraft.rootId = suffixId;
+    } else if (prefixId === StoragePrefixes.DRAFT) {
+        defaultDraft.channelId = suffixId;
     }
+
     const draft = makeGetGlobalItem(prefixId + suffixId, defaultDraft)(state);
 
     if (
@@ -159,6 +144,20 @@ export function getPostDraft(state: GlobalState, prefixId: string, suffixId: str
         typeof draft.uploadsInProgress !== 'undefined' &&
         typeof draft.fileInfos !== 'undefined'
     ) {
+        if (prefixId === StoragePrefixes.COMMENT_DRAFT && draft.rootId !== suffixId) {
+            return {
+                ...draft,
+                rootId: suffixId,
+            }
+        }
+
+        if (prefixId === StoragePrefixes.DRAFT && draft.channelId !== suffixId) {
+            return {
+                ...draft,
+                channelId: suffixId,
+            }
+        }
+
         return draft;
     }
 

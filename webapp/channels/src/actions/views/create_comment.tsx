@@ -45,11 +45,9 @@ export function clearCommentDraftUploads() {
     });
 }
 
-// Temporarily store draft manually in localStorage since the current version of redux-persist
-// we're on will not save the draft quickly enough on page unload.
-export function updateCommentDraft(rootId: string, draft?: PostDraft, save = false) {
-    const key = `${StoragePrefixes.COMMENT_DRAFT}${rootId}`;
-    return updateDraft(key, draft ?? null, rootId, save);
+export function updateCommentDraft(draft: PostDraft, save = false) {
+    const key = `${StoragePrefixes.COMMENT_DRAFT}${draft.rootId}`;
+    return updateDraft(key, draft ?? null, draft.rootId, save);
 }
 
 export function makeOnMoveHistoryIndex(rootId: string, direction: number) {
@@ -69,7 +67,7 @@ export function makeOnMoveHistoryIndex(rootId: string, direction: number) {
 
         const nextMessageInHistory = getMessageInHistory(getState());
 
-        dispatch(updateCommentDraft(rootId, {...draft, message: nextMessageInHistory}));
+        dispatch(updateCommentDraft({...draft, message: nextMessageInHistory}));
         return {data: true};
     };
 }
@@ -174,7 +172,7 @@ export function makeOnSubmit(channelId: string, rootId: string, latestPostId: st
             try {
                 await dispatch(submitCommand(channelId, rootId, draft));
             } catch (err) {
-                dispatch(updateCommentDraft(rootId, draft, true));
+                dispatch(updateCommentDraft(draft, true));
                 throw err;
             }
         } else {

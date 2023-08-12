@@ -43,8 +43,6 @@ import {
 } from 'mattermost-redux/actions/posts';
 import {Permissions, Posts, Preferences as PreferencesRedux} from 'mattermost-redux/constants';
 
-import {connectionErrorCount} from 'selectors/views/system';
-
 import {addReaction, createPost, setEditingPost, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import {scrollPostListToBottom} from 'actions/views/channel';
@@ -52,15 +50,14 @@ import {selectPostFromRightHandSideSearchByPostId} from 'actions/views/rhs';
 import {setShowPreviewOnCreatePost} from 'actions/views/textbox';
 import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
-import {makeGetChannelDraft, getIsRhsExpanded, getIsRhsOpen} from 'selectors/rhs';
+import {getIsRhsExpanded, getIsRhsOpen, getPostDraft} from 'selectors/rhs';
 import {showPreviewOnCreatePost} from 'selectors/views/textbox';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getEmojiMap, getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
 import {openModal} from 'actions/views/modals';
-import {AdvancedTextEditor, Constants, Preferences, StoragePrefixes, UserStatuses} from 'utils/constants';
-import {canUploadFiles} from 'utils/file_utils';
+import {AdvancedTextEditor, Preferences, StoragePrefixes, UserStatuses} from 'utils/constants';
 import {OnboardingTourSteps, TutorialTourName, OnboardingTourStepsForGuestUsers} from 'components/tours';
 
 import {PreferenceType} from '@mattermost/types/preferences';
@@ -69,14 +66,13 @@ import AdvancedCreatePost from './advanced_create_post';
 
 function makeMapStateToProps() {
     const getMessageInHistoryItem = makeGetMessageInHistoryItem(Posts.MESSAGE_TYPES.POST as any);
-    const getChannelDraft = makeGetChannelDraft();
 
     return (state: GlobalState) => {
         const config = getConfig(state);
         const license = getLicense(state);
         const currentChannel = getCurrentChannel(state) || {};
         const currentChannelTeammateUsername = getUser(state, currentChannel.teammate_id || '')?.username;
-        const draft = getChannelDraft(state, currentChannel.id);
+        const draft = getPostDraft(state, StoragePrefixes.DRAFT, currentChannel.id);
         const isRemoteDraft = state.views.drafts.remotes[`${StoragePrefixes.DRAFT}${currentChannel.id}`] || false;
         const latestReplyablePostId = getLatestReplyablePostId(state);
         const currentChannelMembersCount = getCurrentChannelStats(state) ? getCurrentChannelStats(state).member_count : 1;

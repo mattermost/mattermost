@@ -68,7 +68,6 @@ type Props = {
     fileUploadRef: React.RefObject<FileUploadClass>;
     formId?: string;
     formClass?: string;
-    formRef?: React.RefObject<HTMLFormElement>;
     onPluginUpdateText: (message: string) => void;
 }
 const Foo = ({
@@ -116,7 +115,6 @@ const Foo = ({
     fileUploadRef,
     formId,
     formClass,
-    formRef,
     onPluginUpdateText,
 }: Props) => {
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{[clientID: string]: FilePreviewInfo}>({});
@@ -169,7 +167,6 @@ const Foo = ({
         <form
             id={formId}
             className={formClass}
-            ref={formRef}
             onSubmit={handleSubmit}
         >
                 {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (

@@ -250,7 +250,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     private saveDraftFrame?: number | null;
     private isDraftSubmitting = false;
 
-    private topDiv: React.RefObject<HTMLFormElement>;
     private textboxRef: React.RefObject<TextboxClass>;
     private fileUploadRef: React.RefObject<FileUploadClass>;
 
@@ -289,7 +288,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             showPostPriorityPicker: false,
         };
 
-        this.topDiv = React.createRef<HTMLFormElement>();
         this.textboxRef = React.createRef<TextboxClass>();
         this.fileUploadRef = React.createRef<FileUploadClass>();
     }
@@ -340,10 +338,10 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     }
 
     getChannelMemberCountsByGroup = () => {
-        const {useLDAPGroupMentions, useCustomGroupMentions, currentChannel, isTimezoneEnabled, actions, draft} = this.props;
+        const {useLDAPGroupMentions, useCustomGroupMentions, currentChannel, isTimezoneEnabled, actions} = this.props;
 
         if ((useLDAPGroupMentions || useCustomGroupMentions) && currentChannel.id) {
-            const mentions = mentionsMinusSpecialMentionsInText(draft.message);
+            const mentions = mentionsMinusSpecialMentionsInText(this.state.message);
 
             if (mentions.length === 1) {
                 actions.searchAssociatedGroupsForReference(mentions[0], this.props.currentTeamId, currentChannel.id);
@@ -1007,8 +1005,9 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     removePreview = (id: string) => {
-        let modifiedDraft = {} as PostDraft;
         const draft = {...this.props.draft};
+        const fileInfos = [...draft.fileInfos];
+        const uploadsInProgress = [...draft.uploadsInProgress];
         const channelId = this.props.currentChannel.id;
 
         // Clear previous errors
@@ -1020,25 +1019,21 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             index = draft.uploadsInProgress.indexOf(id);
 
             if (index !== -1) {
-                const uploadsInProgress = draft.uploadsInProgress.filter((item, itemIndex) => index !== itemIndex);
+                uploadsInProgress.splice(index, 1);
 
-                modifiedDraft = {
-                    ...draft,
-                    uploadsInProgress,
-                };
-
-                if (this.fileUploadRef.current && this.fileUploadRef.current) {
+                if (this.fileUploadRef.current) {
                     this.fileUploadRef.current.cancelUpload(id);
                 }
             }
         } else {
-            const fileInfos = draft.fileInfos.filter((item, itemIndex) => index !== itemIndex);
-
-            modifiedDraft = {
-                ...draft,
-                fileInfos,
-            };
+            fileInfos.splice(index, 1);
         }
+
+        const modifiedDraft = {
+            ...draft,
+            fileInfos,
+            uploadsInProgress,
+        };
 
         this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, modifiedDraft, channelId, false);
         this.draftsForChannel[channelId] = modifiedDraft;
@@ -1049,7 +1044,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             clearTimeout(this.saveDraftFrame);
         }
 
-        this.saveDraftFrame = window.setTimeout(() => {}, Constants.SAVE_DRAFT_TIMEOUT);
+        this.saveDraftFrame = null;
     };
 
     focusTextboxIfNecessary = (e: KeyboardEvent) => {
@@ -1614,7 +1609,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                         />
                     ): undefined}
                 formId={'create_post'}
-                formRef={this.topDiv}
                 formClass={centerClass}
                 onPluginUpdateText={this.onPluginUpdateText}
             />
