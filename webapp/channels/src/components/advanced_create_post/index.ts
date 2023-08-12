@@ -55,7 +55,7 @@ import {showPreviewOnCreatePost} from 'selectors/views/textbox';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getEmojiMap, getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
-import {removeDraft, updateDraft} from 'actions/views/drafts';
+import {updateDraft} from 'actions/views/drafts';
 import {openModal} from 'actions/views/modals';
 import {AdvancedTextEditor, Preferences, StoragePrefixes, UserStatuses} from 'utils/constants';
 import {OnboardingTourSteps, TutorialTourName, OnboardingTourStepsForGuestUsers} from 'components/tours';

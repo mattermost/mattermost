@@ -7,7 +7,6 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {
-    makeGetMessageInHistoryItem,
     getPost,
     makeGetPostIdsForThread,
 } from 'mattermost-redux/selectors/entities/posts';
@@ -15,10 +14,7 @@ import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis'
 import {
     removeReaction,
     addMessageIntoHistory,
-    moveHistoryIndexBack,
-    moveHistoryIndexForward,
 } from 'mattermost-redux/actions/posts';
-import {Posts} from 'mattermost-redux/constants';
 import {isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
 import * as PostActions from 'actions/post_actions';
@@ -27,7 +23,6 @@ import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'act
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {updateDraft, removeDraft} from 'actions/views/drafts';
 import EmojiMap from 'utils/emoji_map';
-import {getPostDraft} from 'selectors/rhs';
 
 import * as Utils from 'utils/utils';
 import {Constants, StoragePrefixes} from 'utils/constants';

@@ -19,11 +19,9 @@ import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 import * as GlobalActions from 'actions/global_actions';
 
 import {PostDraft} from 'types/store/draft';
-import {PluginComponent} from 'types/store/plugins';
 import {ModalData} from 'types/actions';
 
 import Constants, {AdvancedTextEditor as AdvancedTextEditorConst, Locations, ModalIdentifiers, Preferences} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import {
@@ -53,13 +51,10 @@ import {execCommandInsertText} from 'utils/exec_commands';
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 import PostDeletedModal from 'components/post_deleted_modal';
-import {FilePreviewInfo} from 'components/file_preview/file_preview';
 import {TextboxClass, TextboxElement} from 'components/textbox';
 import Foo from 'components/advanced_text_editor/foo';
-import { isDraftEmpty } from 'utils/draft';
-import { Posts } from 'mattermost-redux/constants';
-
-const KeyCodes = Constants.KeyCodes;
+import {isDraftEmpty} from 'utils/draft';
+import {Posts} from 'mattermost-redux/constants';
 
 type Props = {
     currentTeamId: string;
@@ -257,7 +252,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             draft: {
                 ...prev.draft,
                 message: lastMessage || '',
-            }
+            },
         }));
     }
 
@@ -352,7 +347,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         if (!this.isDraftEdited || this.props.rootDeleted) {
             return;
         }
-
 
         this.props.onUpdateCommentDraft(this.state.draft, true);
     };
@@ -775,173 +769,10 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         });
     };
 
-    handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
-        const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
-        const lastMessageReactionKeyCombo = ctrlOrMetaKeyPressed && e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
-
-        const ctrlKeyCombo = Keyboard.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
-        const ctrlAltCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.altKey;
-        const shiftAltCombo = !Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && e.altKey;
-
-        // listen for line break key combo and insert new line character
-        if (Utils.isUnhandledLineBreakKeyCombo(e)) {
-            this.setState({
-                draft: {
-                    ...this.state.draft!,
-                    message: Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>),
-                },
-            });
-            return;
-        }
-
-        if (
-            (this.props.ctrlSend || this.props.codeBlockOnCtrlEnter) &&
-            Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
-            (e.ctrlKey || e.metaKey)
-        ) {
-            this.setShowPreview(false);
-            this.commentMsgKeyPress(e);
-            return;
-        }
-
-        const draft = this.state.draft!;
-        const {message} = draft;
-
-        if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
-            this.textboxRef.current?.blur();
-        }
-
-        if (
-            !e.ctrlKey &&
-            !e.metaKey &&
-            !e.altKey &&
-            !e.shiftKey &&
-            Keyboard.isKeyPressed(e, KeyCodes.UP) &&
-            message === ''
-        ) {
-            e.preventDefault();
-            if (this.textboxRef.current) {
-                this.textboxRef.current.blur();
-            }
-
-            const {data: canEditNow} = this.props.onEditLatestPost();
-            if (!canEditNow) {
-                this.focusTextbox(true);
-            }
-        }
-
-        const {
-            selectionStart,
-            selectionEnd,
-            value,
-        } = e.target as TextboxElement;
-
-        if (ctrlKeyCombo) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
-                e.preventDefault();
-                this.loadPrevMessage(e);
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
-                e.preventDefault();
-                this.loadNextMessage(e);
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.B)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'bold',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.I)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'italic',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Utils.isTextSelectedInPostOrReply(e) && Keyboard.isKeyPressed(e, KeyCodes.K)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'link',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            }
-        } else if (ctrlAltCombo) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.K)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'link',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.C)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'code',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.E)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.toggleEmojiPicker();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.T)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.toggleAdvanceTextEditor();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.setShowPreview(!this.props.shouldShowPreview);
-            }
-        } else if (shiftAltCombo) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.X)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'strike',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.SEVEN)) {
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'ol',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.EIGHT)) {
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'ul',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.NINE)) {
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'quote',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            }
-        }
-
-        if (lastMessageReactionKeyCombo) {
-            this.reactToLastMessage(e);
+    handleEditLatestPost = () => {
+        const {data: canEditNow} = this.props.onEditLatestPost();
+        if (!canEditNow) {
+            this.focusTextbox(true);
         }
     };
 
@@ -1137,7 +968,16 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.setState({
             draft: modifiedDraft,
         });
-    }
+    };
+
+    onLineBreak = (message: string) => {
+        this.setState({
+            draft: {
+                ...this.state.draft,
+                message,
+            },
+        });
+    };
 
     render() {
         const draft = this.state.draft!;
@@ -1167,7 +1007,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 handlePostError={this.handlePostError}
                 emitTypingEvent={this.emitTypingEvent}
                 handleMouseUpKeyUp={this.handleMouseUpKeyUp}
-                handleKeyDown={this.handleKeyDown}
                 onKeyPress={this.commentMsgKeyPress}
                 handleChange={this.handleChange}
                 toggleEmojiPicker={this.toggleEmojiPicker}
@@ -1182,8 +1021,14 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 fileUploadRef={this.fileUploadRef}
                 isThreadView={this.props.isThreadView}
                 onPluginUpdateText={this.onPluginUpdateText}
+                ctrlSend={this.props.ctrlSend}
+                codeBlockOnCtrlEnter={this.props.codeBlockOnCtrlEnter}
+                onEditLatestPost={this.handleEditLatestPost}
+                onLineBreak={this.onLineBreak}
+                loadNextMessage={this.loadNextMessage}
+                loadPrevMessage={this.loadPrevMessage}
             />
-        )
+        );
     }
 }
 

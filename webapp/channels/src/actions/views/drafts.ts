@@ -24,7 +24,7 @@ import {FileInfo} from '@mattermost/types/files';
 import {PreferenceType} from '@mattermost/types/preferences';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import Preferences from 'mattermost-redux/constants/preferences';
-import { isDraftEmpty } from 'utils/draft';
+import {isDraftEmpty} from 'utils/draft';
 
 type Draft = {
     key: keyof GlobalState['storage']['storage'];
@@ -94,7 +94,7 @@ export function removeDraft(key: string, channelId: string, rootId = '') {
 
 const draftSaveTimeouts: {[key: string]: NodeJS.Timeout | undefined} = {};
 function clearDraftTimeout(key: string) {
-    const currentTimetout = draftSaveTimeouts[key]
+    const currentTimetout = draftSaveTimeouts[key];
     if (currentTimetout) {
         clearTimeout(currentTimetout);
         delete draftSaveTimeouts[key];
@@ -128,13 +128,13 @@ export function updateDraft(key: string, value: PostDraft, save = false, instant
                         await upsertDraft(updatedValue, userId, connectionId);
                     }
                 } catch (error) {
-                    return {data: false, error}
+                    return {data: false, error};
                 }
             }
 
-            return {data: true}
-        }
-        
+            return {data: true};
+        };
+
         if (instant) {
             return action();
         }
@@ -142,8 +142,8 @@ export function updateDraft(key: string, value: PostDraft, save = false, instant
         draftSaveTimeouts[key] = setTimeout(() => {
             clearDraftTimeout(key);
             action();
-        }, Constants.SAVE_DRAFT_TIMEOUT)
-    
+        }, Constants.SAVE_DRAFT_TIMEOUT);
+
         return {data: true};
     };
 }

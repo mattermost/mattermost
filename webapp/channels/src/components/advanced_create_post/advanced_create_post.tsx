@@ -18,7 +18,6 @@ import {CommandArgs} from '@mattermost/types/integrations';
 import {Group, GroupSource} from '@mattermost/types/groups';
 import {FileInfo} from '@mattermost/types/files';
 import {Emoji} from '@mattermost/types/emojis';
-import {PluginComponent} from 'types/store/plugins';
 
 import * as GlobalActions from 'actions/global_actions';
 import Constants, {
@@ -68,10 +67,8 @@ import PersistNotificationConfirmModal from 'components/persist_notification_con
 import {PostDraft} from 'types/store/draft';
 import {ModalData} from 'types/actions';
 
-import {FilePreviewInfo} from '../file_preview/file_preview';
 import PriorityLabels from './priority_labels';
 import Foo from 'components/advanced_text_editor/foo';
-import { isDraftEmpty } from 'utils/draft';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -1050,183 +1047,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         });
     };
 
-    handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
-        const messageIsEmpty = this.state.message.length === 0;
-        const draftMessageIsEmpty = this.props.draft.message.length === 0;
-
-        const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
-        const ctrlEnterKeyCombo = (this.props.ctrlSend || this.props.codeBlockOnCtrlEnter) &&
-            Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
-            ctrlOrMetaKeyPressed;
-
-        const ctrlKeyCombo = Keyboard.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
-        const ctrlAltCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.altKey;
-        const shiftAltCombo = !Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && e.altKey;
-
-        // listen for line break key combo and insert new line character
-        if (Utils.isUnhandledLineBreakKeyCombo(e)) {
-            this.setState({message: Utils.insertLineBreakFromKeyEvent(e)});
-            return;
-        }
-
-        if (ctrlEnterKeyCombo) {
-            this.setShowPreview(false);
-            this.postMsgKeyPress(e);
-            return;
-        }
-
-        const {message} = this.state;
-
-        if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
-            this.textboxRef.current?.blur();
-        }
-
-        if (
-            !e.ctrlKey &&
-            !e.metaKey &&
-            !e.altKey &&
-            !e.shiftKey &&
-            Keyboard.isKeyPressed(e, KeyCodes.UP) &&
-            message === ''
-        ) {
-            e.preventDefault();
-            if (this.textboxRef.current) {
-                this.textboxRef.current.blur();
-            }
-
-            this.editLastPost(e);
-        }
-
-        const {
-            selectionStart,
-            selectionEnd,
-            value,
-        } = e.target as TextboxElement;
-
-        if (ctrlKeyCombo) {
-            if (draftMessageIsEmpty && Keyboard.isKeyPressed(e, KeyCodes.UP)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.loadPrevMessage(e);
-            } else if (draftMessageIsEmpty && Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.loadNextMessage(e);
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.B)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'bold',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.I)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'italic',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Utils.isTextSelectedInPostOrReply(e) && Keyboard.isKeyPressed(e, KeyCodes.K)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'link',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            }
-        } else if (ctrlAltCombo) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.K)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'link',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.C)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'code',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.E)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.toggleEmojiPicker();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.T)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.toggleAdvanceTextEditor();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && message.length) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.setShowPreview(!this.props.shouldShowPreview);
-            }
-        } else if (shiftAltCombo) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.X)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'strike',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.SEVEN)) {
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'ol',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.EIGHT)) {
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'ul',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.NINE)) {
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'quote',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            }
-        }
-        const upKeyOnly = !ctrlOrMetaKeyPressed && !e.altKey && !e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);
-        const shiftUpKeyCombo = !ctrlOrMetaKeyPressed && !e.altKey && e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);
-        const ctrlShiftCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.shiftKey;
-
-        if (upKeyOnly && messageIsEmpty) {
-            this.editLastPost(e);
-        } else if (shiftUpKeyCombo && messageIsEmpty) {
-            this.replyToLastPost(e);
-        } else if (ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.E)) {
-            e.stopPropagation();
-            e.preventDefault();
-            this.toggleEmojiPicker();
-        } else if (((UserAgent.isMac() && ctrlShiftCombo) || (!UserAgent.isMac() && ctrlAltCombo)) && Keyboard.isKeyPressed(e, KeyCodes.P) && this.state.message.length) {
-            this.setShowPreview(!this.props.shouldShowPreview);
-        } else if (ctrlAltCombo && Keyboard.isKeyPressed(e, KeyCodes.T)) {
-            this.toggleAdvanceTextEditor();
-        }
-    };
-
     editLastPost = (e: React.KeyboardEvent) => {
         e.preventDefault();
 
@@ -1486,7 +1306,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             ...this.props.draft,
             message,
         });
-    }
+    };
+
+    onLineBreak = (message: string) => {
+        this.setState({message});
+    };
 
     render() {
         const {draft, canPost} = this.props;
@@ -1527,7 +1351,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 handlePostError={this.handlePostError}
                 emitTypingEvent={this.emitTypingEvent}
                 handleMouseUpKeyUp={this.handleMouseUpKeyUp}
-                handleKeyDown={this.handleKeyDown}
                 onKeyPress={this.postMsgKeyPress}
                 handleChange={this.handleChange}
                 toggleEmojiPicker={this.toggleEmojiPicker}
@@ -1554,19 +1377,26 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                     />
                 ) : undefined}
                 priorityControls={this.props.isPostPriorityEnabled ? (
-                        <PostPriorityPickerOverlay
-                            key='post-priority-picker-key'
-                            settings={draft?.metadata?.priority}
-                            onApply={this.handlePostPriorityApply}
-                            onClose={this.handlePostPriorityHide}
-                            disabled={this.props.shouldShowPreview}
-                        />
-                    ): undefined}
+                    <PostPriorityPickerOverlay
+                        key='post-priority-picker-key'
+                        settings={draft?.metadata?.priority}
+                        onApply={this.handlePostPriorityApply}
+                        onClose={this.handlePostPriorityHide}
+                        disabled={this.props.shouldShowPreview}
+                    />
+                ) : undefined}
                 formId={'create_post'}
                 formClass={centerClass}
                 onPluginUpdateText={this.onPluginUpdateText}
+                onEditLatestPost={this.editLastPost}
+                ctrlSend={this.props.ctrlSend}
+                codeBlockOnCtrlEnter={this.props.codeBlockOnCtrlEnter}
+                onLineBreak={this.onLineBreak}
+                replyToLastPost={this.replyToLastPost}
+                loadNextMessage={this.loadNextMessage}
+                loadPrevMessage={this.loadPrevMessage}
             />
-        )
+        );
     }
 }
 

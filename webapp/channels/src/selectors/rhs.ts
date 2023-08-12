@@ -7,7 +7,7 @@ import {Post, PostType} from '@mattermost/types/posts';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {Channel} from '@mattermost/types/channels';
 
-import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage';
+import {makeGetGlobalItem} from 'selectors/storage';
 import {PostTypes, StoragePrefixes} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 import {GlobalState} from 'types/store';
@@ -148,14 +148,14 @@ export function getPostDraft(state: GlobalState, prefixId: string, suffixId: str
             return {
                 ...draft,
                 rootId: suffixId,
-            }
+            };
         }
 
         if (prefixId === StoragePrefixes.DRAFT && draft.channelId !== suffixId) {
             return {
                 ...draft,
                 channelId: suffixId,
-            }
+            };
         }
 
         return draft;
