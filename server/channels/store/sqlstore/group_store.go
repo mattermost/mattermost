@@ -284,17 +284,16 @@ func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.
 func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, error) {
 	groups := []*model.Group{}
 
-	query := `
-		SELECT
-			UserGroups.*
-		FROM
-			GroupMembers
-			JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId
-		WHERE
-			GroupMembers.DeleteAt = 0
-			AND UserId = ?`
+	builder := s.getQueryBuilder().
+		Select("UserGroups.*").
+		From("GroupMembers").
+		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		Where(sq.Eq{
+			"GroupMembers.DeleteAt": 0,
+			"UserId":                userId,
+		})
 
-	if err := s.GetReplicaX().Select(&groups, query, userId); err != nil {
+	if err := s.GetReplicaX().SelectBuilder(&groups, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Groups with userId=%s", userId)
 	}
 
