@@ -10,6 +10,7 @@ import {FilePreviewInfo} from 'components/file_preview/file_preview';
 import {ServerError} from '@mattermost/types/errors';
 import {PostDraft} from 'types/store/draft';
 import {
+    applyMarkdown as applyMarkdownUtil,
     ApplyMarkdownOptions,
 } from 'utils/markdown/apply_markdown';
 import {Emoji} from '@mattermost/types/emojis';
@@ -56,7 +57,6 @@ type Props = {
     setShowPreview: (newPreviewValue: boolean) => void;
     shouldShowPreview: boolean;
     canPost: boolean;
-    applyMarkdown: (params: ApplyMarkdownOptions) => void;
     useChannelMentions: boolean;
     handleBlur: () => void;
     postError?: React.ReactNode;
@@ -76,11 +76,10 @@ type Props = {
     fileUploadRef: React.RefObject<FileUploadClass>;
     formId?: string;
     formClass?: string;
-    onPluginUpdateText: (message: string) => void;
     ctrlSend?: boolean;
     codeBlockOnCtrlEnter?: boolean;
     onEditLatestPost: (e: React.KeyboardEvent) => void;
-    onLineBreak: (message: string) => void;
+    onMessageChange: (message: string, callback?: (() => void) | undefined) => void;
     loadPrevMessage: (e: React.KeyboardEvent) => void;
     loadNextMessage: (e: React.KeyboardEvent) => void;
     replyToLastPost?: (e: React.KeyboardEvent) => void;
@@ -109,7 +108,6 @@ const Foo = ({
     setShowPreview,
     shouldShowPreview,
     canPost,
-    applyMarkdown,
     useChannelMentions,
     handleBlur,
     postError,
@@ -129,11 +127,10 @@ const Foo = ({
     fileUploadRef,
     formId,
     formClass,
-    onPluginUpdateText,
     ctrlSend,
     codeBlockOnCtrlEnter,
     onEditLatestPost,
-    onLineBreak,
+    onMessageChange,
     loadPrevMessage,
     loadNextMessage,
     replyToLastPost,
@@ -148,6 +145,12 @@ const Foo = ({
     const canUploadFiles = useSelector<GlobalState, boolean>((state) => canUploadFilesSelector(getConfig(state)));
     const maxPostSize = useSelector<GlobalState, number>((state) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
     const postEditorActions = useSelector<GlobalState, PluginComponent[] | undefined>((state) => state.plugins.components.PostEditorAction);
+
+    // We don't use directly onMessageChange to make sure other potential arguments don't break
+    // the behavior.
+    const onPluginUpdateText = (message: string) => {
+        onMessageChange(message);
+    };
 
     const pluginItems = postEditorActions?.map((item) => {
         if (!item.component) {
@@ -185,6 +188,19 @@ const Foo = ({
         setUploadsProgressPercent(newUploadsProgressPercent);
     };
 
+    const applyMarkdown = (options: ApplyMarkdownOptions) => {
+        if (shouldShowPreview) {
+            return;
+        }
+
+        const res = applyMarkdownUtil(options);
+
+        onMessageChange(res.message, () => {
+            const textbox = textboxRef.current?.getInputBox();
+            Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
+        });
+    };
+
     const handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
         const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
         const ctrlEnterKeyCombo = (ctrlSend || codeBlockOnCtrlEnter) &&
@@ -198,7 +214,7 @@ const Foo = ({
 
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
-            onLineBreak(Utils.insertLineBreakFromKeyEvent(e));
+            onMessageChange(Utils.insertLineBreakFromKeyEvent(e));
             return;
         }
 

@@ -42,10 +42,6 @@ import {
     isTextUrl,
     formatMarkdownLinkMessage,
 } from 'utils/paste';
-import {
-    applyMarkdown,
-    ApplyMarkdownOptions,
-} from 'utils/markdown/apply_markdown';
 import {execCommandInsertText} from 'utils/exec_commands';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
@@ -776,29 +772,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }
     };
 
-    applyMarkdown = (options: ApplyMarkdownOptions) => {
-        if (this.props.shouldShowPreview) {
-            return;
-        }
-
-        const res = applyMarkdown(options);
-
-        const draft = this.state.draft!;
-        const modifiedDraft = {
-            ...draft,
-            message: res.message,
-        };
-
-        this.handleDraftChange(modifiedDraft);
-
-        this.setState({
-            draft: modifiedDraft,
-        }, () => {
-            const textbox = this.textboxRef.current?.getInputBox();
-            Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
-        });
-    };
-
     handleFileUploadChange = () => {
         this.isDraftEdited = true;
         this.focusTextbox();
@@ -958,8 +931,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.lastBlurAt = Date.now();
     };
 
-    onPluginUpdateText = (message: string) => {
-        const draft = this.state.draft!;
+    onMessageChange = (message: string, callback?: (() => void) | undefined) => {
+        const draft = this.state.draft;
         const modifiedDraft = {
             ...draft,
             message,
@@ -967,16 +940,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.handleDraftChange(modifiedDraft);
         this.setState({
             draft: modifiedDraft,
-        });
-    };
-
-    onLineBreak = (message: string) => {
-        this.setState({
-            draft: {
-                ...this.state.draft,
-                message,
-            },
-        });
+        }, callback);
     };
 
     render() {
@@ -1000,7 +964,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 setShowPreview={this.setShowPreview}
                 shouldShowPreview={this.props.shouldShowPreview}
                 canPost={this.props.canPost}
-                applyMarkdown={this.applyMarkdown}
                 useChannelMentions={this.props.useChannelMentions}
                 handleBlur={this.handleBlur}
                 postError={this.state.postError}
@@ -1020,11 +983,10 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 handleFileUploadChange={this.handleFileUploadChange}
                 fileUploadRef={this.fileUploadRef}
                 isThreadView={this.props.isThreadView}
-                onPluginUpdateText={this.onPluginUpdateText}
                 ctrlSend={this.props.ctrlSend}
                 codeBlockOnCtrlEnter={this.props.codeBlockOnCtrlEnter}
                 onEditLatestPost={this.handleEditLatestPost}
-                onLineBreak={this.onLineBreak}
+                onMessageChange={this.onMessageChange}
                 loadNextMessage={this.loadNextMessage}
                 loadPrevMessage={this.loadPrevMessage}
             />

@@ -52,7 +52,6 @@ import {
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import EmojiMap from 'utils/emoji_map';
-import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {execCommandInsertText} from 'utils/exec_commands';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
@@ -1089,28 +1088,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.props.actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST).then(() => this.fillMessageFromHistory());
     };
 
-    applyMarkdown = (params: ApplyMarkdownOptions) => {
-        if (this.props.shouldShowPreview) {
-            return;
-        }
-
-        const res = applyMarkdown(params);
-
-        this.setState({
-            message: res.message,
-        }, () => {
-            const textbox = this.textboxRef.current?.getInputBox();
-            Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
-
-            const draft = {
-                ...this.props.draft,
-                message: this.state.message,
-            };
-
-            this.handleDraftChange(draft);
-        });
-    };
-
     reactToLastMessage = (e: KeyboardEvent) => {
         e.preventDefault();
 
@@ -1298,18 +1275,12 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         return Object.values(this.getSpecialMentions()).includes(true);
     };
 
-    onPluginUpdateText = (message: string) => {
-        this.setState({
-            message,
-        });
+    onMessageChange = (message: string, callback?: (() => void) | undefined) => {
         this.handleDraftChange({
             ...this.props.draft,
             message,
         });
-    };
-
-    onLineBreak = (message: string) => {
-        this.setState({message});
+        this.setState({message}, callback);
     };
 
     render() {
@@ -1344,7 +1315,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 setShowPreview={this.setShowPreview}
                 shouldShowPreview={this.props.shouldShowPreview}
                 canPost={canPost}
-                applyMarkdown={this.applyMarkdown}
                 useChannelMentions={this.props.useChannelMentions}
                 handleBlur={this.handleBlur}
                 postError={this.state.postError}
@@ -1387,11 +1357,10 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 ) : undefined}
                 formId={'create_post'}
                 formClass={centerClass}
-                onPluginUpdateText={this.onPluginUpdateText}
                 onEditLatestPost={this.editLastPost}
                 ctrlSend={this.props.ctrlSend}
                 codeBlockOnCtrlEnter={this.props.codeBlockOnCtrlEnter}
-                onLineBreak={this.onLineBreak}
+                onMessageChange={this.onMessageChange}
                 replyToLastPost={this.replyToLastPost}
                 loadNextMessage={this.loadNextMessage}
                 loadPrevMessage={this.loadPrevMessage}
