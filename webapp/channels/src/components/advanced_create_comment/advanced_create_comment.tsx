@@ -57,6 +57,7 @@ import {FilePreviewInfo} from 'components/file_preview/file_preview';
 import {TextboxClass, TextboxElement} from 'components/textbox';
 import Foo from 'components/advanced_text_editor/foo';
 import { isDraftEmpty } from 'utils/draft';
+import { Posts } from 'mattermost-redux/constants';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -121,10 +122,10 @@ type Props = {
     onResetHistoryIndex: () => void;
 
     // Called when navigating back through comment message history
-    onMoveHistoryIndexBack: () => void;
+    moveHistoryIndexBack: (index: string) => Promise<void>;
 
     // Called when navigating forward through comment message history
-    onMoveHistoryIndexForward: () => void;
+    moveHistoryIndexForward: (index: string) => Promise<void>;
 
     // Called to initiate editing the user's latest post
     onEditLatestPost: () => ActionResult;
@@ -249,6 +250,26 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.textboxRef = React.createRef();
         this.fileUploadRef = React.createRef();
     }
+
+    fillMessageFromHistory() {
+        const lastMessage = this.props.messageInHistory;
+        this.setState((prev) => ({
+            draft: {
+                ...prev.draft,
+                message: lastMessage || '',
+            }
+        }));
+    }
+
+    loadPrevMessage = (e: React.KeyboardEvent) => {
+        e.preventDefault();
+        this.props.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT).then(() => this.fillMessageFromHistory());
+    };
+
+    loadNextMessage = (e: React.KeyboardEvent) => {
+        e.preventDefault();
+        this.props.moveHistoryIndexForward(Posts.MESSAGE_TYPES.COMMENT).then(() => this.fillMessageFromHistory());
+    };
 
     componentDidMount() {
         const {clearCommentDraftUploads, onResetHistoryIndex, setShowPreview, draft} = this.props;
@@ -818,10 +839,10 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         if (ctrlKeyCombo) {
             if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
                 e.preventDefault();
-                this.props.onMoveHistoryIndexBack();
+                this.loadPrevMessage(e);
             } else if (Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
                 e.preventDefault();
-                this.props.onMoveHistoryIndexForward();
+                this.loadNextMessage(e);
             } else if (Keyboard.isKeyPressed(e, KeyCodes.B)) {
                 e.stopPropagation();
                 e.preventDefault();

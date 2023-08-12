@@ -50,28 +50,6 @@ export function updateCommentDraft(draft: PostDraft, save = false, instant = fal
     return updateDraft(key, draft, save, instant);
 }
 
-export function makeOnMoveHistoryIndex(rootId: string, direction: number) {
-    const getMessageInHistory = makeGetMessageInHistoryItem(Posts.MESSAGE_TYPES.COMMENT as 'comment');
-
-    return () => (dispatch: DispatchFunc, getState: () => GlobalState) => {
-        const draft = getPostDraft(getState(), StoragePrefixes.COMMENT_DRAFT, rootId);
-        if (draft.message !== '' && draft.message !== getMessageInHistory(getState())) {
-            return {data: true};
-        }
-
-        if (direction === -1) {
-            dispatch(moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT as 'comment'));
-        } else if (direction === 1) {
-            dispatch(moveHistoryIndexForward(Posts.MESSAGE_TYPES.COMMENT as 'comment'));
-        }
-
-        const nextMessageInHistory = getMessageInHistory(getState());
-
-        dispatch(updateCommentDraft({...draft, message: nextMessageInHistory}));
-        return {data: true};
-    };
-}
-
 export function submitPost(channelId: string, rootId: string, draft: PostDraft) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();

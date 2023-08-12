@@ -1039,11 +1039,9 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
     fillMessageFromHistory() {
         const lastMessage = this.props.messageInHistoryItem;
-        if (lastMessage) {
-            this.setState({
-                message: lastMessage,
-            });
-        }
+        this.setState({
+            message: lastMessage || '',
+        });
     }
 
     handleMouseUpKeyUp = (e: React.MouseEvent | React.KeyboardEvent) => {
