@@ -14,27 +14,23 @@ import {PostDraft} from 'types/store/draft';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getAllChannelStats, getChannelMemberCountsByGroup as selectChannelMemberCountsByGroup} from 'mattermost-redux/selectors/entities/channels';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {makeGetMessageInHistoryItem} from 'mattermost-redux/selectors/entities/posts';
 import {moveHistoryIndexBack, moveHistoryIndexForward, resetCreatePostRequest, resetHistoryIndex} from 'mattermost-redux/actions/posts';
-import {getChannelTimezones} from 'mattermost-redux/actions/channels';
-import {Permissions, Preferences, Posts} from 'mattermost-redux/constants';
-import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {Permissions, Posts} from 'mattermost-redux/constants';
 import {PreferenceType} from '@mattermost/types/preferences';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 
-import {AdvancedTextEditor, Constants, StoragePrefixes, UserStatuses} from 'utils/constants';
+import {AdvancedTextEditor, Constants, StoragePrefixes} from 'utils/constants';
 import {getCurrentLocale} from 'selectors/i18n';
 
 import {
     clearCommentDraftUploads,
+    handleSubmit,
     makeOnEditLatestPost,
+    SubmitServerError,
     updateCommentDraft,
-    onSubmit,
 } from 'actions/views/create_comment';
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {getPostDraft, getIsRhsExpanded, getSelectedPostFocussedAt} from 'selectors/rhs';
@@ -44,7 +40,6 @@ import {openModal} from 'actions/views/modals';
 
 import AdvancedCreateComment from './advanced_create_comment';
 import {getChannelMemberCountsFromMessage} from 'actions/channel_actions';
-import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 type OwnProps = {
     rootId: string;
@@ -61,50 +56,25 @@ function makeMapStateToProps() {
         const draft = getPostDraft(state, StoragePrefixes.COMMENT_DRAFT, ownProps.rootId);
         const isRemoteDraft = state.views.drafts.remotes[`${StoragePrefixes.COMMENT_DRAFT}${ownProps.rootId}`] || false;
 
-        const channelMembersCount = getAllChannelStats(state)[ownProps.channelId] ? getAllChannelStats(state)[ownProps.channelId].member_count : 1;
         const messageInHistory = getMessageInHistoryItem(state);
 
         const channel = state.entities.channels.channels[ownProps.channelId] || {};
-        const config = getConfig(state);
-        const license = getLicense(state);
         const currentUserId = getCurrentUserId(state);
-        const userIsOutOfOffice = getStatusForUserId(state, currentUserId) === UserStatuses.OUT_OF_OFFICE;
-        const enableConfirmNotificationsToChannel = config.EnableConfirmNotificationsToChannel === 'true';
-        const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
         const canPost = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST);
-        const useChannelMentions = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
-        const isLDAPEnabled = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
-        const useCustomGroupMentions = isCustomGroupsEnabled(state) && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
-        const useLDAPGroupMentions = isLDAPEnabled && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
-        const channelMemberCountsByGroup = selectChannelMemberCountsByGroup(state, ownProps.channelId);
-        const groupsWithAllowReference = useLDAPGroupMentions || useCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, channel.team_id, channel.id) : null;
         const isFormattingBarHidden = getBool(state, Constants.Preferences.ADVANCED_TEXT_EDITOR, AdvancedTextEditor.COMMENT);
-        const currentTeamId = getCurrentTeamId(state);
 
         return {
-            currentTeamId,
             draft,
             isRemoteDraft,
             messageInHistory,
-            channelMembersCount,
             currentUserId,
             isFormattingBarHidden,
-            codeBlockOnCtrlEnter: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true),
-            ctrlSend: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             createPostErrorId: err.server_error_id,
-            enableConfirmNotificationsToChannel,
             locale: getCurrentLocale(state),
             rhsExpanded: getIsRhsExpanded(state),
-            isTimezoneEnabled,
             selectedPostFocussedAt: getSelectedPostFocussedAt(state),
             canPost,
-            useChannelMentions,
             shouldShowPreview: showPreviewOnCreateComment(state),
-            groupsWithAllowReference,
-            useLDAPGroupMentions,
-            channelMemberCountsByGroup,
-            useCustomGroupMentions,
-            userIsOutOfOffice,
             channel,
         };
     };
@@ -122,13 +92,12 @@ type Actions = {
     moveHistoryIndexForward: (index: string) => Promise<void>;
     onEditLatestPost: () => ActionResult;
     resetCreatePostRequest: () => void;
-    getChannelTimezones: (channelId: string) => Promise<ActionResult>;
     emitShortcutReactToLastPostFrom: (location: string) => void;
     setShowPreview: (showPreview: boolean) => void;
     getChannelMemberCountsFromMessage: (channelID: string, message: string) => void;
     openModal: <P>(modalData: ModalData<P>) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
-    onSubmit: (draft: PostDraft, options: {ignoreSlash?: boolean}, latestPostId: string | undefined) => ActionResult;
+    handleSubmit: (draft: PostDraft, preSubmit: () => void, onSubmitted: (res: ActionResult, draft: PostDraft) => void, serverError: SubmitServerError, latestPost: string | undefined) => ActionResult;
 };
 
 function makeMapDispatchToProps() {
@@ -158,18 +127,17 @@ function makeMapDispatchToProps() {
             {
                 clearCommentDraftUploads,
                 onUpdateCommentDraft,
-                onSubmit,
                 onResetHistoryIndex,
                 moveHistoryIndexBack,
                 moveHistoryIndexForward,
                 onEditLatestPost,
                 resetCreatePostRequest,
-                getChannelTimezones,
                 emitShortcutReactToLastPostFrom,
                 setShowPreview: setShowPreviewOnCreateComment,
                 getChannelMemberCountsFromMessage,
                 openModal,
                 savePreferences,
+                handleSubmit,
             },
             dispatch,
         );

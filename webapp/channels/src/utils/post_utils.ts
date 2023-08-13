@@ -298,7 +298,7 @@ export function postMessageOnKeyPress(
     now = 0,
     lastChannelSwitchAt = 0,
     caretPosition = 0,
-): {allowSending: boolean; ignoreKeyPress?: boolean; message?: string, withClosedCodeBlock?: boolean} {
+): {allowSending: boolean; ignoreKeyPress?: boolean; message?: string; withClosedCodeBlock?: boolean} {
     if (!event) {
         return {allowSending: false};
     }

@@ -22,13 +22,17 @@ import {GlobalState} from 'types/store';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {connectionErrorCount} from 'selectors/views/system';
 import {canUploadFiles as canUploadFilesSelector} from 'utils/file_utils';
-import Constants, {Locations} from 'utils/constants';
+import Constants, {Locations, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 import * as UserAgent from 'utils/user_agent';
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {pasteHandler} from 'utils/paste';
-import { postMessageOnKeyPress } from 'utils/post_utils';
+import {postMessageOnKeyPress} from 'utils/post_utils';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {Preferences as PreferencesRedux, Permissions} from 'mattermost-redux/constants';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -36,7 +40,7 @@ type Props = {
     message: string;
     postId?: string;
     location: string;
-    textEditorChannel?: Channel;
+    textEditorChannel: Channel;
     showSendTutorialTip?: boolean;
     isThreadView?: boolean;
     prefillMessage?: (message: string, shouldFocus?: boolean) => void;
@@ -57,7 +61,6 @@ type Props = {
     setShowPreview: (newPreviewValue: boolean) => void;
     shouldShowPreview: boolean;
     canPost: boolean;
-    useChannelMentions: boolean;
     handleBlur: () => void;
     postError?: React.ReactNode;
     handlePostError: (postError: React.ReactNode) => void;
@@ -76,8 +79,6 @@ type Props = {
     fileUploadRef: React.RefObject<FileUploadClass>;
     formId?: string;
     formClass?: string;
-    ctrlSend?: boolean;
-    codeBlockOnCtrlEnter?: boolean;
     onEditLatestPost: (e: React.KeyboardEvent) => void;
     onMessageChange: (message: string, callback?: (() => void) | undefined) => void;
     loadPrevMessage: (e: React.KeyboardEvent) => void;
@@ -89,7 +90,8 @@ type Props = {
     focusTextbox: () => void;
     isValidPersistentNotifications?: () => boolean;
 }
-const Foo = ({
+
+const UnifiedTextEditorForm = ({
     message,
     postId = '',
     location,
@@ -112,7 +114,6 @@ const Foo = ({
     setShowPreview,
     shouldShowPreview,
     canPost,
-    useChannelMentions,
     handleBlur,
     postError,
     handlePostError,
@@ -131,8 +132,6 @@ const Foo = ({
     fileUploadRef,
     formId,
     formClass,
-    ctrlSend,
-    codeBlockOnCtrlEnter,
     onEditLatestPost,
     onMessageChange,
     loadPrevMessage,
@@ -145,7 +144,7 @@ const Foo = ({
     isValidPersistentNotifications = () => true,
 }: Props) => {
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{[clientID: string]: FilePreviewInfo}>({});
-    const textEditorChannelId = textEditorChannel?.id || '';
+    const textEditorChannelId = textEditorChannel.id;
 
     const dispatch = useDispatch();
     const enableEmojiPicker = useSelector<GlobalState, boolean>((state) => getConfig(state).EnableEmojiPicker === 'true');
@@ -154,8 +153,12 @@ const Foo = ({
     const canUploadFiles = useSelector<GlobalState, boolean>((state) => canUploadFilesSelector(getConfig(state)));
     const maxPostSize = useSelector<GlobalState, number>((state) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
     const postEditorActions = useSelector<GlobalState, PluginComponent[] | undefined>((state) => state.plugins.components.PostEditorAction);
+    const codeBlockOnCtrlEnter = useSelector<GlobalState, boolean>((state) => getBool(state, PreferencesRedux.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
+    const ctrlSend = useSelector<GlobalState, boolean>((state) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
+    const useChannelMentions = useSelector<GlobalState, boolean>((state) => haveIChannelPermission(state, getCurrentTeamId(state), textEditorChannelId, Permissions.USE_CHANNEL_MENTIONS));
 
     const isRHS = location === Locations.RHS_COMMENT;
+
     // We don't use directly onMessageChange to make sure other potential arguments don't break
     // the behavior.
     const onPluginUpdateText = (message: string) => {
@@ -509,4 +512,4 @@ const Foo = ({
     );
 };
 
-export default Foo;
+export default UnifiedTextEditorForm;

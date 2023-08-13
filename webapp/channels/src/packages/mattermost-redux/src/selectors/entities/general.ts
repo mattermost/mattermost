@@ -112,3 +112,11 @@ export const isMarketplaceEnabled: (state: GlobalState) => boolean = createSelec
         return config.PluginsEnabled === 'true' && config.EnableMarketplace === 'true';
     },
 );
+
+export const isLDAPEnabled: (state: GlobalState) => boolean = createSelector(
+    'isLDAPEnabled',
+    getLicense,
+    (license) => {
+        return license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
+    },
+);

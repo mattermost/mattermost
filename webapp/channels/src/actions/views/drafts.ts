@@ -78,6 +78,7 @@ export function removeDraft(key: string, channelId: string, rootId = '') {
 
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             const connectionId = getConnectionId(getState() as GlobalState);
+            clearDraftTimeout(key);
 
             try {
                 await Client4.deleteDraft(channelId, rootId, connectionId);

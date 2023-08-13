@@ -6,8 +6,7 @@
 import React from 'react';
 
 import {PreferenceType} from '@mattermost/types/preferences';
-import {Group, GroupSource} from '@mattermost/types/groups';
-import {Channel, ChannelMemberCountsByGroup} from '@mattermost/types/channels';
+import {Channel} from '@mattermost/types/channels';
 import {Emoji} from '@mattermost/types/emojis';
 import {ServerError} from '@mattermost/types/errors';
 import {FileInfo} from '@mattermost/types/files';
@@ -24,29 +23,20 @@ import Constants, {AdvancedTextEditor as AdvancedTextEditorConst, Locations, Mod
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import {
-    specialMentionsInText,
-    postMessageOnKeyPress,
     shouldFocusMainTextbox,
     isErrorInvalidSlashCommand,
     splitMessageBasedOnCaretPosition,
-    groupsMentionedInText,
-    isStatusSlashCommand,
-    extractCommand,
 } from 'utils/post_utils';
-import ResetStatusModal from 'components/reset_status_modal';
 
-import NotifyConfirmModal from 'components/notify_confirm_modal';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 import PostDeletedModal from 'components/post_deleted_modal';
 import {TextboxClass, TextboxElement} from 'components/textbox';
-import Foo from 'components/advanced_text_editor/foo';
+import UnifiedTextEditorForm from 'components/advanced_text_editor/unified_text_editor_form';
 import {isDraftEmpty} from 'utils/draft';
 import {Posts} from 'mattermost-redux/constants';
-import EditChannelHeaderModal from 'components/edit_channel_header_modal';
-import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
+import {SubmitServerError} from 'actions/views/create_comment';
 
 type Props = {
-    currentTeamId: string;
 
     // The channel for which this comment is a part of
     channelId: string;
@@ -60,9 +50,6 @@ type Props = {
     // The root message is deleted
     rootDeleted: boolean;
 
-    // The number of channel members
-    channelMembersCount: number;
-
     // The current history message selected
     messageInHistory?: string;
 
@@ -74,12 +61,6 @@ type Props = {
 
     // Determines if the submit button should be rendered
     enableAddButton?: boolean;
-
-    // Force message submission on CTRL/CMD + ENTER
-    codeBlockOnCtrlEnter?: boolean;
-
-    // Set to force form submission on CTRL/CMD + ENTER instead of just ENTER
-    ctrlSend?: boolean;
 
     // The id of the latest post in this channel
     latestPostId?: string;
@@ -99,9 +80,6 @@ type Props = {
     // Called when comment draft needs to be updated
     onUpdateCommentDraft: (draft: PostDraft, save?: boolean, instant?: boolean) => void;
 
-    // Called when submitting the comment
-    onSubmit: (draft: PostDraft, options: {ignoreSlash?: boolean}, latestPostId: string | undefined) => ActionResult;
-
     // Called when resetting comment message history index
     onResetHistoryIndex: () => void;
 
@@ -114,32 +92,17 @@ type Props = {
     // Called to initiate editing the user's latest post
     onEditLatestPost: () => ActionResult;
 
-    // Function to get the users timezones in the channel
-    getChannelTimezones: (channelId: string) => Promise<ActionResult>;
-
     // Reset state of createPost request
     resetCreatePostRequest: () => void;
 
-    // Determines if @channel should warn in this channel
-    enableConfirmNotificationsToChannel: boolean;
-
     // Determines if the RHS is in expanded state
     rhsExpanded: boolean;
-
-    // Determines if timezones are enabled on the server.
-    isTimezoneEnabled: boolean;
 
     // The last time, if any, the selected post changed. Will be 0 if no post is selected.
     selectedPostFocussedAt: number;
 
     // Function to set or unset emoji picker for last message
     emitShortcutReactToLastPostFrom: (location: string) => void;
-
-    // Determines if the current user can send special channel mentions
-    useChannelMentions: boolean;
-
-    // Determines if the current user can send LDAP group mentions
-    useLDAPGroupMentions: boolean;
 
     // Set show preview for textbox
     setShowPreview: (showPreview: boolean) => void;
@@ -153,18 +116,13 @@ type Props = {
     // Group member mention
     getChannelMemberCountsFromMessage: (channelID: string, message: string) => void;
 
-    //Whether to display a confirmation modal to reset status.
-    userIsOutOfOffice: boolean;
-
-    groupsWithAllowReference: Map<string, Group> | null;
-    channelMemberCountsByGroup: ChannelMemberCountsByGroup;
     focusOnMount?: boolean;
     isThreadView?: boolean;
     openModal: <P>(modalData: ModalData<P>) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
-    useCustomGroupMentions: boolean;
     isFormattingBarHidden: boolean;
     channel: Channel;
+    handleSubmit: (draft: PostDraft, preSubmit: () => void, onSubmitted: (res: ActionResult, draft: PostDraft) => void, serverError: SubmitServerError, latestPost: string | undefined) => ActionResult;
 }
 
 type State = {
@@ -367,26 +325,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         });
     };
 
-    handleNotifyAllConfirmation = () => {
-        this.doSubmit();
-    };
-
-    showNotifyAllModal = (mentions: string[], channelTimezoneCount: number, memberNotifyCount: number) => {
-        this.props.openModal({
-            modalId: ModalIdentifiers.NOTIFY_CONFIRM_MODAL,
-            dialogType: NotifyConfirmModal,
-            dialogProps: {
-                mentions,
-                channelTimezoneCount,
-                memberNotifyCount,
-                onConfirm: () => this.handleNotifyAllConfirmation(),
-                onExited: () => {
-                    this.isDraftSubmitting = false;
-                },
-            },
-        });
-    };
-
     toggleEmojiPicker = (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e?.stopPropagation();
         const showEmojiPicker = !this.state.showEmojiPicker;
@@ -463,159 +401,47 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.focusTextbox();
     };
 
-    handlePostError = (postError: React.ReactNode) => {
-        this.setState({postError});
+    handleSubmitFinished = (res: ActionResult, draft: PostDraft) => {
+        const scrollPostListToBottom = this.props.scrollToBottom;
+        const message = draft.message;
+
+        if (res.error) {
+            const err = res.error;
+            err.submittedMessage = message;
+            this.setState({
+                serverError: err,
+                draft,
+            });
+            this.isDraftSubmitting = false;
+            return;
+        }
+
+        this.setState({draft: this.props.draft});
+        this.setState({
+            serverError: null,
+            postError: null,
+            showFormat: false,
+        });
+
+        scrollPostListToBottom?.();
+        this.isDraftSubmitting = false;
+        this.draftsForPost[draft.rootId] = null;
     };
 
-    handleSubmit = async (e: React.FormEvent | React.MouseEvent) => {
-        const message = this.state.draft.message;
-        const channelMembersCount = this.props.channelMembersCount;
-        const channelId = this.props.channelId;
-        const getChannelTimezones = this.props.getChannelTimezones;
-        const openModal = this.props.openModal;
+    handlePreSubbmit = () => {
+        const fasterThanHumanWillClick = 150;
+        const forceFocus = (Date.now() - this.lastBlurAt < fasterThanHumanWillClick);
+        this.focusTextbox(forceFocus);
+    };
+
+    handleSubmit = async (e: React.FormEvent) => {
+        const draft = this.state.draft;
+        const serverError = this.state.serverError;
+        const latestPost = this.props.latestPostId;
 
         e.preventDefault();
         this.setShowPreview(false);
         this.isDraftSubmitting = true;
-
-        const {
-            enableConfirmNotificationsToChannel,
-            useChannelMentions,
-            isTimezoneEnabled,
-            groupsWithAllowReference,
-            channelMemberCountsByGroup,
-            useLDAPGroupMentions,
-            useCustomGroupMentions,
-            userIsOutOfOffice,
-            channel: updateChannel,
-        } = this.props;
-
-        const notificationsToChannel = enableConfirmNotificationsToChannel && useChannelMentions;
-        let memberNotifyCount = 0;
-        let channelTimezoneCount = 0;
-        let mentions: string[] = [];
-
-        const specialMentions = specialMentionsInText(message);
-        const hasSpecialMentions = Object.values(specialMentions).includes(true);
-
-        if (enableConfirmNotificationsToChannel && !hasSpecialMentions && (useLDAPGroupMentions || useCustomGroupMentions)) {
-            // Groups mentioned in users text
-            const mentionGroups = groupsMentionedInText(message, groupsWithAllowReference);
-            if (mentionGroups.length > 0) {
-                mentionGroups.
-                    forEach((group) => {
-                        if (group.source === GroupSource.Ldap && !useLDAPGroupMentions) {
-                            return;
-                        }
-                        if (group.source === GroupSource.Custom && !useCustomGroupMentions) {
-                            return;
-                        }
-                        const mappedValue = channelMemberCountsByGroup[group.id];
-                        if (mappedValue && mappedValue.channel_member_count > Constants.NOTIFY_ALL_MEMBERS && mappedValue.channel_member_count > memberNotifyCount) {
-                            memberNotifyCount = mappedValue.channel_member_count;
-                            channelTimezoneCount = mappedValue.channel_member_timezones_count;
-                        }
-                        mentions.push(`@${group.name}`);
-                    });
-                mentions = [...new Set(mentions)];
-            }
-        }
-
-        if (notificationsToChannel && channelMembersCount > Constants.NOTIFY_ALL_MEMBERS && hasSpecialMentions) {
-            memberNotifyCount = channelMembersCount - 1;
-
-            for (const k in specialMentions) {
-                if (specialMentions[k]) {
-                    mentions.push('@' + k);
-                }
-            }
-
-            if (isTimezoneEnabled) {
-                const {data} = await getChannelTimezones(channelId);
-                channelTimezoneCount = data ? data.length : 0;
-            }
-        }
-
-        if (memberNotifyCount > 0) {
-            this.showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount);
-            return;
-        }
-
-        const status = extractCommand(message);
-        if (userIsOutOfOffice && isStatusSlashCommand(status)) {
-            const resetStatusModalData = {
-                modalId: ModalIdentifiers.RESET_STATUS,
-                dialogType: ResetStatusModal,
-                dialogProps: {newStatus: status},
-            };
-
-            openModal(resetStatusModalData);
-
-            this.resetMessage();
-            this.isDraftSubmitting = false;
-            return;
-        }
-
-        if (message.trimEnd() === '/header') {
-            const editChannelHeaderModalData = {
-                modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
-                dialogType: EditChannelHeaderModal,
-                dialogProps: {channel: updateChannel},
-            };
-
-            openModal(editChannelHeaderModalData);
-
-            this.resetMessage();
-            this.isDraftSubmitting = false;
-            return;
-        }
-
-        const isDirectOrGroup =
-        updateChannel.type === Constants.DM_CHANNEL || updateChannel.type === Constants.GM_CHANNEL;
-        if (!isDirectOrGroup && message.trimEnd() === '/purpose') {
-            const editChannelPurposeModalData = {
-                modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
-                dialogType: EditChannelPurposeModal,
-                dialogProps: {channel: updateChannel},
-            };
-
-            openModal(editChannelPurposeModalData);
-
-            this.resetMessage();
-            this.isDraftSubmitting = false;
-            return;
-        }
-
-        await this.doSubmit(e);
-    };
-
-    resetMessage() {
-        if (this.state.draft.message !== '') {
-            this.setState({draft: {...this.state.draft, message: ''}});
-        }
-    }
-
-    doSubmit = async (e?: React.FormEvent) => {
-        const draft = this.state.draft;
-        const serverError = this.state.serverError;
-        const message = draft.message;
-        const latestPost = this.props.latestPostId;
-        const scrollPostListToBottom = this.props.scrollToBottom;
-        if (e) {
-            e.preventDefault();
-        }
-
-        const enableAddButton = this.shouldEnableAddButton();
-
-        if (!enableAddButton) {
-            this.isDraftSubmitting = false;
-            return;
-        }
-
-        if (draft.uploadsInProgress.length > 0) {
-            this.isDraftSubmitting = false;
-            return;
-        }
 
         if (this.state.postError) {
             this.setState({errorClass: 'animation--highlight'});
@@ -626,51 +452,15 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             return;
         }
 
-        if (this.props.rootDeleted) {
-            this.showPostDeletedModal();
-            this.isDraftSubmitting = false;
-            return;
+        const res = await this.props.handleSubmit(draft, this.handlePreSubbmit, this.handleSubmitFinished, serverError, latestPost);
+
+        if (res.error || res.data.shouldClear) {
+            this.handleSubmitFinished(res, draft);
         }
-
-        const fasterThanHumanWillClick = 150;
-        const forceFocus = (Date.now() - this.lastBlurAt < fasterThanHumanWillClick);
-        this.focusTextbox(forceFocus);
-
-        let ignoreSlash = false;
-        if (isErrorInvalidSlashCommand(serverError) && message === serverError?.submittedMessage) {
-            ignoreSlash = true;
-        }
-
-        const options = {ignoreSlash};
-
-        const res = await this.props.onSubmit(draft, options, latestPost);
-        if (res.error) {
-            const err = res.error;
-            err.submittedMessage = draft.message;
-            this.setState({serverError: err});
-            this.isDraftSubmitting = false;
-            return;
-        }
-        this.setState({draft: {...this.props.draft}});
-        this.setState({
-            postError: null,
-            serverError: null,
-            showFormat: false,
-        });
-
-        scrollPostListToBottom?.();
-        this.isDraftSubmitting = false;
-        this.draftsForPost[this.props.rootId] = null;
     };
 
-    reactToLastMessage = (e: React.KeyboardEvent<TextboxElement>) => {
-        e.preventDefault();
-
-        const {emitShortcutReactToLastPostFrom} = this.props;
-
-        // Here we are not handling conditions such as check for modals,  popups etc. as shortcut is only trigger on
-        // textbox input focus. Since all of them will already be closed as soon as they loose focus.
-        emitShortcutReactToLastPostFrom(Locations.RHS_ROOT);
+    handlePostError = (postError: React.ReactNode) => {
+        this.setState({postError});
     };
 
     emitTypingEvent = () => {
@@ -852,17 +642,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }
     };
 
-    shouldEnableAddButton = () => {
-        const message = this.state.draft.message;
-        const fileInfos = this.state.draft.fileInfos;
-        const serverError = this.state.serverError;
-        if (message.trim().length !== 0 || fileInfos.length !== 0) {
-            return true;
-        }
-
-        return isErrorInvalidSlashCommand(serverError);
-    };
-
     showPostDeletedModal = () => {
         this.props.openModal({
             modalId: ModalIdentifiers.POST_DELETED_MODAL,
@@ -893,7 +672,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         const draft = this.state.draft!;
 
         return (
-            <Foo
+            <UnifiedTextEditorForm
                 location={Locations.RHS_COMMENT}
                 textboxRef={this.textboxRef}
                 currentUserId={this.props.currentUserId}
@@ -909,7 +688,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 setShowPreview={this.setShowPreview}
                 shouldShowPreview={this.props.shouldShowPreview}
                 canPost={this.props.canPost}
-                useChannelMentions={this.props.useChannelMentions}
                 handleBlur={this.handleBlur}
                 postError={this.state.postError}
                 handlePostError={this.handlePostError}
@@ -927,8 +705,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 handleFileUploadChange={this.handleFileUploadChange}
                 fileUploadRef={this.fileUploadRef}
                 isThreadView={this.props.isThreadView}
-                ctrlSend={this.props.ctrlSend}
-                codeBlockOnCtrlEnter={this.props.codeBlockOnCtrlEnter}
                 onEditLatestPost={this.handleEditLatestPost}
                 onMessageChange={this.onMessageChange}
                 loadNextMessage={this.loadNextMessage}
