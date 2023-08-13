@@ -26,9 +26,15 @@ import EmojiMap from 'utils/emoji_map';
 
 import * as Utils from 'utils/utils';
 import {Constants, StoragePrefixes} from 'utils/constants';
+import {Permissions} from 'mattermost-redux/constants';
 import type {PostDraft} from 'types/store/draft';
 import type {GlobalState} from 'types/store';
 import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 
 export function clearCommentDraftUploads() {
     return actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, (_key: string, draft: PostDraft) => {
@@ -45,9 +51,16 @@ export function updateCommentDraft(draft: PostDraft, save = false, instant = fal
     return updateDraft(key, draft, save, instant);
 }
 
-export function submitPost(channelId: string, rootId: string, draft: PostDraft) {
+export function submitPost(channelId: string, rootId: string | undefined, draft: PostDraft) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
+        const currentTeamId = getCurrentTeamId(state);
+        const license = getLicense(state);
+        const isLDAPEnabled = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
+        const useChannelMentions = haveIChannelPermission(state, currentTeamId, channelId, Permissions.USE_CHANNEL_MENTIONS);
+        const useLDAPGroupMentions = isLDAPEnabled && haveIChannelPermission(state, currentTeamId, channelId, Permissions.USE_GROUP_MENTIONS);
+        const useCustomGroupMentions = isCustomGroupsEnabled(state) && haveIChannelPermission(state, currentTeamId, channelId, Permissions.USE_GROUP_MENTIONS);
+        const groupsWithAllowReference = useLDAPGroupMentions || useCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, currentTeamId, channelId) : null;
 
         const userId = getCurrentUserId(state);
 
@@ -61,9 +74,17 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft) 
             pending_post_id: `${userId}:${time}`,
             user_id: userId,
             create_at: time,
-            metadata: {},
+            metadata: {...(draft.metadata || {})},
             props: {...draft.props},
         } as unknown as Post;
+
+        if (!useChannelMentions && containsAtChannel(post.message, {checkAllMentions: true})) {
+            post.props.mentionHighlightDisabled = true;
+        }
+
+        if (!useLDAPGroupMentions && !useCustomGroupMentions && groupsMentionedInText(post.message, groupsWithAllowReference)) {
+            post.props.disable_group_highlight = true;
+        }
 
         const hookResult = await dispatch(runMessageWillBePostedHooks(post));
         if (hookResult.error) {
@@ -87,7 +108,7 @@ export function submitReaction(postId: string, action: string, emojiName: string
     };
 }
 
-export function submitCommand(channelId: string, rootId: string, draft: PostDraft) {
+export function submitCommand(channelId: string, rootId: string | undefined, draft: PostDraft) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
 
@@ -118,40 +139,73 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
             if (error.sendMessage) {
                 return dispatch(submitPost(channelId, rootId, draft));
             }
-            throw (error);
+            return {error};
         }
 
         return {};
     };
 }
 
-export function makeOnSubmit(channelId: string, rootId: string, latestPostId: string) {
-    return (draft: PostDraft, options: {ignoreSlash?: boolean} = {}) => async (dispatch: DispatchFunc, getState: () => GlobalState) => {
+export function onSubmit(draft: PostDraft, options: {ignoreSlash?: boolean} = {}, latestPostId: string | undefined) {
+    return async (dispatch: DispatchFunc, getState: () => GlobalState) => {
+        const state = getState();
+        if (!draft.channelId && !draft.rootId) {
+            return {error: new Error('Invalid draft')};
+        }
+
+        let channelId = draft.channelId;
+        if (!channelId) {
+            channelId = getPost(state, draft.rootId)?.channel_id;
+        }
+
+        if (!channelId) {
+            return {error: new Error('Invalid post id')};
+        }
+
+        const rootId = draft.rootId;
+
         const {message} = draft;
-
-        dispatch(addMessageIntoHistory(message));
-
-        const key = `${StoragePrefixes.COMMENT_DRAFT}${rootId}`;
-        dispatch(removeDraft(key, channelId, rootId));
-
-        const isReaction = Utils.REACTION_PATTERN.exec(message);
-
         const emojis = getCustomEmojisByName(getState());
         const emojiMap = new EmojiMap(emojis);
 
-        if (isReaction && emojiMap.has(isReaction[2])) {
-            dispatch(submitReaction(latestPostId, isReaction[1], isReaction[2]));
-        } else if (message.indexOf('/') === 0 && !options.ignoreSlash) {
-            try {
-                await dispatch(submitCommand(channelId, rootId, draft));
-            } catch (err) {
-                dispatch(updateCommentDraft(draft, true));
-                throw err;
-            }
+        dispatch(addMessageIntoHistory(message));
+
+        let key: string;
+        if (rootId) {
+            key = `${StoragePrefixes.COMMENT_DRAFT}${rootId}`;
         } else {
-            dispatch(submitPost(channelId, rootId, draft));
+            key = `${StoragePrefixes.DRAFT}${channelId}`;
         }
-        return {data: true};
+        dispatch(removeDraft(key, channelId, rootId));
+        const restoreDraft = () => {
+            updateDraft(key, draft, true);
+        };
+
+        const isReaction = Utils.REACTION_PATTERN.exec(message);
+
+        if (isReaction && emojiMap.has(isReaction[2])) {
+            if (!latestPostId) {
+                restoreDraft();
+                return {error: new Error('No post to react to')};
+            }
+
+            return dispatch(submitReaction(latestPostId, isReaction[1], isReaction[2]));
+        }
+
+        if (message.indexOf('/') === 0 && !options.ignoreSlash) {
+            const res = await dispatch(submitCommand(channelId, rootId, draft));
+            if (res.error) {
+                restoreDraft();
+                return res;
+            }
+        }
+
+        const res = await dispatch(submitPost(channelId, rootId, draft));
+        if (res.error) {
+            restoreDraft();
+        }
+
+        return res;
     };
 }
 

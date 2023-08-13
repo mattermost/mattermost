@@ -8,7 +8,7 @@ import {GlobalState} from 'types/store/index.js';
 
 import {ModalData} from 'types/actions.js';
 
-import {ActionFunc, ActionResult, DispatchFunc} from 'mattermost-redux/types/actions.js';
+import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions.js';
 
 import {PostDraft} from 'types/store/draft';
 
@@ -27,14 +27,14 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {PreferenceType} from '@mattermost/types/preferences';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 
-import {AdvancedTextEditor, Constants, StoragePrefixes} from 'utils/constants';
+import {AdvancedTextEditor, Constants, StoragePrefixes, UserStatuses} from 'utils/constants';
 import {getCurrentLocale} from 'selectors/i18n';
 
 import {
     clearCommentDraftUploads,
-    updateCommentDraft,
-    makeOnSubmit,
     makeOnEditLatestPost,
+    updateCommentDraft,
+    onSubmit,
 } from 'actions/views/create_comment';
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {getPostDraft, getIsRhsExpanded, getSelectedPostFocussedAt} from 'selectors/rhs';
@@ -44,6 +44,7 @@ import {openModal} from 'actions/views/modals';
 
 import AdvancedCreateComment from './advanced_create_comment';
 import {getChannelMemberCountsFromMessage} from 'actions/channel_actions';
+import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 type OwnProps = {
     rootId: string;
@@ -64,10 +65,10 @@ function makeMapStateToProps() {
         const messageInHistory = getMessageInHistoryItem(state);
 
         const channel = state.entities.channels.channels[ownProps.channelId] || {};
-
         const config = getConfig(state);
         const license = getLicense(state);
         const currentUserId = getCurrentUserId(state);
+        const userIsOutOfOffice = getStatusForUserId(state, currentUserId) === UserStatuses.OUT_OF_OFFICE;
         const enableConfirmNotificationsToChannel = config.EnableConfirmNotificationsToChannel === 'true';
         const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
         const canPost = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST);
@@ -103,6 +104,8 @@ function makeMapStateToProps() {
             useLDAPGroupMentions,
             channelMemberCountsByGroup,
             useCustomGroupMentions,
+            userIsOutOfOffice,
+            channel,
         };
     };
 }
@@ -114,7 +117,6 @@ function makeOnUpdateCommentDraft(channelId: string) {
 type Actions = {
     clearCommentDraftUploads: () => void;
     onUpdateCommentDraft: (draft: PostDraft, save?: boolean) => void;
-    onSubmit: (draft: PostDraft, options: {ignoreSlash: boolean}) => void;
     onResetHistoryIndex: () => void;
     moveHistoryIndexBack: (index: string) => Promise<void>;
     moveHistoryIndexForward: (index: string) => Promise<void>;
@@ -126,14 +128,11 @@ type Actions = {
     getChannelMemberCountsFromMessage: (channelID: string, message: string) => void;
     openModal: <P>(modalData: ModalData<P>) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
+    onSubmit: (draft: PostDraft, options: {ignoreSlash?: boolean}, latestPostId: string | undefined) => ActionResult;
 };
 
 function makeMapDispatchToProps() {
     let onUpdateCommentDraft: (draft: PostDraft, save?: boolean) => void;
-    let onSubmit: (
-        draft: PostDraft,
-        options: {ignoreSlash: boolean},
-    ) => (dispatch: DispatchFunc, getState: () => GlobalState) => Promise<ActionResult | ActionResult[]> | ActionResult;
     let onEditLatestPost: () => ActionFunc;
 
     function onResetHistoryIndex() {
@@ -142,7 +141,6 @@ function makeMapDispatchToProps() {
 
     let rootId: string;
     let channelId: string;
-    let latestPostId: string;
 
     return (dispatch: Dispatch, ownProps: OwnProps) => {
         if (channelId !== ownProps.channelId) {
@@ -153,13 +151,8 @@ function makeMapDispatchToProps() {
             onEditLatestPost = makeOnEditLatestPost(ownProps.rootId);
         }
 
-        if (rootId !== ownProps.rootId || channelId !== ownProps.channelId || latestPostId !== ownProps.latestPostId) {
-            onSubmit = makeOnSubmit(ownProps.channelId, ownProps.rootId, ownProps.latestPostId);
-        }
-
         rootId = ownProps.rootId;
         channelId = ownProps.channelId;
-        latestPostId = ownProps.latestPostId;
 
         return bindActionCreators<ActionCreatorsMapObject<any>, Actions>(
             {

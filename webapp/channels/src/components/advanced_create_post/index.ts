@@ -54,7 +54,7 @@ import {showPreviewOnCreatePost} from 'selectors/views/textbox';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getEmojiMap, getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
-import {updateDraft} from 'actions/views/drafts';
+import {removeDraft, updateDraft} from 'actions/views/drafts';
 import {openModal} from 'actions/views/modals';
 import {AdvancedTextEditor, Preferences, StoragePrefixes, UserStatuses} from 'utils/constants';
 import {OnboardingTourSteps, TutorialTourName, OnboardingTourStepsForGuestUsers} from 'components/tours';
@@ -63,6 +63,7 @@ import {PreferenceType} from '@mattermost/types/preferences';
 
 import AdvancedCreatePost from './advanced_create_post';
 import {getChannelMemberCountsFromMessage} from 'actions/channel_actions';
+import {onSubmit} from 'actions/views/create_comment';
 
 function makeMapStateToProps() {
     const getMessageInHistoryItem = makeGetMessageInHistoryItem(Posts.MESSAGE_TYPES.POST as any);
@@ -163,12 +164,16 @@ type Actions = {
     emitShortcutReactToLastPostFrom: (emittedFrom: string) => void;
     getChannelMemberCountsFromMessage: (channelId: string, message: string) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
+    onSubmit: (draft: PostDraft, options: {ignoreSlash?: boolean}, latestPostId?: string) => ActionResult;
 }
 
-function setDraft(key: string, value: PostDraft, draftChannelId: string, save = false, instant = false) {
+function setDraft(key: string, value: PostDraft | null, draftChannelId: string, save = false, instant = false) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const channelId = draftChannelId || getCurrentChannelId(getState());
-        return dispatch(updateDraft(key, {...value, channelId}, save, instant));
+        if (value) {
+            return dispatch(updateDraft(key, {...value, channelId}, save, instant));
+        }
+        return dispatch(removeDraft(key, channelId));
     };
 }
 
@@ -205,6 +210,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setShowPreview: setShowPreviewOnCreatePost,
             getChannelMemberCountsFromMessage,
             savePreferences,
+            onSubmit,
         }, dispatch),
     };
 }

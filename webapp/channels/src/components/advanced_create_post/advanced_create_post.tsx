@@ -10,7 +10,7 @@ import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import {Channel, ChannelMemberCountsByGroup} from '@mattermost/types/channels';
-import {Post, PostMetadata, PostPriority, PostPriorityMetadata} from '@mattermost/types/posts';
+import {Post, PostPriority, PostPriorityMetadata} from '@mattermost/types/posts';
 import {PreferenceType} from '@mattermost/types/preferences';
 import {ServerError} from '@mattermost/types/errors';
 import {CommandArgs} from '@mattermost/types/integrations';
@@ -29,7 +29,6 @@ import Constants, {
 } from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {
-    containsAtChannel,
     specialMentionsInText,
     postMessageOnKeyPress,
     shouldFocusMainTextbox,
@@ -38,6 +37,8 @@ import {
     groupsMentionedInText,
     mentionsMinusSpecialMentionsInText,
     hasRequestedPersistentNotifications,
+    isStatusSlashCommand,
+    extractCommand,
 } from 'utils/post_utils';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
@@ -194,6 +195,7 @@ type Props = {
 
         //Function used to advance the tutorial forward
         savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
+        onSubmit: (draft: PostDraft, options: {ignoreSlash?: boolean}, latestPostId?: string) => ActionResult;
     };
 
     groupsWithAllowReference: Map<string, Group> | null;
@@ -205,7 +207,6 @@ type Props = {
 type State = {
     message: string;
     caretPosition: number;
-    submitting: boolean;
     showEmojiPicker: boolean;
     renderScrollbar: boolean;
     scrollbarWidth: number;
@@ -243,7 +244,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             updatedState = {
                 ...updatedState,
                 message: props.draft.message,
-                submitting: false,
                 serverError: null,
             };
         }
@@ -255,7 +255,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.state = {
             message: props.draft.message,
             caretPosition: props.draft.message.length,
-            submitting: false,
             showEmojiPicker: false,
             renderScrollbar: false,
             scrollbarWidth: 0,
@@ -384,33 +383,36 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.handleEmojiClose();
     };
 
+    shouldEnableAddButton = () => {
+        const message = this.state.message;
+        const fileInfos = this.props.draft.fileInfos;
+        const serverError = this.state.serverError;
+        if (message.trim().length !== 0 || fileInfos.length !== 0) {
+            return true;
+        }
+        return isErrorInvalidSlashCommand(serverError);
+    };
+
     doSubmit = async (e?: React.FormEvent) => {
         const channelId = this.props.currentChannel.id;
+        const draft = {...this.props.draft, message: this.state.message};
+        const serverError = this.state.serverError;
+        const message = draft.message;
+        const latestPost = this.props.latestReplyablePostId;
+        const scrollPostListToBottom = this.props.actions.scrollPostListToBottom;
         if (e) {
             e.preventDefault();
         }
 
-        if (this.props.draft.uploadsInProgress.length > 0 || this.state.submitting) {
+        const enableAddButton = this.shouldEnableAddButton();
+
+        if (!enableAddButton) {
+            this.isDraftSubmitting = false;
             return;
         }
 
-        let message = this.state.message;
-
-        let ignoreSlash = false;
-        const serverError = this.state.serverError;
-
-        if (serverError && isErrorInvalidSlashCommand(serverError) && serverError.submittedMessage === message) {
-            message = serverError.submittedMessage;
-            ignoreSlash = true;
-        }
-
-        const post = {} as Post;
-        post.file_ids = [];
-        post.message = message;
-        post.props = this.props.draft.props || {};
-        post.metadata = (this.props.draft.metadata || {}) as PostMetadata;
-
-        if (post.message.trim().length === 0 && this.props.draft.fileInfos.length === 0) {
+        if (draft.uploadsInProgress.length > 0) {
+            this.isDraftSubmitting = false;
             return;
         }
 
@@ -419,77 +421,42 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             setTimeout(() => {
                 this.setState({errorClass: null});
             }, Constants.ANIMATION_TIMEOUT);
+            this.isDraftSubmitting = false;
             return;
         }
-
-        this.props.actions.addMessageIntoHistory(this.state.message);
-
-        this.setState({submitting: true, serverError: null});
 
         const fasterThanHumanWillClick = 150;
         const forceFocus = Date.now() - this.lastBlurAt < fasterThanHumanWillClick;
         this.focusTextbox(forceFocus);
 
-        const isReaction = Utils.REACTION_PATTERN.exec(post.message);
-        if (post.message.indexOf('/') === 0 && !ignoreSlash) {
-            this.setState({message: '', postError: null});
-            let args: CommandArgs = {
-                channel_id: channelId,
-                team_id: this.props.currentTeamId,
-            };
-
-            const hookResult = await this.props.actions.runSlashCommandWillBePostedHooks(post.message, args);
-
-            if (hookResult.error) {
-                this.setState({
-                    serverError: {
-                        ...hookResult.error,
-                        submittedMessage: post.message,
-                    },
-                    message: post.message,
-                });
-            } else if (!hookResult.data.message && !hookResult.data.args) {
-                // do nothing with an empty return from a hook
-            } else {
-                post.message = hookResult.data.message;
-                args = hookResult.data.args;
-
-                const {error} = await this.props.actions.executeCommand(post.message, args);
-
-                if (error) {
-                    if (error.sendMessage) {
-                        await this.sendMessage(post);
-                    } else {
-                        this.setState({
-                            serverError: {
-                                ...error,
-                                submittedMessage: post.message,
-                            },
-                            message: post.message,
-                        });
-                    }
-                }
-            }
-        } else if (isReaction && this.props.emojiMap.has(isReaction[2])) {
-            this.sendReaction(isReaction);
-
-            this.setState({message: ''});
-        } else {
-            const {error} = await this.sendMessage(post);
-
-            if (!error) {
-                this.setState({message: ''});
-            }
+        let ignoreSlash = false;
+        if (serverError && isErrorInvalidSlashCommand(serverError) && serverError.submittedMessage === message) {
+            ignoreSlash = true;
         }
 
+        const options = {ignoreSlash};
+
+        const res = await this.props.actions.onSubmit(draft, options, latestPost);
+        if (res.error) {
+            const err = res.error;
+            err.submittedMessage = draft.message;
+            this.setState({
+                serverError: err,
+                message,
+            });
+            this.isDraftSubmitting = false;
+            return;
+        }
+
+        this.setState({message: ''});
         this.setState({
-            submitting: false,
+            serverError: null,
             postError: null,
             showFormat: false,
         });
 
+        scrollPostListToBottom();
         this.isDraftSubmitting = false;
-        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);
         this.draftsForChannel[channelId] = null;
     };
 
@@ -527,45 +494,40 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         });
     };
 
-    getStatusFromSlashCommand = () => {
-        const {message} = this.state;
-        const tokens = message.split(' ');
-
-        if (tokens.length > 0) {
-            return tokens[0].substring(1);
-        }
-        return '';
-    };
-
-    isStatusSlashCommand = (command: string) => {
-        return command === 'online' || command === 'away' || command === 'dnd' || command === 'offline';
-    };
-
     handleSubmit = async (e: React.FormEvent) => {
-        const {
-            currentChannel: updateChannel,
-            userIsOutOfOffice,
-            groupsWithAllowReference,
-            channelMemberCountsByGroup,
-            currentChannelMembersCount,
-            useLDAPGroupMentions,
-            useCustomGroupMentions,
-        } = this.props;
+        const message = this.state.message;
+        const channelMembersCount = this.props.currentChannelMembersCount;
+        const channelId = this.props.currentChannel.id;
+        const getChannelTimezones = this.props.actions.getChannelTimezones;
+        const openModal = this.props.actions.openModal;
 
+        e.preventDefault();
         this.setShowPreview(false);
         this.isDraftSubmitting = true;
 
-        const notificationsToChannel = this.props.enableConfirmNotificationsToChannel && this.props.useChannelMentions;
+        const {
+            enableConfirmNotificationsToChannel,
+            useChannelMentions,
+            isTimezoneEnabled,
+            groupsWithAllowReference,
+            channelMemberCountsByGroup,
+            useLDAPGroupMentions,
+            useCustomGroupMentions,
+            userIsOutOfOffice,
+            currentChannel: updateChannel,
+        } = this.props;
+
+        const notificationsToChannel = enableConfirmNotificationsToChannel && useChannelMentions;
         let memberNotifyCount = 0;
         let channelTimezoneCount = 0;
         let mentions: string[] = [];
 
-        const specialMentions = specialMentionsInText(this.state.message);
+        const specialMentions = specialMentionsInText(message);
         const hasSpecialMentions = Object.values(specialMentions).includes(true);
 
-        if (this.props.enableConfirmNotificationsToChannel && !hasSpecialMentions && (useLDAPGroupMentions || useCustomGroupMentions)) {
+        if (enableConfirmNotificationsToChannel && !hasSpecialMentions && (useLDAPGroupMentions || useCustomGroupMentions)) {
             // Groups mentioned in users text
-            const mentionGroups = groupsMentionedInText(this.state.message, groupsWithAllowReference);
+            const mentionGroups = groupsMentionedInText(message, groupsWithAllowReference);
             if (mentionGroups.length > 0) {
                 mentionGroups.
                     forEach((group) => {
@@ -586,8 +548,8 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             }
         }
 
-        if (notificationsToChannel && currentChannelMembersCount > Constants.NOTIFY_ALL_MEMBERS && hasSpecialMentions) {
-            memberNotifyCount = currentChannelMembersCount - 1;
+        if (notificationsToChannel && channelMembersCount > Constants.NOTIFY_ALL_MEMBERS && hasSpecialMentions) {
+            memberNotifyCount = channelMembersCount - 1;
 
             for (const k in specialMentions) {
                 if (specialMentions[k]) {
@@ -595,14 +557,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 }
             }
 
-            if (this.props.isTimezoneEnabled) {
-                const {data} = await this.props.actions.getChannelTimezones(this.props.currentChannel.id);
+            if (isTimezoneEnabled) {
+                const {data} = await getChannelTimezones(channelId);
                 channelTimezoneCount = data ? data.length : 0;
             }
         }
-
-        const isDirectOrGroup =
-            updateChannel.type === Constants.DM_CHANNEL || updateChannel.type === Constants.GM_CHANNEL;
 
         if (
             this.props.isPostPriorityEnabled &&
@@ -611,50 +570,54 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             this.showPersistNotificationModal(this.state.message, specialMentions, updateChannel.type);
             this.isDraftSubmitting = false;
             return;
-        } else if (memberNotifyCount > 0) {
+        }
+
+        if (memberNotifyCount > 0) {
             this.showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount);
             return;
         }
 
-        const status = this.getStatusFromSlashCommand();
-        if (userIsOutOfOffice && this.isStatusSlashCommand(status)) {
+        const status = extractCommand(message);
+        if (userIsOutOfOffice && isStatusSlashCommand(status)) {
             const resetStatusModalData = {
                 modalId: ModalIdentifiers.RESET_STATUS,
                 dialogType: ResetStatusModal,
                 dialogProps: {newStatus: status},
             };
 
-            this.props.actions.openModal(resetStatusModalData);
+            openModal(resetStatusModalData);
 
-            this.setState({message: ''});
+            this.resetMessage();
             this.isDraftSubmitting = false;
             return;
         }
 
-        if (this.state.message.trimEnd() === '/header') {
+        if (message.trimEnd() === '/header') {
             const editChannelHeaderModalData = {
                 modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
                 dialogType: EditChannelHeaderModal,
                 dialogProps: {channel: updateChannel},
             };
 
-            this.props.actions.openModal(editChannelHeaderModalData);
+            openModal(editChannelHeaderModalData);
 
-            this.setState({message: ''});
+            this.resetMessage();
             this.isDraftSubmitting = false;
             return;
         }
 
-        if (!isDirectOrGroup && this.state.message.trimEnd() === '/purpose') {
+        const isDirectOrGroup =
+            updateChannel.type === Constants.DM_CHANNEL || updateChannel.type === Constants.GM_CHANNEL;
+        if (!isDirectOrGroup && message.trimEnd() === '/purpose') {
             const editChannelPurposeModalData = {
                 modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
                 dialogType: EditChannelPurposeModal,
                 dialogProps: {channel: updateChannel},
             };
 
-            this.props.actions.openModal(editChannelPurposeModalData);
+            openModal(editChannelPurposeModalData);
 
-            this.setState({message: ''});
+            this.resetMessage();
             this.isDraftSubmitting = false;
             return;
         }
@@ -662,79 +625,10 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         await this.doSubmit(e);
     };
 
-    sendMessage = async (originalPost: Post) => {
-        const {
-            actions,
-            currentChannel,
-            currentUserId,
-            draft,
-            useLDAPGroupMentions,
-            useChannelMentions,
-            groupsWithAllowReference,
-            useCustomGroupMentions,
-        } = this.props;
-
-        let post = originalPost;
-
-        post.channel_id = currentChannel.id;
-
-        const time = Utils.getTimestamp();
-        const userId = currentUserId;
-        post.pending_post_id = `${userId}:${time}`;
-        post.user_id = userId;
-        post.create_at = time;
-        post.metadata = {
-            ...originalPost.metadata,
-        } as PostMetadata;
-
-        post.props = {
-            ...originalPost.props,
-        };
-
-        if (!useChannelMentions && containsAtChannel(post.message, {checkAllMentions: true})) {
-            post.props.mentionHighlightDisabled = true;
+    resetMessage() {
+        if (this.state.message !== '') {
+            this.setState({message: ''});
         }
-        if (!useLDAPGroupMentions && !useCustomGroupMentions && groupsMentionedInText(post.message, groupsWithAllowReference)) {
-            post.props.disable_group_highlight = true;
-        }
-
-        const hookResult = await actions.runMessageWillBePostedHooks(post);
-
-        if (hookResult.error) {
-            this.setState({
-                serverError: hookResult.error,
-                submitting: false,
-            });
-
-            this.isDraftSubmitting = false;
-            return hookResult;
-        }
-
-        post = hookResult.data;
-
-        actions.onSubmitPost(post, draft.fileInfos);
-        actions.scrollPostListToBottom();
-
-        this.setState({submitting: false});
-        this.isDraftSubmitting = false;
-
-        return {data: true};
-    };
-
-    sendReaction(isReaction: RegExpExecArray) {
-        const channelId = this.props.currentChannel.id;
-        const action = isReaction[1];
-        const emojiName = isReaction[2];
-        const postId = this.props.latestReplyablePostId;
-
-        if (postId && action === '+') {
-            this.props.actions.addReaction(postId, emojiName);
-        } else if (postId && action === '-') {
-            this.props.actions.removeReaction(postId, emojiName);
-        }
-
-        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);
-        this.draftsForChannel[channelId] = null;
     }
 
     focusTextbox = (keepFocus = false) => {
