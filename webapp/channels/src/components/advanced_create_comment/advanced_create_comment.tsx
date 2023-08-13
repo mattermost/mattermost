@@ -663,35 +663,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.draftsForPost[this.props.rootId] = null;
     };
 
-    commentMsgKeyPress = (e: React.KeyboardEvent<TextboxElement>) => {
-        const {ctrlSend, codeBlockOnCtrlEnter} = this.props;
-
-        const {allowSending} = postMessageOnKeyPress(
-            e,
-            this.state.draft.message,
-            Boolean(ctrlSend),
-            Boolean(codeBlockOnCtrlEnter),
-            0,
-            0,
-            this.state.caretPosition,
-        );
-
-        if (allowSending) {
-            e.persist?.();
-
-            this.isDraftSubmitting = true;
-            this.textboxRef.current?.blur();
-            this.handleSubmit(e);
-
-            this.setShowPreview(false);
-            setTimeout(() => {
-                this.focusTextbox();
-            });
-        }
-
-        this.emitTypingEvent();
-    };
-
     reactToLastMessage = (e: React.KeyboardEvent<TextboxElement>) => {
         e.preventDefault();
 
@@ -928,7 +899,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 currentUserId={this.props.currentUserId}
                 message={draft.message}
                 showEmojiPicker={this.state.showEmojiPicker}
-                channelId={this.props.channelId}
                 postId={this.props.rootId}
                 errorClass={this.state.errorClass}
                 serverError={this.state.serverError}
@@ -945,7 +915,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 handlePostError={this.handlePostError}
                 emitTypingEvent={this.emitTypingEvent}
                 handleMouseUpKeyUp={this.handleMouseUpKeyUp}
-                onKeyPress={this.commentMsgKeyPress}
                 handleChange={this.handleChange}
                 toggleEmojiPicker={this.toggleEmojiPicker}
                 handleGifClick={this.handleGifClick}
@@ -966,6 +935,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 loadPrevMessage={this.loadPrevMessage}
                 caretPosition={this.state.caretPosition}
                 saveDraft={this.saveDraft}
+                focusTextbox={this.focusTextbox}
+                textEditorChannel={this.props.channel}
             />
         );
     }

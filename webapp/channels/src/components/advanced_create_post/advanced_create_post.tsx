@@ -642,51 +642,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
     };
 
-    postMsgKeyPress = (e: React.KeyboardEvent<TextboxElement>) => {
-        const {ctrlSend, codeBlockOnCtrlEnter} = this.props;
-
-        const {allowSending, withClosedCodeBlock, ignoreKeyPress, message} = postMessageOnKeyPress(
-            e,
-            this.state.message,
-            Boolean(ctrlSend),
-            Boolean(codeBlockOnCtrlEnter),
-            Date.now(),
-            this.lastChannelSwitchAt,
-            this.state.caretPosition,
-        ) as {
-            allowSending: boolean;
-            withClosedCodeBlock?: boolean;
-            ignoreKeyPress?: boolean;
-            message?: string;
-        };
-
-        if (ignoreKeyPress) {
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-        }
-
-        if (allowSending && this.isValidPersistentNotifications()) {
-            if (e.persist) {
-                e.persist();
-            }
-            if (this.textboxRef.current) {
-                this.isDraftSubmitting = true;
-                this.textboxRef.current.blur();
-            }
-
-            if (withClosedCodeBlock && message) {
-                this.setState({message}, () => this.handleSubmit(e));
-            } else {
-                this.handleSubmit(e);
-            }
-
-            this.setShowPreview(false);
-        }
-
-        this.emitTypingEvent();
-    };
-
     emitTypingEvent = () => {
         const channelId = this.props.currentChannel.id;
         GlobalActions.emitLocalUserTypingEvent(channelId, '');
@@ -1128,8 +1083,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 currentUserId={this.props.currentUserId}
                 message={this.state.message}
                 showEmojiPicker={this.state.showEmojiPicker}
-                currentChannel={this.state.currentChannel}
-                channelId={this.props.currentChannel.id}
+                textEditorChannel={this.state.currentChannel}
                 postId={''}
                 errorClass={this.state.errorClass}
                 serverError={this.state.serverError}
@@ -1147,7 +1101,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 handlePostError={this.handlePostError}
                 emitTypingEvent={this.emitTypingEvent}
                 handleMouseUpKeyUp={this.handleMouseUpKeyUp}
-                onKeyPress={this.postMsgKeyPress}
                 handleChange={this.handleChange}
                 toggleEmojiPicker={this.toggleEmojiPicker}
                 handleGifClick={this.handleGifClick}
@@ -1192,6 +1145,9 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 loadPrevMessage={this.loadPrevMessage}
                 caretPosition={this.state.caretPosition}
                 saveDraft={this.saveDraft}
+                focusTextbox={this.focusTextbox}
+                isValidPersistentNotifications={this.isValidPersistentNotifications}
+                lastChannelSwitchAt={this.lastChannelSwitchAt}
             />
         );
     }

@@ -28,6 +28,7 @@ import * as Utils from 'utils/utils';
 import * as UserAgent from 'utils/user_agent';
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {pasteHandler} from 'utils/paste';
+import { postMessageOnKeyPress } from 'utils/post_utils';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -35,10 +36,8 @@ type Props = {
     message: string;
     postId?: string;
     location: string;
-    currentChannel?: Channel;
-    channelId?: string;
+    textEditorChannel?: Channel;
     showSendTutorialTip?: boolean;
-    onKeyPress: (e: React.KeyboardEvent<TextboxElement>) => void;
     isThreadView?: boolean;
     prefillMessage?: (message: string, shouldFocus?: boolean) => void;
     disableSend?: boolean;
@@ -86,15 +85,16 @@ type Props = {
     replyToLastPost?: (e: React.KeyboardEvent) => void;
     caretPosition?: number;
     saveDraft: () => void;
+    lastChannelSwitchAt?: number;
+    focusTextbox: () => void;
+    isValidPersistentNotifications?: () => boolean;
 }
 const Foo = ({
     message,
     postId = '',
     location,
-    currentChannel,
-    channelId,
+    textEditorChannel,
     showSendTutorialTip,
-    onKeyPress,
     isThreadView,
     prefillMessage,
     disableSend,
@@ -140,9 +140,12 @@ const Foo = ({
     replyToLastPost,
     caretPosition,
     saveDraft,
+    lastChannelSwitchAt,
+    focusTextbox,
+    isValidPersistentNotifications = () => true,
 }: Props) => {
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{[clientID: string]: FilePreviewInfo}>({});
-    const textEditorChannelId = currentChannel?.id || channelId || '';
+    const textEditorChannelId = textEditorChannel?.id || '';
 
     const dispatch = useDispatch();
     const enableEmojiPicker = useSelector<GlobalState, boolean>((state) => getConfig(state).EnableEmojiPicker === 'true');
@@ -152,6 +155,7 @@ const Foo = ({
     const maxPostSize = useSelector<GlobalState, number>((state) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
     const postEditorActions = useSelector<GlobalState, PluginComponent[] | undefined>((state) => state.plugins.components.PostEditorAction);
 
+    const isRHS = location === Locations.RHS_COMMENT;
     // We don't use directly onMessageChange to make sure other potential arguments don't break
     // the behavior.
     const onPluginUpdateText = (message: string) => {
@@ -248,7 +252,7 @@ const Foo = ({
 
         if (ctrlEnterKeyCombo) {
             setShowPreview(false);
-            onKeyPress(e);
+            postMsgKeyPress(e);
             return;
         }
 
@@ -389,7 +393,7 @@ const Foo = ({
             }
         }
 
-        if (location === Locations.RHS_COMMENT) {
+        if (isRHS) {
             const lastMessageReactionKeyCombo = ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
             if (lastMessageReactionKeyCombo) {
                 e.stopPropagation();
@@ -402,6 +406,41 @@ const Foo = ({
                 replyToLastPost?.(e);
             }
         }
+    };
+
+    const postMsgKeyPress = (e: React.KeyboardEvent<TextboxElement>) => {
+        const {allowSending, withClosedCodeBlock, ignoreKeyPress, message: correctedMessage} = postMessageOnKeyPress(
+            e,
+            message,
+            Boolean(ctrlSend),
+            Boolean(codeBlockOnCtrlEnter),
+            isRHS ? 0 : Date.now(),
+            lastChannelSwitchAt || 0,
+            caretPosition,
+        );
+
+        if (ignoreKeyPress) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+
+        if (allowSending && isValidPersistentNotifications()) {
+            e.persist?.();
+            textboxRef.current?.blur();
+
+            if (withClosedCodeBlock && correctedMessage) {
+                onMessageChange(correctedMessage, () => handleSubmit(e));
+            } else {
+                handleSubmit(e);
+            }
+
+            setTimeout(() => {
+                focusTextbox();
+            });
+        }
+
+        emitTypingEvent();
     };
 
     return (
@@ -421,7 +460,7 @@ const Foo = ({
                 message={message}
                 showEmojiPicker={showEmojiPicker}
                 uploadsProgressPercent={uploadsProgressPercent}
-                currentChannel={currentChannel}
+                currentChannel={textEditorChannel}
                 channelId={textEditorChannelId}
                 postId={postId}
                 errorClass={errorClass}
@@ -446,7 +485,7 @@ const Foo = ({
                 emitTypingEvent={emitTypingEvent}
                 handleMouseUpKeyUp={handleMouseUpKeyUp}
                 handleKeyDown={handleKeyDown}
-                postMsgKeyPress={onKeyPress}
+                postMsgKeyPress={postMsgKeyPress}
                 handleChange={handleChange}
                 toggleEmojiPicker={toggleEmojiPicker}
                 handleGifClick={handleGifClick}
