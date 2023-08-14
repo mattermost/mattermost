@@ -105,6 +105,10 @@ func (us *UserService) GetUserByEmail(email string) (*model.User, error) {
 	return us.store.GetByEmail(email)
 }
 
+func (us *UserService) GetUserByRemoteID(remoteID string) (*model.User, error) {
+	return us.store.GetByRemoteID(remoteID)
+}
+
 func (us *UserService) GetUserByAuth(authData *string, authService string) (*model.User, error) {
 	return us.store.GetByAuth(authData, authService)
 }

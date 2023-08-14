@@ -2561,6 +2561,7 @@
   "admin.user_item.mfaNo": "**MFA**: No",
   "admin.user_item.mfaYes": "**MFA**: Yes",
   "admin.user_item.promoteToMember": "Promote to Member",
+  "admin.user_item.remoteUser": "Remote user",
   "admin.user_item.resetEmail": "Update Email",
   "admin.user_item.resetMfa": "Remove MFA",
   "admin.user_item.resetPwd": "Reset Password",
