@@ -57,12 +57,9 @@
   "accessibility.sidebar.types.private": "özel kanal",
   "accessibility.sidebar.types.public": "herkese açık kanal",
   "accessibility.sidebar.types.unread": "okunmamış",
-<<<<<<< HEAD
-=======
   "activityAndInsights.title": "İşlemler ve bilgiler - {displayName} {siteName}",
   "activityAndInsights.tutorialTip.title": "Yeni özellik: Bilgiler",
   "activityAndInsights.tutorial_tip.viewInsights": "Bilgileri görüntüle",
->>>>>>> f9405527fc (Update translation files)
   "activity_log.activeSessions": "Etkin oturumlar",
   "activity_log.browser": "Tarayıcı: {browser}",
   "activity_log.firstTime": "İlk etkin olma zamanı: {date}, {time}",
@@ -675,12 +672,8 @@
   "admin.customization.enableLinkPreviewsTitle": "Bağlantı ön izlemeleri kullanılsın:",
   "admin.customization.enablePermalinkPreviewsDesc": "Bu seçenek etkinleştirildiğinde, Mattermost iletilerine bağlantılar, özgün iletiye erişim izni olan tüm kullanıcılar için bir ön izleme oluşturur. Ayrıntılı bilgi almak için <link>belgeler</link> bölümüne bakabilirsiniz.",
   "admin.customization.enablePermalinkPreviewsTitle": "İleti bağlantısı ön izlemeleri kullanılsın:",
-<<<<<<< HEAD
   "admin.customization.enableSVGsDesc": "SVG ek dosyalarının ön izlenebilmesini ve iletilerde görüntülenmesini sağlar.\n\nTüm kullanıcılarına güvenilmeyen ortamlarda SVG görüntülenmesinin etkinleştirilmesi önerilmez.",
-=======
   "admin.customization.enablePublicSharedBoardsTitle": "Panolar herkese açık paylaşılmış olarak kullanılsın:",
-  "admin.customization.enableSVGsDesc": "SVG ek dosyalarının ön izlenebilmesini ve iletilerde görüntülenmesini sağlar.",
->>>>>>> f9405527fc (Update translation files)
   "admin.customization.enableSVGsTitle": "SVG dosyaları görüntülensin:",
   "admin.customization.gfycatApiKey": "Gfycat API anahtarı:",
   "admin.customization.gfycatApiKeyDescription": "<link>https://developers.gfycat.com/signup/#</link> adresinden bir API anahtarı alın. Size e-posta ile gönderilecek istemci kodunu bu alana yazın. Boş bırakıldığında varsayılan Gfycat API anahtarı kullanılır.",
@@ -767,7 +760,7 @@
   "admin.elasticsearch.clientKeyExample": "Örnek: \"./elasticsearch/client-key.pem\"",
   "admin.elasticsearch.clientKeyTitle": "İstemci sertifikası anahtarı yolu:",
   "admin.elasticsearch.connectionUrlDescription": "Elasticsearch sunucusunun adresi. {documentationLink}",
-  "admin.elasticsearch.connectionUrlExample": "Örnek: \"https://elasticsearch.example.org:9200\"",
+  "admin.elasticsearch.connectionUrlExample": "Örnek: \"https://elasticsearch.ornek.org:9200\"",
   "admin.elasticsearch.connectionUrlExample.documentationLinkText": "Sunucu kurulumu ile ilgili bilgi almak için belgeler bölümüne bakabilirsiniz.",
   "admin.elasticsearch.connectionUrlTitle": "Sunucu bağlantı adresi:",
   "admin.elasticsearch.createJob.help": "Veri tabanındaki tüm kullanıcılar, kanallar ve iletiler eskiden yeniye doğru dizine eklenecek. Dizine ekleme işlemi sırasında Elasticsearch kullanılabilir ancak işlem tamamlanana kadar arama sonuçları eksik olabilir.",
@@ -926,14 +919,9 @@
   "admin.experimental.emailSettingsLoginButtonColor.title": "E-posta oturum açma düğmesi rengi:",
   "admin.experimental.emailSettingsLoginButtonTextColor.desc": "Beyaz etiketleme amacıyla e-posta oturum açması düğmesi metninin rengini belirtin. # ön eki ile başlayan bir onaltılık renk kodu yazın. Bu ayar yalnızca mobil uygulamalar için geçerlidir.",
   "admin.experimental.emailSettingsLoginButtonTextColor.title": "E-posta oturum açma düğmesi yazı rengi:",
-<<<<<<< HEAD
-  "admin.experimental.enableChannelViewedMessages.desc": "Bu seçenek etkinleştirildiğinde, istemci ve aygıtlarda okunmamış ileti bildirimlerini eşitleyen `channel_viewed` (kanal görüldü) WebSocket bildirimleri gönderilir. Büyük kurulumlar için bu seçeneğin devre dışı bırakılması sunucu başarımını arttırır.",
-  "admin.experimental.enableChannelViewedMessages.title": "Kanal görüldü WebSocket iletileri kullanılsın:",
-=======
   "admin.experimental.enableAppBar.title": "Uygulama çubuğu kullanılsın:",
   "admin.experimental.enableChannelViewedMessages.desc": "Bu seçenek etkinleştirildiğinde, istemci ve aygıtlarda okunmamış ileti bildirimlerini eşitleyen `channel_viewed` (kanal görüldü) web soketi bildirimleri gönderilir. Büyük kurulumlar için bu seçeneğin devre dışı bırakılması sunucu başarımını arttırır.",
   "admin.experimental.enableChannelViewedMessages.title": "Kanal görüldü web soketi iletileri kullanılsın:",
->>>>>>> f9405527fc (Update translation files)
   "admin.experimental.enableOnboardingFlow.desc": "Bu seçenek etkinleştirildiğinde, yeni kullanıcılara başlamaya hazırlanma adımları görüntülenir",
   "admin.experimental.enableOnboardingFlow.title": "Başlamaya hazırlanma görüntülensin:",
   "admin.experimental.enablePreviewFeatures.desc": "Bu seçenek etkinleştirildiğinde, **Ayarlar > Gelişmiş > Özellikleri önceden dene** bölümünden yayınlanmamış özellikleri önceden deneme özelliği etkinleştirilebilir. Devre dışı bırakıldığında **Ayarlar > Gelişmiş > Özellikleri önceden dene** bölümünde yayınlanmamış özellikler devre dışı bırakılır ve gizlenir.",
@@ -973,10 +961,7 @@
   "admin.experimental.linkMetadataTimeoutMilliseconds.desc": "Milisaniye cinsinden, üçüncü taraf bir bağlantıdan üst verilerin bekleneceği süre. Art üst veriler ile birlikte kullanılır.",
   "admin.experimental.linkMetadataTimeoutMilliseconds.example": "Örnek: \"5000\"",
   "admin.experimental.linkMetadataTimeoutMilliseconds.title": "Bağlantı üst verileri zaman aşımı:",
-<<<<<<< HEAD
-=======
   "admin.experimental.patchPluginsReactDOM.title": "Uygulama ekleri tarafından kullanılan React DOM güncellemesi:",
->>>>>>> f9405527fc (Update translation files)
   "admin.experimental.samlSettingsLoginButtonBorderColor.desc": "Beyaz etiketleme amacıyla SAML oturum açma düğmesinin kenarlık rengini belirtin. # ön eki ile başlayan bir onaltılık renk kodu yazın. Bu ayar yalnızca mobil uygulamalar için geçerlidir.",
   "admin.experimental.samlSettingsLoginButtonBorderColor.title": "SAML oturum açma düğmesinin kenarlık rengi:",
   "admin.experimental.samlSettingsLoginButtonColor.desc": "Beyaz etiketleme amacıyla SAML oturum açma düğmesinin rengini belirtin. # ön eki ile başlayan bir onaltılık renk kodu yazın. Bu ayar yalnızca mobil uygulamalar için geçerlidir.",
@@ -2823,10 +2808,7 @@
   "authorize.app": "**{appName}** uygulaması temel bilgilerinize erişip değiştirebilecek.",
   "authorize.deny": "Reddet",
   "authorize.title": "**{appName}** uygulamasının **Mattermost** kullanıcı hesabınızla bağlantı kurmasına izin verin",
-<<<<<<< HEAD
-=======
   "autoShowLinkedBoard.tutorialTip.title": "Kanban panolarını kanallarla ilişkilendirin",
->>>>>>> f9405527fc (Update translation files)
   "avatars.overflowUnnamedOnly": "{overflowUnnamedCount, plural, =1 {bir diğer} other {# diğer}}",
   "avatars.overflowUsers": "{overflowUnnamedCount, plural, =0 {{names}} =1 {{names} ve bir diğer} other {{names} ve # diğer}}",
   "backstage_list.search": "Arama",
@@ -3323,12 +3305,9 @@
   "dnd_custom_time_picker_modal.defaultMsg": "Bildirimler şu zamana kadar kapatılsın",
   "dnd_custom_time_picker_modal.submitButton": "Bildirimleri kapat",
   "dnd_custom_time_picker_modal.time": "Saat",
-<<<<<<< HEAD
-=======
   "downgrade_plan_modal.confirmDowngrade": "Alt tarifeye geçmeyi onayla",
   "downgrade_plan_modal.subtitle": "{planName}, {teams} takım, {messages} ileti ve {storage} dosya depolama alanı ile sınırlıdır. <strong>Alt tarifelerden birine geçerseniz, bazı veriler arşivlenir</strong>. Yeniden üst tarifelerden birine geçerek arşivlenen verilere erişebilirsiniz.",
   "downgrade_plan_modal.whichTeamToUse": "Hangi takımı kullanmayı sürdürmek istersiniz?",
->>>>>>> f9405527fc (Update translation files)
   "drafts.actions.delete": "Taslağı sil",
   "drafts.actions.edit": "Taslağı düzenle",
   "drafts.actions.send": "Taslağı gönder",
@@ -3680,52 +3659,29 @@
   "inProduct_notices.adminOnlyMessage": "Yalnızca yöneticiler görebilir",
   "incoming_webhooks.header": "Gelen internet kancaları",
   "input.clear": "Temizle",
-<<<<<<< HEAD
-=======
   "insights.accessModal.contactSales": "Satış ekibimizle görüşün",
   "insights.accessModal.messageAdminPostTrial": "{teamInsights} ile birlikte {insightsDoc} panonuzun tamamına erişmek için lütfen Professional ya da Enterprise tarifesine yükseltin. Tarifenizi yükseltmeyle ilgili sorularınız için lütfen {contactSales} üzerinden destek alın.",
-  "insights.accessModal.messageEndUser": "{teamInsights} ile birlikte {insightsDoc} panonuzun tamamına erişmek için lütfen yöneticinize Professional ya da Enterprise tarifesine yükseltmesini bildirin. Tarifenizi yükseltmeyle ilgili sorularınız için lütfen {contactSales} üzerinden destek alın.",
   "insights.accessModal.titleAdminPostTrial": "Takım bilgilerine erişmek için yükseltin",
-  "insights.accessModal.titleEndUser": "Takım bilgileri özelliği ücretli tarifelerle kullanılabilir",
   "insights.filter.ariaLabel": "Bilgiler süzgeç menüsü",
-  "insights.filter.teamInsights": "Takımın bilgileri",
   "insights.leastActiveChannels.copyLink": "Bağlantıyı kopyala",
-  "insights.leastActiveChannels.lastActivityCell": "Son işlem",
   "insights.leastActiveChannels.leaveChannel": "Kanaldan ayrıl",
-  "insights.leastActiveChannels.menuAriaLabel": "Kanal menüsü yönetimi",
   "insights.leastActiveChannels.mySubTitle": "En az ileti bulunan kanallarım",
-  "insights.leastActiveChannels.subTitle": "En az ileti bulunan kanallar",
   "insights.myHeading": "Benim bilgilerim",
-  "insights.newMembers.lastSevenDays": "Takıma son 7 günde katılanlar",
   "insights.newMembers.member": "Takım üyesi",
-  "insights.newMembers.sayHello": "Selam verin",
   "insights.newMembers.today": "Takıma bugün katılanlar",
-  "insights.teamHeading": "Takımın bilgileri",
   "insights.timeFrame.mediumRange": "Son 7 gün",
-  "insights.topBoards.mySubTitle": "Katıldığım en etkin panolar",
   "insights.topBoards.subTitle": "Takımın en etkin panoları",
-  "insights.topBoards.updates": "{updateCount} güncelleme",
   "insights.topBoardsTable.participants": "Katılımcılar",
-  "insights.topChannels.channel": "Kanal",
   "insights.topChannels.mySubTitle": "Üyesi olduğum en etkin kanallar",
-  "insights.topChannels.subTitle": "Takımın en etkin kanalları",
   "insights.topChannels.totalMessages": "Toplam ileti sayısı",
-  "insights.topDMs.receivedMessages": "Alınan",
   "insights.topDMs.totalMessages": "Toplam ileti",
-  "insights.topPlaybooks.lastRun": "Son kullanılma: {relativeTime}",
   "insights.topPlaybooks.myTitle": "Önde gelen senaryolarım",
-  "insights.topPlaybooks.title": "Önde gelen senaryolar",
   "insights.topPlaybooksTable.participants": "Toplam oynanma",
-  "insights.topPlaybooksTable.updates": "Son oynanma",
   "insights.topReactions.mySubTitle": "Sık verdiğim tepkiler",
-  "insights.topReactions.rank": "Sıralama",
   "insights.topReactions.subTitle": "Takımda sık verilen tepkiler",
-  "insights.topReactions.title": "Sık verilen tepkiler",
   "insights.topThreads.mySubTitle": "İzlediğim en etkin konular",
-  "insights.topThreads.replies": "Yanıtlar",
   "insights.topThreads.thread": "Konu",
   "insights.topThreads.totalMessages": "Katılımcılar",
->>>>>>> f9405527fc (Update translation files)
   "installed_command.header": "Bölü komutları",
   "installed_commands.add": "Bölü komutu ekle",
   "installed_commands.delete.confirm": "Bu işlem bölü komutunu kalıcı olarak siler ve kullanıldığı tüm bütünleştirmeleri bozar. Silmek istediğinize emin misiniz?",
@@ -3898,10 +3854,7 @@
   "invite_modal.title": "{team_name} takımına {inviteType} çağır",
   "invite_modal.to": "Şuraya:",
   "joinChannel.JoinButton": "Katıl",
-<<<<<<< HEAD
-=======
   "joinChannel.desciption": "Bu konuyu görüntüleyebilmek için {channel} kanalına katılmalısınız. Şimdi {channel} kanalına katılmak ister misiniz?",
->>>>>>> f9405527fc (Update translation files)
   "joinChannel.joiningButton": "Katılınıyor...",
   "join_team_group_constrained_denied": "Bu takıma katılmak için ilişkilendirilmiş grubun bir üyesi olmalısınız.",
   "join_team_group_constrained_denied_admin": "Bu takıma katılmak için ilişkilendirilmiş grubun bir üyesi olmalısınız. Bu takıma [buradan]({siteURL}/admin_console/user_management/groups) bir grup ekleyebilirsiniz.",
@@ -4089,15 +4042,12 @@
   "more_channels.count_one": "1 sonuç",
   "more_channels.count_zero": "0 sonuç",
   "more_channels.create": "Kanal ekle",
-<<<<<<< HEAD
   "more_channels.hide_joined": "Katılınanları gizle",
   "more_channels.hide_joined_checked": "Katılınan kanallar gizlensin seçeneği, işaretlenmiş",
   "more_channels.hide_joined_not_checked": "Katılınan kanallar gizlensin seçeneği, işaretlenmemiş",
   "more_channels.joined": "Katılındı",
   "more_channels.membership_indicator": "Üyelik göstergesi: Katılındı",
-=======
   "more_channels.join": "Katıl",
->>>>>>> f9405527fc (Update translation files)
   "more_channels.next": "Sonraki",
   "more_channels.noArchived": "Arşivlenmiş bir kanal yok",
   "more_channels.noMore": "\"{text}\" için bir sonuç bulunamadı",
@@ -4291,12 +4241,9 @@
   "onboarding_wizard.plugins.jira": "Jira",
   "onboarding_wizard.plugins.jira.tooltip": "Mattermost üzerindeki iletilerden Jira destek kayıtları oluşturun, önemli Jira güncellemeleri ile ilgili bildirim alın",
   "onboarding_wizard.plugins.marketplace": "Çalışma alanınız kurulduktan sonra başka araçlar da eklenebilir. Kullanılabilecek tüm bütünleştirmeler için <a>Mağazaya</a> bakabilirsiniz",
-<<<<<<< HEAD
+  "onboarding_wizard.plugins.todo.tooltip": "Yapılacak işler listenizi izleyebileceğiniz ve günlük anımsatıcılar alabileceğiniz bir uygulama eki",
   "onboarding_wizard.plugins.servicenow": "ServiceNow",
   "onboarding_wizard.plugins.servicenow.tooltip": "Bu uygulama eki, Mattermost ve ServiceNow arasında bütünleştirme sağlar.",
-=======
-  "onboarding_wizard.plugins.todo.tooltip": "Yapılacak işler listenizi izleyebileceğiniz ve günlük anımsatıcılar alabileceğiniz bir uygulama eki",
->>>>>>> f9405527fc (Update translation files)
   "onboarding_wizard.plugins.zoom": "Zoom",
   "onboarding_wizard.plugins.zoom.tooltip": "Mattermost üzerinde tek tıkla sesli ve görüntülü Zoom görüşmeleri başlatın",
   "onboarding_wizard.previous": "Önceki",
@@ -4367,13 +4314,9 @@
   "plan.self_serve": "Kendi barındırılan",
   "pluggable.errorOccurred": "{pluginId} uygulama ekinde bir sorun çıktı.",
   "pluggable.errorRefresh": "Yenilensin mi?",
-<<<<<<< HEAD
-=======
   "pluggable_rhs.tourtip.boards.click": "Bu sağ panodan Panolar üzerine tıklayın.",
   "pluggable_rhs.tourtip.boards.title": "İlişkili {count} {num, plural, one {panonuza} other {panonuza}} erişin!",
-  "pluggable_rhs.tourtip.playbooks.click": "Bu sağ panodan Senaryolar üzerine tıklayın.",
   "pluggable_rhs.tourtip.playbooks.title": "İlişkili {count} {num, plural, one {senaryonuza} other {senaryonuza}} erişin.",
->>>>>>> f9405527fc (Update translation files)
   "post.ariaLabel.attachment": ", 1 ek dosya",
   "post.ariaLabel.attachmentMultiple": ", {attachmentCount} ek dosya",
   "post.ariaLabel.message": "{time} {date} zamanında, {authorName} tarafından, {message} iletisi yazıldı",
@@ -4898,10 +4841,7 @@
   "sidebar_left.add_channel_dropdown.dropdownAriaLabel": "Kanal açılan kutusu ekle",
   "sidebar_left.add_channel_dropdown.invitePeople": "Kişileri çağır",
   "sidebar_left.add_channel_dropdown.invitePeopleExtraText": "Takıma kişiler ekleyin",
-<<<<<<< HEAD
-=======
   "sidebar_left.add_channel_dropdown.work_template_extra": "Kanalları, panoları ve senaryoları ilişkilendirin",
->>>>>>> f9405527fc (Update translation files)
   "sidebar_left.channel_filter.filterByUnread": "Okunmamışlara göre süz",
   "sidebar_left.channel_filter.filterUnreadAria": "okunmamışlar süzgeci",
   "sidebar_left.channel_filter.showAllChannels": "Tüm kanalları görüntüle",
@@ -5684,13 +5624,9 @@
   "webapp.mattermost.feature.unlimited_file_storage": "Sınırsız dosya depolama alanı",
   "webapp.mattermost.feature.unlimited_messages": "Sınırsız sayıda ileti",
   "webapp.mattermost.feature.upgrade_downgraded_workspace": "Çalışma alanını ücretli bir tarifeye geri döndür",
-<<<<<<< HEAD
-=======
   "welcome_post_renderer.admin_message.second_paragraph": "Platformu tanımaya başlamak için kullanabileceğiniz komutların listesi.",
   "welcome_post_renderer.button_label.slash_help": "/help",
-  "welcome_post_renderer.button_label.slash_settings": "/settings",
   "welcome_post_renderer.user_message.second_paragraph": "Platformu tanımaya başlamak için kullanabileceğiniz komutların listesi.",
->>>>>>> f9405527fc (Update translation files)
   "widget.input.clear": "Temizle",
   "widget.input.required": "Bu alanın doldurulması zorunludur",
   "widget.passwordInput.createPassword": "Parolanızı yazın",
@@ -5700,24 +5636,15 @@
   "widgets.users_emails_input.loading": "Yükleniyor",
   "widgets.users_emails_input.no_user_found_matching": "**{text}** ile eşleşen kimse bulunamadı. Çağırmak için e-posta adreslerini yazın.",
   "widgets.users_emails_input.valid_email": "**{email}** ekle",
-<<<<<<< HEAD
-=======
   "work_templates.customize.modal_create_button": "Ekle",
   "work_templates.customize.name_description": "Bu seçenek, sizin ve başkalarının proje ögelerini bulmasına yardımcı olur. Daha sonra da değiştirebilirsiniz.",
-  "work_templates.customize.name_label_all": "Kanalınızı, panonuzu ve senaryonuzu adlandırın",
   "work_templates.customize.name_label_channels_playbooks": "Kanalınızı ve senaryonuzu adlandırın",
-  "work_templates.customize.private_playbook_license_issue": "Gizli senaryolar Enterprise lisansı ile kullanılabilir.",
   "work_templates.customize.public_channel_permission_issue": "Herkese açık kanallar oluşturma izniniz yok.",
-  "work_templates.customize.visibility_title": "Buna kimler erişebilmeli?",
   "work_templates.menu.quick_use": "Hızlı kullanım",
-  "work_templates.menu.usecase_boards_count": "{boardsCount, plural, =1 {# pano} other {# pano}}",
   "work_templates.menu.usecase_playbooks_count": "{playbooksCount, plural, =1 {# senaryo} other {# senaryo}}",
-  "work_templates.preview.accordion_title_channels": "Kanallar",
   "work_templates.preview.integrations.admin_install.multiple_plugin": "Bütünleştirmeler yönetici tarafından kurulana kadar eklenmeyecek.",
-  "work_templates.preview.integrations.admin_install.single_plugin": "{plugin} yönetici tarafından kurulana kadar eklenmeyecek.",
   "work_templates.preview.modal_next_button": "Sonraki",
   "work_templates.preview.section.included": "İçindekiler",
->>>>>>> f9405527fc (Update translation files)
   "workspace_limits.archived_file.archived": "Bu dosya arşivlenmiş",
   "workspace_limits.archived_file.archived_compact": "(arşivlenmiş)",
   "workspace_limits.archived_file.tooltip_description": "Çalışma alanınızın boyutu {storageLimit} dosya depolama alanı sınırına ulaştı. Bunu yeniden görüntüleyebilmek için ücretli bir tarifeye geçin",
