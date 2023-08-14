@@ -8749,7 +8749,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identity Provider Issuer URL must be a valid URL and start with http:// or https://."
+    "translation": "Identity Provider Issuer URL must be a valid URI."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",

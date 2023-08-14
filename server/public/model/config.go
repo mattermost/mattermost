@@ -3749,8 +3749,8 @@ func (s *SamlSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if *s.IdpDescriptorURL == "" || !IsValidURI(*s.IdpDescriptorURL) {
-			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "", http.StatusBadRequest)
+		if err := IsValidURI(*s.IdpDescriptorURL); err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		if *s.IdpCertificateFile == "" {

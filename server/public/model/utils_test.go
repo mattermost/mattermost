@@ -985,7 +985,11 @@ func TestIsValidURI(t *testing.T) {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			t.Parallel()
-			require.Equal(t, testCase.Valid, IsValidURI(testCase.Input))
+			if testCase.Valid {
+				require.NoError(t, IsValidURI(testCase.Input))
+				return
+			}
+			require.Error(t, IsValidURI(testCase.Input))
 		})
 	}
 }

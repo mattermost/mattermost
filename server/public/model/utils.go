@@ -732,9 +732,9 @@ func IsValidHTTPURL(rawURL string) bool {
 	return true
 }
 
-func IsValidURI(rawURI string) bool {
+func IsValidURI(rawURI string) error {
 	_, err := url.ParseRequestURI(rawURI)
-	return err == nil
+	return err
 }
 
 func IsValidId(value string) bool {
