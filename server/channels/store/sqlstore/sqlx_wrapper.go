@@ -128,12 +128,10 @@ func (w *sqlxDBWrapper) GetBuilder(dest any, builder Builder) error {
 	return w.Get(dest, query, args...)
 }
 
-func (w *sqlxDBWrapper) NamedExec(query string, arg any) (sql.Result, error) {
+func (w *sqlxDBWrapper) NamedExecContext(ctx context.Context, query string, arg any) (sql.Result, error) {
 	if w.DB.DriverName() == model.DatabaseDriverPostgres {
 		query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
-	defer cancel()
 
 	if w.trace {
 		defer func(then time.Time) {
@@ -142,6 +140,13 @@ func (w *sqlxDBWrapper) NamedExec(query string, arg any) (sql.Result, error) {
 	}
 
 	return w.checkErrWithResult(w.DB.NamedExecContext(ctx, query, arg))
+}
+
+func (w *sqlxDBWrapper) NamedExec(query string, arg any) (sql.Result, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
+	defer cancel()
+
+	return w.NamedExecContext(ctx, query, arg)
 }
 
 func (w *sqlxDBWrapper) Exec(query string, args ...any) (sql.Result, error) {
