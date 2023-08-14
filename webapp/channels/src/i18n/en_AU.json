@@ -57,12 +57,9 @@
   "accessibility.sidebar.types.private": "private channel",
   "accessibility.sidebar.types.public": "public channel",
   "accessibility.sidebar.types.unread": "unread",
-<<<<<<< HEAD
-=======
   "activityAndInsights.title": "Activity and Insights - {displayName} {siteName}",
-  "activityAndInsights.tutorialTip.title": "Introducing: Insights",
   "activityAndInsights.tutorial_tip.viewInsights": "View insights",
->>>>>>> f9405527fc (Update translation files)
+  "activityAndInsights.tutorialTip.title": "Introducing: Insights",
   "activity_log.activeSessions": "Active Sessions",
   "activity_log.browser": "Browser: {browser}",
   "activity_log.firstTime": "First time active: {date}, {time}",
@@ -676,10 +673,7 @@
   "admin.customization.enableLinkPreviewsTitle": "Enable website link previews:",
   "admin.customization.enablePermalinkPreviewsDesc": "When enabled, links to Mattermost messages will generate a preview for any users that have access to the original message. Please review our <link>documentation</link> for details.",
   "admin.customization.enablePermalinkPreviewsTitle": "Enable message link previews:",
-<<<<<<< HEAD
-=======
   "admin.customization.enablePublicSharedBoardsTitle": "Enable Publicly-Shared Boards:",
->>>>>>> f9405527fc (Update translation files)
   "admin.customization.enableSVGsDesc": "Enable previews for SVG file attachments and allow them to appear in messages.",
   "admin.customization.enableSVGsTitle": "Enable SVGs:",
   "admin.customization.gfycatApiKey": "Gfycat API Key:",
@@ -926,10 +920,7 @@
   "admin.experimental.emailSettingsLoginButtonColor.title": "Email Login Button Colour:",
   "admin.experimental.emailSettingsLoginButtonTextColor.desc": "Specify the colour of the email login button text for white labelling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
   "admin.experimental.emailSettingsLoginButtonTextColor.title": "Email Login Button Text Colour:",
-<<<<<<< HEAD
-=======
   "admin.experimental.enableAppBar.title": "Enable App Bar:",
->>>>>>> f9405527fc (Update translation files)
   "admin.experimental.enableChannelViewedMessages.desc": "This setting determines whether `channel_viewed` WebSocket events are sent, which synchronise unread notifications across clients and devices. Disabling the setting in larger deployments may improve server performance.",
   "admin.experimental.enableChannelViewedMessages.title": "Enable Channel Viewed WebSocket Messages:",
   "admin.experimental.enableOnboardingFlow.desc": "When true, new users are shown steps to complete as part of an onboarding process",
@@ -971,10 +962,7 @@
   "admin.experimental.linkMetadataTimeoutMilliseconds.desc": "The number of milliseconds to wait for metadata from a third-party link. Used with Post Metadata.",
   "admin.experimental.linkMetadataTimeoutMilliseconds.example": "E.g.: '5000'",
   "admin.experimental.linkMetadataTimeoutMilliseconds.title": "Link Metadata Timeout:",
-<<<<<<< HEAD
-=======
   "admin.experimental.patchPluginsReactDOM.title": "Patch React DOM used by plugins:",
->>>>>>> f9405527fc (Update translation files)
   "admin.experimental.samlSettingsLoginButtonBorderColor.desc": "Specify the colour of the SAML login button border for white labelling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
   "admin.experimental.samlSettingsLoginButtonBorderColor.title": "SAML login Button Border Colour:",
   "admin.experimental.samlSettingsLoginButtonColor.desc": "Specify the colour of the SAML login button for white labelling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
@@ -2821,10 +2809,7 @@
   "authorize.app": "The app **{appName}** would like the ability to access and modify your basic information.",
   "authorize.deny": "Deny",
   "authorize.title": "Authorise **{appName}** to Connect to Your **Mattermost** User Account",
-<<<<<<< HEAD
-=======
   "autoShowLinkedBoard.tutorialTip.title": "Link kanban boards to channels",
->>>>>>> f9405527fc (Update translation files)
   "avatars.overflowUnnamedOnly": "{overflowUnnamedCount, plural, =1 {one other} other {# others}}",
   "avatars.overflowUsers": "{overflowUnnamedCount, plural, =0 {{names}} =1 {{names} and one other} other {{names} and # others}}",
   "backstage_list.search": "Search",
@@ -3321,12 +3306,9 @@
   "dnd_custom_time_picker_modal.defaultMsg": "Disable notifications until",
   "dnd_custom_time_picker_modal.submitButton": "Disable Notifications",
   "dnd_custom_time_picker_modal.time": "Time",
-<<<<<<< HEAD
-=======
   "downgrade_plan_modal.confirmDowngrade": "Confirm Downgrade",
   "downgrade_plan_modal.subtitle": "{planName} is restricted to {teams} team, {messages} messages, {storage} file storage, {integrations} apps and {boards} board cards. <strong>If you downgrade, some data will be archived</strong>. Archived data can be accessed when you re-upgrade.",
   "downgrade_plan_modal.whichTeamToUse": "Which team would you like to continue using?",
->>>>>>> f9405527fc (Update translation files)
   "drafts.actions.delete": "Delete draft",
   "drafts.actions.edit": "Edit draft",
   "drafts.actions.send": "Send draft",
@@ -3678,52 +3660,29 @@
   "inProduct_notices.adminOnlyMessage": "Visible to Admins only",
   "incoming_webhooks.header": "Incoming Webhooks",
   "input.clear": "Clear",
-<<<<<<< HEAD
-=======
   "insights.accessModal.contactSales": "contact the Sales team",
   "insights.accessModal.messageAdminPostTrial": "To access your complete {insightsDoc} dashboard, including {teamInsights}, please upgrade your plan to Professional or Enterprise. For questions on upgrading your plan, please {contactSales} for support.",
-  "insights.accessModal.messageEndUser": "To access your complete {insightsDoc} dashboard, including {teamInsights}, please submit a request to your Admin to upgrade your plan to Professional or Enterprise. For questions on upgrading your plan, please {contactSales} for support.",
   "insights.accessModal.titleAdminPostTrial": "Upgrade to access team insights",
-  "insights.accessModal.titleEndUser": "Team insights are available in paid plans",
   "insights.filter.ariaLabel": "Insights Filter Menu",
-  "insights.filter.teamInsights": "Team Insights",
   "insights.leastActiveChannels.copyLink": "Copy link",
-  "insights.leastActiveChannels.lastActivityCell": "Last activity",
   "insights.leastActiveChannels.leaveChannel": "Leave channel",
-  "insights.leastActiveChannels.menuAriaLabel": "Manage channel menu",
   "insights.leastActiveChannels.mySubTitle": "My channels with the least posts",
-  "insights.leastActiveChannels.subTitle": "Channels with the least posts",
   "insights.myHeading": "My Insights",
-  "insights.newMembers.lastSevenDays": "Joined the team in the last 7 days",
   "insights.newMembers.member": "Team member",
-  "insights.newMembers.sayHello": "Say hello",
   "insights.newMembers.today": "Joined the team today",
-  "insights.teamHeading": "Team Insights",
   "insights.timeFrame.mediumRange": "Last 7 days",
-  "insights.topBoards.mySubTitle": "Most active boards I've participated in",
   "insights.topBoards.subTitle": "Most active boards for the team",
-  "insights.topBoards.updates": "{updateCount} updates",
   "insights.topBoardsTable.participants": "Participants",
-  "insights.topChannels.channel": "Channel",
   "insights.topChannels.mySubTitle": "Most active channels that I'm a member of",
-  "insights.topChannels.subTitle": "Most active channels for the team",
   "insights.topChannels.totalMessages": "Total messages",
-  "insights.topDMs.receivedMessages": "Received",
   "insights.topDMs.totalMessages": "Total messages",
-  "insights.topPlaybooks.lastRun": "Last run: {relativeTime}",
   "insights.topPlaybooks.myTitle": "My top playbooks",
-  "insights.topPlaybooks.title": "Top playbooks",
   "insights.topPlaybooksTable.participants": "Total runs",
-  "insights.topPlaybooksTable.updates": "Last run",
   "insights.topReactions.mySubTitle": "Reactions I've used the most",
-  "insights.topReactions.rank": "Rank",
   "insights.topReactions.subTitle": "The team's most used reactions",
-  "insights.topReactions.title": "Top reactions",
   "insights.topThreads.mySubTitle": "Most active threads I've followed",
-  "insights.topThreads.replies": "Replies",
   "insights.topThreads.thread": "Thread",
   "insights.topThreads.totalMessages": "Participants",
->>>>>>> f9405527fc (Update translation files)
   "installed_command.header": "Slash Commands",
   "installed_commands.add": "Add Slash Command",
   "installed_commands.delete.confirm": "This action permanently deletes the slash command and breaks any integrations using it. Are you sure you want to delete it?",
@@ -3896,10 +3855,7 @@
   "invite_modal.title": "Invite {inviteType} to {team_name}",
   "invite_modal.to": "To:",
   "joinChannel.JoinButton": "Join",
-<<<<<<< HEAD
-=======
   "joinChannel.desciption": "You'll need to join the {channel} channel to see this thread. Do you want to join {channel} now?",
->>>>>>> f9405527fc (Update translation files)
   "joinChannel.joiningButton": "Joining...",
   "join_team_group_constrained_denied": "You need to be a member of a linked group to join this team.",
   "join_team_group_constrained_denied_admin": "You need to be a member of a linked group to join this team. You can add a group to this team [here]({siteURL}/admin_console/user_management/groups).",
@@ -4090,15 +4046,12 @@
   "more_channels.count_one": "1 Result",
   "more_channels.count_zero": "0 Results",
   "more_channels.create": "Create Channel",
-<<<<<<< HEAD
   "more_channels.hide_joined": "Hide Joined",
   "more_channels.hide_joined_checked": "Hide joined channels tickbox, ticked",
   "more_channels.hide_joined_not_checked": "Hide joined channels tickbox, not ticked",
   "more_channels.joined": "Joined",
   "more_channels.membership_indicator": "Membership Indicator: Joined",
-=======
   "more_channels.join": "Join",
->>>>>>> f9405527fc (Update translation files)
   "more_channels.next": "Next",
   "more_channels.noArchived": "No archived channels",
   "more_channels.noMore": "No more channels to join",
@@ -4292,12 +4245,9 @@
   "onboarding_wizard.plugins.jira": "Jira",
   "onboarding_wizard.plugins.jira.tooltip": "Create Jira tickets from messages in Mattermost, get notified of important updates in Jira",
   "onboarding_wizard.plugins.marketplace": "More tools can be added once your workspace is set up. To see all available integrations, <a>visit the Marketplace.</a>",
-<<<<<<< HEAD
+  "onboarding_wizard.plugins.todo.tooltip": "A plugin to track To-do issues in a list and send you daily reminders about your To-do list",
   "onboarding_wizard.plugins.servicenow": "ServiceNow",
   "onboarding_wizard.plugins.servicenow.tooltip": "This plugin serves as an integration between Mattermost and ServiceNow.",
-=======
-  "onboarding_wizard.plugins.todo.tooltip": "A plugin to track To-do issues in a list and send you daily reminders about your To-do list",
->>>>>>> f9405527fc (Update translation files)
   "onboarding_wizard.plugins.zoom": "Zoom",
   "onboarding_wizard.plugins.zoom.tooltip": "Start Zoom audio and video conferencing calls in Mattermost with a single click",
   "onboarding_wizard.previous": "Previous",
@@ -4368,13 +4318,9 @@
   "plan.self_serve": "Self-serve",
   "pluggable.errorOccurred": "An error occurred in the {pluginId} plugin.",
   "pluggable.errorRefresh": "Refresh?",
-<<<<<<< HEAD
-=======
   "pluggable_rhs.tourtip.boards.click": "Click into boards from this right panel.",
   "pluggable_rhs.tourtip.boards.title": "Access your {count} linked {num, plural, one {board} other {boards}}!",
-  "pluggable_rhs.tourtip.playbooks.click": "Click into playbooks from this right panel.",
   "pluggable_rhs.tourtip.playbooks.title": "Access your {count} linked {num, plural, one {playbook} other {playbooks}}.",
->>>>>>> f9405527fc (Update translation files)
   "post.ariaLabel.attachment": ", 1 attachment",
   "post.ariaLabel.attachmentMultiple": ", {attachmentCount} attachments",
   "post.ariaLabel.message": "At {time} {date}, {authorName} wrote, {message}",
@@ -4899,10 +4845,7 @@
   "sidebar_left.add_channel_dropdown.dropdownAriaLabel": "Add Channel Dropdown",
   "sidebar_left.add_channel_dropdown.invitePeople": "Invite people",
   "sidebar_left.add_channel_dropdown.invitePeopleExtraText": "Add people to the team",
-<<<<<<< HEAD
-=======
   "sidebar_left.add_channel_dropdown.work_template_extra": "Link channels, boards, and playbooks together",
->>>>>>> f9405527fc (Update translation files)
   "sidebar_left.channel_filter.filterByUnread": "Filter by unread",
   "sidebar_left.channel_filter.filterUnreadAria": "unreads filter",
   "sidebar_left.channel_filter.showAllChannels": "Show all channels",
@@ -5686,13 +5629,9 @@
   "webapp.mattermost.feature.unlimited_file_storage": "Unlimited File Storage",
   "webapp.mattermost.feature.unlimited_messages": "Unlimited Messages",
   "webapp.mattermost.feature.upgrade_downgraded_workspace": "Revert the workspace to a paid plan",
-<<<<<<< HEAD
-=======
   "welcome_post_renderer.admin_message.second_paragraph": "Here is a list of commands to help you get familiar with the platform.",
   "welcome_post_renderer.button_label.slash_help": "/help",
-  "welcome_post_renderer.button_label.slash_settings": "/settings",
   "welcome_post_renderer.user_message.second_paragraph": "Here is a list of commands to help you get familiar with the platform.",
->>>>>>> f9405527fc (Update translation files)
   "widget.input.clear": "Clear",
   "widget.input.required": "This field is required",
   "widget.passwordInput.createPassword": "Choose a Password",
@@ -5703,22 +5642,14 @@
   "widgets.users_emails_input.loading": "Loading",
   "widgets.users_emails_input.no_user_found_matching": "No user found matching **{text}**. Enter their email to invite them.",
   "widgets.users_emails_input.valid_email": "Add **{email}**",
-<<<<<<< HEAD
-=======
   "work_templates.customize.modal_create_button": "Create",
   "work_templates.customize.name_description": "This will help you and others find your project items. You can always edit this later.",
-  "work_templates.customize.name_label_all": "Name your channel, board and playbook",
   "work_templates.customize.name_label_channels_playbooks": "Name your channel and playbook",
-  "work_templates.customize.visibility_title": "Who should have access to this?",
   "work_templates.menu.quick_use": "Quick use",
-  "work_templates.menu.usecase_boards_count": "{boardsCount, plural, =1 {# board} other {# boards}}",
   "work_templates.menu.usecase_playbooks_count": "{playbooksCount, plural, =1 {# playbook} other {# playbooks}}",
-  "work_templates.preview.accordion_title_channels": "Channels",
   "work_templates.preview.integrations.admin_install.multiple_plugin": "Integrations will not be added until an admin installs them.",
-  "work_templates.preview.integrations.admin_install.single_plugin": "{plugin} will not be added until an admin installs it.",
   "work_templates.preview.modal_next_button": "Next",
   "work_templates.preview.section.included": "Included",
->>>>>>> f9405527fc (Update translation files)
   "workspace_limits.archived_file.archived": "This file is archived",
   "workspace_limits.archived_file.archived_compact": "(archived)",
   "workspace_limits.archived_file.tooltip_description": "Your workspace has hit the file storage limit of {storageLimit}. To view this again, upgrade to a paid plan.",
