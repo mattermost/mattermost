@@ -377,7 +377,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
     };
 
     getToastToRender() {
-        const {atLatestPost, atBottom, width, lastViewedAt, showSearchHintToast} = this.props;
+        const {atLatestPost, atBottom, width, lastViewedAt, showSearchHintToast, channelId} = this.props;
         const {showUnreadToast, showNewMessagesToast, showMessageHistoryToast, showUnreadWithBottomStartToast, unreadCount} = this.state;
 
         const pluginItems = this.props.unreadsBarActions?.
@@ -392,6 +392,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                         key={item.id}
                         lastViewedAt={lastViewedAt}
                         unreadCount={unreadCount}
+                        channelId={channelId}
                     />
                 );
             });
