@@ -9639,10 +9639,6 @@
     "translation": "You cannot delete an acknowledgment after 5 minutes has elapsed."
   },
   {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "Error while executing a work template."
-  },
-  {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
     "translation": "Invalid auth service: {{.AuthService}}"
   },
@@ -9659,10 +9655,6 @@
     "translation": "Failed to update server translations."
   },
   {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "error while patching board"
-  },
-  {
     "id": "api.system.logs.invalidFilter",
     "translation": "Invalid log filter"
   },
@@ -9675,43 +9667,8 @@
     "translation": "Contact Sales"
   },
   {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organisational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organisational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
-  },
-  {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Invalid value for bytes when uploading a licence."
-  },
-  {
-    "id": "app.user.run.status_enable",
-    "translation": "@{{.Username}} enabled the status updates for [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "Short summary shown in the timeline"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.description",
-    "translation": "Description"
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "one": "You have {{.Count}} assigned task:",
-      "other": "You have {{.Count}} total assigned tasks:"
-    }
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.zero_in_progress",
-    "translation": "You have 0 runs currently in progress."
   },
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
@@ -9736,10 +9693,6 @@
   {
     "id": "api.user.invalidate_password_recovery_tokens_delete.error",
     "translation": "Unable to remove token when invalidating password recovery tokens"
-  },
-  {
-    "id": "app.plugin.blocked.app_error",
-    "translation": "Plugin {{.Id}} is on the block list. Some plugins are blocked because they are built into this version of Mattermost."
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",

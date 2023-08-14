@@ -3397,7 +3397,6 @@
   "insights.topPlaybooksTable.playbook": "Playbook",
   "insights.topReactions.rank": "Rango",
   "insights.topReactions.title": "Reacciones principales",
-  "insights.topThreads.totalMessages": "Participantes",
   "installed_command.header": "Comandos de Barra",
   "installed_commands.add": "Agregar Comandos de Barra",
   "installed_commands.delete.confirm": "Esta acción elimina permanentemente el comando de barras y rompe cualquier integración que lo esté utilizando. ¿Estás seguro de que deseas eliminarlo?",
