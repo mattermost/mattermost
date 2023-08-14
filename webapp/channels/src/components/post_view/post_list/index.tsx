@@ -6,7 +6,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {markChannelAsRead, markChannelAsViewed} from 'mattermost-redux/actions/channels';
+import {markChannelAsRead} from 'mattermost-redux/actions/channels';
 import {RequestStatus} from 'mattermost-redux/constants';
 import {getRecentPostsChunkInChannel, makeGetPostsChunkAroundPost, getUnreadPostsChunk, getPost, isPostsChunkIncludingUnreadsPosts, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
 import type {Action} from 'mattermost-redux/types/actions';
@@ -115,7 +115,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             loadPostsAround,
             checkAndSetMobileView,
             syncPostsInChannel,
-            markChannelAsViewed,
             markChannelAsRead,
             updateNewMessagesAtInChannel,
         }, dispatch),

@@ -108,10 +108,6 @@ function TeamController(props: Props) {
         function handleBlur() {
             window.isActive = false;
             blurTime.current = Date.now();
-
-            if (props.currentUser) {
-                props.viewChannel('');
-            }
         }
 
         function handleKeydown(event: KeyboardEvent) {
@@ -137,7 +133,7 @@ function TeamController(props: Props) {
             window.removeEventListener('blur', handleBlur);
             window.removeEventListener('keydown', handleKeydown);
         };
-    }, [props.selectedThreadId, props.graphQLEnabled, props.currentChannelId, props.currentTeamId, props.currentUser.id]);
+    }, [props.selectedThreadId, props.graphQLEnabled, props.currentChannelId, props.currentTeamId]);
 
     // Effect runs on mount, adds active state to window
     useEffect(() => {

@@ -37,7 +37,7 @@ const SidebarChannelMenu = (props: Props) => {
     let markAsReadUnreadMenuItem: JSX.Element | null = null;
     if (props.isUnread) {
         function handleMarkAsRead() {
-            props.markChannelAsRead(props.channel.id);
+            props.markChannelAsRead(props.channel.id, true);
             trackEvent('ui', 'ui_sidebar_channel_menu_markAsRead');
         }
 

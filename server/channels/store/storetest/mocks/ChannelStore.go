@@ -986,6 +986,50 @@ func (_m *ChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includ
 	return r0, r1
 }
 
+// GetChannelsWithUnreadsAndWithMentions provides a mock function with given fields: ctx, channelIDs, userID, userNotifyProps
+func (_m *ChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+	ret := _m.Called(ctx, channelIDs, userID, userNotifyProps)
+
+	var r0 []string
+	var r1 []string
+	var r2 map[string]int64
+	var r3 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string, string, model.StringMap) ([]string, []string, map[string]int64, error)); ok {
+		return rf(ctx, channelIDs, userID, userNotifyProps)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string, string, model.StringMap) []string); ok {
+		r0 = rf(ctx, channelIDs, userID, userNotifyProps)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string, string, model.StringMap) []string); ok {
+		r1 = rf(ctx, channelIDs, userID, userNotifyProps)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, []string, string, model.StringMap) map[string]int64); ok {
+		r2 = rf(ctx, channelIDs, userID, userNotifyProps)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(map[string]int64)
+		}
+	}
+
+	if rf, ok := ret.Get(3).(func(context.Context, []string, string, model.StringMap) error); ok {
+		r3 = rf(ctx, channelIDs, userID, userNotifyProps)
+	} else {
+		r3 = ret.Error(3)
+	}
+
+	return r0, r1, r2, r3
+}
+
 // GetDeleted provides a mock function with given fields: team_id, offset, limit, userID
 func (_m *ChannelStore) GetDeleted(team_id string, offset int, limit int, userID string) (model.ChannelList, error) {
 	ret := _m.Called(team_id, offset, limit, userID)

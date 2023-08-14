@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import * as redux from 'react-redux';
 
 import {shallow} from 'enzyme';
 
@@ -9,7 +10,41 @@ import {CategorySorting} from '@mattermost/types/channel_categories';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
-import SidebarCategoryMenu from './sidebar_category_menu';
+import CreateNewCategoryMenuItem from './create_new_category_menu_item';
+
+import SidebarCategoryMenu from '.';
+
+const initialState = {
+    entities: {
+        preferences: {
+            myPreferences: {},
+        },
+        channels: {
+            channels: {},
+            channelsInTeam: {},
+        },
+        users: {
+            currentUserId: '',
+            profiles: {},
+        },
+        teams: {
+            currentTeamId: '',
+        },
+        general: {
+            config: {
+                ExperimentalGroupUnreadChannels: 'default_off',
+            },
+        },
+    },
+    views: {
+        channel: {
+            lastUnreadChannel: '',
+        },
+    },
+};
+
+jest.spyOn(redux, 'useSelector').mockImplementation((cb) => cb(initialState));
+jest.spyOn(redux, 'useDispatch').mockReturnValue((t) => t);
 
 describe('components/sidebar/sidebar_category/sidebar_category_menu', () => {
     const categoryId = 'test_category_id';
@@ -25,9 +60,6 @@ describe('components/sidebar/sidebar_category/sidebar_category_menu', () => {
             muted: false,
             collapsed: false,
         },
-        openModal: jest.fn(),
-        setCategoryMuted: jest.fn(),
-        setCategorySorting: jest.fn(),
     };
 
     test('should match snapshot and contain correct buttons', () => {
@@ -36,7 +68,7 @@ describe('components/sidebar/sidebar_category/sidebar_category_menu', () => {
         );
 
         expect(wrapper.find(`#rename-${categoryId}`)).toHaveLength(1);
-        expect(wrapper.find(`#create-${categoryId}`)).toHaveLength(1);
+        expect(wrapper.find(CreateNewCategoryMenuItem)).toHaveLength(1);
         expect(wrapper.find(`#delete-${categoryId}`)).toHaveLength(1);
 
         expect(wrapper).toMatchSnapshot();

@@ -171,7 +171,7 @@ describe('actions/new_post', () => {
                     },
                 },
                 {
-                    type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
+                    type: ChannelTypes.RECEIVED_LAST_VIEWED_AT,
                     data: {
                         channel_id: channelId,
                     },
@@ -374,7 +374,7 @@ describe('actions/new_post', () => {
                     },
                 },
                 {
-                    type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
+                    type: ChannelTypes.RECEIVED_LAST_VIEWED_AT,
                     data: {
                         channel_id: channelId,
                     },

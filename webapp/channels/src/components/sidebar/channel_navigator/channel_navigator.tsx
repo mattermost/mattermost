@@ -18,26 +18,11 @@ import type {ModalData} from 'types/actions';
 import ChannelFilter from '../channel_filter';
 
 export type Props = {
-    canGoForward: boolean;
-    canGoBack: boolean;
-    canJoinPublicChannel: boolean;
-    showMoreChannelsModal: () => void;
-    showCreateUserGroupModal: () => void;
-    invitePeopleModal: () => void;
-    showNewChannelModal: () => void;
-    showCreateCategoryModal: () => void;
-    handleOpenDirectMessagesModal: (e: Event) => void;
-    unreadFilterEnabled: boolean;
-    canCreateChannel: boolean;
     showUnreadsCategory: boolean;
     isQuickSwitcherOpen: boolean;
-    userGroupsEnabled: boolean;
-    canCreateCustomGroups: boolean;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
-        goBack: () => void;
-        goForward: () => void;
     };
 };
 
@@ -98,16 +83,6 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
                 dialogType: QuickSwitchModal,
             });
         }
-    };
-
-    goBack = () => {
-        trackEvent('ui', 'ui_history_back');
-        this.props.actions.goBack();
-    };
-
-    goForward = () => {
-        trackEvent('ui', 'ui_history_forward');
-        this.props.actions.goForward();
     };
 
     render() {

@@ -103,7 +103,6 @@ type Props = {
         setDraggingState: (data: DraggingState) => void;
         stopDragging: () => void;
         clearChannelSelection: () => void;
-        multiSelectChannelAdd: (channelId: string) => void;
     };
 };
 
