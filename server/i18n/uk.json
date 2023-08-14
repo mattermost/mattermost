@@ -4044,10 +4044,6 @@
     "translation": "Неприпустимий ідентифікатор автора"
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Чи не вдалося декодувати gif."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Неприпустиме значення для часу очікування читання."
   },
