@@ -3981,8 +3981,9 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
-	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, 1000, model.RetentionPolicyCursor{})
+	deleted, _, err := ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, 1000, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
+	require.Equal(t, int64(2), deleted)
 
 	_, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Should have not found post 1 after purge")
@@ -4013,11 +4014,11 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		}
 		cursor := model.RetentionPolicyCursor{}
 
-		deleted, cursor, err := ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
+		deleted, cursor, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
 		require.NoError(t, err)
 		require.Equal(t, int64(2), deleted)
 
-		rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
+		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rows))
 		require.Equal(t, 2, len(rows[0].Ids))
