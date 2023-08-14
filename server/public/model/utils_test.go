@@ -952,32 +952,32 @@ func TestIsValidURI(t *testing.T) {
 	cases := []struct {
 		Description string
 		Input       string
-		Expected    bool
+		Valid       bool
 	}{
 		{
 			Description: "empty string",
 			Input:       "",
-			Expected:    false,
+			Valid:       false,
 		},
 		{
 			Description: "random string",
 			Input:       "random",
-			Expected:    false,
+			Valid:       false,
 		},
 		{
 			Description: "valid URL",
 			Input:       "http://mattermost.com",
-			Expected:    true,
+			Valid:       true,
 		},
 		{
 			Description: "valid URN",
 			Input:       "urn:ec.mattermost.com:mmlogin:saml",
-			Expected:    true,
+			Valid:       true,
 		},
 		{
 			Description: "valid ldap URI",
 			Input:       "ldap://idp.matermost.com/o=Example,c=US",
-			Expected:    true,
+			Valid:       true,
 		},
 	}
 
@@ -985,7 +985,7 @@ func TestIsValidURI(t *testing.T) {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			t.Parallel()
-			require.Equal(t, testCase.Expected, IsValidURI(testCase.Input))
+			require.Equal(t, testCase.Valid, IsValidURI(testCase.Input))
 		})
 	}
 }
