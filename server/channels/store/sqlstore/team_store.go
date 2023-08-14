@@ -219,7 +219,7 @@ func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 
 // Save adds the team to the database if a team with the same name does not already
 // exist in the database. It returns the team added if the operation is successful.
-func (s SqlTeamStore) Save(team *model.Team) (*model.Team, error) {
+func (s SqlTeamStore) Save(ctx context.Context, team *model.Team) (*model.Team, error) {
 	if team.Id != "" {
 		return nil, store.NewErrInvalidInput("Team", "id", team.Id)
 	}
@@ -230,7 +230,7 @@ func (s SqlTeamStore) Save(team *model.Team) (*model.Team, error) {
 		return nil, err
 	}
 
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO Teams
+	if _, err := s.GetMasterX().NamedExecContext(ctx, `INSERT INTO Teams
 		(Id, CreateAt, UpdateAt, DeleteAt, DisplayName, Name, Description, Email, Type, CompanyName, AllowedDomains,
 		InviteId, AllowOpenInvite, LastTeamIconUpdate, SchemeId, GroupConstrained, CloudLimitsArchived)
 		VALUES
