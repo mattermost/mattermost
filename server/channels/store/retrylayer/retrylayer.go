@@ -11173,11 +11173,11 @@ func (s *RetryLayerTeamStore) ResetAllTeamSchemes() error {
 
 }
 
-func (s *RetryLayerTeamStore) Save(team *model.Team) (*model.Team, error) {
+func (s *RetryLayerTeamStore) Save(ctx context.Context, team *model.Team) (*model.Team, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.Save(team)
+		result, err := s.TeamStore.Save(ctx, team)
 		if err == nil {
 			return result, nil
 		}

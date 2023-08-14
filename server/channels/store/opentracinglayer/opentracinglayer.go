@@ -9790,7 +9790,7 @@ func (s *OpenTracingLayerTeamStore) ResetAllTeamSchemes() error {
 	return err
 }
 
-func (s *OpenTracingLayerTeamStore) Save(team *model.Team) (*model.Team, error) {
+func (s *OpenTracingLayerTeamStore) Save(ctx context.Context, team *model.Team) (*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -9799,7 +9799,7 @@ func (s *OpenTracingLayerTeamStore) Save(team *model.Team) (*model.Team, error) 
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.Save(team)
+	result, err := s.TeamStore.Save(ctx, team)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

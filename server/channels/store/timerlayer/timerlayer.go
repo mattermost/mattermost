@@ -8818,10 +8818,10 @@ func (s *TimerLayerTeamStore) ResetAllTeamSchemes() error {
 	return err
 }
 
-func (s *TimerLayerTeamStore) Save(team *model.Team) (*model.Team, error) {
+func (s *TimerLayerTeamStore) Save(ctx context.Context, team *model.Team) (*model.Team, error) {
 	start := time.Now()
 
-	result, err := s.TeamStore.Save(team)
+	result, err := s.TeamStore.Save(ctx, team)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

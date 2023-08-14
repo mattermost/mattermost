@@ -868,25 +868,25 @@ func (_m *TeamStore) ResetAllTeamSchemes() error {
 	return r0
 }
 
-// Save provides a mock function with given fields: team
-func (_m *TeamStore) Save(team *model.Team) (*model.Team, error) {
-	ret := _m.Called(team)
+// Save provides a mock function with given fields: ctx, team
+func (_m *TeamStore) Save(ctx context.Context, team *model.Team) (*model.Team, error) {
+	ret := _m.Called(ctx, team)
 
 	var r0 *model.Team
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Team) (*model.Team, error)); ok {
-		return rf(team)
+	if rf, ok := ret.Get(0).(func(context.Context, *model.Team) (*model.Team, error)); ok {
+		return rf(ctx, team)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Team) *model.Team); ok {
-		r0 = rf(team)
+	if rf, ok := ret.Get(0).(func(context.Context, *model.Team) *model.Team); ok {
+		r0 = rf(ctx, team)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Team)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Team) error); ok {
-		r1 = rf(team)
+	if rf, ok := ret.Get(1).(func(context.Context, *model.Team) error); ok {
+		r1 = rf(ctx, team)
 	} else {
 		r1 = ret.Error(1)
 	}
