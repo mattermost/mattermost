@@ -3566,7 +3566,6 @@ exports[`components/ProfilePopover should show the start call button when isCall
       isCustomStatusExpired={false}
       isInCurrentTeam={true}
       isMobileView={false}
-      isRHS={false}
       isTeamAdmin={false}
       lastActivityTimestamp={1632146562846}
       src="src"
