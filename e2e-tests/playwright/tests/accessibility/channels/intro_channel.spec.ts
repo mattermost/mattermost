@@ -19,7 +19,7 @@ test('Intro to channel', async ({pw, pages, axe}) => {
 
     // # Analyze the page
     // Disable 'color-contrast' to be addressed by MM-53814
-    const accessibilityScanResults = await axe.builder(page, ['color-contrast']).analyze();
+    const accessibilityScanResults = await axe.builder(page, {disableColorContrast: true}).analyze();
 
     // * Should have no violation
     expect(accessibilityScanResults.violations).toHaveLength(0);
