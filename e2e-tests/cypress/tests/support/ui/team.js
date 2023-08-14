@@ -14,7 +14,7 @@ Cypress.Commands.add('uiInviteMemberToCurrentTeam', (username) => {
     cy.get('.users-emails-input__control input').typeWithForce(username).as('input');
     cy.get('.users-emails-input__option ').contains(`@${username}`);
     cy.get('@input').typeWithForce('{enter}');
-    cy.get('#inviteMembersButton').click();
+    cy.findByTestId('inviteButton').click();
 
     // * Verify user invited to team
     cy.get('.invitation-modal-confirm--sent .InviteResultRow').

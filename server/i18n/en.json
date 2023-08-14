@@ -4292,6 +4292,10 @@
     "translation": "Login failed because email address has not been verified."
   },
   {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Login failed because remote users are not allow to log in."
+  },
+  {
     "id": "api.user.login.use_auth_service.app_error",
     "translation": "Please sign in using {{.AuthService}}."
   },
@@ -4782,6 +4786,10 @@
   {
     "id": "app.channel.get_channels_member_count.find.app_error",
     "translation": "Unable to find member count."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Unable to check unreads and mentions"
   },
   {
     "id": "app.channel.get_deleted.existing.app_error",
@@ -6024,10 +6032,6 @@
     "translation": "We encountered an error updating the app."
   },
   {
-    "id": "app.plugin.blocked.app_error",
-    "translation": "Plugin {{.Id}} is on the block list. Some plugins are blocked because they are built into this version of Mattermost."
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
@@ -6750,6 +6754,10 @@
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Unable to mark all threads as read by channel"
   },
   {
     "id": "app.update_error",

@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -31,7 +31,7 @@ const (
 type JWTClaims struct {
 	LicenseID   string `json:"license_id"`
 	ActiveUsers int64  `json:"active_users"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func (ps *PlatformService) LicenseManager() einterfaces.LicenseInterface {
@@ -353,8 +353,8 @@ func (ps *PlatformService) GenerateRenewalToken(expiration time.Duration) (strin
 	claims := &JWTClaims{
 		LicenseID:   license.Id,
 		ActiveUsers: activeUsers,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 

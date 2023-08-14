@@ -1232,6 +1232,22 @@ func (s *TimerLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []strin
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+	start := time.Now()
+
+	result, resultVar1, resultVar2, err := s.ChannelStore.GetChannelsWithUnreadsAndWithMentions(ctx, channelIDs, userID, userNotifyProps)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelsWithUnreadsAndWithMentions", success, elapsed)
+	}
+	return result, resultVar1, resultVar2, err
+}
+
 func (s *TimerLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userID string) (model.ChannelList, error) {
 	start := time.Now()
 
@@ -4530,6 +4546,22 @@ func (s *TimerLayerJobStore) Save(job *model.Job) (*model.Job, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
+	start := time.Now()
+
+	result, err := s.JobStore.SaveOnce(job)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.SaveOnce", success, elapsed)
 	}
 	return result, err
 }
@@ -9996,6 +10028,22 @@ func (s *TimerLayerUserStore) GetByEmail(email string) (*model.User, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetByEmail", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserStore) GetByRemoteID(remoteID string) (*model.User, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetByRemoteID(remoteID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetByRemoteID", success, elapsed)
 	}
 	return result, err
 }

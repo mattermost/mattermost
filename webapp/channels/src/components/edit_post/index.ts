@@ -22,6 +22,7 @@ import {GlobalState} from 'types/store';
 import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
 import {setGlobalItem} from '../../actions/storage';
 import {getIsRhsOpen, getPostDraft, getRhsState} from '../../selectors/rhs';
+import {runMessageWillBeUpdatedHooks} from 'actions/hooks';
 
 import EditPost, {Actions} from './edit_post';
 
@@ -67,6 +68,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setDraft: setGlobalItem,
             unsetEditingPost,
             openModal,
+            runMessageWillBeUpdatedHooks,
         }, dispatch),
     };
 }
