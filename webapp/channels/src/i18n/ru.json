@@ -3649,7 +3649,6 @@
   "inProduct_notices.adminOnlyMessage": "Видят только администраторы",
   "incoming_webhooks.header": "Входящие вебхуки",
   "input.clear": "Очистить",
-  "insights.topPlaybooks.myTitle": "Топ моих сценариев",
   "installed_command.header": "Быстрые команды",
   "installed_commands.add": "Добавить быструю команду",
   "installed_commands.delete.confirm": "Это действие навсегда удаляет быструю команду и нарушает любые интеграции, использующие ее. Вы уверены, что хотите удалить?",
