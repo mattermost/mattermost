@@ -3649,7 +3649,6 @@
   "inProduct_notices.adminOnlyMessage": "管理者のみが閲覧可能",
   "incoming_webhooks.header": "内向きのウェブフック",
   "input.clear": "クリア",
-  "insights.topPlaybooks.myTitle": "私のトップPlaybooks",
   "installed_command.header": "スラッシュコマンド",
   "installed_commands.add": "スラッシュコマンドを追加する",
   "installed_commands.delete.confirm": "この操作によりスラッシュコマンドは削除され、そのコマンドを利用している統合機能が動作しなくなります。本当に削除しますか？",
