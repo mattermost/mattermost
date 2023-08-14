@@ -75,7 +75,10 @@ function makeMapStateToProps() {
             atOldestPost = Boolean(chunk.oldest);
         }
 
-        const shouldHideNewMessageIndicator = shouldStartFromBottomWhenUnread && !isPostsChunkIncludingUnreadsPosts(state, chunk!, unreadChunkTimeStamp);
+        let shouldHideNewMessageIndicator = false;
+        if (unreadChunkTimeStamp != null) {
+            shouldHideNewMessageIndicator = shouldStartFromBottomWhenUnread && !isPostsChunkIncludingUnreadsPosts(state, chunk!, unreadChunkTimeStamp);
+        }
 
         if (postIds) {
             formattedPostIds = preparePostIdsForPostList(state, {postIds, lastViewedAt, indicateNewMessages: !shouldHideNewMessageIndicator});
