@@ -259,7 +259,7 @@ func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDelet
 
 	_, err = txn.ExecBuilder(query)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete orphaned reactions with postIds=%s", r.Ids)
+		return errors.Wrapf(err, "failed to delete orphaned reactions with RetentionIdsForDeletion Id=%s", r.Id)
 	}
 	err = deleteFromRetentionIdsTx(txn, r.Id)
 	if err != nil {

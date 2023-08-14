@@ -1093,7 +1093,7 @@ func genericRetentionPoliciesDeletion(
 		} else {
 			retentionIdsRow := model.RetentionIdsForDeletion{
 				TableName: r.Table,
-				Ids:       make([]string, 0),
+				Ids:       []string{},
 			}
 			// 1. Select rows that will be deleted
 			if err = txn.Select(&retentionIdsRow.Ids, query, args...); err != nil {
