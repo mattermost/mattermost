@@ -3842,6 +3842,18 @@ func TestLogin(t *testing.T) {
 		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
 	})
 
+	t.Run("remote user login rejected", func(t *testing.T) {
+		email := th.GenerateTestEmail()
+		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewString("remote-id")}
+		ruser, _, _ := th.Client.CreateUser(context.Background(), &user)
+
+		_, err := th.SystemAdminClient.UpdateUserPassword(context.Background(), ruser.Id, "", "password")
+		require.NoError(t, err)
+
+		_, _, err = th.Client.Login(context.Background(), ruser.Email, "password")
+		CheckErrorID(t, err, "api.user.login.remote_users.login.error")
+	})
+
 	t.Run("login with terms_of_service set", func(t *testing.T) {
 		termsOfService, appErr := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
 		require.Nil(t, appErr)
