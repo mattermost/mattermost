@@ -30,11 +30,6 @@ type Props = {
     enableFormatting?: boolean;
 
     /*
-     * Whether or not this text is part of the RHS
-     */
-    isRHS?: boolean;
-
-    /*
      * An array of paths on the server that are managed by another server
      */
     managedResourcePaths?: string[];
@@ -126,7 +121,6 @@ type Props = {
 export default class Markdown extends React.PureComponent<Props> {
     static defaultProps: Partial<Props> = {
         options: {},
-        isRHS: false,
         proxyImages: true,
         imagesMetadata: {},
         postId: '', // Needed to avoid proptypes console errors for cases like channel header, which doesn't have a proper value
@@ -163,7 +157,7 @@ export default class Markdown extends React.PureComponent<Props> {
 
         const htmlFormattedText = formatText(message, options, this.props.emojiMap);
 
-        return messageHtmlToComponent(htmlFormattedText, this.props.isRHS, {
+        return messageHtmlToComponent(htmlFormattedText, {
             imageProps: this.props.imageProps,
             imagesMetadata: this.props.imagesMetadata,
             hasPluginTooltips: this.props.hasPluginTooltips,
