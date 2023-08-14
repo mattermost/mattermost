@@ -1027,7 +1027,7 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
 			return errors.Wrapf(err, "failed to find Posts with userId=%s", userId)
 		}
 
-		if ids == nil || len(ids) == 0 {
+		if len(ids) == 0 {
 			break
 		}
 

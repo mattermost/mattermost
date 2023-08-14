@@ -230,7 +230,7 @@ func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
 	}
 
 	for _, postId := range postIds {
-		_, err := txn.Exec(UpdatePostHasReactionsOnDeleteQuery, now, postId, postId)
+		_, err = txn.Exec(UpdatePostHasReactionsOnDeleteQuery, now, postId, postId)
 		if err != nil {
 			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
 				mlog.String("post_id", postId),

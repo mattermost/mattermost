@@ -1424,7 +1424,7 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	r2.UserId = o1.UserId
 	r2.PostId = o2.Id
 	r2.EmojiName = "wave"
-	r2, err = ss.Reaction().Save(r2)
+	_, err = ss.Reaction().Save(r2)
 	require.NoError(t, err)
 
 	r3 := &model.Reaction{}
@@ -1454,7 +1454,7 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	r4.UserId = model.NewId()
 	r4.PostId = o3.Id
 	r4.EmojiName = "angry"
-	r4, err = ss.Reaction().Save(r4)
+	_, err = ss.Reaction().Save(r4)
 	require.NoError(t, err)
 
 	channel3, err := ss.Channel().Save(&model.Channel{
@@ -1510,9 +1510,8 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	reactions, err := ss.Reaction().GetForPost(o1.Id, false)
 	require.NoError(t, err, "Reactions should exist")
 	require.Equal(t, 2, len(reactions))
-	emojis := []string{"smile", "sad"}
+	emojis := []string{r1.EmojiName, r3.EmojiName}
 	for _, reaction := range reactions {
-		emojis = append(emojis)
 		require.Contains(t, emojis, reaction.EmojiName)
 	}
 
@@ -1542,7 +1541,6 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	require.NoError(t, err, "Reactions should exist")
 	require.Equal(t, 2, len(reactions))
 	for _, reaction := range reactions {
-		emojis = append(emojis)
 		require.Contains(t, emojis, reaction.EmojiName)
 	}
 

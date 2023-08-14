@@ -877,7 +877,7 @@ func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string,
 	return idsForDeletion, nil
 }
 
-func insertRetentionIdsForDeletion(txn *sqlxTxWrapper, row *model.RetentionIdsForDeletion, s *SqlStore) (err error) {
+func insertRetentionIdsForDeletion(txn *sqlxTxWrapper, row *model.RetentionIdsForDeletion, s *SqlStore) error {
 	row.PreSave()
 	insertBuilder := s.getQueryBuilder().
 		Insert("RetentionIdsForDeletion").
@@ -894,6 +894,9 @@ func insertRetentionIdsForDeletion(txn *sqlxTxWrapper, row *model.RetentionIdsFo
 			Values(row.Id, row.TableName, jsonIds)
 	}
 	insertQuery, insertArgs, err := insertBuilder.ToSql()
+	if err != nil {
+		return err
+	}
 
 	if _, err = txn.Exec(insertQuery, insertArgs...); err != nil {
 		return err
@@ -1057,7 +1060,8 @@ func genericRetentionPoliciesDeletion(
 			DELETE FROM ` + r.Table + ` WHERE ` + primaryKeysStr + ` IN (
 			` + query + `
 			) RETURNING ` + r.Table + `.` + r.PrimaryKeys[0]
-			rows, err := txn.Query(query, args...)
+			var rows *sql.Rows
+			rows, err = txn.Query(query, args...)
 			if err != nil {
 				return 0, errors.Wrap(err, "failed to delete "+r.Table)
 			}
@@ -1114,7 +1118,8 @@ func genericRetentionPoliciesDeletion(
 				) AS A ON ` + joinClause
 
 				// 3. Delete from Parent table
-				result, err := txn.Exec(query, args...)
+				var result sql.Result
+				result, err = txn.Exec(query, args...)
 				if err != nil {
 					return 0, errors.Wrap(err, "failed to delete "+r.Table)
 				}
