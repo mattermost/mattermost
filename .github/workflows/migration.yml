@@ -18,7 +18,6 @@ jobs:
         run: |
           cd build
           docker-compose --ansi never run --rm start_dependencies
-          cat ../tests/test-data.ldif | docker-compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker-compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker-compose --ansi never ps
       - name: Generate test-data
@@ -42,7 +41,7 @@ jobs:
            -v $PWD:/mattermost \
            -w /mattermost \
            $BUILD_IMAGE \
-           make test-migration
+           apt update && apt install -y pgloader && make test-migration
       - name: Upload artifacts
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:

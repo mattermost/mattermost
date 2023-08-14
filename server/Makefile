@@ -850,9 +850,7 @@ test-migration:
 	@sed -i'' -e 's|{{ .mysql_password }}|${MYSQL_PASSWORD}|g' tests/temp.load
 	@sed -i'' -e 's|{{ .source_schema }}|${MYSQL_SCHEMA}|g' tests/temp.load
 
-	# install pgloader
-	apt install -y pgloader
-	# run and save the logs
+	# run pgloader and save the logs
 	pgloader tests/temp.load > migration.log
 
 	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@latest
