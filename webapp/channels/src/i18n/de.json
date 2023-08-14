@@ -3650,7 +3650,6 @@
   "inProduct_notices.adminOnlyMessage": "Nur für Administratoren sichtbar",
   "incoming_webhooks.header": "Eingehende Webhooks",
   "input.clear": "Leeren",
-  "insights.topPlaybooks.myTitle": "Meine Top-Playbooks",
   "installed_command.header": "Slash-Befehle",
   "installed_commands.add": "Slash-Befehl hinzufügen",
   "installed_commands.delete.confirm": "Diese Aktion wird den Slash-Befehl permanent löschen und wird jede Integration, die ihn verwendet, stoppen. Bist du sicher, dass du ihn löschen möchtest?",
