@@ -389,7 +389,7 @@ func TestHubConnIndexInactive(t *testing.T) {
 		Platform: th.Service,
 		UserId:   model.NewId(),
 	}
-	wc2.active.Store(false)
+	wc2.active.Store(true)
 	wc2.SetConnectionID("conn2")
 	wc2.SetSession(&model.Session{})
 
