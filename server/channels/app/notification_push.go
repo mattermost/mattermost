@@ -14,6 +14,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/mattermost/mattermost/server/public/plugin"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -138,6 +140,21 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 }
 
 func (a *App) sendPushNotification(notification *PostNotification, user *model.User, explicitMention, channelWideMention bool, replyToThreadType string) {
+	cancelled := false
+	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		rejectionReason := hooks.NotificationWillBePushed(notification.Post, user, notification.Sender, notification.Channel, explicitMention, channelWideMention, replyToThreadType)
+		if rejectionReason != "" {
+			mlog.Error("Notification rejected by plugin.", mlog.String("reason", rejectionReason))
+			cancelled = true
+			return false
+		}
+		return true
+	}, plugin.NotificationWillBePushedID)
+
+	if cancelled {
+		return
+	}
+
 	cfg := a.Config()
 	channel := notification.Channel
 	post := notification.Post

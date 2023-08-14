@@ -1,0 +1,18 @@
+package main
+
+import (
+    "github.com/mattermost/mattermost/server/public/plugin"
+    "github.com/mattermost/mattermost/server/public/model"
+)
+
+type MyPlugin struct {
+    plugin.MattermostPlugin
+}
+
+func (p *MyPlugin) NotificationWillBePushed(post *model.Post, user, sender *model.User, channel *model.Channel, explicitMention bool, channelWideMention bool, replyToThreadType string) string {
+    %s
+}
+
+func main() {
+    plugin.ClientMain(&MyPlugin{})
+}
