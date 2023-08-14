@@ -3,8 +3,10 @@
 .toast {
     position: absolute;
     z-index: 2;
+    display: flex;
     width: calc(100% - 30px);
     height: 40px;
+    align-items: center;
     margin: 10px 15px 0;
     background-color: var(--button-bg);
     border-radius: 4px;
@@ -14,8 +16,6 @@
     font-weight: bold;
     opacity: 0;
     visibility: hidden;
-    display: flex;
-    align-items: center;
 
     svg {
         fill: var(--button-color);
