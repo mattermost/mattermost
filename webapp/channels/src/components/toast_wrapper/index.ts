@@ -90,6 +90,7 @@ function makeMapStateToProps() {
         const channelMarkedAsUnread = isManuallyUnread(state, ownProps.channelId);
         const lastViewedAt = state.views.channel.lastChannelViewTime[ownProps.channelId];
         const unreadScrollPosition = getUnreadScrollPositionPreference(state);
+        const unreadsBarActions = state.plugins.components.UnreadsBarAction;
         if (!ownProps.atLatestPost) {
             let postIds = getPostIdsInChannel(state, ownProps.channelId) || [];
             if (postIds) {
@@ -105,6 +106,7 @@ function makeMapStateToProps() {
             isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
             unreadCountInChannel: countCurrentChannelUnreadMessages(state),
             channelMarkedAsUnread,
+            unreadsBarActions,
         };
     };
 }

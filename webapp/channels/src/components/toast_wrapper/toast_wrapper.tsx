@@ -13,6 +13,7 @@ import {localizeMessage} from 'utils/utils';
 import {isToday} from 'utils/datetime';
 import Constants from 'utils/constants';
 import {getHistory} from 'utils/browser_history';
+import {PluginComponent} from 'types/store/plugins';
 
 import Toast from 'components/toast/toast';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
@@ -52,6 +53,7 @@ export type Props = WrappedComponentProps & RouteComponentProps<{team: string}> 
     atLatestPost?: boolean;
     channelId: string;
     intl: IntlShape;
+    unreadsBarActions: PluginComponent[];
     actions: {
         updateToastStatus: (status: boolean) => void;
     };
@@ -378,6 +380,22 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
         const {atLatestPost, atBottom, width, lastViewedAt, showSearchHintToast} = this.props;
         const {showUnreadToast, showNewMessagesToast, showMessageHistoryToast, showUnreadWithBottomStartToast, unreadCount} = this.state;
 
+        const pluginItems = this.props.unreadsBarActions?.
+            map((item) => {
+                if (!item.component) {
+                    return null;
+                }
+
+                const Component = item.component as any;
+                return (
+                    <Component
+                        key={item.id}
+                        lastViewedAt={lastViewedAt}
+                        unreadCount={unreadCount}
+                    />
+                );
+            });
+
         const unreadToastProps = {
             show: true,
             width,
@@ -391,6 +409,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
             return (
                 <Toast {...unreadToastProps}>
                     {this.newMessagesToastText(unreadCount, lastViewedAt)}
+                    {pluginItems}
                 </Toast>
             );
         }
@@ -409,6 +428,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
             return (
                 <Toast {...unreadWithBottomStartToastProps}>
                     {this.newMessagesToastText(unreadCount, lastViewedAt)}
+                    {pluginItems}
                 </Toast>
             );
         }
@@ -426,6 +446,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                     {...showNewMessagesToastOverrides}
                 >
                     {this.newMessagesToastText(unreadCount, lastViewedAt)}
+                    {pluginItems}
                 </Toast>
             );
         }
@@ -444,6 +465,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
             return (
                 <Toast {...archiveToastProps}>
                     {this.archiveToastText()}
+                    {pluginItems}
                 </Toast>
             );
         }
@@ -454,6 +476,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                     onDismiss={this.hideSearchHintToast}
                 >
                     {this.getSearchHintToastText()}
+                    {pluginItems}
                 </HintToast>
             );
         }

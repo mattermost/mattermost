@@ -4,7 +4,7 @@
     position: absolute;
     z-index: 2;
     width: calc(100% - 30px);
-    height: 32px;
+    height: 40px;
     margin: 10px 15px 0;
     background-color: var(--button-bg);
     border-radius: 4px;
@@ -14,6 +14,8 @@
     font-weight: bold;
     opacity: 0;
     visibility: hidden;
+    display: flex;
+    align-items: center;
 
     svg {
         fill: var(--button-color);
@@ -38,8 +40,8 @@
     .toast__dismiss {
         position: absolute;
         right: 0;
-        height: 32px;
-        padding: 0 8px;
+        height: 40px;
+        padding: 4px 8px;
         cursor: pointer;
 
         &:hover {
@@ -55,7 +57,8 @@
         position: absolute;
         z-index: -1;
         width: calc(100% - 40px);
-        height: 32px;
+        height: 40px;
+        padding-top: 4px;
         padding-left: 10px;
         line-height: 31px;
         text-align: center;
