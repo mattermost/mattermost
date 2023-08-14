@@ -111,7 +111,7 @@ type RetentionPolicyStore interface {
 }
 
 type TeamStore interface {
-	Save(team *model.Team) (*model.Team, error)
+	Save(ctx context.Context, team *model.Team) (*model.Team, error)
 	Update(team *model.Team) (*model.Team, error)
 	Get(id string) (*model.Team, error)
 	GetMany(ids []string) ([]*model.Team, error)
