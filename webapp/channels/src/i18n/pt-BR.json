@@ -51,6 +51,12 @@
   "accessibility.sidebar.types.private": "canal privado",
   "accessibility.sidebar.types.public": "canal público",
   "accessibility.sidebar.types.unread": "não lido",
+<<<<<<< HEAD
+=======
+  "activityAndInsights.title": "Atividades e informações - {displayName} {siteName}",
+  "activityAndInsights.tutorialTip.title": "Apresentando: Percepções",
+  "activityAndInsights.tutorial_tip.viewInsights": "Ver informações",
+>>>>>>> f9405527fc (Update translation files)
   "activity_log.activeSessions": "Sessões ativas",
   "activity_log.browser": "Browser: {browser}",
   "activity_log.firstTime": "Primeira vez ativo: {date}, {time}",
@@ -3301,11 +3307,14 @@
   "global_header.productSwitchMenu": "Menu de troca de produto",
   "group_list_modal.addGroupButton": "Adicionar Grupos",
   "group_list_modal.removeGroupButton": "Remover Grupos",
+<<<<<<< HEAD
   "group_member_list.loadError": "Ocorreu um erro ao carregar a lista de membros deste grupo.",
   "group_member_list.retryLoadButton": "Tentar novamente",
   "group_member_list.searchError": "Ocorreu um erro ao mostrar os resultados. Limpe seu termo de pesquisa e tente novamente.",
   "group_member_list.sendMessageButton": "Enviar mensagem para {user}",
   "group_member_list.sendMessageTooltip": "Enviar mensagem",
+=======
+>>>>>>> f9405527fc (Update translation files)
   "inProduct_notices.adminOnlyMessage": "Visível apenas para Administradores",
   "incoming_webhooks.header": "Webhooks de entrada",
   "input.clear": "Limpar",

@@ -9160,10 +9160,6 @@
     "translation": "清除团队成员缓存时出错"
   },
   {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "无法为团队获取顶级线程。"
-  },
-  {
     "id": "app.post.cloud.get.app_error",
     "translation": "无法获取帖子，因为它超过了云的计划限制。"
   },
@@ -9416,16 +9412,8 @@
     "translation": "这是自 {{.DelinquencyDate}} 后我们尚未收到您的 Mattermost Cloud 工作区付款的最后提醒。"
   },
   {
-    "id": "api.command_templates.desc",
-    "translation": "打开从模板创建窗口"
-  },
-  {
     "id": "api.templates.delinquency_30.subtitle1",
     "translation": "您还有时间保持您的 Mattermost {{.Plan}} 可用，但是在那之前您需要解决一些与支付有关的问题。"
-  },
-  {
-    "id": "worktemplate.category.leadership",
-    "translation": "领导"
   },
   {
     "id": "worktemplate.category.companywide",
@@ -9504,48 +9492,24 @@
     "translation": "解码 Elasticsearch CA 失败"
   },
   {
-    "id": "app.worktemplates.get_categories.app_error",
-    "translation": "无法取得作业模板目录"
-  },
-  {
     "id": "app.worktemplates.execute_work_template.playbooks.create_error",
     "translation": "创建 Playbook 时发生错误。"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.channels.create_error",
-    "translation": "在创建频道时发生错误。"
   },
   {
     "id": "app.worktemplates.execute_work_template.app_error",
     "translation": "在执行作业模板时发生错误。"
   },
   {
-    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
-    "translation": "您没有创建公开 Playbook 的权限。"
-  },
-  {
     "id": "app.worktemplate.execution_request.cannot_create_public_board",
     "translation": "您没有创建公开 Board 的权限。"
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
-    "translation": "您没有创建私密频道的权限。"
   },
   {
     "id": "app.user.get_badge_count.app_error",
     "translation": "无法获取用户的奖章数目。"
   },
   {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "接口不是预期的类型"
-  },
-  {
     "id": "app.team.create_onboarding_linked_board.error_no_board",
     "translation": "在创建 Board 时发生错误"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "在复制 Board 时发生错误"
   },
   {
     "id": "app.post_prority.get_for_post.app_error",
@@ -9602,10 +9566,6 @@
   {
     "id": "app.draft.delete.app_error",
     "translation": "无法删除草稿。"
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Collection 类型已存在。"
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message_single",
@@ -9704,64 +9664,32 @@
     "translation": "CWS 服务器删除工作区时失败。"
   },
   {
-    "id": "app.user.run.update_status.title",
-    "translation": "状态更新"
-  },
-  {
     "id": "app.user.run.update_status.reminder_for_next_update",
     "translation": "下次更新的提醒"
-  },
-  {
-    "id": "app.user.run.update_status.finish_run.placeholder",
-    "translation": "并且标记此运行为已结束"
   },
   {
     "id": "app.user.run.update_status.change_since_last_update",
     "translation": "对比上次存在更改"
   },
   {
-    "id": "app.user.run.status_disable",
-    "translation": "@{{.Username}} 停止用了 [{{.RunName}}]({{.RunURL}})的状态更新。"
-  },
-  {
     "id": "app.user.run.request_join_channel",
     "translation": "@{{.Name}} 是一个运行的参与者，并且希望要参加这个频道。任何的频道成员都可以邀请他们。\n"
-  },
-  {
-    "id": "app.user.run.confirm_finish.submit_label",
-    "translation": "完成运行"
   },
   {
     "id": "app.user.run.add_to_timeline.title",
     "translation": "添加到运行队列"
   },
   {
-    "id": "app.user.run.add_to_timeline.summary.help",
-    "translation": "最大64个字符"
-  },
-  {
     "id": "app.user.run.add_to_timeline.submit_label",
     "translation": "添加到运行队列"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.title",
-    "translation": "添加新任务"
   },
   {
     "id": "app.user.run.add_checklist_item.name",
     "translation": "名字"
   },
   {
-    "id": "app.user.new_run.title",
-    "translation": "运行playbook"
-  },
-  {
     "id": "app.user.new_run.run_name",
     "translation": "运行名"
-  },
-  {
-    "id": "app.user.new_run.intro",
-    "translation": "**所有者** {{.Username}}"
   },
   {
     "id": "app.user.digest.tasks.num_assigned_due_until_today",
@@ -9770,36 +9698,16 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.heading",
-    "translation": "您的任务"
-  },
-  {
     "id": "app.user.digest.tasks.due_x_days_ago",
     "translation": "{{.Count}}天已过期"
-  },
-  {
-    "id": "app.user.digest.tasks.due_in_x_days",
-    "translation": {
-      "other": "{{.Count}}天后过期"
-    }
   },
   {
     "id": "app.user.digest.tasks.all_tasks_command",
     "translation": "请使用`/playbook todo`来查看您所有的任务。"
   },
   {
-    "id": "app.user.digest.runs_in_progress.num_in_progress",
-    "translation": {
-      "other": "您有{{.Count}}正在运行："
-    }
-  },
-  {
     "id": "app.user.digest.overdue_status_updates.zero_overdue",
     "translation": "您没有逾期。"
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.heading",
-    "translation": "过期状态更新"
   },
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
@@ -9830,32 +9738,16 @@
     "translation": "无效的商务试用邮箱"
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "在一个频道与你的团队讨论任何的发布障碍和变动，并很容易的与你的面板，Playbook或者其他的集成功能连接。"
-  },
-  {
     "id": "worktemplate.product_teams.bug_bash.integration",
     "translation": "通过集成大多您使用过的工具（比如Jira）在您的频道里提高生产力，跟踪你的Bug解决过程。这些工具将为你下载。"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "和您的团队讨论目标和进度，以异步或者同步的方式，在同一个频道中保持跟上任何发生的变化。"
   },
   {
     "id": "worktemplate.devops.incident_resolution.description.channel",
     "translation": "在一单独频道与您的团队讨论优先级、添加利益相关者，提供更新，向解决的方向努力。"
   },
   {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "通过集成大多您使用过的工具（比如 Zoom）在您的频道里提高生产力，实行更容易的协作。这些工具将为你下载。"
-  },
-  {
     "id": "worktemplate.companywide.goals_and_okrs.board",
     "translation": "使用目标和OKR面板跟踪您的团队进度向组织目标推进。使用会议安排面板保持会议一起正常。"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "与您的团队在一个协作频道里讨论新的项目并且决定如何你们将如此组织。"
   },
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",

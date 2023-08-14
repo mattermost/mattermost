@@ -50,6 +50,11 @@
   "accessibility.sidebar.types.private": "کانال خصوصی",
   "accessibility.sidebar.types.public": "کانال عمومی",
   "accessibility.sidebar.types.unread": "خوانده نشده",
+<<<<<<< HEAD
+=======
+  "activityAndInsights.tutorialTip.title": "معرفی‌کردن: دیدگاه‌ها",
+  "activityAndInsights.tutorial_tip.viewInsights": "مشاهده دیدگاه‌ها",
+>>>>>>> f9405527fc (Update translation files)
   "activity_log.activeSessions": "نشست های فعال",
   "activity_log.browser": "مرورگر: {browser}",
   "activity_log.firstTime": "اولین زمان فعال بودن: تاریخ: {date} و زمان: {time}",
@@ -2907,6 +2912,10 @@
   "dnd_custom_time_picker_modal.defaultMsg": "غیرفعال کردن اعلان ها تا زمانی که",
   "dnd_custom_time_picker_modal.submitButton": "غیر فعال کردن اعلانها",
   "dnd_custom_time_picker_modal.time": "زمان",
+<<<<<<< HEAD
+=======
+  "downgrade_plan_modal.selectTeam": "انتخاب تیم",
+>>>>>>> f9405527fc (Update translation files)
   "drafts.actions.delete": "حذف پیش‌نویس",
   "drafts.actions.edit": "ویرایش پیش‌نویس",
   "drafts.actions.send": "ارسال پیش‌نویس",
@@ -3204,7 +3213,32 @@
   "group_member_list.sendMessageTooltip": "ارسال پیام",
   "inProduct_notices.adminOnlyMessage": "فقط برای مدیران قابل مشاهده است",
   "input.clear": "پاک کردن",
+<<<<<<< HEAD
   "insights.topPlaybooks.title": "برترین اجرانامه‌ها",
+=======
+  "insights.accessModal.docsLink": "بینش‌ها",
+  "insights.filter.myInsights": "دیدگاه‌های من",
+  "insights.leastActiveChannels.channel": "کانال",
+  "insights.leastActiveChannels.lastActivityCell": "آخرین فعالیت",
+  "insights.leastActiveChannels.leaveChannel": "ترک کانال",
+  "insights.myHeading": "دیدگاه‌های من",
+  "insights.newMembers.member": "عضو تیم",
+  "insights.newMembers.sayHello": "سلام کن",
+  "insights.teamHeading": "دیدگاه‌های تیم",
+  "insights.topBoards.title": "برترین تابلوها",
+  "insights.topBoardsTable.board": "تابلو",
+  "insights.topBoardsTable.updates": "به‌روزرسانی‌ها",
+  "insights.topChannels.title": "کانال‌های برتر",
+  "insights.topDMs.receivedMessages": "دریافت‌شده",
+  "insights.topDMs.totalMessages": "جمع پیام‌ها",
+  "insights.topPlaybooks.title": "برترین اجرانامه‌ها",
+  "insights.topPlaybooksTable.participants": "مجموع اجراها",
+  "insights.topPlaybooksTable.updates": "آخرین اجرا",
+  "insights.topReactions.reaction": "واکنش",
+  "insights.topReactions.title": "واکنش‌های برتر",
+  "insights.topThreads.thread": "گفت‌وگو",
+  "insights.topThreads.totalMessages": "شرکت‌کنندگان",
+>>>>>>> f9405527fc (Update translation files)
   "installed_command.header": "دستورات اسلش",
   "installed_commands.add": "دستور اسلش را اضافه کنید",
   "installed_commands.delete.confirm": "این عمل دستور اسلش را برای همیشه حذف می کند و هر ادغام با استفاده از آن را می شکند. آیا مطمئن هستید که می خواهید آن را حذف کنید؟",
@@ -4655,12 +4689,24 @@
   "webapp.mattermost.feature.start_call": "شروع تماس",
   "webapp.mattermost.feature.unlimited_messages": "پیام‌های نامحدود",
   "webapp.mattermost.feature.upgrade_downgraded_workspace": "بازگردانی محیط کار به طرح پرداخت‌شده",
+<<<<<<< HEAD
+=======
+  "welcome_post_renderer.button_label.slash_marketplace": "/marketplace",
+>>>>>>> f9405527fc (Update translation files)
   "widget.passwordInput.password": "رمز",
   "widgets.channels_input.empty": "کانالی پیدا نشد",
   "widgets.channels_input.loading": "بارگذاری",
   "widgets.users_emails_input.loading": "بارگذاری",
   "widgets.users_emails_input.no_user_found_matching": "هیچکس مطابق **{text}** پیدا نشد. برای دعوت از آنها ایمیل آنها را وارد کنید.",
   "widgets.users_emails_input.valid_email": "افزودن **{email}**",
+<<<<<<< HEAD
+=======
+  "work_templates.customize.modal_create_button": "ایجاد",
+  "work_templates.menu.template_title": "الگو",
+  "work_templates.preview.accordion_title_channels": "کانال‌ها",
+  "work_templates.preview.modal_cancel_button": "عقب",
+  "work_templates.preview.modal_title": "پیش‌نمایش {useCase}",
+>>>>>>> f9405527fc (Update translation files)
   "workspace_limits.archived_file.archived_compact": "(بایگانی‌شده)",
   "workspace_limits.file_storage": "مخزن پرونده",
   "workspace_limits.file_storage.short": "پرونده‌ها",

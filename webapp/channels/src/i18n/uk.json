@@ -51,6 +51,11 @@
   "accessibility.sidebar.types.private": "Приватний канал ",
   "accessibility.sidebar.types.public": "Публічний канал",
   "accessibility.sidebar.types.unread": "непрочитане",
+<<<<<<< HEAD
+=======
+  "activityAndInsights.title": "Дії та спостереження - {displayName} {siteName}",
+  "activityAndInsights.tutorial_tip.notNow": "Не зараз",
+>>>>>>> f9405527fc (Update translation files)
   "activity_log.activeSessions": "Активні сесії",
   "activity_log.browser": "Браузер: {browser}",
   "activity_log.firstTime": "Перша активність: {date}, {time}",
