@@ -3649,11 +3649,6 @@
   "inProduct_notices.adminOnlyMessage": "Enkel zichtbaar voor beheerders",
   "incoming_webhooks.header": "Inkomende Webhooks",
   "input.clear": "Wissen",
-<<<<<<< HEAD
-=======
-  "insights.newMembers.member": "Teamlid",
-  "insights.topPlaybooks.myTitle": "Mijn top Playbooks",
->>>>>>> 77188034d9 (Translated using Weblate (Dutch))
   "installed_command.header": "Slash opdrachten",
   "installed_commands.add": "Slash opdracht toevoegen",
   "installed_commands.delete.confirm": "Met deze actie wordt de slash-opdracht verwijderd en worden alle integraties die deze opdracht gebruiken, verwijderd. Weet je zeker dat je deze wilt wissen?",

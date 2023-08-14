@@ -9647,13 +9647,10 @@
     "translation": "Fout bij het bijwerken van de serververtalingen."
   },
   {
-<<<<<<< HEAD
-=======
     "id": "app.worktemplates.execute_work_template.app_error",
     "translation": "Fout bij het uitvoeren van een werksjabloon."
   },
   {
->>>>>>> 77188034d9 (Translated using Weblate (Dutch))
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
     "translation": "Ongeldige auth service: {{.AuthService}}"
   },
@@ -9662,13 +9659,6 @@
     "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Gebruikersnaam}}\"."
   },
   {
-<<<<<<< HEAD
-=======
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "fout tijdens het patchen van het bord"
-  },
-  {
->>>>>>> 77188034d9 (Translated using Weblate (Dutch))
     "id": "api.system.logs.invalidFilter",
     "translation": "Ongeldig logboekfilter"
   },
@@ -9697,8 +9687,6 @@
     "translation": "Ongeldig zakelijk e-mailadres voor proefperiode"
   },
   {
-<<<<<<< HEAD
-=======
     "id": "app.user.new_run.run_name",
     "translation": "Naam van de uitvoering"
   },
@@ -9707,7 +9695,6 @@
     "translation": "Verliep {{.Count}} dagen geleden"
   },
   {
->>>>>>> 77188034d9 (Translated using Weblate (Dutch))
     "id": "app.plugin.skip_installation.app_error",
     "translation": "De installatie van plugin {{.Id}} wordt overgeslagen omdat de bestaande versie gelijk is of nieuwer."
   },
@@ -9716,7 +9703,6 @@
     "translation": "Genegeerde indexen voor purge mogen niet beginnen met een streepje."
   },
   {
-<<<<<<< HEAD
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
     "translation": "Validatie van blijvende meldingen is mislukt."
   },
@@ -9725,7 +9711,6 @@
     "translation": "Gebruiker mag geen prioriteitspost of blijvende melding aanmaken."
   },
   {
-=======
     "id": "app.user.run.status_enable",
     "translation": "@{.Username}} heeft de statusupdates voor [{{.RunName}}]({{.RunURL}}) uitgeschakeld"
   },
@@ -9746,7 +9731,6 @@
     "translation": "Gebruiker mag geen prioriteitspost of blijvende melding aanmaken."
   },
   {
->>>>>>> 77188034d9 (Translated using Weblate (Dutch))
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
     "translation": "Alleen berichten die een draadje beginnen mogen prioriteit hebben."
   },
