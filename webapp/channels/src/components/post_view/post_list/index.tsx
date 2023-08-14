@@ -7,7 +7,7 @@ import {Dispatch, bindActionCreators, ActionCreatorsMapObject} from 'redux';
 import {getRecentPostsChunkInChannel, makeGetPostsChunkAroundPost, getUnreadPostsChunk, getPost, isPostsChunkIncludingUnreadsPosts, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {Action} from 'mattermost-redux/types/actions';
-import {markChannelAsRead, markChannelAsViewed} from 'mattermost-redux/actions/channels';
+import {markChannelAsRead} from 'mattermost-redux/actions/channels';
 import {makePreparePostIdsForPostList} from 'mattermost-redux/utils/post_list';
 import {RequestStatus} from 'mattermost-redux/constants';
 
@@ -111,7 +111,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             loadPostsAround,
             checkAndSetMobileView,
             syncPostsInChannel,
-            markChannelAsViewed,
             markChannelAsRead,
             updateNewMessagesAtInChannel,
         }, dispatch),

@@ -291,6 +291,13 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: ci/setup-node
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        id: setup_node
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: 'webapp/package-lock.json'
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Build
