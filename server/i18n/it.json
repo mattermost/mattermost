@@ -4044,10 +4044,6 @@
     "translation": "Id creatore non valido."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Impossibile decodificare la gif."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Valore non valido per il parametro create_at."
   },
@@ -7308,14 +7304,6 @@
     "translation": " "
   },
   {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.import.generate_password.app_error",
     "translation": " "
   },
@@ -7613,10 +7601,6 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.button",
-    "translation": " "
-  },
-  {
-    "id": "api.insights.feature_disabled",
     "translation": " "
   },
   {
@@ -8140,10 +8124,6 @@
     "translation": " "
   },
   {
-    "id": "app.insights.feature_disabled",
-    "translation": " "
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": " "
   },
@@ -8613,10 +8593,6 @@
   },
   {
     "id": "app.notification.body.thread_gm.subTitle",
-    "translation": " "
-  },
-  {
-    "id": "app.recent_searches.app_error",
     "translation": " "
   },
   {
