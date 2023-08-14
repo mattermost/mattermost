@@ -8,11 +8,12 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
-func (ts *TeamService) CreateTeam(team *model.Team) (*model.Team, error) {
+func (ts *TeamService) CreateTeam(ctx request.CTX, team *model.Team) (*model.Team, error) {
 	team.InviteId = ""
-	rteam, err := ts.store.Save(team)
+	rteam, err := ts.store.Save(ctx.Context(), team)
 	if err != nil {
 		return nil, err
 	}
