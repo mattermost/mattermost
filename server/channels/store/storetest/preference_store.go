@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -331,13 +332,17 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 }
 
 func testPreferenceDeleteOrphanedRows(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	const limit = 1000
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "DisplayName",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,

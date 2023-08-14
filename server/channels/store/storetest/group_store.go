@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math"
@@ -1004,6 +1005,8 @@ func testGroupGetMemberUsersSortedPage(t *testing.T, ss store.Store) {
 }
 
 func testGroupGetMemberUsersInTeam(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	// Save a team
 	team := &model.Team{
 		DisplayName: "Name",
@@ -1013,7 +1016,7 @@ func testGroupGetMemberUsersInTeam(t *testing.T, ss store.Store) {
 		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:        model.TeamOpen,
 	}
-	team, err := ss.Team().Save(team)
+	team, err := ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 
 	// Save a group
@@ -1090,6 +1093,8 @@ func testGroupGetMemberUsersInTeam(t *testing.T, ss store.Store) {
 }
 
 func testGroupGetMemberUsersNotInChannel(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	// Save a team
 	team := &model.Team{
 		DisplayName: "Name",
@@ -1099,7 +1104,7 @@ func testGroupGetMemberUsersNotInChannel(t *testing.T, ss store.Store) {
 		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:        model.TeamOpen,
 	}
-	team, err := ss.Team().Save(team)
+	team, err := ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 
 	// Save a group
@@ -1480,6 +1485,8 @@ func testGroupPermanentDeleteMembersByUser(t *testing.T, ss store.Store) {
 }
 
 func testCreateGroupSyncable(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	// Invalid GroupID
 	_, err := ss.Group().CreateGroupSyncable(model.NewGroupTeam("x", model.NewId(), false))
 	var appErr *model.AppError
@@ -1507,7 +1514,7 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamOpen,
 	}
-	team, nErr := ss.Team().Save(t1)
+	team, nErr := ss.Team().Save(ctx, t1)
 	require.NoError(t, nErr)
 
 	// New GroupSyncable, happy path
@@ -1522,6 +1529,8 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 }
 
 func testGetGroupSyncable(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	// Create a group
 	g1 := &model.Group{
 		Name:        model.NewString(model.NewId()),
@@ -1544,7 +1553,7 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamOpen,
 	}
-	team, nErr := ss.Team().Save(t1)
+	team, nErr := ss.Team().Save(ctx, t1)
 	require.NoError(t, nErr)
 
 	// Create GroupSyncable
@@ -1564,6 +1573,8 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 }
 
 func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	numGroupSyncables := 10
 
 	// Create group
@@ -1593,7 +1604,7 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 			Type:            model.TeamOpen,
 		}
 		var team *model.Team
-		team, nErr := ss.Team().Save(t1)
+		team, nErr := ss.Team().Save(ctx, t1)
 		require.NoError(t, nErr)
 
 		// create groupteam
@@ -1623,6 +1634,8 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 }
 
 func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	// Create Group
 	g1 := &model.Group{
 		Name:        model.NewString(model.NewId()),
@@ -1644,7 +1657,7 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamOpen,
 	}
-	team, nErr := ss.Team().Save(t1)
+	team, nErr := ss.Team().Save(ctx, t1)
 	require.NoError(t, nErr)
 
 	// New GroupSyncable, happy path
@@ -1691,6 +1704,8 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 }
 
 func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	// Create Group
 	g1 := &model.Group{
 		Name:        model.NewString(model.NewId()),
@@ -1712,7 +1727,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamOpen,
 	}
-	team, nErr := ss.Team().Save(t1)
+	team, nErr := ss.Team().Save(ctx, t1)
 	require.NoError(t, nErr)
 
 	// Create GroupSyncable
@@ -1747,6 +1762,8 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 }
 
 func testTeamMembersToAdd(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	// Create Group
 	group, err := ss.Group().Create(&model.Group{
 		Name:        model.NewString(model.NewId()),
@@ -1779,7 +1796,7 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamOpen,
 	}
-	team, nErr = ss.Team().Save(team)
+	team, nErr = ss.Team().Save(ctx, team)
 	require.NoError(t, nErr)
 
 	// Create GroupTeam
@@ -1926,6 +1943,8 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 }
 
 func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	group1, err := ss.Group().Create(&model.Group{
 		Name:        model.NewString(model.NewId()),
 		DisplayName: "TeamMembersToAdd Test Group",
@@ -1980,7 +1999,7 @@ func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamOpen,
 	}
-	team1, nErr = ss.Team().Save(team1)
+	team1, nErr = ss.Team().Save(ctx, team1)
 	require.NoError(t, nErr)
 
 	team2 := &model.Team{
@@ -1993,7 +2012,7 @@ func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamOpen,
 	}
-	team2, nErr = ss.Team().Save(team2)
+	team2, nErr = ss.Team().Save(ctx, team2)
 	require.NoError(t, nErr)
 
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupTeam(group1.Id, team1.Id, true))
@@ -2348,6 +2367,8 @@ func testTeamMembersToRemove(t *testing.T, ss store.Store) {
 }
 
 func testTeamMembersToRemoveSingleTeam(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	user1 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
@@ -2380,7 +2401,7 @@ func testTeamMembersToRemoveSingleTeam(t *testing.T, ss store.Store) {
 		Type:             model.TeamOpen,
 		GroupConstrained: model.NewBool(true),
 	}
-	team1, nErr := ss.Team().Save(team1)
+	team1, nErr := ss.Team().Save(ctx, team1)
 	require.NoError(t, nErr)
 
 	team2 := &model.Team{
@@ -2394,7 +2415,7 @@ func testTeamMembersToRemoveSingleTeam(t *testing.T, ss store.Store) {
 		Type:             model.TeamOpen,
 		GroupConstrained: model.NewBool(true),
 	}
-	team2, nErr = ss.Team().Save(team2)
+	team2, nErr = ss.Team().Save(ctx, team2)
 	require.NoError(t, nErr)
 
 	for _, user := range []*model.User{user1, user2} {
@@ -2580,6 +2601,8 @@ type removalsData struct {
 }
 
 func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData {
+	ctx := context.TODO()
+
 	// create group
 	group, err := ss.Group().Create(&model.Group{
 		Name:        model.NewString(model.NewId()),
@@ -2653,7 +2676,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Type:             model.TeamInvite,
 		GroupConstrained: model.NewBool(true),
 	}
-	teamConstrained, nErr = ss.Team().Save(teamConstrained)
+	teamConstrained, nErr = ss.Team().Save(ctx, teamConstrained)
 	require.NoError(t, nErr)
 
 	teamUnconstrained := &model.Team{
@@ -2666,7 +2689,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamInvite,
 	}
-	teamUnconstrained, nErr = ss.Team().Save(teamUnconstrained)
+	teamUnconstrained, nErr = ss.Team().Save(ctx, teamUnconstrained)
 	require.NoError(t, nErr)
 
 	// create groupteams
@@ -2967,6 +2990,8 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 }
 
 func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	// Create Team1
 	team1 := &model.Team{
 		DisplayName:     "Team1",
@@ -2978,7 +3003,7 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamOpen,
 	}
-	team1, errt := ss.Team().Save(team1)
+	team1, errt := ss.Team().Save(ctx, team1)
 	require.NoError(t, errt)
 
 	// Create Channel1
@@ -3210,6 +3235,8 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, ss store.Store) {
 }
 
 func testGetGroupsByTeam(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	// Create Team1
 	team1 := &model.Team{
 		DisplayName:     "Team1",
@@ -3221,7 +3248,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamOpen,
 	}
-	team1, err := ss.Team().Save(team1)
+	team1, err := ss.Team().Save(ctx, team1)
 	require.NoError(t, err)
 
 	// Create Groups 1, 2 and a deleted group
@@ -3275,7 +3302,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamInvite,
 	}
-	team2, err = ss.Team().Save(team2)
+	team2, err = ss.Team().Save(ctx, team2)
 	require.NoError(t, err)
 
 	// Create Group3
@@ -3456,6 +3483,8 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 }
 
 func testGetGroups(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	// Create Team1
 	team1 := &model.Team{
 		DisplayName:      "Team1",
@@ -3468,7 +3497,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		Type:             model.TeamOpen,
 		GroupConstrained: model.NewBool(true),
 	}
-	team1, err := ss.Team().Save(team1)
+	team1, err := ss.Team().Save(ctx, team1)
 	require.NoError(t, err)
 
 	startCreateTime := team1.UpdateAt - 1
@@ -3534,7 +3563,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamInvite,
 	}
-	team2, err = ss.Team().Save(team2)
+	team2, err = ss.Team().Save(ctx, team2)
 	require.NoError(t, err)
 
 	// Create Channel2
@@ -3659,7 +3688,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamInvite,
 	}
-	team3, err = ss.Team().Save(team3)
+	team3, err = ss.Team().Save(ctx, team3)
 	require.NoError(t, err)
 
 	channel4 := &model.Channel{
@@ -3974,6 +4003,8 @@ func testGetGroups(t *testing.T, ss store.Store) {
 }
 
 func testTeamMembersMinusGroupMembers(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	const numberOfGroups = 3
 	const numberOfUsers = 4
 
@@ -3991,7 +4022,7 @@ func testTeamMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 		Type:             model.TeamOpen,
 		GroupConstrained: model.NewBool(true),
 	}
-	team, err := ss.Team().Save(team)
+	team, err := ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 
 	for i := 0; i < numberOfUsers; i++ {
@@ -4419,6 +4450,8 @@ func groupTestAdminRoleGroupsForSyncableMemberChannel(t *testing.T, ss store.Sto
 }
 
 func groupTestAdminRoleGroupsForSyncableMemberTeam(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	user := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
@@ -4457,7 +4490,7 @@ func groupTestAdminRoleGroupsForSyncableMemberTeam(t *testing.T, ss store.Store)
 		Name:        NewTestId(),
 		Type:        model.TeamOpen,
 	}
-	team, nErr := ss.Team().Save(team)
+	team, nErr := ss.Team().Save(ctx, team)
 	require.NoError(t, nErr)
 
 	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
@@ -4506,6 +4539,8 @@ func groupTestAdminRoleGroupsForSyncableMemberTeam(t *testing.T, ss store.Store)
 }
 
 func groupTestPermittedSyncableAdminsTeam(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	user1 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
@@ -4560,7 +4595,7 @@ func groupTestPermittedSyncableAdminsTeam(t *testing.T, ss store.Store) {
 		Name:        NewTestId(),
 		Type:        model.TeamOpen,
 	}
-	team, nErr := ss.Team().Save(team)
+	team, nErr := ss.Team().Save(ctx, team)
 	require.NoError(t, nErr)
 
 	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
@@ -4719,6 +4754,8 @@ func groupTestPermittedSyncableAdminsChannel(t *testing.T, ss store.Store) {
 }
 
 func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	team := &model.Team{
 		DisplayName:     "Name",
 		Description:     "Some description",
@@ -4729,7 +4766,7 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TeamOpen,
 	}
-	team, err := ss.Team().Save(team)
+	team, err := ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 
 	user1 := &model.User{
@@ -4961,15 +4998,19 @@ func groupTestGroupCount(t *testing.T, ss store.Store) {
 }
 
 func groupTestGroupTeamCount(t *testing.T, ss store.Store) {
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName:     model.NewId(),
-		Description:     model.NewId(),
-		AllowOpenInvite: false,
-		InviteId:        model.NewId(),
-		Name:            NewTestId(),
-		Email:           model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TeamOpen,
-	})
+	ctx := context.TODO()
+
+	team, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName:     model.NewId(),
+			Description:     model.NewId(),
+			AllowOpenInvite: false,
+			InviteId:        model.NewId(),
+			Name:            NewTestId(),
+			Email:           model.NewId() + "@simulator.amazonses.com",
+			Type:            model.TeamOpen,
+		})
 	require.NoError(t, err)
 	defer ss.Team().PermanentDelete(team.Id)
 

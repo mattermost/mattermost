@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"sort"
 	"strconv"
 	"testing"
@@ -123,6 +124,7 @@ func createChannelsForRetentionPolicy(t *testing.T, ss store.Store, teamId strin
 }
 
 func createTeamsForRetentionPolicy(t *testing.T, ss store.Store, numTeams int) (teamIDs []string) {
+	ctx := context.TODO()
 	teamIDs = make([]string, numTeams)
 	for i := range teamIDs {
 		name := "team" + model.NewId()
@@ -131,7 +133,7 @@ func createTeamsForRetentionPolicy(t *testing.T, ss store.Store, numTeams int) (
 			Name:        name,
 			Type:        model.TeamOpen,
 		}
-		team, err := ss.Team().Save(team)
+		team, err := ss.Team().Save(ctx, team)
 		require.NoError(t, err)
 		teamIDs[i] = team.Id
 	}

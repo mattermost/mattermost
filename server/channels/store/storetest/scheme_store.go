@@ -344,6 +344,8 @@ func testSchemeStoreGetAllPage(t *testing.T, ss store.Store) {
 }
 
 func testSchemeStoreDelete(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	// Save a new scheme.
 	s1 := &model.Scheme{
 		DisplayName: model.NewId(),
@@ -452,7 +454,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		Type:        model.TeamOpen,
 		SchemeId:    &d4.Id,
 	}
-	t4, err = ss.Team().Save(t4)
+	t4, err = ss.Team().Save(ctx, t4)
 	require.NoError(t, err)
 
 	_, err = ss.Scheme().Delete(d4.Id)

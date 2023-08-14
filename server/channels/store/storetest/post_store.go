@@ -2599,12 +2599,14 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 }
 
 func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	t1 := &model.Team{}
 	t1.DisplayName = "DisplayName"
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	t1, err := ss.Team().Save(t1)
+	t1, err := ss.Team().Save(ctx, t1)
 	require.NoError(t, err)
 
 	c1 := &model.Channel{}
@@ -2658,12 +2660,14 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 }
 
 func testPostCountsByDay(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	t1 := &model.Team{}
 	t1.DisplayName = "DisplayName"
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	t1, err := ss.Team().Save(t1)
+	t1, err := ss.Team().Save(ctx, t1)
 	require.NoError(t, err)
 
 	c1 := &model.Channel{}
@@ -2770,6 +2774,8 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 }
 
 func testPostCounts(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	now := time.Now()
 	twentyMinAgo := now.Add(-20 * time.Minute).UnixMilli()
 	fifteenMinAgo := now.Add(-15 * time.Minute).UnixMilli()
@@ -2780,7 +2786,7 @@ func testPostCounts(t *testing.T, ss store.Store) {
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	t1, err := ss.Team().Save(t1)
+	t1, err := ss.Team().Save(ctx, t1)
 	require.NoError(t, err)
 
 	c1 := &model.Channel{}
@@ -3887,12 +3893,16 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 }
 
 func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "DisplayName",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	ctx := context.TODO()
+
+	team, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
@@ -4138,12 +4148,14 @@ func testGetMaxPostSize(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	_, err := ss.Team().Save(&t1)
+	_, err := ss.Team().Save(ctx, &t1)
 	require.NoError(t, err)
 
 	c1 := model.Channel{}
@@ -4187,12 +4199,14 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	_, err := ss.Team().Save(&t1)
+	_, err := ss.Team().Save(ctx, &t1)
 	require.NoError(t, err)
 
 	c1 := model.Channel{}
@@ -4687,12 +4701,14 @@ func testGetPostReminders(t *testing.T, ss store.Store, s SqlStore) {
 }
 
 func testGetPostReminderMetadata(t *testing.T, ss store.Store, s SqlStore) {
+	ctx := context.TODO()
+
 	team := &model.Team{
 		Name:        "teamname",
 		DisplayName: "display",
 		Type:        model.TeamOpen,
 	}
-	team, err := ss.Team().Save(team)
+	team, err := ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 
 	ch := &model.Channel{

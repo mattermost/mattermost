@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -194,6 +195,8 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.
 }
 
 func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	t.Run("Delete", func(t *testing.T) {
 		p1 := model.Post{}
 		p1.ChannelId = model.NewId()
@@ -343,10 +346,10 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
 
 	t.Run("Delete By Team", func(t *testing.T) {
 		t1 := &model.Team{DisplayName: "t1", Name: NewTestId(), Email: MakeEmail(), Type: model.TeamOpen}
-		_, err := ss.Team().Save(t1)
+		_, err := ss.Team().Save(ctx, t1)
 		require.NoError(t, err)
 		t2 := &model.Team{DisplayName: "t2", Name: NewTestId(), Email: MakeEmail(), Type: model.TeamOpen}
-		_, err = ss.Team().Save(t2)
+		_, err = ss.Team().Save(ctx, t2)
 		require.NoError(t, err)
 
 		c1 := &model.Channel{TeamId: t1.Id, Name: model.NewId(), DisplayName: "c1", Type: model.ChannelTypeOpen}

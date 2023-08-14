@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"testing"
 
 	"math"
@@ -350,12 +351,14 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) {
 	const limit = 1000
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "DisplayName",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team, err := ss.Team().Save(
+		context.TODO(),
+		&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
@@ -392,12 +395,14 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) 
 }
 
 func testGetChannelsLeftSince(t *testing.T, ss store.Store) {
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "DisplayName",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team, err := ss.Team().Save(
+		context.TODO(),
+		&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,

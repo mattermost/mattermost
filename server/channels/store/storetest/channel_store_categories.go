@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"sync"
@@ -29,12 +30,14 @@ func TestChannelStoreCategories(t *testing.T, ss store.Store, s SqlStore) {
 }
 
 func setupTeam(t *testing.T, ss store.Store, userIds ...string) *model.Team {
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "Name",
-		Name:        NewTestId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team, err := ss.Team().Save(
+		context.TODO(),
+		&model.Team{
+			DisplayName: "Name",
+			Name:        NewTestId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	assert.NoError(t, err)
 
 	members := make([]*model.TeamMember, 0, len(userIds))
@@ -53,6 +56,8 @@ func setupTeam(t *testing.T, ss store.Store, userIds ...string) *model.Team {
 }
 
 func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	t.Run("should create initial favorites/channels/DMs categories", func(t *testing.T) {
 		userId := model.NewId()
 
@@ -443,7 +448,7 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 			Type:        model.TeamOpen,
 			InviteId:    model.NewId(),
 		}
-		t1, err := ss.Team().Save(t1)
+		t1, err := ss.Team().Save(ctx, t1)
 		require.NoError(t, err)
 
 		m1 := &model.TeamMember{TeamId: t1.Id, UserId: userId}
@@ -457,7 +462,7 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 			Type:        model.TeamOpen,
 			InviteId:    model.NewId(),
 		}
-		t2, err = ss.Team().Save(t2)
+		t2, err = ss.Team().Save(ctx, t2)
 		require.NoError(t, err)
 
 		m2 := &model.TeamMember{TeamId: t2.Id, UserId: userId}

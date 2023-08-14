@@ -79,7 +79,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			Type:        model.TeamOpen,
 		}
 
-		createdTeam, err := c.App.Srv().Store().Team().Save(team)
+		createdTeam, err := c.App.Srv().Store().Team().Save(c.AppContext.Context(), team)
 		if err != nil {
 			var invErr *store.ErrInvalidInput
 			var appErr *model.AppError

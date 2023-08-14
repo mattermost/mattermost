@@ -492,13 +492,17 @@ func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID, use
 }
 
 func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	const limit = 1000
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "DisplayName",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
@@ -566,6 +570,8 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 }
 
 func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, ss store.Store, s SqlStore) {
+	ctx := context.TODO()
+
 	const limit = 1000
 	userID := model.NewId()
 	createThreadMembership := func(userID, postID string) *model.ThreadMembership {
@@ -582,12 +588,13 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 		require.NoError(t, err)
 		return threadMembership
 	}
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "DisplayName",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team, err := ss.Team().Save(ctx,
+		&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
@@ -664,6 +671,8 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 }
 
 func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	userID := model.NewId()
 	createThreadMembership := func(userID, postID string) {
 		t.Helper()
@@ -677,12 +686,14 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 		_, err := ss.Thread().MaintainMembership(userID, postID, opts)
 		require.NoError(t, err)
 	}
-	team1, err := ss.Team().Save(&model.Team{
-		DisplayName: "DisplayName",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team1, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team1.Id,
@@ -719,12 +730,13 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 	assert.Len(t, teamsUnread, 1)
 	assert.Equal(t, int64(2), teamsUnread[team1.Id].ThreadCount)
 
-	team2, err := ss.Team().Save(&model.Team{
-		DisplayName: "DisplayName",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team2, err := ss.Team().Save(ctx,
+		&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 	channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team2.Id,
@@ -778,6 +790,8 @@ func (a byPostId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byPostId) Less(i, j int) bool { return a[i].Id < a[j].Id }
 
 func testVarious(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	createThreadMembership := func(userID, postID string, isMention bool) {
 		t.Helper()
 
@@ -820,20 +834,24 @@ func testVarious(t *testing.T, ss store.Store) {
 	user1ID := user1.Id
 	user2ID := user2.Id
 
-	team1, err := ss.Team().Save(&model.Team{
-		DisplayName: "Team1",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team1, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName: "Team1",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 
-	team2, err := ss.Team().Save(&model.Team{
-		DisplayName: "Team2",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team2, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName: "Team2",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 
 	team1channel1, err := ss.Channel().Save(&model.Channel{
@@ -1205,16 +1223,20 @@ func testVarious(t *testing.T, ss store.Store) {
 }
 
 func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	postingUserId := model.NewId()
 	userAID := model.NewId()
 	userBID := model.NewId()
 
-	team1, err := ss.Team().Save(&model.Team{
-		DisplayName: "Team1",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team1, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName: "Team1",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 
 	channel1, err := ss.Channel().Save(&model.Channel{
@@ -1349,6 +1371,8 @@ func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
 }
 
 func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	createThreadMembership := func(userID, postID string) {
 		t.Helper()
 		opts := store.ThreadMembershipOpts{
@@ -1375,12 +1399,14 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 	userAID := model.NewId()
 	userBID := model.NewId()
 
-	team1, err := ss.Team().Save(&model.Team{
-		DisplayName: "Team1",
-		Name:        "team1" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team1, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName: "Team1",
+			Name:        "team1" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 
 	team1channel1, err := ss.Channel().Save(&model.Channel{
@@ -1399,12 +1425,14 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 	}, -1)
 	require.NoError(t, err)
 
-	team2, err := ss.Team().Save(&model.Team{
-		DisplayName: "Team2",
-		Name:        "team2" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team2, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName: "Team2",
+			Name:        "team2" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 
 	team2channel1, err := ss.Channel().Save(&model.Channel{
@@ -1575,6 +1603,8 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 }
 
 func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	createThreadMembership := func(userID, postID string) (*model.ThreadMembership, func()) {
 		t.Helper()
 		opts := store.ThreadMembershipOpts{
@@ -1597,12 +1627,14 @@ func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
 	userAID := model.NewId()
 	userBID := model.NewId()
 
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "DisplayName",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 
 	channel1, err := ss.Channel().Save(&model.Channel{

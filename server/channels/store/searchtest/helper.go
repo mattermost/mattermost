@@ -4,6 +4,7 @@
 package searchtest
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -29,6 +30,8 @@ type SearchTestHelper struct {
 }
 
 func (th *SearchTestHelper) SetupBasicFixtures() error {
+	ctx := context.TODO()
+
 	// Remove users from previous tests
 	err := th.cleanAllUsers()
 	if err != nil {
@@ -36,11 +39,11 @@ func (th *SearchTestHelper) SetupBasicFixtures() error {
 	}
 
 	// Create teams
-	team, err := th.createTeam("searchtest-team", "Searchtest team", model.TeamOpen)
+	team, err := th.createTeam(ctx, "searchtest-team", "Searchtest team", model.TeamOpen)
 	if err != nil {
 		return err
 	}
-	anotherTeam, err := th.createTeam("another-searchtest-team", "Another Searchtest team", model.TeamOpen)
+	anotherTeam, err := th.createTeam(ctx, "another-searchtest-team", "Another Searchtest team", model.TeamOpen)
 	if err != nil {
 		return err
 	}
@@ -146,8 +149,8 @@ func (th *SearchTestHelper) CleanFixtures() error {
 	return nil
 }
 
-func (th *SearchTestHelper) createTeam(name, displayName, teamType string) (*model.Team, error) {
-	return th.Store.Team().Save(&model.Team{
+func (th *SearchTestHelper) createTeam(ctx context.Context, name, displayName, teamType string) (*model.Team, error) {
+	return th.Store.Team().Save(ctx, &model.Team{
 		Name:        name,
 		DisplayName: displayName,
 		Type:        teamType,

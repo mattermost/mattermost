@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"sync"
@@ -199,6 +200,7 @@ func (th *TestHelper) TearDown() {
 }
 
 func (th *TestHelper) CreateTeam() *model.Team {
+	ctx := context.TODO()
 	id := model.NewId()
 
 	team := &model.Team{
@@ -209,7 +211,7 @@ func (th *TestHelper) CreateTeam() *model.Team {
 	}
 
 	var err error
-	if team, err = th.Service.Store.Team().Save(team); err != nil {
+	if team, err = th.Service.Store.Team().Save(ctx, team); err != nil {
 		panic(err)
 	}
 	return team

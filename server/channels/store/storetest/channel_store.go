@@ -602,6 +602,8 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 }
 
 func testGetChannelsWithTeamDataByIds(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	t1 := &model.Team{
 		DisplayName: "DisplayName",
 		Name:        NewTestId(),
@@ -609,7 +611,7 @@ func testGetChannelsWithTeamDataByIds(t *testing.T, ss store.Store) {
 		Type:        model.TeamOpen,
 	}
 
-	t1, err := ss.Team().Save(t1)
+	t1, err := ss.Team().Save(ctx, t1)
 	require.NoError(t, err, "couldn't save item")
 
 	c1 := model.Channel{}
@@ -1063,6 +1065,8 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 }
 
 func testChannelSaveMember(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
@@ -1104,7 +1108,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			Type:        model.TeamOpen,
 		}
 
-		team, nErr := ss.Team().Save(team)
+		team, nErr := ss.Team().Save(ctx, team)
 		require.NoError(t, nErr)
 
 		channel := &model.Channel{
@@ -1265,7 +1269,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, nErr = ss.Team().Save(team)
+		team, nErr = ss.Team().Save(ctx, team)
 		require.NoError(t, nErr)
 
 		channel := &model.Channel{
@@ -1425,7 +1429,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			Type:        model.TeamOpen,
 		}
 
-		team, nErr = ss.Team().Save(team)
+		team, nErr = ss.Team().Save(ctx, team)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
@@ -1570,6 +1574,8 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 }
 
 func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
@@ -1612,7 +1618,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.TeamOpen,
 		}
 
-		team, nErr := ss.Team().Save(team)
+		team, nErr := ss.Team().Save(ctx, team)
 		require.NoError(t, nErr)
 
 		channel := &model.Channel{
@@ -1787,7 +1793,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, nErr = ss.Team().Save(team)
+		team, nErr = ss.Team().Save(ctx, team)
 		require.NoError(t, nErr)
 
 		channel := &model.Channel{
@@ -1961,7 +1967,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.TeamOpen,
 		}
 
-		team, nErr = ss.Team().Save(team)
+		team, nErr = ss.Team().Save(ctx, team)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
@@ -2119,6 +2125,8 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 }
 
 func testChannelUpdateMember(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
@@ -2152,7 +2160,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			Type:        model.TeamOpen,
 		}
 
-		team, nErr := ss.Team().Save(team)
+		team, nErr := ss.Team().Save(ctx, team)
 		require.NoError(t, nErr)
 
 		channel := &model.Channel{
@@ -2315,7 +2323,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, nErr = ss.Team().Save(team)
+		team, nErr = ss.Team().Save(ctx, team)
 		require.NoError(t, nErr)
 
 		channel := &model.Channel{
@@ -2477,7 +2485,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			Type:        model.TeamOpen,
 		}
 
-		team, nErr = ss.Team().Save(team)
+		team, nErr = ss.Team().Save(ctx, team)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
@@ -2624,6 +2632,8 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 }
 
 func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
@@ -2669,7 +2679,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.TeamOpen,
 		}
 
-		team, nErr := ss.Team().Save(team)
+		team, nErr := ss.Team().Save(ctx, team)
 		require.NoError(t, nErr)
 
 		channel := &model.Channel{
@@ -2839,7 +2849,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, nErr = ss.Team().Save(team)
+		team, nErr = ss.Team().Save(ctx, team)
 		require.NoError(t, nErr)
 
 		channel := &model.Channel{
@@ -3008,7 +3018,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.TeamOpen,
 		}
 
-		team, nErr = ss.Team().Save(team)
+		team, nErr = ss.Team().Save(ctx, team)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
@@ -3160,6 +3170,8 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 }
 
 func testChannelUpdateMemberNotifyProps(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
@@ -3171,7 +3183,7 @@ func testChannelUpdateMemberNotifyProps(t *testing.T, ss store.Store) {
 		Type:        model.TeamOpen,
 	}
 
-	team, nErr := ss.Team().Save(team)
+	team, nErr := ss.Team().Save(ctx, team)
 	require.NoError(t, nErr)
 
 	channel := &model.Channel{
@@ -3797,6 +3809,8 @@ func testChannelStoreGetChannelsByUser(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
+	ctx := context.TODO()
+
 	cleanupChannels(t, ss)
 
 	t1 := model.Team{}
@@ -3804,7 +3818,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	_, err := ss.Team().Save(&t1)
+	_, err := ss.Team().Save(ctx, &t1)
 	require.NoError(t, err)
 
 	t2 := model.Team{}
@@ -3812,7 +3826,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	t2.Name = NewTestId()
 	t2.Email = MakeEmail()
 	t2.Type = model.TeamOpen
-	_, err = ss.Team().Save(&t2)
+	_, err = ss.Team().Save(ctx, &t2)
 	require.NoError(t, err)
 
 	c1 := model.Channel{}
@@ -4407,12 +4421,14 @@ func testChannelStoreGetChannelCounts(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	_, err := ss.Team().Save(&t1)
+	_, err := ss.Team().Save(ctx, &t1)
 	require.NoError(t, err)
 
 	o1 := model.Channel{}
@@ -4504,12 +4520,14 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreGetMembersForUserWithCursor(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	t1 := model.Team{}
 	t1.DisplayName = "Team1"
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	_, err := ss.Team().Save(&t1)
+	_, err := ss.Team().Save(ctx, &t1)
 	require.NoError(t, err)
 
 	t2 := model.Team{}
@@ -4517,7 +4535,7 @@ func testChannelStoreGetMembersForUserWithCursor(t *testing.T, ss store.Store) {
 	t2.Name = NewTestId()
 	t2.Email = MakeEmail()
 	t2.Type = model.TeamOpen
-	_, err = ss.Team().Save(&t2)
+	_, err = ss.Team().Save(ctx, &t2)
 	require.NoError(t, err)
 
 	o1 := model.Channel{}
@@ -4681,13 +4699,15 @@ func testChannelStoreGetMembersForUserWithCursor(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	t1 := model.Team{
 		DisplayName: "team1",
 		Name:        NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
-	_, err := ss.Team().Save(&t1)
+	_, err := ss.Team().Save(ctx, &t1)
 	require.NoError(t, err)
 
 	o1 := model.Channel{
@@ -4705,7 +4725,7 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
-	_, err = ss.Team().Save(&t2)
+	_, err = ss.Team().Save(ctx, &t2)
 	require.NoError(t, err)
 
 	o2 := model.Channel{
@@ -6042,13 +6062,15 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 }
 
 func testAutocomplete(t *testing.T, ss store.Store, s SqlStore) {
+	ctx := context.TODO()
+
 	t1 := &model.Team{
 		DisplayName: "t1",
 		Name:        NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
-	t1, err := ss.Team().Save(t1)
+	t1, err := ss.Team().Save(ctx, t1)
 	require.NoError(t, err)
 	teamID := t1.Id
 
@@ -6058,7 +6080,7 @@ func testAutocomplete(t *testing.T, ss store.Store, s SqlStore) {
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
-	t2, err = ss.Team().Save(t2)
+	t2, err = ss.Team().Save(ctx, t2)
 	require.NoError(t, err)
 	otherTeamID := t2.Id
 
@@ -6169,7 +6191,7 @@ func testAutocomplete(t *testing.T, ss store.Store, s SqlStore) {
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
-	t3, err = ss.Team().Save(t3)
+	t3, err = ss.Team().Save(ctx, t3)
 	require.NoError(t, err)
 	leftTeamId := t3.Id
 
@@ -6360,6 +6382,8 @@ func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	cleanupChannels(t, ss)
 
 	t1 := model.Team{}
@@ -6367,7 +6391,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	_, err := ss.Team().Save(&t1)
+	_, err := ss.Team().Save(ctx, &t1)
 	require.NoError(t, err)
 
 	t2 := model.Team{}
@@ -6375,7 +6399,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	t2.Name = NewTestId()
 	t2.Email = MakeEmail()
 	t2.Type = model.TeamOpen
-	_, err = ss.Team().Save(&t2)
+	_, err = ss.Team().Save(ctx, &t2)
 	require.NoError(t, err)
 
 	o1 := model.Channel{
@@ -7570,12 +7594,14 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 }
 
 func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	_, err := ss.Team().Save(&t1)
+	_, err := ss.Team().Save(ctx, &t1)
 	require.NoError(t, err)
 
 	c1 := model.Channel{}
@@ -7602,12 +7628,14 @@ func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) 
 }
 
 func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	_, err := ss.Team().Save(&t1)
+	_, err := ss.Team().Save(ctx, &t1)
 	require.NoError(t, err)
 
 	c1 := model.Channel{}
@@ -7658,13 +7686,15 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s SqlStore) {
+	ctx := context.TODO()
+
 	// Set up all the objects needed in the store.
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	_, err := ss.Team().Save(&t1)
+	_, err := ss.Team().Save(ctx, &t1)
 	require.NoError(t, err)
 
 	c1 := model.Channel{}
@@ -8040,12 +8070,16 @@ func testSetShared(t *testing.T, ss store.Store) {
 }
 
 func testGetTeamForChannel(t *testing.T, ss store.Store) {
-	team, err := ss.Team().Save(&model.Team{
-		Name:        "myteam",
-		DisplayName: "DisplayName",
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	ctx := context.TODO()
+
+	team, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			Name:        "myteam",
+			DisplayName: "DisplayName",
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 
 	channel := &model.Channel{

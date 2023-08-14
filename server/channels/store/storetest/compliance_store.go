@@ -98,6 +98,8 @@ func testComplianceStore(t *testing.T, ss store.Store) {
 }
 
 func testComplianceExport(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	time.Sleep(100 * time.Millisecond)
 	const (
 		limit = 30000
@@ -108,7 +110,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	t1, err := ss.Team().Save(t1)
+	t1, err := ss.Team().Save(ctx, t1)
 	require.NoError(t, err)
 
 	u1 := &model.User{}
@@ -230,6 +232,8 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 }
 
 func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	defer cleanupStoreState(t, ss)
 
 	time.Sleep(100 * time.Millisecond)
@@ -242,7 +246,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
-	t1, err := ss.Team().Save(t1)
+	t1, err := ss.Team().Save(ctx, t1)
 	require.NoError(t, err)
 
 	u1 := &model.User{}
@@ -396,6 +400,8 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 }
 
 func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	defer cleanupStoreState(t, ss)
 
 	// get the starting number of message export entries
@@ -411,7 +417,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
-	team, err = ss.Team().Save(team)
+	team, err = ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 
 	// and two users that are a part of that team
@@ -500,6 +506,8 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 }
 
 func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	defer cleanupStoreState(t, ss)
 
 	// get the starting number of message export entries
@@ -515,7 +523,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
-	team, err = ss.Team().Save(team)
+	team, err = ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 
 	// and two users that are a part of that team
@@ -606,6 +614,8 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 }
 
 func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	defer cleanupStoreState(t, ss)
 
 	// get the starting number of message export entries
@@ -621,7 +631,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
-	team, err = ss.Team().Save(team)
+	team, err = ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 
 	// and two users that are a part of that team
@@ -687,6 +697,8 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 }
 
 func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	defer cleanupStoreState(t, ss)
 
 	// get the starting number of message export entries
@@ -702,7 +714,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
-	team, err = ss.Team().Save(team)
+	team, err = ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 
 	// and three users that are a part of that team
@@ -785,6 +797,8 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 
 // post,edit,export
 func testEditExportMessage(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	defer cleanupStoreState(t, ss)
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
@@ -799,7 +813,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
-	team, err = ss.Team().Save(team)
+	team, err = ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 
 	// need a user part of that team
@@ -877,6 +891,8 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 
 // post, export, edit, export
 func testEditAfterExportMessage(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	defer cleanupStoreState(t, ss)
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
@@ -891,7 +907,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
-	team, err = ss.Team().Save(team)
+	team, err = ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 
 	// need a user part of that team
@@ -988,6 +1004,8 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 
 // post, delete, export
 func testDeleteExportMessage(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	defer cleanupStoreState(t, ss)
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
@@ -1002,7 +1020,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
-	team, err = ss.Team().Save(team)
+	team, err = ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 
 	// need a user part of that team
@@ -1073,6 +1091,8 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 
 // post,export,delete,export
 func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	defer cleanupStoreState(t, ss)
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
@@ -1087,7 +1107,7 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
-	team, err = ss.Team().Save(team)
+	team, err = ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 
 	// need a user part of that team

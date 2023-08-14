@@ -5,6 +5,7 @@ package email
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -161,6 +162,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 }
 
 func (th *TestHelper) CreateTeam() *model.Team {
+	ctx := context.TODO()
 	id := model.NewId()
 	team := &model.Team{
 		DisplayName: "dn_" + id,
@@ -170,7 +172,7 @@ func (th *TestHelper) CreateTeam() *model.Team {
 	}
 
 	var err error
-	if team, err = th.store.Team().Save(team); err != nil {
+	if team, err = th.store.Team().Save(ctx, team); err != nil {
 		panic(err)
 	}
 	return team

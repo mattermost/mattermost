@@ -362,6 +362,7 @@ func testRoleStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 }
 
 func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
 	createDefaultRoles(ss)
 
 	teamScheme1 := &model.Scheme{
@@ -411,7 +412,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		Type:        model.TeamOpen,
 		SchemeId:    &teamScheme1.Id,
 	}
-	team1, err = ss.Team().Save(team1)
+	team1, err = ss.Team().Save(ctx, team1)
 	require.NoError(t, err)
 	defer ss.Team().PermanentDelete(team1.Id)
 
@@ -422,7 +423,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		Type:        model.TeamOpen,
 		SchemeId:    &teamScheme2.Id,
 	}
-	team2, err = ss.Team().Save(team2)
+	team2, err = ss.Team().Save(ctx, team2)
 	require.NoError(t, err)
 	defer ss.Team().PermanentDelete(team2.Id)
 
@@ -518,6 +519,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 }
 
 func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *testing.T, ss store.Store, s SqlStore) {
+	ctx := context.TODO()
 	teamScheme := &model.Scheme{
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
@@ -545,7 +547,7 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 		Type:        model.TeamOpen,
 		SchemeId:    &teamScheme.Id,
 	}
-	team, err = ss.Team().Save(team)
+	team, err = ss.Team().Save(ctx, team)
 	require.NoError(t, err)
 	defer ss.Team().PermanentDelete(team.Id)
 

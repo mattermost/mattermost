@@ -4486,11 +4486,15 @@ func testUserStoreAnalyticsGetExternalUsers(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "Team",
-		Name:        NewTestId(),
-		Type:        model.TeamOpen,
-	})
+	ctx := context.TODO()
+
+	team, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName: "Team",
+			Name:        NewTestId(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 
 	teamId := team.Id
@@ -4797,12 +4801,16 @@ func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	// Set up all the objects needed
-	t1, err := ss.Team().Save(&model.Team{
-		DisplayName: "Team1",
-		Name:        NewTestId(),
-		Type:        model.TeamOpen,
-	})
+	t1, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName: "Team1",
+			Name:        NewTestId(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 
 	ch1 := &model.Channel{
@@ -4932,14 +4940,18 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	// create team
 	id := model.NewId()
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "dn_" + id,
-		Name:        "n-" + id,
-		Email:       id + "@test.com",
-		Type:        model.TeamInvite,
-	})
+	team, err := ss.Team().Save(
+		ctx,
+		&model.Team{
+			DisplayName: "dn_" + id,
+			Name:        "n-" + id,
+			Email:       id + "@test.com",
+			Type:        model.TeamInvite,
+		})
 	require.NoError(t, err)
 	require.NotNil(t, team)
 

@@ -564,13 +564,16 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 }
 
 func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
+	ctx := context.TODO()
+
 	const limit = 1000
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "DisplayName",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
+	team, err := ss.Team().Save(
+		ctx, &model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
 	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,

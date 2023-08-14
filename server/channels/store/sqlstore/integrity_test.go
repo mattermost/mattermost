@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -332,12 +333,13 @@ func createStatus(ss store.Store, userId string) *model.Status {
 }
 
 func createTeam(ss store.Store) *model.Team {
+	ctx := context.TODO()
 	m := model.Team{}
 	m.DisplayName = "DisplayName"
 	m.Type = model.TeamOpen
 	m.Email = "test@example.com"
 	m.Name = "z-z-z" + model.NewRandomTeamName() + "b"
-	t, _ := ss.Team().Save(&m)
+	t, _ := ss.Team().Save(ctx, &m)
 	return t
 }
 
@@ -350,13 +352,14 @@ func createTeamMember(ss store.Store, teamId, userId string) *model.TeamMember {
 }
 
 func createTeamWithSchemeId(ss store.Store, schemeId *string) *model.Team {
+	ctx := context.TODO()
 	m := model.Team{}
 	m.SchemeId = schemeId
 	m.DisplayName = "DisplayName"
 	m.Type = model.TeamOpen
 	m.Email = "test@example.com"
 	m.Name = "z-z-z" + model.NewId() + "b"
-	t, _ := ss.Team().Save(&m)
+	t, _ := ss.Team().Save(ctx, &m)
 	return t
 }
 

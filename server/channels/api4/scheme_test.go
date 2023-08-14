@@ -340,7 +340,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 		Type:        model.TeamOpen,
 	}
 
-	team1, err = th.App.Srv().Store().Team().Save(team1)
+	team1, err = th.App.Srv().Store().Team().Save(th.Context.Context(), team1)
 	require.NoError(t, err)
 
 	l2, _, err := th.SystemAdminClient.GetTeamsForScheme(context.Background(), scheme1.Id, 0, 100)
@@ -362,7 +362,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 		Type:        model.TeamOpen,
 		SchemeId:    &scheme1.Id,
 	}
-	team2, err = th.App.Srv().Store().Team().Save(team2)
+	team2, err = th.App.Srv().Store().Team().Save(th.Context.Context(), team2)
 	require.NoError(t, err)
 
 	l4, _, err := th.SystemAdminClient.GetTeamsForScheme(context.Background(), scheme1.Id, 0, 100)
@@ -673,13 +673,15 @@ func TestDeleteScheme(t *testing.T) {
 		assert.Zero(t, role6.DeleteAt)
 
 		// Make sure this scheme is in use by a team.
-		team, err := th.App.Srv().Store().Team().Save(&model.Team{
-			Name:        "zz" + model.NewId(),
-			DisplayName: model.NewId(),
-			Email:       model.NewId() + "@nowhere.com",
-			Type:        model.TeamOpen,
-			SchemeId:    &s1.Id,
-		})
+		team, err := th.App.Srv().Store().Team().Save(
+			th.Context.Context(),
+			&model.Team{
+				Name:        "zz" + model.NewId(),
+				DisplayName: model.NewId(),
+				Email:       model.NewId() + "@nowhere.com",
+				Type:        model.TeamOpen,
+				SchemeId:    &s1.Id,
+			})
 		require.NoError(t, err)
 
 		// Delete the Scheme.
