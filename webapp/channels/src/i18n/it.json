@@ -51,12 +51,9 @@
   "accessibility.sidebar.types.private": "canale privato",
   "accessibility.sidebar.types.public": "canale pubblico",
   "accessibility.sidebar.types.unread": "non letto",
-<<<<<<< HEAD
-=======
   "activityAndInsights.title": "Attività ed Informazioni utili - {displayName} {siteName}",
   "activityAndInsights.tutorialTip.title": "Si introduce: Informazioni utili",
   "activityAndInsights.tutorial_tip.viewInsights": "Mostra informazioni utili",
->>>>>>> f9405527fc (Update translation files)
   "activity_log.activeSessions": "Sessioni attive",
   "activity_log.browser": "Browser: {browser}",
   "activity_log.firstTime": "Prima data attivo: {date}, {time}",

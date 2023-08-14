@@ -51,12 +51,9 @@
   "accessibility.sidebar.types.private": "canal privé",
   "accessibility.sidebar.types.public": "canal public",
   "accessibility.sidebar.types.unread": "non lu",
-<<<<<<< HEAD
-=======
   "activityAndInsights.title": "Activité et statistiques - {displayName} {siteName}",
   "activityAndInsights.tutorialTip.title": "Découvrez : Statistiques",
   "activityAndInsights.tutorial_tip.viewInsights": "Voir les statistiques",
->>>>>>> f9405527fc (Update translation files)
   "activity_log.activeSessions": "Sessions actives",
   "activity_log.browser": "Navigateur : {browser}",
   "activity_log.firstTime": "Première activité : {date}, {time}",
@@ -3280,11 +3277,8 @@
   "group_list_modal.removeGroupButton": "Supprimer le groupe",
   "inProduct_notices.adminOnlyMessage": "Visible seulement pour les administrateurs",
   "input.clear": "Effacer",
-<<<<<<< HEAD
-=======
   "insights.timeFrame.mediumRange": "7 derniers jours",
   "insights.topChannels.mySubTitle": "Canaux les plus actifs dont je suis membre",
->>>>>>> f9405527fc (Update translation files)
   "installed_command.header": "Commande slash",
   "installed_commands.add": "Ajouter une commande slash",
   "installed_commands.delete.confirm": "Cette action supprime définitivement la commande slash et casse toutes les intégrations qui l'utilisent. Voulez-vous vraiment la supprimer ?",
@@ -3726,10 +3720,7 @@
   "onboarding_wizard.plugins.jira": "Jira",
   "onboarding_wizard.plugins.jira.tooltip": "Créer des tickets Jira depuis des messages dans Mattermost, être notifié de mises à jour importantes dans Jira",
   "onboarding_wizard.plugins.marketplace": "D'autres outils peuvent être ajoutés une fois que votre espace de travail est configuré. Pour voir toutes les intégrations disponibles, <a>visitez la place de marché.</a>",
-<<<<<<< HEAD
-=======
   "onboarding_wizard.plugins.todo.tooltip": "Une extension pour suivre les tâches Todo dans une liste, et recevoir des rappels quotidiens à propos de sa liste de tâches",
->>>>>>> f9405527fc (Update translation files)
   "onboarding_wizard.plugins.zoom": "Zoom",
   "onboarding_wizard.plugins.zoom.tooltip": "Commencer une réunion audio ou vidéo Zoom dans Mattermost avec un simple clic",
   "onboarding_wizard.submit_error.generic": "Une erreur s'est produite. Veuillez réessayer.",
@@ -4726,10 +4717,7 @@
   "web.header.back": "Précédent",
   "web.header.logout": "Se déconnecter",
   "web.root.signup_info": "Toute la communication de votre équipe au même endroit, accessible de partout",
-<<<<<<< HEAD
-=======
   "welcome_post_renderer.user_message.title": "\t ",
->>>>>>> f9405527fc (Update translation files)
   "widget.input.required": "Ce champ est requis",
   "widgets.channels_input.empty": "Aucun canal trouvé",
   "widgets.channels_input.loading": "Chargement",

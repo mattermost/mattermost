@@ -9112,10 +9112,6 @@
     "translation": "Decodificador de concurrencia inválido {{.Value}}. Debe ser un número positivo o -1."
   },
   {
-    "id": "api.insights.feature_disabled",
-    "translation": "Las Perspectivas están detrás de una bandera de ajuste que no está habilitada."
-  },
-  {
     "id": "model.member.is_valid.emails.app_error",
     "translation": " "
   },
@@ -9442,10 +9438,6 @@
   {
     "id": "app.cloud.trial_plan_bot_message_single",
     "translation": "el miembro {{.UsersNum}} del workspace {{.WorkspaceName}} ha solicitado comenzar la prueba Enterprise para acceder a: "
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "El tipo de colección ya existe."
   },
   {
     "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
