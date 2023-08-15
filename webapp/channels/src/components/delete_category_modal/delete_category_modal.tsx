@@ -59,6 +59,7 @@ export default class DeleteCategoryModal extends React.PureComponent<Props, Stat
                     />
                 )}
                 confirmButtonClassName={'delete'}
+                enforceFocus={false}
             >
                 <span className='delete-category__helpText'>
                     <FormattedMarkdownMessage

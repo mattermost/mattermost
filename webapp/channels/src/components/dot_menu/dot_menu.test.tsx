@@ -12,6 +12,7 @@ import {GlobalState} from 'types/store';
 import {DeepPartial} from '@mattermost/types/utilities';
 import {PostType} from '@mattermost/types/posts';
 
+import * as dotUtils from './utils';
 jest.mock('./utils');
 
 import DotMenu, {DotMenuClass} from './dot_menu';
@@ -284,6 +285,40 @@ describe('components/dot_menu/DotMenu', () => {
             const menuItem = screen.getByTestId(`follow_post_thread_${baseProps.post.id}`);
             expect(menuItem).toBeVisible();
             expect(menuItem).toHaveTextContent(text);
+        });
+
+        test.each([
+            [false, {isFollowingThread: true}],
+            [true, {isFollowingThread: false}],
+        ])('should call setThreadFollow with following as %s', async (following, caseProps) => {
+            const spySetThreadFollow = jest.fn();
+            const spy = jest.spyOn(dotUtils, 'trackDotMenuEvent');
+
+            const props = {
+                ...baseProps,
+                ...caseProps,
+                location: Locations.RHS_ROOT,
+                actions: {
+                    ...baseProps.actions,
+                    setThreadFollow: spySetThreadFollow,
+                },
+            };
+            renderWithIntlAndStore(
+                <DotMenu {...props}/>,
+                initialState,
+            );
+            const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+            fireEvent.click(button);
+            const menuItem = screen.getByTestId(`follow_post_thread_${baseProps.post.id}`);
+            expect(menuItem).toBeVisible();
+            fireEvent.mouseDown(menuItem);
+            expect(spy).toHaveBeenCalled();
+            expect(spySetThreadFollow).toHaveBeenCalledWith(
+                'user_id_1',
+                'team_id_1',
+                'post_id_1',
+                following,
+            );
         });
     });
 });
