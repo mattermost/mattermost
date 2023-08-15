@@ -19,6 +19,7 @@ export default class ChannelsPage {
     readonly sidebarLeft;
     readonly sidebarRight;
     readonly postDotMenu;
+    readonly postReminderMenu;
     readonly deletePostModal;
 
     constructor(page: Page) {
@@ -32,6 +33,7 @@ export default class ChannelsPage {
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
+        this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for'}));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
     }
 
@@ -55,8 +57,13 @@ export default class ChannelsPage {
     }
 
     async postMessage(message: string) {
+        await this.writeMessage(message);
+        await this.sendMessage();
+    }
+
+    async writeMessage(message: string) {
         await this.postCreate.input.waitFor();
-        await this.postCreate.postMessage(message);
+        await this.postCreate.writeMessage(message);
     }
 
     async sendMessage() {
