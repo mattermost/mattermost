@@ -49,8 +49,6 @@ type FeatureFlags struct {
 	CloudReverseTrial bool
 
 	EnableExportDirectDownload bool
-
-	DataRetentionConcurrencyEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -68,7 +66,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
-	f.DataRetentionConcurrencyEnabled = true
 }
 
 // ToMap returns the feature flags as a map[string]string
