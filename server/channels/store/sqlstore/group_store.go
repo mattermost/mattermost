@@ -398,8 +398,10 @@ func (s *SqlGroupStore) Restore(groupID string) (*model.Group, error) {
 	builder := s.getQueryBuilder().
 		Select("*").
 		From("UserGroups").
-		Where(sq.Eq{"Id": groupID}).
-		Where(sq.NotEq{"DeleteAt": 0})
+		Where(sq.And{
+			sq.Eq{"Id": groupID},
+			sq.NotEq{"DeleteAt": 0},
+		})
 
 	if err := s.GetReplicaX().GetBuilder(&group, builder); err != nil {
 		if err == sql.ErrNoRows {
