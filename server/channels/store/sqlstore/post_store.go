@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -1079,9 +1080,11 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) (err error) {
 		if err = s.permanentDeleteThreads(transaction, batch); err != nil {
 			return err
 		}
+		time.Sleep(10 * time.Millisecond)
 		if err = s.permanentDeleteReactions(transaction, batch); err != nil {
 			return err
 		}
+		time.Sleep(10 * time.Millisecond)
 	}
 
 	if _, err = transaction.Exec("DELETE FROM Posts WHERE ChannelId = ?", channelId); err != nil {

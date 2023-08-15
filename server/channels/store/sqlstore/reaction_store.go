@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"time"
+
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -214,33 +216,53 @@ func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
 		return errors.Wrapf(err, "failed to get Reactions with userId=%s", userId)
 	}
 
-	txn, err := s.GetMasterX().Beginx()
-	if err != nil {
-		return err
-	}
-	defer finalizeTransactionX(txn, &err)
+	batchIds := [][]string{}
+	batchSize := 1000
+	resultsSize := len(postIds)
+	for i := 0; i < resultsSize; i += batchSize {
+		end := i + batchSize
 
-	query := s.getQueryBuilder().
-		Delete("Reactions").
-		Where(sq.Eq{"UserId": userId})
-
-	_, err = txn.ExecBuilder(query)
-	if err != nil {
-		return errors.Wrapf(err, "failed to delete reactions with userId=%s", userId)
-	}
-
-	for _, postId := range postIds {
-		_, err = txn.Exec(UpdatePostHasReactionsOnDeleteQuery, now, postId, postId)
-		if err != nil {
-			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
-				mlog.String("post_id", postId),
-				mlog.Err(err))
+		if end > resultsSize {
+			end = resultsSize
 		}
+
+		batchIds = append(batchIds, postIds[i:end])
 	}
 
-	if err = txn.Commit(); err != nil {
-		return err
+	for _, batch := range batchIds {
+		txn, err := s.GetMasterX().Beginx()
+		if err != nil {
+			return err
+		}
+		defer finalizeTransactionX(txn, &err)
+
+		query := s.getQueryBuilder().
+			Delete("Reactions").
+			Where(sq.And{
+				sq.Eq{"PostId": batch},
+				sq.Eq{"UserId": userId},
+			})
+
+		_, err = txn.ExecBuilder(query)
+		if err != nil {
+			return errors.Wrapf(err, "failed to delete reactions with userId=%s", userId)
+		}
+
+		for _, postId := range batch {
+			_, err = txn.Exec(UpdatePostHasReactionsOnDeleteQuery, now, postId, postId)
+			if err != nil {
+				mlog.Warn("Unable to update Post.HasReactions while removing reactions",
+					mlog.String("post_id", postId),
+					mlog.Err(err))
+			}
+		}
+
+		if err = txn.Commit(); err != nil {
+			return err
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
+
 	return nil
 }
 
