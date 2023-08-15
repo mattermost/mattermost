@@ -14,6 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -21,8 +22,8 @@ const (
 	CancelWatcherPollingInterval = 5000
 )
 
-func (srv *JobServer) CreateJob(jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
-	job, appErr := srv._createJob(jobType, jobData)
+func (srv *JobServer) CreateJob(c *request.Context, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+	job, appErr := srv._createJob(c, jobType, jobData)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -34,8 +35,8 @@ func (srv *JobServer) CreateJob(jobType string, jobData map[string]string) (*mod
 	return job, nil
 }
 
-func (srv *JobServer) CreateJobOnce(jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
-	job, appErr := srv._createJob(jobType, jobData)
+func (srv *JobServer) CreateJobOnce(c *request.Context, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+	job, appErr := srv._createJob(c, jobType, jobData)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -47,7 +48,7 @@ func (srv *JobServer) CreateJobOnce(jobType string, jobData map[string]string) (
 	return job, nil
 }
 
-func (srv *JobServer) _createJob(jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+func (srv *JobServer) _createJob(c *request.Context, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job := model.Job{
 		Id:       model.NewId(),
 		Type:     jobType,
@@ -55,6 +56,8 @@ func (srv *JobServer) _createJob(jobType string, jobData map[string]string) (*mo
 		Status:   model.JobStatusPending,
 		Data:     jobData,
 	}
+
+	job.InitLogger(c.Logger())
 
 	if err := job.IsValid(); err != nil {
 		return nil, err
@@ -298,8 +301,8 @@ func (srv *JobServer) CheckForPendingJobsByType(jobType string) (bool, *model.Ap
 	return count > 0, nil
 }
 
-func (srv *JobServer) GetJobsByTypeAndStatus(jobType string, status string) ([]*model.Job, *model.AppError) {
-	jobs, err := srv.Store.Job().GetAllByTypeAndStatus(jobType, status)
+func (srv *JobServer) GetJobsByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, *model.AppError) {
+	jobs, err := srv.Store.Job().GetAllByTypeAndStatus(c, jobType, status)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByTypeAndStatus", "app.job.get_all_jobs_by_type_and_status.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

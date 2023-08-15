@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/v8/channels/app/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -14,13 +15,13 @@ type AccountMigrationInterface struct {
 	mock.Mock
 }
 
-// MigrateToLdap provides a mock function with given fields: fromAuthService, foreignUserFieldNameToMatch, force, dryRun
-func (_m *AccountMigrationInterface) MigrateToLdap(fromAuthService string, foreignUserFieldNameToMatch string, force bool, dryRun bool) *model.AppError {
-	ret := _m.Called(fromAuthService, foreignUserFieldNameToMatch, force, dryRun)
+// MigrateToLdap provides a mock function with given fields: c, fromAuthService, foreignUserFieldNameToMatch, force, dryRun
+func (_m *AccountMigrationInterface) MigrateToLdap(c *request.Context, fromAuthService string, foreignUserFieldNameToMatch string, force bool, dryRun bool) *model.AppError {
+	ret := _m.Called(c, fromAuthService, foreignUserFieldNameToMatch, force, dryRun)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, bool, bool) *model.AppError); ok {
-		r0 = rf(fromAuthService, foreignUserFieldNameToMatch, force, dryRun)
+	if rf, ok := ret.Get(0).(func(*request.Context, string, string, bool, bool) *model.AppError); ok {
+		r0 = rf(c, fromAuthService, foreignUserFieldNameToMatch, force, dryRun)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

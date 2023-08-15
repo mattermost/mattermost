@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -4406,10 +4407,10 @@ func (s *TimerLayerJobStore) Get(id string) (*model.Job, error) {
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByStatus(status string) ([]*model.Job, error) {
+func (s *TimerLayerJobStore) GetAllByStatus(c *request.Context, status string) ([]*model.Job, error) {
 	start := time.Now()
 
-	result, err := s.JobStore.GetAllByStatus(status)
+	result, err := s.JobStore.GetAllByStatus(c, status)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -4422,10 +4423,10 @@ func (s *TimerLayerJobStore) GetAllByStatus(status string) ([]*model.Job, error)
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByType(jobType string) ([]*model.Job, error) {
+func (s *TimerLayerJobStore) GetAllByType(c *request.Context, jobType string) ([]*model.Job, error) {
 	start := time.Now()
 
-	result, err := s.JobStore.GetAllByType(jobType)
+	result, err := s.JobStore.GetAllByType(c, jobType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -4438,10 +4439,10 @@ func (s *TimerLayerJobStore) GetAllByType(jobType string) ([]*model.Job, error) 
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByTypeAndStatus(jobType string, status string) ([]*model.Job, error) {
+func (s *TimerLayerJobStore) GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error) {
 	start := time.Now()
 
-	result, err := s.JobStore.GetAllByTypeAndStatus(jobType, status)
+	result, err := s.JobStore.GetAllByTypeAndStatus(c, jobType, status)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -4454,10 +4455,10 @@ func (s *TimerLayerJobStore) GetAllByTypeAndStatus(jobType string, status string
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
+func (s *TimerLayerJobStore) GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error) {
 	start := time.Now()
 
-	result, err := s.JobStore.GetAllByTypePage(jobType, offset, limit)
+	result, err := s.JobStore.GetAllByTypePage(c, jobType, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -4470,10 +4471,10 @@ func (s *TimerLayerJobStore) GetAllByTypePage(jobType string, offset int, limit 
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByTypesPage(jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+func (s *TimerLayerJobStore) GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
 	start := time.Now()
 
-	result, err := s.JobStore.GetAllByTypesPage(jobTypes, offset, limit)
+	result, err := s.JobStore.GetAllByTypesPage(c, jobTypes, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -4482,22 +4483,6 @@ func (s *TimerLayerJobStore) GetAllByTypesPage(jobTypes []string, offset int, li
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetAllByTypesPage", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
-	start := time.Now()
-
-	result, err := s.JobStore.GetAllPage(offset, limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetAllPage", success, elapsed)
 	}
 	return result, err
 }

@@ -96,7 +96,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileDatas := c.App.GenerateSupportPacket()
+	fileDatas := c.App.GenerateSupportPacket(c.AppContext)
 
 	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
 	now := time.Now()

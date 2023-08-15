@@ -14,10 +14,11 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
-func (a *App) GenerateSupportPacket() []model.FileData {
+func (a *App) GenerateSupportPacket(c *request.Context) []model.FileData {
 	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
 	var warnings []string
 
@@ -25,7 +26,7 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	fileDatas := []model.FileData{}
 
 	// A array of the functions that we can iterate through since they all have the same return value
-	functions := []func() (*model.FileData, string){
+	functions := []func(c *request.Context) (*model.FileData, string){
 		a.generateSupportPacketYaml,
 		a.createPluginsFile,
 		a.createSanitizedConfigFile,
@@ -34,7 +35,7 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	}
 
 	for _, fn := range functions {
-		fileData, warning := fn()
+		fileData, warning := fn(c)
 
 		if fileData != nil {
 			fileDatas = append(fileDatas, *fileData)
@@ -55,7 +56,7 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	return fileDatas
 }
 
-func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
+func (a *App) generateSupportPacketYaml(c *request.Context) (*model.FileData, string) {
 	// Here we are getting information regarding Elastic Search
 	var elasticServerVersion string
 	var elasticServerPlugins []string
@@ -86,13 +87,13 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 		return nil, errors.Wrap(err, "error while getting analytics").Error()
 	}
 
-	elasticPostIndexing, _ := a.Srv().Store().Job().GetAllByTypePage("elasticsearch_post_indexing", 0, 2)
-	elasticPostAggregation, _ := a.Srv().Store().Job().GetAllByTypePage("elasticsearch_post_aggregation", 0, 2)
-	ldapSyncJobs, _ := a.Srv().Store().Job().GetAllByTypePage("ldap_sync", 0, 2)
-	messageExport, _ := a.Srv().Store().Job().GetAllByTypePage("message_export", 0, 2)
-	dataRetentionJobs, _ := a.Srv().Store().Job().GetAllByTypePage("data_retention", 0, 2)
-	complianceJobs, _ := a.Srv().Store().Job().GetAllByTypePage("compliance", 0, 2)
-	migrationJobs, _ := a.Srv().Store().Job().GetAllByTypePage("migrations", 0, 2)
+	elasticPostIndexing, _ := a.Srv().Store().Job().GetAllByTypePage(c, "elasticsearch_post_indexing", 0, 2)
+	elasticPostAggregation, _ := a.Srv().Store().Job().GetAllByTypePage(c, "elasticsearch_post_aggregation", 0, 2)
+	ldapSyncJobs, _ := a.Srv().Store().Job().GetAllByTypePage(c, "ldap_sync", 0, 2)
+	messageExport, _ := a.Srv().Store().Job().GetAllByTypePage(c, "message_export", 0, 2)
+	dataRetentionJobs, _ := a.Srv().Store().Job().GetAllByTypePage(c, "data_retention", 0, 2)
+	complianceJobs, _ := a.Srv().Store().Job().GetAllByTypePage(c, "compliance", 0, 2)
+	migrationJobs, _ := a.Srv().Store().Job().GetAllByTypePage(c, "migrations", 0, 2)
 
 	licenseTo := ""
 	supportedUsers := 0
@@ -149,7 +150,7 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 	return nil, warning
 }
 
-func (a *App) createPluginsFile() (*model.FileData, string) {
+func (a *App) createPluginsFile(_ *request.Context) (*model.FileData, string) {
 	var warning string
 
 	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
@@ -173,7 +174,7 @@ func (a *App) createPluginsFile() (*model.FileData, string) {
 	return nil, warning
 }
 
-func (a *App) getNotificationsLog() (*model.FileData, string) {
+func (a *App) getNotificationsLog(_ *request.Context) (*model.FileData, string) {
 	var warning string
 
 	// Getting notifications.log
@@ -200,7 +201,7 @@ func (a *App) getNotificationsLog() (*model.FileData, string) {
 	return nil, warning
 }
 
-func (a *App) getMattermostLog() (*model.FileData, string) {
+func (a *App) getMattermostLog(_ *request.Context) (*model.FileData, string) {
 	var warning string
 
 	// Getting mattermost.log
@@ -226,7 +227,7 @@ func (a *App) getMattermostLog() (*model.FileData, string) {
 	return nil, warning
 }
 
-func (a *App) createSanitizedConfigFile() (*model.FileData, string) {
+func (a *App) createSanitizedConfigFile(_ *request.Context) (*model.FileData, string) {
 	// Getting sanitized config, prettifying it, and then adding it to our file data array
 	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
 	if err == nil {

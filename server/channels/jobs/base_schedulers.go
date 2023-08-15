@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 type PeriodicScheduler struct {
@@ -17,6 +18,8 @@ type PeriodicScheduler struct {
 	jobType     string
 	enabledFunc func(cfg *model.Config) bool
 }
+
+var _ Scheduler = (*DailyScheduler)(nil)
 
 func NewPeriodicScheduler(jobs *JobServer, jobType string, period time.Duration, enabledFunc func(cfg *model.Config) bool) *PeriodicScheduler {
 	return &PeriodicScheduler{
@@ -36,8 +39,8 @@ func (scheduler *PeriodicScheduler) NextScheduleTime(_ *model.Config, _ time.Tim
 	return &nextTime
 }
 
-func (scheduler *PeriodicScheduler) ScheduleJob(_ *model.Config /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) (*model.Job, *model.AppError) {
-	return scheduler.jobs.CreateJob(scheduler.jobType, nil)
+func (scheduler *PeriodicScheduler) ScheduleJob(c *request.Context, _ *model.Config /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) (*model.Job, *model.AppError) {
+	return scheduler.jobs.CreateJob(c, scheduler.jobType, nil)
 }
 
 type DailyScheduler struct {
@@ -46,6 +49,8 @@ type DailyScheduler struct {
 	jobType       string
 	enabledFunc   func(cfg *model.Config) bool
 }
+
+var _ Scheduler = (*DailyScheduler)(nil)
 
 func NewDailyScheduler(jobs *JobServer, jobType string, startTimeFunc func(cfg *model.Config) *time.Time, enabledFunc func(cfg *model.Config) bool) *DailyScheduler {
 	return &DailyScheduler{
@@ -69,8 +74,8 @@ func (scheduler *DailyScheduler) NextScheduleTime(cfg *model.Config, now time.Ti
 	return GenerateNextStartDateTime(now, *scheduledTime)
 }
 
-func (scheduler *DailyScheduler) ScheduleJob(_ *model.Config /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) (*model.Job, *model.AppError) {
-	return scheduler.jobs.CreateJob(scheduler.jobType, nil)
+func (scheduler *DailyScheduler) ScheduleJob(c *request.Context, _ *model.Config /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) (*model.Job, *model.AppError) {
+	return scheduler.jobs.CreateJob(c, scheduler.jobType, nil)
 }
 
 const jitterRange = 2000 // milliseconds

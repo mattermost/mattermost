@@ -12,9 +12,11 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
-	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const mySQLDeadlockCode = uint16(1213)
@@ -5467,11 +5469,11 @@ func (s *RetryLayerJobStore) Get(id string) (*model.Job, error) {
 
 }
 
-func (s *RetryLayerJobStore) GetAllByStatus(status string) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByStatus(c *request.Context, status string) ([]*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.GetAllByStatus(status)
+		result, err := s.JobStore.GetAllByStatus(c, status)
 		if err == nil {
 			return result, nil
 		}
@@ -5488,11 +5490,11 @@ func (s *RetryLayerJobStore) GetAllByStatus(status string) ([]*model.Job, error)
 
 }
 
-func (s *RetryLayerJobStore) GetAllByType(jobType string) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByType(c *request.Context, jobType string) ([]*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.GetAllByType(jobType)
+		result, err := s.JobStore.GetAllByType(c, jobType)
 		if err == nil {
 			return result, nil
 		}
@@ -5509,11 +5511,11 @@ func (s *RetryLayerJobStore) GetAllByType(jobType string) ([]*model.Job, error) 
 
 }
 
-func (s *RetryLayerJobStore) GetAllByTypeAndStatus(jobType string, status string) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.GetAllByTypeAndStatus(jobType, status)
+		result, err := s.JobStore.GetAllByTypeAndStatus(c, jobType, status)
 		if err == nil {
 			return result, nil
 		}
@@ -5530,11 +5532,11 @@ func (s *RetryLayerJobStore) GetAllByTypeAndStatus(jobType string, status string
 
 }
 
-func (s *RetryLayerJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.GetAllByTypePage(jobType, offset, limit)
+		result, err := s.JobStore.GetAllByTypePage(c, jobType, offset, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -5551,32 +5553,11 @@ func (s *RetryLayerJobStore) GetAllByTypePage(jobType string, offset int, limit 
 
 }
 
-func (s *RetryLayerJobStore) GetAllByTypesPage(jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.GetAllByTypesPage(jobTypes, offset, limit)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
-
-	tries := 0
-	for {
-		result, err := s.JobStore.GetAllPage(offset, limit)
+		result, err := s.JobStore.GetAllByTypesPage(c, jobTypes, offset, limit)
 		if err == nil {
 			return result, nil
 		}

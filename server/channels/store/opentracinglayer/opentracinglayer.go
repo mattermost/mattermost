@@ -10,6 +10,7 @@ import (
 	"context"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
 	"github.com/opentracing/opentracing-go/ext"
@@ -4844,7 +4845,7 @@ func (s *OpenTracingLayerJobStore) Get(id string) (*model.Job, error) {
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) GetAllByStatus(status string) ([]*model.Job, error) {
+func (s *OpenTracingLayerJobStore) GetAllByStatus(c *request.Context, status string) ([]*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllByStatus")
 	s.Root.Store.SetContext(newCtx)
@@ -4853,7 +4854,7 @@ func (s *OpenTracingLayerJobStore) GetAllByStatus(status string) ([]*model.Job, 
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.GetAllByStatus(status)
+	result, err := s.JobStore.GetAllByStatus(c, status)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -4862,7 +4863,7 @@ func (s *OpenTracingLayerJobStore) GetAllByStatus(status string) ([]*model.Job, 
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) GetAllByType(jobType string) ([]*model.Job, error) {
+func (s *OpenTracingLayerJobStore) GetAllByType(c *request.Context, jobType string) ([]*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllByType")
 	s.Root.Store.SetContext(newCtx)
@@ -4871,7 +4872,7 @@ func (s *OpenTracingLayerJobStore) GetAllByType(jobType string) ([]*model.Job, e
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.GetAllByType(jobType)
+	result, err := s.JobStore.GetAllByType(c, jobType)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -4880,7 +4881,7 @@ func (s *OpenTracingLayerJobStore) GetAllByType(jobType string) ([]*model.Job, e
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) GetAllByTypeAndStatus(jobType string, status string) ([]*model.Job, error) {
+func (s *OpenTracingLayerJobStore) GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllByTypeAndStatus")
 	s.Root.Store.SetContext(newCtx)
@@ -4889,7 +4890,7 @@ func (s *OpenTracingLayerJobStore) GetAllByTypeAndStatus(jobType string, status 
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.GetAllByTypeAndStatus(jobType, status)
+	result, err := s.JobStore.GetAllByTypeAndStatus(c, jobType, status)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -4898,7 +4899,7 @@ func (s *OpenTracingLayerJobStore) GetAllByTypeAndStatus(jobType string, status 
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
+func (s *OpenTracingLayerJobStore) GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllByTypePage")
 	s.Root.Store.SetContext(newCtx)
@@ -4907,7 +4908,7 @@ func (s *OpenTracingLayerJobStore) GetAllByTypePage(jobType string, offset int, 
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.GetAllByTypePage(jobType, offset, limit)
+	result, err := s.JobStore.GetAllByTypePage(c, jobType, offset, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -4916,7 +4917,7 @@ func (s *OpenTracingLayerJobStore) GetAllByTypePage(jobType string, offset int, 
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) GetAllByTypesPage(jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+func (s *OpenTracingLayerJobStore) GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllByTypesPage")
 	s.Root.Store.SetContext(newCtx)
@@ -4925,25 +4926,7 @@ func (s *OpenTracingLayerJobStore) GetAllByTypesPage(jobTypes []string, offset i
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.GetAllByTypesPage(jobTypes, offset, limit)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
-func (s *OpenTracingLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetAllPage")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.JobStore.GetAllPage(offset, limit)
+	result, err := s.JobStore.GetAllByTypesPage(c, jobTypes, offset, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

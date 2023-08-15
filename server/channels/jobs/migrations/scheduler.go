@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -22,7 +23,9 @@ type Scheduler struct {
 	allMigrationsCompleted bool
 }
 
-func MakeScheduler(jobServer *jobs.JobServer, store store.Store) model.Scheduler {
+var _ jobs.Scheduler = (*Scheduler)(nil)
+
+func MakeScheduler(jobServer *jobs.JobServer, store store.Store) *Scheduler {
 	return &Scheduler{jobServer, store, false}
 }
 
@@ -41,15 +44,20 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 }
 
 //nolint:unparam
-func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
+func (scheduler *Scheduler) ScheduleJob(c *request.Context, cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	mlog.Debug("Scheduling Job", mlog.String("scheduler", model.JobTypeMigrations))
 
 	// Work through the list of migrations in order. Schedule the first one that isn't done (assuming it isn't in progress already).
 	for _, key := range MakeMigrationsList() {
-		state, job, err := GetMigrationState(key, scheduler.store)
+		state, job, err := GetMigrationState(c, key, scheduler.store)
 		if err != nil {
 			mlog.Error("Failed to determine status of migration: ", mlog.String("scheduler", model.JobTypeMigrations), mlog.String("migration_key", key), mlog.Err(err))
 			return nil, nil
+		}
+
+		if state == MigrationStateCompleted {
+			// This migration is done. Continue to check the next.
+			continue
 		}
 
 		if state == MigrationStateInProgress {
@@ -59,20 +67,15 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 				if err := scheduler.jobServer.SetJobError(job, nil); err != nil {
 					mlog.Error("Worker: Failed to set job error", mlog.String("scheduler", model.JobTypeMigrations), mlog.String("job_id", job.Id), mlog.Err(err))
 				}
-				return scheduler.createJob(key, job)
+				return scheduler.createJob(c, key, job)
 			}
 
 			return nil, nil
 		}
 
-		if state == MigrationStateCompleted {
-			// This migration is done. Continue to check the next.
-			continue
-		}
-
 		if state == MigrationStateUnscheduled {
 			mlog.Debug("Scheduling a new job for migration.", mlog.String("scheduler", model.JobTypeMigrations), mlog.String("migration_key", key))
-			return scheduler.createJob(key, job)
+			return scheduler.createJob(c, key, job)
 		}
 
 		mlog.Error("Unknown migration state. Not doing anything.", mlog.String("migration_state", state))
@@ -86,7 +89,7 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 	return nil, nil
 }
 
-func (scheduler *Scheduler) createJob(migrationKey string, lastJob *model.Job) (*model.Job, *model.AppError) {
+func (scheduler *Scheduler) createJob(c *request.Context, migrationKey string, lastJob *model.Job) (*model.Job, *model.AppError) {
 	var lastDone string
 	if lastJob != nil {
 		lastDone = lastJob.Data[JobDataKeyMigrationLastDone]
@@ -97,7 +100,7 @@ func (scheduler *Scheduler) createJob(migrationKey string, lastJob *model.Job) (
 		JobDataKeyMigrationLastDone: lastDone,
 	}
 
-	job, err := scheduler.jobServer.CreateJob(model.JobTypeMigrations, data)
+	job, err := scheduler.jobServer.CreateJob(c, model.JobTypeMigrations, data)
 	if err != nil {
 		return nil, err
 	}

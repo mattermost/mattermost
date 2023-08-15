@@ -170,14 +170,17 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
-	c.AppContext.SetT(t)
-	c.AppContext.SetRequestId(requestID)
-	c.AppContext.SetIPAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
-	c.AppContext.SetXForwardedFor(r.Header.Get("X-Forwarded-For"))
-	c.AppContext.SetUserAgent(r.UserAgent())
-	c.AppContext.SetAcceptLanguage(r.Header.Get("Accept-Language"))
-	c.AppContext.SetPath(r.URL.Path)
-	c.AppContext.SetContext(context.Background())
+	c.AppContext = request.NewContext(
+		context.Background(),
+		requestID,
+		utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader),
+		r.Header.Get("X-Forwarded-For"),
+		r.URL.Path,
+		r.UserAgent(),
+		r.Header.Get("Accept-Language"),
+		t,
+	)
+
 	c.Params = ParamsFromRequest(r)
 	c.Logger = c.App.Log()
 

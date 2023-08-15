@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -1357,15 +1358,16 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
-	job, err := th.App.Srv().Jobs.CreateJob(model.JobTypeResendInvitationEmail, map[string]string{})
+	job, err := th.App.Srv().Jobs.CreateJob(ctx, model.JobTypeResendInvitationEmail, map[string]string{})
 	require.Nil(t, err)
 
 	sysVar := &model.System{Name: job.Id, Value: "0"}
 	e := th.App.Srv().Store().System().SaveOrUpdate(sysVar)
 	require.NoError(t, e)
 
-	appErr := th.App.InvalidateAllResendInviteEmailJobs()
+	appErr := th.App.InvalidateAllResendInviteEmailJobs(ctx)
 	require.Nil(t, appErr)
 
 	j, e := th.App.Srv().Store().Job().Get(job.Id)
@@ -1380,6 +1382,7 @@ func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
 func TestInvalidateAllEmailInvites(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
 	t1 := model.Token{
 		Token:    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
@@ -1408,7 +1411,7 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 	err = th.App.Srv().Store().Token().Save(&t3)
 	require.NoError(t, err)
 
-	appErr := th.App.InvalidateAllEmailInvites()
+	appErr := th.App.InvalidateAllEmailInvites(ctx)
 	require.Nil(t, appErr)
 
 	_, err = th.App.Srv().Store().Token().GetByToken(t1.Token)

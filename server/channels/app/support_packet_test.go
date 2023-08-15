@@ -12,14 +12,16 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 func TestCreatePluginsFile(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
 	// Happy path where we have a plugins file with no warning
-	fileData, warning := th.App.createPluginsFile()
+	fileData, warning := th.App.createPluginsFile(ctx)
 	require.NotNil(t, fileData)
 	assert.Equal(t, "plugins.json", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
@@ -31,7 +33,7 @@ func TestCreatePluginsFile(t *testing.T) {
 	})
 
 	// Plugins off in settings so no fileData and we get a warning instead
-	fileData, warning = th.App.createPluginsFile()
+	fileData, warning = th.App.createPluginsFile(ctx)
 	assert.Nil(t, fileData)
 	assert.Contains(t, warning, "c.App.GetPlugins() Error:")
 }
@@ -39,6 +41,7 @@ func TestCreatePluginsFile(t *testing.T) {
 func TestGenerateSupportPacketYaml(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
 	licenseUsers := 100
 	license := model.NewTestLicense()
@@ -46,7 +49,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	th.App.Srv().SetLicense(license)
 
 	// Happy path where we have a support packet yaml file without any warnings
-	fileData, warning := th.App.generateSupportPacketYaml()
+	fileData, warning := th.App.generateSupportPacketYaml(ctx)
 	require.NotNil(t, fileData)
 	assert.Equal(t, "support_packet.yaml", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
@@ -59,6 +62,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 func TestGenerateSupportPacket(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
 	d1 := []byte("hello\ngo\n")
 	err := os.WriteFile("mattermost.log", d1, 0777)
@@ -66,7 +70,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 	err = os.WriteFile("notifications.log", d1, 0777)
 	require.NoError(t, err)
 
-	fileDatas := th.App.GenerateSupportPacket()
+	fileDatas := th.App.GenerateSupportPacket(ctx)
 	testFiles := []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "mattermost.log", "notifications.log"}
 	for i, fileData := range fileDatas {
 		require.NotNil(t, fileData)
@@ -79,7 +83,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 	require.NoError(t, err)
 	err = os.Remove("mattermost.log")
 	require.NoError(t, err)
-	fileDatas = th.App.GenerateSupportPacket()
+	fileDatas = th.App.GenerateSupportPacket(ctx)
 	testFiles = []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "warning.txt"}
 	for i, fileData := range fileDatas {
 		require.NotNil(t, fileData)
@@ -91,13 +95,14 @@ func TestGenerateSupportPacket(t *testing.T) {
 func TestGetNotificationsLog(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
 	// Disable notifications file to get an error
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.NotificationLogSettings.EnableFile = false
 	})
 
-	fileData, warning := th.App.getNotificationsLog()
+	fileData, warning := th.App.getNotificationsLog(ctx)
 	assert.Nil(t, fileData)
 	assert.Equal(t, warning, "Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json")
 
@@ -109,7 +114,7 @@ func TestGetNotificationsLog(t *testing.T) {
 	// If any previous notifications.log file, lets delete it
 	os.Remove("notifications.log")
 
-	fileData, warning = th.App.getNotificationsLog()
+	fileData, warning = th.App.getNotificationsLog(ctx)
 	assert.Nil(t, fileData)
 	assert.Contains(t, warning, "os.ReadFile(notificationsLog) Error:")
 
@@ -119,7 +124,7 @@ func TestGetNotificationsLog(t *testing.T) {
 	defer os.Remove("notifications.log")
 	require.NoError(t, err)
 
-	fileData, warning = th.App.getNotificationsLog()
+	fileData, warning = th.App.getNotificationsLog(ctx)
 	require.NotNil(t, fileData)
 	assert.Equal(t, "notifications.log", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
@@ -129,13 +134,14 @@ func TestGetNotificationsLog(t *testing.T) {
 func TestGetMattermostLog(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
 	// disable mattermost log file setting in config so we should get an warning
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.EnableFile = false
 	})
 
-	fileData, warning := th.App.getMattermostLog()
+	fileData, warning := th.App.getMattermostLog(ctx)
 	assert.Nil(t, fileData)
 	assert.Equal(t, "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json", warning)
 
@@ -147,7 +153,7 @@ func TestGetMattermostLog(t *testing.T) {
 	// If any previous mattermost.log file, lets delete it
 	os.Remove("mattermost.log")
 
-	fileData, warning = th.App.getMattermostLog()
+	fileData, warning = th.App.getMattermostLog(ctx)
 	assert.Nil(t, fileData)
 	assert.Contains(t, warning, "os.ReadFile(mattermostLog) Error:")
 
@@ -157,7 +163,7 @@ func TestGetMattermostLog(t *testing.T) {
 	defer os.Remove("mattermost.log")
 	require.NoError(t, err)
 
-	fileData, warning = th.App.getMattermostLog()
+	fileData, warning = th.App.getMattermostLog(ctx)
 	require.NotNil(t, fileData)
 	assert.Equal(t, "mattermost.log", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
@@ -167,9 +173,10 @@ func TestGetMattermostLog(t *testing.T) {
 func TestCreateSanitizedConfigFile(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
 	// Happy path where we have a sanitized config file with no warning
-	fileData, warning := th.App.createSanitizedConfigFile()
+	fileData, warning := th.App.createSanitizedConfigFile(ctx)
 	require.NotNil(t, fileData)
 	assert.Equal(t, "sanitized_config.json", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))

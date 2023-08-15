@@ -126,7 +126,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rjob, err := c.App.CreateJob(&job)
+	rjob, err := c.App.CreateJob(c.AppContext, &job)
 	if err != nil {
 		c.Err = err
 		return
@@ -163,7 +163,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jobs, appErr := c.App.GetJobsByTypesPage(validJobTypes, c.Params.Page, c.Params.PerPage)
+	jobs, appErr := c.App.GetJobsByTypesPage(c.AppContext, validJobTypes, c.Params.Page, c.Params.PerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -193,7 +193,7 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jobs, appErr := c.App.GetJobsByTypePage(c.Params.JobType, c.Params.Page, c.Params.PerPage)
+	jobs, appErr := c.App.GetJobsByTypePage(c.AppContext, c.Params.JobType, c.Params.Page, c.Params.PerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return

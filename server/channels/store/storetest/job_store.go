@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -25,7 +26,6 @@ func TestJobStore(t *testing.T, ss store.Store) {
 	t.Run("JobGetAllByTypeAndStatus", func(t *testing.T) { testJobGetAllByTypeAndStatus(t, ss) })
 	t.Run("JobGetAllByTypePage", func(t *testing.T) { testJobGetAllByTypePage(t, ss) })
 	t.Run("JobGetAllByTypesPage", func(t *testing.T) { testJobGetAllByTypesPage(t, ss) })
-	t.Run("JobGetAllPage", func(t *testing.T) { testJobGetAllPage(t, ss) })
 	t.Run("JobGetAllByStatus", func(t *testing.T) { testJobGetAllByStatus(t, ss) })
 	t.Run("GetNewestJobByStatusAndType", func(t *testing.T) { testJobStoreGetNewestJobByStatusAndType(t, ss) })
 	t.Run("GetNewestJobByStatusesAndType", func(t *testing.T) { testJobStoreGetNewestJobByStatusesAndType(t, ss) })
@@ -128,7 +128,7 @@ func testJobGetAllByType(t *testing.T, ss store.Store) {
 		defer ss.Job().Delete(job.Id)
 	}
 
-	received, err := ss.Job().GetAllByType(jobType)
+	received, err := ss.Job().GetAllByType(request.EmptyContext(), jobType)
 	require.NoError(t, err)
 	require.Len(t, received, 2)
 	require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id}, []string{received[0].Id, received[1].Id})
@@ -258,46 +258,6 @@ func testJobGetAllByTypesPage(t *testing.T, ss store.Store) {
 	received, err = ss.Job().GetAllByTypesPage(jobTypes, 2, 2)
 	require.NoError(t, err)
 	require.Len(t, received, 1)
-	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")
-}
-
-func testJobGetAllPage(t *testing.T, ss store.Store) {
-	jobType := model.NewId()
-	createAtTime := model.GetMillis()
-
-	jobs := []*model.Job{
-		{
-			Id:       model.NewId(),
-			Type:     jobType,
-			CreateAt: createAtTime + 1,
-		},
-		{
-			Id:       model.NewId(),
-			Type:     jobType,
-			CreateAt: createAtTime,
-		},
-		{
-			Id:       model.NewId(),
-			Type:     jobType,
-			CreateAt: createAtTime + 2,
-		},
-	}
-
-	for _, job := range jobs {
-		_, err := ss.Job().Save(job)
-		require.NoError(t, err)
-		defer ss.Job().Delete(job.Id)
-	}
-
-	received, err := ss.Job().GetAllPage(0, 2)
-	require.NoError(t, err)
-	require.Len(t, received, 2)
-	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
-	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
-
-	received, err = ss.Job().GetAllPage(2, 2)
-	require.NoError(t, err)
-	require.NotEmpty(t, received)
 	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")
 }
 

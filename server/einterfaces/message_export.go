@@ -4,12 +4,11 @@
 package einterfaces
 
 import (
-	"context"
-
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 type MessageExportInterface interface {
-	StartSynchronizeJob(ctx context.Context, exportFromTimestamp int64) (*model.Job, *model.AppError)
+	StartSynchronizeJob(c *request.Context, exportFromTimestamp int64) (*model.Job, *model.AppError)
 	RunExport(format string, since int64, limit int) (int64, *model.AppError)
 }

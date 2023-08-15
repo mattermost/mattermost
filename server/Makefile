@@ -376,7 +376,7 @@ plugin-mocks: ## Creates mock files for plugins.
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
-	$(GOBIN)/mockery --dir channels/einterfaces --all --output channels/einterfaces/mocks --note 'Regenerate this file using `make einterfaces-mocks`.'
+	$(GOBIN)/mockery --dir einterfaces --all --output einterfaces/mocks --note 'Regenerate this file using `make einterfaces-mocks`.'
 
 searchengine-mocks: ## Creates mock files for searchengines.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
