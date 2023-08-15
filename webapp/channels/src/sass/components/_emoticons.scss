@@ -186,7 +186,7 @@
     flex-shrink: 0;
     justify-content: space-between;
     padding: 0 12px;
-    margin: 8px 0 8px 0;
+    margin: 0 0 8px 0;
 
     .emoji-picker__category {
         display: inline-flex;
@@ -266,7 +266,7 @@
     align-items: center;
     justify-content: space-between;
     border-color: transparent !important;
-    margin: 12px 12px 0 12px;
+    margin: 12px;
 
     .skin-tones-animation {
         &-enter {
@@ -296,6 +296,7 @@
         height: 100%;
         align-items: center;
         background: var(--center-channel-bg);
+        margin-inline-start: 8px;
 
         &--active {
             position: absolute;
@@ -351,10 +352,9 @@
     .emoji-picker__text-container {
         position: relative;
         z-index: 5;
-        width: 284px;
+        width: 100%;
         height: 32px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
-        margin-right: 8px;
         border-radius: 4px;
 
         &:focus-within {
@@ -458,16 +458,27 @@
     }
 }
 
+$emoji-picker-footer-margin: 12px;
+$emoji-footer-border-width: 1px;
+$emoji-half-height: 33px;
+$emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-picker-footer-margin * 2;
+
 .emoji-picker__items {
     position: relative;
     width: 100%;
-    height: 270px;
+    height: calc(28px + 290px + 58px + 2px);
     padding: 4px 0 4px 12px;
     border-top-width: 1px;
     border-top-style: solid;
     -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
     overflow-y: auto;
+
+    &.gif-picker__items {
+        padding: 12px 12px 0 12px;
+        display: flex;
+        justify-content: center;
+    }
 
     .emoji-picker__container {
         position: relative;
@@ -547,17 +558,12 @@
     z-index: 99999;
 }
 
-$emoji-picker-footer-margin: 12px;
-$emoji-half-height: 33px;
-
 .emoji-picker__footer {
-    $border-width: 1px;
-
     display: flex;
-    min-height: $border-width + $emoji-half-height + $emoji-picker-footer-margin * 2; // prevents tiny layout shift when emoji replaces placeholder
+    min-height: $emoji-footer-height; // prevents tiny layout shift when emoji replaces placeholder
     align-items: center;
     justify-content: space-between;
-    border-top: solid $border-width rgba(61, 60, 64, 0.2);
+    border-top: solid $emoji-footer-border-width rgba(61, 60, 64, 0.2);
 }
 
 .emoji-picker__custom {

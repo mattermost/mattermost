@@ -47,18 +47,6 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
         };
     }
 
-    handleEnterEmojiTab = () => {
-        this.setState({
-            emojiTabVisible: true,
-        });
-    };
-
-    handleExitEmojiTab = () => {
-        this.setState({
-            emojiTabVisible: false,
-        });
-    };
-
     handleEmojiPickerClose = () => {
         this.props.onEmojiClose();
     };
@@ -105,12 +93,12 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
                     style={pickerStyle}
                     className={pickerClass}
                     justified={true}
+                    mountOnEnter={true}
+                    unmountOnExit={true}
                 >
                     <EmojiPickerHeader handleEmojiPickerClose={this.handleEmojiPickerClose}/>
                     <Tab
                         eventKey={1}
-                        onEnter={this.handleEnterEmojiTab}
-                        onExit={this.handleExitEmojiTab}
                         title={
                             <div className={'custom-emoji-tab__icon__text'}>
                                 <EmojiIcon
@@ -121,11 +109,11 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
                                 </div>
                             </div>
                         }
+                        unmountOnExit={true}
                         tabClassName={'custom-emoji-tab'}
                     >
                         <EmojiPicker
                             filter={this.state.filter}
-                            visible={this.state.emojiTabVisible}
                             onEmojiClick={this.props.onEmojiClick}
                             handleFilterChange={this.handleFilterChange}
                             handleEmojiPickerClose={this.handleEmojiPickerClose}
@@ -138,9 +126,9 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
                         tabClassName={'custom-emoji-tab'}
                     >
                         <GifPicker
+                            filter={this.state.filter}
                             onGifClick={this.props.onGifClick}
-                            defaultSearchText={this.state.filter}
-                            handleSearchTextChange={this.handleFilterChange}
+                            handleFilterChange={this.handleFilterChange}
                         />
                     </Tab>
                 </Tabs>
@@ -156,7 +144,6 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
                 <EmojiPickerHeader handleEmojiPickerClose={this.handleEmojiPickerClose}/>
                 <EmojiPicker
                     filter={this.state.filter}
-                    visible={this.state.emojiTabVisible}
                     onEmojiClick={this.props.onEmojiClick}
                     handleFilterChange={this.handleFilterChange}
                     handleEmojiPickerClose={this.handleEmojiPickerClose}
