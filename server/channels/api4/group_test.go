@@ -1293,14 +1293,14 @@ func TestGetGroups(t *testing.T) {
 
 	// Test include_archived parameter
 	opts.IncludeArchived = true
-	groups, _, err = th.Client.GetGroups(opts)
+	groups, _, err = th.Client.GetGroups(context.Background(), opts)
 	assert.NoError(t, err)
 	assert.Len(t, groups, 2)
 	opts.IncludeArchived = false
 
 	// Test returning only archived groups
 	opts.FilterArchived = true
-	groups, _, err = th.Client.GetGroups(opts)
+	groups, _, err = th.Client.GetGroups(context.Background(), opts)
 	assert.NoError(t, err)
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Id, group.Id)
