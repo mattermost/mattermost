@@ -2207,6 +2207,10 @@ func TestConfigurationWillBeSavedHook(t *testing.T) {
 }
 
 func TestSendPushNotification(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping TestSendPushNotification test in short mode")
+	}
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -2268,7 +2272,7 @@ func TestSendPushNotification(t *testing.T) {
 				UserID:  user.Id,
 			}
 			appErr := api.SendPushNotification(notification)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 		}(*data.user)
 	}
 	wg.Wait()
