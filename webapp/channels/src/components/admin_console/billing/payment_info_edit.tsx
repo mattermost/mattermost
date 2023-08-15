@@ -15,21 +15,23 @@ import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {completeStripeAddPaymentMethod} from 'actions/cloud';
 
-import {isDevModeEnabled} from 'selectors/general';
+import {isCwsMockMode} from 'selectors/cloud';
 
 import {areBillingDetailsValid, BillingDetails} from 'types/cloud/sku';
 import {GlobalState} from 'types/store';
 
 import {CloudLinks} from 'utils/constants';
+
 import BlockableLink from 'components/admin_console/blockable_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import PaymentForm from 'components/payment_form/payment_form';
-import {STRIPE_CSS_SRC, STRIPE_PUBLIC_KEY} from 'components/payment_form/stripe';
+import {STRIPE_CSS_SRC, getStripePublicKey} from 'components/payment_form/stripe';
 import SaveButton from 'components/save_button';
 import AlertBanner from 'components/alert_banner';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
+import ExternalLink from 'components/external_link';
 
 import './payment_info_edit.scss';
-import ExternalLink from 'components/external_link';
 
 let stripePromise: Promise<Stripe | null>;
 
@@ -37,7 +39,7 @@ const PaymentInfoEdit: React.FC = () => {
     const dispatch = useDispatch();
     const history = useHistory();
 
-    const isDevMode = useSelector(isDevModeEnabled);
+    const cwsMockMode = useSelector(isCwsMockMode);
     const paymentInfo = useSelector((state: GlobalState) => state.entities.cloud.customer);
     const theme = useSelector(getTheme);
 
@@ -56,6 +58,8 @@ const PaymentInfoEdit: React.FC = () => {
         card: {} as any,
     });
 
+    const stripePublicKey = useSelector((state: GlobalState) => getStripePublicKey(state));
+
     useEffect(() => {
         dispatch(getCloudCustomer());
     }, []);
@@ -68,7 +72,7 @@ const PaymentInfoEdit: React.FC = () => {
 
     const handleSubmit = async () => {
         setIsSaving(true);
-        const setPaymentMethod = completeStripeAddPaymentMethod((await stripePromise)!, billingDetails!, isDevMode);
+        const setPaymentMethod = completeStripeAddPaymentMethod((await stripePromise)!, billingDetails!, cwsMockMode);
         const success = await setPaymentMethod();
 
         if (success) {
@@ -81,12 +85,12 @@ const PaymentInfoEdit: React.FC = () => {
     };
 
     if (!stripePromise) {
-        stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
+        stripePromise = loadStripe(stripePublicKey);
     }
 
     return (
         <div className='wrapper--fixed PaymentInfoEdit'>
-            <div className='admin-console__header with-back'>
+            <AdminHeader withBackButton={true}>
                 <div>
                     <BlockableLink
                         to='/admin_console/billing/payment_info'
@@ -97,7 +101,7 @@ const PaymentInfoEdit: React.FC = () => {
                         defaultMessage='Edit Payment Information'
                     />
                 </div>
-            </div>
+            </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
                     {showCreditCardWarning &&

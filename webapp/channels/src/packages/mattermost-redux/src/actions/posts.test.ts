@@ -655,6 +655,22 @@ describe('Actions.Posts', () => {
             new Set(['bbb', 'ccc']),
         );
 
+        expect(
+            Actions.getNeededAtMentionedUsernames(state, [
+                TestHelper.getPostMock({
+                    message: '@aaa @bbb',
+                    props: {
+                        attachments: [
+                            {text: '@ccc @ddd'},
+                            {pretext: '@eee @fff', text: '@ggg'},
+                        ],
+                    },
+                }),
+            ]),
+        ).toEqual(
+            new Set(['bbb', 'ccc', 'ddd', 'eee', 'fff', 'ggg']),
+        );
+
         // should never try to request usernames matching special mentions
         expect(
             Actions.getNeededAtMentionedUsernames(state, [
@@ -1102,7 +1118,7 @@ describe('Actions.Posts', () => {
         const {dispatch, getState} = store;
 
         nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}/stats`).
+            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
 
         await dispatch(getChannelStats(TestHelper.basicChannel!.id));
@@ -1141,7 +1157,7 @@ describe('Actions.Posts', () => {
         const {dispatch, getState} = store;
 
         nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}/stats`).
+            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
             reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
 
         await dispatch(getChannelStats(TestHelper.basicChannel!.id));

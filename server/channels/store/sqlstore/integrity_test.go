@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func createAudit(ss store.Store, userId, sessionId string) *model.Audit {
@@ -258,6 +258,7 @@ func createDefaultRoles(ss store.Store) {
 		DisplayName: model.ChannelUserRoleId,
 		Permissions: []string{
 			model.PermissionReadChannel.Id,
+			model.PermissionReadChannelContent.Id,
 			model.PermissionCreatePost.Id,
 		},
 	})
@@ -267,6 +268,7 @@ func createDefaultRoles(ss store.Store) {
 		DisplayName: model.ChannelGuestRoleId,
 		Permissions: []string{
 			model.PermissionReadChannel.Id,
+			model.PermissionReadChannelContent.Id,
 			model.PermissionCreatePost.Id,
 		},
 	})

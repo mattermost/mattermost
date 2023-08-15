@@ -9,13 +9,14 @@ import {ChannelCategory} from '@mattermost/types/channel_categories';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import {localizeMessage} from 'utils/utils';
 
 import '../category_modal.scss';
 
 const MAX_LENGTH = 22;
+const ACTION_WAIT_MS = 1000;
 
 type Props = {
     onExited: () => void;
@@ -34,6 +35,8 @@ type State = {
 }
 
 export default class EditCategoryModal extends React.PureComponent<Props, State> {
+    timeoutId: NodeJS.Timeout | null = null;
+    isProcessing = false;
     constructor(props: Props) {
         super(props);
 
@@ -54,7 +57,21 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
         this.handleClear();
     };
 
+    componentWillUnmount() {
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+        }
+    }
+
     handleConfirm = () => {
+        if (this.isProcessing) {
+            return;
+        }
+        this.isProcessing = true;
+        this.timeoutId = setTimeout(() => {
+            this.isProcessing = false;
+        }, ACTION_WAIT_MS);
+
         if (this.props.categoryId) {
             this.props.actions.renameCategory(this.props.categoryId, this.state.categoryName);
         } else {
@@ -132,7 +149,6 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
                 handleConfirm={this.handleConfirm}
                 handleCancel={this.handleCancel}
                 isConfirmDisabled={this.isConfirmDisabled()}
-                enforceFocus={false}
             >
                 <QuickInput
                     inputComponent={MaxLengthInput}

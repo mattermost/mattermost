@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -18,10 +19,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/timezones"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/timezones"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 type SqlStore interface {
@@ -149,8 +150,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, ss) })
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, ss) })
-	t.Run("PostCountsByDuration", func(t *testing.T) { testChannelPostCountsByDuration(t, ss) })
-	t.Run("GetTopInactiveChannels", func(t *testing.T) { testGetTopInactiveChannels(t, ss) })
+	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -351,6 +351,13 @@ func testChannelStoreUpdate(t *testing.T, ss store.Store) {
 	o2.Name = o1.Name
 	_, err = ss.Channel().Update(&o2)
 	require.Error(t, err, "update should have failed because of existing name")
+
+	// Make sure that the error correctly reports the wrong field to be Name
+	// See https://mattermost.atlassian.net/browse/MM-53756
+	var invalidInputErr *store.ErrInvalidInput
+	require.ErrorAs(t, err, &invalidInputErr)
+	require.Equal(t, invalidInputErr.Entity, "Channel")
+	require.Equal(t, invalidInputErr.Field, "Name")
 }
 
 func testGetChannelUnread(t *testing.T, ss store.Store) {
@@ -1082,6 +1089,15 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 		require.IsType(t, &store.ErrConflict{}, nErr)
 	})
 
+	t.Run("should fail if notify props are too big", func(t *testing.T) {
+		channelID := model.NewId()
+		props := model.GetDefaultChannelNotifyProps()
+		props["property"] = strings.Repeat("Z", model.ChannelMemberNotifyPropsMaxRunes)
+		member := &model.ChannelMember{ChannelId: channelID, UserId: u1.Id, NotifyProps: props}
+		_, nErr := ss.Channel().SaveMember(member)
+		require.ErrorContains(t, nErr, "channel_member.is_valid.notify_props")
+	})
+
 	t.Run("insert member correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
 		team := &model.Team{
 			DisplayName: "Name",
@@ -1579,6 +1595,15 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
 		require.Error(t, nErr)
 		require.IsType(t, &store.ErrConflict{}, nErr)
+	})
+
+	t.Run("should fail if notify props are too big", func(t *testing.T) {
+		channelID := model.NewId()
+		props := model.GetDefaultChannelNotifyProps()
+		props["property"] = strings.Repeat("Z", model.ChannelMemberNotifyPropsMaxRunes)
+		member := &model.ChannelMember{ChannelId: channelID, UserId: u1.Id, NotifyProps: props}
+		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member})
+		require.ErrorContains(t, nErr, "channel_member.is_valid.notify_props")
 	})
 
 	t.Run("insert members correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
@@ -2109,6 +2134,18 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
 	})
 
+	t.Run("should fail with invalid error if notify props are too big", func(t *testing.T) {
+		props := model.GetDefaultChannelNotifyProps()
+		props["property"] = strings.Repeat("Z", model.ChannelMemberNotifyPropsMaxRunes)
+
+		member := &model.ChannelMember{ChannelId: model.NewId(), UserId: u1.Id, NotifyProps: props}
+		_, nErr := ss.Channel().UpdateMember(member)
+		require.Error(t, nErr)
+		var appErr *model.AppError
+		require.ErrorAs(t, nErr, &appErr)
+		require.Equal(t, "model.channel_member.is_valid.notify_props.app_error", appErr.Id)
+	})
+
 	t.Run("insert member correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
 		team := &model.Team{
 			DisplayName: "Name",
@@ -2612,6 +2649,18 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
 		require.Error(t, nErr)
 		require.IsType(t, &store.ErrConflict{}, nErr)
+	})
+
+	t.Run("should fail with invalid error if notify props are too big", func(t *testing.T) {
+		props := model.GetDefaultChannelNotifyProps()
+		props["property"] = strings.Repeat("Z", model.ChannelMemberNotifyPropsMaxRunes)
+
+		member := &model.ChannelMember{ChannelId: model.NewId(), UserId: u1.Id, NotifyProps: props}
+		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member})
+		require.Error(t, nErr)
+		var appErr *model.AppError
+		require.ErrorAs(t, nErr, &appErr)
+		require.Equal(t, "model.channel_member.is_valid.notify_props.app_error", appErr.Id)
 	})
 
 	t.Run("insert members correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
@@ -3152,6 +3201,14 @@ func testChannelUpdateMemberNotifyProps(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 	// Verify props.
 	assert.Equal(t, props, member.NotifyProps)
+
+	t.Run("should fail with invalid input if the notify props are too big", func(t *testing.T) {
+		props["property"] = strings.Repeat("Z", model.ChannelMemberNotifyPropsMaxRunes)
+		member, err = ss.Channel().UpdateMemberNotifyProps(member.ChannelId, member.UserId, props)
+		var invErr *store.ErrInvalidInput
+		require.ErrorAs(t, err, &invErr)
+		require.Nil(t, member)
+	})
 }
 
 func testChannelRemoveMember(t *testing.T, ss store.Store) {
@@ -8011,234 +8068,165 @@ func testGetTeamForChannel(t *testing.T, ss store.Store) {
 	require.True(t, errors.As(err, &nfErr))
 }
 
-func testChannelPostCountsByDuration(t *testing.T, ss store.Store) {
-	team, err := ss.Team().Save(&model.Team{
-		Name:        model.NewId(),
-		DisplayName: "DisplayName",
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
-	require.NoError(t, err)
-	defer func() { ss.Team().PermanentDelete(team.Id) }()
+func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, ss store.Store) {
+	setupMembership := func(
+		pushProp string,
+		withUnreads bool,
+		withMentions bool,
+		isDirect bool,
+		userId string,
+	) (model.Channel, model.ChannelMember) {
+		if !isDirect {
+			o1 := model.Channel{}
+			o1.TeamId = model.NewId()
+			o1.DisplayName = "Channel1"
+			o1.Name = NewTestId()
+			o1.Type = model.ChannelTypeOpen
+			o1.TotalMsgCount = 25
+			o1.LastPostAt = 12345
+			o1.LastRootPostAt = 12345
+			_, nErr := ss.Channel().Save(&o1, -1)
+			require.NoError(t, nErr)
 
-	channel := &model.Channel{
-		TeamId:      team.Id,
-		DisplayName: "test_share_flag",
-		Name:        "test_share_flag",
-		Type:        model.ChannelTypeOpen,
-	}
-	channelSaved, err := ss.Channel().Save(channel, 999)
-	require.NoError(t, err)
-	defer func() { ss.Channel().PermanentDelete(channelSaved.Id) }()
+			m1 := model.ChannelMember{}
+			m1.ChannelId = o1.Id
+			m1.UserId = userId
+			m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+			m1.NotifyProps[model.PushNotifyProp] = pushProp
+			if !withUnreads {
+				m1.MsgCount = o1.TotalMsgCount
+				m1.LastViewedAt = o1.LastPostAt
+			}
+			if withMentions {
+				m1.MentionCount = 5
+			}
+			_, err := ss.Channel().SaveMember(&m1)
+			require.NoError(t, err)
 
-	userID := model.NewId()
-	_, err = ss.Post().Save(&model.Post{
-		UserId:    userID,
-		ChannelId: channel.Id,
-		Message:   "test",
-	})
-	require.NoError(t, err)
+			return o1, m1
+		}
 
-	_, err = ss.Post().Save(&model.Post{
-		UserId:    userID,
-		ChannelId: channel.Id,
-		Message:   "test",
-		Props: model.StringInterface{
-			"from_bot": true,
-		},
-	})
-	require.NoError(t, err)
-
-	_, err = ss.Post().Save(&model.Post{
-		UserId:    userID,
-		ChannelId: channel.Id,
-		Message:   "test",
-		Props: model.StringInterface{
-			"from_webhook": true,
-		},
-	})
-	require.NoError(t, err)
-
-	dpc, err := ss.Channel().PostCountsByDuration([]string{channelSaved.Id}, 0, &userID, model.PostsByDay, time.Now().Location())
-	require.NoError(t, err)
-	require.Len(t, dpc, 1)
-	require.Equal(t, channel.Id, dpc[0].ChannelID)
-	require.Equal(t, 1, dpc[0].PostCount)
-}
-
-func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
-	team, err := ss.Team().Save(&model.Team{
-		Name:        model.NewId(),
-		DisplayName: "DisplayName",
-		Email:       MakeEmail(),
-		Type:        model.TeamOpen,
-	})
-	require.NoError(t, err)
-	defer func() { ss.Team().PermanentDelete(team.Id) }()
-
-	channelPublic0 := &model.Channel{
-		TeamId:      team.Id,
-		DisplayName: "test_share_flag asdf",
-		Name:        "test_share_flag_public0",
-		Type:        model.ChannelTypeOpen,
-		CreateAt:    1,
-	}
-
-	channelSaved0, err := ss.Channel().Save(channelPublic0, 999)
-	require.NoError(t, err)
-	defer func() { ss.Channel().PermanentDelete(channelSaved0.Id) }()
-
-	channelPublic1 := &model.Channel{
-		TeamId:      team.Id,
-		DisplayName: "test_share_flag",
-		Name:        "test_share_flag",
-		Type:        model.ChannelTypeOpen,
-		CreateAt:    1,
-	}
-
-	channelSaved1, err := ss.Channel().Save(channelPublic1, 999)
-	require.NoError(t, err)
-	defer func() { ss.Channel().PermanentDelete(channelSaved1.Id) }()
-
-	// create private channel
-	c3 := model.Channel{}
-	c3.TeamId = team.Id
-	c3.DisplayName = "Channel3" + model.NewId()
-	c3.Name = NewTestId()
-	c3.Type = model.ChannelTypePrivate
-	c3.CreateAt = 1
-	channelPrivate, nErr := ss.Channel().Save(&c3, -1)
-	require.NoError(t, nErr)
-
-	// create private channel with post
-	c3NoPost := model.Channel{}
-	c3NoPost.TeamId = team.Id
-	c3NoPost.DisplayName = "Channel3" + model.NewId()
-	c3NoPost.Name = NewTestId()
-	c3NoPost.Type = model.ChannelTypePrivate
-	c3NoPost.CreateAt = 1
-	channelPrivateNoPost, nErr := ss.Channel().Save(&c3NoPost, -1)
-	require.NoError(t, nErr)
-
-	// create dm channel
-	u1 := model.User{}
-	u1.Email = MakeEmail()
-	u1.Nickname = model.NewId()
-	_, err = ss.User().Save(&u1)
-	require.NoError(t, err)
-
-	u2 := model.User{}
-	u2.Email = MakeEmail()
-	u2.Nickname = model.NewId()
-	_, err = ss.User().Save(&u2)
-	require.NoError(t, err)
-
-	uBot := model.User{Id: model.NewId()}
-	_, nErr = ss.Channel().CreateDirectChannel(&u1, &u2)
-	require.NoError(t, nErr)
-
-	// add u1, u2 to channels
-
-	cm1 := &model.ChannelMember{ChannelId: channelPrivate.Id, UserId: u1.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
-	_, err = ss.Channel().SaveMember(cm1)
-	require.NoError(t, err)
-	cm1NoPost := &model.ChannelMember{ChannelId: channelPrivateNoPost.Id, UserId: u1.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
-	_, err = ss.Channel().SaveMember(cm1NoPost)
-	require.NoError(t, err)
-	cm1Public := &model.ChannelMember{ChannelId: channelPublic1.Id, UserId: u1.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
-	_, err = ss.Channel().SaveMember(cm1Public)
-	require.NoError(t, err)
-	cm2 := &model.ChannelMember{ChannelId: channelPublic0.Id, UserId: u2.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
-	_, err = ss.Channel().SaveMember(cm2)
-	require.NoError(t, err)
-	cmBot := &model.ChannelMember{ChannelId: channelPublic0.Id, UserId: uBot.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
-	_, err = ss.Channel().SaveMember(cmBot)
-	require.NoError(t, err)
-
-	_, err = ss.Post().Save(&model.Post{
-		UserId:    u1.Id,
-		ChannelId: channelPrivate.Id,
-		Message:   "test",
-	})
-	require.NoError(t, err)
-
-	_, err = ss.Post().Save(&model.Post{
-		UserId:    u1.Id,
-		ChannelId: channelPrivate.Id,
-		Message:   "test1",
-	})
-	require.NoError(t, err)
-
-	// create posts in channel public 0
-	postToCheckLastUpdateAt, err := ss.Post().Save(&model.Post{
-		UserId:    u2.Id,
-		ChannelId: channelSaved0.Id,
-		Message:   "test",
-	})
-	require.NoError(t, err)
-
-	_, err = ss.Post().Save(&model.Post{
-		UserId:    model.NewId(),
-		ChannelId: channelPublic1.Id,
-		Message:   "test",
-		Props: model.StringInterface{
-			"from_bot": true,
-		},
-	})
-	require.NoError(t, err)
-
-	// create posts in channel public 1
-	for i := 0; i < 3; i++ {
-		_, err = ss.Post().Save(&model.Post{
-			UserId:    model.NewId(),
-			ChannelId: channelPublic1.Id,
-			Message:   "test",
+		o1, err := ss.Channel().CreateDirectChannel(&model.User{Id: userId}, &model.User{Id: model.NewId()}, func(channel *model.Channel) {
+			channel.TotalMsgCount = 25
+			channel.LastPostAt = 12345
+			channel.LastRootPostAt = 12345
 		})
 		require.NoError(t, err)
+
+		m1, err := ss.Channel().GetMember(context.Background(), o1.Id, userId)
+		require.NoError(t, err)
+
+		if !withUnreads {
+			m1.MsgCount = o1.TotalMsgCount
+			m1.LastViewedAt = o1.LastPostAt
+		}
+		if withMentions {
+			m1.MentionCount = 5
+		}
+
+		m1, err = ss.Channel().UpdateMember(m1)
+		require.NoError(t, err)
+
+		return *o1, *m1
 	}
 
-	// for u1
-	t.Run("top inactive channels for team - u1 ", func(t *testing.T) {
-		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForTeamSince(team.Id, u1.Id, 2, 0, 10)
-		require.NoError(t, err)
-		require.Len(t, topInactiveChannels.Items, 4)
-		require.Equal(t, topInactiveChannels.Items[0].ID, channelPrivateNoPost.Id)
-		require.Equal(t, topInactiveChannels.Items[1].ID, channelSaved0.Id)
-		require.Equal(t, topInactiveChannels.Items[1].LastActivityAt, postToCheckLastUpdateAt.CreateAt)
-		require.Equal(t, topInactiveChannels.Items[2].ID, channelPrivate.Id)
-		require.Equal(t, topInactiveChannels.Items[3].ID, channelPublic1.Id)
-		// test bot posts are counted
-		require.Equal(t, topInactiveChannels.Items[3].MessageCount, int64(4))
+	type TestCase struct {
+		name           string
+		pushProp       string
+		userNotifyProp string
+		isDirect       bool
+		withUnreads    bool
+		withMentions   bool
+	}
+	ttcc := []TestCase{}
 
-		// participants
-		require.Equal(t, topInactiveChannels.Items[2].Participants[0], u1.Id)
-		require.Equal(t, topInactiveChannels.Items[3].Participants[0], u1.Id)
+	channelNotifyProps := []string{model.ChannelNotifyDefault, model.ChannelNotifyAll, model.ChannelNotifyMention, model.ChannelNotifyNone}
+	userNotifyProps := []string{model.UserNotifyAll, model.UserNotifyMention, model.UserNotifyHere, model.UserNotifyNone}
+	boolRange := []bool{true, false}
+
+	nameTemplate := "pushProp: %s, userPushProp: %s, direct: %t, unreads: %t, mentions: %t"
+	for _, pushProp := range channelNotifyProps {
+		for _, userNotifyProp := range userNotifyProps {
+			for _, isDirect := range boolRange {
+				for _, withUnreads := range boolRange {
+					ttcc = append(ttcc, TestCase{
+						name:           fmt.Sprintf(nameTemplate, pushProp, userNotifyProp, isDirect, withUnreads, false),
+						pushProp:       pushProp,
+						userNotifyProp: userNotifyProp,
+						isDirect:       isDirect,
+						withUnreads:    withUnreads,
+						withMentions:   false,
+					})
+					if withUnreads {
+						ttcc = append(ttcc, TestCase{
+							name:           fmt.Sprintf(nameTemplate, pushProp, userNotifyProp, isDirect, withUnreads, true),
+							pushProp:       pushProp,
+							userNotifyProp: userNotifyProp,
+							isDirect:       isDirect,
+							withUnreads:    withUnreads,
+							withMentions:   true,
+						})
+					}
+				}
+			}
+		}
+	}
+
+	for _, tc := range ttcc {
+		t.Run(tc.name, func(t *testing.T) {
+			o1, m1 := setupMembership(tc.pushProp, tc.withUnreads, tc.withMentions, tc.isDirect, model.NewId())
+			userNotifyProps := model.GetDefaultChannelNotifyProps()
+			userNotifyProps[model.PushNotifyProp] = tc.userNotifyProp
+			unreads, mentions, times, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(context.Background(), []string{o1.Id}, m1.UserId, userNotifyProps)
+			require.NoError(t, err)
+
+			expectedUnreadsLength := 0
+			if tc.withUnreads {
+				expectedUnreadsLength = 1
+			}
+			require.Len(t, unreads, expectedUnreadsLength)
+
+			propToUse := tc.pushProp
+			if tc.pushProp == model.ChannelNotifyDefault {
+				propToUse = tc.userNotifyProp
+			}
+			expectedMentionsLength := 0
+			if (tc.isDirect && tc.withUnreads) || (propToUse == model.UserNotifyAll && tc.withUnreads) || (propToUse == model.UserNotifyMention && tc.withMentions) {
+				expectedMentionsLength = 1
+			}
+
+			require.Len(t, mentions, expectedMentionsLength)
+			require.Equal(t, o1.LastPostAt, times[o1.Id])
+		})
+	}
+
+	t.Run("multiple channels", func(t *testing.T) {
+		userId := model.NewId()
+		o1, _ := setupMembership(model.ChannelNotifyDefault, true, true, false, userId)
+		o2, _ := setupMembership(model.ChannelNotifyDefault, true, true, false, userId)
+
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
+
+		unreads, mentions, times, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(context.Background(), []string{o1.Id, o2.Id}, userId, userNotifyProps)
+		require.NoError(t, err)
+
+		require.Contains(t, unreads, o1.Id)
+		require.Contains(t, unreads, o2.Id)
+		require.Contains(t, mentions, o1.Id)
+		require.Contains(t, mentions, o2.Id)
+		require.Equal(t, o1.LastPostAt, times[o1.Id])
+		require.Equal(t, o2.LastPostAt, times[o2.Id])
 	})
 
-	t.Run("top inactive channels for user - u1 ", func(t *testing.T) {
-		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForUserSince(team.Id, u1.Id, 2, 0, 10)
+	t.Run("non existing channel", func(t *testing.T) {
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
+		unreads, mentions, times, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(context.Background(), []string{"foo"}, "foo", userNotifyProps)
 		require.NoError(t, err)
-		require.Len(t, topInactiveChannels.Items, 3)
-		require.Equal(t, topInactiveChannels.Items[0].ID, channelPrivateNoPost.Id)
-		require.Equal(t, topInactiveChannels.Items[1].ID, channelPrivate.Id)
-		require.Equal(t, topInactiveChannels.Items[2].ID, channelPublic1.Id)
-	})
 
-	// for u2
-	t.Run("top inactive channels for team - u2 ", func(t *testing.T) {
-		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForTeamSince(team.Id, u2.Id, 2, 0, 10)
-		require.NoError(t, err)
-		require.Len(t, topInactiveChannels.Items, 2)
-		require.Equal(t, topInactiveChannels.Items[0].ID, channelSaved0.Id)
-		require.Equal(t, topInactiveChannels.Items[0].LastActivityAt, postToCheckLastUpdateAt.CreateAt)
-		require.Equal(t, topInactiveChannels.Items[1].ID, channelPublic1.Id)
+		require.Len(t, unreads, 0)
+		require.Len(t, mentions, 0)
+		require.Len(t, times, 0)
 	})
-
-	t.Run("top inactive channels for user - u2 ", func(t *testing.T) {
-		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForUserSince(team.Id, u2.Id, 2, 0, 10)
-		require.NoError(t, err)
-		require.Len(t, topInactiveChannels.Items, 1)
-		require.Equal(t, topInactiveChannels.Items[0].ID, channelPublic0.Id)
-	})
-
 }

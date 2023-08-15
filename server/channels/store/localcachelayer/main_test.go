@@ -10,13 +10,13 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
-	cachemocks "github.com/mattermost/mattermost-server/server/v8/platform/services/cache/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	cachemocks "github.com/mattermost/mattermost/server/v8/platform/services/cache/mocks"
 )
 
 var mainHelper *testlib.MainHelper
@@ -69,6 +69,7 @@ func getMockStore() *mocks.Store {
 	mockStore.On("Webhook").Return(&mockWebhookStore)
 
 	fakeEmoji := model.Emoji{Id: "123", Name: "name123"}
+	fakeEmoji2 := model.Emoji{Id: "321", Name: "name321"}
 	ctxEmoji := model.Emoji{Id: "master", Name: "name123"}
 	mockEmojiStore := mocks.EmojiStore{}
 	mockEmojiStore.On("Get", mock.Anything, "123", true).Return(&fakeEmoji, nil)
@@ -77,6 +78,8 @@ func getMockStore() *mocks.Store {
 	mockEmojiStore.On("Get", sqlstore.WithMaster(context.Background()), "master", true).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("GetByName", mock.Anything, "name123", true).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("GetByName", mock.Anything, "name123", false).Return(&fakeEmoji, nil)
+	mockEmojiStore.On("GetMultipleByName", context.Background(), []string{"name123"}).Return([]*model.Emoji{&fakeEmoji}, nil)
+	mockEmojiStore.On("GetMultipleByName", context.Background(), []string{"name123", "name321"}).Return([]*model.Emoji{&fakeEmoji, &fakeEmoji2}, nil)
 	mockEmojiStore.On("GetByName", context.Background(), "master", true).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("GetByName", sqlstore.WithMaster(context.Background()), "master", false).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("Delete", &fakeEmoji, int64(0)).Return(nil)
@@ -96,6 +99,12 @@ func getMockStore() *mocks.Store {
 	mockChannelStore.On("Get", channelId, true).Return(&fakeChannelId, nil)
 	mockChannelStore.On("Get", channelId, false).Return(&fakeChannelId, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
+
+	mockChannelsMemberCount := map[string]int64{
+		"channel1": 10,
+		"channel2": 20,
+	}
+	mockChannelStore.On("GetChannelsMemberCount", []string{"channel1", "channel2"}).Return(mockChannelsMemberCount, nil)
 
 	mockPinnedPostsCount := int64(10)
 	mockChannelStore.On("GetPinnedPostCount", "id", true).Return(mockPinnedPostsCount, nil)

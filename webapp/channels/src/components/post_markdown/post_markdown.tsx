@@ -25,11 +25,6 @@ type Props = {
     imageProps?: Record<string, any>;
 
     /*
-     * Whether or not this text is part of the RHS
-     */
-    isRHS?: boolean;
-
-    /*
      * The post text to be rendered
      */
     message: string;
@@ -66,11 +61,12 @@ type Props = {
      */
     isMilitaryTime?: boolean;
     timezone?: string;
+
+    hideGuestTags: boolean;
 }
 
 export default class PostMarkdown extends React.PureComponent<Props> {
     static defaultProps = {
-        isRHS: false,
         pluginHooks: [],
         options: {},
         showPostEditedIndicator: true,
@@ -94,6 +90,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             const renderedSystemMessage = renderSystemMessage(post,
                 this.props.currentTeam,
                 this.props.channel,
+                this.props.hideGuestTags,
                 this.props.isUserCanManageMembers,
                 this.props.isMilitaryTime,
                 this.props.timezone);
@@ -132,7 +129,6 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         return (
             <Markdown
                 imageProps={this.props.imageProps}
-                isRHS={this.props.isRHS}
                 message={message}
                 proxyImages={proxyImages}
                 mentionKeys={mentionKeys}

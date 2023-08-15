@@ -1,53 +1,76 @@
-name: mattermost-e2e-tests
+name: E2E Tests
 on:
-  pull_request:
-  push:
-    branches:
-      - master
-      - mono-repo*
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !contains( github.ref , 'heads/ref/master') }}
+  # For PRs, this workflow gets triggered from the Argo Events platform.
+  # Check the following repo for details: https://github.com/mattermost/delivery-platform
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        type: string
+        required: false
+
 defaults:
   run:
     shell: bash
+
 jobs:
+  update-initial-status:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha || github.sha }}
+          context: E2E Tests/smoketests
+          description: E2E tests for mattermost server app
+          status: pending
+
   cypress-check:
     runs-on: ubuntu-22.04
+    needs:
+      - update-initial-status
     defaults:
       run:
         working-directory: e2e-tests/cypress
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        with:
+          ref: ${{ inputs.commit_sha || github.sha }}
       - name: ci/setup-node
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
           cache: npm
-          cache-dependency-path: 'e2e-tests/cypress/package-lock.json'
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
       - name: ci/cypress/npm-install
         run: |
           npm ci
       - name: ci/cypress/npm-check
         run: |
           npm run check
+
   playwright-check:
     runs-on: ubuntu-22.04
+    needs:
+      - update-initial-status
     defaults:
       run:
         working-directory: e2e-tests/playwright
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        with:
+          ref: ${{ inputs.commit_sha || github.sha }}
       - name: ci/setup-node
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
           cache: npm
-          cache-dependency-path: 'e2e-tests/playwright/package-lock.json'
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         # requires build of client and types
@@ -59,3 +82,65 @@ jobs:
       - name: ci/playwright/npm-check
         run: |
           npm run check
+
+  smoketests:
+    runs-on: ubuntu-latest-8-cores
+    needs:
+      - cypress-check
+      - playwright-check
+    defaults:
+      run:
+        working-directory: e2e-tests
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        with:
+          ref: ${{ inputs.commit_sha || github.sha }}
+      - name: ci/e2e-smoketests
+        run: |
+          make
+      - name: ci/e2e-smoketests-store-results
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: e2e-smoketests-results
+          path: |
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
+      - name: ci/e2e-smoketests-assert-results
+        run: |
+          # Assert that the run contained 0 failures
+          CYPRESS_FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
+          echo "Cypress run completed with $CYPRESS_FAILURES failures"
+          [ "$CYPRESS_FAILURES" = "0" ]
+
+  update-failure-final-status:
+    runs-on: ubuntu-22.04
+    if: failure() || cancelled()
+    needs:
+      - smoketests
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha || github.sha }}
+          context: E2E Tests/smoketests
+          description: E2E tests for mattermost server app
+          status: failure
+
+  update-success-final-status:
+    runs-on: ubuntu-22.04
+    if: success()
+    needs:
+      - smoketests
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha || github.sha }}
+          context: E2E Tests/smoketests
+          description: E2E tests for mattermost server app
+          status: success

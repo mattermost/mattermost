@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {getLogs} from 'mattermost-redux/actions/admin';
+import {getLogs, getPlainLogs} from 'mattermost-redux/actions/admin';
 
 import * as Selectors from 'mattermost-redux/selectors/entities/admin';
 
@@ -15,8 +15,12 @@ import {GlobalState} from 'types/store';
 import Logs from './logs';
 
 function mapStateToProps(state: GlobalState) {
+    const config = Selectors.getConfig(state);
+
     return {
         logs: Selectors.getAllLogs(state),
+        plainLogs: Selectors.getPlainLogs(state),
+        isPlainLogs: config.LogSettings?.FileJson === false,
     };
 }
 
@@ -24,6 +28,7 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
         actions: bindActionCreators({
             getLogs,
+            getPlainLogs,
         }, dispatch),
     };
 }

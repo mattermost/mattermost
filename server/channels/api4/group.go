@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitGroup() {
@@ -84,7 +84,7 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
 		api.APISessionRequired(deleteGroup)).Methods("DELETE")
 
-	// GET /api/v4/groups/:group_id
+	// POST /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/restore",
 		api.APISessionRequired(restoreGroup)).Methods("POST")
 
@@ -1066,8 +1066,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var (
-		groups      = []*model.Group{}
-		canSee bool = true
+		groups = []*model.Group{}
+		canSee = true
 	)
 
 	if opts.FilterHasMember != "" {

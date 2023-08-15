@@ -6,9 +6,9 @@ package sqlstore
 import (
 	sq "github.com/mattermost/squirrel"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 
 	"github.com/pkg/errors"
 )
@@ -41,6 +41,11 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (re *model.Reaction, e
 		if err != nil {
 			return nil, errors.Wrap(err, "failed while getting channelId from Posts")
 		}
+
+		if len(channelIds) == 0 {
+			return nil, store.NewErrNotFound("Post", reaction.PostId)
+		}
+
 		reaction.ChannelId = channelIds[0]
 	}
 	err = s.saveReactionAndUpdatePost(transaction, reaction)
@@ -238,124 +243,6 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 		return 0, errors.Wrap(err, "unable to get rows affected for deleted Reactions")
 	}
 	return rowsAffected, nil
-}
-
-// GetTopForTeamSince returns the instance counts of the following Reactions sets:
-// a) those created by anyone in private channels in the given user's membership graph on the given team, and
-// b) those created by anyone in public channels on the given team.
-func (s *SqlReactionStore) GetTopForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
-	reactions := make([]*model.TopReaction, 0)
-
-	query := `
-		SELECT
-			EmojiName,
-			sum(EmojiCount) AS Count
-		FROM ((
-				SELECT
-					EmojiName,
-					count(EmojiName) AS EmojiCount,
-					Reactions.DeleteAt AS DeleteAt,
-					Reactions.CreateAt AS CreateAt
-				FROM
-					ChannelMembers
-					INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id
-					INNER JOIN Reactions ON Channels.Id = Reactions.ChannelId
-				WHERE
-					ChannelMembers.UserId = ?
-					AND Channels.Type = 'P'
-					AND Channels.TeamId = ?
-				GROUP BY
-					Reactions.EmojiName,
-					Reactions.DeleteAt,
-					Reactions.CreateAt)
-			UNION ALL (
-				SELECT
-					EmojiName,
-					count(EmojiName) AS EmojiCount,
-					Reactions.DeleteAt AS DeleteAt,
-					Reactions.CreateAt AS CreateAt
-				FROM
-					Reactions
-					INNER JOIN PublicChannels ON Reactions.ChannelId = PublicChannels.Id
-				WHERE
-					PublicChannels.TeamId = ?
-				GROUP BY
-					Reactions.EmojiName,
-					Reactions.DeleteAt,
-					Reactions.CreateAt)) AS A
-		WHERE
-			DeleteAt = 0
-			AND CreateAt > ?
-		GROUP BY
-			EmojiName
-		ORDER BY
-			Count DESC,
-			EmojiName ASC
-		LIMIT ?
-		OFFSET ?`
-
-	if err := s.GetReplicaX().Select(&reactions, query, userID, teamID, teamID, since, limit+1, offset); err != nil {
-		return nil, errors.Wrap(err, "failed to get top Reactions")
-	}
-
-	return model.GetTopReactionListWithPagination(reactions, limit), nil
-}
-
-// GetTopForUserSince returns the instance counts of the following Reactions sets:
-// a) those created by the given user in any channel type on the given team (across the workspace if no team is given), and
-// b) those created by the given user in DM or group channels.
-func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopReactionList, error) {
-	reactions := make([]*model.TopReaction, 0)
-	var args []any
-	var query string
-
-	if teamID != "" {
-		query = `
-		SELECT
-			EmojiName,
-			count(EmojiName) AS Count
-		FROM
-			Reactions
-			INNER JOIN Channels ON Channels.Id = Reactions.ChannelId
-		WHERE
-			Reactions.DeleteAt = 0
-			AND Reactions.UserId = ?
-			AND (Channels.TeamId = ? OR Channels.Type = 'D' OR Channels.Type = 'G')
-			AND Reactions.CreateAt > ?
-		GROUP BY
-			EmojiName
-		ORDER BY
-			Count DESC,
-			EmojiName ASC
-		LIMIT ?
-		OFFSET ?`
-		args = []any{userID, teamID, since, limit + 1, offset}
-	} else {
-		query = `
-			SELECT
-				EmojiName,
-				count(EmojiName) AS Count
-			FROM
-				Reactions
-			WHERE
-				Reactions.DeleteAt = 0
-				AND Reactions.UserId = ?
-				AND Reactions.CreateAt > ?
-			GROUP BY
-				Reactions.EmojiName
-			ORDER BY
-				Count DESC,
-				EmojiName ASC
-			LIMIT ?
-			OFFSET ?`
-		args = []any{userID, since, limit + 1, offset}
-	}
-
-	if err := s.GetReplicaX().Select(&reactions, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to get top Reactions")
-	}
-
-	return model.GetTopReactionListWithPagination(reactions, limit), nil
 }
 
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {

@@ -7,12 +7,12 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/plugin_api_tests"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/driver"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/v8/channels/app/plugin_api_tests"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/driver"
 )
 
 type MyPlugin struct {
@@ -31,7 +31,10 @@ func (p *MyPlugin) OnConfigurationChange() error {
 func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
 	settings := p.API.GetUnsanitizedConfig().SqlSettings
 	settings.Trace = model.NewBool(false)
-	store := sqlstore.New(settings, nil)
+	store, err := sqlstore.New(settings, nil)
+	if err != nil {
+		panic(err)
+	}
 	store.GetMasterX().Close()
 
 	for _, isMaster := range []bool{true, false} {

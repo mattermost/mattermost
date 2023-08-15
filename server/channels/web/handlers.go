@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -20,15 +19,19 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	app_opentracing "github.com/mattermost/mattermost-server/server/v8/channels/app/opentracing"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/opentracinglayer"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/tracing"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	app_opentracing "github.com/mattermost/mattermost/server/v8/channels/app/opentracing"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store/opentracinglayer"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
+)
+
+const (
+	frameAncestors = "'self' teams.microsoft.com"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -130,25 +133,6 @@ func generateDevCSP(c Context) string {
 				c.Logger.Warn("Unrecognized developer flag", mlog.String("developer_flag", devFlagKVStr))
 			}
 		}
-	}
-
-	// Add flags for Webpack dev servers used by other products during development
-	if model.BuildNumber == "dev" {
-		boardsURL := os.Getenv("MM_BOARDS_DEV_SERVER_URL")
-		if boardsURL == "" {
-			// Focalboard runs on http://localhost:9006 by default
-			boardsURL = "http://localhost:9006"
-		}
-
-		devCSP = append(devCSP, boardsURL)
-
-		playbooksURL := os.Getenv("MM_PLAYBOOKS_DEV_SERVER_URL")
-		if playbooksURL == "" {
-			// Playbooks runs on http://localhost:9007 by default
-			playbooksURL = "http://localhost:9007"
-		}
-
-		devCSP = append(devCSP, playbooksURL)
 	}
 
 	if len(devCSP) == 0 {
@@ -261,7 +245,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s%s%s",
+			"frame-ancestors %s; script-src 'self' cdn.rudderlabs.com%s%s%s",
+			frameAncestors,
 			cloudCSP,
 			h.cspShaDirective,
 			devCSP,

@@ -14,8 +14,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
 func CheckOrigin(r *http.Request, allowedOrigins string) bool {
@@ -39,6 +39,16 @@ func OriginChecker(allowedOrigins string) func(*http.Request) bool {
 	return func(r *http.Request) bool {
 		return CheckOrigin(r, allowedOrigins)
 	}
+}
+
+// CheckEmbeddedCookie returns true if the MMEMBED cookie is set to 1.
+// MMEMBED is set via any plugin that facilitates Mattermost embedded in an iframe (e.g. mattermost-plugin-msteams-sync).
+func CheckEmbeddedCookie(r *http.Request) bool {
+	cookie, err := r.Cookie("MMEMBED")
+	if err != nil {
+		return false
+	}
+	return cookie.Value == "1"
 }
 
 func RenderWebAppError(config *model.Config, w http.ResponseWriter, r *http.Request, err *model.AppError, s crypto.Signer) {

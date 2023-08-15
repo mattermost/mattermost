@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"sort"
@@ -13,8 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 var (
@@ -53,7 +54,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 	t.Run("get shared channels paginated", func(t *testing.T) {
 		channelIds := make([]string, 0, 21)
 		for i := 0; i < pages; i++ {
-			channels, _, err := th.Client.GetAllSharedChannels(th.BasicTeam.Id, i, pageSize)
+			channels, _, err := th.Client.GetAllSharedChannels(context.Background(), th.BasicTeam.Id, i, pageSize)
 			require.NoError(t, err)
 			channelIds = append(channelIds, getIds(channels)...)
 		}
@@ -64,7 +65,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 	})
 
 	t.Run("get shared channels for invalid team", func(t *testing.T) {
-		_, _, err := th.Client.GetAllSharedChannels(model.NewId(), 0, 100)
+		_, _, err := th.Client.GetAllSharedChannels(context.Background(), model.NewId(), 0, 100)
 		require.Error(t, err)
 	})
 
@@ -74,10 +75,10 @@ func TestGetAllSharedChannels(t *testing.T) {
 			Name:        GenerateTestTeamName(),
 			Type:        model.TeamOpen,
 		}
-		team, _, err := th.SystemAdminClient.CreateTeam(team)
+		team, _, err := th.SystemAdminClient.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
 
-		_, _, err = th.Client.GetAllSharedChannels(team.Id, 0, 100)
+		_, _, err = th.Client.GetAllSharedChannels(context.Background(), team.Id, 0, 100)
 		require.Error(t, err)
 	})
 }
@@ -140,13 +141,13 @@ func TestGetRemoteClusterById(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("valid remote, user is member", func(t *testing.T) {
-		rcInfo, _, err := th.Client.GetRemoteClusterInfo(rc.RemoteId)
+		rcInfo, _, err := th.Client.GetRemoteClusterInfo(context.Background(), rc.RemoteId)
 		require.NoError(t, err)
 		assert.Equal(t, rc.Name, rcInfo.Name)
 	})
 
 	t.Run("invalid remote", func(t *testing.T) {
-		_, resp, err := th.Client.GetRemoteClusterInfo(model.NewId())
+		_, resp, err := th.Client.GetRemoteClusterInfo(context.Background(), model.NewId())
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -158,7 +159,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
-		defer client.Logout()
+		defer client.Logout(context.Background())
 
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
@@ -166,7 +167,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		remoteUser, appErr := th.App.UpdateUser(th.Context, remoteUser, false)
 		require.Nil(t, appErr)
 
-		dm, _, err := client.CreateDirectChannel(localUser.Id, remoteUser.Id)
+		dm, _, err := client.CreateDirectChannel(context.Background(), localUser.Id, remoteUser.Id)
 		require.NoError(t, err)
 
 		channelName := model.GetDMNameFromIds(localUser.Id, remoteUser.Id)
@@ -178,7 +179,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
-		defer client.Logout()
+		defer client.Logout(context.Background())
 
 		mockService := app.NewMockSharedChannelService(nil, app.MockOptionSharedChannelServiceWithActive(true))
 		th.App.Srv().SetSharedChannelSyncService(mockService)
@@ -197,7 +198,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		remoteUser, appErr = th.App.UpdateUser(th.Context, remoteUser, false)
 		require.Nil(t, appErr)
 
-		dm, _, err := client.CreateDirectChannel(localUser.Id, remoteUser.Id)
+		dm, _, err := client.CreateDirectChannel(context.Background(), localUser.Id, remoteUser.Id)
 		require.NoError(t, err)
 
 		channelName := model.GetDMNameFromIds(localUser.Id, remoteUser.Id)
@@ -211,7 +212,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
-		defer client.Logout()
+		defer client.Logout(context.Background())
 
 		mockService := app.NewMockSharedChannelService(nil, app.MockOptionSharedChannelServiceWithActive(true))
 		th.App.Srv().SetSharedChannelSyncService(mockService)
@@ -230,7 +231,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		remoteUser, appErr = th.App.UpdateUser(th.Context, remoteUser, false)
 		require.Nil(t, appErr)
 
-		dm, _, err := client.CreateDirectChannel(remoteUser.Id, localUser.Id)
+		dm, _, err := client.CreateDirectChannel(context.Background(), remoteUser.Id, localUser.Id)
 		require.NoError(t, err)
 
 		channelName := model.GetDMNameFromIds(localUser.Id, remoteUser.Id)

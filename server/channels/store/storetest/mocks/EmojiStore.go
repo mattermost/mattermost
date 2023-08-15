@@ -7,7 +7,7 @@ package mocks
 import (
 	context "context"
 
-	model "github.com/mattermost/mattermost-server/server/v8/model"
+	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -108,25 +108,25 @@ func (_m *EmojiStore) GetList(offset int, limit int, sort string) ([]*model.Emoj
 	return r0, r1
 }
 
-// GetMultipleByName provides a mock function with given fields: names
-func (_m *EmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
-	ret := _m.Called(names)
+// GetMultipleByName provides a mock function with given fields: ctx, names
+func (_m *EmojiStore) GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error) {
+	ret := _m.Called(ctx, names)
 
 	var r0 []*model.Emoji
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]string) ([]*model.Emoji, error)); ok {
-		return rf(names)
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]*model.Emoji, error)); ok {
+		return rf(ctx, names)
 	}
-	if rf, ok := ret.Get(0).(func([]string) []*model.Emoji); ok {
-		r0 = rf(names)
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []*model.Emoji); ok {
+		r0 = rf(ctx, names)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Emoji)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]string) error); ok {
-		r1 = rf(names)
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, names)
 	} else {
 		r1 = ret.Error(1)
 	}

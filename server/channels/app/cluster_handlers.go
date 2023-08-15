@@ -6,9 +6,9 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
@@ -16,7 +16,7 @@ func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
 	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
 		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
-	s.Channels().installPluginFromData(data)
+	s.Channels().installPluginFromClusterMessage(data.Id)
 }
 
 func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
@@ -24,7 +24,7 @@ func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
 	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
 		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
-	s.Channels().removePluginFromData(data)
+	s.Channels().removePluginFromClusterMessage(data.Id)
 }
 
 func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {

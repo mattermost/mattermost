@@ -68,7 +68,6 @@ const LazyTermsOfService = React.lazy(() => import('components/terms_of_service'
 const LazyShouldVerifyEmail = React.lazy(() => import('components/should_verify_email/should_verify_email'));
 const LazyDoVerifyEmail = React.lazy(() => import('components/do_verify_email/do_verify_email'));
 const LazyClaimController = React.lazy(() => import('components/claim'));
-const LazyHelpController = React.lazy(() => import('components/help/help_controller'));
 const LazyLinkingLandingPage = React.lazy(() => import('components/linking_landing_page'));
 const LazySelectTeam = React.lazy(() => import('components/select_team'));
 const LazyAuthorize = React.lazy(() => import('components/authorize'));
@@ -88,12 +87,11 @@ import {UserProfile} from '@mattermost/types/users';
 
 import {ActionResult} from 'mattermost-redux/types/actions';
 
-import WelcomePostRenderer from 'components/welcome_post_renderer';
-
 import {applyLuxonDefaults} from './effects';
 
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
+import {ServiceEnvironment} from '@mattermost/types/config';
 
 const CreateTeam = makeAsyncComponent('CreateTeam', LazyCreateTeam);
 const ErrorPage = makeAsyncComponent('ErrorPage', LazyErrorPage);
@@ -107,7 +105,6 @@ const Signup = makeAsyncComponent('SignupController', LazySignup);
 const ShouldVerifyEmail = makeAsyncComponent('ShouldVerifyEmail', LazyShouldVerifyEmail);
 const DoVerifyEmail = makeAsyncComponent('DoVerifyEmail', LazyDoVerifyEmail);
 const ClaimController = makeAsyncComponent('ClaimController', LazyClaimController);
-const HelpController = makeAsyncComponent('HelpController', LazyHelpController);
 const LinkingLandingPage = makeAsyncComponent('LinkingLandingPage', LazyLinkingLandingPage);
 const SelectTeam = makeAsyncComponent('SelectTeam', LazySelectTeam);
 const Authorize = makeAsyncComponent('Authorize', LazyAuthorize);
@@ -231,17 +228,23 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     onConfigLoaded = () => {
+        const config = getConfig(store.getState());
         const telemetryId = this.props.telemetryId;
 
-        let rudderKey: string | null | undefined = Constants.TELEMETRY_RUDDER_KEY;
-        let rudderUrl: string | null | undefined = Constants.TELEMETRY_RUDDER_DATAPLANE_URL;
-
-        if (rudderKey.startsWith('placeholder') && rudderUrl.startsWith('placeholder')) {
-            rudderKey = process.env.RUDDER_KEY; //eslint-disable-line no-process-env
-            rudderUrl = process.env.RUDDER_DATAPLANE_URL; //eslint-disable-line no-process-env
+        const rudderUrl = 'https://pdat.matterlytics.com';
+        let rudderKey = '';
+        switch (config.ServiceEnvironment) {
+        case ServiceEnvironment.PRODUCTION:
+            rudderKey = '1aoejPqhgONMI720CsBSRWzzRQ9';
+            break;
+        case ServiceEnvironment.TEST:
+            rudderKey = '1aoeoCDeh7OCHcbW2kseWlwUFyq';
+            break;
+        case ServiceEnvironment.DEV:
+            break;
         }
 
-        if (rudderKey != null && rudderKey !== '' && this.props.telemetryEnabled) {
+        if (rudderKey !== '' && this.props.telemetryEnabled) {
             const rudderCfg: {setCookieDomain?: string} = {};
             const siteURL = getConfig(store.getState()).SiteURL;
             if (siteURL !== '') {
@@ -437,7 +440,6 @@ export default class Root extends React.PureComponent<Props, State> {
         // See figma design on issue https://mattermost.atlassian.net/browse/MM-43649
         this.props.actions.registerCustomPostRenderer('custom_up_notification', OpenPricingModalPost, 'upgrade_post_message_renderer');
         this.props.actions.registerCustomPostRenderer('custom_pl_notification', OpenPluginInstallPost, 'plugin_install_post_message_renderer');
-        this.props.actions.registerCustomPostRenderer('system_welcome_post', WelcomePostRenderer, 'welcome_post_renderer');
 
         if (this.desktopMediaQuery.addEventListener) {
             this.desktopMediaQuery.addEventListener('change', this.handleMediaQueryChangeEvent);
@@ -583,10 +585,6 @@ export default class Root extends React.PureComponent<Props, State> {
                     <HFTRoute
                         path={'/claim'}
                         component={ClaimController}
-                    />
-                    <HFTRoute
-                        path={'/help'}
-                        component={HelpController}
                     />
                     <LoggedInRoute
                         path={'/terms_of_service'}

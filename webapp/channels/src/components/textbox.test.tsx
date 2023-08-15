@@ -16,6 +16,7 @@ describe('components/TextBox', () => {
             {id: 'id1'},
             {id: 'id2'},
         ],
+        delayChannelAutocomplete: false,
         autocompleteGroups: [
             {id: 'gid1'},
             {id: 'gid2'},
@@ -64,17 +65,14 @@ describe('components/TextBox', () => {
                 onComposition={() => {}}
                 onHeightChange={() => {}}
                 onKeyDown={() => {}}
-                onSelect={() => {}}
                 onMouseUp={() => {}}
                 onKeyUp={() => {}}
                 onBlur={() => {}}
                 handlePostError={() => {}}
                 suggestionListPosition='top'
                 emojiEnabled={true}
-                isRHS={true}
                 disabled={true}
                 badConnection={true}
-                listenForMentionKeyClick={true}
                 preview={true}
                 openWhenEmpty={true}
             />,

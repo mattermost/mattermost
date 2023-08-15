@@ -5,16 +5,13 @@ on:
   schedule:
     - cron: '44 6 * * *'
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !contains( github.ref , 'heads/ref/master') }}
-
 # Declare default permissions as read only.
 permissions: read-all
 
 jobs:
   analysis:
     name: Scorecards analysis
+    if: github.repository_owner == 'mattermost'
     runs-on: ubuntu-latest
     permissions:
       # Needed to upload the results to code-scanning dashboard.

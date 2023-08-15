@@ -11,14 +11,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 const (
@@ -31,7 +31,7 @@ const (
 type JWTClaims struct {
 	LicenseID   string `json:"license_id"`
 	ActiveUsers int64  `json:"active_users"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func (ps *PlatformService) LicenseManager() einterfaces.LicenseInterface {
@@ -43,8 +43,7 @@ func (ps *PlatformService) SetLicenseManager(impl einterfaces.LicenseInterface) 
 }
 
 func (ps *PlatformService) License() *model.License {
-	license, _ := ps.licenseValue.Load().(*model.License)
-	return license
+	return ps.licenseValue.Load()
 }
 
 func (ps *PlatformService) LoadLicense() {
@@ -208,7 +207,7 @@ func (ps *PlatformService) SetLicense(license *model.License) bool {
 			if oldLicense == nil {
 				listener(nil, license)
 			} else {
-				listener(oldLicense.(*model.License), license)
+				listener(oldLicense, license)
 			}
 		}
 	}()
@@ -255,7 +254,7 @@ func (ps *PlatformService) ClientLicense() map[string]string {
 }
 
 func (ps *PlatformService) RemoveLicense() *model.AppError {
-	if license, _ := ps.licenseValue.Load().(*model.License); license == nil {
+	if license := ps.licenseValue.Load(); license == nil {
 		return nil
 	}
 
@@ -354,8 +353,8 @@ func (ps *PlatformService) GenerateRenewalToken(expiration time.Duration) (strin
 	claims := &JWTClaims{
 		LicenseID:   license.Id,
 		ActiveUsers: activeUsers,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 

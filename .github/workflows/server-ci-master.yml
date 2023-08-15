@@ -1,0 +1,15 @@
+name: Server CI Master
+on:
+  push:
+    branches:
+      - master
+      - cloud
+      - release-*
+      - mono-repo*
+env:
+  go-version: "1.19.5"
+
+jobs:
+  master-ci:
+    uses: ./.github/workflows/server-ci-template.yml
+    secrets: inherit

@@ -1,0 +1,333 @@
+  /api/v4/schemes:
+    get:
+      tags:
+        - schemes
+      summary: Get the schemes.
+      description: >
+        Get a page of schemes. Use the query parameters to modify the behaviour
+        of this endpoint.
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+
+        __Minimum server version__: 5.0
+      operationId: GetSchemes
+      parameters:
+        - name: scope
+          in: query
+          description: Limit the results returned to the provided scope, either `team` or
+            `channel`.
+          schema:
+            type: string
+            default: ""
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of schemes per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Scheme list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Scheme"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - schemes
+      summary: Create a scheme
+      description: |
+        Create a new scheme.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.0
+      operationId: CreateScheme
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - scope
+              properties:
+                name:
+                  type: string
+                  description: The name of the scheme
+                description:
+                  type: string
+                  description: The description of the scheme
+                scope:
+                  type: string
+                  description: The scope of the scheme ("team" or "channel")
+        description: Scheme object to create
+        required: true
+      responses:
+        "201":
+          description: Scheme creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scheme"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/schemes/{scheme_id}":
+    get:
+      tags:
+        - schemes
+      summary: Get a scheme
+      description: |
+        Get a scheme from the provided scheme id.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.0
+      operationId: GetScheme
+      parameters:
+        - name: scheme_id
+          in: path
+          description: Scheme GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Scheme retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scheme"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - schemes
+      summary: Delete a scheme
+      description: |
+        Soft deletes a scheme, by marking the scheme as deleted in the database.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.0
+      operationId: DeleteScheme
+      parameters:
+        - name: scheme_id
+          in: path
+          description: ID of the scheme to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Scheme deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/schemes/{scheme_id}/patch":
+    put:
+      tags:
+        - schemes
+      summary: Patch a scheme
+      description: >
+        Partially update a scheme by providing only the fields you want to
+        update. Omitted fields will not be updated. The fields that can be
+        updated are defined in the request body, all other provided fields will
+        be ignored.
+
+
+        ##### Permissions
+
+        `manage_system` permission is required.
+
+
+        __Minimum server version__: 5.0
+      operationId: PatchScheme
+      parameters:
+        - name: scheme_id
+          in: path
+          description: Scheme GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The human readable name of the scheme
+                description:
+                  type: string
+                  description: The description of the scheme
+        description: Scheme object to be updated
+        required: true
+      responses:
+        "200":
+          description: Scheme patch successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scheme"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/schemes/{scheme_id}/teams":
+    get:
+      tags:
+        - schemes
+      summary: Get a page of teams which use this scheme.
+      description: >
+        Get a page of teams which use this scheme. The provided Scheme ID should
+        be for a Team-scoped Scheme.
+
+        Use the query parameters to modify the behaviour of this endpoint.
+
+
+        ##### Permissions
+
+        `manage_system` permission is required.
+
+
+        __Minimum server version__: 5.0
+      operationId: GetTeamsForScheme
+      parameters:
+        - name: scheme_id
+          in: path
+          description: Scheme GUID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of teams per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Team list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/schemes/{scheme_id}/channels":
+    get:
+      tags:
+        - schemes
+      summary: Get a page of channels which use this scheme.
+      description: >
+        Get a page of channels which use this scheme. The provided Scheme ID
+        should be for a Channel-scoped Scheme.
+
+        Use the query parameters to modify the behaviour of this endpoint.
+
+
+        ##### Permissions
+
+        `manage_system` permission is required.
+
+
+        __Minimum server version__: 5.0
+      operationId: GetChannelsForScheme
+      parameters:
+        - name: scheme_id
+          in: path
+          description: Scheme GUID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of channels per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Channel list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Channel"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

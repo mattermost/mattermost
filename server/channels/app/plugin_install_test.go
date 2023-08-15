@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 type nilReadSeeker struct {
@@ -165,17 +165,6 @@ func TestInstallPluginLocally(t *testing.T) {
 		require.NotNil(t, manifest)
 
 		assertBundleInfoManifests(t, th, []*model.Manifest{manifest})
-	})
-
-	t.Run("doesn't install if ID on block list", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-		cleanExistingBundles(t, th)
-
-		_, appErr := installPlugin(t, th, "playbooks", "0.0.1", installPluginLocallyAlways)
-		require.NotNil(t, appErr)
-		require.Equal(t, "app.plugin.blocked.app_error", appErr.Id)
-		assertBundleInfoManifests(t, th, []*model.Manifest{})
 	})
 
 	t.Run("different plugin already installed", func(t *testing.T) {

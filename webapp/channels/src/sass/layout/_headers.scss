@@ -402,6 +402,15 @@
                     margin: 0;
                 }
             }
+
+            .emoticon {
+                width: 18.8px;
+                min-width: 18.8px;
+                max-width: 18.8px;
+                height: 18.8px;
+                min-height: 18.8px;
+                max-height: 18.8px;
+            }
         }
 
         .markdown__heading {
@@ -555,6 +564,7 @@
         padding: 10px 15px;
         background: $bg--gray;
         border-radius: 3px;
+        word-break: break-word;
     }
 }
 

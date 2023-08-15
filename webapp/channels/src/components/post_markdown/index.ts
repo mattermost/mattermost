@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {
     getMyGroupMentionKeysForChannel,
@@ -25,6 +25,7 @@ import {Channel} from '@mattermost/types/channels';
 import {Post} from '@mattermost/types/posts';
 
 import PostMarkdown from './post_markdown';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 export function makeGetMentionKeysForPost(): (
     state: GlobalState,
@@ -75,6 +76,7 @@ function makeMapStateToProps() {
             mentionKeys: getMentionKeysForPost(state, ownProps.post, channel),
             isMilitaryTime: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
             timezone: getCurrentTimezone(state),
+            hideGuestTags: getConfig(state).HideGuestTags === 'true',
         };
     };
 }
