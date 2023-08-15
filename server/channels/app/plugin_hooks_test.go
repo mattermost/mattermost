@@ -1428,6 +1428,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 					th.App.sendPushNotification(notification, &user, true, false, model.CommentsNotifyAny)
 				}(*data.user)
 			}
+			wg.Wait()
 
 			// Hack to let the worker goroutines complete.
 			time.Sleep(1 * time.Second)
