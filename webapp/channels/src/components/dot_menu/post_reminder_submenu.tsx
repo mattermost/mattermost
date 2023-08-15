@@ -113,9 +113,12 @@ export function PostReminderSubmenu(props: Props) {
             );
         });
 
+    const header = formatMessage({id: 'post_info.post_reminder.sub_menu.header', defaultMessage: 'Set a reminder for:'});
+
     return (
         <Menu.SubMenu
             id={`remind_post_${props.post.id}`}
+            menuAriaLabel={header.replace(':', '')}
             labels={
                 <FormattedMessage
                     id='post_info.post_reminder.menu'
