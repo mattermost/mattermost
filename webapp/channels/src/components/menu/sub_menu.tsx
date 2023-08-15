@@ -35,11 +35,12 @@ interface Props {
     menuId: string;
     menuAriaLabel?: string;
     forceOpenOnLeft?: boolean; // Most of the times this is not needed, since submenu position is calculated and placed
+    subheader?: ReactNode;
 
     children: ReactNode;
 }
 
-export function SubMenu({id, leadingElement, labels, trailingElements, isDestructive, menuId, menuAriaLabel, forceOpenOnLeft, children, ...rest}: Props) {
+export function SubMenu({id, leadingElement, labels, trailingElements, isDestructive, menuId, menuAriaLabel, forceOpenOnLeft, subheader, children, ...rest}: Props) {
     const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(null);
     const isSubMenuOpen = Boolean(anchorElement);
 
@@ -151,6 +152,7 @@ export function SubMenu({id, leadingElement, labels, trailingElements, isDestruc
                         paddingTop: 0,
                         paddingBottom: 0,
                     }}
+                    subheader={subheader}
                 >
                     {children}
                 </MuiMenuList>

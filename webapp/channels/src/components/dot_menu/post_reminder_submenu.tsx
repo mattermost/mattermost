@@ -128,13 +128,15 @@ export function PostReminderSubmenu(props: Props) {
             leadingElement={<ClockOutlineIcon size={18}/>}
             trailingElements={<span className={'dot-menu__item-trailing-icon'}><ChevronRightIcon size={16}/></span>}
             menuId={`remind_post_${props.post.id}-menu`}
+            subheader={
+                <h5 className={'dot-menu__post-reminder-menu-header'}>
+                    {formatMessage(
+                        {id: 'post_info.post_reminder.sub_menu.header',
+                            defaultMessage: 'Set a reminder for:'},
+                    )}
+                </h5>
+            }
         >
-            <h5 className={'dot-menu__post-reminder-menu-header'}>
-                {formatMessage(
-                    {id: 'post_info.post_reminder.sub_menu.header',
-                        defaultMessage: 'Set a reminder for:'},
-                )}
-            </h5>
             {postReminderSubMenuItems}
         </Menu.SubMenu>
     );
