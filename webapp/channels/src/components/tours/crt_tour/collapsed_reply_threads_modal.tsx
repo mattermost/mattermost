@@ -16,7 +16,7 @@ import {Constants, ModalIdentifiers, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 
 import './collapsed_reply_threads_modal.scss';
-import {AutoTourStatus, TTNameMapToATStatusKey, TutorialTourName} from '../../constant';
+import {AutoTourStatus, TTNameMapToATStatusKey, TutorialTourName} from '../constant';
 
 type Props = {
     onExited: () => void;
