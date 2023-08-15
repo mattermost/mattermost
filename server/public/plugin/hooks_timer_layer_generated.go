@@ -219,9 +219,9 @@ func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*m
 	return _returnsA, _returnsB
 }
 
-func (hooks *hooksTimerLayer) NotificationWillBePushed(post *model.Post, user, sender *model.User, channel *model.Channel, explicitMention bool, channelWideMention bool, replyToThreadType string) string {
+func (hooks *hooksTimerLayer) NotificationWillBePushed(pushNotification *model.PluginPushNotification) string {
 	startTime := timePkg.Now()
-	_returnsA := hooks.hooksImpl.NotificationWillBePushed(post, user, sender, channel, explicitMention, channelWideMention, replyToThreadType)
+	_returnsA := hooks.hooksImpl.NotificationWillBePushed(pushNotification)
 	hooks.recordTime(startTime, "NotificationWillBePushed", true)
 	return _returnsA
 }

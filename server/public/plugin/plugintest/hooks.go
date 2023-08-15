@@ -193,13 +193,13 @@ func (_m *Hooks) MessageWillBeUpdated(c *plugin.Context, newPost *model.Post, ol
 	return r0, r1
 }
 
-// NotificationWillBePushed provides a mock function with given fields: post, user, sender, channel, explicitMention, channelWideMention, replyToThreadType
-func (_m *Hooks) NotificationWillBePushed(post *model.Post, user *model.User, sender *model.User, channel *model.Channel, explicitMention bool, channelWideMention bool, replyToThreadType string) string {
-	ret := _m.Called(post, user, sender, channel, explicitMention, channelWideMention, replyToThreadType)
+// NotificationWillBePushed provides a mock function with given fields: pushNotification
+func (_m *Hooks) NotificationWillBePushed(pushNotification *model.PluginPushNotification) string {
+	ret := _m.Called(pushNotification)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*model.Post, *model.User, *model.User, *model.Channel, bool, bool, string) string); ok {
-		r0 = rf(post, user, sender, channel, explicitMention, channelWideMention, replyToThreadType)
+	if rf, ok := ret.Get(0).(func(*model.PluginPushNotification) string); ok {
+		r0 = rf(pushNotification)
 	} else {
 		r0 = ret.Get(0).(string)
 	}

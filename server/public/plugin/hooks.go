@@ -293,5 +293,5 @@ type Hooks interface {
 	// was rejected.
 	//
 	// Minimum server version: 9.0
-	NotificationWillBePushed(post *model.Post, user, sender *model.User, channel *model.Channel, explicitMention bool, channelWideMention bool, replyToThreadType string) string
+	NotificationWillBePushed(pushNotification *model.PluginPushNotification) string
 }
