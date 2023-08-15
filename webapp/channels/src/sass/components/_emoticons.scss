@@ -456,6 +456,16 @@
             outline: none;
         }
     }
+
+    .gif-attribution {
+        margin-inline-start: 8px;
+        padding: 5px 0 5px 5px;
+
+        & > img {
+            width: 100%;
+            height: auto;
+        }
+    }
 }
 
 $emoji-picker-footer-margin: 12px;

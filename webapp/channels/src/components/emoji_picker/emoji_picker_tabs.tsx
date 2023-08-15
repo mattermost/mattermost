@@ -4,11 +4,10 @@
 import React, {CSSProperties, PureComponent} from 'react';
 import {Tab, Tabs} from 'react-bootstrap';
 
-import EmojiIcon from 'components/widgets/icons/emoji_icon';
-import GfycatIcon from 'components/widgets/icons/gfycat_icon';
 import {makeAsyncComponent} from 'components/async_load';
 import EmojiPicker from 'components/emoji_picker';
 import EmojiPickerHeader from 'components/emoji_picker/components/emoji_picker_header';
+import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
 import {Emoji} from '@mattermost/types/emojis';
 
@@ -121,7 +120,14 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
                     </Tab>
                     <Tab
                         eventKey={2}
-                        title={<GfycatIcon/>}
+                        title={
+                            <div className={'custom-emoji-tab__icon__text'}>
+                                {/* ICON SVG for Giphy */}
+                                <div>
+                                    {'GIFs'}
+                                </div>
+                            </div>
+                        }
                         unmountOnExit={true}
                         tabClassName={'custom-emoji-tab'}
                     >

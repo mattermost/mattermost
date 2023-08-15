@@ -18,8 +18,6 @@ const GifPicker = (props: Props) => {
         if (props.onGifClick) {
             event.preventDefault();
 
-            // TODO add algo to keep it under 5 mb
-
             const imageWithMarkdown = `![${gif.title}](${gif.images.fixed_width_downsampled.url})`;
             props.onGifClick(imageWithMarkdown);
         }
