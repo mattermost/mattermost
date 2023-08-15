@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -1265,4 +1266,35 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 		return nil, err
 	}
 	return fi, nil
+}
+
+// SendPushNotification will attempt to send a push notification to `notification.User`, using
+// `notification.Post` as the source of the notification. Note: the NotificationWillBePushed hook will
+// be run after SendPushNotification is called.
+func (api *PluginAPI) SendPushNotification(notification *model.PluginPushNotification) error {
+	var profiles map[string]*model.User
+	var err error
+	if notification.Channel.Type == model.ChannelTypeGroup {
+		if profiles, err = api.app.Srv().Store().User().GetAllProfilesInChannel(context.Background(), notification.Channel.Id, true); err != nil {
+			return err
+		}
+	}
+
+	sender, appErr := api.app.GetUser(notification.Post.UserId)
+	if appErr != nil {
+		return appErr
+	}
+	user, appErr := api.app.GetUser(notification.UserID)
+	if appErr != nil {
+		return appErr
+	}
+
+	postNotification := &PostNotification{
+		Post:       notification.Post,
+		Channel:    notification.Channel,
+		ProfileMap: profiles,
+		Sender:     sender,
+	}
+	api.app.sendPushNotification(postNotification, user, false, false, "")
+	return nil
 }
