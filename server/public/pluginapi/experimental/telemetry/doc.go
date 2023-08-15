@@ -12,14 +12,14 @@
 // To use this environment variable to set the key in the plugin,
 // you have to add this line after the previous ones.
 //
-//	LDFLAGS += -X "github.com/mattermost/mattermost/server/public/plugin/experimental/telemetry.rudderWriteKey=$(MM_RUDDER_WRITE_KEY)"
+//	LDFLAGS += -X "github.com/mattermost/mattermost/server/public/pluginapi/experimental/telemetry.rudderWriteKey=$(MM_RUDDER_WRITE_KEY)"
 //
 // MM_RUDDER_WRITE_KEY environment variable must be set also during CI
 // to the production write key ("1dP7Oi78p0PK1brYLsfslgnbD1I").
 // If you want to use your own data plane URL, add also this line and
 // make sure the MM_RUDDER_DATAPLANE_URL environment variable is set.
 //
-//	LDFLAGS += -X "github.com/mattermost/mattermost/server/public/plugin/experimental/telemetry.rudderDataPlaneURL=$(MM_RUDDER_DATAPLANE_URL)"
+//	LDFLAGS += -X "github.com/mattermost/mattermost/server/public/pluginapi/experimental/telemetry.rudderDataPlaneURL=$(MM_RUDDER_DATAPLANE_URL)"
 //
 // In order to use telemetry you should:
 //

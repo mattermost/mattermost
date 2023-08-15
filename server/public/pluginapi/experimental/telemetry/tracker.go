@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/plugin/experimental/bot/logger"
+	"github.com/mattermost/mattermost/server/public/pluginapi/experimental/bot/logger"
 )
 
 type TrackerConfig struct {

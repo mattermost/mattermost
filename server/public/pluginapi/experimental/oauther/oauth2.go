@@ -9,9 +9,9 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"github.com/mattermost/mattermost/server/public/plugin/experimental/bot/logger"
-	"github.com/mattermost/mattermost/server/public/plugin/experimental/common"
-	"github.com/mattermost/mattermost/server/public/plugin/pluginapi"
+	"github.com/mattermost/mattermost/server/public/pluginapi"
+	"github.com/mattermost/mattermost/server/public/pluginapi/experimental/bot/logger"
+	"github.com/mattermost/mattermost/server/public/pluginapi/experimental/common"
 )
 
 const (

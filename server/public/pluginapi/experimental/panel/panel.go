@@ -4,10 +4,10 @@ import (
 	"errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/plugin/experimental/bot/logger"
-	"github.com/mattermost/mattermost/server/public/plugin/experimental/bot/poster"
-	"github.com/mattermost/mattermost/server/public/plugin/experimental/common"
-	"github.com/mattermost/mattermost/server/public/plugin/experimental/panel/settings"
+	"github.com/mattermost/mattermost/server/public/pluginapi/experimental/bot/logger"
+	"github.com/mattermost/mattermost/server/public/pluginapi/experimental/bot/poster"
+	"github.com/mattermost/mattermost/server/public/pluginapi/experimental/common"
+	"github.com/mattermost/mattermost/server/public/pluginapi/experimental/panel/settings"
 )
 
 type Panel interface {

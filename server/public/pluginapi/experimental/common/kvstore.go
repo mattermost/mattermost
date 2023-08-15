@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/mattermost/mattermost/server/public/plugin/pluginapi"
+	"github.com/mattermost/mattermost/server/public/pluginapi"
 )
 
 var ErrNotFound = errors.New("not found")
