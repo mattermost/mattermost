@@ -26,113 +26,118 @@ exports[`components/marketplace/ should render default 1`] = `
   }
   onExited={[Function]}
   onHide={[Function]}
+  onShow={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
   role="dialog"
   show={true}
 >
-  <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
-    onKeyDown={[Function]}
-    tabIndex={0}
+  <FocusTrap
+    active={false}
   >
-    <ModalHeader
-      bsClass="modal-header"
-      closeButton={true}
-      closeLabel="Close"
+    <div
+      className="GenericModal__wrapper-enter-key-press-catcher"
+      onKeyDown={[Function]}
+      tabIndex={0}
     >
-      <div
-        className="GenericModal__header"
+      <ModalHeader
+        bsClass="modal-header"
+        closeButton={true}
+        closeLabel="Close"
       >
-        <h1
-          id="genericModalLabel"
+        <div
+          className="GenericModal__header"
         >
-          App Marketplace
-        </h1>
-      </div>
-      <ForwardRef
-        autoFocus={true}
-        clearable={true}
-        containerClassName="marketplace-modal-search"
-        id="searchMarketplaceTextbox"
-        inputClassName="search_input"
-        inputPrefix={
-          <MagnifyIcon
-            size={24}
-          />
-        }
-        inputSize="large"
-        name="searchMarketplaceTextbox"
-        onChange={[Function]}
-        onClear={[Function]}
-        placeholder="Search marketplace"
-        type="text"
-        useLegend={false}
-        value=""
-      />
-    </ModalHeader>
-    <ModalBody
-      bsClass="modal-body"
-      componentClass="div"
-    >
-      <div
-        className="GenericModal__body"
+          <h1
+            id="genericModalLabel"
+          >
+            App Marketplace
+          </h1>
+        </div>
+        <ForwardRef
+          autoFocus={true}
+          clearable={true}
+          containerClassName="marketplace-modal-search"
+          id="searchMarketplaceTextbox"
+          inputClassName="search_input"
+          inputPrefix={
+            <MagnifyIcon
+              size={24}
+            />
+          }
+          inputSize="large"
+          name="searchMarketplaceTextbox"
+          onChange={[Function]}
+          onClear={[Function]}
+          placeholder="Search marketplace"
+          type="text"
+          useLegend={false}
+          value=""
+        />
+      </ModalHeader>
+      <ModalBody
+        bsClass="modal-body"
+        componentClass="div"
       >
-        <Uncontrolled(Tabs)
-          activeKey="all"
-          className="tabs"
-          defaultActiveKey="all"
-          id="marketplaceTabs"
-          onSelect={[Function]}
-          unmountOnExit={true}
+        <div
+          className="GenericModal__body"
         >
-          <Tab
-            eventKey="all"
-            title="All"
+          <Uncontrolled(Tabs)
+            activeKey="all"
+            className="tabs"
+            defaultActiveKey="all"
+            id="marketplaceTabs"
+            onSelect={[Function]}
+            unmountOnExit={true}
           >
-            <LoadingScreen
-              className="loading"
-            />
-          </Tab>
-          <Tab
-            eventKey="installed"
-            title="Installed (0)"
-          >
-            <MarketplaceList
-              filter=""
-              listRef={
-                Object {
-                  "current": null,
+            <Tab
+              eventKey="all"
+              title="All"
+            >
+              <LoadingScreen
+                className="loading"
+              />
+            </Tab>
+            <Tab
+              eventKey="installed"
+              title="Installed (0)"
+            >
+              <MarketplaceList
+                filter=""
+                listRef={
+                  Object {
+                    "current": null,
+                  }
                 }
-              }
-              listing={Array []}
-              noResultsAction={
-                Object {
-                  "label": "Install plugins",
-                  "onClick": [Function],
+                listing={Array []}
+                noResultsAction={
+                  Object {
+                    "label": "Install plugins",
+                    "onClick": [Function],
+                  }
                 }
-              }
-              noResultsMessage="No plugins installed found"
-              page={0}
-            />
-          </Tab>
-        </Uncontrolled(Tabs)>
-      </div>
-    </ModalBody>
-    <ModalFooter
-      bsClass="modal-footer"
-      className="divider"
-      componentClass="div"
-    >
-      <FooterPagination
-        itemsPerPage={15}
-        onNextPage={[Function]}
-        onPreviousPage={[Function]}
-        page={0}
-        total={0}
-      />
-    </ModalFooter>
-  </div>
+                noResultsMessage="No plugins installed found"
+                page={0}
+              />
+            </Tab>
+          </Uncontrolled(Tabs)>
+        </div>
+      </ModalBody>
+      <ModalFooter
+        bsClass="modal-footer"
+        className="divider"
+        componentClass="div"
+      >
+        <FooterPagination
+          itemsPerPage={15}
+          onNextPage={[Function]}
+          onPreviousPage={[Function]}
+          page={0}
+          total={0}
+        />
+      </ModalFooter>
+    </div>
+  </FocusTrap>
 </Modal>
 `;
 
@@ -162,130 +167,135 @@ exports[`components/marketplace/ should render with error banner 1`] = `
   }
   onExited={[Function]}
   onHide={[Function]}
+  onShow={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
   role="dialog"
   show={true}
 >
-  <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
-    onKeyDown={[Function]}
-    tabIndex={0}
+  <FocusTrap
+    active={false}
   >
-    <ModalHeader
-      bsClass="modal-header"
-      closeButton={true}
-      closeLabel="Close"
+    <div
+      className="GenericModal__wrapper-enter-key-press-catcher"
+      onKeyDown={[Function]}
+      tabIndex={0}
     >
-      <div
-        className="GenericModal__header"
+      <ModalHeader
+        bsClass="modal-header"
+        closeButton={true}
+        closeLabel="Close"
       >
-        <h1
-          id="genericModalLabel"
+        <div
+          className="GenericModal__header"
         >
-          App Marketplace
-        </h1>
-      </div>
-      <ForwardRef
-        autoFocus={true}
-        clearable={true}
-        containerClassName="marketplace-modal-search"
-        id="searchMarketplaceTextbox"
-        inputClassName="search_input"
-        inputPrefix={
-          <MagnifyIcon
-            size={24}
-          />
-        }
-        inputSize="large"
-        name="searchMarketplaceTextbox"
-        onChange={[Function]}
-        onClear={[Function]}
-        placeholder="Search marketplace"
-        type="text"
-        useLegend={false}
-        value=""
-      />
-    </ModalHeader>
-    <ModalBody
-      bsClass="modal-body"
-      componentClass="div"
-    >
-      <div
-        className="genericModalError"
-      >
-        <i
-          className="icon icon-alert-outline"
+          <h1
+            id="genericModalLabel"
+          >
+            App Marketplace
+          </h1>
+        </div>
+        <ForwardRef
+          autoFocus={true}
+          clearable={true}
+          containerClassName="marketplace-modal-search"
+          id="searchMarketplaceTextbox"
+          inputClassName="search_input"
+          inputPrefix={
+            <MagnifyIcon
+              size={24}
+            />
+          }
+          inputSize="large"
+          name="searchMarketplaceTextbox"
+          onChange={[Function]}
+          onClear={[Function]}
+          placeholder="Search marketplace"
+          type="text"
+          useLegend={false}
+          value=""
         />
-        <span>
-          Error connecting to the marketplace server. Please check your settings in the 
-          <Link
-            key=".1"
-            to="/admin_console/plugins/plugin_management"
-          >
-            System Console
-          </Link>
-          .
-        </span>
-      </div>
-      <div
-        className="GenericModal__body"
+      </ModalHeader>
+      <ModalBody
+        bsClass="modal-body"
+        componentClass="div"
       >
-        <Uncontrolled(Tabs)
-          activeKey="all"
-          className="tabs"
-          defaultActiveKey="all"
-          id="marketplaceTabs"
-          onSelect={[Function]}
-          unmountOnExit={true}
+        <div
+          className="genericModalError"
         >
-          <Tab
-            eventKey="all"
-            title="All"
+          <i
+            className="icon icon-alert-outline"
+          />
+          <span>
+            Error connecting to the marketplace server. Please check your settings in the 
+            <Link
+              key=".1"
+              to="/admin_console/plugins/plugin_management"
+            >
+              System Console
+            </Link>
+            .
+          </span>
+        </div>
+        <div
+          className="GenericModal__body"
+        >
+          <Uncontrolled(Tabs)
+            activeKey="all"
+            className="tabs"
+            defaultActiveKey="all"
+            id="marketplaceTabs"
+            onSelect={[Function]}
+            unmountOnExit={true}
           >
-            <LoadingScreen
-              className="loading"
-            />
-          </Tab>
-          <Tab
-            eventKey="installed"
-            title="Installed (0)"
-          >
-            <MarketplaceList
-              filter=""
-              listRef={
-                Object {
-                  "current": null,
+            <Tab
+              eventKey="all"
+              title="All"
+            >
+              <LoadingScreen
+                className="loading"
+              />
+            </Tab>
+            <Tab
+              eventKey="installed"
+              title="Installed (0)"
+            >
+              <MarketplaceList
+                filter=""
+                listRef={
+                  Object {
+                    "current": null,
+                  }
                 }
-              }
-              listing={Array []}
-              noResultsAction={
-                Object {
-                  "label": "Install plugins",
-                  "onClick": [Function],
+                listing={Array []}
+                noResultsAction={
+                  Object {
+                    "label": "Install plugins",
+                    "onClick": [Function],
+                  }
                 }
-              }
-              noResultsMessage="No plugins installed found"
-              page={0}
-            />
-          </Tab>
-        </Uncontrolled(Tabs)>
-      </div>
-    </ModalBody>
-    <ModalFooter
-      bsClass="modal-footer"
-      className="divider"
-      componentClass="div"
-    >
-      <FooterPagination
-        itemsPerPage={15}
-        onNextPage={[Function]}
-        onPreviousPage={[Function]}
-        page={0}
-        total={0}
-      />
-    </ModalFooter>
-  </div>
+                noResultsMessage="No plugins installed found"
+                page={0}
+              />
+            </Tab>
+          </Uncontrolled(Tabs)>
+        </div>
+      </ModalBody>
+      <ModalFooter
+        bsClass="modal-footer"
+        className="divider"
+        componentClass="div"
+      >
+        <FooterPagination
+          itemsPerPage={15}
+          onNextPage={[Function]}
+          onPreviousPage={[Function]}
+          page={0}
+          total={0}
+        />
+      </ModalFooter>
+    </div>
+  </FocusTrap>
 </Modal>
 `;
 
@@ -315,121 +325,126 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
   }
   onExited={[Function]}
   onHide={[Function]}
+  onShow={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
   role="dialog"
   show={true}
 >
-  <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
-    onKeyDown={[Function]}
-    tabIndex={0}
+  <FocusTrap
+    active={false}
   >
-    <ModalHeader
-      bsClass="modal-header"
-      closeButton={true}
-      closeLabel="Close"
+    <div
+      className="GenericModal__wrapper-enter-key-press-catcher"
+      onKeyDown={[Function]}
+      tabIndex={0}
     >
-      <div
-        className="GenericModal__header"
+      <ModalHeader
+        bsClass="modal-header"
+        closeButton={true}
+        closeLabel="Close"
       >
-        <h1
-          id="genericModalLabel"
+        <div
+          className="GenericModal__header"
         >
-          App Marketplace
-        </h1>
-      </div>
-      <ForwardRef
-        autoFocus={true}
-        clearable={true}
-        containerClassName="marketplace-modal-search"
-        id="searchMarketplaceTextbox"
-        inputClassName="search_input"
-        inputPrefix={
-          <MagnifyIcon
-            size={24}
-          />
-        }
-        inputSize="large"
-        name="searchMarketplaceTextbox"
-        onChange={[Function]}
-        onClear={[Function]}
-        placeholder="Search marketplace"
-        type="text"
-        useLegend={false}
-        value=""
-      />
-    </ModalHeader>
-    <ModalBody
-      bsClass="modal-body"
-      componentClass="div"
-    >
-      <div
-        className="GenericModal__body"
+          <h1
+            id="genericModalLabel"
+          >
+            App Marketplace
+          </h1>
+        </div>
+        <ForwardRef
+          autoFocus={true}
+          clearable={true}
+          containerClassName="marketplace-modal-search"
+          id="searchMarketplaceTextbox"
+          inputClassName="search_input"
+          inputPrefix={
+            <MagnifyIcon
+              size={24}
+            />
+          }
+          inputSize="large"
+          name="searchMarketplaceTextbox"
+          onChange={[Function]}
+          onClear={[Function]}
+          placeholder="Search marketplace"
+          type="text"
+          useLegend={false}
+          value=""
+        />
+      </ModalHeader>
+      <ModalBody
+        bsClass="modal-body"
+        componentClass="div"
       >
-        <Uncontrolled(Tabs)
-          activeKey="all"
-          className="tabs"
-          defaultActiveKey="all"
-          id="marketplaceTabs"
-          onSelect={[Function]}
-          unmountOnExit={true}
+        <div
+          className="GenericModal__body"
         >
-          <Tab
-            eventKey="all"
-            title="All"
+          <Uncontrolled(Tabs)
+            activeKey="all"
+            className="tabs"
+            defaultActiveKey="all"
+            id="marketplaceTabs"
+            onSelect={[Function]}
+            unmountOnExit={true}
           >
-            <MarketplaceList
-              filter=""
-              listRef={
-                Object {
-                  "current": null,
+            <Tab
+              eventKey="all"
+              title="All"
+            >
+              <MarketplaceList
+                filter=""
+                listRef={
+                  Object {
+                    "current": null,
+                  }
                 }
-              }
-              listing={Array []}
-              noResultsMessage="No plugins found"
-              page={0}
-            />
-          </Tab>
-          <Tab
-            eventKey="installed"
-            title="Installed (0)"
-          >
-            <MarketplaceList
-              filter=""
-              listRef={
-                Object {
-                  "current": null,
+                listing={Array []}
+                noResultsMessage="No plugins found"
+                page={0}
+              />
+            </Tab>
+            <Tab
+              eventKey="installed"
+              title="Installed (0)"
+            >
+              <MarketplaceList
+                filter=""
+                listRef={
+                  Object {
+                    "current": null,
+                  }
                 }
-              }
-              listing={Array []}
-              noResultsAction={
-                Object {
-                  "label": "Install plugins",
-                  "onClick": [Function],
+                listing={Array []}
+                noResultsAction={
+                  Object {
+                    "label": "Install plugins",
+                    "onClick": [Function],
+                  }
                 }
-              }
-              noResultsMessage="No plugins installed found"
-              page={0}
-            />
-          </Tab>
-        </Uncontrolled(Tabs)>
-      </div>
-    </ModalBody>
-    <ModalFooter
-      bsClass="modal-footer"
-      className="divider"
-      componentClass="div"
-    >
-      <FooterPagination
-        itemsPerPage={15}
-        onNextPage={[Function]}
-        onPreviousPage={[Function]}
-        page={0}
-        total={0}
-      />
-    </ModalFooter>
-  </div>
+                noResultsMessage="No plugins installed found"
+                page={0}
+              />
+            </Tab>
+          </Uncontrolled(Tabs)>
+        </div>
+      </ModalBody>
+      <ModalFooter
+        bsClass="modal-footer"
+        className="divider"
+        componentClass="div"
+      >
+        <FooterPagination
+          itemsPerPage={15}
+          onNextPage={[Function]}
+          onPreviousPage={[Function]}
+          page={0}
+          total={0}
+        />
+      </ModalFooter>
+    </div>
+  </FocusTrap>
 </Modal>
 `;
 
@@ -459,139 +474,144 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
   }
   onExited={[Function]}
   onHide={[Function]}
+  onShow={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
   role="dialog"
   show={true}
 >
-  <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
-    onKeyDown={[Function]}
-    tabIndex={0}
+  <FocusTrap
+    active={false}
   >
-    <ModalHeader
-      bsClass="modal-header"
-      closeButton={true}
-      closeLabel="Close"
+    <div
+      className="GenericModal__wrapper-enter-key-press-catcher"
+      onKeyDown={[Function]}
+      tabIndex={0}
     >
-      <div
-        className="GenericModal__header"
+      <ModalHeader
+        bsClass="modal-header"
+        closeButton={true}
+        closeLabel="Close"
       >
-        <h1
-          id="genericModalLabel"
+        <div
+          className="GenericModal__header"
         >
-          App Marketplace
-        </h1>
-      </div>
-      <ForwardRef
-        autoFocus={true}
-        clearable={true}
-        containerClassName="marketplace-modal-search"
-        id="searchMarketplaceTextbox"
-        inputClassName="search_input"
-        inputPrefix={
-          <MagnifyIcon
-            size={24}
-          />
-        }
-        inputSize="large"
-        name="searchMarketplaceTextbox"
-        onChange={[Function]}
-        onClear={[Function]}
-        placeholder="Search marketplace"
-        type="text"
-        useLegend={false}
-        value=""
-      />
-    </ModalHeader>
-    <ModalBody
-      bsClass="modal-body"
-      componentClass="div"
-    >
-      <div
-        className="GenericModal__body"
-      >
-        <Uncontrolled(Tabs)
-          activeKey="all"
-          className="tabs"
-          defaultActiveKey="all"
-          id="marketplaceTabs"
-          onSelect={[Function]}
-          unmountOnExit={true}
-        >
-          <Tab
-            eventKey="all"
-            title="All"
+          <h1
+            id="genericModalLabel"
           >
-            <MarketplaceList
-              filter=""
-              listRef={
-                Object {
-                  "current": null,
-                }
-              }
-              listing={
-                Array [
+            App Marketplace
+          </h1>
+        </div>
+        <ForwardRef
+          autoFocus={true}
+          clearable={true}
+          containerClassName="marketplace-modal-search"
+          id="searchMarketplaceTextbox"
+          inputClassName="search_input"
+          inputPrefix={
+            <MagnifyIcon
+              size={24}
+            />
+          }
+          inputSize="large"
+          name="searchMarketplaceTextbox"
+          onChange={[Function]}
+          onClear={[Function]}
+          placeholder="Search marketplace"
+          type="text"
+          useLegend={false}
+          value=""
+        />
+      </ModalHeader>
+      <ModalBody
+        bsClass="modal-body"
+        componentClass="div"
+      >
+        <div
+          className="GenericModal__body"
+        >
+          <Uncontrolled(Tabs)
+            activeKey="all"
+            className="tabs"
+            defaultActiveKey="all"
+            id="marketplaceTabs"
+            onSelect={[Function]}
+            unmountOnExit={true}
+          >
+            <Tab
+              eventKey="all"
+              title="All"
+            >
+              <MarketplaceList
+                filter=""
+                listRef={
                   Object {
-                    "author_type": "mattermost",
-                    "download_url": "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
-                    "enterprise": false,
-                    "homepage_url": "https://github.com/mattermost/mattermost-plugin-nps",
-                    "installed_version": "",
-                    "manifest": Object {
-                      "description": "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost",
-                      "id": "com.mattermost.nps",
-                      "min_server_version": "5.14.0",
-                      "name": "User Satisfaction Surveys",
-                      "version": "1.0.3",
+                    "current": null,
+                  }
+                }
+                listing={
+                  Array [
+                    Object {
+                      "author_type": "mattermost",
+                      "download_url": "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+                      "enterprise": false,
+                      "homepage_url": "https://github.com/mattermost/mattermost-plugin-nps",
+                      "installed_version": "",
+                      "manifest": Object {
+                        "description": "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost",
+                        "id": "com.mattermost.nps",
+                        "min_server_version": "5.14.0",
+                        "name": "User Satisfaction Surveys",
+                        "version": "1.0.3",
+                      },
+                      "release_stage": "production",
                     },
-                    "release_stage": "production",
-                  },
-                ]
-              }
-              noResultsMessage="No plugins found"
-              page={0}
-            />
-          </Tab>
-          <Tab
-            eventKey="installed"
-            title="Installed (0)"
-          >
-            <MarketplaceList
-              filter=""
-              listRef={
-                Object {
-                  "current": null,
+                  ]
                 }
-              }
-              listing={Array []}
-              noResultsAction={
-                Object {
-                  "label": "Install plugins",
-                  "onClick": [Function],
+                noResultsMessage="No plugins found"
+                page={0}
+              />
+            </Tab>
+            <Tab
+              eventKey="installed"
+              title="Installed (0)"
+            >
+              <MarketplaceList
+                filter=""
+                listRef={
+                  Object {
+                    "current": null,
+                  }
                 }
-              }
-              noResultsMessage="No plugins installed found"
-              page={0}
-            />
-          </Tab>
-        </Uncontrolled(Tabs)>
-      </div>
-    </ModalBody>
-    <ModalFooter
-      bsClass="modal-footer"
-      className="divider"
-      componentClass="div"
-    >
-      <FooterPagination
-        itemsPerPage={15}
-        onNextPage={[Function]}
-        onPreviousPage={[Function]}
-        page={0}
-        total={1}
-      />
-    </ModalFooter>
-  </div>
+                listing={Array []}
+                noResultsAction={
+                  Object {
+                    "label": "Install plugins",
+                    "onClick": [Function],
+                  }
+                }
+                noResultsMessage="No plugins installed found"
+                page={0}
+              />
+            </Tab>
+          </Uncontrolled(Tabs)>
+        </div>
+      </ModalBody>
+      <ModalFooter
+        bsClass="modal-footer"
+        className="divider"
+        componentClass="div"
+      >
+        <FooterPagination
+          itemsPerPage={15}
+          onNextPage={[Function]}
+          onPreviousPage={[Function]}
+          page={0}
+          total={1}
+        />
+      </ModalFooter>
+    </div>
+  </FocusTrap>
 </Modal>
 `;
 
@@ -621,171 +641,176 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
   }
   onExited={[Function]}
   onHide={[Function]}
+  onShow={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
   role="dialog"
   show={true}
 >
-  <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
-    onKeyDown={[Function]}
-    tabIndex={0}
+  <FocusTrap
+    active={false}
   >
-    <ModalHeader
-      bsClass="modal-header"
-      closeButton={true}
-      closeLabel="Close"
+    <div
+      className="GenericModal__wrapper-enter-key-press-catcher"
+      onKeyDown={[Function]}
+      tabIndex={0}
     >
-      <div
-        className="GenericModal__header"
+      <ModalHeader
+        bsClass="modal-header"
+        closeButton={true}
+        closeLabel="Close"
       >
-        <h1
-          id="genericModalLabel"
+        <div
+          className="GenericModal__header"
         >
-          App Marketplace
-        </h1>
-      </div>
-      <ForwardRef
-        autoFocus={true}
-        clearable={true}
-        containerClassName="marketplace-modal-search"
-        id="searchMarketplaceTextbox"
-        inputClassName="search_input"
-        inputPrefix={
-          <MagnifyIcon
-            size={24}
-          />
-        }
-        inputSize="large"
-        name="searchMarketplaceTextbox"
-        onChange={[Function]}
-        onClear={[Function]}
-        placeholder="Search marketplace"
-        type="text"
-        useLegend={false}
-        value=""
-      />
-    </ModalHeader>
-    <ModalBody
-      bsClass="modal-body"
-      componentClass="div"
-    >
-      <div
-        className="GenericModal__body"
+          <h1
+            id="genericModalLabel"
+          >
+            App Marketplace
+          </h1>
+        </div>
+        <ForwardRef
+          autoFocus={true}
+          clearable={true}
+          containerClassName="marketplace-modal-search"
+          id="searchMarketplaceTextbox"
+          inputClassName="search_input"
+          inputPrefix={
+            <MagnifyIcon
+              size={24}
+            />
+          }
+          inputSize="large"
+          name="searchMarketplaceTextbox"
+          onChange={[Function]}
+          onClear={[Function]}
+          placeholder="Search marketplace"
+          type="text"
+          useLegend={false}
+          value=""
+        />
+      </ModalHeader>
+      <ModalBody
+        bsClass="modal-body"
+        componentClass="div"
       >
-        <Uncontrolled(Tabs)
-          activeKey="all"
-          className="tabs"
-          defaultActiveKey="all"
-          id="marketplaceTabs"
-          onSelect={[Function]}
-          unmountOnExit={true}
+        <div
+          className="GenericModal__body"
         >
-          <Tab
-            eventKey="all"
-            title="All"
+          <Uncontrolled(Tabs)
+            activeKey="all"
+            className="tabs"
+            defaultActiveKey="all"
+            id="marketplaceTabs"
+            onSelect={[Function]}
+            unmountOnExit={true}
           >
-            <MarketplaceList
-              filter=""
-              listRef={
-                Object {
-                  "current": null,
-                }
-              }
-              listing={
-                Array [
+            <Tab
+              eventKey="all"
+              title="All"
+            >
+              <MarketplaceList
+                filter=""
+                listRef={
                   Object {
-                    "author_type": "mattermost",
-                    "download_url": "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
-                    "enterprise": false,
-                    "homepage_url": "https://github.com/mattermost/mattermost-plugin-nps",
-                    "installed_version": "",
-                    "manifest": Object {
-                      "description": "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost",
-                      "id": "com.mattermost.nps",
-                      "min_server_version": "5.14.0",
-                      "name": "User Satisfaction Surveys",
-                      "version": "1.0.3",
-                    },
-                    "release_stage": "production",
-                  },
-                  Object {
-                    "author_type": "mattermost",
-                    "download_url": "https://github.com/mattermost/mattermost-test/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
-                    "enterprise": false,
-                    "homepage_url": "https://github.com/mattermost/mattermost-test",
-                    "installed_version": "1.0.3",
-                    "manifest": Object {
-                      "description": "This plugin is to test",
-                      "id": "com.mattermost.test",
-                      "min_server_version": "5.14.0",
-                      "name": "Test",
-                      "version": "1.0.3",
-                    },
-                    "release_stage": "production",
-                  },
-                ]
-              }
-              noResultsMessage="No plugins found"
-              page={0}
-            />
-          </Tab>
-          <Tab
-            eventKey="installed"
-            title="Installed (1)"
-          >
-            <MarketplaceList
-              filter=""
-              listRef={
-                Object {
-                  "current": null,
+                    "current": null,
+                  }
                 }
-              }
-              listing={
-                Array [
-                  Object {
-                    "author_type": "mattermost",
-                    "download_url": "https://github.com/mattermost/mattermost-test/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
-                    "enterprise": false,
-                    "homepage_url": "https://github.com/mattermost/mattermost-test",
-                    "installed_version": "1.0.3",
-                    "manifest": Object {
-                      "description": "This plugin is to test",
-                      "id": "com.mattermost.test",
-                      "min_server_version": "5.14.0",
-                      "name": "Test",
-                      "version": "1.0.3",
+                listing={
+                  Array [
+                    Object {
+                      "author_type": "mattermost",
+                      "download_url": "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+                      "enterprise": false,
+                      "homepage_url": "https://github.com/mattermost/mattermost-plugin-nps",
+                      "installed_version": "",
+                      "manifest": Object {
+                        "description": "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost",
+                        "id": "com.mattermost.nps",
+                        "min_server_version": "5.14.0",
+                        "name": "User Satisfaction Surveys",
+                        "version": "1.0.3",
+                      },
+                      "release_stage": "production",
                     },
-                    "release_stage": "production",
-                  },
-                ]
-              }
-              noResultsAction={
-                Object {
-                  "label": "Install plugins",
-                  "onClick": [Function],
+                    Object {
+                      "author_type": "mattermost",
+                      "download_url": "https://github.com/mattermost/mattermost-test/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+                      "enterprise": false,
+                      "homepage_url": "https://github.com/mattermost/mattermost-test",
+                      "installed_version": "1.0.3",
+                      "manifest": Object {
+                        "description": "This plugin is to test",
+                        "id": "com.mattermost.test",
+                        "min_server_version": "5.14.0",
+                        "name": "Test",
+                        "version": "1.0.3",
+                      },
+                      "release_stage": "production",
+                    },
+                  ]
                 }
-              }
-              noResultsMessage="No plugins installed found"
-              page={0}
-            />
-          </Tab>
-        </Uncontrolled(Tabs)>
-      </div>
-    </ModalBody>
-    <ModalFooter
-      bsClass="modal-footer"
-      className="divider"
-      componentClass="div"
-    >
-      <FooterPagination
-        itemsPerPage={15}
-        onNextPage={[Function]}
-        onPreviousPage={[Function]}
-        page={0}
-        total={2}
-      />
-    </ModalFooter>
-  </div>
+                noResultsMessage="No plugins found"
+                page={0}
+              />
+            </Tab>
+            <Tab
+              eventKey="installed"
+              title="Installed (1)"
+            >
+              <MarketplaceList
+                filter=""
+                listRef={
+                  Object {
+                    "current": null,
+                  }
+                }
+                listing={
+                  Array [
+                    Object {
+                      "author_type": "mattermost",
+                      "download_url": "https://github.com/mattermost/mattermost-test/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+                      "enterprise": false,
+                      "homepage_url": "https://github.com/mattermost/mattermost-test",
+                      "installed_version": "1.0.3",
+                      "manifest": Object {
+                        "description": "This plugin is to test",
+                        "id": "com.mattermost.test",
+                        "min_server_version": "5.14.0",
+                        "name": "Test",
+                        "version": "1.0.3",
+                      },
+                      "release_stage": "production",
+                    },
+                  ]
+                }
+                noResultsAction={
+                  Object {
+                    "label": "Install plugins",
+                    "onClick": [Function],
+                  }
+                }
+                noResultsMessage="No plugins installed found"
+                page={0}
+              />
+            </Tab>
+          </Uncontrolled(Tabs)>
+        </div>
+      </ModalBody>
+      <ModalFooter
+        bsClass="modal-footer"
+        className="divider"
+        componentClass="div"
+      >
+        <FooterPagination
+          itemsPerPage={15}
+          onNextPage={[Function]}
+          onPreviousPage={[Function]}
+          page={0}
+          total={2}
+        />
+      </ModalFooter>
+    </div>
+  </FocusTrap>
 </Modal>
 `;

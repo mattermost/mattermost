@@ -133,6 +133,7 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                 onEntered={this.handleEntered}
                 onHide={this.onHide}
                 onExited={this.props.onExited}
+                enforceFocus={false}
                 id='deletePostModal'
                 role='dialog'
                 aria-labelledby='deletePostModalLabel'

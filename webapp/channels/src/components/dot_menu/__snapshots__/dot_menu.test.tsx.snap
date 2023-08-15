@@ -112,6 +112,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
   menu={
     Object {
       "aria-label": "Post extra options",
+      "closeMenuManually": false,
       "id": "CENTER_dropdown_post_id_1",
       "onKeyDown": [Function],
       "onToggle": [Function],
@@ -235,7 +236,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
       />
     }
   />
-  <Memo(PostReminderSubmenu)
+  <PostReminderSubmenu
     isMilitaryTime={false}
     post={
       Object {

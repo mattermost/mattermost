@@ -8,8 +8,7 @@ import React, {
     useEffect,
     KeyboardEvent,
     SyntheticEvent,
-    useMemo,
-    useCallback,
+    KeyboardEventHandler,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import MuiMenuList from '@mui/material/MenuList';
@@ -29,11 +28,10 @@ import OverlayTrigger from 'components/overlay_trigger';
 import {GenericModal} from '@mattermost/components';
 
 import {MuiMenuStyled} from './menu_styled';
-import {MenuContext} from './menu_context';
 
 const OVERLAY_TIME_DELAY = 500;
 const MENU_OPEN_ANIMATION_DURATION = 150;
-export const MENU_CLOSE_ANIMATION_DURATION = 100;
+const MENU_CLOSE_ANIMATION_DURATION = 100;
 
 type MenuButtonProps = {
     id: string;
@@ -58,7 +56,8 @@ type MenuProps = {
      * @warning Make the styling of your components such a way that they dont need this handler
      */
     onToggle?: (isOpen: boolean) => void;
-    onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
+    closeMenuManually?: boolean;
+    onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
     width?: string;
 }
 
@@ -90,29 +89,29 @@ export function Menu(props: Props) {
     const [disableAutoFocusItem, setDisableAutoFocusItem] = useState(false);
     const isMenuOpen = Boolean(anchorElement);
 
-    // Callback funtion handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
     function handleMenuClose(event: MouseEvent<HTMLDivElement>) {
         event.preventDefault();
         setAnchorElement(null);
         setDisableAutoFocusItem(false);
     }
 
-    // Handle function injected into menu items to close the menu
-    const closeMenu = useCallback(() => {
-        setAnchorElement(null);
-        setDisableAutoFocusItem(false);
-    }, []);
-
     function handleMenuModalClose(modalId: MenuProps['id']) {
         dispatch(closeModal(modalId));
         setAnchorElement(null);
     }
 
-    // Stop sythetic events from bubbling up to the parent
-    // @see https://github.com/mui/material-ui/issues/32064
-    function handleMenuClick(e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-        e.stopPropagation();
+    function handleMenuClick() {
+        setAnchorElement(null);
     }
+
+    useEffect(() => {
+        if (props.menu.closeMenuManually) {
+            setAnchorElement(null);
+            if (isMobileView) {
+                handleMenuModalClose(props.menu.id);
+            }
+        }
+    }, [props.menu.closeMenuManually]);
 
     function handleMenuKeyDown(event: KeyboardEvent<HTMLDivElement>) {
         if (isKeyPressed(event, Constants.KeyCodes.ENTER) || isKeyPressed(event, Constants.KeyCodes.SPACE)) {
@@ -126,13 +125,7 @@ export function Menu(props: Props) {
                 setAnchorElement(null);
             }
         }
-
-        if (props.menu.onKeyDown) {
-            // We need to pass the closeMenu function to the onKeyDown handler so that the menu can be closed manually
-            // This is helpful for cases when menu needs to be closed after certain keybindings are pressed in components which uses menu
-            // This however is not the case for mouse events as they are handled/closed by menu item click handlers
-            props.menu.onKeyDown(event, closeMenu);
-        }
+        props.menu.onKeyDown?.(event);
     }
 
     function handleMenuButtonClick(event: SyntheticEvent<HTMLButtonElement>) {
@@ -159,13 +152,13 @@ export function Menu(props: Props) {
         }
     }
 
-    // Function to prevent focus-visible from being set on clicking menu items with the mouse
     function handleMenuButtonMouseDown() {
+        // This is needed to prevent focus-visible being set on clicking menuitems with mouse
         setDisableAutoFocusItem(true);
     }
 
-    // We construct the menu button so we can set onClick correctly here to support both web and mobile view
     function renderMenuButton() {
+        // We construct the menu button so we can set onClick correctly here to support both web and mobile view
         const triggerElement = (
             <button
                 id={props.menuButton.id}
@@ -211,13 +204,6 @@ export function Menu(props: Props) {
         }
     }, [isMenuOpen]);
 
-    const providerValue = useMemo(() => {
-        return {
-            close: closeMenu,
-            isOpen: Boolean(anchorElement),
-        };
-    }, [anchorElement, closeMenu]);
-
     if (isMobileView) {
         // In mobile view, the menu is rendered as a modal
         return renderMenuButton();
@@ -233,7 +219,6 @@ export function Menu(props: Props) {
                 onClick={handleMenuClick}
                 onKeyDown={handleMenuKeyDown}
                 className={A11yClassNames.POPUP}
-                width={props.menu.width}
                 disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
                 MenuListProps={{
                     id: props.menu.id,
@@ -247,10 +232,9 @@ export function Menu(props: Props) {
                         exit: MENU_CLOSE_ANIMATION_DURATION,
                     },
                 }}
+                width={props.menu.width}
             >
-                <MenuContext.Provider value={providerValue}>
-                    {props.children}
-                </MenuContext.Provider>
+                {props.children}
             </MuiMenuStyled>
         </CompassDesignProvider>
     );
@@ -262,13 +246,13 @@ interface MenuModalProps {
     menuAriaLabel: MenuProps['aria-label'];
     onModalClose: (modalId: MenuProps['id']) => void;
     children: Props['children'];
-    onKeyDown?: MenuProps['onKeyDown'];
+    onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
 }
 
 function MenuModal(props: MenuModalProps) {
     const theme = useSelector(getTheme);
 
-    function closeMenuModal() {
+    function handleModalExited() {
         props.onModalClose(props.menuId);
     }
 
@@ -278,16 +262,15 @@ function MenuModal(props: MenuModalProps) {
                 if (currentElement.contains(event.target as Node) && !currentElement.ariaHasPopup) {
                     // We check for property ariaHasPopup because we don't want to close the menu
                     // if the user clicks on a submenu item or menu item which open modal. And let submenu component handle the click.
-                    closeMenuModal();
+                    handleModalExited();
                     break;
                 }
             }
         }
     }
-
     function handleKeydown(event?: React.KeyboardEvent<HTMLDivElement>) {
         if (event && props.onKeyDown) {
-            props.onKeyDown(event, closeMenuModal);
+            props.onKeyDown(event);
         }
     }
 
@@ -298,7 +281,7 @@ function MenuModal(props: MenuModalProps) {
                 className='menuModal'
                 backdrop={true}
                 ariaLabel={props.menuAriaLabel}
-                onExited={closeMenuModal}
+                onExited={handleModalExited}
                 enforceFocus={false}
                 handleKeydown={handleKeydown}
             >

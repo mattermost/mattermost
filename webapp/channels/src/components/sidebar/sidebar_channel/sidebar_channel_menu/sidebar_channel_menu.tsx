@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, memo} from 'react';
+import React, {useRef, MouseEvent, KeyboardEvent, memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {
@@ -36,7 +36,8 @@ const SidebarChannelMenu = (props: Props) => {
 
     let markAsReadUnreadMenuItem: JSX.Element | null = null;
     if (props.isUnread) {
-        function handleMarkAsRead() {
+        function handleMarkAsRead(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+            event.preventDefault();
             props.markChannelAsRead(props.channel.id, true);
             trackEvent('ui', 'ui_sidebar_channel_menu_markAsRead');
         }
@@ -56,7 +57,9 @@ const SidebarChannelMenu = (props: Props) => {
 
         );
     } else {
-        function handleMarkAsUnread() {
+        function handleMarkAsUnread(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+            event.preventDefault();
+
             props.markMostRecentPostInChannelAsUnread(props.channel.id);
             trackEvent('ui', 'ui_sidebar_channel_menu_markAsUnread');
         }
@@ -78,7 +81,9 @@ const SidebarChannelMenu = (props: Props) => {
 
     let favoriteUnfavoriteMenuItem: JSX.Element | null = null;
     if (props.isFavorite) {
-        function handleUnfavoriteChannel() {
+        function handleUnfavoriteChannel(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+            event.preventDefault();
+
             props.unfavoriteChannel(props.channel.id);
             trackEvent('ui', 'ui_sidebar_channel_menu_unfavorite');
         }
@@ -97,7 +102,9 @@ const SidebarChannelMenu = (props: Props) => {
             />
         );
     } else {
-        function handleFavoriteChannel() {
+        function handleFavoriteChannel(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+            event.preventDefault();
+
             props.favoriteChannel(props.channel.id);
             trackEvent('ui', 'ui_sidebar_channel_menu_favorite');
         }
@@ -135,7 +142,9 @@ const SidebarChannelMenu = (props: Props) => {
             );
         }
 
-        function handleUnmuteChannel() {
+        function handleUnmuteChannel(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+            event.preventDefault();
+
             props.unmuteChannel(props.currentUserId, props.channel.id);
         }
 
@@ -163,7 +172,9 @@ const SidebarChannelMenu = (props: Props) => {
             );
         }
 
-        function handleMuteChannel() {
+        function handleMuteChannel(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+            event.preventDefault();
+
             props.muteChannel(props.currentUserId, props.channel.id);
         }
 
@@ -179,7 +190,9 @@ const SidebarChannelMenu = (props: Props) => {
 
     let copyLinkMenuItem: JSX.Element | null = null;
     if (props.channel.type === Constants.OPEN_CHANNEL || props.channel.type === Constants.PRIVATE_CHANNEL) {
-        function handleCopyLink() {
+        function handleCopyLink(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+            event.preventDefault();
+
             copyToClipboard(props.channelLink);
         }
 
@@ -242,7 +255,9 @@ const SidebarChannelMenu = (props: Props) => {
             );
         }
 
-        function handleLeaveChannel() {
+        function handleLeaveChannel(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+            event.preventDefault();
+
             if (isLeaving.current || !props.channelLeaveHandler) {
                 return;
             }
