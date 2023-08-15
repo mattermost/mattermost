@@ -60,6 +60,18 @@ describe('components/integrations/AbstractCommand', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
+    test('should match snapshot when header/footer/loading is a string', () => {
+        const wrapper = shallow<AbstractCommand>(
+            <AbstractCommand
+                {...baseProps}
+                header='Header as string'
+                loading={'Loading as string'}
+                footer={'Footer as string'}
+            />,
+        );
+        expect(wrapper).toMatchSnapshot();
+    });
+
     test('should match snapshot, displays client error', () => {
         const newSeverError = 'server error';
         const props = {...baseProps, serverError: newSeverError};

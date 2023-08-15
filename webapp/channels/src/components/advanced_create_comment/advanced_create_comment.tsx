@@ -19,6 +19,7 @@ import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 import * as GlobalActions from 'actions/global_actions';
 
 import {PostDraft} from 'types/store/draft';
+import {PluginComponent} from 'types/store/plugins';
 import {ModalData} from 'types/actions';
 
 import Constants, {AdvancedTextEditor as AdvancedTextEditorConst, Locations, ModalIdentifiers, Preferences} from 'utils/constants';
@@ -193,6 +194,7 @@ type Props = {
     useCustomGroupMentions: boolean;
     isFormattingBarHidden: boolean;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
+    postEditorActions: PluginComponent[];
 }
 
 type State = {
@@ -241,7 +243,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             draft: state.draft || {...props.draft, caretPosition: props.draft.message.length, uploadsInProgress: []},
         };
 
-        const rootChanged = props.rootId !== state.rootId;
+        const rootChanged = props.rootId !== state.rootId || props.draft.rootId !== state.draft?.rootId;
         const messageInHistoryChanged = props.messageInHistory !== state.messageInHistory;
         if (rootChanged || messageInHistoryChanged || (props.isRemoteDraft && props.draft.message !== state.draft?.message)) {
             updatedState = {
@@ -1198,6 +1200,41 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
     render() {
         const draft = this.state.draft!;
+
+        const pluginItems = this.props.postEditorActions?.
+            map((item) => {
+                if (!item.component) {
+                    return null;
+                }
+
+                const Component = item.component as any;
+                return (
+                    <Component
+                        key={item.id}
+                        draft={draft}
+                        getSelectedText={() => {
+                            const input = this.textboxRef.current?.getInputBox();
+
+                            return {
+                                start: input.selectionStart,
+                                end: input.selectionEnd,
+                            };
+                        }}
+                        updateText={(message: string) => {
+                            const draft = this.state.draft!;
+                            const modifiedDraft = {
+                                ...draft,
+                                message,
+                            };
+                            this.handleDraftChange(modifiedDraft);
+                            this.setState({
+                                draft: modifiedDraft,
+                            });
+                        }}
+                    />
+                );
+            });
+
         return (
             <form onSubmit={this.handleSubmit}>
                 {
@@ -1251,6 +1288,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     getFileUploadTarget={this.getFileUploadTarget}
                     fileUploadRef={this.fileUploadRef}
                     isThreadView={this.props.isThreadView}
+                    additionalControls={pluginItems.filter(Boolean)}
                 />
             </form>
         );

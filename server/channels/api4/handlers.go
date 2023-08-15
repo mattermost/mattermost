@@ -9,8 +9,6 @@ import (
 	"github.com/mattermost/gziphandler"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
@@ -202,17 +200,6 @@ func (api *API) APILocal(h handlerFunc) http.Handler {
 	return handler
 }
 
-func (api *API) RateLimitedHandler(apiHandler http.Handler, settings model.RateLimitSettings) http.Handler {
-	settings.SetDefaults()
-
-	rateLimiter, err := app.NewRateLimiter(&settings, []string{})
-	if err != nil {
-		mlog.Error("getRateLimitedHandler", mlog.Err(err))
-		return nil
-	}
-	return rateLimiter.RateLimitHandler(apiHandler)
-}
-
 func requireLicense(c *Context) *model.AppError {
 	if c.App.Channels().License() == nil {
 		err := model.NewAppError("", "api.license_error", nil, "", http.StatusNotImplemented)
@@ -225,14 +212,6 @@ func minimumProfessionalLicense(c *Context) *model.AppError {
 	lic := c.App.Srv().License()
 	if lic == nil || (lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise) {
 		err := model.NewAppError("", model.NoTranslation, nil, "license is neither professional nor enterprise", http.StatusNotImplemented)
-		return err
-	}
-	return nil
-}
-
-func rejectGuests(c *Context) *model.AppError {
-	if c.AppContext.Session().Props[model.SessionPropIsGuest] == "true" {
-		err := model.NewAppError("", model.NoTranslation, nil, "insufficient permissions as a guest user", http.StatusNotImplemented)
 		return err
 	}
 	return nil

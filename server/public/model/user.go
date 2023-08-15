@@ -62,8 +62,6 @@ const (
 	UserLocaleMaxLength   = 5
 	UserTimezoneMaxRunes  = 256
 	UserRolesMaxLength    = 256
-
-	DesktopTokenTTL = time.Minute * 3
 )
 
 //msgp:tuple User
@@ -185,7 +183,6 @@ func (u *UserPatch) Auditable() map[string]interface{} {
 
 //msgp:ignore UserAuth
 type UserAuth struct {
-	Password    string  `json:"password,omitempty"` // DEPRECATED: It is not used.
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
 }
