@@ -458,8 +458,8 @@
     }
 
     .gif-attribution {
-        margin-inline-start: 8px;
         padding: 5px 0 5px 5px;
+        margin-inline-start: 8px;
 
         & > img {
             width: 100%;
@@ -476,7 +476,7 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 .emoji-picker__items {
     position: relative;
     width: 100%;
-    height: calc(28px + 290px + 58px + 2px);
+    height: 270px;
     padding: 4px 0 4px 12px;
     border-top-width: 1px;
     border-top-style: solid;
@@ -485,9 +485,10 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
     overflow-y: auto;
 
     &.gif-picker__items {
-        padding: 12px 12px 0 12px;
         display: flex;
+        height: 380px;
         justify-content: center;
+        padding: 12px 12px 0 12px;
     }
 
     .emoji-picker__container {

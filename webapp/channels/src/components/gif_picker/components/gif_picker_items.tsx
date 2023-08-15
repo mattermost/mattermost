@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useMemo} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {GiphyFetch} from '@giphy/js-fetch-api';
 import {EmojiVariationsListProps, Grid} from '@giphy/react-components';
 
@@ -18,14 +18,14 @@ interface Props {
 }
 
 function GifPickerItems(props: Props) {
-    function fetch(offset: number) {
+    const fetchGifs = useCallback((offset: number) => {
         // We dont have to throttled the fetching as the library does it for us
         if (props.filter.length > 0) {
             return giphyFetch.search(props.filter, {offset, limit: 10});
         }
 
         return giphyFetch.trending({offset, limit: 10});
-    }
+    }, [props.filter]);
 
     const width = useMemo(() => {
         const picketRoot = document.getElementById('emoji-picker-tabs');
@@ -39,9 +39,8 @@ function GifPickerItems(props: Props) {
                 key={props.filter.length === 0 ? 'trending' : props.filter}
                 columns={NUM_OF_GIFS_COLUMNS}
                 gutter={GUTTER_BETWEEN_GIFS}
-                hideAttribution={true}
                 width={width}
-                fetchGifs={fetch}
+                fetchGifs={fetchGifs}
                 onGifClick={props.onClick}
             />
         </div>

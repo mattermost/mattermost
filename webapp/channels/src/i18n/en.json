@@ -3357,6 +3357,8 @@
   "email_verify.return": "Return to log in",
   "email_verify.sending": "Sending email…",
   "email_verify.sent": "Verification email sent",
+  "emoji_gif_picker.tabs.emojis": "Emojis",
+  "emoji_gif_picker.tabs.gifs": "GIFs",
   "emoji_list.actions": "Actions",
   "emoji_list.add": "Add Custom Emoji",
   "emoji_list.creator": "Creator",

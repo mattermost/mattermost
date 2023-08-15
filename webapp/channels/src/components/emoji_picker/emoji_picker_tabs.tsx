@@ -3,11 +3,13 @@
 
 import React, {CSSProperties, PureComponent} from 'react';
 import {Tab, Tabs} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 import {makeAsyncComponent} from 'components/async_load';
 import EmojiPicker from 'components/emoji_picker';
 import EmojiPickerHeader from 'components/emoji_picker/components/emoji_picker_header';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
+import GifIcon from 'components/widgets/icons/giphy_icon';
 
 import {Emoji} from '@mattermost/types/emojis';
 
@@ -102,10 +104,12 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
                             <div className={'custom-emoji-tab__icon__text'}>
                                 <EmojiIcon
                                     className='custom-emoji-tab__icon'
+                                    aria-hidden={true}
                                 />
-                                <div>
-                                    {'Emojis'}
-                                </div>
+                                <FormattedMessage
+                                    id='emoji_gif_picker.tabs.emojis'
+                                    defaultMessage='Emojis'
+                                />
                             </div>
                         }
                         unmountOnExit={true}
@@ -122,10 +126,14 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
                         eventKey={2}
                         title={
                             <div className={'custom-emoji-tab__icon__text'}>
-                                {/* ICON SVG for Giphy */}
-                                <div>
-                                    {'GIFs'}
-                                </div>
+                                <GifIcon
+                                    className='custom-emoji-tab__icon'
+                                    aria-hidden={true}
+                                />
+                                <FormattedMessage
+                                    id='emoji_gif_picker.tabs.gifs'
+                                    defaultMessage='GIFs'
+                                />
                             </div>
                         }
                         unmountOnExit={true}
