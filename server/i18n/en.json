@@ -4292,6 +4292,10 @@
     "translation": "Login failed because email address has not been verified."
   },
   {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Login failed because remote users are not allow to log in."
+  },
+  {
     "id": "api.user.login.use_auth_service.app_error",
     "translation": "Please sign in using {{.AuthService}}."
   },
