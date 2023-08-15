@@ -8,11 +8,11 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV PATH="/mattermost/bin:${PATH}"
 ARG PUID=2000
 ARG PGID=2000
-ARG MM_PACKAGE="https://releases.mattermost.com/8.0.0/mattermost-8.0.0-linux-amd64.tar.gz?src=docker"
+ARG MM_PACKAGE="https://releases.mattermost.com/8.0.1/mattermost-8.0.1-linux-amd64.tar.gz?src=docker"
 
 # # Install needed packages and indirect dependencies
 RUN apt-get update \
-  && apt-get install --no-install-recommends -y \
+  && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
   ca-certificates \
   curl \
   mime-support \
@@ -20,6 +20,7 @@ RUN apt-get update \
   wv \
   poppler-utils \
   tidy \
+  tzdata \
   && rm -rf /var/lib/apt/lists/*
 
 # Set mattermost group/user and download Mattermost

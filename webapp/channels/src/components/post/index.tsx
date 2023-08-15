@@ -213,6 +213,7 @@ function makeMapStateToProps() {
             isCardOpen: selectedCard && selectedCard.id === post.id,
             shouldShowDotMenu: shouldShowDotMenu(state, post, channel),
             canDelete: canDeletePost(state, post, channel),
+            pluginActions: state.plugins.components.PostAction,
         };
     };
 }

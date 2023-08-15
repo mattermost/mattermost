@@ -31,6 +31,7 @@ import {
 import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
+    getActiveTeamsList,
     getCurrentTeamId,
     getMyTeams,
     getTeam,
@@ -441,7 +442,8 @@ export default class SwitchChannelProvider extends Provider {
             }
 
             // Dispatch suggestions for local data (filter out deleted and archived channels from local store data)
-            const channels = getChannelsInAllTeams(getState()).concat(getDirectAndGroupChannels(getState())).filter((c) => c.delete_at === 0);
+            let channels = getChannelsInAllTeams(getState()).concat(getDirectAndGroupChannels(getState())).filter((c) => c.delete_at === 0);
+            channels = this.removeChannelsFromArchivedTeams(channels);
             const users = searchProfilesMatchingWithTerm(getState(), channelPrefix, false);
             const formattedData = this.formatList(channelPrefix, [ThreadsChannel, ...channels], users, true, true);
             if (formattedData) {
@@ -494,10 +496,13 @@ export default class SwitchChannelProvider extends Provider {
         const currentUserId = getCurrentUserId(state);
 
         // filter out deleted and archived channels from local store data
-        const localChannelData = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state)).filter((c) => c.delete_at === 0) || [];
+        let localChannelData = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state)).filter((c) => c.delete_at === 0) || [];
+        localChannelData = this.removeChannelsFromArchivedTeams(localChannelData);
         const localUserData = searchProfilesMatchingWithTerm(state, channelPrefix, false);
         const localFormattedData = this.formatList(channelPrefix, [ThreadsChannel, ...localChannelData], localUserData);
-        const remoteChannelData = channelsFromServer.concat(getGroupChannels(state)) || [];
+        let remoteChannelData = channelsFromServer.concat(getGroupChannels(state)) || [];
+        remoteChannelData = this.removeChannelsFromArchivedTeams(remoteChannelData);
+
         const remoteUserData = usersFromServer.users || [];
         const remoteFormattedData = this.formatList(channelPrefix, remoteChannelData, remoteUserData, false);
 
@@ -689,9 +694,22 @@ export default class SwitchChannelProvider extends Provider {
         };
     }
 
+    removeChannelsFromArchivedTeams(channels: Channel[]) {
+        const state = getState();
+        const activeTeams = getActiveTeamsList(state).map((team: Team) => team.id);
+        const newChannels = channels.filter((channel: Channel) => {
+            if (!channel.team_id) {
+                return true;
+            }
+            return activeTeams.includes(channel.team_id);
+        });
+        return newChannels;
+    }
+
     fetchAndFormatRecentlyViewedChannels(resultsCallback: ResultsCallback<WrappedChannel>) {
         const state = getState();
-        const recentChannels = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state));
+        let recentChannels = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state));
+        recentChannels = this.removeChannelsFromArchivedTeams(recentChannels);
         const wrappedRecentChannels = this.wrapChannels(recentChannels, Constants.MENTION_RECENT_CHANNELS);
         const unreadChannels = getSortedAllTeamsUnreadChannels(state);
         const myMembers = getMyChannelMemberships(state);

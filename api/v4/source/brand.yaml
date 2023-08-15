@@ -22,16 +22,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // GetBrandImage
-            img, err := Client.GetBrandImage()
     post:
       tags:
         - brand
@@ -70,26 +60,6 @@
           $ref: "#/components/responses/TooLarge"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            file, err := os.Open("<Your image>")
-            if err != nil {
-              return err
-            }
-            defer file.Close()
-
-            data := &bytes.Buffer{}
-            if _, err := io.Copy(data, file); err != nil {
-              return err
-            }
-
-            ok, resp := Client.UploadBrandImage(data.Bytes())
     delete:
       tags:
         - brand
@@ -117,13 +87,3 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // Delete brand image
-            resp := Client.DeleteBrandImage()
