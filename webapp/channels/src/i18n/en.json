@@ -1671,7 +1671,7 @@
   "admin.permissions.permission.read_user_access_token.name": "Read user access token",
   "admin.permissions.permission.remove_user_from_team.description": "Remove user from team",
   "admin.permissions.permission.remove_user_from_team.name": "Remove user from team",
-  "admin.permissions.permission.restore_custom_group.description": "Restore deleted user groups.",
+  "admin.permissions.permission.restore_custom_group.description": "Restore archived user groups.",
   "admin.permissions.permission.restore_custom_group.name": "Restore",
   "admin.permissions.permission.revoke_user_access_token.description": "Revoke user access token",
   "admin.permissions.permission.revoke_user_access_token.name": "Revoke user access token",
