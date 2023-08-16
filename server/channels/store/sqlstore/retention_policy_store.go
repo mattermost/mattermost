@@ -1056,10 +1056,8 @@ func genericRetentionPoliciesDeletion(
 
 		if s.DriverName() == model.DatabaseDriverPostgres {
 			primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
-			query = `
-			DELETE FROM ` + r.Table + ` WHERE ` + primaryKeysStr + ` IN (
-			` + query + `
-			) RETURNING ` + r.Table + `.` + r.PrimaryKeys[0]
+
+			query = fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s) RETURNING %s.%s", r.Table, primaryKeysStr, query, r.Table, r.PrimaryKeys[0])
 			var rows *sql.Rows
 			rows, err = txn.Query(query, args...)
 			if err != nil {
@@ -1101,21 +1099,13 @@ func genericRetentionPoliciesDeletion(
 			}
 
 			if len(retentionIdsRow.Ids) > 0 {
+				// 2. Insert selected ids into RetentionIdsForDeletion table
 				err = insertRetentionIdsForDeletion(txn, &retentionIdsRow, s)
 				if err != nil {
 					return 0, err
 				}
 
-				// MySQL does not support the LIMIT clause in a subquery with IN
-				clauses := make([]string, len(r.PrimaryKeys))
-				for i, key := range r.PrimaryKeys {
-					clauses[i] = r.Table + "." + key + " = A." + key
-				}
-				joinClause := strings.Join(clauses, " AND ")
-				query = `
-				DELETE ` + r.Table + ` FROM ` + r.Table + ` INNER JOIN (
-				` + query + `
-				) AS A ON ` + joinClause
+				query = getDeleteQueriesForMySQL(r, query)
 
 				// 3. Delete from Parent table
 				var result sql.Result
@@ -1136,21 +1126,9 @@ func genericRetentionPoliciesDeletion(
 	} else {
 		if s.DriverName() == model.DatabaseDriverPostgres {
 			primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
-			query = `
-			DELETE FROM ` + r.Table + ` WHERE ` + primaryKeysStr + ` IN (
-			` + query + `
-			)`
+			query = fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s)", r.Table, primaryKeysStr, query)
 		} else {
-			// MySQL does not support the LIMIT clause in a subquery with IN
-			clauses := make([]string, len(r.PrimaryKeys))
-			for i, key := range r.PrimaryKeys {
-				clauses[i] = r.Table + "." + key + " = A." + key
-			}
-			joinClause := strings.Join(clauses, " AND ")
-			query = `
-			DELETE ` + r.Table + ` FROM ` + r.Table + ` INNER JOIN (
-			` + query + `
-			) AS A ON ` + joinClause
+			query = getDeleteQueriesForMySQL(r, query)
 		}
 		result, err := s.GetMasterX().Exec(query, args...)
 		if err != nil {
@@ -1162,6 +1140,16 @@ func genericRetentionPoliciesDeletion(
 		}
 	}
 	return
+}
+
+func getDeleteQueriesForMySQL(r RetentionPolicyBatchDeletionInfo, query string) string {
+	// MySQL does not support the LIMIT clause in a subquery with IN
+	clauses := make([]string, len(r.PrimaryKeys))
+	for i, key := range r.PrimaryKeys {
+		clauses[i] = r.Table + "." + key + " = A." + key
+	}
+	joinClause := strings.Join(clauses, " AND ")
+	return fmt.Sprintf("DELETE %s FROM %s INNER JOIN (%s) AS A ON %s", r.Table, r.Table, query, joinClause)
 }
 
 func deleteFromRetentionIdsTx(txn *sqlxTxWrapper, id string) (err error) {

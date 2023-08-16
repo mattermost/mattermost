@@ -1057,38 +1057,39 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) (err error) {
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	ids := []string{}
-	err = transaction.Select(&ids, "SELECT Id FROM Posts WHERE ChannelId = ?", channelId)
-	if err != nil {
-		return errors.Wrapf(err, "failed to fetch Posts with channelId=%s", channelId)
-	}
-
-	batchIds := [][]string{}
-	batchSize := 1000
-	resultsSize := len(ids)
-
-	for i := 0; i < resultsSize; i += batchSize {
-		end := i + batchSize
-
-		if end > resultsSize {
-			end = resultsSize
+	id := ""
+	for {
+		ids := []string{}
+		err = transaction.Select(&ids, "SELECT Id FROM Posts WHERE ChannelId = ? AND Id > ? ORDER BY Id ASC LIMIT 1000", channelId, id)
+		if err != nil {
+			return errors.Wrapf(err, "failed to fetch Posts with channelId=%s", channelId)
 		}
 
-		batchIds = append(batchIds, ids[i:end])
-	}
-	for _, batch := range batchIds {
-		if err = s.permanentDeleteThreads(transaction, batch); err != nil {
+		if len(ids) == 0 {
+			break
+		}
+
+		id = ids[len(ids)-1]
+
+		if err = s.permanentDeleteThreads(transaction, ids); err != nil {
 			return err
 		}
 		time.Sleep(10 * time.Millisecond)
-		if err = s.permanentDeleteReactions(transaction, batch); err != nil {
+
+		if err = s.permanentDeleteReactions(transaction, ids); err != nil {
 			return err
 		}
 		time.Sleep(10 * time.Millisecond)
-	}
 
-	if _, err = transaction.Exec("DELETE FROM Posts WHERE ChannelId = ?", channelId); err != nil {
-		return errors.Wrapf(err, "failed to delete Posts with channelId=%s", channelId)
+		query := s.getQueryBuilder().
+			Delete("Posts").
+			Where(
+				sq.Eq{"Id": ids},
+			)
+		if _, err := transaction.ExecBuilder(query); err != nil {
+			return errors.Wrap(err, "failed to delete Posts")
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
 
 	if err = transaction.Commit(); err != nil {
