@@ -6,7 +6,7 @@
     "npm": "^9.0.0"
   },
   "scripts": {
-    "postinstall": "node scripts/skip_integrity_check.js && npm run build --workspace=platform/types --workspace=platform/client --workspace=platform/components",
+    "postinstall": "npm run build --workspace=platform/types --workspace=platform/client --workspace=platform/components",
     "build": "node scripts/build.js",
     "run": "node scripts/run.js",
     "dev-server": "node scripts/dev-server.js",
