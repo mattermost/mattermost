@@ -1086,7 +1086,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) (err error) {
 			Where(
 				sq.Eq{"Id": ids},
 			)
-		if _, err := transaction.ExecBuilder(query); err != nil {
+		if _, err = transaction.ExecBuilder(query); err != nil {
 			return errors.Wrap(err, "failed to delete Posts")
 		}
 		time.Sleep(10 * time.Millisecond)
