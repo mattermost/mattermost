@@ -10,7 +10,7 @@ import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import Constants from 'utils/constants';
 
-import {IconContainer} from '../formatting_bar/formatting_icon';
+import {IconContainer} from './formatting_bar/formatting_icon';
 
 interface ToggleFormattingBarProps {
     onClick: React.MouseEventHandler;
