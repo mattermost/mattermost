@@ -310,6 +310,12 @@
                         .MenuWrapper {
                             width: 24px;
                             margin-left: auto;
+                            .Menu {
+                                position: absolute;
+                                border-radius: 4px;
+                                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                                margin-top: 8px;
+                            }
                         }
 
                         .group-actions-menu {
