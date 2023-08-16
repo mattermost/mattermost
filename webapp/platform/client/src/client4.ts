@@ -2191,10 +2191,6 @@ export default class Client4 {
             route = `${this.getTeamRoute(teamId)}/posts/search`;
         }
 
-        if (params?.terms?.startsWith('@')) {
-            params.terms = params.terms.replace('@', 'from:');
-        }
-
         return this.doFetch<PostSearchResults>(
             route,
             {method: 'post', body: JSON.stringify(params)},

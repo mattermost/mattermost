@@ -244,7 +244,7 @@ describe('rhs view actions', () => {
     });
 
     describe('showSearchResults', () => {
-        const terms = '@here test search';
+        const terms = 'here test search';
 
         const testInitialState = {
             ...initialState,
@@ -266,6 +266,23 @@ describe('rhs view actions', () => {
             compareStore.dispatch({
                 type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS,
                 terms,
+            });
+            compareStore.dispatch(performSearch(terms));
+
+            expect(store.getActions()).toEqual(compareStore.getActions());
+        });
+
+        // test to perform search user with @
+        it('it should populate @ with from:', () => {
+            store = mockStore(testInitialState);
+
+            store.dispatch(showSearchResults());
+
+            const compareStore = mockStore(testInitialState);
+            compareStore.dispatch(updateRhsState(RHSStates.SEARCH));
+            compareStore.dispatch({
+                type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS,
+                terms: terms.replace('@', 'from:'),
             });
             compareStore.dispatch(performSearch(terms));
 
@@ -851,7 +868,7 @@ describe('rhs view actions', () => {
                 type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS,
                 terms,
             });
-            compareStore.dispatch(performSearch(terms));
+            compareStore.dispatch(performSearch(terms.replace('@', 'from:')));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
