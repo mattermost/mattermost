@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties, PureComponent} from 'react';
+import React, {CSSProperties, PureComponent, createRef, RefObject} from 'react';
 import {Tab, Tabs} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
@@ -33,6 +33,8 @@ type State = {
 }
 
 export default class EmojiPickerTabs extends PureComponent<Props, State> {
+    private rootPickerNodeRef: RefObject<HTMLDivElement>;
+
     static defaultProps = {
         rightOffset: 0,
         topOffset: 0,
@@ -46,6 +48,8 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
             emojiTabVisible: true,
             filter: '',
         };
+
+        this.rootPickerNodeRef = createRef();
     }
 
     handleEmojiPickerClose = () => {
@@ -54,6 +58,10 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
 
     handleFilterChange = (filter: string) => {
         this.setState({filter});
+    };
+
+    getRootPickerNode = () => {
+        return this.rootPickerNodeRef.current;
     };
 
     render() {
@@ -88,64 +96,69 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
 
         if (this.props.enableGifPicker && typeof this.props.onGifClick != 'undefined') {
             return (
-                <Tabs
-                    defaultActiveKey={1}
-                    id='emoji-picker-tabs'
+                <div
+                    ref={this.rootPickerNodeRef}
                     style={pickerStyle}
                     className={pickerClass}
-                    justified={true}
-                    mountOnEnter={true}
-                    unmountOnExit={true}
                 >
-                    <EmojiPickerHeader handleEmojiPickerClose={this.handleEmojiPickerClose}/>
-                    <Tab
-                        eventKey={1}
-                        title={
-                            <div className={'custom-emoji-tab__icon__text'}>
-                                <EmojiIcon
-                                    className='custom-emoji-tab__icon'
-                                    aria-hidden={true}
-                                />
-                                <FormattedMessage
-                                    id='emoji_gif_picker.tabs.emojis'
-                                    defaultMessage='Emojis'
-                                />
-                            </div>
-                        }
+                    <Tabs
+                        id='emoji-picker-tabs'
+                        defaultActiveKey={1}
+                        justified={true}
+                        mountOnEnter={true}
                         unmountOnExit={true}
-                        tabClassName={'custom-emoji-tab'}
                     >
-                        <EmojiPicker
-                            filter={this.state.filter}
-                            onEmojiClick={this.props.onEmojiClick}
-                            handleFilterChange={this.handleFilterChange}
-                            handleEmojiPickerClose={this.handleEmojiPickerClose}
-                        />
-                    </Tab>
-                    <Tab
-                        eventKey={2}
-                        title={
-                            <div className={'custom-emoji-tab__icon__text'}>
-                                <GifIcon
-                                    className='custom-emoji-tab__icon'
-                                    aria-hidden={true}
-                                />
-                                <FormattedMessage
-                                    id='emoji_gif_picker.tabs.gifs'
-                                    defaultMessage='GIFs'
-                                />
-                            </div>
-                        }
-                        unmountOnExit={true}
-                        tabClassName={'custom-emoji-tab'}
-                    >
-                        <GifPicker
-                            filter={this.state.filter}
-                            onGifClick={this.props.onGifClick}
-                            handleFilterChange={this.handleFilterChange}
-                        />
-                    </Tab>
-                </Tabs>
+                        <EmojiPickerHeader handleEmojiPickerClose={this.handleEmojiPickerClose}/>
+                        <Tab
+                            eventKey={1}
+                            title={
+                                <div className={'custom-emoji-tab__icon__text'}>
+                                    <EmojiIcon
+                                        className='custom-emoji-tab__icon'
+                                        aria-hidden={true}
+                                    />
+                                    <FormattedMessage
+                                        id='emoji_gif_picker.tabs.emojis'
+                                        defaultMessage='Emojis'
+                                    />
+                                </div>
+                            }
+                            unmountOnExit={true}
+                            tabClassName={'custom-emoji-tab'}
+                        >
+                            <EmojiPicker
+                                filter={this.state.filter}
+                                onEmojiClick={this.props.onEmojiClick}
+                                handleFilterChange={this.handleFilterChange}
+                                handleEmojiPickerClose={this.handleEmojiPickerClose}
+                            />
+                        </Tab>
+                        <Tab
+                            eventKey={2}
+                            title={
+                                <div className={'custom-emoji-tab__icon__text'}>
+                                    <GifIcon
+                                        className='custom-emoji-tab__icon'
+                                        aria-hidden={true}
+                                    />
+                                    <FormattedMessage
+                                        id='emoji_gif_picker.tabs.gifs'
+                                        defaultMessage='GIFs'
+                                    />
+                                </div>
+                            }
+                            unmountOnExit={true}
+                            tabClassName={'custom-emoji-tab'}
+                        >
+                            <GifPicker
+                                filter={this.state.filter}
+                                getRootPickerNode={this.getRootPickerNode}
+                                onGifClick={this.props.onGifClick}
+                                handleFilterChange={this.handleFilterChange}
+                            />
+                        </Tab>
+                    </Tabs>
+                </div>
             );
         }
 
