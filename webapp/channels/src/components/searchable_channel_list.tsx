@@ -539,7 +539,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                 {input}
                 {dropDownContainer}
                 <div
-                    role='application'
+                    role='search'
                     className='more-modal__list'
                     tabIndex={-1}
                 >
