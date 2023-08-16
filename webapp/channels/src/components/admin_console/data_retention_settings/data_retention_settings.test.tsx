@@ -12,10 +12,8 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             DataRetentionSettings: {
                 EnableMessageDeletion: true,
                 EnableFileDeletion: true,
-                EnableBoardsDeletion: true,
                 MessageRetentionDays: 100,
                 FileRetentionDays: 100,
-                BoardsRetentionDays: 100,
                 DeletionJobStartTime: '00:15',
             },
         },
@@ -83,7 +81,6 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
         const props = baseProps;
         props.config.DataRetentionSettings.EnableMessageDeletion = false;
         props.config.DataRetentionSettings.EnableFileDeletion = false;
-        props.config.DataRetentionSettings.EnableBoardsDeletion = false;
         const wrapper = shallow(
             <DataRetentionSettings
                 {...props}
