@@ -29,7 +29,7 @@ import AtPlanMention from 'components/at_plan_mention';
  * - hasPluginTooltips - If specified, the LinkTooltip component is placed inside links. Defaults to false.
  * - channelId = If specified, to be passed along to ProfilePopover via AtMention
  */
-export function messageHtmlToComponent(html, isRHS, options = {}) {
+export function messageHtmlToComponent(html, options = {}) {
     if (!html) {
         return null;
     }
@@ -101,7 +101,6 @@ export function messageHtmlToComponent(html, isRHS, options = {}) {
                 const callAtMention = (
                     <AtMention
                         mentionName={mentionName}
-                        isRHS={isRHS}
                         hasMention={true}
                         disableHighlight={!mentionHighlight}
                         disableGroupHighlight={disableGroupHighlight}
