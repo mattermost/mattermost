@@ -379,7 +379,7 @@ func (h *Hub) Start() {
 				conns := connIndex.ForUser(webSessionMessage.userID)
 				var isRegistered bool
 				for _, conn := range conns {
-					if !conn.active {
+					if !conn.active.Load() {
 						continue
 					}
 					if conn.GetSessionToken() == webSessionMessage.sessionToken {
@@ -407,7 +407,7 @@ func (h *Hub) Start() {
 				// Mark the current one as active.
 				// There is no need to check if it was inactive or not,
 				// we will anyways need to make it active.
-				webConn.active = true
+				webConn.active.Store(true)
 
 				connIndex.Add(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
@@ -422,7 +422,7 @@ func (h *Hub) Start() {
 			case webConn := <-h.unregister:
 				// If already removed (via queue full), then removing again becomes a noop.
 				// But if not removed, mark inactive.
-				webConn.active = false
+				webConn.active.Store(false)
 
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
@@ -439,7 +439,7 @@ func (h *Hub) Start() {
 				}
 				var latestActivity int64 = 0
 				for _, conn := range conns {
-					if !conn.active {
+					if !conn.active.Load() {
 						continue
 					}
 					if conn.lastUserActivityAt > latestActivity {
@@ -458,7 +458,7 @@ func (h *Hub) Start() {
 				}
 			case activity := <-h.activity:
 				for _, webConn := range connIndex.ForUser(activity.userID) {
-					if !webConn.active {
+					if !webConn.active.Load() {
 						continue
 					}
 					if webConn.GetSessionToken() == activity.sessionToken {
@@ -472,7 +472,12 @@ func (h *Hub) Start() {
 				select {
 				case directMsg.conn.send <- directMsg.msg:
 				default:
-					mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", directMsg.conn.UserId))
+					// Don't log the warning if it's an inactive connection.
+					if directMsg.conn.active.Load() {
+						mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
+							mlog.String("user_id", directMsg.conn.UserId),
+							mlog.String("conn_id", directMsg.conn.GetConnectionID()))
+					}
 					close(directMsg.conn.send)
 					connIndex.Remove(directMsg.conn)
 				}
@@ -489,7 +494,12 @@ func (h *Hub) Start() {
 						select {
 						case webConn.send <- msg:
 						default:
-							mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webConn.UserId))
+							// Don't log the warning if it's an inactive connection.
+							if webConn.active.Load() {
+								mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
+									mlog.String("user_id", webConn.UserId),
+									mlog.String("conn_id", webConn.GetConnectionID()))
+							}
 							close(webConn.send)
 							connIndex.Remove(webConn)
 						}
@@ -627,7 +637,7 @@ func (i *hubConnectionIndex) RemoveInactiveByConnectionID(userID, connectionID s
 		return nil
 	}
 	for _, conn := range i.ForUser(userID) {
-		if conn.GetConnectionID() == connectionID && !conn.active {
+		if conn.GetConnectionID() == connectionID && !conn.active.Load() {
 			i.Remove(conn)
 			return conn
 		}
@@ -640,7 +650,7 @@ func (i *hubConnectionIndex) RemoveInactiveByConnectionID(userID, connectionID s
 func (i *hubConnectionIndex) RemoveInactiveConnections() {
 	now := model.GetMillis()
 	for conn := range i.byConnection {
-		if !conn.active && now-conn.lastUserActivityAt > i.staleThreshold.Milliseconds() {
+		if !conn.active.Load() && now-conn.lastUserActivityAt > i.staleThreshold.Milliseconds() {
 			i.Remove(conn)
 		}
 	}
@@ -652,7 +662,7 @@ func (i *hubConnectionIndex) RemoveInactiveConnections() {
 func (i *hubConnectionIndex) AllActive() int {
 	cnt := 0
 	for conn := range i.byConnection {
-		if conn.active {
+		if conn.active.Load() {
 			cnt++
 		}
 	}
