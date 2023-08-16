@@ -93,10 +93,19 @@ export interface Props extends MuiMenuItemProps {
  * To be used as a child of Menu component.
  * Checkout Compass's Menu Item(compass.mattermost.com) for terminology, styling and usage guidelines.
  *
- * @example
+ * @example <caption>Using a menu in a component</caption>
  * <Menu.Container>
- *    <Menu.Item/>
+ *     <Menu.Item/>
  * </Menu.Container>
+ * @example <caption>Wrapping a menu item in another component</caption>
+ * // Remember to pass all unused props into the Menu.Item to ensure MUI props for a11y are passed properly
+ * const ConsoleLogItem = ({message, ...otherProps}) => ({
+ *     <Menu.Item
+ *         onClick={() => console.log(message)}
+ *         {...otherProps}
+ *     />
+ * });
+ *
  */
 export function MenuItem(props: Props) {
     const {
@@ -107,7 +116,7 @@ export function MenuItem(props: Props) {
         isLabelsRowLayout,
         children,
         onClick,
-        ...restProps
+        ...otherProps
     } = props;
 
     const menuContext = useContext(MenuContext);
@@ -181,7 +190,7 @@ export function MenuItem(props: Props) {
             isLabelsRowLayout={isLabelsRowLayout}
             onKeyDown={handleClick}
             onMouseDown={handleClick}
-            {...restProps}
+            {...otherProps}
         >
             {leadingElement && <div className='leading-element'>{leadingElement}</div>}
             <div className='label-elements'>{labels}</div>
