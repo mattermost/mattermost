@@ -1,0 +1,14 @@
+{
+  "about.date": "නිශ්පාදිත දිනය:",
+  "about.enterpriseEditionLearn": "ව්‍යවසාය සංස්කරණය ගැන තව දැනගන්න ",
+  "about.enterpriseEditionSt": "ඔබගේ ෆයර්වෝලය පිටුපසින් නවීන සන්නිවේදනය.",
+  "about.enterpriseEditione1": "ව්‍යවසාය සංස්කරණය",
+  "about.teamEditionLearn": "Mattermost ප්‍රජාවට සම්බන්ධ වන්න ",
+  "about.teamEditionSt": "ඔබගේ සියලුම කණ්ඩායම් සන්නිවේදනය එක තැනක, ක්ෂණිකව සෙවිය හැකි අතර ඕනෑම තැනකට ප්‍රවේශ විය හැක.",
+  "web.footer.about": "පිළිබඳව",
+  "web.header.back": "ආපසු",
+  "web.header.logout": "නික්මෙන්න",
+  "widgets.channels_input.loading": "පූරණය වෙමින්",
+  "widgets.users_emails_input.loading": "පූරණය වෙමින්",
+  "yourcomputer": "ඔබගේ පරිගණකය"
+}

@@ -1,0 +1,5218 @@
+[
+  {
+    "id": "web.incoming_webhook.user.app_error",
+    "translation": "Käyttäjää ei löydetty"
+  },
+  {
+    "id": "web.incoming_webhook.text.app_error",
+    "translation": "Tekstiä ei määritetty"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "Ei voitu jakaa webhookin asetuksia {{.Max}} merkkiosaan."
+  },
+  {
+    "id": "web.incoming_webhook.permissions.app_error",
+    "translation": "Virheelliset kanavat oikeudet"
+  },
+  {
+    "id": "web.incoming_webhook.parse.app_error",
+    "translation": "Ei voitu lukea sisääntulevaa dataa"
+  },
+  {
+    "id": "web.incoming_webhook.invalid.app_error",
+    "translation": "Virheellinen webhook"
+  },
+  {
+    "id": "web.incoming_webhook.disabled.app_error",
+    "translation": "Pääkäyttäjä on estänyt tulevien webhookien käyttämisen."
+  },
+  {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "Tällä webhookilla ei ole lupaa kirjoittaa pyydetylle kanavalle"
+  },
+  {
+    "id": "web.incoming_webhook.channel.app_error",
+    "translation": "Ei löydetty kanavaa"
+  },
+  {
+    "id": "web.get_access_token.internal_saving.app_error",
+    "translation": "Ei voitu päivittää käyttäjän pääsydataa."
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "Ei voitu lukea sisääntulevaa dataa"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "Ei löydetty komentoa"
+  },
+  {
+    "id": "system.message.name",
+    "translation": "Järjestelmä"
+  },
+  {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "Ei voitu poistaa palveluehtoja."
+  },
+  {
+    "id": "app.terms_of_service.create.existing.app_error",
+    "translation": "Ei saa kutsua tallennusta olemassaolevalle palveluehdolle."
+  },
+  {
+    "id": "store.sql_team.save_member.exists.app_error",
+    "translation": "Tiiminjäsen jolla tämä ID on jo olemassa"
+  },
+  {
+    "id": "app.scheme.save.invalid_scheme.app_error",
+    "translation": "Annettu järjestely on virheellinen"
+  },
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "Ei voitu luoda järjestelyä"
+  },
+  {
+    "id": "app.scheme.permanent_delete_all.app_error",
+    "translation": "Ei voitu pysyvästi poistaa järjestelyjä"
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "Ei voitu hakea järjestelyä"
+  },
+  {
+    "id": "app.reaction.save.save.app_error",
+    "translation": "Ei voitu tallentaa reaktiota"
+  },
+  {
+    "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+    "translation": "Ei voitu hakea reaktioita joissa tämä emojin nimi"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "Etsintä on kytketty pois tällä palvelimella. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "app.emoji.delete.no_results",
+    "translation": "Ei löydetty poistettavaa emojia"
+  },
+  {
+    "id": "app.emoji.delete.app_error",
+    "translation": "Ei voitu poistaa emojia"
+  },
+  {
+    "id": "store.sql_command.save.get.app_error",
+    "translation": "Ei voitu hakea komentoa"
+  },
+  {
+    "id": "app.channel_member_history.log_leave_event.internal_error",
+    "translation": "Ei voitu hakea tallentaa kanavan jäsenhistoriaa. Ei voitu päivittää olemassaolevaa liittymistallennetta"
+  },
+  {
+    "id": "app.channel_member_history.log_join_event.internal_error",
+    "translation": "Ei voitu hakea tallentaa kanavan jäsenhistoriaa"
+  },
+  {
+    "id": "model.config.is_valid.saml_public_cert.app_error",
+    "translation": "Service Provider Public Certificate puuttuu. Unohditko ladata sen?"
+  },
+  {
+    "id": "model.config.is_valid.saml_private_key.app_error",
+    "translation": "Service Provider Private Key puuttuu. Unohditko ladata sen?"
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_url.app_error",
+    "translation": "SAML SSO URLin oltava kunnollinen URL ja alettava http:// tai https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
+    "translation": "Identity Provider Issuer URLin oltava kunnollinen URL ja alettava http:// tai https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_cert.app_error",
+    "translation": "Identity Provider Public Certificate puuttuu. Unohditko ladata sen?"
+  },
+  {
+    "id": "model.config.is_valid.saml_email_attribute.app_error",
+    "translation": "Virheellinen Sähköposti attribuutti. Oltava asetettu."
+  },
+  {
+    "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
+    "translation": "Service Provider kirjautumis-URLin oltava kunnollinen URL ja alettava http:// tai https://."
+  },
+  {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "Virheellinen yksityisviestin rajoitus. On oltava 'any' tai 'team'"
+  },
+  {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "Virheellinen luvun aikakatkaisuarvo."
+  },
+  {
+    "id": "model.config.is_valid.rate_sec.app_error",
+    "translation": "Virheellinen per sek nopeusrajoitusasetuksissa. Oltava positiivinen numero"
+  },
+  {
+    "id": "model.config.is_valid.rate_mem.app_error",
+    "translation": "Virheellinen muistivaraston koko nopeusrajoitusasetuksissa. Oltava positiivinen numero"
+  },
+  {
+    "id": "model.config.is_valid.password_length.app_error",
+    "translation": "Salasanan minimipituuden on oltava kokonaisluku, vähintään {{.MinLength}} ja enintään {{.MaxLength}}."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
+    "translation": "Viestin vientityön GlobalRelaySettings.SmtpUsername on asetettava"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
+    "translation": "Viestin vientityön GlobalRelaySettings.SmtpPassword on asetettava"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
+    "translation": "Viestin vientityön GlobalRelaySettings.EmailAddress oltava sähköpostiosoite"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
+    "translation": "Viestin vientityön GlobalRelaySettings.CustomerType oltava joko 'A9' tai 'A10'"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
+    "translation": "Viestin vientityön ExportFormat on 'globalrelay', mutta GlobalRelaySettings puuttuu"
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Viestin vientityön ExportFormat oltava 'actiance', 'csv' tai 'globalrelay'"
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_from.app_error",
+    "translation": "Viestin vientityön ExportFromTimestamp oltava aika (sekunteja unix epochin jälkeen). Vain tämän ajan jälkeen lähetetyt viestit viedään."
+  },
+  {
+    "id": "model.config.is_valid.message_export.enable.app_error",
+    "translation": "Viestin vientityön EnableExport asetus oltava joko true tai false"
+  },
+  {
+    "id": "model.config.is_valid.message_export.daily_runtime.app_error",
+    "translation": "Viestin vientityön DailyRuntime oltava 24-tunnin aika muodossa HH:MM."
+  },
+  {
+    "id": "model.config.is_valid.message_export.batch_size.app_error",
+    "translation": "Viestin vientityön BatchSize oltava positiivinen kokonaisluku"
+  },
+  {
+    "id": "model.config.is_valid.max_users.app_error",
+    "translation": "Virheellinen käyttäjien maksiminäärä per tiimi tiimiasetuksissa. Oltava positiivinen numero."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Virheellinen ilmoitusraja per kanava tiimiasetuksissa. Oltava positiivinen numero."
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "Virheellinen maksimitiedostokoko tiedostoasetuksissa. Oltava nollaa suurempi kokonaisluku."
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Virheellinen kanavaraja per tiimi tiimiasetuksissa. Oltava positiivinen numero."
+  },
+  {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "Maksimipurskekoon oltava suurempi kuin nolla."
+  },
+  {
+    "id": "model.config.is_valid.login_attempts.app_error",
+    "translation": "Virheellinen kirjatumisyritysten maksimimäärä palveluasetuksissa. Oltava positiivinen numero."
+  },
+  {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Tarjottavien kielien on sisällytettävä oletusasiakaskieli"
+  },
+  {
+    "id": "model.config.is_valid.listen_address.app_error",
+    "translation": "Virheellinen kuunteluosoite palveluasetuksissa Oltava asetettu."
+  },
+  {
+    "id": "model.config.is_valid.ldap_username",
+    "translation": "AD/LDAP kenttä \"Username Attribute\" on pakollinen."
+  },
+  {
+    "id": "model.config.is_valid.ldap_sync_interval.app_error",
+    "translation": "Virheellinen synkronointiintervalli. Oltava vähintään yksi minuutti."
+  },
+  {
+    "id": "model.config.is_valid.ldap_server",
+    "translation": "AD/LDAP kenttä \"AD/LDAP Server\" on pakollinen."
+  },
+  {
+    "id": "model.config.is_valid.ldap_security.app_error",
+    "translation": "Virheellinen yhteysturva AD/LDAP asetuksissa. Oltava '', 'TLS' tai 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "Virheellinen sivun maksimikoko."
+  },
+  {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "AD/LDAP kenttä \"Login ID Attribute\" on pakollinen."
+  },
+  {
+    "id": "model.config.is_valid.ldap_id",
+    "translation": "AD/LDAP kenttä \"ID Attribute\" on pakollinen."
+  },
+  {
+    "id": "model.config.is_valid.ldap_email",
+    "translation": "AD/LDAP kenttä \"Email Attribute\" on pakollinen."
+  },
+  {
+    "id": "model.config.is_valid.ldap_basedn",
+    "translation": "AD/LDAP kenttä \"BaseDN\" on pakollinen."
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "Virheellinen kuvavälityspalvelutyyppi. Oltava 'local' tai 'atmos/camo'."
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Virheellinen lukemattomien kanavien ryhmä palveluasetuksissa. Oltava 'disabled', 'default_on' tai 'default_off'."
+  },
+  {
+    "id": "model.config.is_valid.file_salt.app_error",
+    "translation": "Virheellinen julkisen linkin suola tiedostoasetuksissa. Oltava vähintään 32 merkkiä."
+  },
+  {
+    "id": "model.config.is_valid.file_driver.app_error",
+    "translation": "Virheellinen ajurinimi tiedostoasetuksille. On oltava 'local' tai 'amazons3'"
+  },
+  {
+    "id": "model.config.is_valid.encrypt_sql.app_error",
+    "translation": "Virheellinen lepotilan salausavain SQL asetuksissa. Oltava vähintään 32 merkkiä."
+  },
+  {
+    "id": "model.config.is_valid.email_security.app_error",
+    "translation": "Virheellinen yhteyden turvallisuus sähköpostiasetuksissa. Oltava '', 'TLS' tai 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.email_notification_contents_type.app_error",
+    "translation": "Virheellinen sähköposti-ilmoituksen sisältötyyppi sähköpostiasetuksissa. Oltava joko 'full' tai 'generic'."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "Virheellinen sähköpostin yhdistelyn intervalli sähköpostiosoitteissa. Oltava vähintään 30 sekuntia."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_buffer_size.app_error",
+    "translation": "Virheellinen sähköpostien yhdistelyn puskurikoko sähköpostiasetuksissa. Arvon oltava 0 tai positiivinen numero."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
+    "translation": "Elasticsearch Request Timeout oltava vähintään 1 sekunti."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "Elasticsearch PostsAggregatorJobStartTime arvon on oltava aika muodossa \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Live Indexing Batch Size oltava vähintään 1"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
+    "translation": "Elasticsearch IndexingEnabled asetus on asetettava päälle kun Elasticsearch SearchEnabled asetetaan päälle."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
+    "translation": "Elasticsearch IndexingEnabled asetus on asetettava päälle kun Elasticsearch SearchEnabled asetetaan päälle."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.connection_url.app_error",
+    "translation": "Elasticsearch ConnectionUrl asetus on annettava kun Elasticsearch indeksointi kytketään päälle."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Elasticsearch AggregatePostsAfterDays asetuksen on oltava vähintään 1"
+  },
+  {
+    "id": "model.config.is_valid.display.custom_url_schemes.app_error",
+    "translation": "Oma URLin skeema {{.Scheme}} on virheellinen. Omien URL skeemojen on alettava kirjaimella ja muodostuva vain kirjaimiista, numeroista, plus (+), piste (.) ja viiva (-)."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "Viestin säilyttäminen oltava vähintään 1 päivä."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "Tiedoston säilyttäminen on oltava vähintään 1 päivä."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "Tietojensäilyttämistyön aloitusaika on 24-tunnin aikaleima muodossa HH:MM."
+  },
+  {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "Sähköpostien yhdistelyä ei voi ottaa käyttöön kun klusterointi on käytössä."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
+    "translation": "Elasticsearch IndexingEnabled asetus on asetettava päälle kun Elasticsearch SearchEnabled asetetaan päälle."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
+    "translation": "Elasticsearch IndexingEnabled asetus on asetettava päälle kun Elasticsearch SearchEnabled asetetaan päälle."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "Virheellinen RemoteImageProxyURL arvo atmos/camoa varten. Täytyy asettaa jaettuun avaimeen."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "Virheellinen RemoteImageProxyOptions arvo atmos/camoa varten. Täytyy asettaa jaettuun avaimeen."
+  },
+  {
+    "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
+    "translation": "Evästeiden salliminen alidomaineihin vaatii SiteURL arvon asettamista."
+  },
+  {
+    "id": "model.compliance.is_valid.start_end_at.app_error",
+    "translation": "To arvon oltava suurempi kuin From"
+  },
+  {
+    "id": "model.compliance.is_valid.start_at.app_error",
+    "translation": "From on oltava aika"
+  },
+  {
+    "id": "model.compliance.is_valid.id.app_error",
+    "translation": "Virheellinen ID"
+  },
+  {
+    "id": "model.compliance.is_valid.end_at.app_error",
+    "translation": "To on oltava aika"
+  },
+  {
+    "id": "model.compliance.is_valid.desc.app_error",
+    "translation": "Viallinen kuvaus"
+  },
+  {
+    "id": "model.compliance.is_valid.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "Virheellinen juuren ID"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Virheellinen komennon hook-ID"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Virheellinen komennon ID"
+  },
+  {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "Virheellinen kanavan id"
+  },
+  {
+    "id": "model.command.is_valid.user_id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.command.is_valid.url_http.app_error",
+    "translation": "Viallinen URL. URLin on oltava kunnollinen URL ja alettava http:// tai https://"
+  },
+  {
+    "id": "model.command.is_valid.url.app_error",
+    "translation": "Virheellinen URL"
+  },
+  {
+    "id": "model.command.is_valid.update_at.app_error",
+    "translation": "Update at on oltava aika"
+  },
+  {
+    "id": "model.command.is_valid.trigger.app_error",
+    "translation": "Virheellinen trigger"
+  },
+  {
+    "id": "model.command.is_valid.token.app_error",
+    "translation": "Virheellinen token."
+  },
+  {
+    "id": "model.command.is_valid.team_id.app_error",
+    "translation": "Virheellinen tiimin ID"
+  },
+  {
+    "id": "store.sql_user.get_for_login.app_error",
+    "translation": "Ei löydetty olemassaolevaa tiliä jolla tunnuksesi. Tiimi voi vaatia kutsun tiiminomistajalta ennen liittymistä."
+  },
+  {
+    "id": "model.command.is_valid.method.app_error",
+    "translation": "Virheellinen metodi"
+  },
+  {
+    "id": "model.command.is_valid.id.app_error",
+    "translation": "Virheellinen ID"
+  },
+  {
+    "id": "model.command.is_valid.display_name.app_error",
+    "translation": "Virheellinen otsikko"
+  },
+  {
+    "id": "model.command.is_valid.description.app_error",
+    "translation": "Viallinen kuvaus"
+  },
+  {
+    "id": "model.command.is_valid.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.cluster.is_valid.type.app_error",
+    "translation": "Type on asetettava"
+  },
+  {
+    "id": "model.cluster.is_valid.name.app_error",
+    "translation": "ClusterName on asetettava"
+  },
+  {
+    "id": "model.cluster.is_valid.last_ping_at.app_error",
+    "translation": "LastPingAt on asetettava"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "Virheellinen ID"
+  },
+  {
+    "id": "model.cluster.is_valid.hostname.app_error",
+    "translation": "Hostname on asetettava"
+  },
+  {
+    "id": "model.cluster.is_valid.create_at.app_error",
+    "translation": "CreateAt on asetettava"
+  },
+  {
+    "id": "model.channel_member.is_valid.user_id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.channel_member.is_valid.unread_level.app_error",
+    "translation": "Virheellinen merkitse-lukemattomaksi-taso"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Virheellinen push-viestitaso"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_level.app_error",
+    "translation": "Virheellinen ilmoitustaso"
+  },
+  {
+    "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
+    "translation": "Virheellinen kanavan mainintojen ohitustila"
+  },
+  {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Virheellinen sähköposti-ilmoituksen arvo"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_id.app_error",
+    "translation": "Virheellinen kanavan id"
+  },
+  {
+    "id": "model.channel.is_valid.update_at.app_error",
+    "translation": "Update at on oltava aika"
+  },
+  {
+    "id": "model.channel.is_valid.type.app_error",
+    "translation": "Virheellinen type"
+  },
+  {
+    "id": "model.channel.is_valid.purpose.app_error",
+    "translation": "Virheellinen tarkoitus"
+  },
+  {
+    "id": "model.channel.is_valid.id.app_error",
+    "translation": "Virheellinen ID"
+  },
+  {
+    "id": "model.channel.is_valid.header.app_error",
+    "translation": "Virheellinen otsikko"
+  },
+  {
+    "id": "model.channel.is_valid.display_name.app_error",
+    "translation": "Viallinen näyttönimi"
+  },
+  {
+    "id": "model.channel.is_valid.creator_id.app_error",
+    "translation": "Virheellinen creator-ID"
+  },
+  {
+    "id": "model.channel.is_valid.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.bot.is_valid.username.app_error",
+    "translation": "Virheellinen käyttäjänimi."
+  },
+  {
+    "id": "model.bot.is_valid.user_id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.bot.is_valid.update_at.app_error",
+    "translation": "Virheellinen creator-ID"
+  },
+  {
+    "id": "model.bot.is_valid.description.app_error",
+    "translation": "Viallinen kuvaus"
+  },
+  {
+    "id": "model.bot.is_valid.creator_id.app_error",
+    "translation": "Virheellinen creator-ID"
+  },
+  {
+    "id": "model.bot.is_valid.create_at.app_error",
+    "translation": "Virheellinen creator-ID"
+  },
+  {
+    "id": "model.authorize.is_valid.user_id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.authorize.is_valid.state.app_error",
+    "translation": "Virheellinen state"
+  },
+  {
+    "id": "model.authorize.is_valid.scope.app_error",
+    "translation": "Virheellinen scope"
+  },
+  {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Virheellinen vastaustyyppi"
+  },
+  {
+    "id": "model.authorize.is_valid.redirect_uri.app_error",
+    "translation": "Virheellinen uudelleenohjaus-URI"
+  },
+  {
+    "id": "model.authorize.is_valid.expires.app_error",
+    "translation": "Expires in on asetettava"
+  },
+  {
+    "id": "model.authorize.is_valid.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.authorize.is_valid.client_id.app_error",
+    "translation": "Virheellinen asiakas-ID"
+  },
+  {
+    "id": "model.authorize.is_valid.auth_code.app_error",
+    "translation": "Virheellinen auktorisointikoodi"
+  },
+  {
+    "id": "model.access.is_valid.user_id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.access.is_valid.refresh_token.app_error",
+    "translation": "Virheellinen päivitys-token"
+  },
+  {
+    "id": "model.access.is_valid.redirect_uri.app_error",
+    "translation": "Virheellinen uudelleenohjaus-URI"
+  },
+  {
+    "id": "model.access.is_valid.client_id.app_error",
+    "translation": "Virheellinen asiakas-ID"
+  },
+  {
+    "id": "model.access.is_valid.access_token.app_error",
+    "translation": "Virheellinen access token"
+  },
+  {
+    "id": "migrations.worker.run_migration.unknown_key",
+    "translation": "Ei voitu suorittaa migraatiotyötä tuntemattomasta migraatioavaimesta johtuen."
+  },
+  {
+    "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
+    "translation": "Migraatio epäonnistui virheellisen editysmisdatan vuoksi."
+  },
+  {
+    "id": "mfa.validate_token.authenticate.app_error",
+    "translation": "Virheellinen MFA token."
+  },
+  {
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "Monivaiheinen tunnistus on kytketty pois tällä palvelimella."
+  },
+  {
+    "id": "mfa.generate_qr_code.create_code.app_error",
+    "translation": "Virhe generoitaessa QR-koodia"
+  },
+  {
+    "id": "mfa.activate.bad_token.app_error",
+    "translation": "Virheellinen MFA token."
+  },
+  {
+    "id": "mattermost.bulletin.subject",
+    "translation": "Mattermost Turvallisuusilmoitus"
+  },
+  {
+    "id": "manaultesting.test_autolink.unable.app_error",
+    "translation": "Ei voitu hakea kanavia"
+  },
+  {
+    "id": "manaultesting.manual_test.parse.app_error",
+    "translation": "Ei voitu parsia URL arvoa"
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Ei voitu asettaa työtä tilaan virhe"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "Ei voitu pyytää työn peruutusta koska työ ei ole peruutettavassa tilassa."
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "Ei voitu allekirjoittaa interaktiivisen dialogin liipaus IDtä."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "Interaktiivisen dialogin liipaisu-ID:n allekirjoituksen vahvistaminen epäonnistui."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Ei voitu dekoodata interaktiivisen dialogin liipaisu-IDn base64 allekirjoitusta."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "Liipaisu-ID:stä puuttuu interaktiivista dialogia varten data."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "Interaktiivisen dialogin liipaisu-ID on vanhentunut. Liipaisu-IDt kestävät enintään {{.Seconds}} sekuntia."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "Ei voitu dekoodata interaktiivisen dialogin liipaisu-IDn base64 allekirjoitusta."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Ei voitu dekoodata interaktiivisen dialogin liipaisu-IDn base64:ää."
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "SAML 2.0 ei ole konfiguroitu tai ei ole tuettu tällä palvelimella."
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "Palveluntarjoajan metadataa rakennettaessa tapahtui virhe."
+  },
+  {
+    "id": "ent.saml.license_disable.app_error",
+    "translation": "Lisenssisi ei tue SAML-autentikointia."
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "Tapahtui virhe tarkistettaessa Identity Providerin vastausta. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "ent.saml.do_login.parse.app_error",
+    "translation": "Tapahtui virhe parsittaessa Identity Providerin vastausta. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "ent.saml.do_login.empty_response.app_error",
+    "translation": "Vastaanotettuun tyhjä vastaus Identity Providerilta"
+  },
+  {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "SAML kirjautuminen epäonnistui koska tapahtui virhe purettaessa Identity Providerin vastausta. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "ent.saml.configure.not_encrypted_response.app_error",
+    "translation": "SAML kirjautuminen epäonnistui koska Identity Provider vastausta ei ollut salattu. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "ent.saml.configure.load_private_key.app_error",
+    "translation": "SAML kirjautuminen epäonnistui koska Service Provider Private Key ei löydetty. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "Identity Provider Public Certificate tiedostoa ei löydetty. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "ent.saml.configure.encryption_not_enabled.app_error",
+    "translation": "SAML kirjautuminen epäonnistui koska salaus ei ole käytössä. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "Tapahtui virhe enkoodattaessa pyyntöä Identity Provideriin. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "ent.saml.build_request.app_error",
+    "translation": "Tapahtui virhe aloitettaessa kutsua Identity Provideriin. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "SAML-kirjautuminen epäonnistui koska yksi attribuuteista oli virheellinen. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "Käyttäjätunnus on jo toisen Mattermost-käyttäjän käytössä."
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "Käyttäjää ei löydetty users-tiedostosta."
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "Sähköposti on jo toisella SAML-käyttäjällä."
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "Ei löydetty käyttäjää AD/LDAP palvelusta: "
+  },
+  {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "Ei voitu migroida AD/LDAP käyttäjiä määritetyllä kentällä. Duplikaattisyöte havaittu. Poista kaikki duplikaatit ja yritä uudestaan."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
+    "translation": "Ei voitu avata väliaikaista vientitiedostoa"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
+    "translation": "Ei voitu hakea sähköpostia väliaikaistiedostosta"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
+    "translation": "Ei voitu hakea tietoa väliaikaisesta vientitiedostosta"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
+    "translation": "Ei voitu asettaa sähköpostin Vastaanottaja-osoitetta."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
+    "translation": "Ei voitu lukea sähköpostitietoa."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
+    "translation": "Ei voitu kirjoittaa sähköpostin viestiä."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
+    "translation": "Ei voitu asettaa sähköpostin viestiä."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
+    "translation": "Ei voitu asettaa sähköpostin Lähettäjä-osoitetta."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
+    "translation": "Ei voitu lähettää sähköpostia Global Relaylle."
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "Ei voitu generoida eml tiedostodataa."
+  },
+  {
+    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
+    "translation": "Ei voitu luoda eml tiedostoa."
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "Ei voitu sulkea zip-tiedostoa."
+  },
+  {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "Ei voitu liittää liitettä Global Relay vientiin."
+  },
+  {
+    "id": "ent.ldap_groups.reachable_groups_error",
+    "translation": "virhe haettaessa ryhmiä käyttäjälle"
+  },
+  {
+    "id": "ent.ldap_groups.no_rows",
+    "translation": "ei löydetty ryhmiä joilla uid"
+  },
+  {
+    "id": "ent.ldap_groups.members_of_group_error",
+    "translation": "virhe haettaessa ryhmän jäseniä"
+  },
+  {
+    "id": "ent.ldap_groups.groups_search_error",
+    "translation": "virhe haettaessa ldap-ryhmiä"
+  },
+  {
+    "id": "ent.ldap_groups.group_search_error",
+    "translation": "virhe haettaessa ldap-ryhmää"
+  },
+  {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Virheellinen AD/LDAP suodatin"
+  },
+  {
+    "id": "ent.ldap.validate_filter.app_error",
+    "translation": "Virheellinen AD/LDAP suodatin"
+  },
+  {
+    "id": "ent.ldap.validate_admin_filter.app_error",
+    "translation": "Virheellinen AD/LDAP suodatin"
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure.app_error",
+    "translation": "Ei voitu etsiä käyttäjiä AD/LDAPista. Tarkista että Mattermost palvelu voi yhdistää AD/LDAP palveluun ja yritä uudestaan."
+  },
+  {
+    "id": "ent.ldap.syncronize.populate_syncables",
+    "translation": "virhe populoitaessa synkronoitavia"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "translation": "virhe haettaessa ryhmiä"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all.app_error",
+    "translation": "Ei voitu hakea kaikkia käyttäjiä AD/LDAP:ia käyttäen"
+  },
+  {
+    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
+    "translation": "virhe poistettaessa tiimiä tai kanavan jäsenyyksiä"
+  },
+  {
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "translation": "Käyttäjä ei ole rekisteröity AD/LDAP palveluun"
+  },
+  {
+    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "translation": "AD/LDAP tililläsi ei ole lupaa käyttää tätä Mattermost palvelua. Pyydä järjestelmänvalvojaa tarkistamaan AD/LDAP käyttäjäsuodatuksen."
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "translation": "Ei voitu yhdistää AD/LDAP palveluun"
+  },
+  {
+    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "translation": "Ei voitu etsiä AD/LDAP palvelusta"
+  },
+  {
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "translation": "Annettu käyttäjätunnus vastaa useita käyttäjiä"
+  },
+  {
+    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "translation": "Nykyinen lisenssi ei tue AD/LDAP toiminnallisuutta. Kysy järjestelmänvalvojalta enterprise-lisenssiin vaihtamisesta."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "translation": "Virheellinen salasana"
+  },
+  {
+    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "translation": "Ei voitu bindata AD/LDAP palveluun. Tarkista BindUsername ja BindPassword."
+  },
+  {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "AD/LDAP kytketty pois tai lisenssi ei tue sitä."
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "Ei voitu luoda LDAP käyttäjää."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "Tiimin nimi puuttuu käyttäjän tiimijäsenyydestä."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "Virheelliset roolit käyttäjän tiimijäsenyydessä."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_missing.error",
+    "translation": "Puuttuva edellytetty käyttäjän ominaisuus: käyttäjätunnus."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_invalid.error",
+    "translation": "Käyttäjätunnus on virheellinen."
+  },
+  {
+    "id": "app.import.validate_user_import_data.roles_invalid.error",
+    "translation": "Käyttäjän roolit ovat virheelliset."
+  },
+  {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "Virheellinen profiilikuva."
+  },
+  {
+    "id": "app.import.validate_user_import_data.position_length.error",
+    "translation": "Käyttäjän Position on liian pitkä."
+  },
+  {
+    "id": "app.import.validate_user_import_data.password_length.error",
+    "translation": "Käyttäjän salasanan pituus on virheellinen."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
+    "translation": "Virheellinen Mobile Push Status Notify Prop käyttäjälle."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
+    "translation": "Virheellinen Mobile Notify Prop arvo käyttäjälle."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
+    "translation": "Virheellinen Email Notify Prop arvo käyttäjälle."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
+    "translation": "Virheellinen Desktop Sound Notify Prop arvo käyttäjälle."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
+    "translation": "Virheellinen Desktop Notify Prop arvo käyttäjälle."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
+    "translation": "Virheellinen Comments Prop arvo käyttäjälle."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
+    "translation": "Virheellinen Channel Trigger Notify Prop käyttäjälle."
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "Käyttäjän kutsumanimi on liian pitkä."
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "Käyttäjän Sukunimi on liian pitkä."
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "Käyttäjän Etunimi on liian pitkä."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "Puuttuva edellytetty käyttäjän ominaisuus: sähköposti."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "Käyttäjän sähköpostin pituus on virheellinen."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_length.error",
+    "translation": "Käyttäjän AuthData on liian pitkä."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "Käyttäjän AuthData ja Password ovat toisensa pois sulkevia."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "Virheelliset roolit käyttäjän kanavajäsenyydessä."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
+    "translation": "Virheellinen Mobile NotifyProps käyttäjän kanavajäsenyydessä."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "Virheellinen MarkUnread NotifyProps käyttäjän kanavajäsenyydessä."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Virheellinen Desktop NotifyProps käyttäjän kanavajäsenyydessä."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "Kanavan nimi puuttuu käyttäjän kanavajäsenyydestä."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "Puuttuva vaadittu tiimin ominaisuus: type."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "Tiimin tyyppi on viallinen."
+  },
+  {
+    "id": "app.import.validate_team_import_data.scheme_invalid.error",
+    "translation": "Virheellinen järjestelyn nimi tiimille."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "Tiimin nimessä ei saa olla varattuja sanoja."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "Puuttuva vaadittu tiimin ominaisuus: name."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "Tiimin nimi on liian pitkä."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "Tiimin nimessä on kiellettyjä merkkejä."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "Puuttuva vaadittu tiimin ominaisuus: display_name."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "Tiimin display_name ei ole sallittujen pituusrajojen mukainen."
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "Tiimin kuvaus on liian pitkä."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
+    "translation": "Väärän roolit annettu järjestelylle jolla on tämä skooppi."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
+    "translation": "Tuntematon järjestelyn skooppi."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.null_scope.error",
+    "translation": "Järjestelyn skooppi vaaditaan."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.name_invalid.error",
+    "translation": "Virheellinen järjestelyn nimi."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
+    "translation": "Viallinen järjestelyn näyttönimi."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.description_invalid.error",
+    "translation": "Viallinen järjestelykuvaus."
+  },
+  {
+    "id": "app.import.validate_role_import_data.name_invalid.error",
+    "translation": "Virheellinen roolinimi."
+  },
+  {
+    "id": "app.import.validate_role_import_data.invalid_permission.error",
+    "translation": "Roolilla viallinen oikeus."
+  },
+  {
+    "id": "app.import.validate_role_import_data.display_name_invalid.error",
+    "translation": "Viallinen roolin näyttönimi."
+  },
+  {
+    "id": "app.import.validate_role_import_data.description_invalid.error",
+    "translation": "Viallinen roolin kuvaus."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
+    "translation": "Puuttuva vaadittu vastauksen ominaisuus: User."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "Puuttuva vaadittu vastauksen ominaisuus: Message."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "Vastauksenn Message arvo on sallittua pidempi."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "Vastauksen CreateAt arvo ei saa olla nolla."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "Puuttuva vaadittu vastauksen ominaisuus: create_at."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "Puuttuva vaadittu reaktion ominaisuus: User."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "Puuttuva vaadittu reaktion ominaisuus: EmojiName."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "Reaktion EmojiName arvo sallittua pidempi."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "Reaktion CreateAt arvo ei saa olla nolla."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "Puuttuva vaadittu reaktion ominaisuus: create_at."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "Reaktion CreateAt arvon oltava suurempi kuin emoviestin CreateAt."
+  },
+  {
+    "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "Puuttuva edellytetty käyttäjän ominaisuus: User."
+  },
+  {
+    "id": "app.import.validate_post_import_data.team_missing.error",
+    "translation": "Puuttuva vaadittu viestin ominaisuus: Team."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_missing.error",
+    "translation": "Puuttuva vaadittu viestin ominaisuus: Message."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_length.error",
+    "translation": "Viestin Message arvo on sallittua pidempi."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_zero.error",
+    "translation": "Viestin CreateAt arvo ei saa olla nolla."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_missing.error",
+    "translation": "Puuttuva vaadittu viestin ominaisuus: create_at."
+  },
+  {
+    "id": "app.import.validate_post_import_data.channel_missing.error",
+    "translation": "Puuttuva vaadittu viestin ominaisuus: Channel."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "Tuotu emojin nimikenttä puuttuu tai on tyhjä."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "Tuotu emojin kuvakenttä puuttuu tai on tyhjä."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "Tuotu emoji-data on tyhjä."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.user_missing.error",
+    "translation": "Puuttuva vaadittu yksityisviestin ominaisuus: user"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Suoraviestin voi liputtaa vain kanavan jäsen. \"{{.Username}}\" ei ole jäsen."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_missing.error",
+    "translation": "Puuttuva vaadittu yksityisviestin ominaisuus: message"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "Viesti on liian pitkä"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
+    "translation": "CreateAt arvon oltava suurempi kuin 0"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
+    "translation": "Puuttuva vaadittu yksityisviestin ominaisuus: create_at"
+  },
+  {
+    "id": "app.channel.update.bad_id",
+    "translation": "Ei voitu päivittää kanavaa"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
+    "translation": "Yritettiin luoda ei-suorakanava SaveDirectChannel komennolla"
+  },
+  {
+    "id": "store.sql_channel.save_channel.limit.app_error",
+    "translation": "Olet saavuttanut kanavien lukumäärärajan."
+  },
+  {
+    "id": "store.sql_channel.save_channel.exists.app_error",
+    "translation": "Tiimillä on jo samanniminen kanava"
+  },
+  {
+    "id": "store.sql_channel.save_channel.existing.app_error",
+    "translation": "Kutsuttava päivitystä olemassaolevalle kanavalle"
+  },
+  {
+    "id": "store.sql_channel.save.direct_channel.app_error",
+    "translation": "Käytä SaveDirectChannel luodaksesi suorakanavan"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "Et voi muokata arkistoitua kanavaa"
+  },
+  {
+    "id": "store.sql_bot.get.missing.app_error",
+    "translation": "Bottia ei ole olemassa"
+  },
+  {
+    "id": "app.audit.save.saving.app_error",
+    "translation": "Kohdattiin virhe tallennettaessa auditia"
+  },
+  {
+    "id": "app.audit.permanent_delete_by_user.app_error",
+    "translation": "Kohdattiin virhe poistettaessa auditeja"
+  },
+  {
+    "id": "app.audit.get.finding.app_error",
+    "translation": "Kohdattiin virhe etsiessä auditeja"
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Puuttuva vastaanottajan osoite."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Puuttuva sähköpostin otsikko."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Puuttuva HTML runko."
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "Ei voitu hakea julkista linkkiä tiedostolle. Tiedoston on oltava liitteenä viestissä joka voidaan lukea."
+  },
+  {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "Julkiset linkit on poistettu käytöstä"
+  },
+  {
+    "id": "plugin_api.bot_cant_create_bot",
+    "translation": "Bottikäyttäjä ei voi luoda toista bottikäyttäjää."
+  },
+  {
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "Ei voitu asettaa käyttäjän tilaa. Tuntematon käyttäjän tila."
+  },
+  {
+    "id": "oauth.gitlab.tos.error",
+    "translation": "GitLabin palveluehdot ovat muuttuneet. Mene osoitteeseen gitlab.com ja hyväksy ne, ja yritä sitten kirjautua Mattermostiin uudestaan."
+  },
+  {
+    "id": "model.websocket_client.connect_fail.app_error",
+    "translation": "Ei voitu yhdistää WebSocket-palveluun."
+  },
+  {
+    "id": "model.utils.decode_json.app_error",
+    "translation": "ei voitu dekoodata"
+  },
+  {
+    "id": "model.user_access_token.is_valid.user_id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.user_access_token.is_valid.token.app_error",
+    "translation": "Virheellinen access token"
+  },
+  {
+    "id": "model.user_access_token.is_valid.id.app_error",
+    "translation": "Virheellinen id arvo."
+  },
+  {
+    "id": "model.user_access_token.is_valid.description.app_error",
+    "translation": "Virheellinen kuvaus, oltava enintään 255 merkkiä"
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Käyttäjänimen on alettava kirjaimella, pituuden oltava 3-22 merkkiä jotka voivat olla numeroita, pieniä kirjaimia ja symboleita \".\", \"-\", ja \"_\"."
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "Update at on oltava aika"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi iso kirjain ja yksi symboli (eli \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi iso kirjain, yksi numero, ja yksi symboli (eli \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi iso kirjain ja numero."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi iso kirjain."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi symboli (eli \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi numero ja yksi symboli (eli \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi numero."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi pieni kirjain, yksi iso kirjain, ja yksi symboli (eli \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi pieni kirjain, yksi iso kirjain, yksi numero, ja yksi symboli (eli \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi pieni kirjain, yksi iso kirjain, ja yksi numero."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi pieni kirjain ja iso kirjain."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi pieni kirjain ja yksi symboli (eli \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi pieni kirjain, yksi numero, ja yksi symboli (eli \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä jossa ainakin yksi pieni kirjain ja yksi numero."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi on pieni kirjain."
+  },
+  {
+    "id": "model.user.is_valid.pwd.app_error",
+    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä."
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "Virheelliset tiedostonimet"
+  },
+  {
+    "id": "model.user.is_valid.locale.app_error",
+    "translation": "Virheelliset tiedostonimet"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Virheelliset tiedostonimet"
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Virheelliset tiedostonimet"
+  },
+  {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Virheellinen sähköposti"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "Virheellinen token."
+  },
+  {
+    "id": "model.token.is_valid.expiry",
+    "translation": "Virheellinen tokenin vanheneminen"
+  },
+  {
+    "id": "model.team_member.is_valid.user_id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.team_member.is_valid.team_id.app_error",
+    "translation": "Virheellinen tiimin ID"
+  },
+  {
+    "id": "model.team.is_valid.url.app_error",
+    "translation": "Virhellinen URLin tunnistaja"
+  },
+  {
+    "id": "model.team.is_valid.update_at.app_error",
+    "translation": "Update at on oltava aika"
+  },
+  {
+    "id": "model.team.is_valid.type.app_error",
+    "translation": "Virheellinen type"
+  },
+  {
+    "id": "model.team.is_valid.reserved.app_error",
+    "translation": "URL ei ole käytettävissä. Yritä toista."
+  },
+  {
+    "id": "model.team.is_valid.name.app_error",
+    "translation": "Virheellinen name"
+  },
+  {
+    "id": "model.team.is_valid.invite_id.app_error",
+    "translation": "Virheellinen kutsun tunniste"
+  },
+  {
+    "id": "model.team.is_valid.id.app_error",
+    "translation": "Virheellinen ID"
+  },
+  {
+    "id": "model.team.is_valid.email.app_error",
+    "translation": "Virheellinen sähköposti"
+  },
+  {
+    "id": "model.team.is_valid.domains.app_error",
+    "translation": "Virheellinen sallitut domainit"
+  },
+  {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "Viallinen kuvaus"
+  },
+  {
+    "id": "model.team.is_valid.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.team.is_valid.company.app_error",
+    "translation": "Virheellinen yrityksen nimi"
+  },
+  {
+    "id": "model.team.is_valid.characters.app_error",
+    "translation": "Nimen on oltava vähintään 2 pientä kirjainta tai numeroa"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "Virheellinen viestin id"
+  },
+  {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "Virheellinen emojin nimi"
+  },
+  {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.preference.is_valid.value.app_error",
+    "translation": "Arvo liian pitkä"
+  },
+  {
+    "id": "model.preference.is_valid.theme.app_error",
+    "translation": "Virheellinen theme"
+  },
+  {
+    "id": "model.preference.is_valid.name.app_error",
+    "translation": "Virheellinen name"
+  },
+  {
+    "id": "model.preference.is_valid.id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.preference.is_valid.category.app_error",
+    "translation": "Virheellinen kategoria"
+  },
+  {
+    "id": "model.post.is_valid.user_id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.post.is_valid.update_at.app_error",
+    "translation": "Update at on oltava aika"
+  },
+  {
+    "id": "model.post.is_valid.type.app_error",
+    "translation": "Virheellinen type"
+  },
+  {
+    "id": "model.post.is_valid.root_id.app_error",
+    "translation": "Virheellinen juuren ID"
+  },
+  {
+    "id": "model.post.is_valid.props.app_error",
+    "translation": "Virheellinen props"
+  },
+  {
+    "id": "model.post.is_valid.original_id.app_error",
+    "translation": "Virheellinen alkuperäinen ID"
+  },
+  {
+    "id": "model.post.is_valid.msg.app_error",
+    "translation": "Virheellinen viesti"
+  },
+  {
+    "id": "model.post.is_valid.id.app_error",
+    "translation": "Virheellinen ID"
+  },
+  {
+    "id": "model.post.is_valid.hashtags.app_error",
+    "translation": "Virheelliset hashtagit"
+  },
+  {
+    "id": "model.post.is_valid.filenames.app_error",
+    "translation": "Virheelliset tiedostonimet"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "Virheelliset tiedosto-IDt. Huomioi että tiedostolataukset on rajoittu max 5 kpl. Käytä useampia postauksia lisätiedostoja varten."
+  },
+  {
+    "id": "model.post.is_valid.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.post.is_valid.channel_id.app_error",
+    "translation": "Virheellinen kanavan id"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "Virheellinen lisäosan ID, oltava enemmän kuin {{.Min}} ja enintään {{.Max}} merkkiä pitkä."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Virheellinen avain, oltava enemmän kuin {{.Min}} ja enintään {{.Max}} merkkiä pitkä."
+  },
+  {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "Virhe tapahtui suoritettaessa komentoa."
+  },
+  {
+    "id": "model.outgoing_hook.username.app_error",
+    "translation": "Virheellinen käyttäjänimi."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.words.app_error",
+    "translation": "Virheelliset laukaisusanat"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.user_id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.url.app_error",
+    "translation": "Viallinen callback URL. Kunkin oltava kunnollinen URL ja alettava http:// tai https://"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.update_at.app_error",
+    "translation": "Update at on oltava aika"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
+    "translation": "Virheelliset laukaisusanat"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.token.app_error",
+    "translation": "Virheellinen token."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.team_id.app_error",
+    "translation": "Virheellinen tiimin ID"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.id.app_error",
+    "translation": "Virheellinen ID"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.display_name.app_error",
+    "translation": "Virheellinen otsikko"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.description.app_error",
+    "translation": "Viallinen kuvaus"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.content_type.app_error",
+    "translation": "Virheellinen content_type arvo"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.channel_id.app_error",
+    "translation": "Virheellinen kanavan id"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.callback.app_error",
+    "translation": "Virheelliset callback URLit"
+  },
+  {
+    "id": "model.outgoing_hook.icon_url.app_error",
+    "translation": "Virheellinen ikoni"
+  },
+  {
+    "id": "model.oauth.is_valid.update_at.app_error",
+    "translation": "Update at on oltava aika"
+  },
+  {
+    "id": "model.oauth.is_valid.name.app_error",
+    "translation": "Virheellinen name"
+  },
+  {
+    "id": "model.oauth.is_valid.icon_url.app_error",
+    "translation": "Ikonin URLin oltava kunnollinen URL ja alettava http:// tai https://."
+  },
+  {
+    "id": "model.oauth.is_valid.homepage.app_error",
+    "translation": "Kotisivun oltava kunnollinen URL ja alettava http:// tai https://."
+  },
+  {
+    "id": "model.oauth.is_valid.description.app_error",
+    "translation": "Viallinen kuvaus"
+  },
+  {
+    "id": "model.oauth.is_valid.creator_id.app_error",
+    "translation": "Virheellinen creator-ID"
+  },
+  {
+    "id": "model.oauth.is_valid.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.oauth.is_valid.client_secret.app_error",
+    "translation": "Virheellinen asiakassalaisuus"
+  },
+  {
+    "id": "model.oauth.is_valid.callback.app_error",
+    "translation": "Callback URLin oltava kunnollinen URL ja alettava http:// tai https://."
+  },
+  {
+    "id": "model.oauth.is_valid.app_id.app_error",
+    "translation": "Virhellinen apin id"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url.app_error",
+    "translation": "Linkin metadatan URL asetettava"
+  },
+  {
+    "id": "model.link_metadata.is_valid.type.app_error",
+    "translation": "Virhellinen linkin metadatan tyyppi"
+  },
+  {
+    "id": "model.link_metadata.is_valid.timestamp.app_error",
+    "translation": "Linkin metadatan aika oltava ei-nolla ja pyöristetty lähimpään tuntiin"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data_type.app_error",
+    "translation": "Linkin metadatan data ei täsmää annettuun tyyppiin"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data.app_error",
+    "translation": "Linkin metadatan data ei voi olla puuttuva"
+  },
+  {
+    "id": "model.license_record.is_valid.id.app_error",
+    "translation": "Virheellinen id arvo ladattaessa lisenssiä."
+  },
+  {
+    "id": "model.license_record.is_valid.create_at.app_error",
+    "translation": "Virheellinen create_at arvo lisenssiä ladattaessa."
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Virheellinen job type"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "Virheellinen työtila"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "Virheellinen job id"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "Virheellinen käyttäjänimi."
+  },
+  {
+    "id": "model.incoming_hook.user_id.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "model.incoming_hook.update_at.app_error",
+    "translation": "Update at on oltava aika"
+  },
+  {
+    "id": "model.incoming_hook.team_id.app_error",
+    "translation": "Virheellinen tiimin ID"
+  },
+  {
+    "id": "model.incoming_hook.parse_data.app_error",
+    "translation": "Ei voitu lukea sisääntulevaa dataa"
+  },
+  {
+    "id": "model.incoming_hook.id.app_error",
+    "translation": "Virheellinen ID"
+  },
+  {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "Virheellinen viestin ikoni"
+  },
+  {
+    "id": "model.incoming_hook.display_name.app_error",
+    "translation": "Virheellinen otsikko"
+  },
+  {
+    "id": "model.incoming_hook.description.app_error",
+    "translation": "Viallinen kuvaus"
+  },
+  {
+    "id": "model.incoming_hook.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.incoming_hook.channel_id.app_error",
+    "translation": "Virheellinen kanavan id"
+  },
+  {
+    "id": "model.guest.is_valid.emails.app_error",
+    "translation": "Virheellinen sähköposti"
+  },
+  {
+    "id": "model.guest.is_valid.email.app_error",
+    "translation": "Virheellinen sähköposti"
+  },
+  {
+    "id": "model.guest.is_valid.channels.app_error",
+    "translation": "Virheellinen kanavan id"
+  },
+  {
+    "id": "model.guest.is_valid.channel.app_error",
+    "translation": "Virheellinen kanavan id"
+  },
+  {
+    "id": "model.group_syncable.syncable_id.app_error",
+    "translation": "virheellinen synkronoitava id ryhmän synkronoitavalla"
+  },
+  {
+    "id": "model.group_syncable.group_id.app_error",
+    "translation": "virheellinen ryhmä-id ryhmän synkronoitavalla"
+  },
+  {
+    "id": "model.group_member.user_id.app_error",
+    "translation": "virheellinen käyttäjä-id ryhmän jäsenellä"
+  },
+  {
+    "id": "model.group_member.group_id.app_error",
+    "translation": "virheellinen ryhmä-id ryhmän jäsenellä"
+  },
+  {
+    "id": "model.group.update_at.app_error",
+    "translation": "virheellinen päivitys ryhmällä"
+  },
+  {
+    "id": "model.group.source.app_error",
+    "translation": "virheellinen lähde ryhmällä"
+  },
+  {
+    "id": "model.group.remote_id.app_error",
+    "translation": "virheellinen remote id ryhmällä"
+  },
+  {
+    "id": "model.group.name.app_error",
+    "translation": "virheellinen nimi ryhmällä"
+  },
+  {
+    "id": "model.group.display_name.app_error",
+    "translation": "virheellinen näyttönimi ryhmällä"
+  },
+  {
+    "id": "model.group.description.app_error",
+    "translation": "virheellinen description arvo ryhmällä"
+  },
+  {
+    "id": "model.group.create_at.app_error",
+    "translation": "virheellinen create at arvo ryhmällä"
+  },
+  {
+    "id": "model.file_info.is_valid.user_id.app_error",
+    "translation": "Virheellinen user_id arvo."
+  },
+  {
+    "id": "model.file_info.is_valid.update_at.app_error",
+    "translation": "Virheellinen update_at arvo."
+  },
+  {
+    "id": "model.file_info.is_valid.post_id.app_error",
+    "translation": "Virheellinen post_id arvo."
+  },
+  {
+    "id": "model.file_info.is_valid.path.app_error",
+    "translation": "Virheellinen path arvo."
+  },
+  {
+    "id": "model.file_info.is_valid.id.app_error",
+    "translation": "Virheellinen id arvo."
+  },
+  {
+    "id": "model.file_info.is_valid.create_at.app_error",
+    "translation": "Virheellinen create_at arvo."
+  },
+  {
+    "id": "model.file_info.get.gif.app_error",
+    "translation": "Ei voitu dekoodata giffiä."
+  },
+  {
+    "id": "model.emoji.user_id.app_error",
+    "translation": "Virheellinen creator-ID"
+  },
+  {
+    "id": "model.emoji.update_at.app_error",
+    "translation": "Update at on oltava aika"
+  },
+  {
+    "id": "model.emoji.name.app_error",
+    "translation": "Nimen oltava 1-64 pientä kirjainta tai numeroa"
+  },
+  {
+    "id": "model.emoji.id.app_error",
+    "translation": "Virheellinen emojin id"
+  },
+  {
+    "id": "model.emoji.create_at.app_error",
+    "translation": "Create at arvon oltava validi aika"
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "Virheellinen kirjoitusaikakatkaisun arvo."
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "Websocket URLin oltava kunnollinen URL ja alettava ws:// tai wss://"
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Web-palvelun yhteysturvalla virheellinen arvo."
+  },
+  {
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "Virheellinen arvo TLS ylikirjoitus cipherille - Lue dokumentaatiosta sallitut arvot"
+  },
+  {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "Käyttäjän kirjoittamispäivitysten väli pitäisi olla vähintään 1000 millisekuntia."
+  },
+  {
+    "id": "model.config.is_valid.teammate_name_display.app_error",
+    "translation": "Virheellinen tiimikaverin näyttö. Oltava 'full_name', 'nickname_full_name' tai 'username'"
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Virheellinen kyselyn aikakatkaisu SQL-asetuksissa. Oltava positiivinen numero."
+  },
+  {
+    "id": "model.config.is_valid.sql_max_conn.app_error",
+    "translation": "Virheellinen maksimi avoin yhteys SQL-asetuksissa. Oltava positiivinen numero."
+  },
+  {
+    "id": "model.config.is_valid.sql_idle.app_error",
+    "translation": "Virhellinen maksimi-jouto-yhteys SQL-asetuksissa. Oltava positiivinen numero."
+  },
+  {
+    "id": "model.config.is_valid.sql_driver.app_error",
+    "translation": "Virheellinen ajurinimi SQL-asetuksille. On oltava 'mysql' tai 'postgres'"
+  },
+  {
+    "id": "model.config.is_valid.sql_data_src.app_error",
+    "translation": "Virheellinen datalähde SQL-asetuksissa. Oltava asetettu."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
+    "translation": "Virheellinen yhteyden maksimi-ikä SQL-asetuksissa. Oltava ei-negatiivinen numero."
+  },
+  {
+    "id": "model.config.is_valid.sitename_length.app_error",
+    "translation": "Sivuston nimen oltava enintään {{.MaxLength}} merkkiä."
+  },
+  {
+    "id": "model.config.is_valid.site_url_email_batching.app_error",
+    "translation": "Yhdistelyä ei voida ottaa käyttöön koska SiteURL ei ole asetettu."
+  },
+  {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "Sivuston URLin oltava kunnollinen URL ja alettava http:// tai https://"
+  },
+  {
+    "id": "model.config.is_valid.saml_username_attribute.app_error",
+    "translation": "Virheellinen Käyttäjätunnus attribuutti. Oltava asetettu."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
+    "translation": "Suoraviestikanavan jäsenlistassa liikaa kohtia"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
+    "translation": "Suoraviestikanavan jäsenlistassa ei tarpeeksi kohtia"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
+    "translation": "Puuttuva vaadittu suoraviestin ominaisuus: channel_members"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Suorakanavan voi asettaa suosikiksi vain jäsen. \"{{.Username}}\" ei ole jäsen."
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
+    "translation": "Suorakanavan jäsenlistassa liikaa kohtia"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
+    "translation": "Suorakanavan jäsenlistassa ei tarpeeksi kohtia"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_required.error",
+    "translation": "Puuttuva vaadittu suorakanavan ominaisuus: members"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.header_length.error",
+    "translation": "Suorakanavan otsikko on liian pitkä"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "Puuttuva vaadittu kanavan ominaisuus: type."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "Kanavan tyyppi virheellinen."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "Puuttuva vaadittu kanavan ominaisuus: team"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.scheme_invalid.error",
+    "translation": "Virheellinen järjestelyn nimi kanavalle."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "Kanavan tarkoitus on liian pitkä."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "Puuttuva vaadittu kanavan ominaisuus: name"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "Kanavan nimi on liian pitkä."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "Kanavan nimessä on kiellettyjä merkkejä."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "Kanavan otsikko on liian pitkä."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "Kanavan display_name ei ole sallittujen pituusrajojen mukainen."
+  },
+  {
+    "id": "app.import.process_import_data_file_version_line.invalid_version.error",
+    "translation": "Ei voitu lukea versiota datan tuontitiedostosta."
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "Virhe tuotaessa käyttäjän kanavajäsenyyksiä. Asetuksien tallennus epäonnistui."
+  },
+  {
+    "id": "app.import.import_user.save_preferences.error",
+    "translation": "Virhe tuotaessa käyttäjän asetuksia. Asetuksien tallennus epäonnistui."
+  },
+  {
+    "id": "app.import.import_team.scheme_wrong_scope.error",
+    "translation": "Tiimi on asetettava team-skoopattuun järjestelyyn."
+  },
+  {
+    "id": "app.import.import_team.scheme_deleted.error",
+    "translation": "Tiimiä ei voi asettaa käyttämään poistettua järjestelyä."
+  },
+  {
+    "id": "app.import.import_scheme.scope_change.error",
+    "translation": "Bulkkituoja ei voi muuttaa jo olemassaolevan järjestelyn skooppia."
+  },
+  {
+    "id": "app.import.import_post.user_not_found.error",
+    "translation": "Virhe tuotaessa viestiä. Käyttäjää jolla käyttäjänimi \"{{.Username}}\" ei löydetty."
+  },
+  {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "Virhe tuotaessa viestiä. Asetuksien tallennus epäonnistui."
+  },
+  {
+    "id": "app.import.import_post.channel_not_found.error",
+    "translation": "Virhe tuotaessa viestiä. Kanavaa jolla nimi \"{{.ChannelName}}\" ei löydetty."
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "Tuodussa datarivissä tuntematon tyyppi \"{{.Type}}\"."
+  },
+  {
+    "id": "app.import.import_line.null_user.error",
+    "translation": "Tuodussa datarivissä tyyppinä \"user\" mutta user-objekti on null."
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "Tuodussa datarivissä tyyppinä \"team\" mutta team-objekti on null."
+  },
+  {
+    "id": "app.import.import_line.null_scheme.error",
+    "translation": "Tuodussa datarivissä tyyppinä \"scheme\" mutta scheme-objekti on null."
+  },
+  {
+    "id": "app.import.import_line.null_post.error",
+    "translation": "Tuodussa datarivissä tyyppinä \"post\" mutta post-objekti on null."
+  },
+  {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "Tuodussa datarivissä tyyppinä \"emoji\" mutta emoji-objekti on null."
+  },
+  {
+    "id": "app.import.import_line.null_direct_post.error",
+    "translation": "Tuodussa datarivissä tyyppinä \"direct_post\" mutta direct_post-objekti on null."
+  },
+  {
+    "id": "app.import.import_line.null_direct_channel.error",
+    "translation": "Tuodussa datarivissä tyyppinä \"direct_channel\" mutta direct_channel-objekti on null."
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "Tuodussa datarivissä tyyppinä \"channel\" mutta channel-objekti on null."
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "Ei voitu hakea ryhmäkanavaa"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "Ei voitu hakea suorakanavaa"
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "Ei voitu muuttaa suorakanavan otsikkoa"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Ei voitu luoda ryhmäkanavaa"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Ei voitu luoda suorakanavaa"
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "Virhe tuotaessa kanavaa. Tiimiä nimeltä \"{{.TeamName}}\" ei löydetty."
+  },
+  {
+    "id": "app.import.import_channel.scheme_wrong_scope.error",
+    "translation": "Kanava on asetettava Kanava-skoopatulle järjestelylle."
+  },
+  {
+    "id": "app.import.import_channel.scheme_deleted.error",
+    "translation": "Ei voitu asettaa kanava käyttämään poistettua järjestelyä."
+  },
+  {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "Virhe luettaessa tuotavaa emoji-kuvatiedostoa. Emojin nimi on: \"{{.EmojiName}}\""
+  },
+  {
+    "id": "app.import.bulk_import.unsupported_version.error",
+    "translation": "Datan tuontitiedostossa virheellinen tai puuttuva versio. Tarkista että versio on ensimmäinen objekti tuontitiedostossa ja yritä uudestaan."
+  },
+  {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "Rivin JSON-dekoodaus epäonnistui."
+  },
+  {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "Virhe luettaessa tuotavaa datatiedostoa."
+  },
+  {
+    "id": "app.import.attachment.file_upload.error",
+    "translation": "Virhe ladattaessa tiedostoa: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.bad_file.error",
+    "translation": "Virhe luettaessa tiedostoa: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.export.export_write_line.json_marshall.error",
+    "translation": "Tapahtui virhe muutettaessa vietävää dataa JSON-muotoon."
+  },
+  {
+    "id": "app.export.export_write_line.io_writer.error",
+    "translation": "Tapahtui virhe kirjoitettaessa vientidataa."
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s päivitti kanavan tarkoitukseksi: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s päivitti kanavan kuvauksen %s, uusi kuvaus: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "Käyttäjän hakeminen kanavaotsikon päivittämisen aikana epäonnistui %v"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%s poisti kanavaotsikon (oli: %s)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "Kanavan merkitys-viestin lähettäminen epäonnistui"
+  },
+  {
+    "id": "app.channel.move_channel.members_do_not_match.error",
+    "translation": "Kanavaa ei voi siirtää elleivät kaikki sen jäsenet ole kohdetiimin jäseniä."
+  },
+  {
+    "id": "app.channel.create_direct_channel.internal_error",
+    "translation": "Ei voitu tallentaa kanavaa"
+  },
+  {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "Tiimin ID on määritettävä kanavaa luotaessa"
+  },
+  {
+    "id": "app.channel.create_channel.internal_error",
+    "translation": "Ei voitu tallentaa kanavaa"
+  },
+  {
+    "id": "app.bot.permenent_delete.bad_id",
+    "translation": "Ei voitu poistaa viestiä"
+  },
+  {
+    "id": "app.bot.patchbot.internal_error",
+    "translation": "Ei voida päivittää viestiä"
+  },
+  {
+    "id": "app.bot.getbots.internal_error",
+    "translation": "Ei voitu hakea viestejä"
+  },
+  {
+    "id": "app.bot.getbot.internal_error",
+    "translation": "Ei voitu hakea viestiä"
+  },
+  {
+    "id": "app.bot.createbot.internal_error",
+    "translation": "Ei voitu tallentaa viestiä"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "Yhteys epäonnistui: {{.Error}}"
+  },
+  {
+    "id": "api.websocket_handler.invalid_param.app_error",
+    "translation": "Virheellinen {{.Name}} parametri"
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Uloslähtevät webhookeilla samasta kanavasta ei voi olla samoja laukaisusanoja/callback-URLeja."
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Ei voida päivittää webhookia tiimien välillä"
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "Ei voitu dekoodata sisääntulevan webhookin moniosaista sisältöä."
+  },
+  {
+    "id": "api.webhook.create_outgoing.triggers.app_error",
+    "translation": "Joko trigger_words tai channel_id on asetettava"
+  },
+  {
+    "id": "api.webhook.create_outgoing.permissions.app_error",
+    "translation": "Virheelliset oikeidet luoda uloslähtevä webhook."
+  },
+  {
+    "id": "api.webhook.create_outgoing.not_open.app_error",
+    "translation": "Uloslähteviä webhookeja voi luoda vain julkisille kanaville."
+  },
+  {
+    "id": "api.webhook.create_outgoing.intersect.app_error",
+    "translation": "Uloslähtevät webhookeilla samasta kanavasta ei voi olla samoja laukaisusanoja/callback-URLeja."
+  },
+  {
+    "id": "api.web_socket_router.not_authenticated.app_error",
+    "translation": "WebSocket-yhteys ei ole autentikoitu. Kirjaudu sisään ja yritä uudestaan."
+  },
+  {
+    "id": "api.web_socket_router.no_action.app_error",
+    "translation": "Ei websocket-toimintoa."
+  },
+  {
+    "id": "api.web_socket_router.bad_seq.app_error",
+    "translation": "Virheellinen WebSocket-viestin sekvenssi."
+  },
+  {
+    "id": "api.web_socket_router.bad_action.app_error",
+    "translation": "Tuntematon WebSocket-toiminto."
+  },
+  {
+    "id": "api.web_socket.connect.upgrade.app_error",
+    "translation": "Ei voitu parantaa websocket-yhteyttä"
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "Ei voitu parsia token dataa sähköpostivahvistuksesta"
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "Sähköpostin vahvistuslinkki on vanhentunut."
+  },
+  {
+    "id": "api.user.verify_email.broken_token.app_error",
+    "translation": "Virheellinen sähköpostin vahvistus token tyyppi."
+  },
+  {
+    "id": "api.user.verify_email.bad_link.app_error",
+    "translation": "Virheellinen sähköpostin vahvistuslinkki."
+  },
+  {
+    "id": "api.user.upload_profile_user.upload_profile.app_error",
+    "translation": "Emme pystyneet lataamaan profiilikuvaa"
+  },
+  {
+    "id": "api.user.upload_profile_user.too_large.app_error",
+    "translation": "Profiilikuvan lataaminen epäonnistui. Tiedosto on liian suuri."
+  },
+  {
+    "id": "api.user.upload_profile_user.storage.app_error",
+    "translation": "Kuvan lataaminen epäonnistui. Kuvien tallennuksen asetuksia ei ole tehty."
+  },
+  {
+    "id": "api.user.upload_profile_user.parse.app_error",
+    "translation": "Moniosaista lomaketta ei voitu jäsentää"
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "Kuvatiedostoa ei voitu avata"
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "Ei tiedostoa pyynnön kohdassa 'image'."
+  },
+  {
+    "id": "api.user.upload_profile_user.encode.app_error",
+    "translation": "Ei voitu enkoodata profiilikuvaa"
+  },
+  {
+    "id": "api.user.upload_profile_user.decode.app_error",
+    "translation": "Ei voitu dekoodata profiilikuvaa"
+  },
+  {
+    "id": "api.user.upload_profile_user.array.app_error",
+    "translation": "Tyhjä taulukko pyynnön kohdassa 'image'"
+  },
+  {
+    "id": "api.user.update_user.accepted_guest_domain.app_error",
+    "translation": "Sähköpostiosoitteesi ei kuulu hyväksyttyyn domainiin. Ota yhteyttä järjestelmänvalvojaan tai liity toisella sähköpostiosoitteella."
+  },
+  {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "Sähköpostiosoitteesi ei kuulu hyväksyttyyn domainiin. Ota yhteyttä järjestelmänvalvojaan tai liity toisella sähköpostiosoitteella."
+  },
+  {
+    "id": "api.user.update_password.valid_account.app_error",
+    "translation": "Salasanan muutos epäonnistui koska emme löytäneet voimassaolevaa tiliä"
+  },
+  {
+    "id": "api.user.update_password.oauth.app_error",
+    "translation": "Salasanan muutos epäonnistui koska käyttäjä on kirjautunut OAuth-palvelun kautta"
+  },
+  {
+    "id": "api.user.update_password.menu",
+    "translation": "käyttäen asetusvalikkoa"
+  },
+  {
+    "id": "api.user.update_password.incorrect.app_error",
+    "translation": "Syöttämäsi \"Nykyinen salasana\" ei ole oikein. Tarkista että Caps Lock on pois päältä ja yritä uudestaan."
+  },
+  {
+    "id": "api.user.update_password.failed.app_error",
+    "translation": "Salasanan muutos epäonnistui"
+  },
+  {
+    "id": "api.user.update_password.context.app_error",
+    "translation": "Salasanan muutos epäonnistui koska kontekstin user_id ei ole sama kuin propin user_id"
+  },
+  {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Ei voitu noutaa käyttäjää {{.Service}} käyttäjäobjektista"
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "Sinulla ei ole tarvittavia oikeuksia"
+  },
+  {
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "Et voi deaktivoida itseäsi koska tämä toiminto on kytketty pois. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "api.user.send_verify_email_and_forget.failed.error",
+    "translation": "Ei voitu lähettää vahvistussähköpostiviestiä"
+  },
+  {
+    "id": "api.user.send_sign_in_change_email_and_forget.error",
+    "translation": "Ei voitu lähettää salasanan muutossähköpostia"
+  },
+  {
+    "id": "api.user.send_password_reset.sso.app_error",
+    "translation": "Salasanaa ei voida palauttaa SSO tileille"
+  },
+  {
+    "id": "api.user.send_password_reset.send.app_error",
+    "translation": "Ei voitus lähettää salasanan palautussähköpostia"
+  },
+  {
+    "id": "api.user.send_email_change_verify_email_and_forget.error",
+    "translation": "Ei voitu lähettää sähköpostin muutosvahvistusviestiä"
+  },
+  {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "Ei voitu lähettää tilin deaktivointisähköpostiviestiä"
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "SAML 2.0 ei ole konfiguroitu tai ei ole tuettu tällä palvelimella."
+  },
+  {
+    "id": "api.user.reset_password.sso.app_error",
+    "translation": "Salasanaa ei voida palauttaa SSO tileille"
+  },
+  {
+    "id": "api.user.reset_password.method",
+    "translation": "käyttäen salasanan palautuslinkkiä"
+  },
+  {
+    "id": "api.user.reset_password.link_expired.app_error",
+    "translation": "Salasanan palautuslinkki on vanhentunut."
+  },
+  {
+    "id": "api.user.reset_password.invalid_link.app_error",
+    "translation": "Salasanan palautuslinkki ei ole kelvollinen."
+  },
+  {
+    "id": "api.user.reset_password.broken_token.app_error",
+    "translation": "Salasanan palautus-token ei ole kelvollinen."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_available.app_error",
+    "translation": "Autentikointisiirtoa ei määritetty tai ei tarjolla palvelimella."
+  },
+  {
+    "id": "api.user.oauth_to_email.context.app_error",
+    "translation": "Salasanan muutos epäonnistui koska kontekstin user_id ei ole sama kuin annettu käyttäjän id"
+  },
+  {
+    "id": "api.user.login_ldap.not_available.app_error",
+    "translation": "AD/LDAP ei ole saatavilla tällä palvelimella"
+  },
+  {
+    "id": "api.user.login_by_oauth.parse.app_error",
+    "translation": "Ei voitu lukea auth dataa {{.Service}} käyttäjäobjektista"
+  },
+  {
+    "id": "api.templates.reset_body.button",
+    "translation": "Palauta salasana"
+  },
+  {
+    "id": "api.templates.post_body.button",
+    "translation": "Siirry viestiin"
+  },
+  {
+    "id": "api.templates.password_change_subject",
+    "translation": "[{{ .SiteName }}] Salasanasi on päivitetty"
+  },
+  {
+    "id": "api.templates.password_change_body.title",
+    "translation": "Salasanasi on päivitetty"
+  },
+  {
+    "id": "api.templates.password_change_body.info",
+    "translation": "Salasanasi on päivitetty tiimissä {{.TeamDisplayName}} osoitteessa {{ .TeamURL }} toiminnolla {{.Method}}."
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "Kaksivaiheinen tunnistautuminen on poistettu"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "Kaksivaiheinen tunnistautuminen on poistettu tililtäsi osoitteessa {{ .SiteURL }}."
+  },
+  {
+    "id": "api.templates.mfa_change_subject",
+    "translation": "[{{ .SiteName }}] MFA:si on päivitetty"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "Kaksivaiheinen tunnistautuminen on lisätty"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "Kaksivaiheinen tunnistautuminen on lisätty tilillesi osoitteessa {{ .SiteURL }}."
+  },
+  {
+    "id": "api.templates.invite_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} Kutsui sinut liittymään tiimiin {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_guest_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} Kutsui sinut liittymään tiimiin {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_body.title",
+    "translation": "Sinut on kutsuttu"
+  },
+  {
+    "id": "api.templates.invite_body.button",
+    "translation": "Liity tiimiin"
+  },
+  {
+    "id": "api.templates.email_warning",
+    "translation": "Jos et tehnyt tätä muutosta, ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "api.templates.email_organization",
+    "translation": "Lähettänyt "
+  },
+  {
+    "id": "api.templates.email_info3",
+    "translation": "{{.SiteName}} tiimi"
+  },
+  {
+    "id": "api.templates.email_info2",
+    "translation": "Parhain terveisin,"
+  },
+  {
+    "id": "api.templates.email_info1",
+    "translation": "Kysymyksiä, lähetä meille postia: "
+  },
+  {
+    "id": "api.templates.email_footer",
+    "translation": "Muuttaaksesi ilmoitusasetuksiasi, kirjaudu tiimisi sivulle ja mene Tilin asetukset > Ilmoitukset."
+  },
+  {
+    "id": "api.templates.email_change_verify_subject",
+    "translation": "[{{ .SiteName }}] Vahvista uusi sähköpostiosoite"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.title",
+    "translation": "Muutit sähköpostiosoitteesi"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.info",
+    "translation": "Viimeistele sähköpostiosoitteen muutos tiimissä {{.TeamDisplayName}} klikkaamalla alla olevaa linkkiä joka vahvistaa että tämä on oikea osoite."
+  },
+  {
+    "id": "api.templates.email_change_verify_body.button",
+    "translation": "Vahvista sähköposti"
+  },
+  {
+    "id": "api.templates.email_change_subject",
+    "translation": "[{{ .SiteName }}] Sähköpostiosoitteesi on muutettu"
+  },
+  {
+    "id": "api.templates.email_change_body.title",
+    "translation": "Päivitit sähköpostisi"
+  },
+  {
+    "id": "api.templates.email_change_body.info",
+    "translation": "Sähköpostiosoitteesi tiimissä {{.TeamDisplayName}} on muutettu muotoon {{.NewEmail}}."
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{ .SiteName }}] Tilisi osoitteessa {{ .ServerURL }} on kytketty pois käytöstä"
+  },
+  {
+    "id": "api.templates.deactivate_body.warning",
+    "translation": "Jos et suorittanut tätä toimintoa tai haluat aktivoida tilisi, ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "Tilisi on kytketty pois käytöstä osoitteessa {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "Kytkit tilisi pois käytöstä osoitteessa {{ .SiteURL }}."
+  },
+  {
+    "id": "api.team.update_team_scheme.scheme_scope.error",
+    "translation": "Ei voitu asettaa järjestelyä tiimille koska annettu järjestely ei ole tiimijärjestely."
+  },
+  {
+    "id": "api.team.update_team_scheme.license.error",
+    "translation": "Lisenssisi ei tue tiimin järjestelyn muuttamista"
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Tiimin rajoittaminen domainiin {{ .Domain }} ei ole sallittu järjestelmän asetuksissa. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "Käyttäjä ei ole tiimin jäsen."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "Tiimin ikonin muuttamisessa tapahtui virhe"
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "Ei voitu tallentaa tiimin ikonia"
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "Tiimin ikonin lataaminen epäonnistui. Tiedosto on liian suuri."
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "Tiimin ikonin lataaminen epäonnistui. Kuvien tallennuksen asetuksia ei ole tehty."
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "Moniosaista lomaketta ei voitu jäsentää"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Kuvatiedostoa ei voitu avata"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "Ei tiedostoa pyynnön kohdassa 'image'."
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "Tiimiä haettaessa tapahtui virhe"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "Ei voitu enkoodata tiimin ikonia"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Ei voitu lukea tiimin ikonia"
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "Tyhjä taulukko pyynnön kohdassa 'image'"
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v poistettiin tiimistä."
+  },
+  {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "Käyttäjä ei ole osa tätä tiimiä."
+  },
+  {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "Tiimiä haettaessa tapahtui virhe"
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "Tämä kanava on siirretty tähän tiimiin tiimistä %v."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Kanavan siirtoviestin lähettäminen epäonnistui."
+  },
+  {
+    "id": "api.team.leave.left",
+    "translation": "%v poistui tiimistä."
+  },
+  {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v liittyi tiimiin."
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.disabled.app_error",
+    "translation": "Tiimin luonti on kytketty pois. Pyydä järjestelmänvalvojalta lisätietoja."
+  },
+  {
+    "id": "api.team.invite_members.no_one.app_error",
+    "translation": "Ei ketään kutsuttavaa."
+  },
+  {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "Seuraavat sähköpostiosoitteet eivät kuulu hyväksyttyyn domainiin: {{.Addresses}}. Ota yhteyttä järjestelmänvalvojaan lisätietoja varten."
+  },
+  {
+    "id": "api.team.invite_members.disabled.app_error",
+    "translation": "Sähköpostikutsut on kytketty pois."
+  },
+  {
+    "id": "api.team.import_team.unavailable.app_error",
+    "translation": "Virheellinen pyyntö: filesize kenttää ei löydetty."
+  },
+  {
+    "id": "api.team.import_team.parse.app_error",
+    "translation": "Moniosaista lomaketta ei voitu jäsentää"
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "Tiedostoa ei voitu avata"
+  },
+  {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Virheellinen pyyntö: importFrom kenttää ei löydetty."
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "Ei tiedostoa pyynnön kohdassa 'file'"
+  },
+  {
+    "id": "api.team.import_team.integer.app_error",
+    "translation": "Filesize ei ole kokonaisluku"
+  },
+  {
+    "id": "api.team.import_team.array.app_error",
+    "translation": "Tyhjä taulukko pyynnön kohdassa 'file'"
+  },
+  {
+    "id": "api.team.get_team_icon.read_file.app_error",
+    "translation": "Ei voitu lukea tiimin ikonitiedostoa."
+  },
+  {
+    "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
+    "translation": "Virheellinen ajurinimi tiedostoasetuksille.  On oltava 'local' tai 'amazons3'"
+  },
+  {
+    "id": "api.team.get_invite_info.not_open_team",
+    "translation": "Kutsu ei ole voimassa koska tämä ei ole avoin tiimi."
+  },
+  {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "Sinulla ei ole oikeuksia muokata kanavan otsikkoa."
+  },
+  {
+    "id": "api.team.demote_user_to_guest.license.error",
+    "translation": "Lisenssisi ei tue vierailijatilejä"
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Parametri vaaditaan käyttäjän lisäämiseksi tiimiin."
+  },
+  {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v lisättiin kanavalle, lisääjänä %v."
+  },
+  {
+    "id": "api.team.add_members.error",
+    "translation": "Tapahtui virhe jäsen(i)en lisäämisessä."
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "Käyttäjää ei löydetty"
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.app_error",
+    "translation": "Ei voitu avata Slack export zip tiedostoa.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.team_fail",
+    "translation": "Ei voitu hakea tiimia johon tuodaan.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.open.app_error",
+    "translation": "Ei voitu avata tiedostoa: {{.Filename}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.notes",
+    "translation": "\r\nMuistiinpanot:\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- Lisää virheitä voi löytää palvelimen logista.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note2",
+    "translation": "- Slack bot viestejä ei tällä hetkellä tueta.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note1",
+    "translation": "- Joitakin viestejä ei tuotu koska tämä tuontityökalu ei tue niitä.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.log",
+    "translation": "Mattermost Slack tuontilogi\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.unable_import",
+    "translation": "Ei voitu tuoda Slack-käyttäjää: {{.Username}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address",
+    "translation": "Käyttäjällä {{.Username}} ei ole sähköpostiosoitetta Slack-exportissa. Käytetty {{.Email}} sen paikalla. Käyttäjän tulisi päivittää sähköpostiosoitteensa kun hän on kirjautunut järjestelmään.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "Slack-käyttäjä yhdistetty olemassaolevaan Mattermost-käyttäjään jolla sama sähköpostiosoite {{.Email}} ja käyttäjänimi {{.Username}}, mutta ei voitu lisätä käyttäjää tiimiin.\r\n"
+  },
+  {
+    "id": "app.channel.get_deleted.missing.app_error",
+    "translation": "Poistettuja kanavia ei olemassa"
+  },
+  {
+    "id": "app.channel.get_deleted.existing.app_error",
+    "translation": "Ei löydetty olemassaolevaa poistettua kanavaa"
+  },
+  {
+    "id": "app.channel.get_channels.not_found.app_error",
+    "translation": "Kanavia ei löytynyt"
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "Kanavaa ei ole olemassa"
+  },
+  {
+    "id": "store.sql_channel.get.existing.app_error",
+    "translation": "Ei löydetty olemassaolevaa kanavaa"
+  },
+  {
+    "id": "ent.ldap.app_error",
+    "translation": "ldap-rajapinta oli puuttuva"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "Elasticsearch palvelun URL tai käyttäjänimi on muuttunut. Syötä Elasticsearch salasana yhteyden testausta varten."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.license.error",
+    "translation": "Lisenssisi ei tue Elasticsearchia."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "translation": "Elasticsearch on kytketty pois."
+  },
+  {
+    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "translation": "Elasticsearch on jo lopetettu"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "Virhe käynnistettäessä Elasticsearch bulkkiprosessori"
+  },
+  {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "Virhe luotaessa Elasticsearch bulkkiprosessoria"
+  },
+  {
+    "id": "ent.elasticsearch.start.already_started.app_error",
+    "translation": "Elasticsearch on jo käynnistetty"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
+    "translation": "Hakutulosten dekoodaus epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.search_failed",
+    "translation": "Haku ei valmistunut"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "Hakutulosten dekoodaus epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.search_failed",
+    "translation": "Haku ei valmistunut"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "translation": "Hakutulosten mätsäysten parsiminen epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.disabled",
+    "translation": "Elasticsearch-haut poissa käytöstä tällä palvelimella"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "Hakutulosten dekoodaus epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.search_failed",
+    "translation": "Haku ei valmistunut"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.disabled",
+    "translation": "Elasticsearch-haut poissa käytöstä tällä palvelimella"
+  },
+  {
+    "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
+    "translation": "Elasticsearch-indeksin haku epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "Elasticsearch-indeksin poisto epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch ei ole käynnistetty"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch-indeksointityöskentelijä ei voinut parsia aloitusaikaa"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch-indeksointityöskentelijä ei voinut parsia loppuaikaa"
+  },
+  {
+    "id": "ent.elasticsearch.index_user.error",
+    "translation": "Viestin indeksointi epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Viestin indeksointi epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "Kanavaa ei voitu päivittää"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "Elasticsearch-haku ei ole käytössä tällä palvelimella"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
+    "translation": "Viestin poisto epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Viestin poisto epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "Kanavaa ei voitu päivittää"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "translation": "Elasticsearch-indeksin haku epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "translation": "Elasticsearch-indeksin poisto epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "Elasticsearch-asiakkaan asettaminen epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "Elasticsearch-aggregaattorityöskentelijä ei onnistunut koska ideksointityö epäonnistui"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Elasticsearch-aggregaattorityöskentelijä ei onnistunut hakemaan indeksejä"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "Elasticsearch-aggregaattorityöskentelijä ei onnistunut poistamaan indeksejä"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "Elasticsearch-aggregaattorityöskentelijä ei onnistunut luomaan indeksointityötä"
+  },
+  {
+    "id": "ent.data_retention.generic.license.error",
+    "translation": "Lisenssisi ei tue Tiedonsäilytystä."
+  },
+  {
+    "id": "ent.compliance.run_failed.error",
+    "translation": "Compliance-vienti epäonnistui työlle '{{.JobName}}' sijainnissa '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.run_export.template_watcher.appError",
+    "translation": "Ei voitu ladata vientimalleja. Yritä uudestaan."
+  },
+  {
+    "id": "ent.compliance.licence_disable.app_error",
+    "translation": "Compliance-toiminnallisuus on kytketty pois nykyisessä lisenssissä. Kysy järjestelmänvalvojalta Enterprise-lisenssiin vaihtamisesta."
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "Ei voitu uudelleenlukea väliaikaista Global Relay vientitiedostoa."
+  },
+  {
+    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "translation": "Ei voitu avata väliaikaista vientitiedostoa."
+  },
+  {
+    "id": "ent.compliance.global_relay.attachments_removed.appError",
+    "translation": "Ladattu kuva poistettiin Global Relay viennistä koska se oli liian suuri lähetettäväksi."
+  },
+  {
+    "id": "ent.compliance.csv.zip.creation.appError",
+    "translation": "Ei voitu luoda viennin zip-tiedostoa."
+  },
+  {
+    "id": "ent.compliance.csv.warning.appError",
+    "translation": "Ei voitu luoda eml tiedostoa."
+  },
+  {
+    "id": "ent.compliance.csv.post.export.appError",
+    "translation": "Ei voitu viedä viestiä."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+    "translation": "Ei voitu luoda eml tiedostoa."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
+    "translation": "Ei voitu muuttaa metadataa JSON-muotoon."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.export.appError",
+    "translation": "Ei voitu lisätä metadatatiedostoa zip-tiedostoon."
+  },
+  {
+    "id": "ent.compliance.csv.header.export.appError",
+    "translation": "Ei voitu lisätä otsikkoa CSV-vientiin."
+  },
+  {
+    "id": "ent.compliance.csv.file.creation.appError",
+    "translation": "Ei voitu luoda väliaikaista CSV-vientitiedostoa."
+  },
+  {
+    "id": "ent.compliance.csv.attachment.export.appError",
+    "translation": "Ei voitu lisätä liitettä CSV-vientiin."
+  },
+  {
+    "id": "ent.compliance.csv.attachment.copy.appError",
+    "translation": "Ei voitu kopioida liitettä zip-tiedostoon."
+  },
+  {
+    "id": "ent.compliance.bad_export_type.appError",
+    "translation": "Tuntematon vientimuoto {{.ExportType}}"
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "Järjestelmäkonsoli on vain-luku-tilassa kun High Availability on valittu, ellei ReadOnlyConfig ole kytketty pois asetustiedostossa."
+  },
+  {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "Klusterin asetukset ovat muuttuneet noodille id={{ .id }}. Klusteri voi tulla epävarmaksi ja uudelleenkäynnistys vaaditaan. Varmistaaksesi että klusterin asetukset ovat kunnossa sinun kannattaa suorittaa rullaava uudelleenkäynnistys heti."
+  },
+  {
+    "id": "ent.account_migration.get_saml_users_failed",
+    "translation": "SAML-käyttäjiä ei voitu hakea."
+  },
+  {
+    "id": "ent.account_migration.get_all_failed",
+    "translation": "Käyttäjiä ei voitu hakea."
+  },
+  {
+    "id": "brand.save_brand_image.save_image.app_error",
+    "translation": "Ei voitu kirjoittaa kuvatiedostoa tiedostovarastoon. Tarkista yhteys ja yritä uudestaan."
+  },
+  {
+    "id": "brand.save_brand_image.open.app_error",
+    "translation": "Ei voitu ladata omaa brändikuvaa. Tarkista että kuvan koko on alle 2 Mt ja yritä uudestaan."
+  },
+  {
+    "id": "brand.save_brand_image.encode.app_error",
+    "translation": "Ei voitu muuttaa kuvadataa PNG muotoon. Yritä uudestaan."
+  },
+  {
+    "id": "brand.save_brand_image.decode.app_error",
+    "translation": "Ei voitu dekoodata kuvadataa."
+  },
+  {
+    "id": "bleveengine.search_users_in_team.error",
+    "translation": "Haku ei valmistunut"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.uchan.error",
+    "translation": "Haku ei valmistunut"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.nuchan.error",
+    "translation": "Haku ei valmistunut"
+  },
+  {
+    "id": "bleveengine.search_posts.error",
+    "translation": "Haku ei valmistunut"
+  },
+  {
+    "id": "bleveengine.search_channels.error",
+    "translation": "Haku ei valmistunut"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch-indeksointityöskentelijä ei voinut parsia aloitusaikaa"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch-indeksointityöskentelijä ei voinut parsia loppuaikaa"
+  },
+  {
+    "id": "bleveengine.index_user.error",
+    "translation": "Viestin indeksointi epäonnistui"
+  },
+  {
+    "id": "bleveengine.index_post.error",
+    "translation": "Viestin indeksointi epäonnistui"
+  },
+  {
+    "id": "bleveengine.index_channel.error",
+    "translation": "Kanavaa ei voitu päivittää"
+  },
+  {
+    "id": "bleveengine.delete_user.error",
+    "translation": "Viestin poisto epäonnistui"
+  },
+  {
+    "id": "bleveengine.delete_post.error",
+    "translation": "Viestin poisto epäonnistui"
+  },
+  {
+    "id": "bleveengine.delete_channel.error",
+    "translation": "Kanavaa ei voitu päivittää"
+  },
+  {
+    "id": "app.user_access_token.invalid_or_missing",
+    "translation": "Virheellinen tai puuttuva token"
+  },
+  {
+    "id": "app.user_access_token.disabled",
+    "translation": "Henkilökohtaiset access tokenit on kytketty pois tällä palvelimella. Kysy järjestelmänvalvojalta lisätietoja."
+  },
+  {
+    "id": "app.team.rename_team.name_occupied",
+    "translation": "Tiimin nimeä ei voitu vaihtaa, nimi on jo käytössä"
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Tiimin jäsenmäärä on saavuttanut maksimirajan. Ota yhteys järjestelmänvalvojaan rajan korottamiseksi."
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Ei voitu lukea asennuspäiväystä"
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Interaktiivisen dialogin JSON enkoodauksen aikana kohdattiin virhe."
+  },
+  {
+    "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
+    "translation": "Tämä API rajapinta ei ole käytettävissä koska tarvittavia migraatioita ei ole vielä suorittu valmiiksi."
+  },
+  {
+    "id": "app.save_config.app_error",
+    "translation": "Tapahtui virhe tallennettaessa konfiguraatiota"
+  },
+  {
+    "id": "app.role.check_roles_exist.role_not_found",
+    "translation": "Annettua roolia ei ole olemassa"
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Virhe tapahtui kanavalle poistumisen aikana."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Virhe tapahtui kanavalle poistumisen aikana."
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "Lisäosat ja/tai lisäosien tiedostolatauksen on kytketty pois."
+  },
+  {
+    "id": "app.plugin.sync.read_local_folder.app_error",
+    "translation": "Virhe luettaessa paikallista liitännäisten hakemistoa."
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "Ei voitu poistaa lisäosaa"
+  },
+  {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "Lisäosaa ei asennettu"
+  },
+  {
+    "id": "app.plugin.mvdir.app_error",
+    "translation": "Ei voitu siirtää lisäosaa väliaikaishakemistosta kohteeseen. Toinen lisäosa saattaa käyttää samaa hakemistonimeä."
+  },
+  {
+    "id": "app.plugin.marketplace_disabled.app_error",
+    "translation": "Lisäosat on kytketty pois. Tarkista lokista lisätiedot."
+  },
+  {
+    "id": "app.plugin.manifest.app_error",
+    "translation": "Ei löydetty manifestia puretusta lisäosasta"
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "Lisäosan ID:ssä oltava vähintään {{.Min}} merkkiä, enintään {{.Max}} merkkiä, ja täsmättävä {{.Regex}}."
+  },
+  {
+    "id": "app.plugin.install_id_failed_remove.app_error",
+    "translation": "Ei voida asentaa lisäosaa. Lisäosa jolla on sama ID on jo asennettu eikä voitu poistaa."
+  },
+  {
+    "id": "app.plugin.install_id.app_error",
+    "translation": "Ei voida asentaa lisäosaa. Lisäosa jolla on sama ID on jo asennettu."
+  },
+  {
+    "id": "app.plugin.install.app_error",
+    "translation": "Ei voida asentaa lisäosaa."
+  },
+  {
+    "id": "app.plugin.get_statuses.app_error",
+    "translation": "Ei saada lisäosien tilatietoja"
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Ei saada aktiivisa lisäosia"
+  },
+  {
+    "id": "app.plugin.get_cluster_plugin_statuses.app_error",
+    "translation": "Ei saada lisäosien tilatietoja klusterista."
+  },
+  {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "Tiedostojärjestelmän virhe"
+  },
+  {
+    "id": "app.plugin.disabled.app_error",
+    "translation": "Lisäosat on kytketty pois. Tarkista lokista lisätiedot."
+  },
+  {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Tapahtui virhe poistettaessa OAuth2 appia."
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "Ei voida kytkeä lisäosaa pois"
+  },
+  {
+    "id": "app.plugin.config.app_error",
+    "translation": "Virhe tallennettaessa lisäosan tilaa asetuksiin"
+  },
+  {
+    "id": "app.plugin.cluster.save_config.app_error",
+    "translation": "Lisäosan asetukset tiedostossa config.json pitää päivittää käsin kun ReadOnlyConfig klusteroinnin kanssa on käytössä."
+  },
+  {
+    "id": "app.notification.subject.notification.full",
+    "translation": "[{{ .SiteName }}] Ilmoitus tiimissä {{ .TeamName}} päivänä {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "[{{ .SiteName }}] Uusi ryhmäviesti {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "[{{ .SiteName }}] Uusi ryhmäviesti kanavalla {{ .ChannelName}}, {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.direct.full",
+    "translation": "[{{.SiteName}}] Uusi yksityisviesti lähettäjältä {{.SenderDisplayName}} päivänä {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "Slack-käyttäjä on yhdistetty olemassaolevaan Mattermost-käyttäjään jolla sama sähköpostiosoite {{.Email}} ja käyttäjänimi {{.Username}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email_pwd",
+    "translation": "Slack-käyttäjä jolla sähköposti {{.Email}} ja salasana {{.Password}} on tuotu.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.created",
+    "translation": "\r\nLuodut käyttäjät:\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.merge",
+    "translation": "Slack-kanava {{.DisplayName}} on jo olemassa aktiivisena Mattermost-kanavana. Molemmat kanavat on yhdistetty.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.import_failed",
+    "translation": "Ei voitu tuoda Slack-kanavaa {{.DisplayName}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
+    "translation": "Ei voitu lisätä Slack-käyttäjää {{.Username}} kanavalle.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.added",
+    "translation": "\r\nKanavat lisätty:\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "Ei voitu tuoda Integraatio/Slack Bot käyttäjää {{.Username}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Integraatio/Slack Bot käyttäjä jolla sähköpostiosoite {{.Email}} ja salasana {{.Password}} on tuotu.\r\n"
+  },
+  {
+    "id": "api.server.start_server.starting.critical",
+    "translation": "Virhe palvelimen käynnistyksessä, err:%v"
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "Ei voitu alustaa käyttömäärän rajoitusta."
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "Ei voitu alustaa käyttömäärää rajoittavaa muistivarastoa. Tarkista MemoryStoreSize asetus."
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "Ei voitu ohjata porttia 80 porttiin 443 kuunneltaessa porttia %s: poista Forward80To443 käytettäessä proxy-palvelinta"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "Forward80To443 on aktivoitava käytettäessä LetsEncryptiä"
+  },
+  {
+    "id": "api.scheme.patch_scheme.license.error",
+    "translation": "Lisenssisi ei tue oikeusjärjestelyjen muuttamista"
+  },
+  {
+    "id": "api.scheme.get_teams_for_scheme.scope.error",
+    "translation": "Ei voitu hakea tiimejä järjestelylle koska annettu järjestely ei ole tiimijärjestely."
+  },
+  {
+    "id": "api.scheme.get_channels_for_scheme.scope.error",
+    "translation": "Ei voitu hakea kanavia järjestelylle koska annettu järjestely ei ole kanavajärjestely."
+  },
+  {
+    "id": "api.scheme.delete_scheme.license.error",
+    "translation": "Lisenssisi ei tue oikeusjärjestelyjen poistoa"
+  },
+  {
+    "id": "api.scheme.create_scheme.license.error",
+    "translation": "Lisenssisi ei mahdollista oikeusjärjestelyjen luontia."
+  },
+  {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "Lisenssisi ei tue kehittynyttä oikeushallintaa."
+  },
+  {
+    "id": "api.restricted_system_admin",
+    "translation": "Tämä toiminto ei ole sallittu rajoitetulle ylläpitäjälle."
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "Et voi tallentaa reaktiota toiselle käyttäjälle."
+  },
+  {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Reaktio on virheellinen."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "Et voi lisätä reaktiota arkistoidulla kanavalla."
+  },
+  {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "Et voi poistaa reaktiota arkistoidulta kanavalta."
+  },
+  {
+    "id": "api.push_notification.disabled.app_error",
+    "translation": "Push-ilmoitukset eivät ole käytössä tällä palvelimella."
+  },
+  {
+    "id": "api.preference.update_preferences.set.app_error",
+    "translation": "Käyttäjän asetuksien asettaminen epäonnistui."
+  },
+  {
+    "id": "api.preference.preferences_category.get.app_error",
+    "translation": "Käyttän asetuksien haku epäonnistui."
+  },
+  {
+    "id": "api.preference.delete_preferences.delete.app_error",
+    "translation": "Käyttäjän asetuksien poisto epäonnistui."
+  },
+  {
+    "id": "api.post_get_post_by_id.get.app_error",
+    "translation": "Viestin haku epäonnistui"
+  },
+  {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "Järjestelmäviestin päivitys ei mahdollista"
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "Viestin muokkaus on sallittua vain {{.timeLimit}} sekunnin aikana. Pyydä järjestelmänvalvojalta lisätietoja."
+  },
+  {
+    "id": "api.post.update_post.permissions_details.app_error",
+    "translation": "Id={{.PostId}} on jo poistettu."
+  },
+  {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "Ei löydetty viestiä tai kommentia päivitettäväksi."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Viestiä ei voida päivittää poistetulla kanavalla."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_message",
+    "translation": "lähetti sinulle viestin."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " liitti tiedoston."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_general_message",
+    "translation": " kirjoitti viestin."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_explicit_mention",
+    "translation": " mainitsi sinut."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_thread",
+    "translation": " kommentoi ketjussa johon osallistuit."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_post",
+    "translation": " kommentoi viestiäsi."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_channel_mention",
+    "translation": " ilmoitti kanavalle."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Viestiä ei voida päivittää poistetulla kanavalla."
+  },
+  {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Järjestelmänvalvoja on poistanut linkkien esikatselun."
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} kuva lähetetty: {{.Filenames}}",
+      "other": "{{.Count}} kuvaa lähetetty: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} kuva lähetetty: {{.Filenames}}",
+      "other": "{{.Count}} kuvaa lähetetty: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.do_action.action_integration.app_error",
+    "translation": "Toiminnon integraatiovirhe"
+  },
+  {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "Virheellinen action id"
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "@here on poistettu käytöstä koska kanavalla on yli {{.Users}} käyttäjää."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel on poistettu käytöstä koska kanavalla on yli {{.Users}} käyttäjää."
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "@all on poistettu käytöstä koska kanavalla on yli {{.Users}} käyttäjää."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Ei voida poistaa viestiä poistetulta kanavalta."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.pending",
+    "translation": "Hylättiin postaus koska toinen asiakas on tekemässä samaa pyyntöä."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.failed_to_get",
+    "translation": "Alkuperäisen viestin noutaminen epäonnistui sen jälkeen kun samaa pyyntöä toistava asiakas oli deduplikoitu."
+  },
+  {
+    "id": "api.post.create_webhook_post.creating.app_error",
+    "translation": "Virhe luotaessa viestiä"
+  },
+  {
+    "id": "api.post.create_post.root_id.app_error",
+    "translation": "Virheellinen RootId-parametri"
+  },
+  {
+    "id": "api.post.create_post.channel_root_id.app_error",
+    "translation": "Virheellinen ChannelId RootId-parametrille"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "Poistetulle kanavalle ei voi kirjoittaa."
+  },
+  {
+    "id": "api.plugin.upload.no_file.app_error",
+    "translation": "Puuttuva tiedosto multipart/form pyynnössä"
+  },
+  {
+    "id": "api.plugin.upload.file.app_error",
+    "translation": "Ei voitu avata tiedostoa multipart/form pyynnössä"
+  },
+  {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "Tiedostotaulukko on tyhjä multipart/form pyynnössä"
+  },
+  {
+    "id": "api.plugin.install.download_failed.app_error",
+    "translation": "Tapahtui virhe ladattaessa liitännäistä."
+  },
+  {
+    "id": "api.outgoing_webhook.disabled.app_error",
+    "translation": "Järjestelmänvalvoja on estänyt ulos suunnatut webhookit."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "Liittymislinkki ei ole kelvollinen"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "Liittymislinkki on vanhentunut"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "translation": "Käyttäjän liittyminen on pois käytöstä."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.get.app_error",
+    "translation": "Virhe noudettaessa access token tietokannasta ennen poistoa."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_token.app_error",
+    "translation": "Virhe poistettaessa access tokenia tietokannasta."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_session.app_error",
+    "translation": "Virhe poistettaessa istuntoa tietokannasta."
+  },
+  {
+    "id": "api.oauth.register_oauth_app.turn_off.app_error",
+    "translation": "Järjestelmänvalvoja on sammuttanut OAuth2 Service Providerin."
+  },
+  {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "Epäkelpo state token"
+  },
+  {
+    "id": "api.oauth.get_access_token.refresh_token.app_error",
+    "translation": "invalid_grant: Epäkelvollinen refresh token"
+  },
+  {
+    "id": "api.oauth.get_access_token.redirect_uri.app_error",
+    "translation": "invalid_request: Annettu redirect_uri ei vastaa valtuutuskoodin redirect_uri arvoa"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
+    "translation": "invalid_request: Puuttuva refresh_token"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_code.app_error",
+    "translation": "invalid_request: Puuttuva code"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "server_error: Palvelimen sisäinen virhe noudettaessa käyttäjää tietokannasta"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "server_error: Palvelimen sisäinen virhe tallennettaessa sessiota tietokantaan"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "server_error: Palvelimen sisäinen virhe tallennettaessa access tokenia tietokantaan"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "server_error: Palvelimen sisäinen virhe tietokantayhteydessä"
+  },
+  {
+    "id": "api.oauth.get_access_token.expired_code.app_error",
+    "translation": "invalid_grant: Epäkelpo tai vanhentunut valtuutuskoodi"
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "Järjestelmänvalvoja on sammuttanut OAuth2 Service Providerin."
+  },
+  {
+    "id": "api.oauth.get_access_token.credentials.app_error",
+    "translation": "invalid_client: Epäkelvot asiakastunnisteet"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "invalid_request: Epäkelpo grant_type"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "invalid_request: Puuttuva client_secret"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "invalid_request: Epäkelpo client_id"
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "Järjestelmänvalvoja on sammuttanut OAuth2 Service Providerin."
+  },
+  {
+    "id": "api.oauth.allow_oauth.turn_off.app_error",
+    "translation": "Järjestelmänvalvoja on sammuttanut OAuth2 Service Providerin."
+  },
+  {
+    "id": "api.oauth.allow_oauth.redirect_callback.app_error",
+    "translation": "invalid_request: Annettu redirect_uri ei vastaa rekisteröityä callback_url arvoa"
+  },
+  {
+    "id": "api.marshal_error",
+    "translation": "marshal virhe"
+  },
+  {
+    "id": "api.license.remove_expired_license.failed.error",
+    "translation": "Ei voitu lähettää tilin deaktivointisähköpostiviestiä"
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "Asiakaslisenssin uutta muota ei vielä tueta. Määritä format=old pyynnössä."
+  },
+  {
+    "id": "api.license.add_license.unique_users.app_error",
+    "translation": "Tämä lisenssi tukee vain {{.Users}} käyttäjää, kun järjestelmässäsi on {{.Count}} uniikkia käyttäjää. Uniikit käyttäjät lasketaan sähköpostiosoitteen perusteella. Näet käyttäjämäärät kohdasta Sivuston raportit -> Katso tilastoja."
+  },
+  {
+    "id": "api.license.add_license.save_active.app_error",
+    "translation": "Aktiivinen lisenssi-ID ei tallentunut oikein."
+  },
+  {
+    "id": "api.license.add_license.save.app_error",
+    "translation": "Lisenssi ei tallentunut oikein."
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "Lisenssitiedostoa ei voitu avata"
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "Ei tiedostoa pyynnön kohdassa 'license'"
+  },
+  {
+    "id": "api.license.add_license.invalid_count.app_error",
+    "translation": "Uniikkien käyttäjien laskeminen ei onnistu."
+  },
+  {
+    "id": "api.license.add_license.invalid.app_error",
+    "translation": "Virheellinen lisenssitiedosto."
+  },
+  {
+    "id": "api.license.add_license.expired.app_error",
+    "translation": "Lisenssi on joko vanhentunut tai ei vielä voimassa."
+  },
+  {
+    "id": "api.license.add_license.array.app_error",
+    "translation": "Tyhjä taulukko pyynnön kohdassa 'license'"
+  },
+  {
+    "id": "api.ldap_groups.license_error",
+    "translation": "lisenssisi ei tue ldap-ryhmiä"
+  },
+  {
+    "id": "api.ldap_groups.existing_group_name_error",
+    "translation": "ryhmän jäsen on jo olemassa"
+  },
+  {
+    "id": "api.ldap_group.not_found",
+    "translation": "ldap-ryhmää ei löydetty"
+  },
+  {
+    "id": "api.io_error",
+    "translation": "input/output virhe"
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "Virheellinen käyttäjänimi."
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_error",
+    "translation": "Pääkäyttäjä on estänyt sisään tulevat webhookit."
+  },
+  {
+    "id": "api.file.upload_file.too_large_detailed.app_error",
+    "translation": "Tiedoston {{.Filename}} lataaminen epäonnistui. {{.Length}} tavua on enemmän kuin suurin sallittu koko {{.Limit}} tavua."
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "Kuvan lähettäminen epäonnistui. Kuvien tallennuksen asetuksia ei ole tehty."
+  },
+  {
+    "id": "api.file.upload_file.read_request.app_error",
+    "translation": "Tiedoston lataaminen epäonnistui. Virhe pyyntödataa luettaessa."
+  },
+  {
+    "id": "api.file.upload_file.read_form_value.app_error",
+    "translation": "Tiedoston lataaminen epäonnistui. Virhe luettaessa arvoa {{.Formname}}."
+  },
+  {
+    "id": "api.file.upload_file.multiple_channel_ids.app_error",
+    "translation": "Tiedoston lataaminen epäonnistui. Useita ristiriitaisia channel_id arvoja."
+  },
+  {
+    "id": "api.file.upload_file.large_image_detailed.app_error",
+    "translation": "{{.Filename}} ulottuvuudet ({{.Width}} x {{.Height}} pixels) ylittävät rajat"
+  },
+  {
+    "id": "api.file.upload_file.large_image.app_error",
+    "translation": "Maksimiulottuvuudet ylittävää tiedostoa ei voitu lähettää: {{.Filename}}"
+  },
+  {
+    "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+    "translation": "Tiedoston lataaminen epäonnistui. {{.NumClientIds}} client_id arvoa {{.NumFiles}} tiedostolle."
+  },
+  {
+    "id": "api.file.read_file.reading_local.app_error",
+    "translation": "Virhe luettaessa paikallisesta tiedostopalvelimesta"
+  },
+  {
+    "id": "api.file.no_driver.app_error",
+    "translation": "Tiedostoajuria ei valittuna."
+  },
+  {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "Ei voitu hakea julkista linkkiä tiedostolle. Tiedoston on oltava liitteenä viestissä jonka nykyinen käyttäjä voi lukea."
+  },
+  {
+    "id": "api.file.get_public_link.disabled.app_error",
+    "translation": "Julkiset linkit on poistettu käytöstä"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "Tiedostolla ei ole esikatselukuvaa"
+  },
+  {
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "Tiedostolla ei ole esikatselukuvaa"
+  },
+  {
+    "id": "api.file.get_file.public_invalid.app_error",
+    "translation": "Julkinen linkki ei näytä olevan kelvollinen"
+  },
+  {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "Tiedostoliitteet on poistettu käytöstä tällä palvelimella."
+  },
+  {
+    "id": "api.emoji.upload.open.app_error",
+    "translation": "Ei voitu luoda emojia. Liitettyä kuvaa avattaessa tapahtui virhe."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large.app_error",
+    "translation": "Ei voitu luoda emojia. Kuvan on oltava pienempi kuin {{.MaxWidth}} x {{.MaxHeight}}."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "Ei voitu luoda emojia. Virhe koodatessa GIF-kuvaa."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "Ei voitu luoda emojia. Virhe dekoodatessa GIF-kuvaa."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "Ei voitu luoda emojia. Virhe koodatessa kuvaa."
+  },
+  {
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "Ei voitu luoda emojia. Virhe dekoodatessa kuvaa."
+  },
+  {
+    "id": "api.emoji.upload.image.app_error",
+    "translation": "Hymiötä ei voitu luoda. Tiedoston on oltava PNG, JPEG tai GIF."
+  },
+  {
+    "id": "api.emoji.storage.app_error",
+    "translation": "Tiedostojensäilytyspaikan asetukset ovat puutteelliset. Tee joko S3:n tai paikallisen tiedostojensäilytyksen asetukset."
+  },
+  {
+    "id": "api.emoji.get_image.read.app_error",
+    "translation": "Ei voitu luke kuvatiedostoa emojille."
+  },
+  {
+    "id": "api.emoji.get_image.decode.app_error",
+    "translation": "Ei voitu dekoodata kuvatiedostoa emojille."
+  },
+  {
+    "id": "api.emoji.disabled.app_error",
+    "translation": "Pääkäyttäjä on estänyt kustomoitujen emojien käytön."
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "Ei voitu luoda emojia. Kuvan pitää olla pienempi kuin 1 Mt."
+  },
+  {
+    "id": "api.emoji.create.parse.app_error",
+    "translation": "Ei voitu luoda emojia. Pyynnössä oli jotain vialla."
+  },
+  {
+    "id": "api.emoji.create.other_user.app_error",
+    "translation": "Virheellinen käyttäjä-id"
+  },
+  {
+    "id": "api.emoji.create.duplicate.app_error",
+    "translation": "Ei voitu luoda emojia. Emoji samalla nimellä on jo olemassa."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] uusi ilmoitus {{.Month}} {{.Day}}, {{.Year}}",
+      "other": "[{{.SiteName}}] uusia ilmoituksia {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "Ylläpitäjä on estänyt sähköpostiyhdistelyn"
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "Sähköpostiyhdistelyn tulokanava on täynnä. Kasvata asetusta EmailBatchingBufferSize."
+  },
+  {
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "Kirjoita teksti omiksi Palveluehdoiksi."
+  },
+  {
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "Omat palveluehdot -toiminto on kytketty pois"
+  },
+  {
+    "id": "api.context.token_provided.app_error",
+    "translation": "Istuntosi ei käytä OAuthia, mutta tunniste sisältyi kyselyyn"
+  },
+  {
+    "id": "api.context.session_expired.app_error",
+    "translation": "Istuntosi on vanhentunut, kirjaudu uudelleen."
+  },
+  {
+    "id": "api.context.permissions.app_error",
+    "translation": "Sinulla ei ole tarvittavia oikeuksia"
+  },
+  {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "Monivaiheinen tunnistus on pakollinen tällä palvelimella."
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "Virheellinen tai puuttuva {{.Name}} parametri URLissa"
+  },
+  {
+    "id": "api.context.invalid_token.error",
+    "translation": "Virheellinen session avain={{.Token}}, err={{.Error}}"
+  },
+  {
+    "id": "api.context.invalid_param.app_error",
+    "translation": "Virheellinen {{.Name}} parametri"
+  },
+  {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "Virheellinen tai puuttuva {{.Name}}"
+  },
+  {
+    "id": "api.context.404.app_error",
+    "translation": "Sivua ei löytynyt."
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "Asiakkaan konfiguroinnin uutta muotoa ei tueta vielä. Määritä format=old pyynnössä."
+  },
+  {
+    "id": "api.command_shrug.name",
+    "translation": "olankohtautus"
+  },
+  {
+    "id": "api.command_shrug.hint",
+    "translation": "[viesti]"
+  },
+  {
+    "id": "api.command_shrug.desc",
+    "translation": "Lisää ¯\\_(ツ)_/¯ viestiisi"
+  },
+  {
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "Pikakuvake-toiminto ei ole tuettuna laitteessasi"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "oikotiet"
+  },
+  {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Näytä näppäinlyhenteet"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "Asetukset-toiminto ei ole tuettu laitteessasi"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "asetukset"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Avaa asetukset"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "Etsi-toiminto ei ole tuettu laitteessasi"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "etsi"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[teksti]"
+  },
+  {
+    "id": "api.command_search.desc",
+    "translation": "Etsi tekstiä viesteistä"
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "{{.Username}} ei ole tällä kanavalla."
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "Sinulla ei ole oikeutta poistaa jäsentä."
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "poista"
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "Käyttäjää ei löydetty. Ylläpito on saattanut sulkea käyttäjätunnuksen."
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "Viesti pitää toimittaa /remove tai /kick komennolla."
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[kayttajanimi]"
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "Ei voi poistaa ketään suoraviestikanavalta."
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "Poista käyttäjä kanavalta"
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "avaa"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "Olet nyt online-tilassa"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "verkossa"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Muuta tilaksesi online"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "Olet nyt näkymätön"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "poissa"
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "Muuta tila poissaolevaksi"
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "Kanava ei ole enää mykistetty."
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "{{.Channel}} ei enää mykistetty."
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "Et saa ilmoituksia tältä kanavalta kunnes mykistys on otettu pois päältä."
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "Et saa ilmoituksia kanavalta {{.Channel}} ennen kuin mykistys on otettu pois päältä."
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "Ei voitu mykistää kanavaa {{.Channel}} koska et ole sen jäsen."
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "Kanavaa ei löydetty. Käytä [kanavan tunnistetta](https://about.mattermost.com/default-channel-handle-documentation) sen määrittämiseen."
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "mykistä"
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "~[kanava]"
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "Kanavaa {{.Channel}} ei löydetty. Käytä [kanavan tunnistetta](https://about.mattermost.com/default-channel-handle-documentation) kanavan määrittämiseen."
+  },
+  {
+    "id": "api.user.login_by_oauth.not_available.app_error",
+    "translation": "{{.Service}} SSO OAuth 2.0:n kautta ei tarjolla tällä palvelimella"
+  },
+  {
+    "id": "api.user.login.use_auth_service.app_error",
+    "translation": "Kirjaudu käyttäen palvelua {{.AuthService}}"
+  },
+  {
+    "id": "api.user.login.not_verified.app_error",
+    "translation": "Kirjautuminen epäonnistui koska sähköpostiosoitetta ei ole vahvistettu"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Syötä kelvollinen käyttäjätunnus ja/tai salasana."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "Syötä kelvollinen sähköpostiosoite tai käyttäjätunnus ja/tai salasana."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "Syötä kelvollinen sähköpostiosoite ja/tai salasana"
+  },
+  {
+    "id": "api.user.login.inactive.app_error",
+    "translation": "Kirjautuminen epäonnistui, koska tilisi on inaktivoitu.  Ota yhteyttä ylläpitäjään."
+  },
+  {
+    "id": "api.user.login.guest_accounts.license.error",
+    "translation": "Lisenssisi ei tue vierailijatilejä"
+  },
+  {
+    "id": "api.user.login.client_side_cert.license.app_error",
+    "translation": "Yritys käyttää kokeellista ClientSideCertEnable-toimintoa ilman käypää enterprise-lisenssiä"
+  },
+  {
+    "id": "api.user.login.client_side_cert.certificate.app_error",
+    "translation": "Yritettiin kirjautua käyttäen kokeellista ClientSideCert-toimintoa ilman käypää sertifikaattia"
+  },
+  {
+    "id": "api.user.login.blank_pwd.app_error",
+    "translation": "Salasanakenttä ei saa olla tyhjä"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "Tämä käyttäjätili ei käytä AD/LDAP:a"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_available.app_error",
+    "translation": "AD/LDAP ei ole saatavilla tällä palvelimella"
+  },
+  {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Käyttäjää ei voitu hakea sähköpostin perusteella."
+  },
+  {
+    "id": "api.user.email_to_oauth.not_available.app_error",
+    "translation": "Autentikointisiirtoa ei ole määritetty tai ei ole tarjolla tällä palvelimella."
+  },
+  {
+    "id": "api.user.email_to_ldap.not_available.app_error",
+    "translation": "AD/LDAP ei ole saatavilla tällä palvelimella"
+  },
+  {
+    "id": "api.user.create_user.signup_link_invalid.app_error",
+    "translation": "Liittymislinkki ei ole kelvollinen"
+  },
+  {
+    "id": "api.user.create_user.signup_link_expired.app_error",
+    "translation": "Liittymislinkki on vanhentunut"
+  },
+  {
+    "id": "api.user.create_user.signup_email_disabled.app_error",
+    "translation": "Liittyminen käyttäjäksi sähköpostilla on kytketty pois."
+  },
+  {
+    "id": "api.user.create_user.no_open_server",
+    "translation": "Tämä palvelin ei salli avoimia liittymisiä.  Ota yhteyttä järjestelmänvalvojaan saadaksesi kutsun."
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.license.app_error",
+    "translation": "Lisenssisi ei tue vierailijatilejä."
+  },
+  {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "Käyttäjän luonti on kytketty pois."
+  },
+  {
+    "id": "api.user.create_user.accepted_domain.app_error",
+    "translation": "Sähköpostiosoitteesi ei kuulu hyväksyttyyn domainiin. Ota yhteyttä järjestelmänvalvojaan tai liity toisella sähköpostiosoitteella."
+  },
+  {
+    "id": "api.user.create_profile_image.initial.app_error",
+    "translation": "Ei voitu lisätä käyttäjän nimikirjainta oletusprofiilikuvaan"
+  },
+  {
+    "id": "api.user.create_profile_image.encode.app_error",
+    "translation": "Ei voitu enkoodata oletusprofiilikuvaa"
+  },
+  {
+    "id": "api.user.create_profile_image.default_font.app_error",
+    "translation": "Ei voitu luoda oletusprofiilikuvan fonttia"
+  },
+  {
+    "id": "api.user.create_oauth_user.create.app_error",
+    "translation": "Käyttäjää ei voitu luoda palvelun {{.Service}} käyttäjäobjektista"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_attached.app_error",
+    "translation": "Tili on jo olemassa tällä sähköpostiosoitteella joka käyttää toista kirjautumismenetelmää kuin {{.Service}}. Kirjaudu käyttämällä menetelmää {{.Auth}}."
+  },
+  {
+    "id": "api.user.create_email_token.error",
+    "translation": "Ei voitu luoda token dataa sähköpostivahvistukseen"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.parse.app_error",
+    "translation": "Ei voitu lukea auth dataa {{.Service}} käyttäjäobjektista"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "Tyhjä email"
+  },
+  {
+    "id": "api.user.check_user_password.invalid.app_error",
+    "translation": "Kirjautuminen epäonnistui virheellisen salasanan vuoksi"
+  },
+  {
+    "id": "api.user.check_user_mfa.bad_code.app_error",
+    "translation": "Virheellinen MFA token."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many.app_error",
+    "translation": "Tilisi on lukittu liian monen salasanayrityksen vuoksi. Palauta salasanasi."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.unsupported.app_error",
+    "translation": "OAuth-palveluntarjoajaa ei tueta"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.token_failed.app_error",
+    "translation": "Token-pyyntö epäonnistui"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.service.app_error",
+    "translation": "Token-pyyntö palveluun {{.Service}} epäonnistui"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "Vastaanotettiin virheellinen vastaus OAuth palveluntarjoajalta"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.missing.app_error",
+    "translation": "Puuttuva access token"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.invalid_state.app_error",
+    "translation": "Virheellinen state"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_token.app_error",
+    "translation": "Virheellinen token-tyyppi"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_response.app_error",
+    "translation": "Virheellinen vastaus token-pyyntöön"
+  },
+  {
+    "id": "api.user.add_direct_channels_and_forget.failed.error",
+    "translation": "Virhe lisättäessä suorakanavan asetukset käyttäjälle user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
+  },
+  {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "MFA ei ole käytettävissä tällä tilityypillä"
+  },
+  {
+    "id": "api.templates.welcome_subject",
+    "translation": "[{{ .SiteName }}] Liityit palveluun {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "Olet liittynyt palveluun {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.welcome_body.info",
+    "translation": "Vahvista sähköpostiosoitteesi klikkaamalla alla."
+  },
+  {
+    "id": "api.templates.welcome_body.button",
+    "translation": "Vahvista sähköposti"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_info",
+    "translation": "Parasta kokemusta varten lataa sovellukset PC:lle, Macille, iOS:lle ja Androidille:"
+  },
+  {
+    "id": "api.templates.verify_subject",
+    "translation": "[{{ .SiteName }}] Sähköpostin vahvistus"
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "Liityit palveluun {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.verify_body.info",
+    "translation": "Vahvista sähköpostiosoitteesi klikkaamalla alla."
+  },
+  {
+    "id": "api.templates.verify_body.button",
+    "translation": "Vahvista sähköposti"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "[{{ .SiteName }}] Käyttäjänimesi on muutettu"
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "Muutit käyttäjänimesi"
+  },
+  {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Käyttäjänimi tiimissä {{.TeamDisplayName}} on vaihdettu nimeen {{.NewUsername}}."
+  },
+  {
+    "id": "api.templates.user_access_token_subject",
+    "translation": "[{{ .SiteName }}] Henkilökohtainen access token on lisätty tiliisi"
+  },
+  {
+    "id": "api.templates.user_access_token_body.title",
+    "translation": "Henkilökohtainen access token on lisätty tiliisi"
+  },
+  {
+    "id": "api.templates.user_access_token_body.info",
+    "translation": "Henkilökohtainen access token on lisätty tiliisi osoitteessa {{ .SiteURL }}. Sillä voidaan käyttää palvelua {{.SiteName}} tilisi kanssa."
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{ .SiteName }}] Kirjautumismenetelmäsi on vaihdettu"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "Muutit kirjautumismenetelmää"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "sähköposti ja salasana"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "Muutit kirjautumismenetelmäsi sivustolla {{ .SiteName }} menetelmään {{.Method}}."
+  },
+  {
+    "id": "api.templates.reset_subject",
+    "translation": "[{{ .SiteName }}] Palauta salasanasi"
+  },
+  {
+    "id": "api.templates.reset_body.title",
+    "translation": "Pyysit salasanan palautusta"
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "Estä työpöytä-, sähköposti- ja push-ilmoitukset aktiivisella tai määritetyllä [kanavalla]."
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "Sinulla ei ole oikeuksia lähettää yksityisviestiä tälle käyttäjälle."
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "viesti"
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "Ei löydetty käyttäjää."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[käyttäjätunnus] 'viesti'"
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "Viestin lähettäminen käyttäjälle epäonnistui."
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "Yksityisviestin luonnissa tapahtui virhe."
+  },
+  {
+    "id": "api.command_msg.desc",
+    "translation": "Lähetä yksityisviesti käyttäjälle"
+  },
+  {
+    "id": "api.command_me.name",
+    "translation": "minä"
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "[viesti]"
+  },
+  {
+    "id": "api.command_me.desc",
+    "translation": "Toiminto"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "uloskirjautuminen"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Uloskirjaus Mattermostista"
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "poistu"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "Virhe tapahtui kanavalle poistumisen aikana."
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Poistu nykyiseltä kanavalta"
+  },
+  {
+    "id": "api.command_kick.name",
+    "translation": "potkaise"
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "liity"
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "Kanavaa ei löydetty"
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "Virhe tapahtui kanavien listauksen aikana."
+  },
+  {
+    "id": "api.command_join.hint",
+    "translation": "~[kanava]"
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "Virhe tapahtui kanavalle liittymisen aikana."
+  },
+  {
+    "id": "api.command_join.desc",
+    "translation": "Liity avoimelle kanavalle"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "Sinulla ei ole oikeuksia kutsua uusia käyttäjiä tälle palvelimelle."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "@{{.Username}} ei ole tiimin jäsen."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} on jo kanavalla."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.User}} lisättiin kanavalle {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "Kanavaa {{.Channel}} ei löydetty. Käytä kanavan tunnistetta sen määrittämiseen."
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "Sinulla ei ole oikeuksia lisätä käyttäjää {{.User}} kanavalle {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "kutsu"
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "Käyttäjää ei ole olemassa. Ylläpito on saattanut sulkea käyttäjätunnuksen."
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "Käyttäjänimi ja kanava puuttuvat."
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[käyttäjätunnus] ~[kanava]"
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "Kanavalle liittymisen yhteydessä tapahtui virhe."
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "Et voi lisätä ketään suoraviestikanavalle."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Kutsu käyttäjä kanavalle"
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "Kanavaa {{.Channel}} ei löydetty. Käytä [kanavan tunnistetta](https://about.mattermost.com/default-channel-handle-documentation) kanavan löytämiseen."
+  },
+  {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "Virhe noudettaessa kanavaa."
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "ohje"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Avaa Mattermostin ohjesivusto"
+  },
+  {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "Sinulla ei ole oikeuksia lähettää uutta ryhmäviestiä."
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "viesti"
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Ryhmäviesti on rajoitettu vähintään {{.MinUsers}} käyttäjälle."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Ryhmäviesti on rajoitettu enintään {{.MaxUsers}} käyttäjälle."
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "Käyttäjää ei löydy: {{.Users}}",
+      "other": "Käyttäjiä ei löydy: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[kayttaja1],@[kayttaja2] 'viesti'"
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "Ryhmäviestin luonnissa tapahtui virhe."
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Viestin lähettäminen käyttäjälle epäonnistui."
+  },
+  {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Lähetä ryhmäviesti tietyille käyttäjille"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "Tapahtui virhe esikatseluiden näyttämisessä"
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "Kuvien linkit näytetään oletuksena"
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "laajenna"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "Poista käytöstä kuvien automaattinen esikatselu"
+  },
+  {
+    "id": "api.command_echo.name",
+    "translation": "kaiku"
+  },
+  {
+    "id": "api.command_echo.message.app_error",
+    "translation": "Viesti pitää toimittaa /echo komennolla."
+  },
+  {
+    "id": "api.command_echo.hint",
+    "translation": "'viesti' [viive sekunneissa]"
+  },
+  {
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "Iso määrä kopiointipyyntöjä, ei voida suorittaa"
+  },
+  {
+    "id": "api.command_echo.desc",
+    "translation": "Kopioi teksti takaisin tililtäsi"
+  },
+  {
+    "id": "api.command_echo.delay.app_error",
+    "translation": "Viiveen on oltava alta 10000 sekuntia"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Älä häiritse on päällä. Et vastaanota työpöytä- tai mobiilisovelluksen push-viestejä kunnes Älä häiritse on otettu pois."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "älä häiritse"
+  },
+  {
+    "id": "api.command_dnd.desc",
+    "translation": "Älä häiritse poistaa työpöytä- ja mobiiliohjelmien push-viestit."
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "Kuvien linkit avataan oletuksena"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "tiivistä"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Laita kuvien esikatselun automaattikatselu päälle"
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "koodi"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "Viesti pitää toimittaa /code komennon avulla."
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[teksti]"
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Näytä teksti koodiblokkina"
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Virhe päivittäessä kanavaa."
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Kanavan nimen pitää olla {{.Length}} merkkiä pitkä tai pidempi"
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Kanavan nimi pitää olla {{.Length}} merkkiä pitkä tai lyhyempi"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Sinulla ei ole oikeuksia uudelleennimetä kanavaa."
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "nimeä uudelleen"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "Viesti pitää olla /rename komennon mukana."
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[teksti]"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "Et voi uudelleennimetä suoraviestikanavaa."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Nimeä kanava uudelleen"
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Virhe avatessa kanavaa."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Virhe noudettaessa kanavaa."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Virhe päivittäessä kanavaa."
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Sinulla ei ole oikeuksia muokata kanavan tarkoitusta."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "tarkoitus"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "Viesti pitää lähettää /purpose komennolla."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[teksti]"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Ei voida määritellä tarkoitusta suoraviestikanavalle. Käytä /header asettaaksesi otsikko."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Muokkaa kanavan tarkoitusta"
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Virhe avatessa kanavaa."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Virhe päivittäessä kanavaa."
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Sinulla ei ole oikeuksia muokata kanavan otsikkoa."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "ylätunniste"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Teksti pitää kirjoittaa /header komennolla."
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[teksti]"
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Muokkaa kanavan otsikkoa"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Virhe noudettaessa kanavaa."
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Olet nyt poissa"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "poissaoleva"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Aseta tilasi poissaolevaksi"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Ei voi päivittää komentoja tiimien välillä"
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "Sähköpostikutsut lähetettiin"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Anna yksi tai useampi oikeellinen sähköpostiosoite"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "kutsu_ihmisiä"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "Käyttäjien luonti on poistettu käytöstä, kutsuja ei lähetetty"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[nimi@osoite.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "Kutsuja lähetettäessä tapahtui virhe"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "Sähköpostia ei ole määritetty, kutsuja ei lähetetty"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "Sähköpostikutsut kytketty pois, kutsuja ei lähetetty"
+  },
+  {
+    "id": "api.command.invite_people.desc",
+    "translation": "Kutsu käyttäjiä Mattermost-ryhmääsi"
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "Komentia ei löydy"
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "Komentoa '{{.Trigger}}' ei löytynyt. Lähettääksesi viestin \"/\" -merkillä, lisää tyhjä välilyönti viestin alkuun."
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "Komento '{{.Trigger}}' palautti vastauksen {{.Status}}"
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "Komento '{{.Trigger}}' palautti tyhjän vastauksen"
+  },
+  {
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "Komento '{{.Trigger}}' epäonnistui"
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "Komento '{{.Trigger}}' ei postannut vastausta. Ota yhteys järjestelmänvalvojaan."
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "Tämä laukaisusana on jo käytössä. Valitse toinen sana."
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "Pääkäyttäjä on estänyt komentojen käyttämisen."
+  },
+  {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "Valittu käyttäjä ei ole valitun kanavan jäsen."
+  },
+  {
+    "id": "api.command.admin_only.app_error",
+    "translation": "Vain pääkäyttäjät voivat luoda rajapintaintegraatioita."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "Järjestely hallinnoi annettua roolia eikä sitä siksi voida antaa suoraan tiimin jäsenelle."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "Järjestelyä ei voida asettaa kanavalle koska annettu järjestely ei ole kanavajärjestely."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "Lisenssisi ei mahdollista kanavan järjestelyn muuttamista"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "Järjestely hallinnoi annettua roolia eikä sitä siksi voida määrittää suoraan kanavan jäsenelle."
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "Yritetty suorittaa virheellinen päivitys oletuskanavalle {{.Channel}}."
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "Kanava on arkistoitu tai poistettu."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Et voi uudelleennimetä ryhmäviestikanavaa."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Et voi uudelleennimetä suoraviestikanavaa."
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Käyttäjää ei voi poistaa tämän tyyppiseltä kanavalta."
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v poistettiin kanavalta."
+  },
+  {
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Käyttäjän poistaminen kanavalta ei onnistunut."
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Käyttäjää ei voida poistaa oletuskanavalta {{.Channel}}."
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "Liity/poistu-viestin lähettäminen epäonnistui"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s päivitti kanavaotsikoksi %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s päivitti kanavaotsikon %s, uusi kanavaotsikko: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "Käyttäjän hakeminen kanavaotsikon päivittämisen aikana epäonnistui"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s poisti kanavaotsikon (oli: %s)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Virhe päivittäessä kanavan header-viestiä"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s päivitti kanavaotsikon %s, uusi kanavaotsikko: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Käyttäjän hakeminen kanavaotsikon päivittämisen aikana epäonnistui"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Näyttönimen päivitysviestin lähettäminen epäonnistui"
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "Kanavan yksityisyyspäivitysviestin asettaminen epäonnistui."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Kanavan päivitys epäonnistui."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Lisenssisi ei tue kanavan moderointia."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v poistui kanavalta."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "Olet viimeinen käyttäjä jäljellä, yritä poistaa yksityiskanava pois lähtemisen sijasta."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Et voi poistua suoraviestikanavalta."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Oletuskanavalta {{.Channel}} poistuminen ei ole mahdollista."
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v liittyi kanavalle."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "Sinulla ei ole tarvittavia oikeuksia."
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "Lisenssisi ei tue kanavan moderointia."
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Suora- tai ryhmäviestikanavien poistaminen ei ole mahdollista"
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "Kanava on arkistoitu tai poistettu."
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "Ei voida poistaa oletuskanavaa {{.Channel}}."
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v on arkistoinut kanavan."
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "Yksi syötetyistä käyttäjistä ei ole olemassa."
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Ryhmäviestikanavilla oltava vähintään 3 ja enintään 8 käyttäjää."
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "Virheellinen käyttäjä-ID suoraviestikanavan luontia varten."
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "Kaupungin tori"
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "Asiaan kuulumaton"
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Useamman kuin {{.MaxChannelsPerTeam}} kanavan luominen nykyiselle tiimille ei onnistu."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "Käytettävä createDirectChannel API-palvelua suoraviestikanavan luontiin."
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "lisenssisi ei tue ldap-ryhmiä"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Kanava muutettiin yksityiseksi."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Kanava muuttettiin julkiseksi ja kuka tahansa voi liittyä sille."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Käyttäjää ei voida lisätä tämän tyyppiselle kanavalle."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Käyttäjän lisäys kanavalle epäonnistui, koska käyttäjä ei ole tiimin jäsen."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Käyttäjän lisääminen kanavalle epäonnistui."
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Virhe jäsen(i)en lisäämisessä kanavalle."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v lisättiin kanavalle, lisääjänä %v."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v lisättiin kanavalle, lisääjänä %v."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Botin luonti on poistetty käytöstä."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Tiedoston lataaminen epäonnistui. Tiedosto on liian suuri."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Kuvan lataaminen epäonnistui. Kuvien tallennuksen asetuksia ei ole tehty."
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "Moniosaista lomaketta ei voitu jäsentää."
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Ei tiedostoa pyynnön kohdassa 'image'."
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "Tyhjä taulukko pyynnön kohdassa 'image'."
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket vaadittu"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Sähköpostiasetusten testaaminen"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "SMTP-palvelimen osoite, portti tai käyttäjätunnus on vaihtunut. Päivitä tiedot ja yritä uudelleen."
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP-palvelin vaaditaan"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Näyttää siltä, että Mattermostin sähköpostiasetuksesi ovat oikein!"
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 ei ole määritetty tai tuettu tällä palvelimella."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "Palveluntarjoajan metadataa rakennettaessa tapahtui virhe."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Varmennetiedostoa ei voitu tallentaa."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Tapahtui virhe poistettaessa OAuth2 appia."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Kuvien tallennuksen asetuksia ei ole tehty."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Virhe luettaessa lokitiedostoa."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Brandikuvaa ei pystytty poistamaan, ei löydy."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Varmennetiedostoa ei voitu tallentaa."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Varmennetiedostoa ei voitu avata."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Ei tiedostoa pyynnön kohdassa 'certificate'."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Ei tiedostoa pyynnön kohdassa 'certificate'."
+  },
+  {
+    "id": "September",
+    "translation": "Syyskuu"
+  },
+  {
+    "id": "October",
+    "translation": "Lokakuu"
+  },
+  {
+    "id": "November",
+    "translation": "Marraskuu"
+  },
+  {
+    "id": "May",
+    "translation": "Toukokuu"
+  },
+  {
+    "id": "March",
+    "translation": "Maaliskuu"
+  },
+  {
+    "id": "June",
+    "translation": "Kesäkuu"
+  },
+  {
+    "id": "July",
+    "translation": "Heinäkuu"
+  },
+  {
+    "id": "January",
+    "translation": "Tammikuu"
+  },
+  {
+    "id": "February",
+    "translation": "Helmikuu"
+  },
+  {
+    "id": "December",
+    "translation": "Joulukuu"
+  },
+  {
+    "id": "August",
+    "translation": "Elokuu"
+  },
+  {
+    "id": "April",
+    "translation": "Huhtikuu"
+  },
+  {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "Nimen oltava 1-64 pientä kirjainta tai numeroa"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "tai"
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Virhe CWS-pyynnön käsittelyssä."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Ylläpidolle on jo ilmoitettu"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook tapahtumaa ei käsitelty. Se puuttuu tai on virheellinen."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Sisäinen virhe pilvirajapintapyynnön aikana."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Epäkelpo tiimijäsenyyden muuto: Vierasroolia ei voi lisätä tai poistaa manuaalisesti."
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "Oletuskanavaa ei voi asettaa yksityiseksi."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Epäkelpo kanavajäsenyyden muutos: Käyttäjän rooli voi olla vieras tai käyttäjä, mutta ei molemmat."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Epäkelpo kanavajäsenyyden muutos: Vierasroolia ei voi lisätä tai poistaa manuaalisesti."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Tätä kanavatyyppiä ei voida päivittää."
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} poisti kanavan arkistoinnin."
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "Kanavaa ei voida arkistoida. Kanavaa ei ole arkistoitu."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Ryhmähallinta estää kanavajäsenyyden poistamisen käyttäjiltä: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Käyttäjän poistaminen ryhmähallitusta kanavasta ei ole mahdollista."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Virhe välimuistin tyhjentämisessä"
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Suoria ja ryhmäviestikanavia ei voi siirtää"
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v liittyi kanavalle vieraana."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Suoraa kanavaa näiden käyttäjien välille ei voida luoda, koska heillä ei ole yhteistä tiimiä."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Kanavalle liittyminen on ryhmän rajoitusten vuoksi estetty näiltä käyttäjiltä: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Lisää minut niihin tiimeihin ja kanaviin joissa haluat minun toimivan. Voit käyttää selainta tai Mattermostin työpöytäsovellusta."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Takaisin sivustoon {{.SiteName}}"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Puuttuva sisältötyyppi."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Epäkelpo sisältötyyppi."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Epäkelpo sertifikaattiteksti."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "XML:stä puuttuu Identity Providerin SSO Services -osio."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "XML:stä puuttuu Identity Providerin SSO Descriptor -osiot."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "XML:stä puuttuu Identity Providerin SSO Descriptor -osio."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "AuthData kentän asettaminen Sähköpostiksi epäonnistui."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Identity Providerilta toimitettujen metatietojen tulkinnassa sertifikaatiksi ilmeni virhe."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Metatietojen saanti Indentity Provider URL:stä epäonnistui."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP ei ole käytettävissä."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Virhe multiform pyynnön tulkinnassa"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Pelikirjat"
+  },
+  {
+    "id": "Channels",
+    "translation": "Kanavat"
+  },
+  {
+    "id": "Boards",
+    "translation": "Taulut"
+  }
+]

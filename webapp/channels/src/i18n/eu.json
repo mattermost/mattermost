@@ -1,0 +1,15 @@
+{
+    "about.teamEditiont1": "Enpresarako Bertsioa",
+    "about.teamEditionLearn": "Batu Mattermost komunetateari hemen ",
+    "about.enterpriseEditione1": "Enpresarako Bertsioa",
+    "about.hashee": "EE Konpilazioaren batuketa:",
+    "about.dbversion": "Databasearen eskemaren bertsioa:",
+    "about.hash": "Konpilazioaren egiaztatze batuketa:",
+    "about.enterpriseEditionSt": "Komunikazio modernoa zure suebakiaren atzetik.",
+    "about.database": "Databasea:",
+    "about.enterpriseEditionLearn": "Enpresarako bertsioari buruz informazio gehiago hemen ",
+    "about.copyright": "Copyright 2015 - {currentYear} Mattermost, Inc. Eskubide guztiak gordeta",
+    "about.cloudEdition": "Hodeia",
+    "about.date": "Konpilatze data:",
+    "about.buildnumber": "Konpilazio zenbakia:"
+}

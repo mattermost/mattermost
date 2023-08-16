@@ -1,0 +1,454 @@
+[
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.reaction.save.save.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.emoji.delete.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "store.sql_command.save.get.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.channel.update.bad_id",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.channel.get_deleted.existing.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "store.sql_channel.get.existing.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "manaultesting.test_autolink.unable.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "SAML 2.0 በዚህ ሰርቨር ላይ አልተዋቀረም ወይም አይሰራም."
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "የአገልግሎት አቅራቢ ሜታዳታ በሚገነቡበት ጊዜ ስህተት ተከስቷል."
+  },
+  {
+    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "ent.elasticsearch.index_user.error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "ent.compliance.csv.zip.creation.appError",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "ent.compliance.csv.warning.appError",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "ent.account_migration.get_saml_users_failed",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "ent.account_migration.get_all_failed",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "bleveengine.index_user.error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "bleveengine.index_post.error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "bleveengine.index_channel.error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "bleveengine.delete_user.error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "bleveengine.delete_post.error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "bleveengine.delete_channel.error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.channel.create_direct_channel.internal_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.channel.create_channel.internal_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.bot.permenent_delete.bad_id",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.bot.patchbot.internal_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.bot.getbots.internal_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.bot.getbot.internal_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "app.bot.createbot.internal_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "api.user.upload_profile_user.upload_profile.app_error",
+    "translation": "አይከን ምስሉን መጫን አልተቻለም."
+  },
+  {
+    "id": "api.user.upload_profile_user.too_large.app_error",
+    "translation": "የአይከን ምስሉን መጫን አልተቻለም.ፋይሉ በጣም ትልቅ ነው."
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "የምስል ፋይሉን መክፈት አልተቻለም."
+  },
+  {
+    "id": "api.user.upload_profile_user.encode.app_error",
+    "translation": "አይከን ምስሉን መጫን አልተቻለም."
+  },
+  {
+    "id": "api.user.upload_profile_user.decode.app_error",
+    "translation": "አይከን ምስሉን መጫን አልተቻለም."
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "አስፈላጊው ፍቃድ የለዎትም"
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "SAML 2.0 በዚህ ሰርቨር ላይ አልተዋቀረም ወይም አይሰራም."
+  },
+  {
+    "id": "api.user.create_profile_image.encode.app_error",
+    "translation": "አይከን ምስሉን መጫን አልተቻለም."
+  },
+  {
+    "id": "api.user.create_profile_image.default_font.app_error",
+    "translation": "አይከን ምስሉን መጫን አልተቻለም."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "የአይከን ምስሉን መጫን አልተቻለም.ፋይሉ በጣም ትልቅ ነው."
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "የምስል ፋይሉን መክፈት አልተቻለም."
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "የምስል ፋይሉን መክፈት አልተቻለም."
+  },
+  {
+    "id": "api.team.add_members.user_denied",
+    "translation": "Den här kanalen hanteras av grupper. Den här användaren tillhör inte en grupp synkad till den här kanalen."
+  },
+  {
+    "id": "api.team.add_members.error",
+    "translation": "ቻናል አባል መጨመር ላይ ስህተት ተክስቷል."
+  },
+  {
+    "id": "api.preference.update_preferences.set.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "api.preference.preferences_category.get.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "api.preference.delete_preferences.delete.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "api.post_get_post_by_id.get.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "የምስል ፋይሉን መክፈት አልተቻለም."
+  },
+  {
+    "id": "api.context.permissions.app_error",
+    "translation": "አስፈላጊው ፍቃድ የለዎትም"
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
+  },
+  {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "Den här kanalen hanteras av grupper. Den här användaren tillhör inte en grupp synkad till den här kanalen."
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "ቻናሉ ተሰርዟል ወይም አርካይቭ ውስጥ ገብቷል."
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "ከዚህ አይነት ቻናል ላይ ተጠቃሚ ማስወገድ አይቻልም."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "ቻናሉን ማስተካከል አልተቻለም."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "አስፈላጊው ፍቃድ የለዎትም"
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "ቻናሉ ተሰርዟል ወይም አርካይቭ ውስጥ ገብቷል."
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "ከተሰጡት ተጠቃሚዎች ውስጥ አንዱ የለም."
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "የጋራ መልዕክት ቻናሎች ከ 3 ያላነሱ እና ከ 8 ያልበለጡ ተጠቃሚዎችን ብቻ መያዝ አለባቸው."
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "ታውን ስኩዌር"
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "ከርዕስ ውጭ"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "ይህ ቻናል ወደ ግላዊ ቻናል ተቀይሯል."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "ይህ ቻናል ወደ ይፋዊ ቻናል የተለወጠ ስለሆነ ማንኛውም የቡድን አባል ሊቀላቀል ይችላል."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "ወደዚህ አይነት ቻናል ላይ ተጠቃሚ መጨመር አይቻልም."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "ተጠቃሚው ከቡድኑ ስለተወገዱ ወደ ቻናሉ መጨመር አልተቻለም."
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "ቻናል አባል መጨመር ላይ ስህተት ተክስቷል."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "ፋይሉ ትልቅ ስለሆነ መጫን አልተቻለም."
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "የ SMTP ሰርቨሩ፣ የፖርት ቁጥር ወይም የተጠቃሚው ስም ተቀይሯል. ግንኙነትን ለመሞከር እባክዎ የ SMTP የይለፍ ቃልዎን እንደገና ያስገቡ."
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "የ SMTP ሰርቨር ያስፈልጋል."
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "በጣም አስፈላጊ የሆነው የእርስዎ ኢሜል በትክክል ማዋቀሩን ያሳያል!"
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 በዚህ ሰርቨር ላይ አልተዋቀረም ወይም አይሰራም."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "የአገልግሎት አቅራቢ ሜታዳታ በሚገነቡበት ጊዜ ስህተት ተከስቷል."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "የምስል ፋይሉን መክፈት አልተቻለም."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "የምስል ማከማቻ አልተዋቀረም."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "ስህተት ስለተፈጠረ ሎግ ፋይሉን ማንበብ አልተቻለም.  "
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "የምስል ፋይሉን መክፈት አልተቻለም."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "የምስል ፋይሉን መክፈት አልተቻለም."
+  },
+  {
+    "id": "September",
+    "translation": "መስከረም"
+  },
+  {
+    "id": "October",
+    "translation": "ጥቅምት"
+  },
+  {
+    "id": "November",
+    "translation": "ሕዳር"
+  },
+  {
+    "id": "May",
+    "translation": "ግንቦት"
+  },
+  {
+    "id": "March",
+    "translation": "መጋቢት"
+  },
+  {
+    "id": "June",
+    "translation": "ሰኔ"
+  },
+  {
+    "id": "July",
+    "translation": "ሐምሌ"
+  },
+  {
+    "id": "January",
+    "translation": "ጥር"
+  },
+  {
+    "id": "February",
+    "translation": "የካቲት"
+  },
+  {
+    "id": "December",
+    "translation": "ታሕሣስ"
+  },
+  {
+    "id": "August",
+    "translation": "ነሐሴ"
+  },
+  {
+    "id": "April",
+    "translation": "ሚያዚያ"
+  }
+]

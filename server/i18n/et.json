@@ -1,0 +1,78 @@
+[
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "Sertifikaadi faili avamine nurjus."
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Sertifikaadi faili avamine nurjus."
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "Sertifikaadi faili avamine nurjus."
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "Sertifikaadi faili avamine nurjus."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Sertifikaadi faili avamine nurjus."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Sertifikaadi faili avamine nurjus."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Sertifikaadi faili avamine nurjus."
+  },
+  {
+    "id": "September",
+    "translation": "September"
+  },
+  {
+    "id": "October",
+    "translation": "Oktoober"
+  },
+  {
+    "id": "November",
+    "translation": "November"
+  },
+  {
+    "id": "May",
+    "translation": "Mai"
+  },
+  {
+    "id": "March",
+    "translation": "Märts"
+  },
+  {
+    "id": "June",
+    "translation": "Juuni"
+  },
+  {
+    "id": "July",
+    "translation": "Juuli"
+  },
+  {
+    "id": "January",
+    "translation": "Jaanuar"
+  },
+  {
+    "id": "February",
+    "translation": "Veebruar"
+  },
+  {
+    "id": "December",
+    "translation": "Detsember"
+  },
+  {
+    "id": "August",
+    "translation": "August"
+  },
+  {
+    "id": "April",
+    "translation": "Aprill"
+  }
+]

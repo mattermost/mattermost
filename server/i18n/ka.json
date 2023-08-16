@@ -1,0 +1,486 @@
+[
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "შეუძლებელია პირდაპირი შეტყობინებების არხების სახელის შეცვლა."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "არხის სახელის შეცვლა"
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "შეცდომა მიმდინარე არხის მიღებისას."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "შეცდომა არხის მიღებისას."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "შეცდომა არხის განახლებისას."
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "თქვენ არ გაქვთ შესაბამისი უფლებები, რომ შეცვალოთ არხის დანიშნულება."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "დანიშნულება"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "შეტყობინება უნდა იყოს მითითებული /purpose ბრძანებით."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[ტექსტი]"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "დანიშნულება ვერ დაყენდება პირდაპირი შეტყობინების არხებისთვის. ნაცვლად გამოიყენეთ /header რომ დააყენოთ სათაური."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "არხის დანიშნულების შეცვლა"
+  },
+  {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "მითითებული მომხმარებელი არ არის მითითებული არხის წევრი."
+  },
+  {
+    "id": "api.command.admin_only.app_error",
+    "translation": "ინტეგრაციებზე მხოლოდ ადმინისტრატორებს აქვთ წვდომა."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "მითითებული როლი იმართება სქემის მიერა და ამიტომაც პირდაპირ ვერ მიენიჭება გუნდის წევრს."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "გუნდის წევრის არასწორი განახლება: თქვენ არ შეგიძლიათ ხელით დაამატოთ ან წაშალოთ სტუმრის როლი."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "შეუძლებელია არქის სქემის დაყენება, რადგანაც მითითებული სქემა არ არის არხის სქემა."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "თქვენს ლიცენზიას არ აქვს არხის სქემის შეცვლის მხარადჭერა"
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "ნაგულისხმევი არხი არ შეიძლება გადაკეთდეს პრივატულად."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "მითითებული როლი იმართება სქემის მიერა და ამიტომაც ვერ მიენიჭება პირდაპირ არხის წევრს."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "არხის წევრის არასწორი განახლება: მომხამრებელი უნდა იყოს მომხმარებელი ან სტუმარი და არა ორივე."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "არხის წევრის არასწორი განახლება: თქვენ არ შეგიძლიათ ხელით დაამატოთ ან წაშალოთ სტუმრის როლი."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "არხის ტიპი ვერ განახლდება."
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "დაფიქსირდა ნაგულისხმევი არხის არასწორი განახლება {{.Channel}}."
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "არხი დაარქივდა ან წაიშალა."
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} -მა გამოოაარქივა არხი."
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "შეუძლებელია არხის გამოარქივება. არხი არ არის დაარქივებული."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "თქვენ არ შეგიძლიათ შეუცვალოთ სახელი ჯგუფის შეტყობინებების არხს."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "თქვენ არ შეგიძლიათ შეუცვალოთ სახელი პირდაპირი შეტყობინებების არხს."
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "ვერ ვშლი მომხმარებლებს ამ ტიპის არხში."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "ჯგუფის შეზღუდვებიდან გამომდინარე არხისდან წაშლა აკრძალულია შემდეგი მომხმარებლებისთვის: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "ვერ ხერხდება მრავალნაწილიანი ფორმის პარსინგი."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "შეცდომა დაფიქსირდა სერვისის პროვაიდერის მეტამონაცემების აწყობისას."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "არ არის ნაპოვნი იდენტობის პროვაიდერის SSO სერვისების ნოდი XML-ში."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "არ არის ნაპოვნი იდენტობის პროვაიდერის გასაღბების დესკრიპტორები XML ფაილში."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "არ არის ნაპოვნი იდენტობის პროვაიდერის SSO დესკრიპტორების ნოდი XML-ში."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "შეცდომა დაფიქსირდა მონაცემების პარსინგისას მეტამონაცემებში, რომელიც მიღებულია იქნა იდენტობის პროვაიდერის მიერ სერტიფიკატისთვის."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "ვერ იქნა მოღებული მეტამონაცემები იდენტობის პროვაიდერის URL-დან."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "ვერ წაიშალა ბრენდის გამოსახულება, არ არის ნაპოვნი."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "ვერ შეინახა სერტიფიკატის ფაილი."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "ვერ გაიხსნა სერტიფიკატის ფაილი."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "არ არის ფაილი მოთხოვნაში 'certificate'"
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "არ არის ფაილი მოთხოვნაში 'certificate'."
+  },
+  {
+    "id": "web.incoming_webhook.user.app_error",
+    "translation": "მომხმარებელი არ არის ნაპოვნი."
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v წაიშალა არხიდან."
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "ვერ წაიშალა მომხმარებელი ჯგუფზე შეზღუდული არხიდან."
+  },
+  {
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "ვერ წაიშალა მომხმარებელი არხიდან."
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "ვერ წაიშალა მომხამრებელი ნაგულისხმევი არხიდან {{.Channel}}."
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "ვერ მოხერხდა შესვლა/დატოვების შემოდგომი შეტყობინების გამოქვეყნება"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s-მა შეცვალა არხის სათაური: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s-მა შეცვალა არხის სათაური, %s-დან : %s-ზე"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "ვერ მოხერხდა მომხმარებლის მიღება არხის სათაურის განახლებისას"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s-მა წაშალა არხის სათაური (იყო: %s)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "ვერ მოხერხდა არხის სათაურის შეცვლის შეტყობინების გამოქვეყნება"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s-მა შეცვალა არხის ეკრანული სახელი: %s-დან : %s-ზე"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "ვერ მოხერხდა მომხმარებლის მიღება არხის ეკრანული სახელის ველის განახლებისას"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "ვერ მოხერხდა ეკრანული სახელის განახლების შეტყობინების გამოქვეყნება"
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "ვერ მოხერხდა არხის პრივატულობის განახლების შეტყობინების გამოქვეყნება."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "არხი ვერ განახლდა."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "თქვენს ლიცენზიას არ აქვს არხების მოდერაციის მხარდაჭერა"
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "ვერ გადავიტანე პირდაპირ ან ჯგუფის შეტყობინებების არხი"
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v დატოვა არხი."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "თქვენ მარტო დარჩით, ცადეთ წაშალოთ პრივატული არხი მისი დატოვების ნაცვლად."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "ვერ დატოვეთ პირდაპირი შეტყობინების არხი."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "ვერ დატოვეთ ნაგულისხმევი არხი {{.Channel}}."
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v შემოვიდა არხზე."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "თქვენ არ გაქვთ შესაბამისი უფლებები."
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v შემოვიდა არხზე, როგორც სტუმარი."
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "თქვენს ლიცენზიას არ აქვს არხების მოდერაციის მხარდაჭერა"
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "ვერ წაიშალა პირდაპირი ან ჯგუფური შეტყობინებების არხები"
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "არხი დაარქივებულია ან წაშლილი."
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "შეუძლებელია ნაგულისხმევი არხის წაშლა {{.Channel}}."
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v-მა დააარქივა არხი."
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "ერთ-ერთი მითითებული მომხმარებელი არ არსებობს."
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "ჯგუფის შეტყობინებების არხები უნდა შეიცავდეს არანაკლებ 3 და არაუმეტეს 8 მომხმარებელს."
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "არასწორი მომხმარებლის ID პირდაპირი არხის შექმნისთვის."
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "ქალაქის ცენტრი"
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "ოფ-ტოპიკი"
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "შეუძლებელია {{.MaxChannelsPerTeam}}-ზე მეტი არხის შექმნა მიმდინარე გუნდისთვის."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "უნდა გამოიყენოთ createDirectChannel API სერვისი პირდაპირი შეტყობინებების არხის შექმნისთვის."
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "თქვენს ლიცენზიას არ აქვს ჯგუფების მხარდაჭერა"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "ეს არხი გადაკეთდა საჯარო არხად."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "ეს არხი გადაკეთდა საჯარო არხად და მასში შესვლა ნებისმიერი გუნდის წევრს შეუძლია."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "ვერ ვამატებ მომხმარებელს ამ ტიპის არხში."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "მომხამრებელი ვერ დაემატა არხს იმიტომ, რომ ის ამოღებულია გუნდიდან."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "მომხმარებელი ვერ დაემატა არხს."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "არხის წევრობა აკრძალული აქვთ შემდეგ მომხმარებლებს ჯგუფის შეზღუდვებიდან გამომდინარე: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "შეცდომა არხის წევრის(ების) დამატებისას."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v დაემატა არხს %v-ის მიერ."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v დაემატა არხს %v-ის რეკომენდაციით."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "გთხოვ დამამატო გუნდებში და არხებში, რომელშიც გინდა მონაწილეობა მივიღო. ამისთვის გამოიყენე ბრაუზერი ან Mattermost-ის სამაგიდო აპლიკაცია."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "ბოტების შექმნა გამორთულია."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "ფაილი არ აიტვირთა. ფაილი ძალიან დიდია."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "გამოსახულების ატვირთვა შეუძლებელია. საცავი არ არის კონფიგურირებული."
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "არ არის ფაილი 'image'-ის ქვეშ მოთხოვნაში."
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "ცარიელი მასივი 'image'-ის ქვეშ მოთხოვნაში."
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "საჭიროა S3 Bucket"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - ელ-ფოსტის პარამეტრების ტესტირება"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "შეიცავალა SMTP სერვერი, პორტი ან მომხმარებლის სახელი. გთხოვთ თავიდან შეიყვანოთ SMTP პაროლი, რომ დატესტოთ შეერთება."
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "საჭიროა SMTP სერვერი"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "როგორც ჩანს თქვენი Mattermos-ის ელ-ფოსტა კორექტულადაა გამართული!"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "არ არის კონტენტის ტიპი."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "არასწორი ტიპის შიგთავსი."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "არასწორი სერტიფიკატის ტექსტი."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 არ არის კონფიგურურებული ან მხარდაჭერილი ამ სერვერზე."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "ვერ მოხერხდა სერტიფიკატის ფაილის შენახვა."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "დაფიქსირდა შეცდომა სერტიფიკატის წაშლისას."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP არ არის ხელმისაწვდომი."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "გამოსახულებების საცავი არ არის დაყენებული."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "ლოგ ფაილის წაკითხვის შეცდომა."
+  },
+  {
+    "id": "September",
+    "translation": "სექტემბერი"
+  },
+  {
+    "id": "October",
+    "translation": "ოქტომბერი"
+  },
+  {
+    "id": "November",
+    "translation": "ნოემბერი"
+  },
+  {
+    "id": "May",
+    "translation": "მაისი"
+  },
+  {
+    "id": "March",
+    "translation": "მარტი"
+  },
+  {
+    "id": "June",
+    "translation": "ივნისი"
+  },
+  {
+    "id": "July",
+    "translation": "ივლისი"
+  },
+  {
+    "id": "January",
+    "translation": "იანვარი"
+  },
+  {
+    "id": "February",
+    "translation": "თებერვალი"
+  },
+  {
+    "id": "December",
+    "translation": "დეკემბერი"
+  },
+  {
+    "id": "August",
+    "translation": "აგვისტო"
+  },
+  {
+    "id": "April",
+    "translation": "აპრილი"
+  }
+]

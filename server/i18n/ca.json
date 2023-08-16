@@ -1,0 +1,4762 @@
+[
+  {
+    "id": "web.incoming_webhook.user.app_error",
+    "translation": "No s'ha pogut trobar l'usuari"
+  },
+  {
+    "id": "web.incoming_webhook.invalid.app_error",
+    "translation": "Mètode no vàlid"
+  },
+  {
+    "id": "web.incoming_webhook.disabled.app_error",
+    "translation": "L'administrador del sistema ha desactivat els «webhooks» entrants."
+  },
+  {
+    "id": "web.incoming_webhook.channel.app_error",
+    "translation": "No s'ha pogut trobar el canal"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "No s'ha pogut trobar l'ordre"
+  },
+  {
+    "id": "app.reaction.save.save.app_error",
+    "translation": "No es pot desar la reacció"
+  },
+  {
+    "id": "app.emoji.delete.app_error",
+    "translation": "No es pot eliminar l'emoji"
+  },
+  {
+    "id": "store.sql_command.save.get.app_error",
+    "translation": "No es pot obtenir l'ordre"
+  },
+  {
+    "id": "app.channel.update.bad_id",
+    "translation": "No es pot actualitzar el canal"
+  },
+  {
+    "id": "store.sql_channel.save_channel.limit.app_error",
+    "translation": "Heu assolit el límit del nombre de canals permesos."
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "No pots modificar un canal arxivat"
+  },
+  {
+    "id": "app.channel.get_deleted.existing.app_error",
+    "translation": "No es pot trobar el canal eliminat existent"
+  },
+  {
+    "id": "store.sql_channel.get.existing.app_error",
+    "translation": "No es pot trobar el canal existent"
+  },
+  {
+    "id": "app.audit.save.saving.app_error",
+    "translation": "Hem trobat un error en desar les auditories"
+  },
+  {
+    "id": "app.audit.permanent_delete_by_user.app_error",
+    "translation": "Hem trobat un error en eliminar les auditories"
+  },
+  {
+    "id": "app.audit.get.finding.app_error",
+    "translation": "Hem trobat un error en cercar les auditories"
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "No es pot obtenir un enllaç públic per al fitxer. El fitxer s'ha d'adjuntar a una publicació que es pugui llegir."
+  },
+  {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "S'han desactivat els enllaços públics"
+  },
+  {
+    "id": "model.user_access_token.is_valid.user_id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.user_access_token.is_valid.token.app_error",
+    "translation": "Testimoni d'accés no vàlid"
+  },
+  {
+    "id": "model.user_access_token.is_valid.id.app_error",
+    "translation": "Valor no vàlid per a l'id."
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "«Update at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "Àlies no vàlid"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Cognom no vàlid"
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Nom no vàlid"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "Testimoni no vàlid."
+  },
+  {
+    "id": "model.team_member.is_valid.user_id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.team_member.is_valid.team_id.app_error",
+    "translation": "ID d'equip no vàlid"
+  },
+  {
+    "id": "model.team.is_valid.update_at.app_error",
+    "translation": "«Update at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.team.is_valid.type.app_error",
+    "translation": "Tipus no vàlid"
+  },
+  {
+    "id": "model.team.is_valid.name.app_error",
+    "translation": "Nom no vàlid"
+  },
+  {
+    "id": "model.team.is_valid.id.app_error",
+    "translation": "ID no vàlid"
+  },
+  {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "Descripció no vàlida"
+  },
+  {
+    "id": "model.team.is_valid.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.team.is_valid.company.app_error",
+    "translation": "Nom de l'empresa no vàlid"
+  },
+  {
+    "id": "model.team.is_valid.characters.app_error",
+    "translation": "El nom ha de tenir 2 o més caràcters alfanumèrics en minúscula"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "ID de publicació no vàlid"
+  },
+  {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "Nom de l'emoji no vàlid"
+  },
+  {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.preference.is_valid.theme.app_error",
+    "translation": "Tema no vàlid"
+  },
+  {
+    "id": "model.preference.is_valid.name.app_error",
+    "translation": "Nom no vàlid"
+  },
+  {
+    "id": "model.preference.is_valid.id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.post.is_valid.user_id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.post.is_valid.update_at.app_error",
+    "translation": "«Update at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.post.is_valid.type.app_error",
+    "translation": "Tipus no vàlid"
+  },
+  {
+    "id": "model.post.is_valid.root_id.app_error",
+    "translation": "ID d'arrel no vàlid"
+  },
+  {
+    "id": "model.post.is_valid.props.app_error",
+    "translation": "Props no vàlid"
+  },
+  {
+    "id": "model.post.is_valid.msg.app_error",
+    "translation": "Estat no vàlid"
+  },
+  {
+    "id": "model.post.is_valid.id.app_error",
+    "translation": "ID no vàlid"
+  },
+  {
+    "id": "model.post.is_valid.filenames.app_error",
+    "translation": "Nom de fitxers no vàlids"
+  },
+  {
+    "id": "model.post.is_valid.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.post.is_valid.channel_id.app_error",
+    "translation": "ID del canal no vàlid"
+  },
+  {
+    "id": "model.outgoing_hook.username.app_error",
+    "translation": "Nom d'usuari no vàlid."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.user_id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.url.app_error",
+    "translation": "L'URL de resposta no és vàlid. Cadascun ha de ser un URL vàlid i començar per http:// o https://"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.update_at.app_error",
+    "translation": "«Update at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.token.app_error",
+    "translation": "Testimoni no vàlid."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.team_id.app_error",
+    "translation": "ID d'equip no vàlid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.id.app_error",
+    "translation": "ID no vàlid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.display_name.app_error",
+    "translation": "Títol no vàlid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.description.app_error",
+    "translation": "Descripció no vàlida"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.channel_id.app_error",
+    "translation": "ID del canal no vàlid"
+  },
+  {
+    "id": "model.outgoing_hook.icon_url.app_error",
+    "translation": "Icona no vàlida"
+  },
+  {
+    "id": "model.oauth.is_valid.update_at.app_error",
+    "translation": "«Update at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.oauth.is_valid.name.app_error",
+    "translation": "Nom no vàlid"
+  },
+  {
+    "id": "model.oauth.is_valid.icon_url.app_error",
+    "translation": "L'URL de la icona ha de ser un URL vàlid i començar per http:// o https://."
+  },
+  {
+    "id": "model.oauth.is_valid.homepage.app_error",
+    "translation": "La pàgina d'inici ha de ser un URL vàlid i començar per http:// o https://."
+  },
+  {
+    "id": "model.oauth.is_valid.description.app_error",
+    "translation": "Descripció no vàlida"
+  },
+  {
+    "id": "model.oauth.is_valid.creator_id.app_error",
+    "translation": "ID del creador no vàlid"
+  },
+  {
+    "id": "model.oauth.is_valid.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.oauth.is_valid.callback.app_error",
+    "translation": "L'URL de retorn no és vàlid. Ha de ser un URL vàlid i començar per http:// o https://."
+  },
+  {
+    "id": "model.oauth.is_valid.app_id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Tipus de treball no vàlid"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "ID de treball no vàlid"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "Nom d'usuari no vàlid."
+  },
+  {
+    "id": "model.incoming_hook.user_id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.incoming_hook.update_at.app_error",
+    "translation": "«Update at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.incoming_hook.team_id.app_error",
+    "translation": "ID d'equip no vàlid"
+  },
+  {
+    "id": "model.incoming_hook.id.app_error",
+    "translation": "ID no vàlid"
+  },
+  {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "Icona de publicació no vàlida"
+  },
+  {
+    "id": "model.incoming_hook.display_name.app_error",
+    "translation": "Títol no vàlid"
+  },
+  {
+    "id": "model.incoming_hook.description.app_error",
+    "translation": "Descripció no vàlida"
+  },
+  {
+    "id": "model.incoming_hook.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.incoming_hook.channel_id.app_error",
+    "translation": "ID del canal no vàlid"
+  },
+  {
+    "id": "model.guest.is_valid.channels.app_error",
+    "translation": "ID del canal no vàlid"
+  },
+  {
+    "id": "model.guest.is_valid.channel.app_error",
+    "translation": "ID del canal no vàlid"
+  },
+  {
+    "id": "model.file_info.is_valid.user_id.app_error",
+    "translation": "Valor no vàlid per a l'«user_id»."
+  },
+  {
+    "id": "model.file_info.is_valid.update_at.app_error",
+    "translation": "Valor no vàlid per a «update_at»."
+  },
+  {
+    "id": "model.file_info.is_valid.post_id.app_error",
+    "translation": "Valor no vàlid per al «post_id»."
+  },
+  {
+    "id": "model.file_info.is_valid.path.app_error",
+    "translation": "Valor no vàlid per a la ruta."
+  },
+  {
+    "id": "model.file_info.is_valid.id.app_error",
+    "translation": "Valor no vàlid per a l'id."
+  },
+  {
+    "id": "model.file_info.is_valid.create_at.app_error",
+    "translation": "Valor no vàlid per a «create_at»."
+  },
+  {
+    "id": "model.emoji.user_id.app_error",
+    "translation": "ID del creador no vàlid"
+  },
+  {
+    "id": "model.emoji.update_at.app_error",
+    "translation": "«Update at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.emoji.name.app_error",
+    "translation": "El nom ha de tenir entre 1 i 64 caràcters alfanumèrics en minúscula"
+  },
+  {
+    "id": "model.emoji.id.app_error",
+    "translation": "ID d'emoji no vàlid"
+  },
+  {
+    "id": "model.emoji.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "El valor per al temps d'espera d'escriptura no és vàlid."
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "L'URL del Websocket ha de ser un URL vàlid i començar amb ws:// o wss://"
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Temps d'espera de consulta no vàlid per a la configuració SQL. Ha de ser un número positiu."
+  },
+  {
+    "id": "model.config.is_valid.sql_max_conn.app_error",
+    "translation": "Connexió oberta màxima no vàlida per a la configuració SQL. Ha de ser un número positiu."
+  },
+  {
+    "id": "model.config.is_valid.sql_idle.app_error",
+    "translation": "Connexió inactiva màxima no vàlida per a la configuració SQL. Ha de ser un número positiu."
+  },
+  {
+    "id": "model.config.is_valid.sql_driver.app_error",
+    "translation": "El nom del controlador per a la configuració SQL no és vàlid. Ha de ser «mysql» o «postgres»"
+  },
+  {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "L'URL del lloc ha de ser un URL vàlid i començar per http:// o https://"
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_url.app_error",
+    "translation": "L'URL de SAML SSO ha de ser un URL vàlid i començar per http:// o https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
+    "translation": "L'URL de l'emissor del proveïdor d'identitat ha de ser un URL vàlid i començar per http:// o https://."
+  },
+  {
+    "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
+    "translation": "L'URL d'inici de sessió del proveïdor de serveis ha de ser un URL vàlid i començar per http:// o https://."
+  },
+  {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "La restricció del missatge directe no és vàlida. Ha de ser 'any' o 'team'"
+  },
+  {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "El valor per al temps d'espera de lectura no és vàlid."
+  },
+  {
+    "id": "model.config.is_valid.password_length.app_error",
+    "translation": "La longitud mínima de la contrasenya ha de ser un nombre sencer superior o igual a {{.MinLength}} i menor o igual a {{.MaxLength}}."
+  },
+  {
+    "id": "model.config.is_valid.max_users.app_error",
+    "translation": "Els usuaris màxims no són vàlids per equip per a la configuració de l'equip. Ha de ser un nombre positiu."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Les notificacions màximes per canal no són vàlides per a la configuració de l'equip. Ha de ser un nombre positiu."
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "Mida màxima del fitxer no vàlida per a la configuració del fitxer. Ha de ser un número sencer superior a zero."
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Els canals màxims per equip no són vàlids per a la configuració de l'equip. Ha de ser un número positiu."
+  },
+  {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "La mida màxima de la ràfega ha de ser superior a zero."
+  },
+  {
+    "id": "model.config.is_valid.login_attempts.app_error",
+    "translation": "Els intents d'inici de sessió màxim no són vàlids per a la configuració del servei. Ha de ser un número positiu."
+  },
+  {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Els idiomes disponibles han de contenir l'idioma per defecte del client"
+  },
+  {
+    "id": "model.config.is_valid.listen_address.app_error",
+    "translation": "Adreça d’escolta no vàlida per a la configuració del servei. S'ha d'establir."
+  },
+  {
+    "id": "model.config.is_valid.ldap_username",
+    "translation": "El camp AD/LDAP «Username Attribute» és obligatori."
+  },
+  {
+    "id": "model.config.is_valid.ldap_sync_interval.app_error",
+    "translation": "Temps d’interval de sincronització no vàlid. Cal que sigui almenys un minut."
+  },
+  {
+    "id": "model.config.is_valid.ldap_server",
+    "translation": "El camp AD/LDAP «AD/LDAP Server» és obligatori."
+  },
+  {
+    "id": "model.config.is_valid.ldap_security.app_error",
+    "translation": "La seguretat de la connexió no és vàlida per a la configuració AD/LDAP. Ha de ser '', 'TLS' o 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "El valor de la mida de la pàgina no és vàlid."
+  },
+  {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "El camp AD/LDAP «Login ID Attribute» és obligatori."
+  },
+  {
+    "id": "model.config.is_valid.ldap_id",
+    "translation": "El campo AD/LDAP «ID Attribute» és obligatori."
+  },
+  {
+    "id": "model.config.is_valid.ldap_email",
+    "translation": "El camp AD/LDAP «Email Attribute» és obligatori."
+  },
+  {
+    "id": "model.config.is_valid.ldap_basedn",
+    "translation": "El camp AD/LDAP «BaseDN» és obligatori."
+  },
+  {
+    "id": "ent.elasticsearch.search_users.search_failed",
+    "translation": "No s'ha pogut completar la cerca"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "No s'ha pogut descodificar els resultats de la cerca"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.search_failed",
+    "translation": "No s'ha pogut completar la cerca"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "translation": "No s'ha pogut analitzar les coincidències del resultat de la cerca"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.disabled",
+    "translation": "La cerca d'Elasticsearch està desactivada en aquest servidor"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "No s'ha pogut descodificar els resultats de la cerca"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.search_failed",
+    "translation": "No s'ha pogut completar la cerca"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.disabled",
+    "translation": "La cerca d'Elasticsearch està desactivada en aquest servidor"
+  },
+  {
+    "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
+    "translation": "No s'han pogut obtenir els índexs d'Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "No s'ha pogut suprimir l'índex d'Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "L'Elasticsearch no s'ha iniciat"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "S'està intentant indexar un nou lot quan es completin totes les entitats."
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "El treball d'indexació d'Elasticsearch no va poder analitzar la hora d'inici"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "El treball d'indexació d'Elasticsearch no ha pogut analitzar l'hora de finalització"
+  },
+  {
+    "id": "ent.elasticsearch.index_user.error",
+    "translation": "No s'ha pogut indexar l'usuari"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "No s'ha pogut indexar la publicació"
+  },
+  {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "No s'ha pogut indexar el canal"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "La cerca d'Elasticsearch no està activada en aquest servidor"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
+    "translation": "No s'ha pogut eliminar l'usuari"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "No s'ha pogut eliminar la publicació"
+  },
+  {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "No s'ha pogut suprimir el canal"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "translation": "No s'han pogut obtenir els índexs d'Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "translation": "No s'ha pogut suprimir l'índex d'Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "S'ha produït un error en configurar el client Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "L'agregador de treballs Elasticsearch va fallar a causa de que hi ha un treball d'indexació fallant"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "L'agregador de treballs Elasticsearch no va poder obtenir els índexs"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "L'agregador de treballs Elasticsearch no va poder eliminar els índexs"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "L'agregador de treballs Elasticsearch no va poder crear el treball d'indexació"
+  },
+  {
+    "id": "ent.data_retention.generic.license.error",
+    "translation": "La teva llicència no és compatible amb la retenció de dades."
+  },
+  {
+    "id": "ent.compliance.run_failed.error",
+    "translation": "El treball '{{.JobName}}' ha fallat en exportar la conformitat a '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.run_export.template_watcher.appError",
+    "translation": "No es poden carregar les plantilles d'exportació. Torna-ho a provar."
+  },
+  {
+    "id": "ent.compliance.licence_disable.app_error",
+    "translation": "La funció de compliment està desactivada per la llicència actual. Contacta amb l'administrador del sistema per actualitzar la teva llicència empresarial."
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "No es pot tornar a llegir el fitxer d'exportació temporal Global Relay."
+  },
+  {
+    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "translation": "No es pot obrir el fitxer temporal d'exportació."
+  },
+  {
+    "id": "ent.compliance.global_relay.attachments_removed.appError",
+    "translation": "El fitxer pujat s'ha eliminat de l'exportació Global Relay perquè era massa gran per enviar-lo."
+  },
+  {
+    "id": "ent.compliance.csv.zip.creation.appError",
+    "translation": "No es pot crear el fitxer d'exportació zip."
+  },
+  {
+    "id": "ent.compliance.csv.warning.appError",
+    "translation": "No es pot crear el fitxer eml."
+  },
+  {
+    "id": "ent.compliance.csv.post.export.appError",
+    "translation": "No es pot exportar una publicació."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+    "translation": "No es pot crear el fitxer eml."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
+    "translation": "No es poden convertir les metadades a json."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.export.appError",
+    "translation": "No es pot afegir el fitxer de metadades al fitxer zip."
+  },
+  {
+    "id": "ent.compliance.csv.header.export.appError",
+    "translation": "No es pot afegir la capçalera a l'exportació CSV."
+  },
+  {
+    "id": "ent.compliance.csv.file.creation.appError",
+    "translation": "No es pot crear el fitxer temporal d'exportació CSV."
+  },
+  {
+    "id": "ent.compliance.csv.attachment.export.appError",
+    "translation": "No es pot afegir un fitxer adjunt a l'exportació CSV."
+  },
+  {
+    "id": "ent.compliance.csv.attachment.copy.appError",
+    "translation": "No es pot copiar el fitxer adjunt al fitxer zip."
+  },
+  {
+    "id": "ent.compliance.bad_export_type.appError",
+    "translation": "Format de sortida desconegut {{.ExportType}}"
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "La consola del sistema s'estableix a només lectura quan s'activa l'alta disponibilitat a menys que «ReadOnlyConfig» estigui desactivat al fitxer de configuració."
+  },
+  {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "La configuració del clúster ha canviat per a l'id={{ .id}}. El clúster pot esdevenir inestable i caldrà reiniciar-lo. Per assegurar-te que el clúster estigui configurat correctament, hauràs de fer un reinici continu immediatament."
+  },
+  {
+    "id": "ent.account_migration.get_saml_users_failed",
+    "translation": "No es pot obtenir els usuaris SAML."
+  },
+  {
+    "id": "ent.account_migration.get_all_failed",
+    "translation": "No es pot obtenir els usuaris."
+  },
+  {
+    "id": "brand.save_brand_image.save_image.app_error",
+    "translation": "No es pot escriure el fitxer d'imatge al vostre emmagatzematge de fitxers. Comprova la teva connexió i torna-ho a provar."
+  },
+  {
+    "id": "brand.save_brand_image.open.app_error",
+    "translation": "No es pot pujar la imatge de marca personalitzada. Assegura't que la mida de la imatge sigui inferior a 2 MB i torna-ho a provar."
+  },
+  {
+    "id": "brand.save_brand_image.encode.app_error",
+    "translation": "No es pot convertir les dades de la imatge en format PNG. Torna-ho a provar."
+  },
+  {
+    "id": "brand.save_brand_image.decode.app_error",
+    "translation": "No es pot descodificar les dades de la imatge."
+  },
+  {
+    "id": "bleveengine.search_users_in_team.error",
+    "translation": "No s'ha pogut completar la cerca"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.uchan.error",
+    "translation": "No s'ha pogut completar la cerca"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.nuchan.error",
+    "translation": "No s'ha pogut completar la cerca"
+  },
+  {
+    "id": "bleveengine.search_posts.error",
+    "translation": "No s'ha pogut completar la cerca"
+  },
+  {
+    "id": "bleveengine.search_channels.error",
+    "translation": "No s'ha pogut completar la cerca"
+  },
+  {
+    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "S'està intentant indexar un nou lot quan es completin totes les entitats."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_start_time.error",
+    "translation": "El treball d'indexació d'Elasticsearch no va poder analitzar la hora d'inici"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_end_time.error",
+    "translation": "El treball d'indexació d'Elasticsearch no ha pogut analitzar l'hora de finalització"
+  },
+  {
+    "id": "bleveengine.index_user.error",
+    "translation": "No s'ha pogut indexar l'usuari"
+  },
+  {
+    "id": "bleveengine.index_post.error",
+    "translation": "No s'ha pogut indexar la publicació"
+  },
+  {
+    "id": "bleveengine.index_channel.error",
+    "translation": "No s'ha pogut indexar el canal"
+  },
+  {
+    "id": "bleveengine.delete_user.error",
+    "translation": "No s'ha pogut eliminar l'usuari"
+  },
+  {
+    "id": "bleveengine.delete_post.error",
+    "translation": "No s'ha pogut eliminar la publicació"
+  },
+  {
+    "id": "bleveengine.delete_channel.error",
+    "translation": "No s'ha pogut suprimir el canal"
+  },
+  {
+    "id": "app.user_access_token.invalid_or_missing",
+    "translation": "Testimoni no vàlid o absent"
+  },
+  {
+    "id": "app.user_access_token.disabled",
+    "translation": "S'han desactivat els testimonis d'accés personal en aquest servidor. Contacta amb l'administrador del sistema per obtenir-ne més detalls."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Aquest equip ha arribat al número màxim de comptes permesos. Contacta amb l'administrador del sistema per establir un límit superior."
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "No s'ha pogut analitzar la data d'instal·lació"
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "S'ha trobat un error de codificació JSON per al diàleg interactiu."
+  },
+  {
+    "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
+    "translation": "Aquest punt final de l'API no és accessible perquè les migracions necessàries encara no s'han completat."
+  },
+  {
+    "id": "app.save_config.app_error",
+    "translation": "S'ha produït un error en desar la configuració"
+  },
+  {
+    "id": "app.role.check_roles_exist.role_not_found",
+    "translation": "El rol proporcionat no existeix"
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "S'ha produït un error en deixar del canal."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "S'ha produït un error en deixar del canal."
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "Els connectors i/o les pujades dels connectors s'han desactivat."
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "No es pot eliminar el connector"
+  },
+  {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "El connector no està instal·lat"
+  },
+  {
+    "id": "app.plugin.mvdir.app_error",
+    "translation": "No es pot moure el connector des del directori temporal fins a la destinació final. Un altre complement pot estar utilitzant el mateix nom de directori."
+  },
+  {
+    "id": "app.plugin.marketplace_disabled.app_error",
+    "translation": "Els connectors s'han desactivat. Verifiqueu els teus registres per obtenir-ne més detalls."
+  },
+  {
+    "id": "app.plugin.manifest.app_error",
+    "translation": "No es pot trobar el manifest per al connector extret"
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "L'ID del connector ha de tenir un mínim de {{.Min}} caràcters i un màxim de {{.Max}} caràcters i coincidir amb {{.Regex}}."
+  },
+  {
+    "id": "app.plugin.install_id_failed_remove.app_error",
+    "translation": "No es pot instal·lar el connector. Ja s'ha instal·lat un connector amb el mateix ID i no s'ha pogut eliminar."
+  },
+  {
+    "id": "app.plugin.install_id.app_error",
+    "translation": "No es pot instal·lar el connector. Ja s'ha instal·lat un connector amb el mateix ID."
+  },
+  {
+    "id": "app.plugin.install.app_error",
+    "translation": "No es pot instal·lar el connector."
+  },
+  {
+    "id": "app.plugin.get_statuses.app_error",
+    "translation": "No es poden obtenir els estats dels connectors"
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "No es pot obtenir els connectors actius"
+  },
+  {
+    "id": "app.plugin.get_cluster_plugin_statuses.app_error",
+    "translation": "No es poden obtenir els estats dels connectors del clúster."
+  },
+  {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "S'ha detectat un error del sistema de fitxers"
+  },
+  {
+    "id": "app.plugin.disabled.app_error",
+    "translation": "Els connectors s'han desactivat. Verifiqueu els teus registres per obtenir-ne més detalls."
+  },
+  {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "S'ha produït un error en suprimir el certificat."
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "No es pot desactivar el connector"
+  },
+  {
+    "id": "app.plugin.config.app_error",
+    "translation": "S'ha produït un error en desar l'estat del connector a la configuració"
+  },
+  {
+    "id": "app.plugin.cluster.save_config.app_error",
+    "translation": "La configuració del connector al teu fitxer config.json s'ha d'actualitzar manualment quan s'utilitza «ReadOnlyConfig» amb el clúster activat."
+  },
+  {
+    "id": "app.notification.subject.notification.full",
+    "translation": "[{{ .SiteName }}] Notificació a {{ .TeamName}} el {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "[{{ .SiteName }}] Nou missatge de grup el {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "[{{ .SiteName }}] Nou missatge grupal a {{ .ChannelName}} el {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.direct.full",
+    "translation": "[{{.SiteName}}] Nou missatge directe de {{.SenderDisplayName}} el {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "Falta el nom de l'equip a la subscripció de l'equip de l'usuari."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "Rols no vàlids per a la subscripció de l'equip de l'usuari."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_missing.error",
+    "translation": "Falta la propietat necessària de l'usuari: «username»."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_invalid.error",
+    "translation": "El nom d'usuari no és vàlid."
+  },
+  {
+    "id": "app.import.validate_user_import_data.roles_invalid.error",
+    "translation": "Els rols de l'usuari no són vàlids."
+  },
+  {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "Imatge de perfil no vàlida."
+  },
+  {
+    "id": "app.import.validate_user_import_data.position_length.error",
+    "translation": "La posició de l'usuari és massa llarga."
+  },
+  {
+    "id": "app.import.validate_user_import_data.password_length.error",
+    "translation": "La contrasenya de l'usuari té una longitud no vàlida."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
+    "translation": "La propietat de notificació de l'estat de l'usuari per a rebre notificacions a dispositius mòbils no és vàlida."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
+    "translation": "La propietat de notificació mòbil de l'usuari no és vàlida."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
+    "translation": "La propietat de notificació de correu de l'usuari no és vàlida."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
+    "translation": "La propietat del so per a la notificació d'escriptori de l'usuari no és vàlida."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
+    "translation": "La propietat de notificació d'escriptori de l'usuari no és vàlida."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
+    "translation": "La propietat «Comments» no és vàlida per a l'usuari."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
+    "translation": "La propietat de les paraules que activen les notificacions de l'usuari no és vàlida."
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "El sobrenom de l'usuari és massa llarg."
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "El cognom de l'usuari és massa llarg."
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "El nom de l'usuari és massa llarg."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "Falta la propietat necessària de l'usuari: «email»."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "L'adreça de correu de l'usuari té una longitud no vàlida."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_length.error",
+    "translation": "La propietat «AuthData» de l'usuari és massa llarga."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "L'«AuthData» i la contrasenya de l'usuari són mútuament excloents."
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
+    "translation": "Configuració d'intervals de correu electrònic no vàlida per a l'Usuari"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "Rols no vàlids per a la subscripció del canal de l'usuari."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
+    "translation": "Les propietats de notificació mòbils per a la subscripció del canal no són vàlides."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "Les propietats de notificació no llegides per a la subscripció del canal no són vàlides."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Les propietats de notificació de l'escriptori per a la subscripció del canal no són vàlides."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "Falta el nom del canal a la subscripció del canal de l'usuari."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "Falta la propietat necessària de l'equip: «type»."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "El tipus de l'equip no és vàlid."
+  },
+  {
+    "id": "app.import.validate_team_import_data.scheme_invalid.error",
+    "translation": "El nom de l'esquema no és vàlid per a l'equip"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "El nom de l'equip conté paraules reservades."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "Falta la propietat necessària de l'equip: «name»."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "El nom de l'equip és massa llarg."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "El nom de de l'equip conté caràcters no vàlids."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "Falta la propietat necessària de l'equip: «display_name»"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "El «display_name» de l'equpo no està dins de les restriccions de longitud permeses."
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "La descripció de l'equip és massa llarga."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
+    "translation": "Es van proporcionar els rols incorrectes per a un esquema amb aquest abast."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
+    "translation": "L'abast de l'esquema és desconegut."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.null_scope.error",
+    "translation": "L'abast de l'esquema és obligatori."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.name_invalid.error",
+    "translation": "Nom de l'esquema no vàlid."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
+    "translation": "Nom de visualització de l'esquema no vàlid."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.description_invalid.error",
+    "translation": "Descripció de l'esquema no vàlid."
+  },
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "No es pot crear l'esquema"
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "No es pot obtenir l'esquema"
+  },
+  {
+    "id": "app.import.validate_role_import_data.name_invalid.error",
+    "translation": "Nom del rol no vàlid."
+  },
+  {
+    "id": "app.import.validate_role_import_data.invalid_permission.error",
+    "translation": "El permís no és vàlid per al rol."
+  },
+  {
+    "id": "app.import.validate_role_import_data.display_name_invalid.error",
+    "translation": "Nom de visualització del rol no vàlid."
+  },
+  {
+    "id": "app.import.validate_role_import_data.description_invalid.error",
+    "translation": "Descripció del rol no vàlida."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
+    "translation": "Falta la propietat necessària de la resposta: «User»."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "Falta la propietat necessària de la resposta: «Message»."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "La propietat «Message» de la resposta és superior a la longitud màxima permesa."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "La propietat «CreateAt» de la resposta no pot ser zero."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "Falta la propietat necessària de la resposta: «create_at»."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "Falta la propietat necessària de la reacció: «User»."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "Falta la propietat necessària de la reacció: «EmojiName»."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "La propietat «EmojiName» de la reacció supera la longitud màxima permesa."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "La propietat «CreateAt» de la reacció no pot ser zero."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "Falta la propietat necessària de la reacció: «create_at»."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "La propietat «CreateAt» de la reacció ha de ser major a la propietat «CreateAt» del missatge principal."
+  },
+  {
+    "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "Falta la propietat necessària del missatge: «User»."
+  },
+  {
+    "id": "app.import.validate_post_import_data.team_missing.error",
+    "translation": "Falta la propietat necessària del missatge: «Team»."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_missing.error",
+    "translation": "Falta la propietat necessària del missatge: «Message»."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_length.error",
+    "translation": "La propietat «Message» de la publicació és superior a la longitud màxima permesa."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_zero.error",
+    "translation": "La propietat «CreateAt» de la publicació no pot ser zero."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_missing.error",
+    "translation": "Falta la propietat necessària del missatge: «create_at»."
+  },
+  {
+    "id": "app.import.validate_post_import_data.channel_missing.error",
+    "translation": "Falta la propietat necessària del missatge: «channel»."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "Falta el camp del nom de l'emoji en la importació o està buit."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "Falta el camp d'imatge de l'emoji en la importació o està buit."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "Les dades d'importació de l'emoji estan buides."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.user_missing.error",
+    "translation": "Falta la propietat necessària del missatge: «user»"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Els missatges dels canals directes només poden ser marcats pels seus membres. \"{{.Username}}\" no n'és un membre."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_missing.error",
+    "translation": "Falta la propietat necessària del missatge: «message»"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "El missatge és massa llarg"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
+    "translation": "«CreateAt» cal que sigui superior a 0"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
+    "translation": "Falta la propietat necessària del missatge: «create_at»"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
+    "translation": "La llista de membres del canal de publicació directa conté massa elements"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
+    "translation": "La llista de membres del canal de publicació directa conté molt pocs elements"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
+    "translation": "Falta la propietat necessària del canal directe: «channel_members»"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Els canals directes només poden establir-se com a favorits pels seus membres. \"{{.Username}}\" no n'és un membre."
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
+    "translation": "La llista de membres del canal directe conté massa ítems"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
+    "translation": "La llista de membres del canal directe conté molt pocs ítems"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_required.error",
+    "translation": "Falta la propietat necessària del canal directe: «members»"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.header_length.error",
+    "translation": "L'encapçalament del canal directe és massa llarg"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "Falta la propietat necessària del canal: «type»"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "El tipus de canal no és vàlid."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "Falta la propietat necessària del canal: «team»"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.scheme_invalid.error",
+    "translation": "El nom de l'esquema no és vàlid per al canal."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "El propòsit del canal és massa llarg."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "Falta la propietat necessària del canal: «name»"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "El nom del canal és massa llarg."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "El nom del canal conté caràcters no vàlids."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "L'encapçalament del canal és massa llarg."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "El «display_name» del canal no està dins de les restriccions de longitud permeses."
+  },
+  {
+    "id": "api.user.send_verify_email_and_forget.failed.error",
+    "translation": "No s'ha pogut enviar el correu de verificació amb èxit"
+  },
+  {
+    "id": "api.user.send_sign_in_change_email_and_forget.error",
+    "translation": "No s'ha pogut enviar el correu de contrasenya actualitzada amb èxit"
+  },
+  {
+    "id": "api.user.send_password_reset.sso.app_error",
+    "translation": "No es pot restablir la contrasenya per als comptes SSO"
+  },
+  {
+    "id": "api.user.send_password_reset.send.app_error",
+    "translation": "No s'ha pogut enviar el correu electrònic de restabliment de la contrasenya amb èxit"
+  },
+  {
+    "id": "api.user.send_email_change_verify_email_and_forget.error",
+    "translation": "No s'ha pogut enviar el correu de verificació del canvi de correu amb èxit"
+  },
+  {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "S'ha produït un error en enviar el correu de desactivació del compte"
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "SAML 2.0 no està configurat o no és compatible en aquest servidor."
+  },
+  {
+    "id": "api.user.reset_password.token_parse.error",
+    "translation": "No s'ha pogut analitzar el testimoni de restabliment de contrasenya"
+  },
+  {
+    "id": "api.user.reset_password.sso.app_error",
+    "translation": "No es pot restablir la contrasenya per als comptes SSO"
+  },
+  {
+    "id": "api.user.reset_password.method",
+    "translation": "s'està utilitzant l'enllaç per restablir la contrasenya"
+  },
+  {
+    "id": "api.user.reset_password.link_expired.app_error",
+    "translation": "L'enllaç de restabliment de la contrasenya ha caducat."
+  },
+  {
+    "id": "api.user.reset_password.invalid_link.app_error",
+    "translation": "L'enllaç per restablir la contrasenya no sembla que sigui vàlid."
+  },
+  {
+    "id": "api.user.reset_password.broken_token.app_error",
+    "translation": "El testimoni per restablir la contrasenya no sembla que sigui vàlid."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_available.app_error",
+    "translation": "La transferència d'autenticació no està configurada o disponible en aquest servidor."
+  },
+  {
+    "id": "api.user.oauth_to_email.context.app_error",
+    "translation": "L'actualització de la contrasenya ha fallat perquè l'«user_id» del context no coincideix amb l'ID d'usuari proporcionat"
+  },
+  {
+    "id": "api.user.login_ldap.not_available.app_error",
+    "translation": "L'AD/LDAP no està disponible en aquest servidor"
+  },
+  {
+    "id": "api.user.login_by_oauth.parse.app_error",
+    "translation": "No s'ha pogut obtenir les dades d'autorització de l'objecte de {{.Service}}"
+  },
+  {
+    "id": "api.user.login_by_oauth.not_available.app_error",
+    "translation": "{{.Service}} SSO a través d'OAuth 2.0 no està disponible en aquest servidor"
+  },
+  {
+    "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
+    "translation": "L'inici de sessió com a bot està prohibit"
+  },
+  {
+    "id": "api.user.login.use_auth_service.app_error",
+    "translation": "Inicia sessió utilitzant {{.AuthService}}"
+  },
+  {
+    "id": "api.user.login.not_verified.app_error",
+    "translation": "Ha fallat l'inici de sessió perquè l'adreça de correu no s'ha verificat"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Introdueix un usuari i/o contrasenya vàlids."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Introdueix un correu o usuari i/o contrasenya, o signa utilitzant algun altre mètode."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "Introdueix un correu o usuari i/o contrasenya vàlids."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "Introdueix un correu i/o contrasenya vàlids."
+  },
+  {
+    "id": "api.user.login.inactive.app_error",
+    "translation": "Ha fallat l'inici de sessió perquè el teu compte s'ha desactivat.  Contacta amb un administrador."
+  },
+  {
+    "id": "api.user.login.guest_accounts.license.error",
+    "translation": "La teva llicència no suporta: Idap groups"
+  },
+  {
+    "id": "api.user.login.guest_accounts.disabled.error",
+    "translation": "Els comptes de convidat estan desactivats"
+  },
+  {
+    "id": "api.user.login.client_side_cert.license.app_error",
+    "translation": "S'ha intentat utilitzar la característica experimental ClientSideCert sense una llicència empresarial vàlida"
+  },
+  {
+    "id": "api.user.login.client_side_cert.certificate.app_error",
+    "translation": "S'ha intentat iniciar sessió utilitzant la característica experimental ClientSideCert sense proveir un certificat vàlid"
+  },
+  {
+    "id": "api.user.login.bot_login_forbidden.app_error",
+    "translation": "L'inici de sessió com a bot està prohibit"
+  },
+  {
+    "id": "api.user.login.blank_pwd.app_error",
+    "translation": "El camp de la contrasenya no pot estar en blanc"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "Aquest compte d'usuari no utilitza AD/LDAP"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_available.app_error",
+    "translation": "L'AD/LDAP no està disponible en aquest servidor"
+  },
+  {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "No s'ha pogut obtenir l'usuari per correu."
+  },
+  {
+    "id": "api.user.email_to_oauth.not_available.app_error",
+    "translation": "La transferència d'autenticació no està configurada o disponible en aquest servidor."
+  },
+  {
+    "id": "api.user.email_to_ldap.not_available.app_error",
+    "translation": "L'AD/LDAP no està disponible en aquest servidor"
+  },
+  {
+    "id": "api.user.create_user.signup_link_invalid.app_error",
+    "translation": "L'enllaç de registre no sembla que sigui vàlid"
+  },
+  {
+    "id": "api.user.create_user.signup_link_expired.app_error",
+    "translation": "L'enllaç de registre ha caducat"
+  },
+  {
+    "id": "api.user.create_user.signup_email_disabled.app_error",
+    "translation": "El registre d'usuari amb correu està desactivat."
+  },
+  {
+    "id": "api.user.create_user.no_open_server",
+    "translation": "Aquest servidor no permet els registres oberts.  Parla amb el teu administrador per rebre una invitació."
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.license.app_error",
+    "translation": "La teva llicència no suporta comptes de convidats"
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.disabled.app_error",
+    "translation": "Els comptes de convidats estan desactivats."
+  },
+  {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "La creació d'usuaris està desactivada."
+  },
+  {
+    "id": "api.user.create_user.accepted_domain.app_error",
+    "translation": "El correu electrònic que has proporcionat no pertany a un domini permès. Contacta amb el teu administrador o registra't amb un correu diferent."
+  },
+  {
+    "id": "api.user.create_profile_image.initial.app_error",
+    "translation": "No s'ha pogut assignar la inicial de l'usuari com a imatge del perfil per defecte"
+  },
+  {
+    "id": "api.user.create_profile_image.encode.app_error",
+    "translation": "No s'ha pogut codificar la imatge del perfil per defecte"
+  },
+  {
+    "id": "api.user.create_profile_image.default_font.app_error",
+    "translation": "No s'ha pogut crear la font per a la imatge del perfil per defecte"
+  },
+  {
+    "id": "api.user.create_password_token.error",
+    "translation": "No es pot crear el testimoni de recuperació de contrasenyes."
+  },
+  {
+    "id": "api.user.create_oauth_user.create.app_error",
+    "translation": "No s'ha pogut crear l'usuari basant-se en l'objecte de {{.Service}}"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_attached.app_error",
+    "translation": "Ja hi ha un compte associat a aquesta adreça de correu amb un mètode d'inici de sessió diferent de {{.Service}}. Inicia sessió mitjançant {{.Auth}}."
+  },
+  {
+    "id": "api.user.create_email_token.error",
+    "translation": "No s'han pogut crear el testimoni de dades per a la verificació del correu"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.parse.app_error",
+    "translation": "No s'ha pogut obtenir les dades d'autorització de l'objecte de {{.Service}}"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "Correu en blanc"
+  },
+  {
+    "id": "api.user.check_user_password.invalid.app_error",
+    "translation": "L'inici de sessió ha fallat perquè la contrasenya no és vàlida"
+  },
+  {
+    "id": "api.user.check_user_mfa.bad_code.app_error",
+    "translation": "Testimoni MFA no vàlid."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many.app_error",
+    "translation": "El teu compte està bloquejat per molts intents de contrasenya fallits. Restableix la contrasenya."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.unsupported.app_error",
+    "translation": "Proveïdor de serveis OAuth no compatible"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.token_failed.app_error",
+    "translation": "La sol·licitud del testimoni ha fallat"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.service.app_error",
+    "translation": "La sol·licitar del testimoni a {{.Service}} ha fallat"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "S'ha rebut una resposta no vàlida del proveïdor de serveis d'OAuth"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.missing.app_error",
+    "translation": "Falta el testimoni d'accés"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.invalid_state.app_error",
+    "translation": "Estat no vàlid"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_token.app_error",
+    "translation": "Tipus de testimoni incorrecte"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_response.app_error",
+    "translation": "Resposta incorrecta a la sol·licitud del testimoni"
+  },
+  {
+    "id": "api.user.add_direct_channels_and_forget.failed.error",
+    "translation": "No s'ha pogut afegir preferències de canal directe per a l'usuari user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
+  },
+  {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "MFA no està disponible per a aquest tipus de compte"
+  },
+  {
+    "id": "api.templates.welcome_subject",
+    "translation": "[{{ .SiteName }}] T'has unit a {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "T'has unit a {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.welcome_body.info",
+    "translation": "Verifica la teva adreça de correu fent clic a continuació."
+  },
+  {
+    "id": "api.templates.welcome_body.button",
+    "translation": "Verifica el correu"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_info",
+    "translation": "Per obtenir la millor experiència, baixa les aplicacions per a PC, Mac, iOS i Android des de:"
+  },
+  {
+    "id": "api.templates.verify_subject",
+    "translation": "[{{ .SiteName }}] Verificació de correu"
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "T'has unit a {{ .ServerURL}}"
+  },
+  {
+    "id": "api.templates.verify_body.info",
+    "translation": "Verifica la teva adreça de correu fent clic a continuació."
+  },
+  {
+    "id": "api.templates.verify_body.button",
+    "translation": "Verifica el correu"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "[{{ .SiteName }}] El teu nom d'usuari ha canviat"
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "Has actualitzat el teu nom d'usuari"
+  },
+  {
+    "id": "api.templates.username_change_body.info",
+    "translation": "El teu nom d'usuari per a {{.TeamDisplayName}} s'ha modificat a {{.NewUsername}}."
+  },
+  {
+    "id": "api.templates.user_access_token_subject",
+    "translation": "[{{ .SiteName}}] Testimoni d'accés personal afegit al teu compte"
+  },
+  {
+    "id": "api.templates.user_access_token_body.title",
+    "translation": "S'ha afegit el testimoni d'accés personal al teu compte"
+  },
+  {
+    "id": "api.templates.user_access_token_body.info",
+    "translation": "S'ha afegit un testimoni d'accés personal al teu compte a {{ .SiteURL}}. Es poden utilitzar per accedir a {{.SiteName}} amb el teu compte."
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{ .SiteName}}] El mètode d'inici de sessió s'ha actualitzat"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "Has actualitzat el mètode d'inici de sessió"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "correu i contrasenya"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "Heu actualitzat el mètode d'inici de sessió a {{ .SiteName}} via {{.Method}}."
+  },
+  {
+    "id": "api.templates.reset_subject",
+    "translation": "[{(.SiteName}}] Restableix la contrasenya"
+  },
+  {
+    "id": "api.templates.reset_body.title",
+    "translation": "Has sol·licitat un restabliment de contrasenya"
+  },
+  {
+    "id": "api.templates.reset_body.button",
+    "translation": "Restableix la contrasenya"
+  },
+  {
+    "id": "api.templates.post_body.button",
+    "translation": "Vés a la publicació"
+  },
+  {
+    "id": "api.templates.password_change_subject",
+    "translation": "[{{ .SiteName}}] La contrasenya s'ha actualitzat"
+  },
+  {
+    "id": "api.templates.password_change_body.title",
+    "translation": "La contrasenya s'ha actualitzat"
+  },
+  {
+    "id": "api.templates.password_change_body.info",
+    "translation": "La teva contrasenya s'ha actualitzat per a {{.TeamDisplayName}} a {{ .TeamURL}} vía {{.Method}}."
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "S'ha eliminat l'autenticació de diversos factors"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "S'ha eliminat l'autenticació de diversos factors del compte a {{ .SiteURL}}."
+  },
+  {
+    "id": "api.templates.mfa_change_subject",
+    "translation": "[{{ .SiteName}}] El teu MFA s'ha actualitzat"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "S'ha afegit l'autenticació de diversos factors"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "S'ha afegit l'autenticació de diversos factors al teu compte a {{ .SiteURL}}."
+  },
+  {
+    "id": "api.templates.invite_subject",
+    "translation": "[{{ .SiteName}}] {{ .SenderName}} t'ha convidat a unir-te a l'equip {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.invite_guest_subject",
+    "translation": "[{{ .SiteName}}] {{ .SenderName}} t'ha convidat a unir-te a l'equip {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.invite_body.title",
+    "translation": "Has estat convidat"
+  },
+  {
+    "id": "api.templates.invite_body.button",
+    "translation": "Uneix-me a l'equip"
+  },
+  {
+    "id": "api.templates.email_warning",
+    "translation": "Si no has fet aquest canvi, contacta amb l'administrador del sistema."
+  },
+  {
+    "id": "api.templates.email_organization",
+    "translation": "Enviat per "
+  },
+  {
+    "id": "api.templates.email_info3",
+    "translation": "L'equip {{.SiteName}}"
+  },
+  {
+    "id": "api.templates.email_info2",
+    "translation": "Els millors desitjos,"
+  },
+  {
+    "id": "api.templates.email_info1",
+    "translation": "Si tens alguna pregunta, envia'ns un correu en qualsevol moment: "
+  },
+  {
+    "id": "api.templates.email_footer",
+    "translation": "Per canviar les preferències de notificació, inicia sessió al lloc del teu equip i ves a Configuració del compte > Notificacions."
+  },
+  {
+    "id": "api.templates.email_change_verify_subject",
+    "translation": "[{{ .SiteName}}] Verifica l'adreça de correu nova"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.title",
+    "translation": "Has actualitzat el teu correu"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.info",
+    "translation": "Per acabar d'actualitzar la teva adreça de correu per a {{.TeamDisplayName}}, fes clic a l'enllaç següent per confirmar que aquesta és l'adreça correcta."
+  },
+  {
+    "id": "api.templates.email_change_verify_body.button",
+    "translation": "Verifica el correu"
+  },
+  {
+    "id": "api.templates.email_change_subject",
+    "translation": "[{{ .SiteName}}] La teva adreça de correu ha canviat"
+  },
+  {
+    "id": "api.templates.email_change_body.title",
+    "translation": "Has actualitzat el teu correu"
+  },
+  {
+    "id": "api.templates.email_change_body.info",
+    "translation": "La teva adreça de correu per a {{.TeamDisplayName}} s'ha modificat a {{.NewEmail}}."
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{(.SiteName}}] El teu compte a {{.ServerURL}} s'ha desactivat"
+  },
+  {
+    "id": "api.templates.deactivate_body.warning",
+    "translation": "Si no has iniciat aquest canvi o vols reiniciar el teu compte, contacta amb el teu administrador del sistema."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "El teu compte s'ha desactivat a {{.ServerURL}}"
+  },
+  {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "Has desactivat el teu compte a {{.SiteURL}}."
+  },
+  {
+    "id": "api.team.update_team_scheme.scheme_scope.error",
+    "translation": "No es pot establir l'esquema a l'equip perquè l'esquema propionat no és un esquema d'equip."
+  },
+  {
+    "id": "api.team.update_team_scheme.license.error",
+    "translation": "La teva llicència no és compatible amb l'actualització de l'esquema d'un equip"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+    "translation": "Actualització del membre de l'equip invàlida: un usuari ha de ser convidat o usuari, però no els dos a la vegada."
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "La restricció de l'equip a {{.Domain}} no està permès per la configuració del sistema. Contacta amb l'administrador del sistema."
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "L'usuari especificat no és membre de l'equip especificat."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "S'ha produït un error en actualitzar la icona de l'equip"
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "No s'ha pogut desar la icona de l'equip"
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "No es pot penjar la icona de l'equip. El fitxer és massa gran."
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "No es pot penjar la icona de l'equip. L'emmagatzematge d'imatges no està configurat."
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "No s'ha pogut parsejar el formulari multipart"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "No s'ha pogut obrir el fitxer d'imatge"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "Cap fitxer sota «imatge» a la petició"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "S'ha produït un error en obtenir l'equip"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "No s'ha pogut codificar la icona de l'equip"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "No s'ha pogut descodificar la icona de l'equip"
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "Matriu buida sota 'image' a la petició"
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "La paginació no està implementada per a la cerca d'equips en mode privat"
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "La paginació no està implementada per a la cerca d'equips en mode privat"
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v eliminat de l'equip."
+  },
+  {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "L'usuari no sembla formar part d'aquest equip."
+  },
+  {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "S'ha produït un error en obtenir l'equip"
+  },
+  {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": "No es pot eliminar un usuari d’un equip amb restriccions de grup."
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "Aquest canal s'ha mogut a aquest equip des de %v."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "No s'ha pogut publicar el missatge que el canal s'ha mogut."
+  },
+  {
+    "id": "api.team.leave.left",
+    "translation": "%v ha deixat l'equip."
+  },
+  {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v s'ha unit a l'equip."
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.disabled.app_error",
+    "translation": "S'ha desactivat la creació d'equips. Pregunteu a l'administrador del sistema per obtenir més detalls."
+  },
+  {
+    "id": "api.team.invite_members.no_one.app_error",
+    "translation": "Ningú a convidar."
+  },
+  {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "Les següents adreces de correu no pertanyen a un domini acceptat: {{.Addresses}}. Contacta amb l'administrador del sistema per obtenir més detalls."
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "El tipus de servidor intermediari d'imatge no és vàlid. Ha de ser 'local' o 'atmos/camo'."
+  },
+  {
+    "id": "model.config.is_valid.file_driver.app_error",
+    "translation": "El nom del controlador per a la configuració del fitxer no és vàlid. Ha de ser «local» o «amazons3»"
+  },
+  {
+    "id": "model.config.is_valid.email_security.app_error",
+    "translation": "La seguretat de la connexió no és vàlida per a la configuració del correu. Ha de ser '', 'TLS' o 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.email_notification_contents_type.app_error",
+    "translation": "La configuració del tipus de contingut per a la notificació per correu no és vàlida. Ha de ser un dels següents valors 'full' o 'generic'."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "L'interval per als correus per lots en la configuració de correu no és vàlid. Ha de ser de 30 segons o més."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_buffer_size.app_error",
+    "translation": "La mida de la memòria intermèdia per als correus per lots no és vàlida per a la configuració del correu. Ha de ser zero o un número positiu."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
+    "translation": "El temps d'espera de la sol·licitud de cerca de l'Elastic ha de ser com a mínim 1 segon."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "El valor «PostsAggregatorJobStartTime» d'Elasticsearch cal que sigui en format \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
+    "translation": "La mida del lot d'indexació en temps real d'Elasticsearch ha de ser com a mínim 1"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
+    "translation": "El valor d'Elastic Search «IndexingEnabled» ha de ser verdader quan el valor d'Elastic Search «SearchEnabled» és verdader."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
+    "translation": "El valor d'Elastic Search «IndexingEnabled» ha de ser verdader quan el valor d'Elastic Search «SearchEnabled» és verdader."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.connection_url.app_error",
+    "translation": "El valor de cerca «ConnectionUrl» de l'Elastic s'ha de proporcionar quan la indexació de cerca de l'Elastic estigui activada."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "El valor «AggregatePostsAfterDays» de l'Elasticsearch ha de ser un número superior o igual a 1"
+  },
+  {
+    "id": "model.config.is_valid.display.custom_url_schemes.app_error",
+    "translation": "L'esquema d'URL personalitzat {{.Scheme}} no és vàlid. Els esquemes d'URL personalitzats han de començar amb una lletra i només contenen lletres, números i guions (-)."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "La retenció del missatge ha de ser d'un dia o més."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "La retenció de fitxers ha de ser d'un dia o més."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "L'hora d'inici del treball de retenció de dades ha de ser en format 24 hores seguint la forma HH:MM."
+  },
+  {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "No es pot activar l'enviament per correu per lots quan el clúster està activat."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
+    "translation": "El valor d'Elastic Search «IndexingEnabled» ha de ser verdader quan el valor d'Elastic Search «SearchEnabled» és verdader."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
+    "translation": "El valor d'Elastic Search «IndexingEnabled» ha de ser verdader quan el valor d'Elastic Search «SearchEnabled» és verdader."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "El valor «RemoteImageProxyURL» no és vàlid per a l'atmos/camo. Heu de configurar-lo a la vostra clau compartida."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "El valor «RemoteImageProxyOptions» no és vàlid per a l'atmos/camo. Heu de configurar-lo a la vostra clau compartida."
+  },
+  {
+    "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
+    "translation": "En permetre les galetes per als subdominis, cal que configureu «SiteURL»."
+  },
+  {
+    "id": "model.compliance.is_valid.start_end_at.app_error",
+    "translation": "«To» ha de ser més gran que «From»"
+  },
+  {
+    "id": "model.compliance.is_valid.start_at.app_error",
+    "translation": "«From» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.compliance.is_valid.id.app_error",
+    "translation": "ID no vàlid"
+  },
+  {
+    "id": "model.compliance.is_valid.end_at.app_error",
+    "translation": "«To» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.compliance.is_valid.desc.app_error",
+    "translation": "Descripció no vàlida"
+  },
+  {
+    "id": "model.compliance.is_valid.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "ID d'arrel no vàlid"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Ordre amb «hook id» no vàlid"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "ID d'ordre no vàlid"
+  },
+  {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "ID del canal no vàlid"
+  },
+  {
+    "id": "model.command.is_valid.user_id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.command.is_valid.url_http.app_error",
+    "translation": "URL no vàlid. Ha de ser un URL vàlid i començar amb http:// o https://"
+  },
+  {
+    "id": "model.command.is_valid.url.app_error",
+    "translation": "URL no vàlid"
+  },
+  {
+    "id": "model.command.is_valid.update_at.app_error",
+    "translation": "«Update at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.command.is_valid.trigger.app_error",
+    "translation": "Disparador no vàlid"
+  },
+  {
+    "id": "model.command.is_valid.token.app_error",
+    "translation": "Testimoni no vàlid."
+  },
+  {
+    "id": "model.command.is_valid.team_id.app_error",
+    "translation": "ID d'equip no vàlid"
+  },
+  {
+    "id": "model.command.is_valid.method.app_error",
+    "translation": "Mètode no vàlid"
+  },
+  {
+    "id": "model.command.is_valid.id.app_error",
+    "translation": "ID no vàlid"
+  },
+  {
+    "id": "model.command.is_valid.display_name.app_error",
+    "translation": "Títol no vàlid"
+  },
+  {
+    "id": "model.command.is_valid.description.app_error",
+    "translation": "Descripció no vàlida"
+  },
+  {
+    "id": "model.command.is_valid.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.cluster.is_valid.type.app_error",
+    "translation": "«Type» s'ha de configurar"
+  },
+  {
+    "id": "model.cluster.is_valid.name.app_error",
+    "translation": "«ClusterName» s'ha de configurar"
+  },
+  {
+    "id": "model.cluster.is_valid.last_ping_at.app_error",
+    "translation": "«LastPingAt» s'ha de configurar"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "ID no vàlid"
+  },
+  {
+    "id": "model.cluster.is_valid.hostname.app_error",
+    "translation": "«Hostname» s'ha de configurar"
+  },
+  {
+    "id": "model.cluster.is_valid.create_at.app_error",
+    "translation": "«CreateAt» s'ha de configurar"
+  },
+  {
+    "id": "model.channel_member.is_valid.user_id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.channel_member.is_valid.unread_level.app_error",
+    "translation": "Nivell de marca per no llegits no vàlid"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Nivell de notificació de tramesa automàtica no vàlid"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_level.app_error",
+    "translation": "Nivell de notificació no vàlid"
+  },
+  {
+    "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
+    "translation": "Valor no vàlid per ignorar mencions de canals"
+  },
+  {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Valor de notificació de correu no vàlid"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_id.app_error",
+    "translation": "ID del canal no vàlid"
+  },
+  {
+    "id": "model.channel.is_valid.update_at.app_error",
+    "translation": "«Update at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.channel.is_valid.type.app_error",
+    "translation": "Tipus no vàlid"
+  },
+  {
+    "id": "model.channel.is_valid.purpose.app_error",
+    "translation": "Propòsit no vàlid"
+  },
+  {
+    "id": "model.channel.is_valid.id.app_error",
+    "translation": "ID no vàlid"
+  },
+  {
+    "id": "model.channel.is_valid.header.app_error",
+    "translation": "Encapçalament no vàlid"
+  },
+  {
+    "id": "model.channel.is_valid.display_name.app_error",
+    "translation": "Nom de visualització no vàlid."
+  },
+  {
+    "id": "model.channel.is_valid.creator_id.app_error",
+    "translation": "ID del creador no vàlid"
+  },
+  {
+    "id": "model.channel.is_valid.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.bot.is_valid.username.app_error",
+    "translation": "Nom d'usuari no vàlid."
+  },
+  {
+    "id": "model.bot.is_valid.user_id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.bot.is_valid.update_at.app_error",
+    "translation": "«update at» no vàlid"
+  },
+  {
+    "id": "model.bot.is_valid.description.app_error",
+    "translation": "Descripció no vàlida"
+  },
+  {
+    "id": "model.bot.is_valid.creator_id.app_error",
+    "translation": "ID del creador no vàlid"
+  },
+  {
+    "id": "model.bot.is_valid.create_at.app_error",
+    "translation": "«create at» no vàlid"
+  },
+  {
+    "id": "model.authorize.is_valid.user_id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.authorize.is_valid.state.app_error",
+    "translation": "Estat no vàlid"
+  },
+  {
+    "id": "model.authorize.is_valid.scope.app_error",
+    "translation": "Abast no vàlid"
+  },
+  {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Tipus de resposta no vàlida"
+  },
+  {
+    "id": "model.authorize.is_valid.redirect_uri.app_error",
+    "translation": "URI de redireccionament no vàlid"
+  },
+  {
+    "id": "model.authorize.is_valid.expires.app_error",
+    "translation": "S'ha de configurar «Expires in»"
+  },
+  {
+    "id": "model.authorize.is_valid.create_at.app_error",
+    "translation": "«Create at» ha de ser un temps vàlid"
+  },
+  {
+    "id": "model.authorize.is_valid.client_id.app_error",
+    "translation": "ID de client no vàlid"
+  },
+  {
+    "id": "model.authorize.is_valid.auth_code.app_error",
+    "translation": "Codi d'autorització no vàlid"
+  },
+  {
+    "id": "model.access.is_valid.user_id.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "model.access.is_valid.refresh_token.app_error",
+    "translation": "Testimoni de refresc no vàlid"
+  },
+  {
+    "id": "model.access.is_valid.redirect_uri.app_error",
+    "translation": "URI de redireccionament no vàlid"
+  },
+  {
+    "id": "model.access.is_valid.client_id.app_error",
+    "translation": "ID de client no vàlid"
+  },
+  {
+    "id": "model.access.is_valid.access_token.app_error",
+    "translation": "Testimoni d'accés no vàlid"
+  },
+  {
+    "id": "migrations.worker.run_migration.unknown_key",
+    "translation": "No es pot executar el treball de migració perquè la clau de migració és desconeguda."
+  },
+  {
+    "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
+    "translation": "La migració ha fallat a causa de dades de progrés no vàlides."
+  },
+  {
+    "id": "mfa.validate_token.authenticate.app_error",
+    "translation": "Testimoni MFA no vàlid."
+  },
+  {
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "L'autenticació multifactor s'ha desactivat en aquest servidor."
+  },
+  {
+    "id": "mfa.generate_qr_code.create_code.app_error",
+    "translation": "S'ha produït un error en generar el codi QR"
+  },
+  {
+    "id": "mfa.activate.bad_token.app_error",
+    "translation": "Testimoni MFA no vàlid."
+  },
+  {
+    "id": "mattermost.bulletin.subject",
+    "translation": "Butlletí de seguretat Mattermost"
+  },
+  {
+    "id": "manaultesting.test_autolink.unable.app_error",
+    "translation": "No s'han pogut obtenir els canals"
+  },
+  {
+    "id": "manaultesting.manual_test.parse.app_error",
+    "translation": "No es pot analitzar l'URL"
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "No s'ha pogut establir l'estat del treball a error"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "No s'ha pogut sol·licitar la cancel·lació per a un treball que no es troba en un estat cancel·lable."
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "No s'ha pogut signar l'ID del disparador generat per al diàleg interactiu."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "La verificació de la signatura de l'ID del desencadenant del diàleg interactiu ha fallat."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "No s'ha pogut descodificar la signatura base64 de l'ID del disparador del diàleg interactiu."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "No s'ha trobat l'ID del disparador requerit per al diàleg interactiu."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "L'ID del disparador per al diàleg interactiu ha caducat. Els ID dels disparadors tenen una durada màxima de {{.Seconds}} segons."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "No s'ha pogut descodificar la signatura base64 de l'ID del disparador del diàleg interactiu."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "No s'ha pogut realitzar la descodificació base64 per a l'ID del disparador del diàleg interactiu."
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "SAML 2.0 no està configurat o no és compatible en aquest servidor."
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "S'ha produït un error en crear les metadades del proveïdor de serveis."
+  },
+  {
+    "id": "ent.saml.license_disable.app_error",
+    "translation": "La teva llicència no és compatible amb l'autenticació SAML."
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "S'ha produït un error en validar la resposta del proveïdor d'identitat. Contacta amb l'administrador del sistema."
+  },
+  {
+    "id": "ent.saml.do_login.parse.app_error",
+    "translation": "S'ha produït un error durant l'anàlisi de la resposta del proveïdor d'identitat. Contacta amb l'administrador del sistema."
+  },
+  {
+    "id": "ent.saml.do_login.empty_response.app_error",
+    "translation": "Hem rebut una resposta buida del proveïdor d'identitat"
+  },
+  {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "L'inici de sessió SAML no s'ha pogut completar perquè s'ha produït un error mentre es desxifra la resposta del proveïdor d'identitat. Contacta amb l'administrador del sistema."
+  },
+  {
+    "id": "ent.saml.configure.not_encrypted_response.app_error",
+    "translation": "L'inici de sessió SAML no s'ha pogut completar perquè la resposta del proveïdor d'identitat no està xifrada. Contacta amb l'administrador del sistema."
+  },
+  {
+    "id": "ent.saml.configure.load_private_key.app_error",
+    "translation": "L'inici de sessió SAML no s'ha pogut completar perquè no s'ha trobat la clau privada del proveïdor de serveis. Contacta amb l'administrador del sistema."
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "No s'ha trobat el fitxer de certificat públic del proveïdor d'identitat. Contacta amb l'administrador del sistema."
+  },
+  {
+    "id": "ent.saml.configure.encryption_not_enabled.app_error",
+    "translation": "L'inici de sessió SAML no s'ha pogut completar perquè el xifratge no està activat. Contacta amb l'administrador del sistema."
+  },
+  {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "S'ha produït un error durant la codificació de la sol·licitud per al proveïdor d'identitat. Contacta amb l'administrador del sistema."
+  },
+  {
+    "id": "ent.saml.build_request.app_error",
+    "translation": "S'ha produït un error en iniciar la sol·licitud al proveïdor d'identitat. Contacta amb l'administrador del sistema."
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "L'inici de sessió SAML no s'ha pogut completar perquè un dels atributs és incorrecte. Contacta amb l'administrador del sistema."
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "El nom d'usuari ja utilitza per un altre usuari de Mattermost."
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "L'usuari no s'ha trobat al fitxer dels usuaris."
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "El correu ja s'utilitza per un altre usuari SAML."
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "No es pot trobar l'usuari al servidor AD/LDAP: "
+  },
+  {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "No es poden migrar els usuaris d'AD/LDAP amb un camp especificat. S'ha detectat una entrada duplicada. Elimina tots els duplicats i torna-ho a provar."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
+    "translation": "No es pot obrir el fitxer temporal d'exportació"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
+    "translation": "No es pot obtenir un correu del fitxer temporal"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
+    "translation": "No es pot obtenir la informació del fitxer temporal d'exportació"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
+    "translation": "No es pot configurar l'adreça Per a del correu."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
+    "translation": "No es pot llegir la informació del correu."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
+    "translation": "No es pot escriure el missatge del correu."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
+    "translation": "No es pot configurar el missatge del correu."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
+    "translation": "No es pot establir la direcció De per al correu."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
+    "translation": "No es pot enviar el correu a Global Relay."
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "No es poden generar les dades del fitxer eml."
+  },
+  {
+    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
+    "translation": "No es pot crear el fitxer eml."
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "No es pot tancar el fitxer zip."
+  },
+  {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "No es pot afegir un fitxer adjunt a l'exportació de Global Relay."
+  },
+  {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Filtre d'AD/LDAP no vàlid"
+  },
+  {
+    "id": "ent.ldap.validate_filter.app_error",
+    "translation": "Filtre d'AD/LDAP no vàlid"
+  },
+  {
+    "id": "ent.ldap.validate_admin_filter.app_error",
+    "translation": "Filtre d'AD/LDAP no vàlid"
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure.app_error",
+    "translation": "No s'ha pogut cercar usuaris a l'AD / LDAP. Comprova si el servidor de Mattermost pot connectar-se al servidor d'AD/LDAP i torna-ho a provar."
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all.app_error",
+    "translation": "No es va poder obtenir a tots els usuaris fent servir l'AD/LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "translation": "L'usuari no està registrat al servidor AD/LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "translation": "El vostre compte d'AD/LDAP no té permisos per utilitzar aquest servidor de Mattermost. Demana a l'administrador del sistema que verifiqui el filtre d'usuaris d'AD/LDAP."
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "translation": "No es pot connectar al servidor AD/LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "translation": "No s'ha pogut cercar al servidor AD/LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "translation": "El nom d'usuari assignat coincideix amb diversos usuaris"
+  },
+  {
+    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "translation": "La funció d'AD/LDAP està desactivada per la llicència actual. Contacta amb l'administrador del sistema per actualitzar la teva llicència empresarial."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "translation": "Contrasenya no vàlida"
+  },
+  {
+    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "translation": "No es pot enllaçar amb el servidor AD/LDAP. Comprova les opcions «BindUsername» i «BindPassword»."
+  },
+  {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "L'AD/LDAP està desactivat o la llicència no és compatible amb AD/LDAP."
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "No es pot crear l'usuari LDAP."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "L'URL del servidor Elasticsearch o el nom d'usuari han canviat. Torna a introduir la contrasenya de l'Elasticsearch per provar la connexió."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.license.error",
+    "translation": "La teva llicència no és compatible amb l'Elasticsearch."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "translation": "L'Elasticsearch està desactivat."
+  },
+  {
+    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "translation": "L'Elasticsearch ja s'ha aturat"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "No s'ha pogut iniciar el processador massiu de l'Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "No s'ha pogut crear el processador massiu de l'Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.start.already_started.app_error",
+    "translation": "L'Elasticsearch ja s'ha iniciat"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
+    "translation": "No s'ha pogut descodificar els resultats de la cerca"
+  },
+  {
+    "id": "api.team.invite_members.disabled.app_error",
+    "translation": "Les invitacions per correu estan desactivades."
+  },
+  {
+    "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
+    "translation": "Els canals de la invitació han de pertànyer a l'equip que convida."
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "S'ha produït un error en invalidar les invitacions per correu."
+  },
+  {
+    "id": "api.team.import_team.unavailable.app_error",
+    "translation": "Sol·licitud incorrecta: el camp amb la mida del fitxer no està present."
+  },
+  {
+    "id": "api.team.import_team.parse.app_error",
+    "translation": "No s'ha pogut parsejar el formulari multipart"
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "No s'ha pogut obrir el fitxer"
+  },
+  {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Sol·licitud incorrecta: el camp «importFrom» no està present."
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "Cap fitxer sota «fitxer» a la petició"
+  },
+  {
+    "id": "api.team.import_team.integer.app_error",
+    "translation": "La mida del fitxer no és un enter"
+  },
+  {
+    "id": "api.team.import_team.array.app_error",
+    "translation": "Matriu buida sota «fitxer» a la petició"
+  },
+  {
+    "id": "api.team.get_team_icon.read_file.app_error",
+    "translation": "No s'ha pogut llegir el fitxer de la icona de l'equip."
+  },
+  {
+    "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
+    "translation": "El nom del controlador per a la configuració del fitxer no és vàlid.  Ha de ser «local» o «amazons3»"
+  },
+  {
+    "id": "api.team.get_invite_info.not_open_team",
+    "translation": "La invitació no és vàlida perquè no es tracta d'un equip obert."
+  },
+  {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "No tens els permisos adequats per editar la capçalera del canal."
+  },
+  {
+    "id": "api.team.demote_user_to_guest.license.error",
+    "translation": "La teva llicència no suporta comptes de convidats"
+  },
+  {
+    "id": "api.team.demote_user_to_guest.disabled.error",
+    "translation": "Els comptes de convidats estan desactivats."
+  },
+  {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Els convidats no poden unir-se a un equip mitjançant un enllaç d'invitació. Per favor, demaneu un email d'invitació a l'equip. "
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Paràmetre necessari per afegir l'usuari a l'equip."
+  },
+  {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v afegit a l'equip per %v."
+  },
+  {
+    "id": "api.team.add_members.user_denied",
+    "translation": "Aquest equip es gestiona per grups, però l'usuari no pertany a cap dels grups de l'equip."
+  },
+  {
+    "id": "api.team.add_members.error",
+    "translation": "Error en afegir els membres de l'equip."
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "Les notificacions push carregades per ID no estan configurades ni admeses en aquest servidor."
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "Usuari no trobat"
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} a l'arxiu zip massa gran per processar-lo per a la importació de Slack\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.app_error",
+    "translation": "No s'ha pogut obrir el fitxer zip d'exportació de Slack.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.team_fail",
+    "translation": "No s'ha pogut obtenir l'equip al qual s'ha d'importar.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.open.app_error",
+    "translation": "No s'ha pogut obrir el fitxer: {{.Filename}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.notes",
+    "translation": "\r\nNotes:\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- Es poden trobar errors addicionals als registres del servidor.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note2",
+    "translation": "- Actualment, els missatges de Slack bot no són compatibles.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note1",
+    "translation": "- Pot ser que alguns missatges no s'hagin importat perquè aquest importador no és compatible.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.log",
+    "translation": "Registre d'importació de Slack a Mattermost\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.unable_import",
+    "translation": "No s'ha pogut importar l'usuari de Slack: {{.Username}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address",
+    "translation": "L'usuari {{.Username}} no té una adreça de correu a l'exportació de Slack. S'ha utilitzat {{.Email}} com a marcador de posició. L'usuari haurà d'actualitzar la seva adreça de correu quan es connecti al sistema.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "L'usuari de Slack s'ha fusionat amb un usuari Mattermost existent amb el correu {{.Email}} i el nom d'usuari {{.Username}} corresponents, però l'usuari no s'ha pogut afegir al teu equip.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "L'usuari de Slack s'ha fusionat amb un usuari de Mattermost existent amb el correu {{.Email}} i el nom d'usuari {{.Username}} corresponents.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email_pwd",
+    "translation": "S'ha importat l'usuari de Slack amb el correu {{.Email}} i la contrasenya {{.Password}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.created",
+    "translation": "\r\nUsuaris creats:\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.merge",
+    "translation": "El canal de Slack {{.DisplayName}} ja existeix com un canal actiu de Mattermost. S'han fusionat tots dos canals.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.import_failed",
+    "translation": "No s'ha pogut importar el canal de Slack {{.DisplayName}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
+    "translation": "No s'ha pogut afegir l'usuari de Slack {{.Username}} al canal.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.added",
+    "translation": "\r\nCanals afegits:\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "No s'ha pogut importar l'usuari d'integració/Slack Bot {{.Username}}.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "S'ha importat l'usuari d'integració/Slack Bot amb el correu {{.Email}} i la contrasenya {{.Password}}.\r\n"
+  },
+  {
+    "id": "api.server.start_server.starting.critical",
+    "translation": "S'ha produït un error en iniciar el servidor, err: %v"
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "No s'ha pogut iniciar el límit de velocitat."
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "No s'ha pogut iniciar el magatzem de memòria de limitació de velocitat. Comprova «MemoryStoreSize» a la configuració."
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "No s'ha pogut reenviar del port 80 al port 443 mentre s'escolta al port %s: desactiva «Forward80To443» si utilitzes un servidor intermediari"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "Has d'activar «Forward80To443» quan feu servir «LetsEncrypt»"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_general_message",
+    "translation": " ha publicat un missatge."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_explicit_mention",
+    "translation": " t'ha mencionat."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_thread",
+    "translation": " ha comentat un fil en què vas participar."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_post",
+    "translation": " ha comentat la teva publicació."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_channel_mention",
+    "translation": " ha notificat el canal."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "No es pot actualitzar una publicació en un canal suprimit."
+  },
+  {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "L'administrador del sistema ha desactivat les vistes prèvies dels enllaços."
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} imatge enviada: {{.Filenames}}",
+      "other": "{{.Count}} imatges enviades: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} fitxer enviat: {{.Filenames}}",
+      "other": "{{.Count}} fitxers enviats: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.do_action.action_integration.app_error",
+    "translation": "Error d'integració de l'acció"
+  },
+  {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "ID d'acció no vàlida"
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "@here s'ha desactivat perquè el canal té més de {{.Users}} usuaris."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "@channel s'ha desactivat perquè el canal té més de {{.Users}} usuaris."
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "@all s'ha desactivat perquè el canal té més de {{.Users}} usuaris."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "No es pot suprimir una publicació en un canal suprimit."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.pending",
+    "translation": "S'ha rebutjat la publicació perquè un altre client fa la mateixa sol·licitud."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.failed_to_get",
+    "translation": "No s'ha pogut obtenir la publicació original després de duplicar un client que repeteix la mateixa sol·licitud."
+  },
+  {
+    "id": "api.post.create_webhook_post.creating.app_error",
+    "translation": "Error en crear la publicació"
+  },
+  {
+    "id": "api.post.create_post.root_id.app_error",
+    "translation": "Paràmetre «RootId» no vàlid"
+  },
+  {
+    "id": "api.post.create_post.channel_root_id.app_error",
+    "translation": "«ChannelId» no vàlid per al paràmetre «RootId»"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "No es pot publicar al canal suprimit."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.one",
+    "translation": "A @{{.Usernames}} no se li ha notificat aquesta menció perquè no està al canal."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
+    "translation": "A @{{.Usernames}} i a @{{.LastUsername}} no se'ls ha notificat aquesta menció perquè no estan al canal."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
+    "translation": "A @{{.Usernames}} no se li ha notificat aquesta menció perquè no està al canal. No es pot afegir al canal perquè no és membre dels grups enllaçats. Per afegir-lo a aquest canal, s’ha d’afegir als grups enllaçats."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
+    "translation": "A @{{.Usernames}} i a @{{.LastUsername}} no se'ls ha notificat aquesta menció perquè no estan al canal. No es poden afegir al canal perquè no són membres dels grups enllaçats. Per afegir-los a aquest canal, s’han d’afegir als grups enllaçats."
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "No és possible verificar la signatura del connector."
+  },
+  {
+    "id": "api.plugin.upload.no_file.app_error",
+    "translation": "Hi manca el fitxer en la sol·licitud multipart/form"
+  },
+  {
+    "id": "api.plugin.upload.file.app_error",
+    "translation": "No s'ha pogut obrir el fitxer en la sol·licitud multipart/form"
+  },
+  {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "La matriu de fitxers està buida en la sol·licitud multipart/form"
+  },
+  {
+    "id": "api.plugin.install.download_failed.app_error",
+    "translation": "S'ha produït un error en descarregar el connector."
+  },
+  {
+    "id": "api.outgoing_webhook.disabled.app_error",
+    "translation": "L'administrador del sistema ha desactivat els «webhooks» de sortida."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "L'enllaç de registre no sembla que sigui vàlid"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "L'enllaç de registre ha caducat"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "translation": "El registre d'usuaris està desactivat."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.get.app_error",
+    "translation": "S'ha produït un error en obtenir el testimoni d'accés des de la DB abans de l'eliminació"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_token.app_error",
+    "translation": "S'ha produït un error en suprimir el testimoni d'accés des de la DB"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_session.app_error",
+    "translation": "S'ha produït un error en suprimir la sessió des de la DB"
+  },
+  {
+    "id": "api.oauth.register_oauth_app.turn_off.app_error",
+    "translation": "L'administrador del sistema ha desactivat el proveïdor de serveis OAuth2."
+  },
+  {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "Estat del testimoni no vàlid"
+  },
+  {
+    "id": "api.oauth.get_access_token.refresh_token.app_error",
+    "translation": "invalid_grant: Testimoni d'actualització no vàlid"
+  },
+  {
+    "id": "api.oauth.get_access_token.redirect_uri.app_error",
+    "translation": "invalid_request: El «redirect_uri» subministrat no coincideix amb el codi d'autorització «redirect_uri»"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
+    "translation": "invalid_request: Hi manca el «refresh_token»"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_code.app_error",
+    "translation": "invalid_request: Hi manca el codi"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "server_error: S'ha trobat un error intern del servidor mentre s'extreia l'usuari de la base de dades"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "server_error: S'ha trobat un error intern del servidor mentre es desava la sessió a la base de dades"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "server_error: S'ha trobat un error intern del servidor mentre es desava el testimoni d'accés a la base de dades"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "server_error: S'ha trobat un error del servidor intern en accedir a la base de dades"
+  },
+  {
+    "id": "api.oauth.get_access_token.expired_code.app_error",
+    "translation": "invalid_grant: Codi d'autorització no vàlid o caducat"
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "L'administrador del sistema ha desactivat el proveïdor de serveis OAuth2."
+  },
+  {
+    "id": "api.oauth.get_access_token.credentials.app_error",
+    "translation": "invalid_client: Credencials de client no vàlides"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "invalid_request: «grant_type» incorrecte"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "invalid_request: Hi manca el «client_secret»"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "invalid_request: «client_id» incorrecte"
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "L'administrador del sistema ha desactivat el proveïdor de serveis OAuth2."
+  },
+  {
+    "id": "api.oauth.allow_oauth.turn_off.app_error",
+    "translation": "L'administrador del sistema ha desactivat el proveïdor de serveis OAuth2."
+  },
+  {
+    "id": "api.oauth.allow_oauth.redirect_callback.app_error",
+    "translation": "invalid_request: El «redirect_uri» subministrat no coincideix amb el «callback_url» registrat"
+  },
+  {
+    "id": "api.marshal_error",
+    "translation": "marshal error"
+  },
+  {
+    "id": "api.license.remove_expired_license.failed.error",
+    "translation": "S'ha produït un error en enviar el correu de desactivació del compte"
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "El nou format de la llicència del client encara no és compatible. Especifica format=old a la cadena de consulta."
+  },
+  {
+    "id": "api.license.add_license.unique_users.app_error",
+    "translation": "Aquesta llicència només admet {{.Users}} usuaris, quan el teu sistema té {{.Count}} usuaris únics. Els usuaris únics es recompten de forma clara per correu. Pots veure el recompte d'usuaris total a Informes del lloc -> Mostra les estadístiques."
+  },
+  {
+    "id": "api.license.add_license.save_active.app_error",
+    "translation": "L'ID de llicència activa no s'ha desat correctament."
+  },
+  {
+    "id": "api.license.add_license.save.app_error",
+    "translation": "La llicència no s'ha desat correctament."
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "No s'ha pogut obrir el fitxer de llicència"
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "Cap fitxer sota «llicència» a la petició"
+  },
+  {
+    "id": "api.license.add_license.invalid_count.app_error",
+    "translation": "No s'ha pogut comptar el total d'usuaris únics."
+  },
+  {
+    "id": "api.license.add_license.invalid.app_error",
+    "translation": "Fitxer de llicència no vàlid."
+  },
+  {
+    "id": "api.license.add_license.expired.app_error",
+    "translation": "La llicència ja ha caducat o encara no ha començat."
+  },
+  {
+    "id": "api.license.add_license.array.app_error",
+    "translation": "Matriu buida sota «llicència» a la petició"
+  },
+  {
+    "id": "api.ldap_groups.license_error",
+    "translation": "La teva llicència no suporta: Idap groups"
+  },
+  {
+    "id": "api.ldap_group.not_found",
+    "translation": "No s'ha trobat: Idap group"
+  },
+  {
+    "id": "api.io_error",
+    "translation": "input/output error"
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "Nom d'usuari no vàlid."
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_error",
+    "translation": "L'administrador del sistema ha desactivat els «webhooks» entrants."
+  },
+  {
+    "id": "api.file.upload_file.too_large_detailed.app_error",
+    "translation": "No es pot pujar el fitxer {{.Filename}}. {{.Length}} bytes excedeix el límit màxim permès de {{.Limit}} bytes."
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "No es pot pujar el fitxer. L'emmagatzematge d'imatges no està configurat."
+  },
+  {
+    "id": "api.file.upload_file.read_request.app_error",
+    "translation": "No es poden pujar els fitxers. S'ha produït un error en llegir o analitzar les dades de sol·licitud."
+  },
+  {
+    "id": "api.file.upload_file.read_form_value.app_error",
+    "translation": "No es poden penjar els fitxers. S'ha produït un error en llegir el valor de {{.Formname}}."
+  },
+  {
+    "id": "api.file.upload_file.multiple_channel_ids.app_error",
+    "translation": "No es poden penjar els fitxers. S'han produït múltiples conflictes amb els «channel_ids»."
+  },
+  {
+    "id": "api.file.upload_file.large_image_detailed.app_error",
+    "translation": "Les dimensions de {{.Filename}} són ({{.Width}} per {{.Height}} píxels) i excedeixen els límits"
+  },
+  {
+    "id": "api.file.upload_file.large_image.app_error",
+    "translation": "No es pot penjar un fitxer que supera les dimensions màximes: {{.Filename}}"
+  },
+  {
+    "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+    "translation": "No es poden penjar els fitxers. Hi ha {{.NumClientIds}} «clients_ids» per a {{.NumFiles}} fitxers."
+  },
+  {
+    "id": "api.file.read_file.reading_local.app_error",
+    "translation": "S'ha trobat un error en llegir des de l'emmagatzematge de fitxers del servidor local"
+  },
+  {
+    "id": "api.file.no_driver.app_error",
+    "translation": "No s'ha seleccionat cap gestor de fitxers."
+  },
+  {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "No s'ha pogut obtenir un enllaç públic per al fitxer. El fitxer s'ha d'adjuntar a una publicació que l'usuari actual pugui llegir."
+  },
+  {
+    "id": "api.file.get_public_link.disabled.app_error",
+    "translation": "S'han desactivat els enllaços públics"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "El fitxer no té una imatge en miniatura"
+  },
+  {
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "El fitxer no té una imatge de previsualització"
+  },
+  {
+    "id": "api.file.get_file.public_invalid.app_error",
+    "translation": "L'enllaç públic no sembla que sigui vàlid"
+  },
+  {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "Els fitxers adjunts s'han desactivat en aquest servidor."
+  },
+  {
+    "id": "api.emoji.upload.open.app_error",
+    "translation": "No es pot crear l'emoji. S'ha produït un error en intentar obrir la imatge adjunta."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large.app_error",
+    "translation": "No s'ha pogut crear l'emoji. La imatge ha de ser més petita que {{.MaxWidth}} per {{.MaxHeight}}."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "No s'ha pogut crear l'emoji. S'ha produït un error en intentar codificar la imatge GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "No s'ha pogut crear l'emoji. S'ha produït un error en intentar descodificar la imatge GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "No s'ha pogut crear l'emoji. S'ha produït un error en intentar codificar la imatge."
+  },
+  {
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "No s'ha pogut crear l'emoji. S'ha produït un error en intentar descodificar la imatge."
+  },
+  {
+    "id": "api.emoji.upload.image.app_error",
+    "translation": "No s'ha pogut crear l'emoji. El tipus de fitxer ha de ser PNG, JPEG o GIF."
+  },
+  {
+    "id": "api.emoji.storage.app_error",
+    "translation": "L'emmagatzematge de fitxers no s'ha configurat correctament. Configura'l per a l'emmagatzematge de fitxers del servidor local o S3."
+  },
+  {
+    "id": "api.emoji.get_image.read.app_error",
+    "translation": "No s'ha pogut llegir el fitxer d'imatge per a l'emoji."
+  },
+  {
+    "id": "api.emoji.get_image.decode.app_error",
+    "translation": "No s'ha pogut descodificar el fitxer d'imatge per a l'emoji."
+  },
+  {
+    "id": "api.emoji.disabled.app_error",
+    "translation": "L'administrador del sistema ha desactivat els emojis personalitzats."
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "No es pot crear l'emoji. La imatge ha de pesar menys d'1 MB."
+  },
+  {
+    "id": "api.emoji.create.parse.app_error",
+    "translation": "No es pot crear l'emoji. No s'ha pogut entendre la sol·licitud."
+  },
+  {
+    "id": "api.emoji.create.other_user.app_error",
+    "translation": "ID d'usuari no vàlid"
+  },
+  {
+    "id": "api.emoji.create.duplicate.app_error",
+    "translation": "No es pot crear l'emoji. Ja existeix un altre amb el mateix nom."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "Nova notificació de [{{.SiteName}}] a {{.Day}} {{.Month}}, {{.Year}}",
+      "other": "Noves notificacions de [{{.SiteName}}] a {{.Day}} {{.Month}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "L'administrador del sistema ha desactivat el processament de correus per lots."
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "El canal de recepció del treball per lots de correu estava ple. Augmenta l'EmailBatchingBufferSize."
+  },
+  {
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "Introduïu el text per a les Condicions del servei personalitzat."
+  },
+  {
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "La funció de termes del servei personalitzat està desactivada"
+  },
+  {
+    "id": "api.context.token_provided.app_error",
+    "translation": "La sessió no és del tipus OAuth, però s'ha proporcionat un testimoni a la cadena de consulta"
+  },
+  {
+    "id": "api.context.session_expired.app_error",
+    "translation": "La sessió no és vàlida o ha caducat, torna a iniciar sessió."
+  },
+  {
+    "id": "api.context.server_busy.app_error",
+    "translation": "El servidor està ocupat, els serveis no crítics no estan disponibles temporalment."
+  },
+  {
+    "id": "api.context.permissions.app_error",
+    "translation": "No teniu els permisos apropiats"
+  },
+  {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "Cal autenticació multifactor en aquest servidor."
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "El paràmetre {{.Name}} no és vàlid o no es troba a l'URL sol·licitada"
+  },
+  {
+    "id": "api.context.invalid_token.error",
+    "translation": "El testimoni {{.Token}} de sessió no és vàlid, err={{.Error}}"
+  },
+  {
+    "id": "api.context.invalid_param.app_error",
+    "translation": "El paràmetre {{.Name}} no és vàlid"
+  },
+  {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "{{.Nom}} no és vàlid o manca en el cos de la sol·licitud"
+  },
+  {
+    "id": "api.context.404.app_error",
+    "translation": "Ens sap greu, no hem pogut trobar la pàgina."
+  },
+  {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "No s'ha pogut combinar la configuració proporcionada."
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "El nou format per a la configuració del client encara no és compatible. Especifica format=old a la cadena de consulta."
+  },
+  {
+    "id": "api.command_shrug.name",
+    "translation": "shrug"
+  },
+  {
+    "id": "api.command_shrug.hint",
+    "translation": "[missatge]"
+  },
+  {
+    "id": "api.command_shrug.desc",
+    "translation": "Afegeix ¯\\_(ツ)_/¯ al teu missatge"
+  },
+  {
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "L'ordre de les dreceres no és compatible amb el dispositiu"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "shortcuts"
+  },
+  {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Mostra una llista de dreceres de teclat"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "L'ordre de configuració no és compatible amb el dispositiu"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "settings"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Obre el diàleg de configuració del compte"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "L'ordre de cerca no és compatible amb el dispositiu"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "search"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_search.desc",
+    "translation": "Cerca text als missatges"
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "{{.Username}} no és membre d'aquest canal."
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "No tens els permisos adequats per eliminar el membre."
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "remove"
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "No hem pogut trobar l'usuari. Pot ser que l'administrador del sistema l'hagi desactivat."
+  },
+  {
+    "id": "app.import.process_import_data_file_version_line.invalid_version.error",
+    "translation": "No es pot llegir la versió del fitxer d'importació de dades."
+  },
+  {
+    "id": "app.import.import_user_teams.save_preferences.error",
+    "translation": "No s'han pogut desar les preferències del tema de l'equip"
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "S'ha produït un error en importar les subscripcions del canal. No s'ha pogut desar les preferències."
+  },
+  {
+    "id": "app.import.import_user.save_preferences.error",
+    "translation": "S'ha produït un error en importar les preferències de l'usuari. No s'ha pogut desar les preferències."
+  },
+  {
+    "id": "app.import.import_team.scheme_wrong_scope.error",
+    "translation": "L'equip s'ha d'assignar a un esquema de l'àmbit del canal."
+  },
+  {
+    "id": "app.import.import_team.scheme_deleted.error",
+    "translation": "No es pot establir un esquema eliminat a un equip."
+  },
+  {
+    "id": "app.import.import_scheme.scope_change.error",
+    "translation": "L'importador massiu no pot canviar l'abast d'un esquema ja existent."
+  },
+  {
+    "id": "app.import.import_post.user_not_found.error",
+    "translation": "S'ha produït un error en importar la publicació. No s'ha pogut trobar l'usuari \"{{.Username}}\"."
+  },
+  {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "S'ha produït un error en importar la publicació. No s'ha pogut desar les preferències."
+  },
+  {
+    "id": "app.import.import_post.channel_not_found.error",
+    "translation": "S'ha produït un error en importar la publicació. No s'ha pogut trobar el canal amb el nom \"{{.ChannelName}}\"."
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "La línia d'importació de dades té un tipus desconegut \"{{.Type}}\"."
+  },
+  {
+    "id": "app.import.import_line.null_user.error",
+    "translation": "La línia d'importació de dades té el tipus «user» però l'objecte d'usuari és nul."
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "La línia d'importació de dades té el tipus «team» però l'objecte de l'equip és nul."
+  },
+  {
+    "id": "app.import.import_line.null_scheme.error",
+    "translation": "La línia d'importació de dades té el tipus «scheme» però l'objecte d'esquema és nul."
+  },
+  {
+    "id": "app.import.import_line.null_post.error",
+    "translation": "La línia d'importació de dades té el tipus «post» però l'objecte de publicació és nul."
+  },
+  {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "La línia d'importació de dades té el tipus «emoji» però l'objecte de l'emoji és nul."
+  },
+  {
+    "id": "app.import.import_line.null_direct_post.error",
+    "translation": "La línia d'importació de dades té el tipus «canal» però l'objecte de publicació directa és nul."
+  },
+  {
+    "id": "app.import.import_line.null_direct_channel.error",
+    "translation": "La línia d'importació de dades té el tipus «direct_channel» però l'objecte del canal directe és nul."
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "La línia d'importació de dades té el tipus «channel» però l'objecte del canal és nul."
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "No s'ha pogut obtenir el canal grupal"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "No s'ha pogut obtenir el canal directe"
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "No s'ha pogut actualitzar l'encapçalament del canal directe"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "No s'ha pogut crear el canal grupal"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "No s'ha pogut crear el canal directe"
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "S'ha produït un error en importar el canal. No s'ha pogut trobar l'equip amb el nom \"{{.TeamName}}\"."
+  },
+  {
+    "id": "app.import.import_channel.scheme_wrong_scope.error",
+    "translation": "El canal s'ha d'assignar a un esquema de l'àmbit del canal."
+  },
+  {
+    "id": "app.import.import_channel.scheme_deleted.error",
+    "translation": "No es pot establir un esquema eliminat a un canal."
+  },
+  {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "S'ha produït un error en llegir el fitxer importat amb la imatge de l'emoji. Nom de l'emoji: \"{{.EmojiName}}\""
+  },
+  {
+    "id": "app.import.bulk_import.unsupported_version.error",
+    "translation": "Versió incorrecta o hi manca al fitxer d'importació de dades. Assegura't que la versió sigui el primer objecte al fitxer d'importació i torna-ho a provar."
+  },
+  {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "S'ha produït un error en decodificar la línia JSON."
+  },
+  {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "Error en llegir el fitxer d'importació de dades."
+  },
+  {
+    "id": "app.import.attachment.file_upload.error",
+    "translation": "Error en pujar el fitxer: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.bad_file.error",
+    "translation": "Error en llegir el fitxer a: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.export.export_write_line.json_marshall.error",
+    "translation": "S'ha produït un error en reunir les dades JSON per exportar-les."
+  },
+  {
+    "id": "app.export.export_write_line.io_writer.error",
+    "translation": "S'ha produït un error en escriure les dades d'exportació."
+  },
+  {
+    "id": "app.export.export_custom_emoji.copy_emoji_images.error",
+    "translation": "No s'han pogut copiar les imatges d'emoticones personalitzats"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s ha actualitzat el propòsit del canal a: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s ha actualitzat el propòsit del canal de: %s a: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "No s'ha pogut recuperar l'usuari durant l'actualització de la capçalera del canal %v"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%s ha eliminat el propòsit del canal (era: %s)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "No s'ha pogut publicar el missatge del propòsit del canal"
+  },
+  {
+    "id": "app.channel.move_channel.members_do_not_match.error",
+    "translation": "No es pot moure un canal, tret que tots els seus membres ja siguin membres de l'equip de destinació."
+  },
+  {
+    "id": "app.channel.create_direct_channel.internal_error",
+    "translation": "No es pot desar el canal"
+  },
+  {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "Has d'especificar l'ID de l'equip per crear un canal"
+  },
+  {
+    "id": "app.channel.create_channel.internal_error",
+    "translation": "No es pot desar el canal"
+  },
+  {
+    "id": "app.bot.permenent_delete.bad_id",
+    "translation": "No es pot eliminar el bot"
+  },
+  {
+    "id": "app.bot.patchbot.internal_error",
+    "translation": "No es pot actualitzar el bot"
+  },
+  {
+    "id": "app.bot.getbots.internal_error",
+    "translation": "No es poden obtenir els bots"
+  },
+  {
+    "id": "app.bot.getbot.internal_error",
+    "translation": "No es pot obtenir el bot"
+  },
+  {
+    "id": "app.bot.createbot.internal_error",
+    "translation": "No es pot desar el bot"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "S'ha produït un error en la connexió: {{.Error}}"
+  },
+  {
+    "id": "api.websocket_handler.server_busy.app_error",
+    "translation": "El servidor està ocupat, els serveis no crítics no estan disponibles temporalment."
+  },
+  {
+    "id": "api.websocket_handler.invalid_param.app_error",
+    "translation": "El paràmetre {{.Name}} no és vàlid"
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Els «webhooks» sortints del mateix canal no poden tenir les mateixes paraules d'activació/URL de retorn."
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "No es pot actualitzar el «webhook» a través d'equips"
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "No s'ha pogut codificar la càrrega multipart al «webhook» entrant."
+  },
+  {
+    "id": "api.webhook.create_outgoing.triggers.app_error",
+    "translation": "Cal configurar les «trigger_words» o el «channel_id»"
+  },
+  {
+    "id": "api.webhook.create_outgoing.permissions.app_error",
+    "translation": "Permisos no vàlids per crear un «webhook» sortint."
+  },
+  {
+    "id": "api.webhook.create_outgoing.not_open.app_error",
+    "translation": "Els «webhooks» sortints només es poden crear per a canals públics."
+  },
+  {
+    "id": "api.webhook.create_outgoing.intersect.app_error",
+    "translation": "Els «webhooks» sortints del mateix canal no poden tenir les mateixes paraules d'activació/URL de retorn."
+  },
+  {
+    "id": "api.web_socket_router.not_authenticated.app_error",
+    "translation": "La connexió del WebSocket no està autenticada. Inicia sessió i torna-ho a provar."
+  },
+  {
+    "id": "api.web_socket_router.no_action.app_error",
+    "translation": "Cap acció del websocket."
+  },
+  {
+    "id": "api.web_socket_router.bad_seq.app_error",
+    "translation": "Seqüència no vàlida per al missatge del WebSocket."
+  },
+  {
+    "id": "api.web_socket_router.bad_action.app_error",
+    "translation": "Acció del WebSocket desconeguda."
+  },
+  {
+    "id": "api.web_socket.connect.upgrade.app_error",
+    "translation": "S'ha produït un error en actualitzar la connexió del websocket"
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "No s'ha pogut analitzar les dades del testimoni des de la verificació del correu"
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "L'enllaç de verificació del correu ha caducat."
+  },
+  {
+    "id": "api.user.verify_email.broken_token.app_error",
+    "translation": "Tipus de testimoni de verificació de correu incorrecte."
+  },
+  {
+    "id": "api.user.verify_email.bad_link.app_error",
+    "translation": "Enllaç de verificació de correu incorrecte."
+  },
+  {
+    "id": "api.user.upload_profile_user.upload_profile.app_error",
+    "translation": "No s'ha pogut pujar la imatge del perfil"
+  },
+  {
+    "id": "api.user.upload_profile_user.too_large.app_error",
+    "translation": "No s'ha pogut pujar la imatge de perfil. El fitxer és massa gran."
+  },
+  {
+    "id": "api.user.upload_profile_user.storage.app_error",
+    "translation": "No es pot pujar el fitxer. L'emmagatzematge d'imatges no està configurat."
+  },
+  {
+    "id": "api.user.upload_profile_user.parse.app_error",
+    "translation": "No s'ha pogut parsejar el formulari multipart"
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "No s'ha pogut obrir el fitxer d'imatge"
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "Cap fitxer sota «imatge» a la petició"
+  },
+  {
+    "id": "api.user.upload_profile_user.encode.app_error",
+    "translation": "No s'ha pogut codificar la imatge del perfil"
+  },
+  {
+    "id": "api.user.upload_profile_user.decode.app_error",
+    "translation": "No s'ha pogut decodificar la imatge del perfil"
+  },
+  {
+    "id": "api.user.upload_profile_user.array.app_error",
+    "translation": "Matriu buida sota 'image' a la petició"
+  },
+  {
+    "id": "api.user.update_user.accepted_guest_domain.app_error",
+    "translation": "El correu electrònic que has proporcionat no pertany a un domini permès. Contacta amb el teu administrador o registra't amb un correu diferent."
+  },
+  {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "El correu electrònic que has proporcionat no pertany a un domini permès. Contacta amb el teu administrador o registra't amb un correu diferent."
+  },
+  {
+    "id": "api.user.update_password.valid_account.app_error",
+    "translation": "L'actualització de la contrasenya ha fallat perquè no hem pogut trobar un compte vàlid"
+  },
+  {
+    "id": "api.user.update_password.oauth.app_error",
+    "translation": "L'actualització de la contrasenya ha fallat a causa de que l'usuari està vinculat a un proveïdor d'OAuth"
+  },
+  {
+    "id": "api.user.update_password.menu",
+    "translation": "utilitzant el menú de configuració"
+  },
+  {
+    "id": "api.user.update_password.incorrect.app_error",
+    "translation": "La «contrasenya actual» que has introduït no és correcta. Comprova que les majúscules estiguin desactivades i torna-ho a provar."
+  },
+  {
+    "id": "api.user.update_password.failed.app_error",
+    "translation": "S'ha produït un error en actualitzar la contrasenya"
+  },
+  {
+    "id": "api.user.update_password.context.app_error",
+    "translation": "S'ha produït un error en actualitzar la contrasenya perquè l'user_id de context no coincideix amb l'user_id de props"
+  },
+  {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "No s'ha pogut obtenir l'usuari des de l'objecte de {{.Service}}"
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "No teniu els permisos apropiats"
+  },
+  {
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "No pots desactivar-te a tú mateix perquè aquesta funció no està activada. Contacta amb el teu administrador del sistema."
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "S'ha de proporcionar un missatge amb l'ordre /remove o /kick."
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[usuari]"
+  },
+  {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "No pots expulsar l'usuari del canal perquè és membre d'altres grups enllaçats a aquest canal. Per expulsar-lo d'aquest canal, ha de ser expulsat dels grups enllaçats."
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "No pots eliminar a algú d'un canal de missatge directe."
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "Suprimeix un membre del canal"
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "open"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "Ara esteu connectat"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "online"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Estableix l'estat a en línia"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "Ara esteu desconnectat"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "offline"
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "Estableix l'estat a fora de línia"
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "Aquest canal ja no està silenciat."
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "{{.Channel}} ja no està silenciat."
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "No rebràs notificacions d'aquest canal mentrestant el canal estigui silenciat."
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "No rebràs notificacions per {{.Channel}} mentrestant el canal estigui silenciat."
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "No s'ha pogut silenciar el canal {{.Channel}} perquè no ets membre."
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "No s'ha pogut trobar el canal especificat. Utilitza l'[identificador del canal](https://about.mattermost.com/default-channel-handle-documentation) per identificar canals."
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "mute"
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "~[canal]"
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "No s'ha pogut trobar el canal {{.Channel}}. Utilitza l'[identificador del canal](https://about.mattermost.com/default-channel-handle-documentation) per identificar canals."
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "Desactiva les notificacions d'escriptori, de correu electrònic i de tramesa automàtica per al canal actual o el [canal] especificat."
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "No tens els permisos adequats per enviar missatges directes a aquest usuari."
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "message"
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "No es pot trobar l'usuari."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[usuari] «missatge»"
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "S'ha produït un error en enviar missatges a l'usuari."
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "S'ha produït un error en crear el missatge directe."
+  },
+  {
+    "id": "api.command_msg.desc",
+    "translation": "Envia un missatge directe a un usuari"
+  },
+  {
+    "id": "api.command_me.name",
+    "translation": "me"
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "[missatge]"
+  },
+  {
+    "id": "api.command_me.desc",
+    "translation": "Fes una acció"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "logout"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Tanca sessió de Mattermost"
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "leave"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "S'ha produït un error en deixar del canal."
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Deixa el canal actual"
+  },
+  {
+    "id": "api.command_kick.name",
+    "translation": "kick"
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "join"
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "No es pot trobar el canal"
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "S'ha produït un error en mostrar els canals."
+  },
+  {
+    "id": "api.command_join.hint",
+    "translation": "~[canal]"
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "S'ha produït un error en unir-se al canal."
+  },
+  {
+    "id": "api.command_join.desc",
+    "translation": "Uneix-te al canal obert"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "No tens permís per convidar usuaris nous a aquest servidor."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "@{{.Username}} no és membre d'aquest canal."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} ja està al canal."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.User}} s'ha afegit al canal {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "No s'ha pogut trobar el canal {{.Channel}}. Utilitza l'identificador del canal per identificar-los."
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "No tens prou permisos per afegir {{.User}} a {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "invite"
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "No hem pogut trobar l'usuari. És possible que l'administrador del sistema l'hagi desactivat."
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "Falta el nom d'usuari i el canal."
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[usuari] ~[canal]"
+  },
+  {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "Aquest canal està gestionat per grups, però aquest usuari no pertany a cap d'ells."
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "S'ha produït un error en unir-se al canal."
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "No pots afegir algú a un canal de missatge directe."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Convida un usuari a un canal"
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "No s'ha pogut trobar el canal {{.Channel}}. Utilitza l'[identificador del canal](https://about.mattermost.com/default-channel-handle-documentation) per identificar canals."
+  },
+  {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "S'ha produït un error en recuperar el canal actual."
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "help"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Obre la pàgina d'ajuda de Mattermost"
+  },
+  {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "No tens els permisos adequats per crear un missatge de grup nou."
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "missatge"
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Els missatges grupals estan limitats a un mínim de {{.MinUsers}} usuaris."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Els missatges grupals estan limitats a un màxim de {{.MaxUsers}} usuaris."
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "No es pot trobar l'usuari: {{.Users}}",
+      "other": "No es poden trobar els usuaris: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[usuari1],@[usuari2] «missatge»"
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "S'ha produït un error en crear el missatge grupal."
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "S'ha produït un error en enviar missatges als usuaris."
+  },
+  {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Envia un missatge grupal als usuaris especificats"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "S'ha produït un error en ampliar les previsualitzacions"
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "Els enllaços d'imatges s'amplien per defecte"
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "expand"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "Desactiva el replegament automàtic de les previsualitzacions d'imatges"
+  },
+  {
+    "id": "api.command_echo.name",
+    "translation": "echo"
+  },
+  {
+    "id": "api.command_echo.message.app_error",
+    "translation": "S'ha de proporcionar un missatge amb l'ordre /echo."
+  },
+  {
+    "id": "api.command_echo.hint",
+    "translation": "«missatge» [retard en segons]"
+  },
+  {
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "Massa sol·licituds «echo», no es pot processar la sol·licitud"
+  },
+  {
+    "id": "api.command_echo.desc",
+    "translation": "Retireu el text del vostre compte."
+  },
+  {
+    "id": "api.command_echo.delay.app_error",
+    "translation": "El retard ha de ser inferior a 10.000 segons"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "No molestar està activat. No rebràs notificacions de tramesa automàtica d'escriptori o mòbil fins que no desactivis No molestar."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "dnd"
+  },
+  {
+    "id": "api.command_dnd.desc",
+    "translation": "No molestar desactiva les notificacions de tramesa automàtica d'escriptoris i mòbils."
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "Els enllaços de les imatges es replegaran per defecte"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "collapse"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Activa el replegament automàtic de les previsualitzacions d'imatges"
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "code"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "S'ha de proporcionar un missatge amb l'ordre /code."
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Mostra el text com a bloc de codi"
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "S'ha produït un error en actualitzar el canal actual."
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "El nom del canal ha de tenir {{.Length}} o més caràcters"
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "El nom del canal ha de tenir {{.Length}} o menys caràcters"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "No tens els permisos adequats per canviar el nom del canal."
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "rename"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "S'ha de proporcionar un missatge amb la comanda /rename."
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "No es pot canviar el nom dels canals de missatges directes."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Canvia el nom del canal"
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "S'ha produït un error en recuperar el canal actual."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "S'ha produït un error en recuperar el canal actual."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "S'ha produït un error en actualitzar el canal actual."
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "No tens els permisos adequats per editar el propòsit del canal."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "purpose"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "S'ha de proporcionar un missatge amb l'ordre /purpose."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "No es pot establir el propòsit dels canals de missatges directes. Utilitza /header per establir la capçalera al seu lloc."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Edita el propòsit del canal"
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "S'ha produït un error en recuperar el canal actual."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "S'ha produït un error en actualitzar el canal actual."
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "No tens els permisos adequats per editar la capçalera del canal."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "header"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "S'ha de proporcionar el text amb la comanda /header."
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Edita la capçalera del canal"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "S'ha produït un error en recuperar el canal actual."
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Ara esteu absent"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "away"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Establiu el vostre estat com a absent"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "No es poden actualitzar les ordres a través dels equips"
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "S'han enviat els correus d'invitació"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Especifica una o més adreces de correu vàlides"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "invite_people"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "La creació d'usuaris s'ha desactivat en aquest servidor, no s'ha enviat cap invitació"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[nom@domini.cat ...]"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "S'ha trobat un error en enviar els correus d'invitació"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "El servei de correu no s'ha configurat, no s'ha enviat cap invitació"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "Les invitacions per correu estan desactivades, no s'ha enviat cap invitació"
+  },
+  {
+    "id": "api.command.invite_people.desc",
+    "translation": "Envia un correu d'invitació al teu equip de Mattermost"
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "No s'ha trobat cap disparador d'ordres"
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "No s'ha trobat una ordre amb un disparador de «{{.Trigger}}». Per enviar un missatge que comença per «/», prova a afegir un espai buit al principi del missatge."
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "L'ordre amb un disparador de «{{.Trigger}}» ha retornat la resposta {{.Status}}"
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "L'ordre amb un disparador de «{{.Trigger}}» ha retornat una resposta buida"
+  },
+  {
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "S'ha produït un error amb un disparador de «{{.Trigger}}»"
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "L'ordre '{{.Trigger}}' no ha pogut publicar la resposta. Contacta amb el teu administrador del sistema."
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "Aquesta paraula disparadora ja està en ús. Escull una altra."
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "L'administrador del sistema ha desactivat les ordres."
+  },
+  {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "L'usuari especificat no és membre del canal especificat."
+  },
+  {
+    "id": "api.command.admin_only.app_error",
+    "translation": "Les integracions només s'han limitat als administradors."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "El rol proporcionat és gestionat per un esquema i, per tant, no es pot aplicar directament a un membre de l'equip"
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Actualització del membre de l'equip invàlida: no pots afegir o eliminar manualment el rol de convidat."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "No es pot establir l'esquema al canal perquè l'esquema subministrat no és un esquema de canal."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "La teva llicència no és compatible amb l'actualització de l'esquema d'un canal"
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "El canal per defecte no es pot passar a privat."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "El rol proporcionat és gestionat per un esquema i, per tant, no es pot aplicar directament a un membre del canal"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Actualització del membre del canal invàlida: un usuari ha de ser convidat o usuari, però no els dos a la vegada."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Actualització del membre del canal invàlida: no pots afegir o eliminar manualment el rol de convidat."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Aquest tipus de canal no es pot actualitzar"
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "S'ha intentat realitzar una actualització no vàlida del canal per defecte {{.Channel}}"
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "El canal ha estat arxivat o suprimit"
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} ha arxivat el canal."
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "No es pot desarxivar el canal perquè no està arxivat."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "No pots canviar el nom d'un canal de missatges grupals"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "No pots canviar el nom d'un canal de missatges directes"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "No es pot eliminar l’usuari d’aquest tipus de canal"
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "S'ha denegat l'expulsió dels canals als usuaris següents a causa de restriccions de grup:"
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v eliminat del canal."
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "No es pot expulsar un usuari d'un canal restringit."
+  },
+  {
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "No es pot eliminar l'usuari d'un canal."
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "No es pot eliminar l'usuari del canal per defecte {{.Channel}}"
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "No s'ha pogut publicar el missatge d'unir/deixar"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s ha actualitzat la capçalera del canal a: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s ha actualitzat la capçalera del canal de: %s a: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "No s'ha pogut recuperar l'usuari durant l'actualització de la capçalera del canal"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s ha eliminat la capçalera del canal (era: %s)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "No s'ha pogut publicar el missatge d'actualització de la capçalera del canal"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s ha actualitzat el nom del canal de: %s a: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "No s'ha pogut recuperar l'usuari mentre s'actualitzava el camp «DisplayName» del canal"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "No s'ha pogut publicar el missatge d'actualització del nom del canal"
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "No s'ha pogut publicar el missatge d'actualització de la privadesa del canal."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "No s'ha pogut actualitzar el canal"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "La teva llicència no és compatible amb la retenció de dades."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v ha deixat el canal."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "Ets l'únic membre, intenta eliminar el canal privat en lloc de sortir."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "No es pot deixar un canal de missatge directe"
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "No es pot deixar el canal per defecte {{.Channel}}"
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v s'ha unit al canal."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "No teniu els permisos apropiats"
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v s'ha afegit al canal com a visitant."
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "La teva llicència no és compatible amb la retenció de dades."
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "No es poden eliminar canals grupals o missatges directes"
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "El canal ha estat arxivat o suprimit"
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "No es pot eliminar el canal per defecte {{.Channel}}"
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v ha arxivat el canal."
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "Un dels usuaris proporcionats no existeix"
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Els canals de missatge grupals han de contenir com a mínim 3 i no més de 8 usuaris"
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "ID d'usuari no vàlid per a la creació de canals en directe"
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "Plaça major"
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "Fora de tema"
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "No es poden crear més de {{.MaxChannelsPerTeam}} canals per a l'equip actual"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "S'ha de fer servir el servei de l'API createDirectChannel per crear un canal de missatges privats"
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "La teva llicència no suporta: Idap groups"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Aquest canal s'ha convertit a Canal Privat."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Aquest canal s'ha convertit a Canal Públic i qualsevol membre de l'equip pot unir-se."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "No es pot afegir l'usuari en aquest tipus de canal"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "No s'ha pogut afegir l'usuari al canal perquè ha estat eliminat de l'equip."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "No s'ha pogut afegir l'usuari al canal"
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Pertinença al canal denegada als següents usuaris a causa de restriccions de grup: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Error al afegir persones al canal."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v afegit al canal per %v"
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v afegit al canal per %v"
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Si us plau afegeix-me a l'equip i als canals als que vols que interactuí. Per fer això, fes servir el navegador o l'app d'escriptori de Mattermost."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "La creació de bots ha estat deshabilitada."
+  },
+  {
+    "id": "api.scheme.patch_scheme.license.error",
+    "translation": "La teva llicència no és compatible amb l'actualització d'esquemes de permisos"
+  },
+  {
+    "id": "api.scheme.get_teams_for_scheme.scope.error",
+    "translation": "No es poden obtenir els equips per a l'esquema perquè l'esquema proporcionat no és un esquema d'equip."
+  },
+  {
+    "id": "api.scheme.get_channels_for_scheme.scope.error",
+    "translation": "No es poden obtenir els canals d'esquema perquè l'esquema proporcionat no és un esquema de canal."
+  },
+  {
+    "id": "api.scheme.delete_scheme.license.error",
+    "translation": "La teva llicència no és compatible amb l'eliminació d'esquemes de permisos"
+  },
+  {
+    "id": "api.scheme.create_scheme.license.error",
+    "translation": "La teva llicència no és compatible amb la creació d'esquemes de permisos."
+  },
+  {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "La teva llicència no és compatible amb els permisos avançats."
+  },
+  {
+    "id": "api.restricted_system_admin",
+    "translation": "Aquesta acció està prohibida i s'ha restringit a administradors del sistema."
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "No pots desar la reacció de l'altre usuari."
+  },
+  {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Reacció no vàlida."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "No pots reaccionar en un canal arxivat."
+  },
+  {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "No pots eliminar una reacció d'un canal arxivat."
+  },
+  {
+    "id": "api.push_notifications_ack.message.parse.app_error",
+    "translation": "S'ha produït un error en crear el missatge ACK de notificació"
+  },
+  {
+    "id": "api.push_notifications_ack.forward.app_error",
+    "translation": "S'ha produït un error en enviar la recepció de rebut al servei de Notificacions Push"
+  },
+  {
+    "id": "api.push_notifications.message.parse.app_error",
+    "translation": "S'ha produït un error en crear el missatge de notificació"
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "S'ha produït un error en obtenir la notificació push carregada per ID"
+  },
+  {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "Has rebut un nou missatge."
+  },
+  {
+    "id": "api.push_notification.disabled.app_error",
+    "translation": "Les Notificacions Push estan deshabilitades en aquest servidor."
+  },
+  {
+    "id": "api.preference.update_preferences.set.app_error",
+    "translation": "No s'ha pogut establir les preferències de l'usuari."
+  },
+  {
+    "id": "api.preference.preferences_category.get.app_error",
+    "translation": "No s'ha pogut obtenir les preferències de l'usuari."
+  },
+  {
+    "id": "api.preference.delete_preferences.delete.app_error",
+    "translation": "No s'ha pogut eliminar les preferències de l'usuari."
+  },
+  {
+    "id": "api.post_get_post_by_id.get.app_error",
+    "translation": "No es pot obtenir la publicació"
+  },
+  {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "No s'ha pogut actualitzar el missatge del sistema"
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "Només es permet l'edició de publicacions durant {{.timeLimit}} segons. Pregunteu a l'administrador del sistema per obtenir més detalls."
+  },
+  {
+    "id": "api.post.update_post.permissions_details.app_error",
+    "translation": "Ja s'ha eliminat id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "No es pot trobar la publicació o comentari existent per actualitzar-ho."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "No es pot actualitzar una publicació en un canal suprimit."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_message",
+    "translation": "t'ha enviat un missatge."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " ha adjuntat un fitxer."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "No s'ha pogut pujar el fitxer. El fitxer és massa gran."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "No s'ha pogut pujar la imatge. L'emmagatzematge d'imatges no està configurat."
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "No s'ha pogut parsejar el formulari multipart"
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Cap fitxer sota «imatge» a la petició"
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "Matriu buida sota 'image' a la petició"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "Es necessita S3 Bucket"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Provant la configuració de correu"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "El servidor SMTP, el seu port o el nom d'usuari ha canviat. Torneu a inserir la contrasenya del servidor SMTP per a provar la connexió."
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "El servidor SMTP és obligatori"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Sembla que la configuració de correu del Mattermost és correcta!"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Falta el tipus de contingut."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Tipus de contingut no vàlid."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Text del certificat no vàlid."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 no està configurat o no és compatible en aquest servidor."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "S'ha produït un error en crear el Service Provider Metadata."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "Falta el node dels Serveis SSO en el XML del Proveïdor d'Identitat"
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "Falta el node de les claus dels descriptors en el XML del Proveïdor d'Identitat"
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "Falta el node dels descriptors SSO a l'XML del proveïdor d'identitat"
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "No s'ha pogut desar el certificat."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "S'ha produït un error mentre es transferia la informació de les metadades rebudes del proveïdor d'identitat a un certificat."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "S'ha produït un error en obtenir les metadades des de la URL del proveïdor d'identitat"
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "S'ha produït un error en suprimir el certificat."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "No s'ha configurat l'emmagatzemament d'imatges."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "S'ha produït un error en llegir el fitxer de registre."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "No es pot esborrar la imatge de marca, no trobada."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "No s'ha pogut desar el fitxer del certificat."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "No s'ha pogut obrir el fitxer del certificat."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Cap fitxer sota certificat a la petició."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Cap fitxer sota «certificat» a la petició."
+  },
+  {
+    "id": "September",
+    "translation": "Setembre"
+  },
+  {
+    "id": "October",
+    "translation": "Octubre"
+  },
+  {
+    "id": "November",
+    "translation": "Novembre"
+  },
+  {
+    "id": "May",
+    "translation": "Maig"
+  },
+  {
+    "id": "March",
+    "translation": "Març"
+  },
+  {
+    "id": "June",
+    "translation": "Juny"
+  },
+  {
+    "id": "July",
+    "translation": "Juliol"
+  },
+  {
+    "id": "January",
+    "translation": "Gener"
+  },
+  {
+    "id": "February",
+    "translation": "Febrer"
+  },
+  {
+    "id": "December",
+    "translation": "Desembre"
+  },
+  {
+    "id": "August",
+    "translation": "Agost"
+  },
+  {
+    "id": "April",
+    "translation": "Abril"
+  },
+  {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "El nom ha de tenir entre 1 i 64 caràcters alfanumèrics en minúscula"
+  }
+]

@@ -1,0 +1,126 @@
+[
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "Ezhomm 'zeus eus ur servijer SMTP"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Evit doare eo staliet mat ho postel Mattermost !"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Ar seurt endalc'had a vank."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "N'eo ket reizh ar seurt endalc'had."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Nammet eo testenn an testeni."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 n'eo na kefluniet na gouzañvet war ar servijer-mañ."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "N'eus ket bet tu mirout ar restr testeni."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Fazi en un distrujañ an testeni."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP dihegerz."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Enrollañ skeudennoù n'eo ket kefluniet."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Fazi en ur lenn renabl ar fazioù."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "N'eus ket bet tu distrujañ ar skeudenn-merk, n'eo ket bet kavet."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "N'eus ket bet tu mirout ar restr testeni."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "fazi o tielfennañ ur reked liesstumm"
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "N'eus ket bet tu digeriñ ar restr testeni."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Restr ebet dindan 'testeni' er reked."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Restr ebet dindan 'testeni' er reked."
+  },
+  {
+    "id": "September",
+    "translation": "Miz Gwengolo"
+  },
+  {
+    "id": "October",
+    "translation": "Miz Here"
+  },
+  {
+    "id": "November",
+    "translation": "Miz Du"
+  },
+  {
+    "id": "May",
+    "translation": "Miz Mae"
+  },
+  {
+    "id": "March",
+    "translation": "Miz Meurzh"
+  },
+  {
+    "id": "June",
+    "translation": "Miz Mezheven"
+  },
+  {
+    "id": "July",
+    "translation": "Miz Gouere"
+  },
+  {
+    "id": "January",
+    "translation": "Miz Genver"
+  },
+  {
+    "id": "February",
+    "translation": "Miz C'hwevrer"
+  },
+  {
+    "id": "December",
+    "translation": "Miz Kerzu"
+  },
+  {
+    "id": "Channels",
+    "translation": "Chadennoù"
+  },
+  {
+    "id": "Boards",
+    "translation": "Burevioù"
+  },
+  {
+    "id": "August",
+    "translation": "Miz Eost"
+  },
+  {
+    "id": "April",
+    "translation": "Miz Ebrel"
+  }
+]

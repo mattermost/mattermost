@@ -1,0 +1,2952 @@
+[
+  {
+    "id": "store.sql_user.get_for_login.app_error",
+    "translation": "Kami tidak dapat menemukan akun yang telah ada yang sesuai dengan email Anda untuk tim ini. Tim ini mungkin membutuhkan undangan dari pemilik tim untuk bergabung."
+  },
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "Tidak dapat memperoleh kanal"
+  },
+  {
+    "id": "app.reaction.save.save.app_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "app.emoji.delete.app_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "store.sql_command.save.get.app_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "app.channel.update.bad_id",
+    "translation": "Tidak dapat memperoleh kanal"
+  },
+  {
+    "id": "store.sql_channel.save.direct_channel.app_error",
+    "translation": "Gunakan SaveDirectChannel untuk membuat kanal langsung"
+  },
+  {
+    "id": "app.channel.get_deleted.existing.app_error",
+    "translation": "Tidak dapat menemukan kanal"
+  },
+  {
+    "id": "app.channel.get_channels.not_found.app_error",
+    "translation": "Tidak ada kanal ditemukan"
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "Kanal tidak ada"
+  },
+  {
+    "id": "store.sql_channel.get.existing.app_error",
+    "translation": "Tidak dapat menemukan kanal"
+  },
+  {
+    "id": "app.audit.save.saving.app_error",
+    "translation": "Kami mengalami masalah saat mencari akun"
+  },
+  {
+    "id": "app.audit.permanent_delete_by_user.app_error",
+    "translation": "Kami mengalami masalah saat mencari akun"
+  },
+  {
+    "id": "app.audit.get.finding.app_error",
+    "translation": "Kami mengalami masalah saat mencari akun"
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "Tidak dapat memperoleh tautan publik untuk data. Data harus dilampirkan pada postingan yang bisa dibaca oleh pengguna saat ini."
+  },
+  {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "Tautan publik telah dinonaktifkan."
+  },
+  {
+    "id": "model.utils.decode_json.app_error",
+    "translation": "tidak dapat membaca kode"
+  },
+  {
+    "id": "model.user_access_token.is_valid.user_id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.user_access_token.is_valid.token.app_error",
+    "translation": "Token akses tidak valid"
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "Pembaruan harus pada waktu yang valid"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.post.is_valid.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.post.is_valid.channel_id.app_error",
+    "translation": "ID Kanal tidak valid"
+  },
+  {
+    "id": "model.outgoing_hook.username.app_error",
+    "translation": "Nama tidak valid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.words.app_error",
+    "translation": "Kata pemicu tidak valid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.user_id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.url.app_error",
+    "translation": "URL callback tidak valid. Harus berupa URL yang valid dan dimulai dengan http:// atau https://"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.update_at.app_error",
+    "translation": "Pembaruan harus pada waktu yang valid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
+    "translation": "Kata pemicu tidak valid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.token.app_error",
+    "translation": "Token tidak valid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.team_id.app_error",
+    "translation": "ID tim tidak valid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.id.app_error",
+    "translation": "ID tidak valid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.display_name.app_error",
+    "translation": "Tipe tidak valid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.description.app_error",
+    "translation": "Deskripsi tidak valid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.channel_id.app_error",
+    "translation": "ID Kanal tidak valid"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.callback.app_error",
+    "translation": "URL callback tidak valid"
+  },
+  {
+    "id": "model.outgoing_hook.icon_url.app_error",
+    "translation": "Jangkauan tidak valid"
+  },
+  {
+    "id": "model.oauth.is_valid.update_at.app_error",
+    "translation": "Pembaruan harus pada waktu yang valid"
+  },
+  {
+    "id": "model.oauth.is_valid.name.app_error",
+    "translation": "Nama tidak valid"
+  },
+  {
+    "id": "model.oauth.is_valid.icon_url.app_error",
+    "translation": "URL SSO SAML harus berupa URL yang valid dan dimulai dengan http:// atau https://"
+  },
+  {
+    "id": "model.oauth.is_valid.homepage.app_error",
+    "translation": "URL SSO SAML harus berupa URL yang valid dan dimulai dengan http:// atau https://"
+  },
+  {
+    "id": "model.oauth.is_valid.description.app_error",
+    "translation": "Deskripsi tidak valid"
+  },
+  {
+    "id": "model.oauth.is_valid.creator_id.app_error",
+    "translation": "ID pembuat tidak valid"
+  },
+  {
+    "id": "model.oauth.is_valid.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.oauth.is_valid.client_secret.app_error",
+    "translation": "Secret klien tidak valid"
+  },
+  {
+    "id": "model.oauth.is_valid.callback.app_error",
+    "translation": "URL SSO SAML harus berupa URL yang valid dan dimulai dengan http:// atau https://"
+  },
+  {
+    "id": "model.oauth.is_valid.app_id.app_error",
+    "translation": "ID aplikasi tidak valid"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Tipe tidak valid"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "Tipe tidak valid"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "Nama tidak valid"
+  },
+  {
+    "id": "model.incoming_hook.user_id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.incoming_hook.update_at.app_error",
+    "translation": "Pembaruan harus pada waktu yang valid"
+  },
+  {
+    "id": "model.incoming_hook.team_id.app_error",
+    "translation": "ID tim tidak valid"
+  },
+  {
+    "id": "model.incoming_hook.parse_data.app_error",
+    "translation": "Tidak dapat menangani data yang masuk"
+  },
+  {
+    "id": "model.incoming_hook.id.app_error",
+    "translation": "ID tidak valid"
+  },
+  {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "ID root tidak valid"
+  },
+  {
+    "id": "model.incoming_hook.display_name.app_error",
+    "translation": "Tipe tidak valid"
+  },
+  {
+    "id": "model.incoming_hook.description.app_error",
+    "translation": "Deskripsi tidak valid"
+  },
+  {
+    "id": "model.incoming_hook.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.incoming_hook.channel_id.app_error",
+    "translation": "ID Kanal tidak valid"
+  },
+  {
+    "id": "model.guest.is_valid.emails.app_error",
+    "translation": "Email tidak valid"
+  },
+  {
+    "id": "model.guest.is_valid.email.app_error",
+    "translation": "Email tidak valid"
+  },
+  {
+    "id": "model.guest.is_valid.channels.app_error",
+    "translation": "ID Kanal tidak valid"
+  },
+  {
+    "id": "model.guest.is_valid.channel.app_error",
+    "translation": "ID Kanal tidak valid"
+  },
+  {
+    "id": "model.file_info.get.gif.app_error",
+    "translation": "Tidak dapat membaca kode gif."
+  },
+  {
+    "id": "model.emoji.user_id.app_error",
+    "translation": "ID pembuat tidak valid"
+  },
+  {
+    "id": "model.emoji.update_at.app_error",
+    "translation": "Pembaruan harus pada waktu yang valid"
+  },
+  {
+    "id": "model.emoji.name.app_error",
+    "translation": "Nama harus berupa 1 hingga 64 huruf kecil karakter alfanumerik "
+  },
+  {
+    "id": "model.emoji.id.app_error",
+    "translation": "ID emoji tidak valid"
+  },
+  {
+    "id": "model.emoji.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "URL SSO SAML harus berupa URL yang valid dan dimulai dengan http:// atau https://"
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Tinggi gambar profil untuk pengaturan berkas tidak valid. Harus berupa angka positif."
+  },
+  {
+    "id": "model.config.is_valid.sql_max_conn.app_error",
+    "translation": "Jumlah koneksi terbuka untuk pengaturan SQL tidak valid. Harus berupa angka positif."
+  },
+  {
+    "id": "model.config.is_valid.sql_idle.app_error",
+    "translation": "Jumlah koneksi tidak jalan untuk pengaturan SQL tidak valid. Harus berupa angka positif."
+  },
+  {
+    "id": "model.config.is_valid.sql_driver.app_error",
+    "translation": "Driver name untuk pengaturan SQL tidak valid. Harus berupa 'mysql' atau 'postgres'"
+  },
+  {
+    "id": "model.config.is_valid.sql_data_src.app_error",
+    "translation": "Sumber data untuk pengaturan SQL tidak valid. Wajib diisi."
+  },
+  {
+    "id": "model.config.is_valid.sitename_length.app_error",
+    "translation": "Nama situs harus kurang atau sama dengan {{.MaxLength}} karakter."
+  },
+  {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "URL SSO SAML harus berupa URL yang valid dan dimulai dengan http:// atau https://"
+  },
+  {
+    "id": "model.config.is_valid.saml_username_attribute.app_error",
+    "translation": "Atribut Nama Pengguna tidak valid. Wajib diisi."
+  },
+  {
+    "id": "model.config.is_valid.saml_public_cert.app_error",
+    "translation": "Sertifikat Publik Service Provider tidak ditemukan. Apakah Anda belum mengunggahnya?"
+  },
+  {
+    "id": "model.config.is_valid.saml_private_key.app_error",
+    "translation": "Private Key Service Provider tidak ditemukan. Apakah Anda belum mengunggahnya?"
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_url.app_error",
+    "translation": "URL SSO SAML harus berupa URL yang valid dan dimulai dengan http:// atau https://"
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
+    "translation": "URL Issuer Identity Provider harus berupa URL yang valid dan dimulai dengan http:// atau https://"
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_cert.app_error",
+    "translation": "Sertifikat Publik Identity Provider tidak ditemukan. Apakah Anda belum mengunggahnya?"
+  },
+  {
+    "id": "model.config.is_valid.saml_email_attribute.app_error",
+    "translation": "Atribut email tidak valid. Wajib diisi."
+  },
+  {
+    "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
+    "translation": "URL Login Service Provider harus berupa URL yang valid dan dimulai dengan http:// atau https://"
+  },
+  {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "Pembatasan pesan langsung tidak valid. Harus berupa 'siapa saja', atau 'tim'"
+  },
+  {
+    "id": "model.config.is_valid.rate_sec.app_error",
+    "translation": "Pengaturan limit per detik tidak valid. Harus berupa angka positif."
+  },
+  {
+    "id": "model.config.is_valid.rate_mem.app_error",
+    "translation": "Ukuran memori yang disimpan untuk pengaturan limit tidak valid. Harus berupa angka positif."
+  },
+  {
+    "id": "model.config.is_valid.password_length.app_error",
+    "translation": "Panjang kata sandi paling sedikit harus lebih besar atau sama dengan {{.MinLength}} dan lebih kecil atau sama dengan {{.MaxLength}}."
+  },
+  {
+    "id": "model.config.is_valid.max_users.app_error",
+    "translation": "Jumlah pengguna maksimum per tim untuk pengaturan tim tidak valid. Harus berupa angka positif."
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "Jumlah pengguna maksimum per tim untuk pengaturan tim tidak valid. Harus berupa angka positif."
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "Jumlah pengguna maksimum per tim untuk pengaturan tim tidak valid. Harus berupa angka positif."
+  },
+  {
+    "id": "model.config.is_valid.login_attempts.app_error",
+    "translation": "Nilai maksimum percobaan masuk untuk pengaturan layanan tidak valid. Harus berupa angka positif."
+  },
+  {
+    "id": "model.config.is_valid.listen_address.app_error",
+    "translation": "Alamat \"listen\" untuk pengaturan layanan tidak valid. Kolom ini wajib diisi."
+  },
+  {
+    "id": "web.incoming_webhook.user.app_error",
+    "translation": "Tidak dapat menemukan pengguna"
+  },
+  {
+    "id": "web.incoming_webhook.text.app_error",
+    "translation": "Tidak ada teks yang ditetapkan"
+  },
+  {
+    "id": "web.incoming_webhook.permissions.app_error",
+    "translation": "Hak akses kanal tidak sesuai"
+  },
+  {
+    "id": "web.incoming_webhook.parse.app_error",
+    "translation": "Tidak dapat menangani data yang masuk"
+  },
+  {
+    "id": "web.incoming_webhook.invalid.app_error",
+    "translation": "Metode tidak valid"
+  },
+  {
+    "id": "web.incoming_webhook.disabled.app_error",
+    "translation": "Perintah telah dinonaktifkan oleh admin sistem."
+  },
+  {
+    "id": "web.incoming_webhook.channel.app_error",
+    "translation": "Tidak dapat menemukan kanal"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "Tidak dapat menangani data yang masuk"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "Tidak dapat menemukan kanal"
+  },
+  {
+    "id": "model.config.is_valid.ldap_username",
+    "translation": "Kolom \"Atribut Nama Pengguna\" LDAP wajib diisi."
+  },
+  {
+    "id": "model.config.is_valid.ldap_sync_interval.app_error",
+    "translation": "Waktu interval sinkronisasi tidak valid. Waktu paling sedikit satu menit."
+  },
+  {
+    "id": "model.config.is_valid.ldap_server",
+    "translation": "Kolom \"Server LDAP\" LDAP wajib diisi."
+  },
+  {
+    "id": "model.config.is_valid.ldap_security.app_error",
+    "translation": "Keamanan koneksi untuk pengaturan LDAP tidak valid. Harus berupa '', 'TLS', atau 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "Ukuran maksimum halaman tidak valid."
+  },
+  {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "Kolom \"Atribut ID\" LDAP wajib diisi."
+  },
+  {
+    "id": "model.config.is_valid.ldap_id",
+    "translation": "Kolom \"Atribut ID\" LDAP wajib diisi."
+  },
+  {
+    "id": "model.config.is_valid.ldap_email",
+    "translation": "Kolom \"Atribut Email\" LDAP wajib diisi."
+  },
+  {
+    "id": "model.config.is_valid.ldap_basedn",
+    "translation": "Kolom \"BaseDN\" LDAP wajib diisi."
+  },
+  {
+    "id": "model.config.is_valid.file_salt.app_error",
+    "translation": "Salt tautan publik untuk pengaturan berkas tidak valid. Karakter harus berjumlah 32 atau lebih."
+  },
+  {
+    "id": "model.config.is_valid.file_driver.app_error",
+    "translation": "Nama driver untuk pengaturan berkas tidak valid. Harus berupa 'local' atau 'amazonS3'"
+  },
+  {
+    "id": "model.config.is_valid.encrypt_sql.app_error",
+    "translation": "Kunci enkripsi untuk pengaturan SQL tidak valid. Karakter harus berjumlah 32 atau lebih."
+  },
+  {
+    "id": "model.config.is_valid.email_security.app_error",
+    "translation": "Pengaturan keamanan sambungan untuk email tidak valid. Harus berupa \",'TLS', atau 'STARTTLS'"
+  },
+  {
+    "id": "model.compliance.is_valid.start_end_at.app_error",
+    "translation": "Harus lebih besar dari"
+  },
+  {
+    "id": "model.compliance.is_valid.start_at.app_error",
+    "translation": "Harus berupa waktu yang valid"
+  },
+  {
+    "id": "model.compliance.is_valid.id.app_error",
+    "translation": "ID tidak valid"
+  },
+  {
+    "id": "model.compliance.is_valid.end_at.app_error",
+    "translation": "Harus berupa waktu yang valid"
+  },
+  {
+    "id": "model.compliance.is_valid.desc.app_error",
+    "translation": "Deskripsi tidak valid"
+  },
+  {
+    "id": "model.compliance.is_valid.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "ID root tidak valid"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "ID Kanal tidak valid"
+  },
+  {
+    "id": "model.command.is_valid.user_id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.command.is_valid.url_http.app_error",
+    "translation": "URL tidak valid. Alamat URL harus valid dan dimulai dengan http:// atau https://"
+  },
+  {
+    "id": "model.command.is_valid.url.app_error",
+    "translation": "ID tidak valid"
+  },
+  {
+    "id": "model.command.is_valid.update_at.app_error",
+    "translation": "Pembaruan harus pada waktu yang valid"
+  },
+  {
+    "id": "model.command.is_valid.trigger.app_error",
+    "translation": "Trigger tidak valid"
+  },
+  {
+    "id": "model.command.is_valid.token.app_error",
+    "translation": "Token tidak valid"
+  },
+  {
+    "id": "model.command.is_valid.team_id.app_error",
+    "translation": "ID tim tidak valid"
+  },
+  {
+    "id": "model.command.is_valid.method.app_error",
+    "translation": "Metode tidak valid"
+  },
+  {
+    "id": "model.command.is_valid.id.app_error",
+    "translation": "ID tidak valid"
+  },
+  {
+    "id": "model.command.is_valid.display_name.app_error",
+    "translation": "Tipe tidak valid"
+  },
+  {
+    "id": "model.command.is_valid.description.app_error",
+    "translation": "Deskripsi tidak valid"
+  },
+  {
+    "id": "model.command.is_valid.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "ID tidak valid"
+  },
+  {
+    "id": "model.channel_member.is_valid.user_id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.channel_member.is_valid.unread_level.app_error",
+    "translation": "Level tanda belum dibaca tidak valid"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_level.app_error",
+    "translation": "Level notifikasi tidak valid"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_id.app_error",
+    "translation": "ID Kanal tidak valid"
+  },
+  {
+    "id": "model.channel.is_valid.update_at.app_error",
+    "translation": "Pembaruan harus pada waktu yang valid"
+  },
+  {
+    "id": "model.channel.is_valid.type.app_error",
+    "translation": "Tipe tidak valid"
+  },
+  {
+    "id": "model.channel.is_valid.purpose.app_error",
+    "translation": "Prop tidak valid"
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Nama saluran tidak valid. Id pengguna tidak diizinkan dalam nama saluran (channel name) untuk saluran pesan tidak langsung (non-direct message channels)."
+  },
+  {
+    "id": "model.channel.is_valid.id.app_error",
+    "translation": "ID tidak valid"
+  },
+  {
+    "id": "model.channel.is_valid.header.app_error",
+    "translation": "Judul tidak valid"
+  },
+  {
+    "id": "model.channel.is_valid.display_name.app_error",
+    "translation": "Tampilan nama tidak valid"
+  },
+  {
+    "id": "model.channel.is_valid.creator_id.app_error",
+    "translation": "ID pembuat tidak valid"
+  },
+  {
+    "id": "model.channel.is_valid.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.bot.is_valid.username.app_error",
+    "translation": "Nama tidak valid"
+  },
+  {
+    "id": "model.bot.is_valid.user_id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.bot.is_valid.update_at.app_error",
+    "translation": "ID pembuat tidak valid"
+  },
+  {
+    "id": "model.bot.is_valid.description.app_error",
+    "translation": "Deskripsi tidak valid"
+  },
+  {
+    "id": "model.bot.is_valid.creator_id.app_error",
+    "translation": "ID pembuat tidak valid"
+  },
+  {
+    "id": "model.bot.is_valid.create_at.app_error",
+    "translation": "ID pembuat tidak valid"
+  },
+  {
+    "id": "model.authorize.is_valid.user_id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.authorize.is_valid.state.app_error",
+    "translation": "Keadaan tidak valid"
+  },
+  {
+    "id": "model.authorize.is_valid.scope.app_error",
+    "translation": "Jangkauan tidak valid"
+  },
+  {
+    "id": "model.authorize.is_valid.redirect_uri.app_error",
+    "translation": "URI pengalihan tidak valid"
+  },
+  {
+    "id": "model.authorize.is_valid.expires.app_error",
+    "translation": "Waktu kedaluwarsa harus diatur"
+  },
+  {
+    "id": "model.authorize.is_valid.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.authorize.is_valid.client_id.app_error",
+    "translation": "ID klien tidak valid"
+  },
+  {
+    "id": "model.authorize.is_valid.auth_code.app_error",
+    "translation": "Kode otorisasi tidak valid"
+  },
+  {
+    "id": "model.access.is_valid.user_id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.access.is_valid.refresh_token.app_error",
+    "translation": "Segarkan token tidak valid"
+  },
+  {
+    "id": "model.access.is_valid.redirect_uri.app_error",
+    "translation": "URI pengalihan tidak valid"
+  },
+  {
+    "id": "model.access.is_valid.client_id.app_error",
+    "translation": "ID klien tidak valid"
+  },
+  {
+    "id": "model.access.is_valid.access_token.app_error",
+    "translation": "Token akses tidak valid"
+  },
+  {
+    "id": "mfa.validate_token.authenticate.app_error",
+    "translation": "Token MFA tidak valid."
+  },
+  {
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "Autentikasi multi faktor diperlukan pada server ini."
+  },
+  {
+    "id": "mfa.generate_qr_code.create_code.app_error",
+    "translation": "Terjadi kesalahan saat membuat QR Code"
+  },
+  {
+    "id": "mfa.activate.bad_token.app_error",
+    "translation": "Token MFA tidak valid."
+  },
+  {
+    "id": "mattermost.bulletin.subject",
+    "translation": "Buletin Keamanan Mattermost"
+  },
+  {
+    "id": "manaultesting.test_autolink.unable.app_error",
+    "translation": "Tidak dapat memperoleh kanal"
+  },
+  {
+    "id": "manaultesting.manual_test.parse.app_error",
+    "translation": "Tidak data meneruskan URL"
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "SAML tidak diatur atau didukung oleh server ini"
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "Terjadi kesalahan saat membuat Metadata Service Provider."
+  },
+  {
+    "id": "ent.saml.license_disable.app_error",
+    "translation": "Lisensi Anda tidak mendukung autentikasi SAML."
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "Terjadi kesalahan saat mengesahkan balasan dari Identity Provider. Silakan hubungi Administrator Sistem Anda."
+  },
+  {
+    "id": "ent.saml.do_login.parse.app_error",
+    "translation": "Terjadi kesalahan saat menerima balasan dari Identity Provider. Silakan hubungi Administrator Sistem Anda."
+  },
+  {
+    "id": "ent.saml.do_login.empty_response.app_error",
+    "translation": "Kami menerima balasan kosong dari Identity Provider"
+  },
+  {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "Masuk dengan SAML gagal karena terjadi kesalahan saat mendekripsi balasan dari Identity Provider. Silakan hubungi Administrator Sistem Anda."
+  },
+  {
+    "id": "ent.saml.configure.not_encrypted_response.app_error",
+    "translation": "Masuk dengan SAML gagal karena balasan Identity Provider tidak terenkripsi. Silakan hubungi Administrator Sistem Anda."
+  },
+  {
+    "id": "ent.saml.configure.load_private_key.app_error",
+    "translation": "Masuk dengan SAML gagal karena Kunci Privat Service Provider tidak ditemukan. Silakan hubungi Administrator Sistem Anda."
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "Berkas Sertifikat Publik Identity Provider tidak dapat ditemukan. Silakan hubungi Administrator Sistem Anda."
+  },
+  {
+    "id": "ent.saml.configure.encryption_not_enabled.app_error",
+    "translation": "Masuk dengan SAML gagal karena enkripsi tidak diaktifkan. Silakan hubungi Administrator Sistem Anda."
+  },
+  {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "Terjadi kesalahan saat membaca kode permintaan untuk Identity Provider. Silakan hubungi Administrator Sistem."
+  },
+  {
+    "id": "ent.saml.build_request.app_error",
+    "translation": "Terjadi kesalahan saat memulai permintaan ke Identity Provider. Silakan hubungi Administrator Sistem."
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "Masuk dengan SAML gagal karena enkripsi tidak diaktifkan. Silakan hubungi Administrator Sistem Anda."
+  },
+  {
+    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Filter LDAP tidak valid"
+  },
+  {
+    "id": "ent.ldap.validate_filter.app_error",
+    "translation": "Filter LDAP tidak valid"
+  },
+  {
+    "id": "ent.ldap.validate_admin_filter.app_error",
+    "translation": "Filter LDAP tidak valid"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all.app_error",
+    "translation": "Tidak dapat mendapatkan data semua pengguna dengan LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "translation": "Pengguna tidak terdaftar pada server LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "translation": "Akun LDAP Anda tidak memiliki hak akses untuk menggunakan server Mattermost ini. Silakan hubungi Administrator Sistem untuk memeriksa filter LDAP pengguna."
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "translation": "Gagal terhubung ke server LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "translation": "Gagal mencari server LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "translation": "Nama pengguna yang diberikan cocok dengan banyak pengguna"
+  },
+  {
+    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "translation": "Fungsi LDAP dinonaktifkan oleh lisensi saat ini. Silakan hubungi administrator sistem untuk meningkatkan lisensi enterprise Anda."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "translation": "Kata sandi tidak valid"
+  },
+  {
+    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "translation": "Tidak dapat menghubungi server LDAP. Periksa BindUsername dan BindPassword."
+  },
+  {
+    "id": "ent.elasticsearch.index_user.error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "Tidak dapat memperoleh kanal"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "Tidak dapat memperoleh kanal"
+  },
+  {
+    "id": "ent.data_retention.generic.license.error",
+    "translation": "Lisensi Anda tidak mendukung autentikasi SAML."
+  },
+  {
+    "id": "ent.compliance.licence_disable.app_error",
+    "translation": "Fungsi LDAP dinonaktifkan oleh lisensi saat ini. Silakan hubungi administrator sistem untuk meningkatkan lisensi enterprise Anda."
+  },
+  {
+    "id": "ent.compliance.csv.zip.creation.appError",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "ent.compliance.csv.warning.appError",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "ent.account_migration.get_saml_users_failed",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "ent.account_migration.get_all_failed",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "bleveengine.index_user.error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "bleveengine.index_post.error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "bleveengine.index_channel.error",
+    "translation": "Tidak dapat memperoleh kanal"
+  },
+  {
+    "id": "bleveengine.delete_user.error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "bleveengine.delete_post.error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "bleveengine.delete_channel.error",
+    "translation": "Tidak dapat memperoleh kanal"
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Percakapan interaktif pada encoding JSON mengalami masalah ."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Terjadi kesalahan saat meninggalkan kanal"
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Terjadi kesalahan saat meninggalkan kanal"
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Terjadi kesalahan saat meninggalkan kanal"
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "app.notification.subject.notification.full",
+    "translation": "{{.SubjectText}} pada {{.TeamDisplayName}} pada {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "[{{.SiteName}}] Notifikasi baru untuk {{.Month}} {{.Day}}, {{.Year}}[{{.SiteName}}] Notifikasi baru untuk {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "{{.SubjectText}} pada {{.TeamDisplayName}} pada {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "api.user.login.use_auth_service.app_error",
+    "translation": "Mohon masuk menggunakan {{.AuthService}}"
+  },
+  {
+    "id": "api.user.login.not_verified.app_error",
+    "translation": "Masuk gagal karena alamat email belum diverifikasi"
+  },
+  {
+    "id": "api.user.login.inactive.app_error",
+    "translation": "Gagal masuk karena akun Anda dinonaktifkan. Silakan hubungi administrator."
+  },
+  {
+    "id": "api.user.login.blank_pwd.app_error",
+    "translation": "Kolom kata sandi harus diisi"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "Akun pengguna ini tidak menggunakan LDAP"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_available.app_error",
+    "translation": "LDAP tidak tersedia di server ini"
+  },
+  {
+    "id": "api.user.email_to_ldap.not_available.app_error",
+    "translation": "LDAP tidak tersedia di server ini"
+  },
+  {
+    "id": "api.user.create_user.signup_link_invalid.app_error",
+    "translation": "Tautan pendaftaran sepertinya tidak valid."
+  },
+  {
+    "id": "api.user.create_user.signup_link_expired.app_error",
+    "translation": "Tautan pendaftaran telah kedaluwarsa"
+  },
+  {
+    "id": "api.user.create_user.signup_email_disabled.app_error",
+    "translation": "Pendaftaran pengguna dengan email dinonaktifkan."
+  },
+  {
+    "id": "api.user.create_user.no_open_server",
+    "translation": "Server ini tidak mengizinkan pendaftaran terbuka. Silakan hubungi administrator Anda untuk memperoleh undangan."
+  },
+  {
+    "id": "api.user.create_user.accepted_domain.app_error",
+    "translation": "Email yang Anda berikan bukan bagian dari domain yang diperbolehkan. Silakan hubungi administrator Anda atau daftar dengan email yang berbeda."
+  },
+  {
+    "id": "api.user.create_profile_image.initial.app_error",
+    "translation": "Tidak dapat menambah inisial pengguna ke gambar profil awal"
+  },
+  {
+    "id": "api.user.create_profile_image.encode.app_error",
+    "translation": "Tidak dapat membaca kode gambar profil awal"
+  },
+  {
+    "id": "api.user.create_profile_image.default_font.app_error",
+    "translation": "Tidak dapat membuat font gambar profil awal"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_attached.app_error",
+    "translation": "Sebuah akun dengan email tersebut yang menggunakan metode selain {{.Service}} sudah ada. Silakan masuk menggunakan {{.Auth}}."
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "Email kosong"
+  },
+  {
+    "id": "api.user.check_user_password.invalid.app_error",
+    "translation": "Masuk gagal karena kata sandi tidak valid"
+  },
+  {
+    "id": "api.user.check_user_mfa.bad_code.app_error",
+    "translation": "Token MFA tidak valid."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many.app_error",
+    "translation": "Akun Anda dikunci karena terlalu banyak percobaan masuk yang gagal. Mohon setel ulang kata sandi Anda."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.unsupported.app_error",
+    "translation": "Penyedia layanan OAuth tidak didukung"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.token_failed.app_error",
+    "translation": "Permintaan token gagal"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.service.app_error",
+    "translation": "Permintaan token untuk {{.Service}} gagal"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.missing.app_error",
+    "translation": "Token akses tidak ditemukan"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.invalid_state.app_error",
+    "translation": "Keadaan tidak valid"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_token.app_error",
+    "translation": "Kesalahan jenis token"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_response.app_error",
+    "translation": "Kesalahan balasan dari permintaan token"
+  },
+  {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "MFA tidak tersedia untuk jenis akun ini"
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "Anda telah bergabung dengan {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.welcome_body.info",
+    "translation": "Mohon verifikasi email Anda dengan menekan tombol berikut."
+  },
+  {
+    "id": "api.templates.welcome_body.button",
+    "translation": "Verifikasi Email"
+  },
+  {
+    "id": "api.templates.verify_subject",
+    "translation": "Verifikasi Email [{{ .SiteName }}]"
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "Anda telah bergabung dengan {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.verify_body.info",
+    "translation": "Mohon verifikasi email Anda dengan menekan tombol berikut."
+  },
+  {
+    "id": "api.templates.verify_body.button",
+    "translation": "Verifikasi Email"
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "Anda telah memperbarui nama pengguna"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "Anda telah memperbarui metode Masuk Anda"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "email dan kata sandi"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "Anda telah memperbarui metodi Masuk Anda pada {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.reset_body.title",
+    "translation": "Anda telah meminta setel ulang kata sandi"
+  },
+  {
+    "id": "api.templates.reset_body.button",
+    "translation": "Setel Ulang Sandi"
+  },
+  {
+    "id": "api.templates.post_body.button",
+    "translation": "Ke Kiriman"
+  },
+  {
+    "id": "api.templates.password_change_body.title",
+    "translation": "Kata sandi Anda telah diganti"
+  },
+  {
+    "id": "api.templates.invite_body.title",
+    "translation": "Anda telah diundang"
+  },
+  {
+    "id": "api.templates.invite_body.button",
+    "translation": "Gabung ke Tim"
+  },
+  {
+    "id": "api.templates.email_organization",
+    "translation": "Dikirim oleh "
+  },
+  {
+    "id": "api.templates.email_footer",
+    "translation": "Untuk mengubah pilihan notifikasi Anda, silakan masuk ke situs tim Anda, lalu buka Pengaturan Akun > Notifikasi."
+  },
+  {
+    "id": "api.templates.email_change_verify_body.title",
+    "translation": "Anda telah memperbarui email Anda"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.info",
+    "translation": "Untuk menyelesaikan perubahan alamat email Anda untuk {{.TeamDisplayName}}, silakan klik tautan di bawah ini untuk mengonfirmasikan ini alamat yang benar."
+  },
+  {
+    "id": "api.templates.email_change_verify_body.button",
+    "translation": "Verifikasi Email"
+  },
+  {
+    "id": "api.templates.email_change_body.title",
+    "translation": "Anda telah memperbarui email Anda"
+  },
+  {
+    "id": "api.team.update_team_scheme.scheme_scope.error",
+    "translation": "Tidak dapat mengatur skema ke saluran karena skema yang disediakan bukan skema saluran."
+  },
+  {
+    "id": "api.team.update_team_scheme.license.error",
+    "translation": "Lisensi anda tidak mendukung update skema saluran"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+    "translation": "Update anggota kanal tidak valid: Pengguna harus menjadi tamu atau pengguna tetapi tidak keduanya."
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "Pengguna yang ditentukan bukan anggota saluran yang ditentukan."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "Tidak dapat menunggah berkas gambar. Ukuran terlalu besar."
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "Tidak dapat mengunggah berkas. Penyimpanan berkas belum diatur."
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "Tidak dapat menangani bentuk multipart"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Tidak dapat membuka file gambar"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "Tidak ada berkas 'gambar' yang diminta"
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "Tidak ada berkas 'gambar' di dalam permintaan"
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v telah dihapus dari kanal."
+  },
+  {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "Pengguna sepertinya bukan bagian dari tim ini."
+  },
+  {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": "Gagal menghapus pengguna dari saluran yang dibatasi grup."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Gagal dalam mengirim pesan masuk/keluar"
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.disabled.app_error",
+    "translation": "Pembuatan Tim telah dinonaktifkan. Silakan hubungi administrator sistem Anda untuk info lebih lanjut."
+  },
+  {
+    "id": "api.team.invite_members.no_one.app_error",
+    "translation": "Tidak ada yang dapat diundang."
+  },
+  {
+    "id": "api.team.import_team.parse.app_error",
+    "translation": "Tidak dapat menangani bentuk multipart"
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "Tidak dapat membuka berkas."
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "Tidak ada berkas 'gambar' yang diminta"
+  },
+  {
+    "id": "api.team.import_team.array.app_error",
+    "translation": "Tidak ada berkas 'gambar' yang diminta"
+  },
+  {
+    "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
+    "translation": "Nama driver untuk pengaturan berkas tidak valid. Harus berupa 'local' atau 'amazonS3'"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
+  },
+  {
+    "id": "model.user.is_valid.pwd.app_error",
+    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter."
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "Nama tidak valid"
+  },
+  {
+    "id": "model.user.is_valid.locale.app_error",
+    "translation": "Peran tidak valid"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Nama tim tidak valid"
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Nama depan tidak valid"
+  },
+  {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Email tidak valid"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": "Pengguna tidak valid, data autentikasi harus diatur dengan tipe autentikasi"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": "Pengguna tidak valid, data autentikasi dan kata sandi tidak dapat diatur bersamaan"
+  },
+  {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": "Data autentikasi tidak valid"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "Token tidak valid"
+  },
+  {
+    "id": "model.team_member.is_valid.user_id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.team_member.is_valid.team_id.app_error",
+    "translation": "ID tim tidak valid"
+  },
+  {
+    "id": "model.team.is_valid.url.app_error",
+    "translation": "Identifier URL tidak valid"
+  },
+  {
+    "id": "model.team.is_valid.update_at.app_error",
+    "translation": "Pembaruan harus pada waktu yang valid"
+  },
+  {
+    "id": "model.team.is_valid.type.app_error",
+    "translation": "Tipe tidak valid"
+  },
+  {
+    "id": "model.team.is_valid.reserved.app_error",
+    "translation": "Tautan URL ini tidak tersedia. Mohon coba yang lainnya."
+  },
+  {
+    "id": "model.team.is_valid.name.app_error",
+    "translation": "Nama tidak valid"
+  },
+  {
+    "id": "model.team.is_valid.id.app_error",
+    "translation": "ID tidak valid"
+  },
+  {
+    "id": "model.team.is_valid.email.app_error",
+    "translation": "Email tidak valid"
+  },
+  {
+    "id": "model.team.is_valid.domains.app_error",
+    "translation": "Domain yang diperbolehkan tidak valid"
+  },
+  {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "Deskripsi tidak valid"
+  },
+  {
+    "id": "model.team.is_valid.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.team.is_valid.company.app_error",
+    "translation": "Nama perusahaan tidak valid"
+  },
+  {
+    "id": "model.team.is_valid.characters.app_error",
+    "translation": "Nama harus berupa 2 atau lebih huruf kecil alfanumerik"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "ID root tidak valid"
+  },
+  {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "ID emoji tidak valid"
+  },
+  {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "Pembuatan harus saat waktu yang valid"
+  },
+  {
+    "id": "model.preference.is_valid.value.app_error",
+    "translation": "Nilai terlalu panjang"
+  },
+  {
+    "id": "model.preference.is_valid.theme.app_error",
+    "translation": "Tema tidak valid"
+  },
+  {
+    "id": "model.preference.is_valid.name.app_error",
+    "translation": "Nama tidak valid"
+  },
+  {
+    "id": "model.preference.is_valid.id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.preference.is_valid.category.app_error",
+    "translation": "Kategori tidak valid"
+  },
+  {
+    "id": "model.post.is_valid.user_id.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "model.post.is_valid.update_at.app_error",
+    "translation": "Pembaruan harus pada waktu yang valid"
+  },
+  {
+    "id": "model.post.is_valid.type.app_error",
+    "translation": "Tipe tidak valid"
+  },
+  {
+    "id": "model.post.is_valid.root_id.app_error",
+    "translation": "ID root tidak valid"
+  },
+  {
+    "id": "model.post.is_valid.props.app_error",
+    "translation": "Prop tidak valid"
+  },
+  {
+    "id": "model.post.is_valid.original_id.app_error",
+    "translation": "ID asli tidak valid"
+  },
+  {
+    "id": "model.post.is_valid.msg.app_error",
+    "translation": "Pesan tidak valid"
+  },
+  {
+    "id": "model.post.is_valid.id.app_error",
+    "translation": "ID tidak valid"
+  },
+  {
+    "id": "model.post.is_valid.hashtags.app_error",
+    "translation": "Tagar tidak valid"
+  },
+  {
+    "id": "model.post.is_valid.filenames.app_error",
+    "translation": "Nama berkas tidak valid"
+  },
+  {
+    "id": "api.team.get_invite_info.not_open_team",
+    "translation": "Undangan tidak valid karena ini bukan tim terbuka."
+  },
+  {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "Kamu tidak memiliki hak akses yang sesuai untuk mengubah tajuk kanal"
+  },
+  {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v ditambahkan ke kanal oleh %v"
+  },
+  {
+    "id": "api.team.add_members.error",
+    "translation": "Eror menambahkan anggota kanal."
+  },
+  {
+    "id": "api.slackimport.slack_import.team_fail",
+    "translation": "Gagal mendapatkan tim untuk diimpor.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.notes",
+    "translation": "\r\n  Catatan \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note2",
+    "translation": "- Kiriman bot Slack saat ini tidak didukung.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note1",
+    "translation": "- Beberapa kiriman mungkin tidak dapat diimpor karena tidak didukung oleh pengimpor ini.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.unable_import",
+    "translation": "Tidak dapat mengimpor pengguna: {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.created",
+    "translation": "\r\n Pengguna Dibuat\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.added",
+    "translation": "\r\n Kanal Ditambahkan \r\n"
+  },
+  {
+    "id": "api.server.start_server.starting.critical",
+    "translation": "Gagal memulai server, err:%v"
+  },
+  {
+    "id": "api.scheme.patch_scheme.license.error",
+    "translation": "Lisensi anda tidak mendukung update skema saluran"
+  },
+  {
+    "id": "api.scheme.get_teams_for_scheme.scope.error",
+    "translation": "Tidak dapat mengatur skema ke saluran karena skema yang disediakan bukan skema saluran."
+  },
+  {
+    "id": "api.scheme.get_channels_for_scheme.scope.error",
+    "translation": "Tidak dapat mengatur skema ke saluran karena skema yang disediakan bukan skema saluran."
+  },
+  {
+    "id": "api.scheme.delete_scheme.license.error",
+    "translation": "Lisensi anda tidak mendukung update skema saluran"
+  },
+  {
+    "id": "api.scheme.create_scheme.license.error",
+    "translation": "Lisensi anda tidak mendukung update skema saluran"
+  },
+  {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "Lisensi anda tidak mendukung update skema saluran"
+  },
+  {
+    "id": "api.preference.update_preferences.set.app_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "api.preference.preferences_category.get.app_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "api.preference.delete_preferences.delete.app_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "api.post_get_post_by_id.get.app_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "Tidak dapat memperbarui pesan sistem"
+  },
+  {
+    "id": "api.post.update_post.permissions_details.app_error",
+    "translation": "Telah dihapus id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "Kami tidak dapat menemukan kiriman yang telah ada atau komentar untuk diperbarui"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_explicit_mention",
+    "translation": " memanggil Anda di "
+  },
+  {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Tautan publik dinonaktfikan oleh administrator sistem."
+  },
+  {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "ID klien tidak valid"
+  },
+  {
+    "id": "api.post.create_webhook_post.creating.app_error",
+    "translation": "Gagal membuat kiriman"
+  },
+  {
+    "id": "api.post.create_post.root_id.app_error",
+    "translation": "Parameter RootId tidak valid"
+  },
+  {
+    "id": "api.outgoing_webhook.disabled.app_error",
+    "translation": "Webhooks keluar telah dinonaktfikan oleh admin sistem."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "Tautan pendaftaran sepertinya tidak valid."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "Tautan pendaftaran telah kedaluwarsa"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.get.app_error",
+    "translation": "Terjadi kesalahan saat mengakses token dari DB sebelum penghapusan"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_token.app_error",
+    "translation": "Terjadi kesalahan menghapus token akses dari DB"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_session.app_error",
+    "translation": "Terjadi kesalahan menghapus sesi dari DB"
+  },
+  {
+    "id": "api.oauth.register_oauth_app.turn_off.app_error",
+    "translation": "Admin sistem telah mematikan layanan OAuth."
+  },
+  {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "Token MFA tidak valid."
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "server_error: Terjadi kesalahan server internal saat mengambil data pengguna dari basis data"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "server_error: Terjadi kesalahan server internal saat menyimpan sesi ke basisdata"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "server_error: Terjadi kesalahan server internal saat menyimpan sesi ke basisdata"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "server_error: Terjadi kesalahan server internal saat menyimpan sesi ke basisdata"
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "Admin sistem telah mematikan layanan OAuth."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "invalid_request: Kesalahan grant_type"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "invalid_request: Kesalahan grant_type"
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "Admin sistem telah mematikan layanan OAuth."
+  },
+  {
+    "id": "api.oauth.allow_oauth.turn_off.app_error",
+    "translation": "Admin sistem telah mematikan layanan OAuth."
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "Format baru untuk konfigurasi klien belum didukung. Harap tentukan ormat=old dalam string kueri."
+  },
+  {
+    "id": "api.license.add_license.unique_users.app_error",
+    "translation": "Lisensi ini hanya mendukung sebanyak {{.Users}} pengguna, namun sistem Anda memiliki {{.Count}} pengguna unik. Pengguna unik dihitung dari jumlah email yang berbeda. Anda dapat melihat total jumlah pengguna di Laporan Situs -> Lihat Statistik."
+  },
+  {
+    "id": "api.license.add_license.save_active.app_error",
+    "translation": "ID lisensi aktif tidak disimpan secara sempurna."
+  },
+  {
+    "id": "api.license.add_license.save.app_error",
+    "translation": "Lisensi tidak disimpan secara sempurna."
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "Tidak dapat membuka berkas lisensi"
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "Tidak ada berkas 'lisensi' yang diminta"
+  },
+  {
+    "id": "api.license.add_license.invalid_count.app_error",
+    "translation": "Tidak dapat menghitung jumlah pengguna unik."
+  },
+  {
+    "id": "api.license.add_license.invalid.app_error",
+    "translation": "Berkas lisensi tidak valid."
+  },
+  {
+    "id": "api.license.add_license.expired.app_error",
+    "translation": "Lisensi telah kadaluwarsa atau belum dimulai."
+  },
+  {
+    "id": "api.license.add_license.array.app_error",
+    "translation": "Tidak ada berkas 'gambar' yang diminta"
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "Nama tidak valid"
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_error",
+    "translation": "Webhooks masuk telah dinonaktifkan oleh admin sistem."
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "Tidak dapat mengunggah berkas. Penyimpanan berkas belum diatur."
+  },
+  {
+    "id": "api.file.read_file.reading_local.app_error",
+    "translation": "Terjadi kesalahan saat membaca dari penyimpanan server lokal"
+  },
+  {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "Tidak dapat memperoleh tautan publik untuk data. Data harus dilampirkan pada postingan yang bisa dibaca oleh pengguna saat ini."
+  },
+  {
+    "id": "api.file.get_public_link.disabled.app_error",
+    "translation": "Tautan publik telah dinonaktifkan."
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "Data tidak memiliki gambar ukuran kecil"
+  },
+  {
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "Data tidak memiliki pratinjau gambar"
+  },
+  {
+    "id": "api.file.get_file.public_invalid.app_error",
+    "translation": "Tautan publik tampaknya tidak valid."
+  },
+  {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "Data yang dilampirkan tidak diizinkan oleh server ini."
+  },
+  {
+    "id": "api.emoji.upload.open.app_error",
+    "translation": "Tidak dapat membuat emoji. Terjadi kesalahan saat proses pengkodean gambar."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "Tidak dapat membuat emoji. Terjadi kesalahan saat proses pengkodean gambar GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "Tidak dapat membuat emoji. Terjadi kesalahan saat proses membaca kode gambar GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "Tidak dapat membuat emoji. Terjadi kesalahan saat proses pengkodean gambar."
+  },
+  {
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "Tidak dapat membuat emoji. Terjadi kesalahan saat proses membaca kode gambar."
+  },
+  {
+    "id": "api.emoji.upload.image.app_error",
+    "translation": "Tidak dapat membuat emoji. Berkas harus berupa PNG, JPEG, atau GIF."
+  },
+  {
+    "id": "api.emoji.storage.app_error",
+    "translation": "Penyimpanan berkas belum diatur dengan tepat. Silakan atur penyimpanan berkas dengan menggunakan S3 atau server lokal."
+  },
+  {
+    "id": "api.emoji.get_image.read.app_error",
+    "translation": "Tidak dapat membaca berkas gambar untuk emoji."
+  },
+  {
+    "id": "api.emoji.get_image.decode.app_error",
+    "translation": "Tidak dapat membaca kode berkas gambar untuk emoji."
+  },
+  {
+    "id": "api.emoji.disabled.app_error",
+    "translation": "Emoji khusus telah dinonaktifkan oleh admin sistem."
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "Tidak dapat membuat emoji. Ukuran gambar harus kurang dari 1 MB."
+  },
+  {
+    "id": "api.emoji.create.parse.app_error",
+    "translation": "Tidak dapat membuat emoji. Tidak dapat memahami permintaan."
+  },
+  {
+    "id": "api.emoji.create.other_user.app_error",
+    "translation": "ID pengguna tidak valid"
+  },
+  {
+    "id": "api.emoji.create.duplicate.app_error",
+    "translation": "Tidak dapat membuat emoji. Sudah ada emoji lain dengan nama yang sama."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "other": "[{{.SiteName}}] Notifikasi baru untuk {{.Month}} {{.Day}}, {{.Year}}[{{.SiteName}}] Notifikasi baru untuk {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "Pengarsipan email telah dimatikan oleh administrator sistem"
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "Kanal pengiriman \"email batching job\" sudah penuh. Tolong tingkatkan EmailBatchingBufferSize."
+  },
+  {
+    "id": "api.context.token_provided.app_error",
+    "translation": "Sesi bukan OAuth tapi token diberikan dalam string kueri"
+  },
+  {
+    "id": "api.context.session_expired.app_error",
+    "translation": "Sesi tidak valid atau kadaluwarsa. Mohon masuk kembali."
+  },
+  {
+    "id": "api.context.permissions.app_error",
+    "translation": "Anda tidak memiliki hak akses"
+  },
+  {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "Autentikasi multi faktor diperlukan pada server ini."
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "Parameter tidak valid atau hilang {{.Name}} di permintaan URL"
+  },
+  {
+    "id": "api.context.invalid_token.error",
+    "translation": "Token sesi tidak valid = {{. Token}}, err = {{. Error}}"
+  },
+  {
+    "id": "api.context.invalid_param.app_error",
+    "translation": "Parameter {{.Name}} tidak valid"
+  },
+  {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "Tidak valid atau hilang {{.Name}} di badan permintaan"
+  },
+  {
+    "id": "api.context.404.app_error",
+    "translation": "Maaf, tidak dapat menemukan halaman yang dimaksud"
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "Format baru untuk konfigurasi klien belum didukung. Harap tentukan ormat=old dalam string kueri."
+  },
+  {
+    "id": "api.command_shrug.name",
+    "translation": "shrug"
+  },
+  {
+    "id": "api.command_shrug.hint",
+    "translation": "[pesan]"
+  },
+  {
+    "id": "api.command_shrug.desc",
+    "translation": "Tambahkan ¯\\_(ツ)_/¯ ke pesan Anda"
+  },
+  {
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "Perintah pintas tidak didukung di perangkat anda"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "pintas"
+  },
+  {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Tampilkan daftar pintasan keyboard"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "Perintah pengaturan tidak di dukung di perangkat anda"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "pengaturan"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Buka dialog Pengaturan Akun"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "Perintah cari tidak didukung di perangkat anda"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "cari"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_search.desc",
+    "translation": "Cari teks di pesan"
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "Kamu tidak memiliki hak akses yang sesuai untuk mengubah nama kanal"
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "Pesan harus disediakan dengan perintah /rename ."
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "buka"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "Kamu sekarang terhubung"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "terhubung"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Atur status anda menjadi terhubung"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "Kamu sekarang terputus"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "terputus"
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "Tetapkan status Anda offline"
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "Anda tidak akan menerima notifikasi untuk {{.Channel}} sampai saluran mute dinonaktifkan."
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "Anda tidak akan menerima notifikasi untuk {{.Channel}} sampai saluran mute dinonaktifkan."
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "Kamu tidak memiliki hak akses yang sesuai untuk mengubah nama kanal"
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "pesan"
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "Tidak dapat memperoleh kanal"
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[username] 'pesan'"
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "Terjadi kesalahan saat mengirimkan pesan ke pengguna."
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "Galat saat membuat pesan langsung."
+  },
+  {
+    "id": "api.command_msg.desc",
+    "translation": "Kirim Pesan Langsung ke pengguna"
+  },
+  {
+    "id": "api.command_me.name",
+    "translation": "saya"
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "[pesan]"
+  },
+  {
+    "id": "api.command_me.desc",
+    "translation": "Lakukan aksi"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "keluar"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Keluar dari Mattermost"
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "tinggalkan"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "Terjadi kesalahan saat meninggalkan kanal"
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Tinggalkan kanal sekarang"
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "gabung"
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "Tidak dapat memperoleh kanal"
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "Kesalahan terjadi ketika membuka file."
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "Kesalahan terjadi ketika bergabung ke kanal."
+  },
+  {
+    "id": "api.command_join.desc",
+    "translation": "Gabung kanal terbuka"
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "Kesalahan terjadi ketika bergabung ke kanal."
+  },
+  {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "Galat mengambil kanal termutakhir"
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "bantuan"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Buka halaman bantuan Mattermost"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "pesan"
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "Galat saat membuat pesan langsung."
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Terjadi kesalahan saat mengirimkan pesan ke pengguna."
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "Terjadi galat sewaktu mengekstrak berkas."
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "Alamat gambar sekarang diluaskan secara umum"
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "Kembangkan"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "Matikan fitur tutup-otomatis dari peninjauan gambar"
+  },
+  {
+    "id": "api.command_echo.name",
+    "translation": "Gema"
+  },
+  {
+    "id": "api.command_echo.message.app_error",
+    "translation": "Pesan harus disediakan dengan perintah /echo."
+  },
+  {
+    "id": "api.command_echo.hint",
+    "translation": "'message' [waktu tunda dalam detik]"
+  },
+  {
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "Volume tinggi untuk permintaan gema, tidak dapat menangani permintaan"
+  },
+  {
+    "id": "api.command_echo.desc",
+    "translation": "Gema teks balik dari akun anda"
+  },
+  {
+    "id": "api.command_echo.delay.app_error",
+    "translation": "Waktu tunda harus dibawah 10000 detik"
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "Alamat gambar sekarang diciutkan secara umum"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "ciutkan"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Matikan fitur tutup-otomatis dari gambar pratinjau"
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "kode"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "Pesan harus disediakan dengan perintah /echo ."
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[teks]"
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Tampilkan teks sebagai blok kode"
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Galat dalam memperbaharui kanal sekarang."
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Nama kanal harus {{.Length}} atau lebih huruf"
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Nama kanal harus {{.Length}} atau lebih huruf"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Kamu tidak memiliki hak akses yang sesuai untuk mengubah nama kanal"
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "ubah nama"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "Pesan harus disediakan dengan perintah /rename ."
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[teks]"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "Tidak dapat keluar dari kanal pesan langsung."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Ubah nama kanal"
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Galat mengambil kanal termutakhir."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Galat mengambil kanal termutakhir"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Galat dalam memperbaharui kanal sekarang."
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Kamu tidak memiliki hak akses yang sesuai untuk mengubah tujuan kanal"
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "tujuan"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "Pesan harus disediakan dengan perintah /purpose ."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[teks]"
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Ubah tujuan kanal"
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Galat mengambil kanal termutakhir."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Galat dalam memperbaharui kanal sekarang"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Kamu tidak memiliki hak akses yang sesuai untuk mengubah tajuk kanal"
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "Tajuk"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Teks harus disediakan dengan perintah /header"
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[teks]"
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Ubah header kanal"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Galat mengambil kanal termutakhir"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Kamu sekarang tidak ditempat"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "tidak ditempat"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Atur status anda ke 'tidak ditempat'"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Tidak dapat memperbaharui perintah melewati tim"
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "Email undangan telah dikirim"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Mohon masukkan satu atau lebih alamat email yang valid"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "undang_orang"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "Pembuatan pengguna baru telah dinonaktifkan pada server ini, tidak ada undangan yang dikirim"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[nama@domain.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "Kesalahan dalam mengirimkan email undangan"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "Email belum diatur, tidak ada undangan yang dikirimkan"
+  },
+  {
+    "id": "api.command.invite_people.desc",
+    "translation": "Kirimkan email undangan ke tim Mattermost anda"
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "Tidak dapat menemukan perintah pemicu"
+  },
+  {
+    "id": "app.notification.subject.direct.full",
+    "translation": "{{.SubjectText}} pada {{.TeamDisplayName}} pada {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.name_invalid.error",
+    "translation": "Nama tidak valid"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
+    "translation": "Tampilan nama tidak valid"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.description_invalid.error",
+    "translation": "Deskripsi tidak valid"
+  },
+  {
+    "id": "app.import.validate_role_import_data.name_invalid.error",
+    "translation": "Nama tidak valid"
+  },
+  {
+    "id": "app.import.validate_role_import_data.display_name_invalid.error",
+    "translation": "Tampilan nama tidak valid"
+  },
+  {
+    "id": "app.import.validate_role_import_data.description_invalid.error",
+    "translation": "Deskripsi tidak valid"
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "Tidak dapat memperoleh kanal"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s memperbarui header kanal menjadi: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s memperbarui eheader kanal dari: %s ke: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "Gagal mendapatkan pengguna saat mencoba menyimpan perubahan pesan header kanal %v"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%s menghapus header kanal (sebelumnya: %s)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "Gagal dalam mengirim pesan masuk/keluar"
+  },
+  {
+    "id": "app.channel.create_direct_channel.internal_error",
+    "translation": "Tidak dapat memperoleh kanal"
+  },
+  {
+    "id": "app.channel.create_channel.internal_error",
+    "translation": "Tidak dapat memperoleh kanal"
+  },
+  {
+    "id": "app.bot.permenent_delete.bad_id",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "app.bot.patchbot.internal_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "app.bot.getbots.internal_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "app.bot.getbot.internal_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "app.bot.createbot.internal_error",
+    "translation": "Tidak dapat memuat kiriman"
+  },
+  {
+    "id": "api.websocket_handler.invalid_param.app_error",
+    "translation": "Parameter {{.Name}} tidak valid"
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Webhooks keluar dari kanal yang sama tidak boleh memiliki kata pemicu (trigger)/callback URL yang sama."
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Tidak dapat memperbaharui perintah melewati tim"
+  },
+  {
+    "id": "api.webhook.create_outgoing.triggers.app_error",
+    "translation": "Antara trigger_words atau channel_id harus diatur"
+  },
+  {
+    "id": "api.webhook.create_outgoing.permissions.app_error",
+    "translation": "Tidak memiliki hak akses yang sesuai untuk membuat webhook keluar."
+  },
+  {
+    "id": "api.webhook.create_outgoing.not_open.app_error",
+    "translation": "Webhooks keluar hanya dapat dibuat untuk kanal publik."
+  },
+  {
+    "id": "api.webhook.create_outgoing.intersect.app_error",
+    "translation": "Webhooks keluar dari kanal yang sama tidak boleh memiliki kata pemicu (trigger)/callback URL yang sama."
+  },
+  {
+    "id": "api.web_socket.connect.upgrade.app_error",
+    "translation": "Gagal meningkatkan koneksi websocket"
+  },
+  {
+    "id": "api.user.verify_email.bad_link.app_error",
+    "translation": "Tautan verifikasi email rusak."
+  },
+  {
+    "id": "api.user.upload_profile_user.upload_profile.app_error",
+    "translation": "Tidak dapat mengunggah gambar profil"
+  },
+  {
+    "id": "api.user.upload_profile_user.too_large.app_error",
+    "translation": "Tidak dapat mengunggah gambar profil. Berkas terlalu besar."
+  },
+  {
+    "id": "api.user.upload_profile_user.storage.app_error",
+    "translation": "Tidak dapat mengunggah berkas. Penyimpanan gambar belum diatur."
+  },
+  {
+    "id": "api.user.upload_profile_user.parse.app_error",
+    "translation": "Tidak dapat menangani bentuk multipart"
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "Tidak dapat membuka file gambar"
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "Tidak ada berkas 'gambar' yang diminta"
+  },
+  {
+    "id": "api.user.upload_profile_user.encode.app_error",
+    "translation": "Tidak dapat membaca kode gambar profil"
+  },
+  {
+    "id": "api.user.upload_profile_user.decode.app_error",
+    "translation": "Tidak dapat membaca kode gambar profil"
+  },
+  {
+    "id": "api.user.upload_profile_user.array.app_error",
+    "translation": "Tidak ada berkas 'gambar' di dalam permintaan"
+  },
+  {
+    "id": "api.user.update_user.accepted_guest_domain.app_error",
+    "translation": "Email yang Anda berikan bukan bagian dari domain yang diperbolehkan. Silakan hubungi administrator Anda atau daftar dengan email yang berbeda."
+  },
+  {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "Email yang Anda berikan bukan bagian dari domain yang diperbolehkan. Silakan hubungi administrator Anda atau daftar dengan email yang berbeda."
+  },
+  {
+    "id": "api.user.update_password.valid_account.app_error",
+    "translation": "Perubahan kata sandi gagal karena kami tidak dapat menemukan akun yang valid"
+  },
+  {
+    "id": "api.user.update_password.oauth.app_error",
+    "translation": "Perubahan kata sandi gagal karena pengguna telah masuk melalui layanan OAuth"
+  },
+  {
+    "id": "api.user.update_password.menu",
+    "translation": "menggunakan menu pengaturan"
+  },
+  {
+    "id": "api.user.update_password.incorrect.app_error",
+    "translation": "\"Kata Sandi Saat Ini\" yang Anda masukkan salah. Mohon periksa kembali apakah Caps Lock tidak aktif dan coba kembali."
+  },
+  {
+    "id": "api.user.update_password.failed.app_error",
+    "translation": "Perubahan kata sandi gagal"
+  },
+  {
+    "id": "api.user.update_password.context.app_error",
+    "translation": "Perubahan kata sandi gagal karena konteks user_id tidak cocok dengan user_id yang ditentukan"
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "Anda tidak memiliki hak akses"
+  },
+  {
+    "id": "api.user.send_verify_email_and_forget.failed.error",
+    "translation": "Gagal mengirimkan email verifikasi"
+  },
+  {
+    "id": "api.user.send_sign_in_change_email_and_forget.error",
+    "translation": "Gagal mengirimkan notifikasi email untuk perubahan kata sandi"
+  },
+  {
+    "id": "api.user.send_password_reset.sso.app_error",
+    "translation": "Tidak dapat melakukan penyetelan-ulang kata sandi untuk akun SSO"
+  },
+  {
+    "id": "api.user.send_password_reset.send.app_error",
+    "translation": "Gagal mengirim email penyetelan-ulang kata sandi"
+  },
+  {
+    "id": "api.user.send_email_change_verify_email_and_forget.error",
+    "translation": "Gagal mengirimkan notifikasi perubahan email"
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "SAML tidak diatur atau didukung oleh server ini"
+  },
+  {
+    "id": "api.user.reset_password.sso.app_error",
+    "translation": "Tidak dapat melakukan penyetelan-ulang kata sandi untuk akun SSO"
+  },
+  {
+    "id": "api.user.reset_password.method",
+    "translation": "menggunakan tautan penyetelan-ulang kata sandi"
+  },
+  {
+    "id": "api.user.reset_password.link_expired.app_error",
+    "translation": "Tautan penyetelan-ulang kata sandi telah kedaluwarsa"
+  },
+  {
+    "id": "api.user.reset_password.invalid_link.app_error",
+    "translation": "Tautan penyetelan-ulang kata sandi tidak valid"
+  },
+  {
+    "id": "api.user.reset_password.broken_token.app_error",
+    "translation": "Tautan penyetelan-ulang kata sandi tidak valid"
+  },
+  {
+    "id": "api.user.oauth_to_email.context.app_error",
+    "translation": "Pembaruan kata sandi gagal karena konteks user_id tidak sesuai dengan ID pengguna yang diberikan"
+  },
+  {
+    "id": "api.user.login_ldap.not_available.app_error",
+    "translation": "LDAP tidak tersedia di server ini"
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "Perintah dengan pemicu dari '{{.Trigger}}' tidak ditemukan. Untuk mengirim pesan dimulai dengan \"/\", dan coba tambahkan spasi di awal pesan."
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "Perintah dengan pemicu '{{.Trigger}}' menghasilkan respon {{.Status}}"
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "Perintah dengan pemicu '{{.Trigger}}' menghasilkan respon kosong"
+  },
+  {
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "Perintah dengan pemicu '{{.Trigger}}' gagal"
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "Perintah '{{.Trigger}}' gagal mengirim tanggapan. Silakan hubungi Administrator Sistem Anda."
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "Kata pemicu ini telah digunakan. Silakan pilih kata lainnya."
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "Perintah telah dimatikan oleh admin sistem."
+  },
+  {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "Pengguna yang ditentukan bukan anggota saluran yang ditentukan."
+  },
+  {
+    "id": "api.command.admin_only.app_error",
+    "translation": "Integrasi telah dibatasi untuk admin saja."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "Peran yang disediakan dikelola oleh Skema dan karena itu tidak dapat diterapkan langsung ke Anggota Tim"
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Pembaruan anggota tim tidak valid: Anda tidak dapat menambah atau menghapus peran tamu secara manual"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "Tidak dapat mengatur skema ke saluran karena skema yang disediakan bukan skema saluran."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "Lisensi anda tidak mendukung update skema saluran"
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "Saluran default tidak dapat dibuat pribadi."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "Peran yang disediakan diatur oleh Skema dan tidak bisa dimenerapkan langsung ke Pengguna Kanal"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Update anggota kanal tidak valid: Pengguna harus menjadi tamu atau pengguna tetapi tidak keduanya."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Update anggota kanal tidak valid: Anda tidak bisa mentambahkan atau menghapus peran tamu secara manual."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Tipe kanal tidak bisa di update"
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "Mencoba melakukan pembaharuan tidak valid ke kanal umum {{.Channel}}"
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "Kanal telah diarsipkan atau dihapus"
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} telah unarchive kanal ini."
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "Gagal untuk unarchive kanal. Kanal ini tidak bisa di unarchive."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Anda tidak bisa mengganti nama saluran pesan grup (group message channel)"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Anda tidak dapat mengganti nama saluran pesan langsung (direct message channel)"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Gagal menghapus pengguna dari jenis kanal ini"
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Penghapusan keanggotaan saluran ditolak oleh pengguna (pengguna-pengguna) berikut karena kendala grup: {{.UserIDs}}"
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v telah dihapus dari kanal."
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Gagal menghapus pengguna dari saluran yang dibatasi grup."
+  },
+  {
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Gagal menghapus anggota dari kanal."
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Tidak dapat menghapus pengguna dari kanal umum {{.Channel}}"
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "Gagal dalam mengirim pesan masuk/keluar"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s memperbaharui header kanal menjadi: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s memperbaharui header kanal dari: %s ke: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "Gagal mendapatkan pengguna ketika mencoba merubah header kanal"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s menghapus kop kanal (sebelumnya: %s)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Galat ketika mengirim kop pesan kanal"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s memperbaharui nama display kanal dari: %s ke: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Gagal mendapatkan pengguna ketika mencoba menyimpan perubahan kanal DisplayName"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Gagal memposting pesan mutakhir displayname"
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "Gagal untuk mengirim pesanan kanal update pribadi."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Gagal meng-update kanal"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Lisensi Anda tidak mendukung autentikasi SAML."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v telah keluar dari kanal."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "Anda satu-satunya anggota yang tersisa, coba menghapus Kanal Pribadi daripada keluar."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Tidak dapat keluar dari kanal pesan langsung"
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Tidak dapat keluar dari kanal default {{.Channel}}"
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v telah bergabung ke kanal."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "Anda tidak memiliki hak akses"
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "% v bergabung dengan saluran sebagai tamu."
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "Lisensi Anda tidak mendukung autentikasi SAML."
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "Kanal telah diarsipkan atau dihapus"
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "Tidak dapat menghapus kanal default {{.Channel}}"
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v telah mengarsipkan kanal."
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "Salah satu pengguna yang disediakan tidak ada"
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Kanal pesan grup harus berisi minimal 3 dan tidak lebih dari 8 pengguna"
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "ID pengguna tidak valid untuk pembuatan kanal langsung"
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "Taman Kota"
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "Topik bebas"
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Tidak dapat membuat kanal lebih dari {{.MaxChannelsPerTeam}} untuk tim ini "
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "Harus menggunakan layanan api createDirectChannel untuk pembuatan kanal pesan langsung"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Kanal ini telah diubah menjadi Kanal Pribadi."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Kanal ini telah diubah menjadi Kanal Publik dan dapat diikuti oleh anggota tim manapun."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Tidak dapat menambahkan pengguna ke jenis kanal ini"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Gagal menambahkan pengguna ke kanal karena dia telah dihapus dari tim."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Gagal menambahkan pengguna ke kanal"
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Keanggotaan kanal ditolak untuk pengguna-pengguna berikut karena kendala kolompok : {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Eror menambahkan anggota kanal."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v ditambahkan ke kanal oleh %v"
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v ditambahkan ke kanal oleh %v sebagai tamu."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Tolong tambahkan (add) saya ke tim dan channel yang anda ingin saya interaksi di. Untuk mengatifkan fitur ini, tolong pakai browser atau Mattermost Desktop App."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Gagal mengunggah berkas. Berkas terlalu besar."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Gagal mengunggap gambar. Penyimpanan gambar belum diatur."
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "Tidak dapat menangani bentuk multipart"
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Tidak ada berkas 'gambar' yang diminta"
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "Tidak ada berkas 'gambar' di dalam permintaan"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Pengaturan Tes Email"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "Server SMTP, port, atau nama pengguna telah berubah. Silahkan inputkan ulang kata sandi SMTP server untuk mengecek koneksi. "
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP Server dibutuhkan"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Sepertinya pengaturan email Mattermost Anda telah benar!"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Teks sertifikat tidak valid."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 tidak dikonfigurasikan atau didukung oleh server ini."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "Terjadi kesalahan ketika membuat Metadata Penyedia Layanan."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Tidak dapat menyimpan berkas sertifikat."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Gagal mendapatkan metadata dari URL Penyedia Identitas."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Terjadi kesalahan saat menghapus sertifikat."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Penyimpanan gambar belum diatur."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Gagal membaca berkas log."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Tidak dapat menyimpan berkas sertifikat."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Tidak dapat membuka berkas sertifikat."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Tidak ada berkas 'sertifikat' di dalam permintaan."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Berkas yang diminta tidak ada didalam 'certificate'."
+  },
+  {
+    "id": "September",
+    "translation": "September"
+  },
+  {
+    "id": "October",
+    "translation": "Oktober"
+  },
+  {
+    "id": "November",
+    "translation": "November"
+  },
+  {
+    "id": "May",
+    "translation": "Mei"
+  },
+  {
+    "id": "March",
+    "translation": "Maret"
+  },
+  {
+    "id": "June",
+    "translation": "Juni"
+  },
+  {
+    "id": "July",
+    "translation": "Juli"
+  },
+  {
+    "id": "January",
+    "translation": "Januari"
+  },
+  {
+    "id": "February",
+    "translation": "Februari"
+  },
+  {
+    "id": "December",
+    "translation": "Desember"
+  },
+  {
+    "id": "August",
+    "translation": "Agustus"
+  },
+  {
+    "id": "April",
+    "translation": "April"
+  },
+  {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "Nama harus berupa 1 hingga 64 huruf kecil karakter alfanumerik "
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Tidak dapat menghapus gambar merek, tidak ditemukan."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP tidak tersedia."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Terjadi kesalahan saat mengurai permintaan beraneka ragam"
+  }
+]

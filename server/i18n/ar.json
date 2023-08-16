@@ -1,0 +1,7006 @@
+[
+  {
+    "id": "April",
+    "translation": "zz"
+  },
+  {
+    "id": "August",
+    "translation": "zz"
+  },
+  {
+    "id": "December",
+    "translation": "zz"
+  },
+  {
+    "id": "February",
+    "translation": "zz"
+  },
+  {
+    "id": "January",
+    "translation": "zz"
+  },
+  {
+    "id": "July",
+    "translation": "zz"
+  },
+  {
+    "id": "June",
+    "translation": "zz"
+  },
+  {
+    "id": "March",
+    "translation": "zz"
+  },
+  {
+    "id": "May",
+    "translation": "zz"
+  },
+  {
+    "id": "November",
+    "translation": "zz"
+  },
+  {
+    "id": "October",
+    "translation": "zz"
+  },
+  {
+    "id": "September",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.admin_only.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.invite_people.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_dnd.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_echo.delay.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_echo.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_echo.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_echo.message.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_echo.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_groupmsg.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "few": "",
+      "many": "",
+      "one": "Не вдалося знайти користувача: {{.Users}}Не вдалося знайти користувачів: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_join.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_join.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_kick.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_me.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_me.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_msg.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_search.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_shortcuts.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_shrug.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_shrug.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_shrug.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.context.404.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.context.invalid_param.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.context.invalid_token.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.context.permissions.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.context.session_expired.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.context.token_provided.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "few": "[{{.SiteName}}] Нові сповіщення для {{.Month}} {{.Day}}, {{.Year}}",
+      "many": "",
+      "one": "[{{.SiteName}}] Нове повідомлення для {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.emoji.create.duplicate.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.create.other_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.create.parse.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.get_image.decode.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.get_image.read.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.storage.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.upload.image.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.emoji.upload.open.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.get_file.public_invalid.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.get_public_link.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.no_driver.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.read_file.reading_local.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.upload_file.large_image.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.upload_file.large_image_detailed.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.upload_file.multiple_channel_ids.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.upload_file.read_form_value.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.upload_file.read_request.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.file.upload_file.too_large_detailed.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.io_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.ldap_group.not_found",
+    "translation": "zz"
+  },
+  {
+    "id": "api.ldap_groups.license_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.license.add_license.array.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.license.add_license.expired.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.license.add_license.invalid.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.license.add_license.invalid_count.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.license.add_license.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.license.add_license.save_active.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.license.add_license.unique_users.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.marshal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.allow_oauth.redirect_callback.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.allow_oauth.turn_off.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.credentials.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.expired_code.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_code.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.redirect_uri.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.get_access_token.refresh_token.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.register_oauth_app.turn_off.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_session.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_token.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.outgoing_webhook.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.plugin.upload.file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.plugin.upload.no_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.one",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.create_post.channel_root_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.create_post.root_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.create_webhook_post.creating.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.failed_to_get",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.pending",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.do_action.action_integration.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "few": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}",
+      "many": "",
+      "one": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "few": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}",
+      "many": "",
+      "one": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_channel_mention",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_post",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_thread",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_explicit_mention",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_general_message",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_message",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.update_post.permissions_details.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post_get_post_by_id.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.preference.delete_preferences.delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.preference.preferences_category.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.preference.update_preferences.set.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.restricted_system_admin",
+    "translation": "zz"
+  },
+  {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.scheme.create_scheme.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.scheme.delete_scheme.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.scheme.get_channels_for_scheme.scope.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.scheme.get_teams_for_scheme.scope.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.scheme.patch_scheme.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.start_server.starting.critical",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.added",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.import_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.merge",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.created",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email_pwd",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.unable_import",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_import.log",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_import.note1",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_import.note2",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_import.notes",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_import.open.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_import.team_fail",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.get_invite_info.not_open_team",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.get_team_icon.read_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.import_team.array.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.import_team.integer.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.import_team.parse.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.import_team.unavailable.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.invite_members.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.invite_members.no_one.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.domain.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.leave.left",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.update_team_scheme.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.update_team_scheme.scheme_scope.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.deactivate_body.warning",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.email_change_body.info",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.email_change_body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.email_change_subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.button",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.info",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.email_change_verify_subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.email_footer",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.email_info1",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.email_info2",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.email_info3",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.email_organization",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.email_warning",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.invite_body.button",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.invite_body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.invite_subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.mfa_change_subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.password_change_body.info",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.password_change_body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.password_change_subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.post_body.button",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.reset_body.button",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.reset_body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.reset_subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.user_access_token_body.info",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.user_access_token_body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.user_access_token_subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.username_change_body.info",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.verify_body.button",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.verify_body.info",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.verify_subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_info",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.welcome_body.button",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.welcome_body.info",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.welcome_subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.add_direct_channels_and_forget.failed.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_response.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_token.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.invalid_state.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.service.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.token_failed.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.unsupported.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.check_user_mfa.bad_code.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.check_user_password.invalid.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.parse.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_email_token.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_attached.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_oauth_user.create.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_profile_image.default_font.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_profile_image.encode.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_profile_image.initial.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_user.accepted_domain.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_user.no_open_server",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_user.signup_email_disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_user.signup_link_expired.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_user.signup_link_invalid.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.email_to_ldap.not_available.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.email_to_oauth.not_available.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_available.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login.blank_pwd.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login.bot_login_forbidden.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login.client_side_cert.certificate.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login.client_side_cert.license.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login.inactive.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login.not_verified.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login.use_auth_service.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login_by_oauth.not_available.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login_by_oauth.parse.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login_ldap.not_available.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.oauth_to_email.context.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.oauth_to_email.not_available.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.reset_password.broken_token.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.reset_password.invalid_link.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.reset_password.link_expired.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.reset_password.method",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.reset_password.sso.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.send_email_change_verify_email_and_forget.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.send_password_reset.send.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.send_password_reset.sso.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.send_sign_in_change_email_and_forget.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.send_verify_email_and_forget.failed.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.update_password.context.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.update_password.failed.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.update_password.incorrect.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.update_password.menu",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.update_password.oauth.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.update_password.valid_account.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.upload_profile_user.array.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.upload_profile_user.decode.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.upload_profile_user.encode.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.upload_profile_user.parse.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.upload_profile_user.storage.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.upload_profile_user.too_large.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.upload_profile_user.upload_profile.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.verify_email.bad_link.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.verify_email.broken_token.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.web_socket.connect.upgrade.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.web_socket_router.bad_action.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.web_socket_router.bad_seq.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.web_socket_router.no_action.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.web_socket_router.not_authenticated.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.webhook.create_outgoing.intersect.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.webhook.create_outgoing.not_open.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.webhook.create_outgoing.permissions.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.webhook.create_outgoing.triggers.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.websocket_handler.invalid_param.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.move_channel.members_do_not_match.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "zz"
+  },
+  {
+    "id": "app.export.export_write_line.io_writer.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.export.export_write_line.json_marshall.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.attachment.bad_file.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.attachment.file_upload.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.bulk_import.unsupported_version.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_channel.scheme_deleted.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_channel.scheme_wrong_scope.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_line.null_direct_channel.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_line.null_direct_post.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_line.null_post.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_line.null_scheme.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_line.null_user.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_post.channel_not_found.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_post.user_not_found.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_scheme.scope_change.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_team.scheme_deleted.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_team.scheme_wrong_scope.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_user.save_preferences.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.process_import_data_file_version_line.invalid_version.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.scheme_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.header_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_required.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.user_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_post_import_data.channel_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_zero.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_post_import_data.team_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_role_import_data.description_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_role_import_data.display_name_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_role_import_data.invalid_permission.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_role_import_data.name_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.description_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.name_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.null_scope.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_team_import_data.scheme_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.password_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.position_length.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.roles_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_invalid.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.notification.subject.direct.full",
+    "translation": "zz"
+  },
+  {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "zz"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "zz"
+  },
+  {
+    "id": "app.notification.subject.notification.full",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.cluster.save_config.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.config.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.extract.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.get_cluster_plugin_statuses.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.get_statuses.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.install.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.install_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.install_id_failed_remove.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.manifest.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.mvdir.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.role.check_roles_exist.role_not_found",
+    "translation": "zz"
+  },
+  {
+    "id": "app.save_config.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user_access_token.disabled",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user_access_token.invalid_or_missing",
+    "translation": "zz"
+  },
+  {
+    "id": "brand.save_brand_image.decode.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "brand.save_brand_image.encode.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "brand.save_brand_image.open.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "brand.save_brand_image.save_image.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.account_migration.get_all_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.account_migration.get_saml_users_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.cluster.save_config.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.bad_export_type.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.csv.attachment.copy.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.csv.attachment.export.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.csv.file.creation.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.csv.header.export.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.export.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.csv.post.export.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.csv.zip.creation.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.global_relay.attachments_removed.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.licence_disable.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.run_export.template_watcher.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.run_failed.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.data_retention.generic.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.disabled",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.search_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.syncronize.populate_syncables",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.validate_filter.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap_groups.group_search_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap_groups.groups_search_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap_groups.members_of_group_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap_groups.no_rows",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap_groups.reachable_groups_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.build_request.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.configure.encryption_not_enabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.configure.load_private_key.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.configure.not_encrypted_response.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.do_login.empty_response.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.do_login.parse.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.license_disable.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "zz"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "zz"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "zz"
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "zz"
+  },
+  {
+    "id": "manaultesting.manual_test.parse.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "manaultesting.test_autolink.unable.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "mattermost.bulletin.subject",
+    "translation": "zz"
+  },
+  {
+    "id": "mfa.activate.bad_token.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "mfa.generate_qr_code.create_code.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "mfa.validate_token.authenticate.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
+    "translation": "zz"
+  },
+  {
+    "id": "migrations.worker.run_migration.unknown_key",
+    "translation": "zz"
+  },
+  {
+    "id": "model.access.is_valid.access_token.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.access.is_valid.client_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.access.is_valid.redirect_uri.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.access.is_valid.refresh_token.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.access.is_valid.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.authorize.is_valid.auth_code.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.authorize.is_valid.client_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.authorize.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.authorize.is_valid.expires.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.authorize.is_valid.redirect_uri.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.authorize.is_valid.scope.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.authorize.is_valid.state.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.authorize.is_valid.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.bot.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.bot.is_valid.creator_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.bot.is_valid.description.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.bot.is_valid.update_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.bot.is_valid.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.bot.is_valid.username.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel.is_valid.creator_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel.is_valid.display_name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel.is_valid.header.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel.is_valid.purpose.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel.is_valid.type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel.is_valid.update_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_level.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel_member.is_valid.unread_level.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel_member.is_valid.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.cluster.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.cluster.is_valid.hostname.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.cluster.is_valid.last_ping_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.cluster.is_valid.name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.cluster.is_valid.type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command.is_valid.description.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command.is_valid.display_name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command.is_valid.method.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command.is_valid.team_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command.is_valid.token.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command.is_valid.trigger.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command.is_valid.update_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command.is_valid.url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command.is_valid.url_http.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command.is_valid.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.compliance.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.compliance.is_valid.desc.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.compliance.is_valid.end_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.compliance.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.compliance.is_valid.start_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.compliance.is_valid.start_end_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.display.custom_url_schemes.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.connection_url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.email_batching_buffer_size.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.email_notification_contents_type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.email_security.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.encrypt_sql.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.file_driver.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.file_salt.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.ldap_basedn",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.ldap_email",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.ldap_id",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.ldap_security.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.ldap_server",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.ldap_sync_interval.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.ldap_username",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.listen_address.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.login_attempts.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.max_burst.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.max_channels.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.max_users.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.message_export.batch_size.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.message_export.daily_runtime.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.message_export.enable.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_from.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.password_length.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.rate_mem.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.rate_sec.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.read_timeout.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.saml_email_attribute.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_cert.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.saml_private_key.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.saml_public_cert.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.saml_username_attribute.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.site_url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.site_url_email_batching.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.sitename_length.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.sql_data_src.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.sql_driver.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.sql_idle.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.sql_max_conn.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.teammate_name_display.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.write_timeout.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.emoji.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.emoji.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.emoji.name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.emoji.update_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.emoji.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.file_info.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.file_info.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.file_info.is_valid.path.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.file_info.is_valid.post_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.file_info.is_valid.update_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.file_info.is_valid.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.group.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.group.description.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.group.display_name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.group.name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.group.remote_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.group.source.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.group.update_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.group_member.group_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.group_member.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.group_syncable.group_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.group_syncable.syncable_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.incoming_hook.channel_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.incoming_hook.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.incoming_hook.description.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.incoming_hook.display_name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.incoming_hook.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.incoming_hook.parse_data.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.incoming_hook.team_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.incoming_hook.update_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.incoming_hook.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.license_record.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.license_record.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data_type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.link_metadata.is_valid.timestamp.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.link_metadata.is_valid.type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.oauth.is_valid.app_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.oauth.is_valid.callback.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.oauth.is_valid.client_secret.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.oauth.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.oauth.is_valid.creator_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.oauth.is_valid.description.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.oauth.is_valid.homepage.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.oauth.is_valid.icon_url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.oauth.is_valid.name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.oauth.is_valid.update_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.icon_url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.callback.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.channel_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.content_type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.description.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.display_name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.team_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.token.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.update_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.words.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.outgoing_hook.username.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.is_valid.channel_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.is_valid.file_ids.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.is_valid.filenames.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.is_valid.hashtags.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.is_valid.msg.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.is_valid.original_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.is_valid.props.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.is_valid.root_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.is_valid.type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.is_valid.update_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.is_valid.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.preference.is_valid.category.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.preference.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.preference.is_valid.name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.preference.is_valid.theme.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.preference.is_valid.value.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team.is_valid.characters.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team.is_valid.company.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team.is_valid.domains.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team.is_valid.email.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team.is_valid.name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team.is_valid.reserved.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team.is_valid.type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team.is_valid.update_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team.is_valid.url.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team_member.is_valid.team_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team_member.is_valid.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.token.is_valid.expiry",
+    "translation": "zz"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user_access_token.is_valid.description.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user_access_token.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user_access_token.is_valid.token.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user_access_token.is_valid.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.utils.decode_json.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.websocket_client.connect_fail.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "oauth.gitlab.tos.error",
+    "translation": "zz"
+  },
+  {
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "zz"
+  },
+  {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "zz"
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "zz"
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "zz"
+  },
+  {
+    "id": "store.sql_bot.get.missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "store.sql_channel.get.existing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "store.sql_channel.save.direct_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "store.sql_channel.save_channel.existing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "store.sql_channel.save_channel.exists.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "store.sql_channel.save_channel.limit.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "store.sql_command.save.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "zz"
+  },
+  {
+    "id": "store.sql_team.save_member.exists.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "store.sql_user.get_for_login.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "system.message.name",
+    "translation": "zz"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "web.get_access_token.internal_saving.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "web.incoming_webhook.channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "web.incoming_webhook.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "web.incoming_webhook.invalid.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "web.incoming_webhook.parse.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "web.incoming_webhook.permissions.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "web.incoming_webhook.text.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "web.incoming_webhook.user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.scheme.save.invalid_scheme.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.scheme.permanent_delete_all.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_more_channels.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_make_default",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.open_system_browser.edge",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support_version",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.windows",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.mac",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.safari",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.firefox",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.edge",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.chrome",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.learn_more",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.windows",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.mac",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.download_the_app",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.download",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.safari",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.firefox",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.edge",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.chrome",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.safari",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.firefox",
+    "translation": "zz"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.chrome",
+    "translation": "zz"
+  },
+  {
+    "id": "searchengine.bleve.disabled.error",
+    "translation": "zz"
+  },
+  {
+    "id": "plugin_api.bot_cant_create_bot",
+    "translation": "zz"
+  },
+  {
+    "id": "plugin.api.get_users_in_channel",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.position.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.locale.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.team.is_valid.invite_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.post.channel_notifications_disabled_in_channel.message",
+    "translation": "zz"
+  },
+  {
+    "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.guest.is_valid.emails.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.guest.is_valid.email.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.guest.is_valid.channels.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.guest.is_valid.channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.group.name.invalid_chars.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.saml_admin_attribute.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.filename.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.command.is_valid.autocomplete_data.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "zz"
+  },
+  {
+    "id": "groups.unsupported_syncable_type",
+    "translation": "zz"
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.validate_admin_filter.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.start.parse_server_version.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.start.get_server_version.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.search_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.search_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.disabled",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.index_user.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.csv.warning.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.stop_user_index.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.stop_post_index.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.stop_channel_index.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.search_users_in_team.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.uchan.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.nuchan.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.search_posts.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.search_channels.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.purge_user_index.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.purge_post_index.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.purge_channel_index.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_start_time.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_end_time.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.engine_inactive",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.index_user.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.index_post.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.index_channel.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.delete_user.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.delete_post.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.delete_channel.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.create_user_index.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.create_post_index.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.create_channel_index.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.already_started.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user_terms_of_service.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.terms_of_service.get.no_rows.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.terms_of_service.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.terms_of_service.create.existing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.terms_of_service.create.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.rename_team.name_occupied",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.invite_token.group_constrained.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.invite_id.group_constrained.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.sync.read_local_folder.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.sync.list_filestore.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.store_bundle.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.restart.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.remove_bundle.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.marshal.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.marketplace_disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.marketplace_client.failed_to_fetch",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.marketplace_client.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.invalid_version.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.install_marketplace_plugin.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.flag_managed.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_user_teams.save_preferences.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.import_user_channels.channel_not_found.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.get_users_by_username.some_users_not_found.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.import.get_teams_by_names.some_teams_not_found.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.export.export_custom_emoji.copy_emoji_images.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.emoji.get_list.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.emoji.get_by_name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.emoji.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.emoji.delete.no_results",
+    "translation": "zz"
+  },
+  {
+    "id": "app.emoji.delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel_member_history.log_leave_event.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel_member_history.log_join_event.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.update.bad_id",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.permanent_delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_deleted.missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_deleted.existing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_channels.not_found.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_channels.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_by_name.existing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_all_channels.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get.find.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get.existing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.create_direct_channel.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.create_channel.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.bot.permenent_delete.bad_id",
+    "translation": "zz"
+  },
+  {
+    "id": "app.bot.permanent_delete.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.bot.patchbot.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.bot.getbots.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.bot.getbot.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message",
+    "translation": "zz"
+  },
+  {
+    "id": "app.bot.createbot.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.admin.test_site_url.failure",
+    "translation": "zz"
+  },
+  {
+    "id": "app.admin.saml.invalid_response_from_idp.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.websocket_handler.server_busy.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.update_user.accepted_guest_domain.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.reset_password.token_parse.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.promote_guest_to_user.no_guest.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login.guest_accounts.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login.guest_accounts.disabled.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.demote_user_to_guest.already_guest.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_user.invalid_invitation_type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.license.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.create_password_token.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.remove_expired_license.subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.renew_button",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.invite_guest_subject",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.demote_user_to_guest.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.demote_user_to_guest.disabled.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.add_members.user_denied",
+    "translation": "zz"
+  },
+  {
+    "id": "api.team.add_members.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.push_notifications_ack.message.parse.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.push_notifications_ack.forward.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.push_notifications.message.parse.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "zz"
+  },
+  {
+    "id": "api.push_notification.disabled.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_group_users.message.none",
+    "translation": "zz"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.plugin.install.download_failed.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.license.remove_expired_license.failed.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.ldap_groups.existing_user_name_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.ldap_groups.existing_reserved_name_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.ldap_groups.existing_group_name_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.image.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.context.server_busy.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.context.local_origin_required.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command.execute_command.format.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "zz"
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "zz"
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "zz"
+  },
+  {
+    "id": "app.reaction.save.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.reaction.get_for_post.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.reaction.bulk_get_for_post_ids.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.audit.save.saving.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.audit.permanent_delete_by_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.audit.get.limit.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.audit.get.finding.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command.listteamcommands.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command_webhook.try_use.invalid",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command_webhook.try_use.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command_webhook.handle_command_webhook.parse",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command_webhook.get.missing",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command_webhook.get.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.existing",
+    "translation": "zz"
+  },
+  {
+    "id": "app.oauth.update_app.updating.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.oauth.update_app.find.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.oauth.save_app.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.oauth.save_app.existing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.oauth.remove_access_data.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.oauth.get_apps.find.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.oauth.get_app_by_user.find.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.oauth.get_app.finding.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.oauth.get_app.find.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.oauth.delete_app.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user.permanentdeleteuser.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.permanentdeleteteam.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.session.update_device_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.session.save.existing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.session.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.session.remove_all_sessions_for_team.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.session.remove.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.session.permanent_delete_sessions_by_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.session.get_sessions.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.session.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.session.analytics_session_count.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command.updatecommand.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command.movecommand.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command.listallcommands.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command.getcommand.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command.deletecommand.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.command.createcommand.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.recover.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.recover.delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_posts.error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.delete_channel_posts.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.delete_user_posts.error",
+    "translation": "zz"
+  },
+  {
+    "id": "bleveengine.delete_channel_posts.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.scheme.delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.get_users_in_channel_during",
+    "translation": "zz"
+  },
+  {
+    "id": "app.emoji.create.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.update_channel.internal_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.restore.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_all_channels_count.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user_access_token.update_token_enable.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user_access_token.update_token_disable.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user_access_token.search.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user_access_token.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user_access_token.get_by_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user_access_token.get_all.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.user_access_token.delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.message_export.run_export.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.compliance.save.saving.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.compliance.get.finding.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.preference.save.updating.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.preference.permanent_delete_by_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.preference.get_category.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.preference.get_all.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.preference.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.preference.delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.site_url_header",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.registered_users_header",
+    "translation": "zz"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.contact_email_header",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.update_outgoing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.update_incoming.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.save_outgoing.override.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.save_outgoing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.save_incoming.existing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.save_incoming.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.get_outgoing_by_team.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.get_outgoing_by_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.get_outgoing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.get_incoming_by_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.get_incoming_by_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.get_incoming.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.delete_outgoing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.delete_incoming.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.analytics_outgoing_count.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.webhooks.analytics_incoming_count.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.role.save.invalid_role.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.role.save.insert.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.role.permanent_delete_all.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.role.get_by_names.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.role.get_by_name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.role.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.update.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.save.existing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.permanent_delete_by_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.permanent_delete_by_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.status.get.missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.status.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin_store.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin_store.list.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin_store.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.plugin_store.delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "migrations.system.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.system.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.system.permanent_delete_by_name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.system.get_by_name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.system.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.save_user.username_exists.saml_app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.saml.save_user.email_exists.saml_app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.jobs.start_synchronize_job.timeout",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.cluster.404.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.actiance.export.marshalToXml.appError",
+    "translation": "zz"
+  },
+  {
+    "id": "app.job.update.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.job.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.job.get_newest_job_by_status_and_type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.job.get_count_by_status_and_type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.job.get_all.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.job.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.file_info.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.file_info.permanent_delete_by_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.file_info.get_with_options.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.file_info.get_for_post.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.file_info.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "zz"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_footer",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_email_header",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+    "translation": "zz"
+  },
+  {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.license.request-trial.bad-request",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "zz"
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.failure.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.context.get_user.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.config.update_config.clear_siteurl.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "zz"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "zz"
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "zz"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "zz"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "zz"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "zz"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "zz"
+  }
+]

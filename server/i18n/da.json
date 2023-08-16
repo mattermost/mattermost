@@ -1,0 +1,446 @@
+[
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "Kunne ikke underskrive genereret trigger ID til interaktiv dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "Bekræftelse af signatur mislykkedes for trigger ID til interaktiv dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Afkodning af base64 signatur, for trigger ID til interaktiv dialog, mislykkedes."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "Trigger ID mangler nødvendig data til interaktiv dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "Trigger ID tilhørende interaktiv dialog er udløbet. Trigger ID'er lever i maksimalt {{.Seconds}} sekunder."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "Afkodning af base64 signatur, for trigger ID til interaktiv dialog, mislykkedes."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Afkodning af base64 for trigger ID til interaktiv dialog mislykkedes."
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "SAML 2.0 er ikke konfigureret eller understøttet på denne server."
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "Der opstod en fejl under konstruktion af Service Provider Metadata."
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Der opstod en fejl i kodning JSON for den interaktive dialog."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Der opstod en fejl under gem af filen."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Der opstod en fejl under læsning af filen."
+  },
+  {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Der opstod en fejl under sletningen af offentlig nøgle."
+  },
+  {
+    "id": "api.user.upload_profile_user.too_large.app_error",
+    "translation": "Kan ikke uploade profilbillede. Filen er for stor."
+  },
+  {
+    "id": "api.user.upload_profile_user.storage.app_error",
+    "translation": "Ude af stand til at uploade billedet. Lagring af billeder er ikke konfigureret."
+  },
+  {
+    "id": "api.user.upload_profile_user.parse.app_error",
+    "translation": "Kunne ikke oversætte multipart-form."
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "Kunne ikke åbne certifikat-fil."
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "Ingen fil under \"billede\" i anmodningen."
+  },
+  {
+    "id": "api.user.upload_profile_user.array.app_error",
+    "translation": "Tom tabel under \"billede\" i forespørgsel."
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "SAML 2.0 er ikke konfigureret eller understøttet på denne server."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "Kan ikke uploade gruppe-ikon. Filen er for stor."
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "Ude af stand til at uploade billedet. Lagring af billeder er ikke konfigureret."
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "Kunne ikke oversætte multipart-form."
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Kunne ikke åbne certifikat-fil."
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "Ingen fil under \"billede\" i anmodningen."
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "Tom tabel under \"billede\" i forespørgsel."
+  },
+  {
+    "id": "api.team.import_team.parse.app_error",
+    "translation": "Kunne ikke oversætte multipart-form."
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "Kunne ikke åbne certifikat-fil."
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "Ingen fil under \"fil\" i anmodningen."
+  },
+  {
+    "id": "api.team.import_team.array.app_error",
+    "translation": "Tom tabel under \"billede\" i forespørgsel."
+  },
+  {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v tilføjet til kanalen af %v."
+  },
+  {
+    "id": "api.restricted_system_admin",
+    "translation": "Denne handling er ikke tilladt for en begrænset system admin."
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "Kunne ikke åbne certifikat-fil."
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "Ingen fil under \"licens\" i anmodningen."
+  },
+  {
+    "id": "api.license.add_license.array.app_error",
+    "translation": "Tom tabel under \"billede\" i forespørgsel."
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "Ude af stand til at uploade billedet. Lagring af billeder er ikke konfigureret."
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "Der opstod en fejl under besked til bruger."
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "Der opstod en fejl ved forlad kanalen."
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "Der opstod en fejl under visning af kanalen."
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "Der opstod en fejl under tilslutning til kanalen."
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "Der opstod en fejl under tilslutning til kanalen."
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Der opstod en fejl mens der blev sendt besked til brugere."
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "Der opstod en fejl mens forhåndsvisninger blev udvidet."
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "invite_people"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Kan ikke tilføje bruger til denne type kanal."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Denne kanal er blevet omdannet til et Privat Kanal."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Denne kanal er blevet konverteret til en offentlig kanal og alle slags gruppe medlemmer kan nu tilslutte sig."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Kan ikke tilføje bruger til denne type kanal."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Kunne ikke tilføje bruger til kanal, fordi de er blevet fjernet fra gruppen."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Kunne ikke tilføje bruger til kanal."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v tilføjet til kanalen af %v."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v tilføjet til kanalen af %v."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Kan ikke uploade fil. Filen er for stor."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Ude af stand til at uploade billedet. Lagring af billeder er ikke konfigureret."
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "Kunne ikke oversætte multipart-form."
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Ingen fil under \"billede\" i anmodningen."
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "Tom tabel under \"billede\" i forespørgsel."
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket er påkrævet"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Test af E-Mail indstillinger"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "SMTP-server, port, eller brugernavn var ændret. Venligst indtast SMTP-adgangskode for at teste forbindelsen."
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP Server er påkrævet"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Det ser ud til at din Mattermost e-mail er sat korrekt op!"
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 er ikke konfigureret eller understøttet på denne server."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "Der opstod en fejl under konstruktion af Service Provider Metadata."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Kunne ikke gemme certifikat-fil."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Der opstod en fejl under sletningen af certifikatet."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Billedlager er ikke konfigureret."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Fejl ved læsning af log-fil."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Ikke muligt at slette mærke billede, ikke fundet."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Kunne ikke gemme certifikat-fil."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Kunne ikke åbne certifikat-fil."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Ingen fil under \"certifikat\" i anmodningen."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Ingen fil under \"certifikat\" i anmodningen."
+  },
+  {
+    "id": "September",
+    "translation": "September"
+  },
+  {
+    "id": "October",
+    "translation": "Oktober"
+  },
+  {
+    "id": "November",
+    "translation": "November"
+  },
+  {
+    "id": "May",
+    "translation": "Maj"
+  },
+  {
+    "id": "March",
+    "translation": "Marts"
+  },
+  {
+    "id": "June",
+    "translation": "Juni"
+  },
+  {
+    "id": "July",
+    "translation": "Juli"
+  },
+  {
+    "id": "January",
+    "translation": "Januar"
+  },
+  {
+    "id": "February",
+    "translation": "Februar"
+  },
+  {
+    "id": "December",
+    "translation": "December"
+  },
+  {
+    "id": "August",
+    "translation": "August"
+  },
+  {
+    "id": "April",
+    "translation": "April"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] eller slet"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Sæt eller slet din status"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Din status blev slettet."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Fejl ved rømning af status."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Fejl under oprettelse af status."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Tilbage til {{.SiteName}}"
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Fejl ved behandling af forespørgsel på multiformular"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Playbooks"
+  },
+  {
+    "id": "Channels",
+    "translation": "Kanaler"
+  },
+  {
+    "id": "Boards",
+    "translation": "Boards"
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "Manglende identitetsudbyder SSO Services node i XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "Manglende identitetsudbyder Key Descriptors node i XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "Manglende identitetsudbyder SSO Descriptors node i XML."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Kunne ikke nulstille AuthData felt til e-post."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Fejlede under fortolkning af metadata information modtaget af identitetsudbyderen af et certifikat."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Ikke muligt at finde metadata fra identitetsudbyderens URL."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP er ikke tilgængelig."
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Deres licens understøtter ikke support grupper"
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Kanalmedlemskabs nægtet til følgende brugere på grund af gruppebegrænsninger: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "En fejl opstod ved at tilføje medlemmer til kanalen."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Tilføj mig til hold og kanaler, som jeg skal interagere med. For at opnå dette, brug browser eller Mattermost skrivebordsapplikation."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Oprettelse af bot er blevet deaktiveret."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Manglende indholdstype."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Ugyldig indholdstype."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Ugyldig certifikat tekst."
+  }
+]

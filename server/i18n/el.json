@@ -1,0 +1,3749 @@
+[
+  {
+    "id": "web.incoming_webhook.disabled.app_error",
+    "translation": "Οι Εντολές έχουν απενεργοποιηθεί από τον διαχειριστή του συστήματος."
+  },
+  {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "Δεν είναι δυνατή η αποθήκευση των όρων χρήσης της υπηρεσίας."
+  },
+  {
+    "id": "app.terms_of_service.create.existing.app_error",
+    "translation": "Δεν πρέπει να κληθεί εκτός των υφιστάμενων όρων χρήσης."
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "Δεν είναι δυνατή η λήψη του σχήματος."
+  },
+  {
+    "id": "app.reaction.save.save.app_error",
+    "translation": "Δεν είναι δυνατή η αποθήκευση της αντίδρασης."
+  },
+  {
+    "id": "app.emoji.delete.app_error",
+    "translation": "Δεν είναι δυνατή η διαγραφή του emoji."
+  },
+  {
+    "id": "store.sql_command.save.get.app_error",
+    "translation": "Δεν είναι δυνατή η λήψη της εντολής."
+  },
+  {
+    "id": "app.channel.update.bad_id",
+    "translation": "Αδυναμία ενημέρωσης του καναλιού."
+  },
+  {
+    "id": "app.channel.get_deleted.existing.app_error",
+    "translation": "Δεν είναι δυνατή η εύρεση του υπάρχοντος διαγραμμένου καναλιού."
+  },
+  {
+    "id": "store.sql_channel.get.existing.app_error",
+    "translation": "Δεν είναι δυνατή η εύρεση του υπάρχοντος καναλιού."
+  },
+  {
+    "id": "app.audit.save.saving.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την αποθήκευση του ελέγχου."
+  },
+  {
+    "id": "app.audit.permanent_delete_by_user.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά τη διαγραφή των ελέγχων."
+  },
+  {
+    "id": "app.audit.get.finding.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την εύρεση των ελέγχων."
+  },
+  {
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "Έλεγχος ταυτότητας πολλαπλών παραγόντων απαιτείται σε αυτόν το διακομιστή."
+  },
+  {
+    "id": "manaultesting.test_autolink.unable.app_error",
+    "translation": "Αδυναμία λήψης καναλιών."
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "Δεν ήταν δυνατή η υπογραφή του αναγνωριστικού ενεργοποίησης που δημιουργήθηκε για το αναδυόμενο παράθυρο."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "Απέτυχε η επαλήθευση υπογραφής του αναγνωριστικό ενεργοποίησης."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Απέτυχε η αποκωδικοποίηση base64 του αναγνωριστικού ενεργοποίησης."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "Το αναγνωριστικό ενεργοποίησης δεν διαθέτει τα απαιτούμενα δεδομένα για το αναδυόμενο παράθυρο."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "Το αναγνωριστικό ενεργοποίησης έχει λήξει. Τα αναγνωριστικά ενεργοποίησης διαρκούν το μέγιστο για {{.Seconds}} δευτερόλεπτα."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "Απέτυχε η αποκωδικοποίηση base64 του αναγνωριστικού ενεργοποίησης."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Απέτυχε η αποκωδικοποίηση base64 για το αναγνωριστικό του αναδυόμενου παράθυρου."
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "Το SAML 2.0 δεν έχει ρυθμιστεί ή υποστηρίζεται σε αυτόν τον διακομιστή."
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την κατασκευή παροχέα υπηρεσιών μεταδεδομένων."
+  },
+  {
+    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία του αρχείου eml."
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "Δεν είναι δυνατό το κλείσιμο του αρχείου zip."
+  },
+  {
+    "id": "ent.elasticsearch.index_user.error",
+    "translation": "Αποτυχία ευρετηρίασης του χρήστη"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Αποτυχία ευρετηρίασης της ανάρτησης"
+  },
+  {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "Αποτυχία ευρετηρίασης του καναλιού"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
+    "translation": "Αποτυχία διαγραφής του χρήστη"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Αποτυχία διαγραφής της δημοσίευσης"
+  },
+  {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "Απέτυχε η διαγραφή του καναλιού"
+  },
+  {
+    "id": "ent.compliance.csv.zip.creation.appError",
+    "translation": "Δεν είναι δυνατή η δημιουργία του αρχείου εξαγωγής zip."
+  },
+  {
+    "id": "ent.compliance.csv.warning.appError",
+    "translation": "Δεν είναι δυνατή η δημιουργία του αρχείου προειδοποίησης."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+    "translation": "Δεν είναι δυνατή η δημιουργία του αρχείου zip"
+  },
+  {
+    "id": "ent.account_migration.get_saml_users_failed",
+    "translation": "Αδυναμία λήψης χρηστών SAML."
+  },
+  {
+    "id": "ent.account_migration.get_all_failed",
+    "translation": "Αδυναμία λήψης χρηστών."
+  },
+  {
+    "id": "bleveengine.index_user.error",
+    "translation": "Απέτυχε η ευρετηρίαση του χρήστη."
+  },
+  {
+    "id": "bleveengine.index_post.error",
+    "translation": "Απέτυχε η ευρετηρίαση της δημοσίευσης."
+  },
+  {
+    "id": "bleveengine.index_channel.error",
+    "translation": "Απέτυχε η ευρετηρίαση του καναλιού."
+  },
+  {
+    "id": "bleveengine.delete_user.error",
+    "translation": "Αποτυχία διαγραφής του χρήστη."
+  },
+  {
+    "id": "bleveengine.delete_post.error",
+    "translation": "Αποτυχία διαγραφής της δημοσίευσης."
+  },
+  {
+    "id": "bleveengine.delete_channel.error",
+    "translation": "Απέτυχε η διαγραφή του καναλιού."
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Παρουσιάστηκε σφάλμα στη κωδικοποίηση του JSON του αναδυόμενου παράθυρου."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την αποχώρηση από το κανάλι."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την αποχώρηση από το κανάλι."
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "Δεν είναι δυνατή η διαγραφή του plugin."
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Αδυναμία λήψης ενεργών plugins."
+  },
+  {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Προέκυψε σφάλμα κατά τη διαγραφή του δημόσιου κλειδιού."
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "Δεν είναι δυνατή η απενεργοποίηση του plugin."
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "Απέτυχε να ενημερωθεί η επικεφαλίδα άμεσου καναλιού"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s ενημέρωσε την κεφαλίδα του καναλιού σε: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s ενημέρωσε την κεφαλίδα του καναλιού από: %s σε: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "Αποτυχία ανάκτησης του χρήστη κατά την ενημέρωση της κεφαλίδας του καναλιού %v"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%s αφαίρεσε τη κεφαλίδα του καναλιού (ήταν: %s)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "Αποτυχία δημοσίευσης μηνύματος συμμετοχής/αποχώρησης"
+  },
+  {
+    "id": "app.channel.create_direct_channel.internal_error",
+    "translation": "Αδυναμία αποθήκευσης άμεσου καναλιού."
+  },
+  {
+    "id": "app.channel.create_channel.internal_error",
+    "translation": "Δεν είναι δυνατή η αποθήκευση του καναλιού."
+  },
+  {
+    "id": "app.bot.permenent_delete.bad_id",
+    "translation": "Δεν είναι δυνατή η διαγραφή του bot."
+  },
+  {
+    "id": "app.bot.patchbot.internal_error",
+    "translation": "Αδυναμία ενημέρωσης του bot."
+  },
+  {
+    "id": "app.bot.getbots.internal_error",
+    "translation": "Δεν είναι δυνατή η λήψη των bots."
+  },
+  {
+    "id": "app.bot.getbot.internal_error",
+    "translation": "Δεν είναι δυνατή η λήψη του bot."
+  },
+  {
+    "id": "app.bot.createbot.internal_error",
+    "translation": "Δεν είναι δυνατή η αποθήκευση του bot."
+  },
+  {
+    "id": "api.websocket_handler.invalid_param.app_error",
+    "translation": "Μη έγκυρη παράμετρος {{.Name}}."
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Δεν είναι δυνατή η ενημέρωση των webhook σε όλες τις ομάδες."
+  },
+  {
+    "id": "api.user.upload_profile_user.too_large.app_error",
+    "translation": "Αδυναμία μεταφόρτωσης του αρχείου. Το μέγεθός του είναι πολύ μεγάλο."
+  },
+  {
+    "id": "api.user.upload_profile_user.storage.app_error",
+    "translation": "Αδυναμία μεταφόρτωσης της εικόνας. Ο χώρος αποθήκευσης των εικόνων δεν έχει ρυθμιστεί."
+  },
+  {
+    "id": "api.user.upload_profile_user.parse.app_error",
+    "translation": "Δεν ήταν δυνατή η ανάλυση της φόρμας πολλαπλών κομματιών."
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "Δεν ήταν δυνατό το άνοιγμα αρχείου πιστοποιητικού."
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "Δεν υπάρχει αρχείο κάτω από την εικόνα στην αίτηση."
+  },
+  {
+    "id": "api.user.upload_profile_user.array.app_error",
+    "translation": "Άδειος πίνακας στην εικόνα την αίτησης."
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "Δεν έχετε τα κατάλληλα δικαιώματα."
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "Το SAML 2.0 δεν μπορεί να ρυθμιστεί η δεν υποστηρίζεται από αυτό τον διακομιστή."
+  },
+  {
+    "id": "api.team.update_team_scheme.scheme_scope.error",
+    "translation": "Δεν είναι δυνατή η ρύθμιση του σχήματος για το κανάλι, επειδή το παρεχόμενο σχήμα δεν είναι κατάλληλο σχήμα καναλιού."
+  },
+  {
+    "id": "api.team.update_team_scheme.license.error",
+    "translation": "Η άδειά σας δεν υποστηρίζει την ενημέρωση ενός σχήματος καναλιού"
+  },
+  {
+    "id": "api.team.update_member_roles.not_a_member",
+    "translation": "Ο χρήστης δεν είναι μέλος του συγκεκριμένου καναλιού."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "Αδυναμία μεταφόρτωσης του αρχείου. Το μέγεθός του είναι πολύ μεγάλο."
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "Αδυναμία μεταφόρτωσης της εικόνας. Ο χώρος αποθήκευσης των εικόνων δεν έχει ρυθμιστεί."
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "Δεν ήταν δυνατή η ανάλυση της φόρμας πολλαπλών κομματιών."
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Δεν ήταν δυνατό το άνοιγμα αρχείου πιστοποιητικού."
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "Δεν υπάρχει αρχείο κάτω από την εικόνα στην αίτηση."
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "Άδειος πίνακας στην εικόνα την αίτησης."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v αφαιρέθηκε από το κανάλι."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Αποτυχία αποστολής μηνύματος μετακίνησης καναλιού."
+  },
+  {
+    "id": "api.team.import_team.parse.app_error",
+    "translation": "Δεν ήταν δυνατή η ανάλυση της φόρμας πολλαπλών κομματιών."
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "Δεν ήταν δυνατό το άνοιγμα αρχείου."
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "Δεν υπάρχει αρχείο κάτω από την εικόνα στην αίτηση."
+  },
+  {
+    "id": "api.team.import_team.array.app_error",
+    "translation": "Άδειος πίνακας στην εικόνα την αίτησης."
+  },
+  {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "Δεν έχετε τα κατάλληλα δικαιώματα για να δείτε όλες τις ομάδες"
+  },
+  {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v προστέθηκε στο κανάλι από τον/την %v."
+  },
+  {
+    "id": "api.scheme.patch_scheme.license.error",
+    "translation": "Η άδειά σας δεν υποστηρίζει την ενημέρωση σχημάτων εξουσιοδότησης"
+  },
+  {
+    "id": "api.scheme.get_teams_for_scheme.scope.error",
+    "translation": "Δεν είναι δυνατή η ρύθμιση του σχήματος για το κανάλι, επειδή το παρεχόμενο σχήμα δεν είναι κατάλληλο σχήμα καναλιού."
+  },
+  {
+    "id": "api.scheme.get_channels_for_scheme.scope.error",
+    "translation": "Δεν είναι δυνατή η ρύθμιση του σχήματος για το κανάλι, επειδή το παρεχόμενο σχήμα δεν είναι κατάλληλο σχήμα καναλιού."
+  },
+  {
+    "id": "api.scheme.delete_scheme.license.error",
+    "translation": "Η άδειά σας δεν υποστηρίζει τη διαγραφή σχημάτων εξουσιοδότησης"
+  },
+  {
+    "id": "api.scheme.create_scheme.license.error",
+    "translation": "Η άδειά σας δεν υποστηρίζει τη δημιουργία σχημάτων εξουσιοδότησης."
+  },
+  {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "Η άδειά σας δεν υποστηρίζει περισσότερες εξουσιοδοτήσεις."
+  },
+  {
+    "id": "api.restricted_system_admin",
+    "translation": "Αυτή η ενέργεια επιτρέπεται μόνο από τον διαχειριστή του συστήματος."
+  },
+  {
+    "id": "api.preference.update_preferences.set.app_error",
+    "translation": "Αδυναμία ορισμού προτιμήσεων χρήστη."
+  },
+  {
+    "id": "api.preference.preferences_category.get.app_error",
+    "translation": "Αδυναμία ανάκτησης προτιμήσεων χρήστη."
+  },
+  {
+    "id": "api.preference.delete_preferences.delete.app_error",
+    "translation": "Αδυναμία διαγραφής προτιμήσεων χρήστη."
+  },
+  {
+    "id": "api.post_get_post_by_id.get.app_error",
+    "translation": "Αδυναμία λήψης ανάρτησης."
+  },
+  {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "Αδυναμία εύρεσης της υπάρχουσας ανάρτησης ή σχολίου για ενημέρωση."
+  },
+  {
+    "id": "api.outgoing_webhook.disabled.app_error",
+    "translation": "Οι Εντολές έχουν απενεργοποιηθεί από τον διαχειριστή του συστήματος."
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "Δεν ήταν δυνατό το άνοιγμα αρχείου πιστοποιητικού."
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "Δεν υπάρχει αρχείο κάτω από την εικόνα στην αίτηση."
+  },
+  {
+    "id": "api.license.add_license.array.app_error",
+    "translation": "Άδειος πίνακας στην εικόνα την αίτησης."
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_error",
+    "translation": "Οι Εντολές έχουν απενεργοποιηθεί από τον διαχειριστή του συστήματος."
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "Αδυναμία μεταφόρτωσης της εικόνας. Ο χώρος αποθήκευσης των εικόνων δεν έχει ρυθμιστεί."
+  },
+  {
+    "id": "api.emoji.disabled.app_error",
+    "translation": "Τα προσαρμοσμένα emoji έχουν απενεργοποιηθεί από τον διαχειριστή του συστήματος."
+  },
+  {
+    "id": "api.context.session_expired.app_error",
+    "translation": "Μη έγκυρη ή έχει λήξει η συνεδρία, παρακαλώ συνδεθείτε ξανά."
+  },
+  {
+    "id": "api.context.permissions.app_error",
+    "translation": "Δεν έχετε τα κατάλληλα δικαιώματα."
+  },
+  {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "Έλεγχος ταυτότητας πολλαπλών παραγόντων απαιτείται σε αυτόν το διακομιστή."
+  },
+  {
+    "id": "api.context.invalid_param.app_error",
+    "translation": "Μη έγκυρη παράμετρος {{.Name}}."
+  },
+  {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "Μη έγκυρο ή ελλιπές {{.Name}} στο αίτημά σας."
+  },
+  {
+    "id": "api.context.404.app_error",
+    "translation": "Συγνώμη, δεν μπορέσαμε να βρούμε τη σελίδα."
+  },
+  {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Απέτυχε η συγχώνευση της ρύθμισης που έχει δοθεί."
+  },
+  {
+    "id": "api.command_shrug.name",
+    "translation": "σήκωμα των ώμων"
+  },
+  {
+    "id": "api.command_shrug.hint",
+    "translation": "[μήνυμα]"
+  },
+  {
+    "id": "api.command_shrug.desc",
+    "translation": "Προσθέτει ¯\\_(ツ)_/¯ στο μήνυμά σας"
+  },
+  {
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "Η εντολή συντομεύσεων δεν υποστηρίζεται στη συσκευή σας."
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "συντομεύσεις"
+  },
+  {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Εμφανίζει μια λίστα με συντομεύσεις πληκτρολογίου"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "Οι εντολή ρυθμίσεων δεν υποστηρίζεται στη συσκευή σας."
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "Ρυθμίσεις"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Ανοίξτε το πλαίσιο διαλόγου Ρυθμίσεις Λογαριασμού"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "Η εντολή αναζήτησης δεν υποστηρίζεται στη συσκευή σας."
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "αναζήτηση"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[κείμενο]"
+  },
+  {
+    "id": "api.command_search.desc",
+    "translation": "Αναζήτηση κειμένου σε μηνύματα"
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "{{.Username}} δεν είναι μέλος αυτού του καναλιού."
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "Δεν έχετε δικαιώματα να αφαιρέσετε τον χρήστη."
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "Αφαίρεση"
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "Δεν μπορούσαμε να βρούμε το χρήστη. Μπορεί να έχουν απενεργοποιηθεί από τον Διαχειριστή του Συστήματος."
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "Ένα μήνυμα πρέπει να παρέχεται με τη εντολή /remove ή με τη εντολή /kick ."
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[όνομα χρήστη]"
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "Δεν μπορείτε να αφαιρέσετε κάποιον από ένα κανάλι άμεσων μηνυμάτων."
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "Αφαιρέσετε ένα μέλος από το κανάλι"
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "Ανοιχτό"
+  },
+  {
+    "id": "api.command_online.success",
+    "translation": "Τώρα είστε σε κατάσταση Διαθέσιμος"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "Διαθέσιμος"
+  },
+  {
+    "id": "api.command_online.desc",
+    "translation": "Ορίστε τη κατάσταση σας σε Διαθέσιμος"
+  },
+  {
+    "id": "api.command_offline.success",
+    "translation": "Τώρα είστε σε κατάσταση εκτός σύνδεσης"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "Εκτός σύνδεσης"
+  },
+  {
+    "id": "api.command_offline.desc",
+    "translation": "Ορίστε την κατάσταση σας ως εκτός σύνδεσης"
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "Αυτό το κανάλι δεν είναι πλέον σε λειτουργία σίγασης."
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "Το κανάλι {{.Channel}} δεν είναι πλέον σε λειτουργία σίγασης."
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "Δεν θα λάβετε ειδοποιήσεις για αυτό το κανάλι μέχρι να απενεργοποιηθεί η σίγαση του καναλιού."
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "Δε θα λάβετε ειδοποιήσεις για το {{.Channel}} μέχρι να απενεργοποιηθεί η σίγαση του καναλιού."
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "Δεν ήταν δυνατή η σίγαση του καναλιού {{.Channel}} καθώς δεν είστε μέλος."
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "Δεν ήταν δυνατή η εύρεση του συγκεκριμένου καναλιού. Χρησιμοποιήστε τη διαχείριση καναλιού για τον εντοπισμό καναλιών."
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "Σίγαση"
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "~[κανάλι]"
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "Δεν ήταν δυνατή η εύρεση του καναλιού {{.Channel}}. Χρησιμοποιήστε τη [διαχείριση καναλιού] για τον εντοπισμό καναλιών."
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "Απενεργοποιεί τις ειδοποιήσεις επιφάνειας εργασίας, ηλεκτρονικού ταχυδρομείου και ώθησης για το τρέχον κανάλι ή το καθορισμένο κανάλι."
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "Δεν έχετε δικαιώματα για άμεσο μήνυμα σε αυτό τον χρήστη."
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "μήνυμα"
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "Δεν είναι δυνατή η εύρεση του χρήστη."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[username] \"μήνυμα\""
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την αποστολή μηνυμάτων στον χρήστη."
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "Παρουσιάστηκε ένα σφάλμα κατά τη δημιουργία του άμεσου μηνύματος."
+  },
+  {
+    "id": "api.command_msg.desc",
+    "translation": "Στείλτε απευθείας μήνυμα σε ένα χρήστη"
+  },
+  {
+    "id": "api.command_me.name",
+    "translation": "εγώ"
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "[μήνυμα]"
+  },
+  {
+    "id": "api.command_me.desc",
+    "translation": "Κάντε μία ενέργεια"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "Αποσύνδεση"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Αποσύνδεση"
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "Αποχώρηση"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την αποχώρηση από το κανάλι."
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Αποχωρήστε από το τρέχον κανάλι"
+  },
+  {
+    "id": "api.command_kick.name",
+    "translation": "Αποβολή"
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "Συμμετοχή"
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "Δεν είναι δυνατή η εύρεση του καναλιού."
+  },
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία του σχήματος."
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την καταχώρηση καναλιών."
+  },
+  {
+    "id": "api.command_join.hint",
+    "translation": "~[κανάλι]"
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά τη σύνδεση στο κανάλι."
+  },
+  {
+    "id": "api.command_join.desc",
+    "translation": "Συμμετάσχετε στο ανοικτό κανάλι"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "Δεν έχετε δικαίωμα να προσκαλέσετε νέους χρήστες σε αυτόν τον διακομιστή."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "{{.Username}} δεν είναι μέλος αυτού του καναλιού."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "Ο χρήστης {{.User}} είναι ήδη στο κανάλι."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "Ο χρήστης {{.User}} προστέθηκε στο κανάλι {{.Το Channel}}."
+  },
+  {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "Δεν ήταν δυνατή η εύρεση του καναλιού {{.Channel}}. Χρησιμοποιήστε τη διαχείριση του καναλιού για να αναγνωρίσετε κανάλια."
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "Δεν έχετε δικαιώματα για να προσθέσετε τον χρήστη {{.User}} στο κανάλι {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "Πρόσκληση"
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "Δεν μπορούσαμε να βρούμε το χρήστη. Μπορεί να έχουν απενεργοποιηθεί από τον Διαχειριστή του Συστήματος."
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "Λείπει το όνομα Χρήστη και το Κανάλι."
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[όνομα χρήστη] ~[κανάλι]"
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "Παρουσιάστηκε ένα σφάλμα κατά την είσοδό στο κανάλι."
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "Δεν μπορείτε να προσθέσετε κάποιον σε ένα απευθείας κανάλι μηνυμάτων."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Προσκαλέστε ένα χρήστη σε ένα κανάλι"
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "Δεν ήταν δυνατή η εύρεση του καναλιού {{.Channel}}. Χρησιμοποιήστε τη [διαχείριση καναλιού] για τον εντοπισμό καναλιών."
+  },
+  {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "Σφάλμα κατά την ανάκτηση του τρέχον καναλιού."
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "Βοήθεια"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Ανοίξτε τη σελίδα βοήθειας"
+  },
+  {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "Δεν έχετε δικαιώματα για να δημιουργήσετε μήνυμα ομάδας."
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "μήνυμα"
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Τα μηνύματα ομάδας περιορίζονται το ελάχιστο σε {{.MinUsers} χρήστες."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Τα μηνύματα ομάδας περιορίζονται το μέγιστο σε {{.MaxUsers}} χρήστες."
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "Δεν είναι δυνατή η εύρεση του χρήστη: {{.Users}}",
+      "other": "Δεν είναι δυνατή η εύρεση των χρηστών: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'μήνυμα'"
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά τη δημιουργία του μηνύματος ομάδας."
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την αποστολή μηνυμάτων στους χρήστες."
+  },
+  {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Στέλνει ένα μήνυμα ομάδας προς τους συγκεκριμένους χρήστες"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την αποστολή μηνυμάτων στους χρήστες."
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "Επέκταση"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "Ενεργοποιήστε την αυτόματη σύμπτυξη των προεπισκοπήσεων εικόνας"
+  },
+  {
+    "id": "api.command_echo.message.app_error",
+    "translation": "Ένα μήνυμα πρέπει να παρέχεται με την εντολή /echo."
+  },
+  {
+    "id": "api.command_echo.delay.app_error",
+    "translation": "Οι καθυστερήσεις πρέπει να είναι το μέγιστο 10000 δευτερόλεπτα."
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Η λειτουργία Μην ενοχλείτε είναι ενεργοποιημένη. Δεν θα λάβετε ειδοποιήσεις push για κινητά ή υπολογιστές μέχρι να απενεργοποιηθεί η επιλογή Μην ενοχλείτε."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "Μην ενοχλείτε"
+  },
+  {
+    "id": "api.command_dnd.desc",
+    "translation": "Η κατάσταση \"Μην ενοχλείτε\" απενεργοποιεί τις ειδοποιήσεις push για υπολογιστές και κινητά."
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Ενεργοποιήστε την αυτόματη συμπίεση των προεπισκοπήσεων εικόνας"
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "κώδικας"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "Ένα μήνυμα πρέπει να παρέχεται με την εντολή /code."
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[κείμενο]"
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Εμφάνιση κειμένου ως μπλοκ κώδικα"
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Σφάλμα ενημέρωσης του τρέχοντος καναλιού."
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Το όνομα του καναλιού πρέπει να είναι τουλάχιστον {{.Length}} χαρακτήρες."
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Το όνομα καναλιού πρέπει να είναι το μέγιστο {{.Length}} χαρακτήρες."
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Δεν έχετε δικαιώματα για να μετονομάσετε το κανάλι."
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "Μετονομασία"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "Ένα μήνυμα πρέπει να παρέχεται με την εντολή /rename."
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[κείμενο]"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "Αδύνατο να μετονομάσεις ένα άμεσο μήνυμα στα κανάλια."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Μετονομασία καναλιού"
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Σφάλμα κατά την ανάκτηση το τρέχον καναλιού."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Σφάλμα κατά την ανάκτηση το τρέχον καναλιού."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Σφάλμα κατά την ενημέρωση του τρέχον καναλιού."
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Δεν έχετε δικαιώματα για να επεξεργαστείτε το κανάλι."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "Πρόταση"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "Ένα μήνυμα πρέπει να παρέχεται με εντολή /purpose ."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[κείμενο]"
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Σφάλμα κατά την ανάκτηση του τρέχον καναλιού."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Σφάλμα κατά την ενημέρωση του τρέχον καναλιού."
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Δεν έχετε δικαιώματα για να επεξεργαστείτε τη κεφαλίδα."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "Κεφαλίδα"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Ένα μήνυμα πρέπει να παρέχεται με την εντολή /header."
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[κείμενο]"
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Επεξεργαστείτε τη κεφαλίδα του καναλιού"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Σφάλμα για να ανακτήσετε το τρέχον κανάλι."
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Τώρα είσαι σε κατάσταση 'Λείπω'"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "Λείπω"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Ορίσετε την κατάστασή σας ως 'Λείπω'"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Δεν είναι δυνατή η ενημέρωση εντολών σε όλες τις ομάδες."
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "Οι προσκλήσεις στάλθηκαν με email"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Προσδιορίστε μία ή περισσότερες έγκυρες διευθύνσεις ηλεκτρονικού ταχυδρομείου"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "Προσκαλέστε φίλους"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "Η δημιουργία λογαριασμών έχει απενεργοποιηθεί σε αυτόν τον διακομιστή, δεν έχουν αποσταλεί προσκλήσεις"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[όνομα@domain.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "Παρουσιάστηκε ένα σφάλμα κατά την αποστολή προσκλήσεων μέσω email"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "Το ηλεκτρονικό ταχυδρομείο δεν έχει ρυθμιστεί, δεν έχουν αποσταλεί προσκλήσεις"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "Οι προσκλήσεις μέσω ηλεκτρονικού ταχυδρομείου είναι απενεργοποιημένες, δεν έχουν αποσταλεί προσκλήσεις"
+  },
+  {
+    "id": "api.command.invite_people.desc",
+    "translation": "Στείλτε μια πρόσκληση μέσω ηλεκτρονικού ταχυδρομείου στην Mattermost ομάδα σας"
+  },
+  {
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "H χρήση εντολής '{{.Trigger}}' απέτυχε."
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "Εντολή '{{.Trigger}}' απέτυχε να δημοσιεύσετε απάντηση. Παρακαλείστε να επικοινωνήσετε με το Διαχειριστή του συστήματός σας."
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "Αυτή η λέξη είναι ήδη σε χρήση. Παρακαλώ επιλέξτε μια άλλη λέξη."
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "Οι Εντολές έχουν απενεργοποιηθεί από τον διαχειριστή του συστήματος."
+  },
+  {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "Ο χρήστης δεν είναι μέλος του συγκεκριμένου καναλιού."
+  },
+  {
+    "id": "api.command.admin_only.app_error",
+    "translation": "Oι ενσωματώσεις περιορίζονται μόνο στους διαχειριστές."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "O παρεχόμενος ρόλος διαχειρίζεται από ένα Σχήμα και επομένως δεν μπορεί να εφαρμοστεί απευθείας σε Μέλος της ομάδας."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "Δεν είναι δυνατή η ρύθμιση του σχήματος για το κανάλι, επειδή το παρεχόμενο σχήμα δεν είναι κατάλληλο σχήμα καναλιού."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "Η άδειά σας δεν υποστηρίζει την ενημέρωση ενός σχήματος καναλιού"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "Ο παρεχόμενος ρόλος διαχειρίζεται από ένα Σχέδιο και επομένως δεν μπορεί να εφαρμοστεί απευθείας σε Μέλος του Καναλιού."
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "Προσπαθήσατε να εκτελέσετε μία μη έγκυρη ενημέρωση του προεπιλεγμένου καναλιού {{.Channel}}."
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "Το κανάλι έχει αρχειοθετηθεί ή διαγραφεί."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Δεν μπορείτε να μετονομάσετε ένα μήνυμα ομάδας καναλιού."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Δεν μπορείτε να μετονομάσετε ένα άμεσο μήνυμα καναλιού."
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Δεν είναι δυνατό να προστεθεί χρήστης σε αυτόν τον τύπο καναλιού."
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v αφαιρέθηκε από το κανάλι."
+  },
+  {
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Δεν είναι δυνατή η αφαίρεση χρήστη από ένα κανάλι."
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Δεν είναι δυνατή η αφαίρεση του χρήστη από το προεπιλεγμένο κανάλι {{.Channel}}."
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "Αποτυχία δημοσίευσης μηνύματος συμμετοχής/αποχώρησης"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s ενημέρωσε την κεφαλίδα του καναλιού σε: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s ενημέρωσε την κεφαλίδα του καναλιού από: %s σε: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "Αποτυχία ανάκτησης του χρήστη κατά την ενημέρωση της κεφαλίδας του καναλιού"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s αφαίρεσε τη κεφαλίδα του καναλιού (ήταν: %s)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Αποτυχία ενημέρωσης μηνύματος επικεφαλίδας καναλιού"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s ενημέρωσε το εμφανιζόμενο όνομα καναλιού από: %s σε: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Απέτυχε η ανάκτηση χρήστη κατά την ενημέρωση του πεδίου εμφανιζόμενο όνομα στο κανάλι"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Αποτυχία δημοσίευσης μηνύματος ενημέρωσης εμφάνισης"
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "Αποτυχία δημοσίευσης μηνύματος ενημέρωσης απορρήτου καναλιού."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Απέτυχε η ενημέρωση του καναλιού."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v έφυγε από το κανάλι."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "Είσαι το μόνο μέλος που έμεινε στο κανάλι, δοκίμασε να αλλάξεις 'Ιδιωτικό Κανάλι', αντί να το φύγεις."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Αδύνατο να αφήσετε ένα άμεσο μήνυμα στο κανάλι."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Δεν είναι δυνατή η έξοδος από το προεπιλεγμένο κανάλι {{.Channel}}."
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v έγινε μέλος του καναλιού."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "Δεν έχετε τα κατάλληλα δικαιώματα."
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Δεν είναι δυνατή η διαγραφή άμεσων ή ομαδικών μηνυμάτων σε κανάλια"
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "Το κανάλι έχει αρχειοθετηθεί ή διαγραφεί."
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "Δεν είναι δυνατή η διαγραφή του προεπιλεγμένου καναλιού {{.Channel}}."
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v αρχειοθέτησε το κανάλι."
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "Ένας από τους χρήστες δεν υπάρχει."
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Τα ομαδικά μηνύματα πρέπει να περιέχουν από 3 έως 8 χρήστες."
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "Μη έγκυρο αναγνωριστικό χρήστη για άμεση δημιουργία καναλιού."
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "Town Square"
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "Off-Topic"
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία περισσότερων από {{.MaxChannelsPerTeam}} καναλιών στην τρέχουσα ομάδα."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "Πρέπει να χρησιμοποιήσετε την υπηρεσία API createDirectChannel για την άμεση δημιουργία καναλιών."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Αυτό το κανάλι έχει γίνει ιδιωτικό."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Αυτό το κανάλι έχει μετατραπεί σε δημόσιο κανάλι και μπορεί να συμμετέχει οποιοδήποτε μέλος της ομάδας."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Δεν είναι δυνατό να προστεθεί χρήστης σε αυτόν τον τύπο καναλιού."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Αποτυχία προσθήκης χρήστών στο κανάλι, επειδή έχουν αφαιρεθεί από την ομάδα."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Αποτυχία προσθήκης χρήστη στο κανάλι."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v προστέθηκε στο κανάλι από τον/τη %v."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v προστέθηκε στο κανάλι από τον/τη %v."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Αδυναμία μεταφόρτωσης του αρχείου. Το μέγεθός του είναι πολύ μεγάλο."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Αδυναμία μεταφόρτωσης της εικόνας. Ο χώρος αποθήκευσης των εικόνων δεν έχει ρυθμιστεί."
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "Δεν ήταν δυνατή η ανάλυση της φόρμας πολλαπλών κομματιών."
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Δεν υπάρχει αρχείο κάτω από την εικόνα στην αίτηση."
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "Άδειος πίνακας στην εικόνα την αίτησης."
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "Απαιτείται S3 Bucket"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Δοκιμή ρυθμίσεων Email"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "Ο διακομιστής SMTP, η θύρα ή το username έχουν αλλάξει. Παρακαλούμε εισάγετε ξανά το SMTP password για δοκιμή της SMTP σύνδεσης."
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "Απαιτείται διακομιστής SMTP"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Φαίνεται ότι το email έχει ρυθμιστεί σωστά!"
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "Το SAML 2.0 δεν έχει ρυθμιστεί ή δεν υποστηρίζεται από αυτόν τον διακομιστή."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά τη δημιουργία Μεταδεδομένων του Παροχέα Υπηρεσιών."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Αδυναμία αποθήκευσης αρχείου πιστοποιητικού."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Παρουσιάστηκε ένα σφάλμα κατά τη διαγραφή του πιστοποιητικού."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Ο χώρος αποθήκευσης των εικόνων δεν έχει ρυθμιστεί."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Σφάλμα ανάγνωσης αρχείου καταγραφής."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Αδυναμία αποθήκευσης αρχείου πιστοποιητικού."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Δεν ήταν δυνατό το άνοιγμα αρχείου πιστοποιητικού."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Δεν υπάρχει αρχείο στο αίτημα για το 'πιστοποιητικό'."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Κανένα αρχείο στο πεδίο \"πιστοποιητικό\" του αιτήματος."
+  },
+  {
+    "id": "September",
+    "translation": "Σεπτέμβριος"
+  },
+  {
+    "id": "October",
+    "translation": "Οκτώβριος"
+  },
+  {
+    "id": "November",
+    "translation": "Νοέμβριος"
+  },
+  {
+    "id": "May",
+    "translation": "Μάιος"
+  },
+  {
+    "id": "March",
+    "translation": "Μάρτιος"
+  },
+  {
+    "id": "June",
+    "translation": "Ιούνιος"
+  },
+  {
+    "id": "July",
+    "translation": "Ιούλιος"
+  },
+  {
+    "id": "January",
+    "translation": "Ιανουάριος"
+  },
+  {
+    "id": "February",
+    "translation": "Φεβρουάριος"
+  },
+  {
+    "id": "December",
+    "translation": "Δεκέμβριος"
+  },
+  {
+    "id": "August",
+    "translation": "Αύγουστος"
+  },
+  {
+    "id": "April",
+    "translation": "Απρίλιος"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "ή"
+  },
+  {
+    "id": "system.message.name",
+    "translation": "Σύστημα"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "Το μήνυμα είναι πολύ μεγάλο"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
+    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην ενότητα **Κονσόλα Συστήματος > Έλεγχος Ταυτότητας > MFA** για την επιβολή ελέγχου ταυτότητας πολλών παραγόντων (MFA)."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
+    "translation": "Το σύστημά σας της Mattermost διαθέτει έλεγχο ταυτότητας πολλών παραγόντων (MFA), δίνοντας στους χρήστες την επιλογή να ασφαλίσουν τους λογαριασμούς τους με πρόσθετα μέσα ελέγχου ταυτότητας πέρα από έναν κωδικό πρόσβασης. Για να βελτιώσετε την ασφάλεια σε ολόκληρο το σύστημα, μπορείτε να θέσετε σε όλους τους λογαριασμούς Mattermost να χρησιμοποιούν έλεγχο ταυτότητας πολλών παραγόντων (MFA).\n\n[Μάθετε περισσότερα σχετικά με την επιβολή ελέγχου ταυτότητας πολλών παραγόντων (MFA)](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Επιβολή ελέγχου ταυτότητας πολλών παραγόντων (MFA)"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_body",
+    "translation": "Το σύστημά σας της Mattermost διαθέτει έλεγχο ταυτότητας πολλών παραγόντων (MFA), δίνοντας στους χρήστες την επιλογή να ασφαλίσουν τους λογαριασμούς τους με πρόσθετα μέσα ελέγχου ταυτότητας πέρα από έναν κωδικό πρόσβασης. Για να βελτιώσετε την ασφάλεια σε ολόκληρο το σύστημα, μπορείτε να θέσετε σε όλους τους λογαριασμούς Mattermost να χρησιμοποιούν έλεγχο ταυτότητας πολλών παραγόντων (MFA).\n\n[Μάθετε περισσότερα σχετικά με την επιβολή ελέγχου ταυτότητας πολλών παραγόντων (MFA)](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με την Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.contact_us.email_body",
+    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Ενδιαφέρομαι να μάθω περισσότερα σχετικά με την εφαρμογή ελέγχου ταυτότητας πολλών παραγόντων (MFA).\n"
+  },
+  {
+    "id": "api.server.warn_metric.email_us",
+    "translation": "Στείλτε μας email"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
+    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην ενότητα **Κονσόλα Συστήματος> Έλεγχος Ταυτότητας > Πρόσβαση Επισκέπτη** για να ενεργοποιήσετε τους Λογαριασμούς Επισκεπτών."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "Τα πρότζεκτ συχνά περιλαμβάνουν άτομα εντός και εκτός ενός οργανισμού. Με τους Λογαριασμούς Επισκεπτών, μπορείτε να προσθέσετε εξωτερικούς συνεργάτες στο δικό σας οικοσύστημα του Mattermost και να καθορίσετε με ποιον μπορούν να συνεργαστούν και τι μπορούν να δουν.\n\n[Μάθετε περισσότερα σχετικά με την ενεργοποίηση των Λογαριασμών Επισκεπτών](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με την Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
+    "translation": "Τα πρότζεκτ συχνά περιλαμβάνουν άτομα εντός και εκτός ενός οργανισμού. Με τους Λογαριασμούς Επισκεπτών, μπορείτε να προσθέσετε εξωτερικούς συνεργάτες στο δικό σας οικοσύστημα της Mattermost και να καθορίσετε με ποιον μπορούν να συνεργαστούν και τι μπορούν να δουν.\n\n[Μάθετε περισσότερα σχετικά με την ενεργοποίηση των Λογαριασμών Επισκεπτών](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_title",
+    "translation": "Δημιουργία Λογαριασμών Επισκεπτών"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
+    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Ενδιαφέρομαι να μάθω περισσότερα σχετικά με τη χρήση Λογαριασμών Επισκεπτών.\n"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "Δεν ήταν δυνατή η ανάκτηση της δοκιμαστικής άδειας. Επισκεφτείτε τη διεύθυνση https://mattermost.com/trial/ για να αποκτήσετε μία."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.notification_success.message",
+    "translation": "Σας ευχαριστούμε που επικοινωνήσατε με τη Mattermost. Θα επικοινωνήσουμε μαζί σας το συντομότερο δυνατόν."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.notification_failure.message",
+    "translation": "Δεν ήταν δυνατή η αποστολή μηνύματος."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.notification_failure.body",
+    "translation": "Παρακαλώ στείλτε μας email."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_subject",
+    "translation": "Αίτημα επικοινωνίας με τη Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+    "translation": "Διεύθυνση ιστότοπου: {{.SiteUrl}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+    "translation": "Σύνολο ενεργών χρηστών: {{.NoRegisteredUsers}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_footer",
+    "translation": "Εάν έχετε επιπλέον απορίες, παρακαλώ επικοινωνήστε με το support@mattermost.com"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_email_header",
+    "translation": "Διεύθυνση ηλεκτρονικού ταχυδρομείου: {{.Email}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+    "translation": "Αναγνωριστικό διάγνωσης: {{.DiagnosticId}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+    "translation": "Επικοινωνία: {{.Contact}}"
+  },
+  {
+    "id": "api.server.start_server.starting.critical",
+    "translation": "Σφάλμα έναρξης διακομιστή, err:%v"
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_rate_limiter",
+    "translation": "Δεν είναι δυνατή η προετοιμασία του περιορισμού τιμών."
+  },
+  {
+    "id": "api.server.start_server.rate_limiting_memory_store",
+    "translation": "Δεν είναι δυνατή η προετοιμασία που περιορίζει τον ρυθμό αποθήκευσης της μνήμης. Ελέγξτε τη ρύθμιση διαμόρφωσης του MemoryStoreSize."
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "Δεν είναι δυνατή η προώθηση της θύρας 80 στη θύρα 443 ενώ γίνεται ακρόαση στη θύρα %s: απενεργοποιήστε το Forward80To443 εάν χρησιμοποιείτε διακομιστή διαμεσολάβησης (proxy)"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "Πρέπει να ενεργοποιήσετε το Forward80To443 όταν χρησιμοποιείτε το LetsEncrypt"
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "Δεν επιτρέπεται ένα ή περισσότερα από τα ακόλουθα δικαιώματα που προσπαθείτε να προσθέσετε ή να καταργήσετε"
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Υπάρχει ήδη ασφαλής σύνδεση με την ίδια διεύθυνση ιστοσελίδας."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την ενημέρωση της ασφαλούς σύνδεσης."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "Η υπηρεσία απομακρυσμένου cluster δεν είναι ενεργοποιημένη."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "Η ασφαλής σύνδεση έχει ήδη προστεθεί."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την αποθήκευση της ασφαλούς σύνδεσης."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Μη έγκυρο θέμα."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Μη έγκυρο αναγνωριστικό."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την ανάκτηση μιας ασφαλούς σύνδεσης."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά τη διαγραφή της ασφαλούς σύνδεσης."
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "Δεν μπορείτε να αποθηκεύσετε μία αντίδραση για άλλον χρήστη."
+  },
+  {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Η αντίδραση δεν είναι έγκυρη."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "Δεν μπορείτε να βάλετε αντίδραση σε ένα αρχειοθετημένο κανάλι."
+  },
+  {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "Δεν μπορείτε να καταργήσετε μια αντίδραση σε ένα αρχειοθετημένο κανάλι."
+  },
+  {
+    "id": "api.push_notifications_ack.message.parse.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά τη δημιουργία του μηνύματος ack μέσω push ειδοποίησης."
+  },
+  {
+    "id": "api.push_notifications_ack.forward.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την αποστολή της απόδειξης παράδοσης στην υπηρεσία ειδοποιήσεων push."
+  },
+  {
+    "id": "api.push_notifications.session.expired",
+    "translation": "Η περίοδος σύνδεσης έληξε: Συνδεθείτε για να συνεχίσετε να λαμβάνετε ειδοποιήσεις. Οι περίοδοι σύνδεσης για το {{.siteName}} διαμορφώνονται από τον Διαχειριστή συστήματος για να λήγουν κάθε {{.daysCount}} ημέρες."
+  },
+  {
+    "id": "api.push_notification.disabled.app_error",
+    "translation": "Οι ειδοποιήσεις push είναι απενεργοποιημένες σε αυτόν τον διακομιστή."
+  },
+  {
+    "id": "api.push_notifications.message.parse.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά τη δημιουργία του μηνύματος ειδοποίησης push."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την ανάκτηση της ειδοποίησης push που έχει φορτωθεί με αναγνωριστικό."
+  },
+  {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "Έχετε λάβει ένα νέο μήνυμα."
+  },
+  {
+    "id": "api.preference.update_preferences.update_sidebar.app_error",
+    "translation": "Αδυναμία ενημέρωσης της πλευρικής γραμμής για να ταιριάζει με τις ενημερωμένες προτιμήσεις"
+  },
+  {
+    "id": "api.preference.delete_preferences.update_sidebar.app_error",
+    "translation": "Αδυναμία ενημέρωσης της πλευρικής γραμμής για αντιστοίχιση των διαγραμμένων προτιμήσεων"
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "Δε βρέθηκε η εντολή ενεργοποίησης."
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "Δε βρέθηκε η εντολή \"{{.Trigger}}\". Για να στείλετε ένα μήνυμα που αρχίζει με \"/\", δοκιμάστε να προσθέσετε έναν κενό χαρακτήρα στην αρχή του μηνύματος."
+  },
+  {
+    "id": "api.command.execute_command.format.app_error",
+    "translation": "Λείπει η λέξη ενεργοποίησης εντολών που ξεκινάει με κάθετο χαρακτήρα"
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "H χρήση εντολής '{{.Trigger}}' επέστρεψε απάντηση {{.Status}}."
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "H χρήση εντολής '{{.Trigger}}' επέστρεψε μια κενή απάντηση."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
+    "translation": "Το σύστημά σας Mattermost έχει τώρα 200 χρήστες. Όταν συνδέετε το Mattermost με το single sign-on (SSO) του οργανισμού σας, οι χρήστες μπορούν να έχουν πρόσβαση στο Mattermost χωρίς να χρειάζεται να εισαγάγουν ξανά τα διαπιστευτήριά τους. Σας συνιστούμε να ενσωματώσετε τον παροχέα SAML 2.0 στον διακομιστή του Mattermost. [Μάθετε περισσότερα σχετικά με την ενοποίηση με το SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
+    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Η ομάδα μου έχει τώρα 200 χρήστες και σκέφτομαι την Εταιρική έκδοση της Mattermost.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
+    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην ενότητα **Κονσόλα συστήματος > Έλεγχος ταυτότητας > AD/LDAP** για να ενσωματώσετε το δικό σας Active Directory/LDAP."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
+    "translation": "Το σύστημά σας Mattermost έχει περισσότερους από 100 χρήστες. Καθώς αυξάνεται ο αριθμός χρηστών σας, η παροχή νέων λογαριασμών μπορεί να είναι χρονοβόρα. Σας συνιστούμε να ενσωματώσετε τον Active Directory/LDAP του οργανισμού σας, το οποίο θα επιτρέπει σε οποιονδήποτε με λογαριασμό να έχει πρόσβαση και στο Mattermost.\n\n[Μάθετε περισσότερα σχετικά με την ενσωμάτωση με Active Directory/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "Αναπτυχτείτε μαζί με το Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
+    "translation": "Το σύστημά σας Mattermost έχει περισσότερους από 100 χρήστες. Καθώς αυξάνεται ο αριθμός χρηστών σας, η παροχή νέων λογαριασμών μπορεί να είναι χρονοβόρα. Σας συνιστούμε να ενσωματώσετε τον Active Directory/LDAP του οργανισμού σας, το οποίο θα επιτρέπει σε οποιονδήποτε με λογαριασμό να έχει πρόσβαση και στο Mattermost.\n\n[Μάθετε περισσότερα σχετικά με την ενσωμάτωση με Active Directory/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
+    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Η ομάδα μου έχει τώρα 100 χρήστες και σκέφτομαι την Εταιρική έκδοση της Mattermost.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
+    "translation": "Χρήση Προηγμένων δικαιωμάτων"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
+    "translation": "Τα κανάλια συμβάλλουν στη βελτίωση της επικοινωνίας, αλλά με τους χρήστες στο Mattermost να συμμετέχουν και να δημιουργούν κανάλια, η πρόκληση να διατηρηθεί το σύστημα οργανωμένο αυξάνεται. Τα Προηγμένα δικαιώματα σάς δίνουν τη δυνατότητα να ορίσετε ποιοι χρήστες ή ρόλοι μπορούν να εκτελέσουν συγκεκριμένες ενέργειες, συμπεριλαμβανομένης της διαχείρισης ρυθμίσεων καναλιού και μελών, χρησιμοποιώντας το @channel ή το @here για να επισημάνετε ευρείες ομάδες χρηστών και τη δημιουργία νέων webhooks.\n\n[Μάθετε περισσότερα σχετικά με τη χρήση Προηγμένων δικαιωμάτων](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
+    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Ενδιαφέρομαι να μάθω περισσότερα σχετικά με τη χρήση των προηγμένων δικαιωμάτων με σχήματα συστήματος.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
+    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην Κονσόλα συστήματος για να ενεργοποιήσετε τις προηγμένες δυνατότητες."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
+    "translation": "Η Mattermost συνιστά ανεπιφύλακτα ότι τα συστήματα άνω των 500 χρηστών αξιοποιούν λειτουργίες όπως η διαχείριση χρηστών, η ομαδοποίηση διακομιστών και η παρακολούθηση επιδόσεων. Επικοινωνήστε μαζί μας για να μάθετε περισσότερα και πείτε μας πώς μπορούμε να σας βοηθήσουμε.\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+    "translation": "Αναπτυχτείτε μαζί με το Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+    "translation": "Η Mattermost συνιστά ανεπιφύλακτα ότι τα συστήματα άνω των 500 χρηστών αξιοποιούν λειτουργίες όπως η διαχείριση χρηστών, η ομαδοποίηση διακομιστών και η παρακολούθηση επιδόσεων. Επικοινωνήστε μαζί μας για να μάθετε περισσότερα και πείτε μας πώς μπορούμε να σας βοηθήσουμε.\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
+    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Η ομάδα μου έχει τώρα 500 χρήστες και σκέφτομαι την Εταιρική έκδοση της Mattermost.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
+    "translation": "Κανάλια Ανακοίνωσης μόνο για ανάγνωση"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
+    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Δημιουργήστε ένα κανάλι και μεταβείτε στην ενότητα **Κονσόλα συστήματος > Διαχείριση χρηστών > Κανάλια** για να περιορίσετε την ανάρτηση δημοσιεύσεων μόνο στους διαχειριστές καναλιών."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
+    "translation": "Με τόσες πολλές συνομιλίες στο Mattermost, μπορεί να είναι δύσκολο να γνωρίζουμε πού να αναζητήσουμε σημαντικές πληροφορίες. Αν θέλετε να μεταδώσετε ένα μήνυμα σε μεγάλο κοινό, μπορείτε να ρυθμίσετε Κανάλια Ανακοίνωσης τα οποία είναι μόνο για ανάγνωση, όπου μπορούν να συμμετέχουν όλοι, αλλά μόνο οι διαχειριστές καναλιών μπορούν να δημοσιεύουν μηνύματα.\n\n[Μάθετε περισσότερα σχετικά με τη δημιουργία Καναλιών Ανακοίνωσης μόνο για ανάγνωση](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
+    "translation": "Με τόσες πολλές συνομιλίες στο Mattermost, μπορεί να είναι δύσκολο να γνωρίζουμε πού να αναζητήσουμε σημαντικές πληροφορίες. Αν θέλετε να μεταδώσετε ένα μήνυμα σε μεγάλο κοινό, μπορείτε να ρυθμίσετε Κανάλια Ανακοίνωσης τα οποία είναι μόνο για ανάγνωση, όπου μπορούν να συμμετέχουν όλοι, αλλά μόνο οι διαχειριστές καναλιών μπορούν να δημοσιεύουν μηνύματα.\n\n[Μάθετε περισσότερα σχετικά με τη δημιουργία Καναλιών Ανακοίνωσης μόνο για ανάγνωση](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
+    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Ενδιαφέρομαι να μάθω περισσότερα σχετικά με τη δημιουργία Καναλιών Ανακοίνωσης τα οποία είναι μόνο για ανάγνωση.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
+    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην ενότητα **Κονσόλα συστήματος > Έλεγχος ταυτότητας > SAML 2.0** για να γίνει ενοποίηση με τον παροχέα σας SAML 2.0."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
+    "translation": "Το σύστημά σας Mattermost έχει τώρα 200 χρήστες. Όταν συνδέετε το Mattermost με το single sign-on (SSO) του οργανισμού σας, οι χρήστες μπορούν να έχουν πρόσβαση στο Mattermost χωρίς να χρειάζεται να εισαγάγουν ξανά τα διαπιστευτήριά τους. Σας συνιστούμε να ενσωματώσετε τον παροχέα SAML 2.0 στον διακομιστή του Mattermost. [Μάθετε περισσότερα σχετικά με την ενοποίηση με το SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+    "translation": "Αναπτυχτείτε μαζί με το Mattermost"
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Απαιτείται η άδεια `{{.Permission}}` για τη διαχείριση κοινόχρηστων καναλιών."
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Δεν είναι δυνατή η άρση της κοινής χρήσης ενός καναλιού που δεν είναι κοινόχρηστο."
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "Δεν έχουν προσκληθεί ασφαλείς συνδέσεις σε αυτό το κανάλι."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "κοινή χρήση καναλιού"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Πρέπει να καθορίσετε ένα έγκυρο αναγνωριστικό ασφαλούς σύνδεσης για πρόσκληση."
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Λείπει η ενέργεια. Διαθέσιμες ενέργειες: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Προσκαλεί έναν εξωτερικό διακομιστή Mattermost στο τρέχον κοινόχρηστο κανάλι"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Η πρόσκληση κοινόχρηστου καναλιού έχει σταλεί στο `{{.Όνομα}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Μη έγκυρη τιμή για το '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[ενέργεια]"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Δεν ήταν δυνατή η ανάκτηση της κατάστασης ασφαλών συνδέσεων: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Σφάλμα ανάκτησης ασφαλών συνδέσεων: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Μοιράζεται το τρέχον κανάλι με έναν εξωτερικό διακομιστή Mattermost."
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Δεν ήταν δυνατή η κατάργηση της πρόσκλησης `{{.RemoteId}}`: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Σφάλμα κατά τον έλεγχο αν υπάρχει κοινόχρηστο κανάλι: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Κατάσταση για το αναγνωριστικό καναλιού `{{.ChannelId}}`"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Εμφανίζει την κατάσταση για αυτό το κοινόχρηστο κανάλι"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Αυτό το κανάλι είναι πλέον κοινόχρηστο."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Δεν υπάρχει ασφαλής σύνδεση κοινόχρηστου καναλιού `{{.RemoteId}}` για αυτό το κανάλι."
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Δεν είναι δυνατή η πρόσκληση ασφαλούς σύνδεσης σε κοινόχρηστο κανάλι που προέρχεται κάπου αλλού."
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Σφάλμα κατά την πρόσκληση `{{.Name}}` σε αυτό το κανάλι: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Διαθέσιμες ενέργειες: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "Ο χρήστης δεν μπορεί να αφαιρεθεί από το κανάλι από εσάς επειδή είναι μέλος των γκρουπ που συνδέονται με αυτό το κανάλι. Για να τους αφαιρέσετε από αυτό το κανάλι, πρέπει να τους αφαιρέσετε από τα συνδεδεμένα γκρουπ."
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Άγνωστη ενέργεια `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Εμφανίζει την κατάσταση όλων των ασφαλών συνδέσεων"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "Η διεύθυνση URL του ιστότοπου δεν έχει οριστεί. Παρακαλούμε ορίστε τη στην Κονσόλα συστήματος > Περιβάλλον > Διακομιστής Web."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Η υπηρεσία ασφαλούς σύνδεσης δεν είναι ενεργοποιημένη."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Η υπηρεσία ασφαλούς σύνδεσης είναι απενεργοποιημένη."
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "Αναγνωριστικό της ασφαλούς σύνδεσης προς κατάργηση."
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Δεν ήταν δυνατή η κατάργηση ασφαλούς σύνδεσης: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Καταργεί μια ασφαλή σύνδεση"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Δε βρέθηκαν ασφαλείς συνδέσεις."
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Ασφαλής σύνδεση | Εμφανιζόμενο όνομα | Αναγνωριστικό σύνδεσης | URL ιστότοπου | Πρόσκληση αποδεκτή | Σε σύνδεση | Τελευταίο ping |"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Προσθήκη/αφαίρεση ασφαλών συνδέσεων. Διαθέσιμες ενέργειες: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "Για τη διαχείριση ασφαλών συνδέσεων απαιτείται η άδεια `{{.Permission}}`."
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Ένα μοναδικό όνομα για την ασφαλή σύνδεση"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Όνομα ασφαλούς σύνδεσης"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "ασφαλής σύνδεση"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "Λείπει ή είναι κενό το `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Λείπει η εντολή. Διαθέσιμες ενέργειες: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Στείλτε την ακόλουθη κρυπτογραφημένη με AES 256-bit πρόσκληση στον εξωτερικό διαχειριστή συστήματος Mattermost μαζί με τον κωδικό πρόσβασης. Αυτός θα χρησιμοποιήσει την εντολή `{{.Command}}` για να αποδεχτεί την πρόσκληση.\n\n```\n{{.Invitation}}\n```\n\n**Βεβαιωθείτε ότι η ασφαλής σύνδεση μπορεί να έχει πρόσβαση στο Mattermost διακομιστή σας μέσω** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Κωδικός πρόσβασης που θα χρησιμοποιηθεί για την κρυπτογράφηση της πρόσκλησης"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Κωδικός πρόσκλησης"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Προσκαλέστε μια ασφαλή σύνδεση"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Η πρόσκληση δημιουργήθηκε."
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "Η κρυπτογραφημένη πρόσκληση από ασφαλή σύνδεση"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Πρόσκληση από ασφαλή σύνδεση"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Δεν ήταν δυνατή η αποκρυπτογράφηση πρόσκλησης. Εσφαλμένος κωδικός πρόσβασης ή κατεστραμμένη πρόσκληση: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[ενέργεια]"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Δεν ήταν δυνατή η ανάκτηση ασφαλών συνδέσεων: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Δεν ήταν δυνατή η κρυπτογράφηση της πρόσκλησης: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Δεν ήταν δυνατή η αποκωδικοποίηση της πρόσκλησης: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Δεν ήταν δυνατή η αποδοχή της πρόσκλησης: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Ένα εμφανιζόμενο όνομα για την ασφαλή σύνδεση"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Εμφανιζόμενο όνομα ασφαλούς σύνδεσης"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Προσκαλέστε για επικοινωνία με ασφαλείς συνδέσεις μεταξύ διακομιστών Mattermost."
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Ασφαλής σύνδεση {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Δεν ήταν δυνατή η προσθήκη ασφαλούς σύνδεσης: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Η πρόσκληση έγινε δεκτή και επιβεβαιώθηκε.\nSiteURL: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Αποδοχή πρόσκλησης από έναν εξωτερικό διακομιστή Mattermost"
+  },
+  {
+    "id": "api.team.add_members.user_denied",
+    "translation": "Αυτή η ομάδα διαχειρίζεται από γκρουπ. Αυτός ο χρήστης δεν είναι μέρος ενός γκρουπ το οποίο να αντιστοιχεί με αυτήν την ομάδα."
+  },
+  {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "Αυτή η ομάδα διαχειρίζεται από γκρουπ. Αυτός ο χρήστης δεν είναι μέρος ενός γκρουπ το οποίο να αντιστοιχεί με αυτό το κανάλι."
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "Οι σύνδεσμοι εικόνων αναπτύσσονται τώρα από προεπιλογή"
+  },
+  {
+    "id": "api.command_echo.name",
+    "translation": "echo"
+  },
+  {
+    "id": "api.command_echo.hint",
+    "translation": "'μήνυμα' [καθυστέρηση σε δευτερόλεπτα]"
+  },
+  {
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "Υψηλός όγκος αιτημάτων echo, δεν είναι δυνατή η επεξεργασία του αιτήματος."
+  },
+  {
+    "id": "api.command_echo.desc",
+    "translation": "Αντίγραφο κειμένου από τον λογαριασμό σας"
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "Οι σύνδεσμοι εικόνων συμπτύσσονται τώρα από προεπιλογή"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "σύμπτυξη"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Το κείμενο που έχει εισαχθεί υπερβαίνει το όριο χαρακτήρων. Ο σκοπός του καναλιού περιορίζεται σε {{.MaxLength}} χαρακτήρες."
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Δεν είναι δυνατός ο ορισμός σκοπού για τα κανάλια άμεσων μηνυμάτων. Χρησιμοποιήστε την εντολή '/header' για να ορίσετε την επικεφαλίδα."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Επεξεργασία του σκοπού του καναλιού"
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Το κείμενο που έχει εισαχθεί υπερβαίνει το όριο χαρακτήρων. Η επικεφαλίδα του καναλιού περιορίζεται σε {{.MaxLength}} χαρακτήρες."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Σφάλμα επεξεργασίας αιτήματος προς το CWS."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Η άδειά σας δεν υποστηρίζει αιτήματα cloud."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Το συμβάν Webhook δε διεκπεραιώθηκε. Είτε λείπει είτε δεν είναι έγκυρο."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Εσωτερικό σφάλμα κατά τη διάρκεια αιτήματος του cloud api."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Μη έγκυρη ενημέρωση μέλους ομάδας: Δεν μπορείτε να προσθέσετε ή να καταργήσετε τον ρόλο επισκέπτη χειροκίνητα."
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "Το προεπιλεγμένο κανάλι δεν μπορεί να γίνει ιδιωτικό."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Μη έγκυρη ενημέρωση μέλους καναλιού: Ένας χρήστης πρέπει να είναι είτε επισκέπτης είτε χρήστης, αλλά όχι και τα δύο."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Μη έγκυρη ενημέρωση μέλους καναλιού: Δεν μπορείτε να προσθέσετε ή να καταργήσετε τον ρόλο επισκέπτη χειροκίνητα."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Αυτός ο τύπος καναλιού δεν μπορεί να ενημερωθεί."
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "Ο {{.Username}} κατάργησε την αρχειοθέτηση του καναλιού."
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "Αδύνατη η κατάργηση της αρχειοθέτησης του καναλιού. Το κανάλι δεν έχει αρχειοθετηθεί."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Η συμμετοχή στο κανάλι δεν επιτρέπεται στους ακόλουθους χρήστες λόγω περιορισμών γκρουπ: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Η κατάργηση συμμετοχής στο κανάλι δεν επιτρέπεται στους ακόλουθους χρήστες λόγω περιορισμών γκρουπ: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Δεν είναι δυνατή η κατάργηση ενός χρήστη από ένα κανάλι περιορισμένου γκρουπ."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Η άδειά σας δεν υποστηρίζει τη διαχείριση καναλιών"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Σφάλμα κατά την ακύρωση της προσωρινής μνήμης cache"
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Δεν είναι δυνατή η μετακίνηση άμεσων ή ομαδικών μηνυμάτων σε κανάλια"
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v μπήκε στο κανάλι ως επισκέπτης."
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "Η άδειά σας δεν υποστηρίζει τη διαχείριση καναλιών"
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Η άδειά σας δεν υποστηρίζει γκρουπ"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Σφάλμα προσθήκης μέλους(ων) καναλιού."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Παρακαλώ προσθέστε με σε ομάδες και κανάλια που θέλετε να συμμετέχω. Για να το κάνετε αυτό, χρησιμοποιήστε το πρόγραμμα περιήγησης ή την εφαρμογή του Mattermost Desktop."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Η δημιουργία bot έχει απενεργοποιηθεί."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Λείπει ο τύπος περιεχομένου."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Μη έγκυρος τύπος περιεχομένου."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Μη έγκυρο κείμενο πιστοποιητικού."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "Λείπει ο κόμβος παρόχου ταυτότητας SSO Descriptors στην XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "Λείπει ο κόμβος υπηρεσιών του παρόχου ταυτότητας SSO στην XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "Λείπει ο κόμβος Identity Provider Key Descriptors στην XML."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Απέτυχε η επαναφορά του πεδίου AuthData σε Email."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Παρουσιάστηκε αποτυχία κατά την ανάλυση των πληροφοριών μεταδεδομένων που ελήφθησαν από τον πάροχο ταυτότητας σε ένα πιστοποιητικό."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Απέτυχε η λήψη μεταδεδομένων από τη διεύθυνση ιστοσελίδας του παρόχου ταυτότητας."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "Το LDAP δεν είναι διαθέσιμο."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Αδυναμία διαγραφής εικόνας μάρκας, δε βρέθηκε."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Σφάλμα ανάλυσης πολυμορφικής αίτησης"
+  },
+  {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "Δεν είναι δυνατή η ανάλυση του αιτήματος."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Δεν είναι δυνατή η ανάλυση του αιτήματος."
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Σφάλμα κατά την ακύρωση προσκλήσεων email."
+  },
+  {
+    "id": "api.team.import_team.unknown_import_from.app_error",
+    "translation": "Άγνωστη πηγή εισαγωγής."
+  },
+  {
+    "id": "api.team.import_team.unavailable.app_error",
+    "translation": "Αίτημα με λανθασμένη μορφή: Απουσιάζει το πεδίο 'μέγεθος αρχείου' (filesize)."
+  },
+  {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Αίτημα με λανθασμένη μορφή: Απουσιάζει το πεδίο 'εισαγωγή από' (importFrom)."
+  },
+  {
+    "id": "api.team.import_team.integer.app_error",
+    "translation": "Το μέγεθος αρχείου (filesize) δεν είναι ακέραιος αριθμός."
+  },
+  {
+    "id": "api.team.get_team_icon.read_file.app_error",
+    "translation": "Δεν είναι δυνατή η ανάγνωση του αρχείου εικονιδίου της ομάδας."
+  },
+  {
+    "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
+    "translation": "Μη έγκυρο όνομα προγράμματος οδήγησης για τις ρυθμίσεις αρχείου. Πρέπει να είναι είτε 'local' ή 'amazons3'."
+  },
+  {
+    "id": "api.team.get_invite_info.not_open_team",
+    "translation": "Η πρόσκληση δεν είναι έγκυρη επειδή αυτή δεν είναι μια ανοιχτή ομάδα."
+  },
+  {
+    "id": "api.slackimport.slack_import.note1",
+    "translation": "- Ορισμένα μηνύματα ενδέχεται να μην έχουν εισαχθεί επειδή δεν υποστηρίζονται από αυτόν τον συγκεκριμένο τύπο εισαγωγέα.\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.log",
+    "translation": "Εισαγωγή αρχείου καταγραφής Mattermost Slack\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.unable_import",
+    "translation": "Δεν είναι δυνατή η εισαγωγή του χρήστη Slack: {{.Username}}.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address",
+    "translation": "Ο χρήστης {{.Username}} δεν είχε διεύθυνση email κατά την εξαγωγή από το Slack. Χρησιμοποιήθηκε το {{.Email}} ως προσωρινό. Ο χρήστης θα πρέπει να ενημερώσει τη διεύθυνση email του μόλις συνδεθεί στο σύστημα.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing",
+    "translation": "Ο χρήστης Slack συγχωνεύτηκε με έναν υπάρχοντα χρήστη Mattermost με email {{.Email}} και όνομα χρήστη {{.Username}}.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "Ο χρήστης Slack συγχωνεύτηκε με έναν υπάρχοντα χρήστη Mattermost με email {{.Email}} και όνομα χρήστη {{.Username}}, αλλά δεν μπόρεσε να προσθέσει τον χρήστη στην ομάδα του.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email_pwd",
+    "translation": "Έγινε εισαγωγή του χρήστη Slack με email {{.Email}} και κωδικό πρόσβασης {{.Password}}.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.created",
+    "translation": "\nΟι χρήστες δημιούργησαν:\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.merge",
+    "translation": "Το κανάλι Slack {{.DisplayName}} υπάρχει ήδη ως ενεργό κανάλι στο Mattermost. Και τα δύο κανάλια συγχωνεύτηκαν.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.import_failed",
+    "translation": "Δεν είναι δυνατή η εισαγωγή καναλιού Slack {{.DisplayName}}.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
+    "translation": "Δεν είναι δυνατή η προσθήκη του χρήστη Slack {{.Username}} στο κανάλι.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.added",
+    "translation": "\nΠροστέθηκαν τα κανάλια:\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "Δεν είναι δυνατή η εισαγωγή του χρήστη Integration/Slack Bot {{.Username}}.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Έγινε εισαγωγή του χρήστη Integration/Slack Bot με email {{.Email}} και κωδικό πρόσβασης {{.Password}}.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
+    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην ενότητα **Κονσόλα συστήματος > Διαχείριση χρηστών > Δικαιώματα** για να ενεργοποιήσετε τα Προηγμένα δικαιώματα."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
+    "translation": "Το Mattermost σας έχει τώρα αρκετές ομάδες. Πολλές ομάδες έχουν τον δικό τους τρόπο συντονισμού και συνεργασίας, συμπεριλαμβανομένου και του τρόπου δημιουργίας καναλιών, τα οποία μπορούν να προσκαλέσουν νέους συναδέλφους καθώς και του τρόπου που διαχειρίζονται τα integrations. Τα Σχέδια Παράκαμψης Ομάδας σας επιτρέπουν να προσαρμόσετε τα δικαιώματα χρήστη σε κάθε ομάδα για να ικανοποιήσετε τις συγκεκριμένες ανάγκες τους.\n\n[Μάθετε περισσότερα σχετικά με τη χρήση των Προηγμένων δικαιωμάτων] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
+    "translation": "Χρήση Προηγμένων Δικαιωμάτων"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
+    "translation": "Το Mattermost σας έχει τώρα αρκετές ομάδες. Πολλές ομάδες έχουν τον δικό τους τρόπο συντονισμού και συνεργασίας, συμπεριλαμβανομένου και του τρόπου δημιουργίας καναλιών, τα οποία μπορούν να προσκαλέσουν νέους συναδέλφους καθώς και του τρόπου που διαχειρίζονται τα integrations. Τα Σχέδια Παράκαμψης Ομάδας σας επιτρέπουν να προσαρμόσετε τα δικαιώματα χρήστη σε κάθε ομάδα για να ικανοποιήσετε τις συγκεκριμένες ανάγκες τους.\n\n[Μάθετε περισσότερα σχετικά με τη χρήση των Προηγμένων δικαιωμάτων] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα] (https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
+    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Ενδιαφέρομαι να μάθω περισσότερα σχετικά με τη χρήση των προηγμένων δικαιωμάτων με σχήματα συστήματος.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
+    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μόλις έχετε το Elasticsearch, μεταβείτε στο **Κονσόλα συστήματος > Περιβάλλον > Elasticsearch** για να διαμορφώσετε το Elasticsearch."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
+    "translation": "Το Mattermost σας διαθέτει μεγάλο αριθμό μηνυμάτων. Η προεπιλεγμένη αναζήτηση βάσης δεδομένων του Mattermost αρχίζει να δείχνει σημάδια υποβάθμισης της απόδοσης του, σε περίπου 2,5 εκατομμύρια δημοσιεύσεις. Με πάνω από 5 εκατομμύρια δημοσιεύσεις, το Elasticsearch μπορεί να σας βοηθήσει στο να αποφύγετε σημαντικά ζητήματα απόδοσης, όπως χρονικές διακοπές στις αναζητήσεις και στην εύρεση αναφορών. Επικοινωνήστε μαζί μας για να μάθετε περισσότερα και πείτε μας πώς μπορούμε να βοηθήσουμε.\n\n[Μάθετε περισσότερα σχετικά με τη βελτίωση της απόδοσης] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
+    "translation": "Βελτίωση της απόδοσης"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
+    "translation": "Το Mattermost σας διαθέτει μεγάλο αριθμό μηνυμάτων. Η προεπιλεγμένη αναζήτηση βάσης δεδομένων του Mattermost αρχίζει να δείχνει σημάδια υποβάθμισης της απόδοσης του, σε περίπου 2,5 εκατομμύρια δημοσιεύσεις. Με πάνω από 5 εκατομμύρια δημοσιεύσεις, το Elasticsearch μπορεί να σας βοηθήσει στο να αποφύγετε σημαντικά ζητήματα απόδοσης, όπως χρονικές διακοπές στις αναζητήσεις και στην εύρεση αναφορών. Επικοινωνήστε μαζί μας για να μάθετε περισσότερα και πείτε μας πώς μπορούμε να βοηθήσουμε.\n\n[Μάθετε περισσότερα σχετικά με τη βελτίωση της απόδοσης] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα] (https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
+    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Ενδιαφέρομαι να μάθω περισσότερα σχετικά με τη βελτίωση της απόδοσης με το Elasticsearch.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
+    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην ενότητα **Κονσόλα συστήματος > Διαχείριση χρηστών > Δικαιώματα** για να ενεργοποιήσετε τα Προηγμένα δικαιώματα."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
+    "translation": "Τα κανάλια συμβάλλουν στη βελτίωση της επικοινωνίας, αλλά με τους χρήστες στο Mattermost να συμμετέχουν και να δημιουργούν κανάλια, η πρόκληση να διατηρηθεί το σύστημα οργανωμένο αυξάνεται. Τα Προηγμένα δικαιώματα σάς δίνουν τη δυνατότητα να ορίσετε ποιοι χρήστες ή ρόλοι μπορούν να εκτελέσουν συγκεκριμένες ενέργειες, συμπεριλαμβανομένης της διαχείρισης ρυθμίσεων καναλιού και μελών, χρησιμοποιώντας το @channel ή το @here για να επισημάνετε ευρείες ομάδες χρηστών και τη δημιουργία νέων webhooks.\n\n[Μάθετε περισσότερα σχετικά με τη χρήση Προηγμένων δικαιωμάτων](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
+  },
+  {
+    "id": "api.team.demote_user_to_guest.license.error",
+    "translation": "Η άδειά σας δεν υποστηρίζει λογαριασμούς επισκεπτών"
+  },
+  {
+    "id": "api.team.demote_user_to_guest.disabled.error",
+    "translation": "Οι λογαριασμοί επισκεπτών είναι απενεργοποιημένοι."
+  },
+  {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Οι επισκέπτες δεν επιτρέπεται να συμμετέχουν σε μια ομάδα μέσω ενός συνδέσμου πρόσκλησης. Ζητήστε από την ομάδα να σας στείλει μέσω email μια πρόσκληση επισκεπτών."
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Απαιτείται παράμετρος για την προσθήκη του χρήστη στην ομάδα."
+  },
+  {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "Δεν είναι δυνατή η ανάλυση του αιτήματος."
+  },
+  {
+    "id": "api.team.add_members.error",
+    "translation": "Σφάλμα κατά την προσθήκη μελών στην ομάδα."
+  },
+  {
+    "id": "api.system.update_viewed_notices.failed",
+    "translation": "Η ενημέρωση των ειδοποιήσεων που προβλήθηκαν απέτυχε"
+  },
+  {
+    "id": "api.system.update_notices.validating_failed",
+    "translation": "Η επικύρωση των συνθηκών ειδοποίησης προϊόντος απέτυχε"
+  },
+  {
+    "id": "api.system.update_notices.parse_failed",
+    "translation": "Η ανάλυση των ειδοποιήσεων προϊόντος απέτυχε"
+  },
+  {
+    "id": "api.system.update_notices.fetch_failed",
+    "translation": "Η λήψη ειδοποιήσεων προϊόντος απέτυχε"
+  },
+  {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "Η διαγραφή παλιών ειδοποιήσεων προϊόντος απέτυχε"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "Οι ειδοποιήσεις Push Loaded ID δεν έχουν ρυθμιστεί ή δεν υποστηρίζονται σε αυτόν τον διακομιστή."
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "Ο χρήστης δεν βρέθηκε."
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "Το αρχείο zip {{.Filename}} είναι πολύ μεγάλο για να γίνει εισαγωγή από Slack\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.app_error",
+    "translation": "Δεν είναι δυνατό το άνοιγμα του αρχείου εξαγωγής zip από το Slack.\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.team_fail",
+    "translation": "Δεν είναι δυνατή η εισαγωγή της ομάδας.\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.open.app_error",
+    "translation": "Δεν είναι δυνατό το άνοιγμα του αρχείου: {{.Filename}}.\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.notes",
+    "translation": "\nΣημειώσεις:\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note3",
+    "translation": "- Πρόσθετα σφάλματα ενδέχεται να βρεθούν στα αρχεία καταγραφής του διακομιστή.\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note2",
+    "translation": "- Τα μηνύματα του Slack bot δεν υποστηρίζονται προς το παρόν.\n"
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Η ασφαλής σύνδεση έχει ήδη προσκληθεί."
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
+    "translation": "Το κανάλι λήψης των ομαδικών μηνυμάτων ηλεκτρονικού ταχυδρομείου ήταν πλήρες. Παρακαλούμε αυξήστε το EmailBatchingBufferSize."
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+    "translation": "Απαιτείται διακομιστής SMTP"
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+    "translation": "Δεν ήταν δυνατή η εύρεση της μέτρησης της προειδοποίησης."
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.failure.app_error",
+    "translation": "Αποτυχία αποστολής email επιβεβαίωσης διαχειριστή"
+  },
+  {
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "Παρακαλούμε εισάγετε κείμενο για τους Προσαρμοσμένους Όρους Παροχής Υπηρεσιών."
+  },
+  {
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "Η δυνατότητα προσαρμοσμένων όρων υπηρεσίας είναι απενεργοποιημένη."
+  },
+  {
+    "id": "api.context.token_provided.app_error",
+    "translation": "Η περίοδος σύνδεσης δεν είναι OAuth, αλλά το διακριτικό δόθηκε στη συμβολοσειρά ερωτήματος."
+  },
+  {
+    "id": "api.context.server_busy.app_error",
+    "translation": "Ο διακομιστής είναι απασχολημένος, οι μη κρίσιμες υπηρεσίες δεν είναι προσωρινά διαθέσιμες."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Απουσία αναγνωριστικού ασφαλούς σύνδεσης."
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Αναντιστοιχία αναγνωριστικού ασφαλούς σύνδεσης."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Αδυναμία εύρεσης ασφαλούς σύνδεσης {{.RemoteId}}."
+  },
+  {
+    "id": "api.context.local_origin_required.app_error",
+    "translation": "Αυτό το τελικό σημείο απαιτεί μια τοπική προέλευση αιτήματος."
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "Σφάλμα κατά την κωδικοποίηση JSON."
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Η πρόσκληση έχει λήξει."
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "Μη έγκυρη ή ελλιπής παράμετρος {{.Name}} στη διεύθυνση URL αίτησης."
+  },
+  {
+    "id": "api.context.invalid_token.error",
+    "translation": "Μη έγκυρο διακριτικό περιόδου σύνδεσης={{.Token}}, σφάλμα={{.Error}}"
+  },
+  {
+    "id": "api.context.get_user.app_error",
+    "translation": "Δεν είναι δυνατή η λήψη χρήστη από τη συνεδρία UserID."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Αποτυχία διαμόρφωσης των diff configs"
+  },
+  {
+    "id": "api.config.update_config.clear_siteurl.app_error",
+    "translation": "Δεν είναι δυνατή η εκκαθάριση της διεύθυνσης URL ιστότοπου."
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": "Απέτυχε η συγχώνευση της ρύθμισης που έχει δοθεί."
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Αποτυχία διαμόρφωσης των diff configs"
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "Αποτυχία μετεγκατάστασης του χώρου αποθήκευσης ρυθμίσεων (config store)."
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": "Απέτυχε η συγχώνευση της ρύθμισης που έχει δοθεί."
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "Η νέα μορφή για τη διαμόρφωση του πελάτη δεν υποστηρίζεται ακόμη. Προσδιορίστε format=old στη συμβολοσειρά ερωτήματος."
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Καταργεί την κοινή χρήση του τρέχοντος καναλιού"
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "Άγνωστη ενέργεια `{{.Action}}`. Διαθέσιμες ενέργειες: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "Αναγνωριστικό ασφαλούς σύνδεσης για την κατάργηση της πρόσκλησης."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Ακύρωση πρόσκλησης μια ασφαλούς σύνδεσης από αυτό το κοινόχρηστο κανάλι"
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Δεν είναι δυνατή η ακύρωση κοινής χρήσης αυτού του καναλιού: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Αυτό το κανάλι δεν είναι πλέον κοινόχρηστο."
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[μόνο για ανάγνωση] - 'Ν' ή 'Ο'.  Προεπιλογή 'Ο'"
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Το κανάλι θα κοινοποιηθεί σε λειτουργία μόνο για ανάγνωση"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Δεν είναι δυνατή η κοινή χρήση αυτού του καναλιού: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Η υπηρεσία κοινόχρηστων καναλιών είναι απενεργοποιημένη."
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "Ασφαλής σύνδεση `{{.RemoteId}}` χωρίς πρόσκληση."
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Ασφαλής σύνδεση | URL του ιστότοπου | Μόνο για ανάγνωση | Πρόσκληση αποδεκτή | Online | Τελευταίος συγχρονισμός |"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Πρέπει να καθορίσετε ένα έγκυρο αναγνωριστικό ασφαλούς σύνδεσης για να ακυρώσετε την πρόσκληση"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "Το αναγνωριστικό ασφαλούς σύνδεσης δεν είναι έγκυρο: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "Αναγνωριστικό μιας υπάρχουσας ασφαλούς σύνδεσης. Ανατρέξτε στην εντολή `secure-connection` για να προσθέσετε μια ασφαλή σύνδεση."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία ενός άμεσου καναλιού μεταξύ αυτών των χρηστών, επειδή δε μοιράζονται μια κοινή ομάδα."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Σφάλμα κατά την ανάκτηση της κατάστασης της πρώτης επίσκεψης του διαχειριστή στο marketplace."
+  },
+  {
+    "id": "api.emoji.upload.open.app_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία του emoji. Παρουσιάστηκε σφάλμα κατά την προσπάθεια ανοίγματος της συνημμένης εικόνας."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large.app_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία emoji. Η εικόνα πρέπει να είναι μικρότερη από {{.MaxWidth}} επί {{.MaxHeight}}."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία emoji. Παρουσιάστηκε σφάλμα κατά την προσπάθεια κωδικοποίησης της εικόνας GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία emoji. Παρουσιάστηκε σφάλμα κατά την προσπάθεια αποκωδικοποίησης της εικόνας GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία emoji. Παρουσιάστηκε σφάλμα κατά την προσπάθεια κωδικοποίησης της εικόνας."
+  },
+  {
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία emoji. Παρουσιάστηκε σφάλμα κατά την προσπάθεια αποκωδικοποίησης της εικόνας."
+  },
+  {
+    "id": "api.emoji.upload.image.app_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία emoji. Το αρχείο πρέπει να είναι PNG, JPEG ή GIF."
+  },
+  {
+    "id": "api.emoji.storage.app_error",
+    "translation": "Ο χώρος αποθήκευσης αρχείων δεν έχει ρυθμιστεί σωστά. Παρακαλούμε ρυθμίστε τις παραμέτρους είτε για αποθήκευση αρχείων στο S3 είτε σε τοπικό διακομιστή."
+  },
+  {
+    "id": "api.emoji.get_image.read.app_error",
+    "translation": "Δεν είναι δυνατή η ανάγνωση του αρχείου εικόνας για το emoji."
+  },
+  {
+    "id": "api.emoji.get_image.decode.app_error",
+    "translation": "Δεν είναι δυνατή η αποκωδικοποίηση του αρχείου εικόνας για emoji."
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία emoji. Η εικόνα πρέπει να έχει μέγεθος μικρότερο από 1 MB."
+  },
+  {
+    "id": "api.emoji.create.parse.app_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία emoji. Δεν ήταν δυνατή η κατανόηση του αιτήματος."
+  },
+  {
+    "id": "api.emoji.create.other_user.app_error",
+    "translation": "Μη έγκυρο αναγνωριστικό χρήστη."
+  },
+  {
+    "id": "api.emoji.create.internal_error",
+    "translation": "server_error: Παρουσιάστηκε σφάλμα εσωτερικού διακομιστή κατά τη δημιουργία του emoji."
+  },
+  {
+    "id": "api.emoji.create.duplicate.app_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία emoji. Υπάρχει ήδη ένα άλλο emoji με το ίδιο όνομα."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": {
+      "one": "{{ .SenderName }} σας έστειλε νέο μήνυμα",
+      "other": "{{ .SenderName }} και {{.Count}} άλλοι σας έστειλαν νέα μηνύματα"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] Νέα ειδοποίηση για {{.Month}} {{.Day}}, {{.Year}}",
+      "other": "[{{.SiteName}}] Νέες ειδοποιήσεις για {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Δείτε παρακάτω μια περίληψη των νέων μηνυμάτων σας."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Δείτε αυτό το μήνυμα"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Ανοίξτε το Mattermost"
+  },
+  {
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
+    "translation": "Η ομαδοποίηση μηνυμάτων ηλεκτρονικού ταχυδρομείου έχει απενεργοποιηθεί από το διαχειριστή του συστήματος."
+  },
+  {
+    "id": "api.file.upload_file.large_image.app_error",
+    "translation": "Δεν ήταν δυνατή η μεταφόρτωση του αρχείου που υπερβαίνει τις μέγιστες διαστάσεις: {{.Filename}}"
+  },
+  {
+    "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+    "translation": "Δεν είναι δυνατή η μεταφόρτωση αρχείων. Έχετε {{.NumClientIds}} client_ids για {{.NumFiles}} αρχεία."
+  },
+  {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Δεν είναι δυνατή η μεταφόρτωση του αρχείου. Εσφαλμένο αναγνωριστικό καναλιού: {{.channelId}}"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Βεβαιωθείτε ότι ο Amazon S3 bucket είναι διαθέσιμος και επαληθεύστε τα δικαιώματα του."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Δεν είναι δυνατή η σύνδεση στο S3. Επαληθεύστε τις παραμέτρους εξουσιοδότησης σύνδεσης και τις ρυθμίσεις ελέγχου ταυτότητας για το Amazon S3."
+  },
+  {
+    "id": "api.file.read_file.reading_local.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα ανάγνωσης από τον τοπικό χώρο αποθήκευσης αρχείων του διακομιστή."
+  },
+  {
+    "id": "api.file.no_driver.app_error",
+    "translation": "Δεν έχει επιλεγεί πρόγραμμα οδήγησης αρχείου."
+  },
+  {
+    "id": "api.file.get_public_link.no_post.app_error",
+    "translation": "Δεν είναι δυνατή η λήψη δημόσιου συνδέσμου για το αρχείο. Το αρχείο πρέπει να επισυνάπτεται σε μια δημοσίευση που μπορεί να διαβαστεί από τον τρέχοντα χρήστη."
+  },
+  {
+    "id": "api.file.get_public_link.disabled.app_error",
+    "translation": "Οι δημόσιοι σύνδεσμοι έχουν απενεργοποιηθεί."
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "Το αρχείο δεν έχει εικόνα μικρογραφίας."
+  },
+  {
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "Το αρχείο δεν έχει εικόνα προεπισκόπησης."
+  },
+  {
+    "id": "api.file.get_file.public_invalid.app_error",
+    "translation": "Ο δημόσιος σύνδεσμος δε φαίνεται να είναι έγκυρος."
+  },
+  {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "Η σύναψη αρχείων έχει απενεργοποιηθεί σε αυτόν τον διακομιστή."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Σφάλμα κατά την προσπάθεια αποθήκευσης της κατάστασης της πρώτης επίσκεψης του διαχειριστή στο marketplace."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
+    "translation": "invalid_request: Λείπει το client_secret."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_client_id.app_error",
+    "translation": "invalid_request: Λάθος client_id."
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Εάν δεν ανακατευθυνθείτε αυτόματα, κάντε κλικ στον <a href='{{.Link}}'>σύνδεσμο</a>"
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "Ο διαχειριστής του συστήματος έχει απενεργοποιήσει τον πάροχο υπηρεσιών OAuth2."
+  },
+  {
+    "id": "api.oauth.allow_oauth.turn_off.app_error",
+    "translation": "Ο διαχειριστής του συστήματος έχει απενεργοποιήσει τον πάροχο υπηρεσιών OAuth2."
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Δεν είναι δυνατή η μετεγκατάσταση SAML."
+  },
+  {
+    "id": "api.marshal_error",
+    "translation": "σφάλμα διευθέτησης"
+  },
+  {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "Δεν είναι δυνατή η λήψη μιας δοκιμαστικής άδειας, δοκιμάστε ξανά ή επικοινωνήστε με το support@mattermost.com. Δεν είναι δυνατή η απόκτηση του αριθμού των εγγεγραμμένων χρηστών."
+  },
+  {
+    "id": "api.license.request_trial_license.app_error",
+    "translation": "Δεν είναι δυνατή η λήψη μιας δοκιμαστικής άδειας, δοκιμάστε ξανά ή επικοινωνήστε με το support@mattermost.com."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.terms-not-accepted",
+    "translation": "Πρέπει να αποδεχτείτε τη Συμφωνία Αξιολόγησης Λογισμικού της Mattermost και την Πολιτική Απορρήτου για να ζητήσετε άδεια χρήσης."
+  },
+  {
+    "id": "api.license.request-trial.bad-request",
+    "translation": "Ο αριθμός των χρηστών που ζητήθηκαν δεν είναι σωστός."
+  },
+  {
+    "id": "api.license.remove_expired_license.failed.error",
+    "translation": "Απέτυχε να αποσταλεί επιτυχώς το μήνυμα ηλεκτρονικού ταχυδρομείου για την απενεργοποίηση της άδειας χρήσης."
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "Η νέα μορφή για την άδεια χρήσης πελάτη δεν υποστηρίζεται ακόμη. Παρακαλούμε καθορίστε format=old στη συμβολοσειρά ερωτήματος."
+  },
+  {
+    "id": "api.license.add_license.unique_users.app_error",
+    "translation": "Αυτή η άδεια χρήσης υποστηρίζει μόνο {{.Users}} χρήστες, όταν το σύστημά σας έχει {{.Count}} μοναδικούς χρήστες. Οι μοναδικοί χρήστες υπολογίζονται ξεχωριστά ανά διεύθυνση ηλεκτρονικού ταχυδρομείου. Μπορείτε να δείτε τον συνολικό αριθμό χρηστών στο Αναφορές Ιστότοπου -> Προβολή Στατιστικών."
+  },
+  {
+    "id": "api.license.add_license.save_active.app_error",
+    "translation": "Το αναγνωριστικό ενεργής άδειας χρήσης δεν αποθηκεύτηκε σωστά."
+  },
+  {
+    "id": "api.license.add_license.save.app_error",
+    "translation": "Η άδεια χρήσης δεν αποθηκεύτηκε σωστά."
+  },
+  {
+    "id": "api.license.add_license.invalid_count.app_error",
+    "translation": "Δεν είναι δυνατή η καταμέτρηση του συνόλου των μοναδικών χρηστών."
+  },
+  {
+    "id": "api.license.add_license.invalid.app_error",
+    "translation": "Μη έγκυρο αρχείο άδειας χρήσης."
+  },
+  {
+    "id": "api.license.add_license.expired.app_error",
+    "translation": "Η άδεια χρήσης είτε έχει λήξει είτε δεν έχει ξεκινήσει ακόμη."
+  },
+  {
+    "id": "api.ldap_groups.license_error",
+    "translation": "Η άδειά σας δεν υποστηρίζει ομάδες ldap"
+  },
+  {
+    "id": "api.ldap_groups.existing_user_name_error",
+    "translation": "το όνομα του γκρουπ υπάρχει ήδη ως όνομα χρήστη"
+  },
+  {
+    "id": "api.ldap_groups.existing_reserved_name_error",
+    "translation": "το όνομα του γκρουπ υπάρχει ήδη ως δεσμευμένο όνομα"
+  },
+  {
+    "id": "api.ldap_groups.existing_group_name_error",
+    "translation": "Το όνομα του γκρουπ υπάρχει ήδη"
+  },
+  {
+    "id": "api.ldap_group.not_found",
+    "translation": "Δε βρέθηκε ομάδα ldap"
+  },
+  {
+    "id": "api.job.unable_to_download_job",
+    "translation": "Δεν είναι δυνατή η λήψη αυτής της εργασίας"
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Ο τύπος εργασίας της εργασίας που προσπαθείτε να δημιουργήσετε δεν είναι έγκυρος"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Οι τύποι εργασίας μιας εργασίας που προσπαθείτε να ανακτήσετε δεν περιέχουν δικαιώματα"
+  },
+  {
+    "id": "api.io_error",
+    "translation": "σφάλμα εισαγωγής/εξαγωγής"
+  },
+  {
+    "id": "api.invalid_channel",
+    "translation": "Το κανάλι που αναφέρεται στο αίτημα δεν ανήκει στο χρήστη"
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "Μη έγκυρο όνομα χρήστη."
+  },
+  {
+    "id": "api.image.get.app_error",
+    "translation": "Δεν είναι δυνατή η ανάλυση της ζητούμενης URL εικόνας."
+  },
+  {
+    "id": "api.file.upload_file.too_large_detailed.app_error",
+    "translation": "Δεν είναι δυνατή η μεταφόρτωση του αρχείου {{.Filename}}. Τα {{.Length}} bytes υπερβαίνουν το μέγιστο επιτρεπόμενο {{.Limit}} bytes."
+  },
+  {
+    "id": "api.file.upload_file.read_request.app_error",
+    "translation": "Δεν είναι δυνατή η μεταφόρτωση αρχείων. Σφάλμα ανάγνωσης ή ανάλυσης δεδομένων αιτήματος."
+  },
+  {
+    "id": "api.file.upload_file.read_form_value.app_error",
+    "translation": "Δεν είναι δυνατή η μεταφόρτωση αρχείων. Σφάλμα κατά την ανάγνωση της τιμής για {{.Formname}}."
+  },
+  {
+    "id": "api.file.upload_file.multiple_channel_ids.app_error",
+    "translation": "Δεν είναι δυνατή η μεταφόρτωση αρχείων. Πολλαπλά αντικρουόμενα channel_ids."
+  },
+  {
+    "id": "api.file.upload_file.large_image_detailed.app_error",
+    "translation": "Οι διαστάσεις του {{.Filename}} ({{.Width}} επί {{.Height}} pixels) υπερβαίνουν τα όρια."
+  },
+  {
+    "id": "api.post.create_post.root_id.app_error",
+    "translation": "Μη έγκυρη παράμετρος RootId."
+  },
+  {
+    "id": "api.post.create_post.channel_root_id.app_error",
+    "translation": "Μη έγκυρο ChannelId για την παράμετρο RootId."
+  },
+  {
+    "id": "api.post.create_post.can_not_post_to_deleted.error",
+    "translation": "Δεν μπορείτε να δημοσιεύσετε σε διαγραμμένο κανάλι."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.one",
+    "translation": "Ο/Η @{{.Username}} δεν ειδοποιήθηκε από αυτή την αναφορά επειδή δεν είναι στο κανάλι."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
+    "translation": "Οι @{{.Usernames}} και @{{.LastUsername}} δεν ειδοποιήθηκαν από αυτή την αναφορά επειδή δεν είναι στο κανάλι."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
+    "translation": "Οι @{{.Usernames}} και @{{.LastUsername}} δεν ειδοποιήθηκαν από αυτή την αναφορά επειδή δεν είναι στο κανάλι. Δεν μπορούν να προστεθούν στο κανάλι επειδή δεν είναι μέλη των συνδεδεμένων γκρουπ. Για να τους προσθέσετε σε αυτό το κανάλι, πρέπει να προστεθούν στα συνδεδεμένα γκρουπ."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
+    "translation": "Ο/Η @{{.Username}} δεν ειδοποιήθηκε από αυτή την αναφορά επειδή δεν είναι στο κανάλι. Δεν μπορεί να προστεθεί στο κανάλι επειδή δεν είναι μέλος των συνδεδεμένων γκρουπ. Για να τον/την προσθέσετε σε αυτό το κανάλι, πρέπει να προστεθεί στα συνδεδεμένα γκρουπ."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_group_users.message.none",
+    "translation": "Το @{{.GroupName}} δεν έχει μέλη σε αυτή την ομάδα"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Δεν είναι δυνατή η επαλήθευση της υπογραφής του plugin."
+  },
+  {
+    "id": "api.plugin.upload.no_file.app_error",
+    "translation": "Λείπει αρχείο στο αίτημα πολλαπλών μερών / φόρμας."
+  },
+  {
+    "id": "api.plugin.upload.file.app_error",
+    "translation": "Δεν είναι δυνατό το άνοιγμα αρχείου σε αίτημα πολλαπλών τμημάτων / φόρμας."
+  },
+  {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "Ο πίνακας αρχείων είναι κενός σε αίτημα πολλαπλών τμημάτων / φορμών."
+  },
+  {
+    "id": "api.plugin.install.download_failed.app_error",
+    "translation": "Προέκυψε σφάλμα κατά τη λήψη του plugin."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "translation": "Ο σύνδεσμος εγγραφής δε φαίνεται να είναι έγκυρος."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "translation": "Ο σύνδεσμος εγγραφής έχει λήξει."
+  },
+  {
+    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "translation": "Η εγγραφή χρήστη είναι απενεργοποιημένη."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.get.app_error",
+    "translation": "Σφάλμα κατά τη λήψη διακριτικού πρόσβασης από τη ΒΔ πριν από τη διαγραφή."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_token.app_error",
+    "translation": "Σφάλμα διαγραφής του διακριτικού πρόσβασης από τη ΒΔ."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_session.app_error",
+    "translation": "Σφάλμα διαγραφής περιόδου σύνδεσης από τη ΒΔ."
+  },
+  {
+    "id": "api.oauth.register_oauth_app.turn_off.app_error",
+    "translation": "Ο διαχειριστής του συστήματος έχει απενεργοποιήσει τον πάροχο υπηρεσιών OAuth2."
+  },
+  {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "Μη έγκυρο διακριτικό κατάστασης."
+  },
+  {
+    "id": "api.oauth.get_access_token.refresh_token.app_error",
+    "translation": "invalid_grant: Μη έγκυρο κουπόνι ανανέωσης."
+  },
+  {
+    "id": "api.oauth.get_access_token.redirect_uri.app_error",
+    "translation": "invalid_request: Το παρεχόμενο redirect_uri δεν αντιστοιχεί στον κωδικό εξουσιοδότησης redirect_uri."
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
+    "translation": "invalid_request: Λείπει το refresh_token."
+  },
+  {
+    "id": "api.oauth.get_access_token.missing_code.app_error",
+    "translation": "invalid_request: Λείπει ο κωδικός."
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_user.app_error",
+    "translation": "server_error: Παρουσιάστηκε σφάλμα εσωτερικού διακομιστή κατά τη λήψη χρήστη από τη βάση δεδομένων."
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_session.app_error",
+    "translation": "server_error: Παρουσιάστηκε σφάλμα εσωτερικού διακομιστή κατά την αποθήκευση περιόδου λειτουργίας στη βάση δεδομένων."
+  },
+  {
+    "id": "api.oauth.get_access_token.internal_saving.app_error",
+    "translation": "server_error: Παρουσιάστηκε σφάλμα εσωτερικού διακομιστή κατά την αποθήκευση του διακριτικού πρόσβασης στη βάση δεδομένων."
+  },
+  {
+    "id": "api.oauth.get_access_token.internal.app_error",
+    "translation": "server_error: Παρουσιάστηκε σφάλμα εσωτερικού διακομιστή κατά την πρόσβαση στη βάση δεδομένων."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_grant.app_error",
+    "translation": "invalid_request: Λάθος grant_type."
+  },
+  {
+    "id": "api.oauth.allow_oauth.redirect_callback.app_error",
+    "translation": "invalid_request: Το παρεχόμενο redirect_uri δεν ταιριάζει με το καταχωρημένο callback_url."
+  },
+  {
+    "id": "api.oauth.get_access_token.credentials.app_error",
+    "translation": "invalid_client: Μη έγκυρα διαπιστευτήρια πελάτη."
+  },
+  {
+    "id": "api.oauth.get_access_token.expired_code.app_error",
+    "translation": "invalid_grant: Μη έγκυρος ή ληγμένος κωδικός εξουσιοδότησης."
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "Ο διαχειριστής του συστήματος έχει απενεργοποιήσει τον πάροχο υπηρεσιών OAuth2."
+  },
+  {
+    "id": "api.templates.reset_subject",
+    "translation": "[{{ .SiteName }}] Επαναφέρετε τον κωδικό πρόσβασης σας"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "Βελτιώστε την εργασία σας με εργαλεία όπως το Github, το Ημερολόγιο της Google και το Chrome. Εξερευνήστε όλες τις ενσωματώσεις που διαθέτουμε"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Δεν ήταν δυνατός ο έλεγχος εάν μπορεί να ξεκινήσει μια δοκιμαστική άδεια"
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά την ενημέρωση του εικονιδίου της ομάδας."
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "Δεν ήταν δυνατή η αποθήκευση του εικονιδίου ομάδας."
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά τη λήψη της ομάδας."
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "Δεν ήταν δυνατή η κωδικοποίηση του εικονιδίου ομάδας."
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Δεν ήταν δυνατή η αποκωδικοποίηση του εικονιδίου ομάδας."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Ο έλεγχος ορίων εικόνας απέτυχε. Η ανάλυση είναι πολύ υψηλή."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Η σελιδοποίηση δεν εφαρμόζεται για την αναζήτηση μόνο δημοσίων ομάδων."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Η σελιδοποίηση δεν εφαρμόζεται για την αναζήτηση μόνο ιδιωτικών ομάδων."
+  },
+  {
+    "id": "api.team.remove_user_from_team.missing.app_error",
+    "translation": "Ο χρήστης δε φαίνεται να είναι μέλος αυτής της ομάδας."
+  },
+  {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "Παρουσιάστηκε σφάλμα κατά τη λήψη της ομάδας."
+  },
+  {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": "Δεν είναι δυνατή η κατάργηση ενός χρήστη από μια ομάδα περιορισμένου-γκρουπ."
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "Αυτό το κανάλι έχει μεταφερθεί σε αυτή την ομάδα από την %v."
+  },
+  {
+    "id": "api.team.leave.left",
+    "translation": "%v έφυγε από την ομάδα."
+  },
+  {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "Ο χρήστης δεν μπορεί να προστεθεί καθώς δεν επιτρέπεται ο τομέας στον οποίο ανήκει ο λογαριασμός του. Επικοινωνήστε με το Διαχειριστή συστήματος για περισσότερες λεπτομέρειες."
+  },
+  {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v εισήλθαν στην ομάδα."
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.domain.app_error",
+    "translation": "Ο χρήστης δεν μπορεί να προστεθεί καθώς δεν επιτρέπεται ο τομέας στον οποίο ανήκει ο λογαριασμός του. Επικοινωνήστε με το Διαχειριστή συστήματος για περισσότερες λεπτομέρειες."
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.disabled.app_error",
+    "translation": "Η δημιουργία ομάδας έχει απενεργοποιηθεί. Ρωτήστε τον Διαχειριστή συστήματος για περισσότερες λεπτομέρειες."
+  },
+  {
+    "id": "api.team.invite_members.no_one.app_error",
+    "translation": "Δεν υπάρχει κανείς να προσκαλεστεί."
+  },
+  {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "Οι ακόλουθες διευθύνσεις ηλεκτρονικού ταχυδρομείου δεν ανήκουν σε αποδεκτό τομέα: {{.Addresses}}. Για περισσότερες λεπτομέρειες, επικοινωνήστε με το Διαχειριστή συστήματος."
+  },
+  {
+    "id": "api.team.invite_members.disabled.app_error",
+    "translation": "Οι προσκλήσεις μέσω email είναι απενεργοποιημένες."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Μη έγκυρο ή ελλιπές κυρίως σώμα της αίτησης."
+  },
+  {
+    "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
+    "translation": "Τα κανάλια της πρόσκλησης πρέπει να είναι μέρος της ομάδας της πρόσκλησης."
+  },
+  {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "Δεν είναι δυνατή η ενημέρωση του μηνύματος του συστήματος."
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "Η επεξεργασία ανάρτησης επιτρέπεται μόνο για {{.timeLimit}} δευτερόλεπτα. Παρακαλούμε ρωτήστε τον Διαχειριστή συστήματος για περισσότερες λεπτομέρειες."
+  },
+  {
+    "id": "api.post.update_post.permissions_details.app_error",
+    "translation": "Διαγράφηκε ήδη η ανάρτηση με αναγνωριστικό={{. PostId}}."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Δεν είναι δυνατή η ενημέρωση μιας ανάρτησης σε ένα διαγραμμένο κανάλι."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_message",
+    "translation": "σας έστειλε ένα μήνυμα."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " επισύναψε ένα αρχείο."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_general_message",
+    "translation": " δημοσίευσε ένα μήνυμα."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_explicit_mention",
+    "translation": " σας ανέφερε."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_thread",
+    "translation": " σχολίασε ένα νήμα στο οποίο συμμετείχατε."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_post",
+    "translation": " σχολίασε την ανάρτησή σας."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_channel_mention",
+    "translation": " ειδοποίησε το κανάλι."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Δεν είναι δυνατή η ενημέρωση μιας ανάρτησης σε ένα διαγραμμένο κανάλι."
+  },
+  {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Οι προεπισκοπήσεις συνδέσμων έχουν απενεργοποιηθεί από τον διαχειριστή συστήματος."
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} εικόνα εστάλη: {{.Filenames}}",
+      "other": "{{.Count}} εικόνες εστάλησαν: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} αρχείο εστάλη: {{.Filenames}}",
+      "other": "{{.Count}} αρχεία εστάλησαν: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.error_get_post_id.pending",
+    "translation": "Δεν είναι δυνατή η λήψη της εκκρεμής ανάρτησης."
+  },
+  {
+    "id": "api.post.do_action.action_integration.app_error",
+    "translation": "Σφάλμα ενοποιητικής ενέργειας."
+  },
+  {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "Μη έγκυρο αναγνωριστικό ενέργειας."
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "Το @here έχει απενεργοποιηθεί επειδή το κανάλι έχει περισσότερους από {{.Users}} χρήστες."
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "Το @channel έχει απενεργοποιηθεί επειδή το κανάλι έχει περισσότερους από {{.Users}} χρήστες."
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "Το @all έχει απενεργοποιηθεί επειδή το κανάλι έχει περισσότερους από {{.Users}} χρήστες."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Δεν είναι δυνατή η διαγραφή μιας ανάρτησης σε ένα διαγραμμένο κανάλι."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.failed_to_get",
+    "translation": "Αποτυχία ανάκτησης αρχικής ανάρτησης μετά την κατάργηση διπλότυπων δεδομένων ενός προγράμματος-πελάτη που επαναλαμβάνει το ίδιο αίτημα."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.pending",
+    "translation": "Απορρίφθηκε η ανάρτηση επειδή άλλο πρόγραμμα-πελάτης κάνει το ίδιο αίτημα."
+  },
+  {
+    "id": "api.post.create_webhook_post.creating.app_error",
+    "translation": "Σφάλμα κατά τη δημιουργία ανάρτησης."
+  },
+  {
+    "id": "api.templates.reset_body.title",
+    "translation": "Επαναφορά του κωδικού πρόσβασης σας"
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "Κάντε κλικ στο κουμπί παρακάτω για να επαναφέρετε τον κωδικό πρόσβασης σας. Εάν δεν το ζητήσατε εσείς, μπορείτε να αγνοήσετε με ασφάλεια αυτό το email."
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "Ο σύνδεσμος επαναφοράς κωδικού πρόσβασης λήγει σε 24 ώρες."
+  },
+  {
+    "id": "api.templates.reset_body.button",
+    "translation": "Επαναφορά κωδικού πρόσβασης"
+  },
+  {
+    "id": "api.templates.remove_expired_license.subject",
+    "translation": "Η άδεια χρήσης Mattermost Enterprise έχει απενεργοποιηθεί."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.title",
+    "translation": "Η άδεια χρήσης σας Enterprise Edition έχει λήξει και ορισμένες δυνατότητες ενδέχεται να είναι απενεργοποιημένες. Παρακαλούμε ανανεώστε την άδειά σας τώρα."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.renew_button",
+    "translation": "Ανανέωση άδειας χρήσης τώρα"
+  },
+  {
+    "id": "api.templates.post_body.button",
+    "translation": "Προβολή μηνύματος"
+  },
+  {
+    "id": "api.templates.password_change_subject",
+    "translation": "[{{ .SiteName }}] Ο κωδικός πρόσβασης σας έχει ενημερωθεί"
+  },
+  {
+    "id": "api.templates.password_change_body.title",
+    "translation": "Ο κωδικός πρόσβασης σας έχει ενημερωθεί"
+  },
+  {
+    "id": "api.templates.password_change_body.info",
+    "translation": "Ο κωδικός πρόσβασης σας της {{.TeamDisplayName}} στο {{ .TeamURL }} ενημερώθηκε από την {{.Method}}."
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "Ο έλεγχος ταυτότητας πολλαπλών παραγόντων (MFA) καταργήθηκε"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "Ο έλεγχος ταυτότητας πολλαπλών παραγόντων (MFA) καταργήθηκε από τον λογαριασμό σας στο {{ .SiteURL }}."
+  },
+  {
+    "id": "api.templates.mfa_change_subject",
+    "translation": "[{{ .SiteName }}] Η ταυτότητα πολλών παραγόντων (MFA) σας ενημερώθηκε"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "Προστέθηκε έλεγχος ταυτότητας πολλών παραγόντων (MFA)"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "Ο έλεγχος ταυτότητας πολλών παραγόντων (MFA) έχει προστεθεί στον λογαριασμό σας στο {{.SiteURL}}."
+  },
+  {
+    "id": "api.templates.invite_subject",
+    "translation": "[{{.SiteName}}] Ο χρήστης {{.SenderName}} σας προσκάλεσε να συμμετάσχετε στην ομάδα {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.invite_guest_subject",
+    "translation": "[{{.SiteName}}] Ο χρήστης {{.SenderName}} σας προσκάλεσε να συμμετάσχετε στην ομάδα {{.TeamDisplayName}} ως επισκέπτης"
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "Έχετε προσκληθεί ως επισκέπτης για να συνεργαστείτε με την ομάδα"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Τι είναι το Mattermost;"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Μάθετε περισσότερα"
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Το Mattermost είναι μια ευέλικτη πλατφόρμα ανταλλαγής μηνυμάτων ανοιχτού κώδικα που επιτρέπει την ασφαλή ομαδική συνεργασία."
+  },
+  {
+    "id": "api.templates.invite_body.title",
+    "translation": "Ο χρήστης {{.SenderName}} σας προσκάλεσε να συμμετάσχετε στην ομάδα {{.TeamDisplayName}}."
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "Ξεκινήστε να συνεργάζεστε με την ομάδα σας στο Mattermost"
+  },
+  {
+    "id": "api.templates.invite_body.button",
+    "translation": "Εγγραφείτε τώρα"
+  },
+  {
+    "id": "api.templates.email_warning",
+    "translation": "Εάν δεν πραγματοποιήσατε εσείς αυτή την αλλαγή, επικοινωνήστε με το διαχειριστή του συστήματος."
+  },
+  {
+    "id": "api.templates.email_organization",
+    "translation": "Στάλθηκε από "
+  },
+  {
+    "id": "api.templates.email_info3",
+    "translation": "Η ομάδα {{.SiteName}}"
+  },
+  {
+    "id": "api.templates.email_info2",
+    "translation": "Τις καλύτερες ευχές,"
+  },
+  {
+    "id": "api.templates.email_info1",
+    "translation": "Για οποιαδήποτε απορία, στείλτε μας email ανά πάσα στιγμή: "
+  },
+  {
+    "id": "api.templates.email_footer",
+    "translation": "Για να αλλάξετε τις προτιμήσεις ειδοποιήσεων, συνδεθείτε στον ιστότοπο της ομάδας σας και μεταβείτε στις Ρυθμίσεις λογαριασμού > Ειδοποιήσεις."
+  },
+  {
+    "id": "api.templates.email_change_verify_subject",
+    "translation": "[{{ .SiteName }}] Επαληθεύστε τη νέα διεύθυνση email"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.title",
+    "translation": "Ενημερώσατε το email σας"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.info",
+    "translation": "Για να ολοκληρώσετε την ενημέρωση της διεύθυνσης email σας για την {{.TeamDisplayName}}, κάντε κλικ στον παρακάτω σύνδεσμο για να επιβεβαιώσετε ότι αυτή είναι η σωστή διεύθυνση."
+  },
+  {
+    "id": "api.templates.email_change_verify_body.button",
+    "translation": "Επαλήθευση Email"
+  },
+  {
+    "id": "api.templates.email_change_subject",
+    "translation": "[{{.SiteName}}] Η διεύθυνση email σας άλλαξε"
+  },
+  {
+    "id": "api.templates.email_change_body.title",
+    "translation": "Ενημερώσατε το email σας"
+  },
+  {
+    "id": "api.templates.email_change_body.info",
+    "translation": "Η διεύθυνση email σας για την {{.TeamDisplayName}} άλλαξε σε {{.NewEmail}}."
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{ .SiteName }}] Ο λογαριασμός σας στο {{ .ServerURL }} έχει απενεργοποιηθεί"
+  },
+  {
+    "id": "api.templates.deactivate_body.warning",
+    "translation": "Εάν αυτή η αλλαγή δεν έγινε με δική σας πρωτοβουλία ή εάν θέλετε να ενεργοποιήσετε εκ νέου τον λογαριασμό σας, επικοινωνήστε με τον διαχειριστή του συστήματός σας."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "Ο λογαριασμός σας έχει απενεργοποιηθεί στο {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "Απενεργοποιήσατε τον λογαριασμό σας στο {{.SiteURL}}."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "Η δοκιμαστική έκδοση 14 ημερών του χώρου εργασίας {{.WorkSpace}} είναι έτοιμη!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "Ακολουθήστε τα παρακάτω βήματα για να δημιουργήσετε τις ομάδες σας και να αξιοποιήσετε στο έπακρο το χώρο εργασίας σας."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "Ρυθμίστε το χώρο εργασίας σας"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "Συγχαρητήρια!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "Έχετε ερωτήσεις για το πως θα ξεκινήσετε; Στείλτε μας email στο"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "για την καλύτερη εμπειρία σε Η/Υ, Mac, iOS και Android."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "Συνδεθείτε στο χώρο εργασίας σας στο"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "εφαρμογές για κινητά και υπολογιστές"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "Μοιραστείτε αυτόν τον σύνδεσμο για να προσκαλέσετε τα μέλη σας να ενταχθούν στο {{.WorkSpace}}:"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "Προσκαλέστε άτομα στο χώρο εργασίας σας"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "Φροντίστε να αποθηκεύσετε ή να προσθέσετε σελιδοδείκτη στον σύνδεσμό σας για μελλοντική χρήση."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "Ευχαριστώ για τη δημιουργία "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "Κατεβάστε την εφαρμογή Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "Ανοίξτε το Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "αγορά εφαρμογών."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Προσθέστε εφαρμογές στον χώρο εργασίας σας"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+    "translation": "Μη έγκυρη ενημέρωση μέλους ομάδας: Ένας χρήστης πρέπει να είναι είτε επισκέπτης είτε χρήστης, όχι και τα δύο."
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Δεν επιτρέπεται ο περιορισμός της ομάδας στο {{.Domain}} από τη διαμόρφωση συστήματος. Παρακαλούμε επικοινωνήστε με τον διαχειριστή του συστήματός σας."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Αυτή η δοκιμαστική άδεια χρήσης για το Mattermost Enterprise Edition έχει λήξει και δεν είναι πλέον έγκυρη. Εάν θέλετε να παρατείνετε τη δοκιμαστική περίοδο, παρακαλούμε [επικοινωνήστε με την ομάδα πωλήσεών μας](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.app_error",
+    "translation": "Το Mattermost δεν μπόρεσε να κάνει αναβάθμιση σε Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "Το Mattermost δεν μπόρεσε να κάνει αναβάθμιση σε Enterprise Edition. Αυτή η δυνατότητα θα λειτουργεί μόνο σε συστήματα Linux με αρχιτεκτονική x86-64."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+    "translation": "Το Mattermost δεν μπόρεσε να κάνει αναβάθμιση σε Enterprise Edition. Ο χρήστης του συστήματος Mattermost {{.MattermostUsername}} δεν έχει πρόσβαση εγγραφής στο απαραίτητο δυαδικό αρχείο. Ένας διαχειριστής συστήματος μπορεί να ενημερώσει τα δικαιώματα του αρχείου εκτελώντας την ακόλουθη εντολή στο διακομιστή όπου είναι εγκατεστημένο το Mattermost:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nΑφού γίνει αλλαγή στα δικαιώματα των αρχείων, δοκιμάστε να αναβαθμίσετε ξανά το Mattermost. Όταν κάνετε αναβάθμιση και επανεκκίνηση, θυμηθείτε να επαναφέρετε τα αρχικά δικαιώματα των δυαδικών αρχείων:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+    "translation": "Το Mattermost δεν μπόρεσε να κάνει αναβάθμιση σε Enterprise Edition. Ο χρήστης του συστήματος Mattermost {{.MattermostUsername}} δεν έχει πρόσβαση εγγραφής στο απαραίτητο δυαδικό αρχείο. Ένας διαχειριστής συστήματος μπορεί να ενημερώσει τα δικαιώματα του αρχείου εκτελώντας την ακόλουθη εντολή στο διακομιστή όπου είναι εγκατεστημένο το Mattermost:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nΑφού γίνει αλλαγή στα δικαιώματα των αρχείων, δοκιμάστε να αναβαθμίσετε ξανά το Mattermost. Όταν κάνετε αναβάθμιση και επανεκκίνηση, θυμηθείτε να επαναφέρετε τα αρχικά δικαιώματα των δυαδικών αρχείων:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+    "translation": "Το Mattermost δεν μπόρεσε να κάνει αναβάθμιση σε Enterprise Edition. Ο χρήστης του συστήματος Mattermost {{.MattermostUsername}} δεν έχει πρόσβαση εγγραφής στο απαραίτητο δυαδικό αρχείο. Ένας διαχειριστής συστήματος μπορεί να ενημερώσει τα δικαιώματα του αρχείου εκτελώντας την ακόλουθη εντολή στο διακομιστή όπου είναι εγκατεστημένο το Mattermost:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nΑφού γίνει αλλαγή στα δικαιώματα των αρχείων, δοκιμάστε να αναβαθμίσετε ξανά το Mattermost. Όταν κάνετε αναβάθμιση και επανεκκίνηση, θυμηθείτε να επαναφέρετε τα αρχικά δικαιώματα των δυαδικών αρχείων:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.generic_error.app_error",
+    "translation": "Το Mattermost δεν μπόρεσε να κάνει αναβάθμιση σε Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.app_error",
+    "translation": "Εκτελείται ήδη μια αναβάθμιση σε Mattermost Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+    "translation": "Δεν μπορείτε να κάνετε αναβάθμιση επειδή εκτελείτε ήδη το Mattermost Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-done.app_error",
+    "translation": "Έχετε ήδη αναβαθμίσει σε Mattermost Enterprise Edition. Παρακαλώ κάνετε επανεκκίνηση τον διακομιστή για να ολοκληρώσετε την αναβάθμιση."
+  },
+  {
+    "id": "api.templates.welcome_subject",
+    "translation": "[{{ .SiteName }}] Έχετε ενταχθεί στο {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "Καλώς ήρθατε στην ομάδα"
+  },
+  {
+    "id": "api.templates.welcome_body.info",
+    "translation": "Αυτή η διεύθυνση email χρησιμοποιήθηκε για τη δημιουργία λογαριασμού στο Mattermost."
+  },
+  {
+    "id": "api.templates.welcome_body.button",
+    "translation": "Επαλήθευση Email"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_info",
+    "translation": "Για την καλύτερη δυνατή εμπειρία, κατεβάστε τις εφαρμογές για Η/Υ, Mac, iOS και Android."
+  },
+  {
+    "id": "api.templates.warn_metric_ack.subject",
+    "translation": "Αίτημα επικοινωνίας με τη Mattermost"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.footer",
+    "translation": "Εάν έχετε επιπλέον απορίες, επικοινωνήστε με το support@mattermost.com"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.site_url_header",
+    "translation": "Διεύθυνση URL ιστότοπου: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.registered_users_header",
+    "translation": "Σύνολο ενεργών χρηστών: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
+    "translation": "Διαγνωστικό αναγνωριστικό: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.contact_name_header",
+    "translation": "Επικοινωνία: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.contact_email_header",
+    "translation": "Email: "
+  },
+  {
+    "id": "api.templates.verify_subject",
+    "translation": "[{{ .SiteName }}] Επαλήθευση email"
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "Επαληθεύστε τη διεύθυνση email σας"
+  },
+  {
+    "id": "api.templates.verify_body.info",
+    "translation": "Αυτή η διεύθυνση email χρησιμοποιήθηκε για τη δημιουργία λογαριασμού στο Mattermost."
+  },
+  {
+    "id": "api.templates.verify_body.button",
+    "translation": "Επαλήθευση Email"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "[{{ .SiteName }}] Το όνομα χρήστη σας έχει αλλάξει"
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "Ενημερώσατε το όνομα χρήστη σας"
+  },
+  {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Το όνομα χρήστη σας για την {{.TeamDisplayName}} έχει αλλάξει σε {{.NewUsername}}."
+  },
+  {
+    "id": "api.templates.user_access_token_subject",
+    "translation": "[{{ .SiteName }}] Προστέθηκε διακριτικό προσωπικής πρόσβασης στον λογαριασμό σας"
+  },
+  {
+    "id": "api.templates.user_access_token_body.title",
+    "translation": "Προστέθηκε διακριτικό προσωπικής πρόσβασης στον λογαριασμό σας"
+  },
+  {
+    "id": "api.templates.user_access_token_body.info",
+    "translation": "Ένα προσωπικό διακριτικό πρόσβασης προστέθηκε στον λογαριασμό σας στο {{.SiteURL}}. Μπορούν να χρησιμοποιηθούν για πρόσβαση στο {{.SiteName}} με τον λογαριασμό σας."
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{.SiteName}}] Η μέθοδος σύνδεσής σας έχει ενημερωθεί"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "Ενημερώσατε τη μέθοδο σύνδεσής σας"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "email και κωδικός πρόσβασης"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "Ενημερώσατε τη μέθοδο σύνδεσής σας στο {{.SiteName}} σε {{.Method}}."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_type",
+    "translation": "Μη έγκυρος τύπος περιεχομένου για πολλαπλή μεταφόρτωση."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "Μη έγκυρο περιεχόμενο-μήκος."
+  },
+  {
+    "id": "api.upload.get_upload.forbidden.app_error",
+    "translation": "Αποτυχία λήψης."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "Το Mattermost δεν μπόρεσε να κάνει αναβάθμιση σε Enterprise Edition. Δεν ήταν δυνατή η επαλήθευση της ψηφιακής υπογραφής του ληφθέντος δυαδικού αρχείου."
+  },
+  {
+    "id": "api.user.add_direct_channels_and_forget.failed.error",
+    "translation": "Αποτυχία προσθήκης προτιμήσεων άμεσου καναλιού για τον χρήστη user_id= {{.UserId}}, team_id= {{.TeamId}}, err= {{.Error}}"
+  },
+  {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "Ο έλεγχος ταυτότητας πολλών παραγόντων (MFA) δεν είναι διαθέσιμος για αυτόν τον τύπο λογαριασμού."
+  },
+  {
+    "id": "api.upload.upload_data.multipart_error",
+    "translation": "Αποτυχία επεξεργασίας των δεδομένων πολλαπλών τμημάτων."
+  },
+  {
+    "id": "api.user.demote_user_to_guest.already_guest.app_error",
+    "translation": "Δεν είναι δυνατή η μετατροπή του χρήστη σε επισκέπτη επειδή είναι ήδη επισκέπτης."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.app_error",
+    "translation": "Η λειτουργία μόνιμης διαγραφής χρηστών δεν είναι ενεργοποιημένη. Επικοινωνήστε με το διαχειριστή του συστήματός σας."
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.app_error",
+    "translation": "Η λειτουργία μόνιμης διαγραφής ομάδων δεν είναι ενεργοποιημένη. Επικοινωνήστε με το διαχειριστή του συστήματός σας."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.app_error",
+    "translation": "Η λειτουργία μόνιμης διαγραφής καναλιών δεν είναι ενεργοποιημένη. Επικοινωνήστε με το διαχειριστή του συστήματός σας."
+  },
+  {
+    "id": "api.user.create_user.signup_link_invalid.app_error",
+    "translation": "Ο σύνδεσμος εγγραφής δε φαίνεται να είναι έγκυρος."
+  },
+  {
+    "id": "api.user.create_user.signup_link_expired.app_error",
+    "translation": "Ο σύνδεσμος εγγραφής έχει λήξει."
+  },
+  {
+    "id": "api.user.create_user.signup_email_disabled.app_error",
+    "translation": "Η εγγραφή χρήστη με email είναι απενεργοποιημένη."
+  },
+  {
+    "id": "api.user.create_user.no_open_server",
+    "translation": "Αυτός ο διακομιστής δεν επιτρέπει ανοιχτές εγγραφές.  Επικοινωνήστε με τον Διαχειριστή σας για να λάβετε πρόσκληση."
+  },
+  {
+    "id": "api.user.create_user.invalid_invitation_type.app_error",
+    "translation": "Δεν είναι δυνατή η δημιουργία του χρήστη, μη έγκυρη πρόσκληση."
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.license.app_error",
+    "translation": "Η άδειά σας δεν υποστηρίζει λογαριασμούς επισκεπτών."
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.disabled.app_error",
+    "translation": "Οι λογαριασμοί επισκεπτών είναι απενεργοποιημένοι."
+  },
+  {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "Η δημιουργία χρηστών είναι απενεργοποιημένη."
+  },
+  {
+    "id": "api.user.create_user.accepted_domain.app_error",
+    "translation": "Το email που δώσατε δεν ανήκει σε αποδεκτό τομέα. Επικοινωνήστε με τον διαχειριστή σας ή εγγραφείτε με διαφορετικό email."
+  },
+  {
+    "id": "api.user.create_profile_image.initial.app_error",
+    "translation": "Δεν ήταν δυνατή η προσθήκη των αρχικών του χρήστη στην προεπιλεγμένη εικόνα προφίλ."
+  },
+  {
+    "id": "api.user.create_profile_image.encode.app_error",
+    "translation": "Δεν ήταν δυνατή η κωδικοποίηση της προεπιλεγμένης εικόνας προφίλ."
+  },
+  {
+    "id": "api.user.create_profile_image.default_font.app_error",
+    "translation": "Δεν ήταν δυνατή η δημιουργία προεπιλεγμένης γραμματοσειράς εικόνας προφίλ."
+  },
+  {
+    "id": "api.user.create_password_token.error",
+    "translation": "Δεν είναι δυνατή η δημιουργία διακριτικού ανάκτησης κωδικού πρόσβασης"
+  },
+  {
+    "id": "api.user.create_oauth_user.create.app_error",
+    "translation": "Δεν ήταν δυνατή η δημιουργία χρήστη από τον χρήστη αντικειμένου {{.Service}}."
+  },
+  {
+    "id": "api.user.create_oauth_user.already_attached.app_error",
+    "translation": "Υπάρχει ήδη ένας λογαριασμός που σχετίζεται με αυτήν τη διεύθυνση email χρησιμοποιώντας μια μέθοδο σύνδεσης διαφορετική από την {{.Service}}. Συνδεθείτε χρησιμοποιώντας το {{.Auth}}."
+  },
+  {
+    "id": "api.user.create_email_token.error",
+    "translation": "Αποτυχία δημιουργίας δεδομένων διακριτικών για επαλήθευση email"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.parse.app_error",
+    "translation": "Δεν ήταν δυνατή η ανάλυση των δεδομένων εξουσιοδότησης από τον χρήστη αντικειμένου {{.Service}}."
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "Κενό email."
+  },
+  {
+    "id": "api.user.check_user_password.invalid.app_error",
+    "translation": "Η σύνδεση απέτυχε λόγω μη έγκυρου κωδικού πρόσβασης."
+  },
+  {
+    "id": "api.user.check_user_mfa.bad_code.app_error",
+    "translation": "Μη έγκυρο διακριτικό ελέγχου ταυτότητας πολλών παραγόντων (MFA)."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many.app_error",
+    "translation": "Ο λογαριασμός σας είναι κλειδωμένος λόγω πάρα πολλών αποτυχημένων προσπαθειών κωδικού πρόσβασης. Παρακαλώ επαναφέρετε τον κωδικό πρόσβασης σας."
+  },
+  {
+    "id": "api.user.autocomplete_users.missing_team_id.app_error",
+    "translation": "Απαιτείται παράμετρος αναγνωριστικού ομάδας για αυτόματη συμπλήρωση ανά κανάλι."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.unsupported.app_error",
+    "translation": "{{.Service}} Το σύστημα ενιαίας πρόσβασης (SSO) μέσω OAuth 2.0 δεν είναι διαθέσιμο σε αυτόν τον διακομιστή."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.token_failed.app_error",
+    "translation": "Το αίτημα για διακριτικό απέτυχε."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.service.app_error",
+    "translation": "Το αίτημα για διακριτικό στο {{.Service}} απέτυχε."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "Λήφθηκε μη έγκυρη απάντηση από τον πάροχο υπηρεσιών OAuth."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.missing.app_error",
+    "translation": "Λείπει το διακριτικό πρόσβασης."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.invalid_state.app_error",
+    "translation": "Μη έγκυρη κατάσταση"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_token.app_error",
+    "translation": "Κακός τύπος διακριτικού."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_response.app_error",
+    "translation": "Κακή απάντηση από αίτημα διακριτικού."
+  },
+  {
+    "id": "api.user.login.bot_login_forbidden.app_error",
+    "translation": "Απαγορεύεται η σύνδεση σε λογαριασμούς bot."
+  },
+  {
+    "id": "api.user.login.blank_pwd.app_error",
+    "translation": "Το πεδίο κωδικού πρόσβασης δεν πρέπει να είναι κενό"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "Αυτός ο λογαριασμός χρήστη δε χρησιμοποιεί AD/LDAP."
+  },
+  {
+    "id": "api.user.ldap_to_email.not_available.app_error",
+    "translation": "Το AD/LDAP δεν είναι διαθέσιμο σε αυτόν τον διακομιστή."
+  },
+  {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Δεν είναι δυνατή η λήψη του χρήστη μέσω email."
+  },
+  {
+    "id": "api.user.get_uploads_for_user.forbidden.app_error",
+    "translation": "Αποτυχία λήψης μεταφορτώσεων."
+  },
+  {
+    "id": "api.user.email_to_oauth.not_available.app_error",
+    "translation": "Η μεταφορά ελέγχου ταυτότητας δεν έχει ρυθμιστεί ή δεν είναι διαθέσιμη σε αυτόν τον διακομιστή."
+  },
+  {
+    "id": "api.user.email_to_ldap.not_available.app_error",
+    "translation": "Το AD/LDAP δεν είναι διαθέσιμο σε αυτόν τον διακομιστή."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Η συνδρομή σας στο Mattermost είναι έτοιμη για ανανέωση"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Συνδεθείτε στο Λογαριασμό Πελάτη σας για να ανανεώσετε"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, η συνδρομή σας έχει οριστεί να λήξει σε {{.Days}} ημέρες. Ελπίζουμε να απολαμβάνετε την ευέλικτη, ασφαλή ομαδική συνεργασία που δίνει το Mattermost. Ανανεώστε σύντομα για να διασφαλίσετε ότι η ομάδα σας θα συνεχίσει να απολαμβάνει αυτά τα οφέλη."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Η άδειά σας είναι έτοιμη για ανανέωση"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Ανανεώστε τώρα"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_generating_link",
+    "translation": "Αποτυχία δημιουργίας συνδέσμου για ανανέωση άδειας χρήσης"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Αποτυχία αποστολής άδειας χρήσης για ανανέωση μηνυμάτων emails"
+  }
+]
