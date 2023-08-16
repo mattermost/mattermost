@@ -594,6 +594,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             return (
                 <CheckInput
                     id='signup-body-card-form-check-newsletter'
+                    ariaLabel={formatMessage({id: 'newsletter_optin.checkmark.box', defaultMessage: 'newsletter checkbox'})}
                     name='newsletter'
                     onChange={() => setSubscribeToSecurityNewsletter(!subscribeToSecurityNewsletter)}
                     text={

@@ -425,7 +425,6 @@ export const ModalIdentifiers = {
     REQUEST_BUSINESS_EMAIL_MODAL: 'request_business_email_modal',
     FEATURE_RESTRICTED_MODAL: 'feature_restricted_modal',
     FORWARD_POST_MODAL: 'forward_post_modal',
-    CLOUD_SUBSCRIBE_WITH_LOADING_MODAL: 'cloud_subscribe_with_loading_modal',
     JOIN_PUBLIC_CHANNEL_MODAL: 'join_public_channel_modal',
     CLOUD_INVOICE_PREVIEW: 'cloud_invoice_preview',
     BILLING_HISTORY: 'billing_history',
@@ -573,7 +572,7 @@ export const SocketEvents = {
     CHANNEL_DELETED: 'channel_deleted',
     CHANNEL_UNARCHIVED: 'channel_restored',
     CHANNEL_UPDATED: 'channel_updated',
-    CHANNEL_VIEWED: 'channel_viewed',
+    MULTIPLE_CHANNELS_VIEWED: 'multiple_channels_viewed',
     CHANNEL_MEMBER_UPDATED: 'channel_member_updated',
     CHANNEL_SCHEME_UPDATED: 'channel_scheme_updated',
     DIRECT_ADDED: 'direct_added',
@@ -664,7 +663,6 @@ export const CrtTutorialSteps = {
 };
 
 export const ExploreOtherToolsTourSteps = {
-    BOARDS_TOUR: 0,
     PLAYBOOKS_TOUR: 1,
     FINISHED: 999,
 };
@@ -1104,7 +1102,7 @@ export const DocLinks = {
     ENABLE_HARDENED_MODE: 'https://mattermost.com/pl/enable-hardened-mode',
     FORMAT_MESSAGES: 'https://mattermost.com/pl/format-messages',
     GUEST_ACCOUNTS: 'https://docs.mattermost.com/onboard/guest-accounts.html',
-    HIGH_AVAILABILITY_CLUSTER: 'https://mattermomst.com/pl/high-availability-cluster',
+    HIGH_AVAILABILITY_CLUSTER: 'https://mattermost.com/pl/high-availability-cluster',
     IN_PRODUCT_NOTICES: 'https://mattermost.com/pl/in-product-notices',
     MULTI_FACTOR_AUTH: 'https://mattermost.com/pl/multi-factor-authentication',
     ONBOARD_ADVANCED_PERMISSIONS: 'https://mattermost.com/pl/advanced-permissions',
@@ -1187,6 +1185,7 @@ export const PermissionsScope = {
     [Permissions.DELETE_PRIVATE_CHANNEL]: 'channel_scope',
     [Permissions.EDIT_OTHER_USERS]: 'system_scope',
     [Permissions.READ_CHANNEL]: 'channel_scope',
+    [Permissions.READ_CHANNEL_CONTENT]: 'channel_scope',
     [Permissions.READ_PUBLIC_CHANNEL]: 'team_scope',
     [Permissions.ADD_REACTION]: 'channel_scope',
     [Permissions.REMOVE_REACTION]: 'channel_scope',
@@ -1246,13 +1245,13 @@ export const PermissionsScope = {
     [Permissions.DELETE_CUSTOM_GROUP]: 'system_scope',
     [Permissions.RESTORE_CUSTOM_GROUP]: 'system_scope',
     [Permissions.MANAGE_CUSTOM_GROUP_MEMBERS]: 'system_scope',
+    [Permissions.USE_SLASH_COMMANDS]: 'channel_scope',
 };
 
 export const DefaultRolePermissions = {
     all_users: [
         Permissions.CREATE_DIRECT_CHANNEL,
         Permissions.CREATE_GROUP_CHANNEL,
-        Permissions.PERMANENT_DELETE_USER,
         Permissions.CREATE_TEAM,
         Permissions.LIST_TEAM_CHANNELS,
         Permissions.JOIN_PUBLIC_CHANNELS,
@@ -1267,6 +1266,7 @@ export const DefaultRolePermissions = {
         Permissions.INVITE_USER,
         Permissions.ADD_USER_TO_TEAM,
         Permissions.READ_CHANNEL,
+        Permissions.READ_CHANNEL_CONTENT,
         Permissions.ADD_REACTION,
         Permissions.REMOVE_REACTION,
         Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
@@ -1278,8 +1278,6 @@ export const DefaultRolePermissions = {
         Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS,
         Permissions.DELETE_POST,
         Permissions.EDIT_POST,
-        Permissions.LIST_PUBLIC_TEAMS,
-        Permissions.JOIN_PUBLIC_TEAMS,
         Permissions.USE_CHANNEL_MENTIONS,
         Permissions.USE_GROUP_MENTIONS,
         Permissions.CREATE_CUSTOM_GROUP,
@@ -1292,8 +1290,13 @@ export const DefaultRolePermissions = {
         Permissions.PLAYBOOK_PRIVATE_MANAGE_MEMBERS,
         Permissions.PLAYBOOK_PUBLIC_MANAGE_PROPERTIES,
         Permissions.PLAYBOOK_PRIVATE_MANAGE_PROPERTIES,
-        Permissions.PLAYBOOK_PUBLIC_MAKE_PRIVATE,
         Permissions.RUN_CREATE,
+        Permissions.USE_SLASH_COMMANDS,
+        Permissions.DELETE_EMOJIS,
+        Permissions.INVITE_GUEST,
+        Permissions.CREATE_EMOJIS,
+        Permissions.RUN_VIEW,
+        Permissions.RESTORE_CUSTOM_GROUP,
     ],
     channel_admin: [
         Permissions.MANAGE_CHANNEL_ROLES,
