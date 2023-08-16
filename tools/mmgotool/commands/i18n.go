@@ -17,24 +17,14 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/spf13/cobra"
 )
 
 const enterpriseKeyPrefix = "ent."
 const untranslatedKey = "<untranslated>"
-
-type Translation struct {
-	Id          string      `json:"id"`
-	Translation interface{} `json:"translation"`
-}
-
-type Item struct {
-	ID          string          `json:"id"`
-	Translation json.RawMessage `json:"translation"`
-}
 
 var I18nCmd = &cobra.Command{
 	Use:   "i18n",
@@ -108,14 +98,18 @@ func init() {
 	RootCmd.AddCommand(I18nCmd)
 }
 
-func getBaseFileSrcStrings(mattermostDir string) ([]Translation, error) {
-	jsonFile, err := ioutil.ReadFile(path.Join(mattermostDir, "i18n", "en.json"))
+func parseMessageFile(path string) ([]*i18n.Message, error) {
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	var translations []Translation
-	_ = json.Unmarshal(jsonFile, &translations)
-	return translations, nil
+
+	file, err := i18n.ParseMessageFileBytes(data, path, map[string]i18n.UnmarshalFunc{"json": json.Unmarshal})
+	if err != nil {
+		return nil, err
+	}
+
+	return file.Messages, nil
 }
 
 func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir string) map[string]bool {
@@ -186,24 +180,24 @@ func extractCmdF(command *cobra.Command, args []string) error {
 	}
 	sort.Strings(i18nStringsList)
 
-	sourceStrings, err := getBaseFileSrcStrings(translationDir)
+	sourceMessages, err := parseMessageFile(path.Join(translationDir, "i18n", "en.json"))
 	if err != nil {
 		return err
 	}
 
 	var baseFileList []string
 	idx := map[string]bool{}
-	resultMap := map[string]Translation{}
-	for _, t := range sourceStrings {
-		idx[t.Id] = true
-		baseFileList = append(baseFileList, t.Id)
-		resultMap[t.Id] = t
+	resultMap := map[string]i18n.Message{}
+	for _, t := range sourceMessages {
+		idx[t.ID] = true
+		baseFileList = append(baseFileList, t.ID)
+		resultMap[t.ID] = *t
 	}
 	sort.Strings(baseFileList)
 
 	for _, translationKey := range i18nStringsList {
 		if _, hasKey := idx[translationKey]; !hasKey {
-			resultMap[translationKey] = Translation{Id: translationKey, Translation: ""}
+			resultMap[translationKey] = i18n.Message{ID: translationKey, Other: ""}
 		}
 	}
 
@@ -216,11 +210,11 @@ func extractCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	var result []Translation
+	var result []i18n.Message
 	for _, t := range resultMap {
 		result = append(result, t)
 	}
-	sort.Slice(result, func(i, j int) bool { return result[i].Id < result[j].Id })
+	sort.Slice(result, func(i, j int) bool { return result[i].ID < result[j].ID })
 
 	f, err := os.Create(path.Join(mattermostDir, "i18n", "en.json"))
 	if err != nil {
@@ -284,16 +278,16 @@ func checkCmdF(command *cobra.Command, args []string) error {
 	}
 	sort.Strings(extractedList)
 
-	srcStrings, err := getBaseFileSrcStrings(translationDir)
+	srcMessages, err := parseMessageFile(path.Join(translationDir, "i18n", "en.json"))
 	if err != nil {
 		return err
 	}
 
 	var baseFileList []string
 	idx := map[string]bool{}
-	for _, t := range srcStrings {
-		idx[t.Id] = true
-		baseFileList = append(baseFileList, t.Id)
+	for _, t := range srcMessages {
+		idx[t.ID] = true
+		baseFileList = append(baseFileList, t.ID)
 	}
 	sort.Strings(baseFileList)
 
@@ -580,33 +574,32 @@ func checkEmptySrcCmdF(command *cobra.Command, args []string) error {
 		}
 		translationDir = portalDir
 	}
-	srcJSON, err := ioutil.ReadFile(path.Join(translationDir, "en.json"))
+
+	messages, err := parseMessageFile(path.Join(translationDir, "en.json"))
 	if err != nil {
 		return err
 	}
-	var items []Item
-	if err = json.Unmarshal(srcJSON, &items); err != nil {
-		return err
-	}
-	err = countEmptyItems(items)
+	err = countEmptyMessages(messages)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func countEmptyItems(items []Item) error {
+func isMessageEmpty(t *i18n.Message) bool {
+	forms := []string{t.Zero, t.One, t.Two, t.Few, t.Many, t.Other}
+	for _, v := range forms {
+		if strings.TrimSpace(v) != "" {
+			return false
+		}
+	}
+	return true
+}
+
+func countEmptyMessages(items []*i18n.Message) error {
 	hasError := false
 	for _, t := range items {
-		str := string(t.Translation)
-		if !strings.HasPrefix(str, "\"") {
-			continue
-		}
-		unquoted, err := strconv.Unquote(str)
-		if err != nil {
-			return fmt.Errorf("error unquoting translation for %s, %v", t.ID, err)
-		}
-		if strings.TrimSpace(unquoted) == "" {
+		if isMessageEmpty(t) {
 			log.Printf("Empty translation for %s. Please fix it.\n", t.ID)
 			hasError = true
 		}
@@ -676,20 +669,16 @@ func cleanEmptyCmdF(command *cobra.Command, args []string) error {
 }
 
 func clean(translationDir string, file string, dryRun bool, check bool) (*string, error) {
-	oldJSON, err := ioutil.ReadFile(path.Join(translationDir, file))
+	oldList, err := parseMessageFile(path.Join(translationDir, file))
 	if err != nil {
 		return nil, err
 	}
 
-	if strings.TrimSpace(string(oldJSON)) == "{}" {
+	if len(oldList) == 0 {
 		noIssue := ""
-		return &noIssue, err
+		return &noIssue, nil
 	}
 
-	var oldList []Item
-	if err = json.Unmarshal(oldJSON, &oldList); err != nil {
-		return nil, err
-	}
 	newList, count := removeEmptyTranslations(oldList)
 	result := ""
 	if count == 0 {
@@ -715,12 +704,12 @@ func clean(translationDir string, file string, dryRun bool, check bool) (*string
 	return &result, nil
 }
 
-func removeEmptyTranslations(oldList []Item) ([]Item, int) {
+func removeEmptyTranslations(oldList []*i18n.Message) ([]i18n.Message, int) {
 	var count int
-	var newList []Item
+	var newList []i18n.Message
 	for i, t := range oldList {
-		if string(t.Translation) != "\"\"" {
-			newList = append(newList, oldList[i])
+		if !isMessageEmpty(t) {
+			newList = append(newList, *oldList[i])
 		} else {
 			count++
 		}
@@ -733,7 +722,7 @@ func JSONMarshal(t interface{}) ([]byte, error) {
 	buffer := &bytes.Buffer{}
 	encoder := json.NewEncoder(buffer)
 	encoder.SetEscapeHTML(false)
-	encoder.SetIndent("", "    ")
+	encoder.SetIndent("", "  ")
 	err := encoder.Encode(t)
 	return buffer.Bytes(), err
 }
