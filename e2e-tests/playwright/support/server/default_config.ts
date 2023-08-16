@@ -583,10 +583,8 @@ const defaultServerConfig: AdminConfig = {
     DataRetentionSettings: {
         EnableMessageDeletion: false,
         EnableFileDeletion: false,
-        EnableBoardsDeletion: false,
         MessageRetentionDays: 365,
         FileRetentionDays: 365,
-        BoardsRetentionDays: 365,
         DeletionJobStartTime: '02:00',
         BatchSize: 3000,
     },
@@ -669,7 +667,6 @@ const defaultServerConfig: AdminConfig = {
         PermalinkPreviews: true,
         CallsEnabled: true,
         BoardsFeatureFlags: '',
-        BoardsDataRetention: false,
         NormalizeLdapDNs: false,
         GraphQL: false,
         CommandPalette: false,
