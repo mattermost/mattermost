@@ -681,10 +681,9 @@ func clean(translationDir string, file string, dryRun bool, check bool) (*string
 
 	newList, count := removeEmptyTranslations(oldList)
 	result := ""
-	if count == 0 {
-		return &result, nil
+	if count != 0 {
+		result = fmt.Sprintf("%v has %v empty translations\n", file, count)
 	}
-	result = fmt.Sprintf("%v has %v empty translations\n", file, count)
 	if dryRun || check {
 		return &result, nil
 	}
