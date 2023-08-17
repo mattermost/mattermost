@@ -35,9 +35,15 @@ func (a *App) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
 	}
 	defer res.Body.Close()
 
-	_, ogJSON, err := a.parseOpenGraphMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
+	graph := a.parseOpenGraphMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
+
+	ogJSON, err := graph.ToJSON()
 	if err != nil {
 		return nil, err
+	}
+
+	if len(ogJSON) > openGraphMetadataCacheEntrySizeLimit {
+		return nil, errors.New("opengraph data exceeds cache entry size limit")
 	}
 
 	err = a.Srv().openGraphDataCache.SetWithExpiry(requestURL, ogJSON, 1*time.Hour)
@@ -48,7 +54,7 @@ func (a *App) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
 	return ogJSON, nil
 }
 
-func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, []byte, error) {
+func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentType string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 	body = forceHTMLEncodingToUTF8(io.LimitReader(body, MaxOpenGraphResponseSize), contentType)
 
@@ -70,16 +76,7 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 		og.URL = requestURL
 	}
 
-	ogJSON, err := og.ToJSON()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if len(ogJSON) > openGraphMetadataCacheEntrySizeLimit {
-		return nil, nil, errors.New("opengraph data exceeds cache entry size limit")
-	}
-
-	return og, ogJSON, nil
+	return og
 }
 
 func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {
