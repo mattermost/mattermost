@@ -921,7 +921,7 @@ func (ch *Channels) getPluginsFromFilePaths(fileStorePaths []string) map[string]
 // prepackaged_plugins directory.
 //
 // If enabled, prepackaged plugins are installed or upgraded locally. A list of transitionally
-// prepackaged plugins is also returned for later persistence to the filestore.
+// prepackaged plugins is also collected for later persistence to the filestore.
 func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) error {
 	prepackagedPluginsPath, found := fileutils.FindDir(prepackagedPluginsDir)
 	if !found {
