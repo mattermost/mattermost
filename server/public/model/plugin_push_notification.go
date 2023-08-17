@@ -4,12 +4,12 @@
 package model
 
 // PluginPushNotification is sent to the plugin when a push notification is going to be sent (via the
-// NotificationWillBePushed hook).
+// NotificationWillBePushed hook), and is used as the source data for the plugin api SendPluginPushNotification method.
 type PluginPushNotification struct {
 	Post               *Post
 	Channel            *Channel
 	UserID             string
-	ExplicitMention    bool
-	ChannelWideMention bool
-	ReplyToThreadType  string
+	ExplicitMention    bool   // Used to construct the generic "@sender mentioned you" msg when `cfg.EmailSettings.PushNotificationContents` is not set to `full`
+	ChannelWideMention bool   // Used to construct the generic "@sender notified the channel" msg when `cfg.EmailSettings.PushNotificationContents` is not set to `full`
+	ReplyToThreadType  string // Used to construct the generic CRT msgs when `cfg.EmailSettings.PushNotificationContents` is not set to `full`; see `App.getPushNotificationMessage` for details.
 }

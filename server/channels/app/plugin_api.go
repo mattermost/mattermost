@@ -1268,7 +1268,7 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 	return fi, nil
 }
 
-func (api *PluginAPI) SendPushNotification(notification *model.PluginPushNotification) error {
+func (api *PluginAPI) SendPluginPushNotification(notification *model.PluginPushNotification) error {
 	var profiles map[string]*model.User
 	var err error
 	if notification.Channel.Type == model.ChannelTypeGroup {

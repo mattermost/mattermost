@@ -3639,8 +3639,8 @@ func (_m *API) SendMail(to string, subject string, htmlBody string) *model.AppEr
 	return r0
 }
 
-// SendPushNotification provides a mock function with given fields: notification
-func (_m *API) SendPushNotification(notification *model.PluginPushNotification) error {
+// SendPluginPushNotification provides a mock function with given fields: notification
+func (_m *API) SendPluginPushNotification(notification *model.PluginPushNotification) error {
 	ret := _m.Called(notification)
 
 	var r0 error
