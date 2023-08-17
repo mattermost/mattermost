@@ -766,7 +766,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 			mentions.addMention(post.UserId, DMMention)
 		}
 	} else if channel.Type == model.ChannelTypeGroup {
-		for id, _ := range channelMemberNotifyPropsMap {
+		for id := range channelMemberNotifyPropsMap {
 			mentions.addMention(id, DMMention)
 		}
 
