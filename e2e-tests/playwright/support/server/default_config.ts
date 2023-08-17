@@ -674,7 +674,6 @@ const defaultServerConfig: AdminConfig = {
         PostPriority: true,
         WysiwygEditor: false,
         PeopleProduct: false,
-        ReduceOnBoardingTaskList: false,
         ThreadsEverywhere: false,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
