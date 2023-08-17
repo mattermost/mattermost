@@ -59,8 +59,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 			}
 		}()
 
-		logger := app.Log().With(mlog.String("job_id", job.Id))
-		appErr := app.BulkExport(request.EmptyContext(logger), wr, outPath, job, opts)
+		appErr := app.BulkExport(request.EmptyContext(app.Log()), wr, outPath, job, opts)
 		wr.Close() // Close never returns an error
 
 		if appErr != nil {

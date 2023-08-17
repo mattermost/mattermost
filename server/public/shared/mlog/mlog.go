@@ -44,6 +44,34 @@ type LoggerIFace interface {
 	StdLogger(level Level) *log.Logger
 }
 
+type SuggerIFace interface {
+	Debug(msg string, args ...interface{})
+	Debugf(format string, args ...interface{})
+	Debugw(msg string, keyValuePairs ...interface{})
+	Error(msg string, args ...interface{})
+	Errorf(format string, args ...interface{})
+	Errorw(msg string, keyValuePairs ...interface{})
+	Fatal(msg string, args ...interface{})
+	Fatalf(format string, args ...interface{})
+	Fatalw(msg string, keyValuePairs ...interface{})
+	Info(msg string, args ...interface{})
+	Infof(format string, args ...interface{})
+	Infow(msg string, keyValuePairs ...interface{})
+	Logf(lvl logr.Level, format string, args ...interface{})
+	Panic(msg string, args ...interface{})
+	Panicf(format string, args ...interface{})
+	Panicw(msg string, keyValuePairs ...interface{})
+	Print(msg string, args ...interface{})
+	Printf(format string, args ...interface{})
+	Trace(msg string, args ...interface{})
+	Tracef(format string, args ...interface{})
+	Tracew(msg string, keyValuePairs ...interface{})
+	Warn(msg string, args ...interface{})
+	Warnf(format string, args ...interface{})
+	Warnw(msg string, keyValuePairs ...interface{})
+	With(keyValuePairs ...interface{}) Sugar
+}
+
 // Type and function aliases from Logr to limit the spread of dependencies.
 type Field = logr.Field
 type Level = logr.Level

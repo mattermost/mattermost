@@ -88,10 +88,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 	defer worker.jobServer.HandleJobPanic(job)
 
 	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		mlog.Info("Worker experienced an error while trying to claim job",
-			mlog.String("worker", worker.name),
-			mlog.String("job_id", job.Id),
-			mlog.String("error", err.Error()))
+		job.Logger.Info("Worker experienced an error while trying to claim job", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
 		return
 	} else if !claimed {
 		return
@@ -106,29 +103,29 @@ func (worker *Worker) DoJob(job *model.Job) {
 	for {
 		select {
 		case <-cancelWatcherChan:
-			mlog.Debug("Worker: Job has been canceled via CancellationWatcher", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
+			job.Logger.Debug("Worker: Job has been canceled via CancellationWatcher", mlog.String("worker", worker.name))
 			worker.setJobCanceled(job)
 			return
 
 		case <-worker.stop:
-			mlog.Debug("Worker: Job has been canceled via Worker Stop", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
+			job.Logger.Debug("Worker: Job has been canceled via Worker Stop", mlog.String("worker", worker.name))
 			worker.setJobCanceled(job)
 			return
 
 		case <-time.After(TimeBetweenBatches * time.Millisecond):
 			done, progress, err := worker.runMigration(job.Data[JobDataKeyMigration], job.Data[JobDataKeyMigrationLastDone])
 			if err != nil {
-				mlog.Error("Worker: Failed to run migration", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+				job.Logger.Error("Worker: Failed to run migration", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
 				worker.setJobError(job, err)
 				return
 			} else if done {
-				mlog.Info("Worker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
+				job.Logger.Info("Worker: Job is complete", mlog.String("worker", worker.name))
 				worker.setJobSuccess(job)
 				return
 			} else {
 				job.Data[JobDataKeyMigrationLastDone] = progress
 				if err := worker.jobServer.UpdateInProgressJobData(job); err != nil {
-					mlog.Error("Worker: Failed to update migration status data for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+					job.Logger.Error("Worker: Failed to update migration status data for job", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
 					worker.setJobError(job, err)
 					return
 				}
@@ -139,20 +136,20 @@ func (worker *Worker) DoJob(job *model.Job) {
 
 func (worker *Worker) setJobSuccess(job *model.Job) {
 	if err := worker.jobServer.SetJobSuccess(job); err != nil {
-		mlog.Error("Worker: Failed to set success for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+		job.Logger.Error("Worker: Failed to set success for job", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
 		worker.setJobError(job, err)
 	}
 }
 
 func (worker *Worker) setJobError(job *model.Job, appError *model.AppError) {
 	if err := worker.jobServer.SetJobError(job, appError); err != nil {
-		mlog.Error("Worker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+		job.Logger.Error("Worker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
 	}
 }
 
 func (worker *Worker) setJobCanceled(job *model.Job) {
 	if err := worker.jobServer.SetJobCanceled(job); err != nil {
-		mlog.Error("Worker: Failed to mark job as canceled", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+		job.Logger.Error("Worker: Failed to mark job as canceled", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
 	}
 }
 

@@ -31,6 +31,7 @@ func NewJobServer(configService configservice.ConfigService, store store.Store, 
 		ConfigService: configService,
 		Store:         store,
 		metrics:       metrics,
+		logger:        logger,
 	}
 	srv.initWorkers()
 	srv.initSchedulers()

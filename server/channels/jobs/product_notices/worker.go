@@ -23,7 +23,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		defer jobServer.HandleJobPanic(job)
 
 		if err := app.UpdateProductNotices(); err != nil {
-			mlog.Error("Worker: Failed to fetch product notices", mlog.String("worker", model.JobTypeProductNotices), mlog.String("job_id", job.Id), mlog.Err(err))
+			job.Logger.Error("Worker: Failed to fetch product notices", mlog.String("worker", model.JobTypeProductNotices), mlog.Err(err))
 			return err
 		}
 		return nil
