@@ -6,7 +6,10 @@ package model
 // PluginPushNotification is sent to the plugin when a push notification is going to be sent (via the
 // NotificationWillBePushed hook).
 type PluginPushNotification struct {
-	Post    *Post
-	Channel *Channel
-	UserID  string
+	Post               *Post
+	Channel            *Channel
+	UserID             string
+	ExplicitMention    bool
+	ChannelWideMention bool
+	ReplyToThreadType  string
 }
