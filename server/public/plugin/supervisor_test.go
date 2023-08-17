@@ -34,9 +34,8 @@ func testSupervisorInvalidExecutablePath(t *testing.T) {
 	os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "/foo/../../backend.exe"}}`), 0600)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
-	defer log.Shutdown()
-	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	logger := mlog.CreateConsoleTestLogger(t, true)
+	supervisor, err := newSupervisor(bundle, nil, nil, logger, nil)
 	assert.Nil(t, supervisor)
 	assert.Error(t, err)
 }
@@ -49,9 +48,8 @@ func testSupervisorNonExistentExecutablePath(t *testing.T) {
 	os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "thisfileshouldnotexist"}}`), 0600)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
-	defer log.Shutdown()
-	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	logger := mlog.CreateConsoleTestLogger(t, true)
+	supervisor, err := newSupervisor(bundle, nil, nil, logger, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)
 }
@@ -75,9 +73,8 @@ func testSupervisorStartTimeout(t *testing.T) {
 	os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
-	defer log.Shutdown()
-	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	logger := mlog.CreateConsoleTestLogger(t, true)
+	supervisor, err := newSupervisor(bundle, nil, nil, logger, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)
 }

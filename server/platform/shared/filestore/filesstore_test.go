@@ -36,8 +36,7 @@ type FileBackendTestSuite struct {
 func TestLocalFileBackendTestSuite(t *testing.T) {
 	// Setup a global logger to catch tests logging outside of app context
 	// The global logger will be stomped by apps initializing but that's fine for testing. Ideally this won't happen.
-	logger := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
-	defer logger.Shutdown()
+	logger := mlog.CreateConsoleTestLogger(t, true)
 
 	mlog.InitGlobalLogger(logger)
 

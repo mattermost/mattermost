@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -275,8 +276,9 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 
 func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
+	ctx := request.EmptyContext(s.th.App.Log())
 
-	job, appErr := s.th.App.CreateJob(&model.Job{
+	job, appErr := s.th.App.CreateJob(ctx, &model.Job{
 		Type: model.JobTypeExportProcess,
 	})
 	s.Require().Nil(appErr)
@@ -284,7 +286,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 	s.Run("MM-T3885 - no permissions", func() {
 		printer.Clean()
 
-		job1, appErr := s.th.App.CreateJob(&model.Job{
+		job1, appErr := s.th.App.CreateJob(ctx, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
@@ -317,6 +319,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 
 func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 	s.SetupTestHelper().InitBasic()
+	ctx := request.EmptyContext(s.th.App.Log())
 
 	s.Run("MM-T3887 - no permissions", func() {
 		printer.Clean()
@@ -356,21 +359,21 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Bool("all", false, "")
 
-		_, appErr := s.th.App.CreateJob(&model.Job{
+		_, appErr := s.th.App.CreateJob(ctx, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 
 		time.Sleep(time.Millisecond)
 
-		job2, appErr := s.th.App.CreateJob(&model.Job{
+		job2, appErr := s.th.App.CreateJob(ctx, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 
 		time.Sleep(time.Millisecond)
 
-		job3, appErr := s.th.App.CreateJob(&model.Job{
+		job3, appErr := s.th.App.CreateJob(ctx, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
@@ -386,13 +389,14 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 
 func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 	s.SetupTestHelper().InitBasic()
+	ctx := request.EmptyContext(s.th.App.Log())
 
 	s.Run("Cancel an export job without permissions", func() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
 
-		job, appErr := s.th.App.CreateJob(&model.Job{
+		job, appErr := s.th.App.CreateJob(ctx, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
@@ -421,14 +425,14 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 
 		cmd := &cobra.Command{}
 
-		job1, appErr := s.th.App.CreateJob(&model.Job{
+		job1, appErr := s.th.App.CreateJob(ctx, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 
 		time.Sleep(time.Millisecond)
 
-		job2, appErr := s.th.App.CreateJob(&model.Job{
+		job2, appErr := s.th.App.CreateJob(ctx, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)

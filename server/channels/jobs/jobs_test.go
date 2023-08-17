@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
@@ -54,7 +55,7 @@ func makeTeamEditionJobServer(t *testing.T) (*JobServer, *storetest.Store) {
 		mockStore.AssertExpectations(t)
 	})
 
-	jobServer := NewJobServer(configService, mockStore, nil)
+	jobServer := NewJobServer(configService, mockStore, nil, mlog.CreateConsoleTestLogger(t, true))
 
 	return jobServer, mockStore
 }

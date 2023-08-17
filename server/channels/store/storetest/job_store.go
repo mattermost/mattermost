@@ -7,16 +7,15 @@ import (
 	"errors"
 	"sync"
 	"testing"
-
 	"time"
 
 	"github.com/lib/pq"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestJobStore(t *testing.T, ss store.Store) {
@@ -105,6 +104,8 @@ func testJobSaveOnce(t *testing.T, ss store.Store) {
 }
 
 func testJobGetAllByType(t *testing.T, ss store.Store) {
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, false))
+
 	jobType := model.NewId()
 
 	jobs := []*model.Job{
@@ -128,13 +129,14 @@ func testJobGetAllByType(t *testing.T, ss store.Store) {
 		defer ss.Job().Delete(job.Id)
 	}
 
-	received, err := ss.Job().GetAllByType(request.EmptyContext(), jobType)
+	received, err := ss.Job().GetAllByType(ctx, jobType)
 	require.NoError(t, err)
 	require.Len(t, received, 2)
 	require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id}, []string{received[0].Id, received[1].Id})
 }
 
 func testJobGetAllByTypeAndStatus(t *testing.T, ss store.Store) {
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
 	jobType := model.NewId()
 
 	jobs := []*model.Job{
@@ -156,13 +158,15 @@ func testJobGetAllByTypeAndStatus(t *testing.T, ss store.Store) {
 		defer ss.Job().Delete(job.Id)
 	}
 
-	received, err := ss.Job().GetAllByTypeAndStatus(jobType, model.JobStatusPending)
+	received, err := ss.Job().GetAllByTypeAndStatus(ctx, jobType, model.JobStatusPending)
 	require.NoError(t, err)
 	require.Len(t, received, 2)
 	require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id}, []string{received[0].Id, received[1].Id})
 }
 
 func testJobGetAllByTypePage(t *testing.T, ss store.Store) {
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+
 	jobType := model.NewId()
 
 	jobs := []*model.Job{
@@ -194,19 +198,21 @@ func testJobGetAllByTypePage(t *testing.T, ss store.Store) {
 		defer ss.Job().Delete(job.Id)
 	}
 
-	received, err := ss.Job().GetAllByTypePage(jobType, 0, 2)
+	received, err := ss.Job().GetAllByTypePage(ctx, jobType, 0, 2)
 	require.NoError(t, err)
 	require.Len(t, received, 2)
 	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
 	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
 
-	received, err = ss.Job().GetAllByTypePage(jobType, 2, 2)
+	received, err = ss.Job().GetAllByTypePage(ctx, jobType, 2, 2)
 	require.NoError(t, err)
 	require.Len(t, received, 1)
 	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")
 }
 
 func testJobGetAllByTypesPage(t *testing.T, ss store.Store) {
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+
 	jobType := model.NewId()
 	jobType2 := model.NewId()
 
@@ -241,7 +247,7 @@ func testJobGetAllByTypesPage(t *testing.T, ss store.Store) {
 
 	// test return all
 	jobTypes := []string{jobType, jobType2}
-	received, err := ss.Job().GetAllByTypesPage(jobTypes, 0, 4)
+	received, err := ss.Job().GetAllByTypesPage(ctx, jobTypes, 0, 4)
 	require.NoError(t, err)
 	require.Len(t, received, 3)
 	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
@@ -249,19 +255,21 @@ func testJobGetAllByTypesPage(t *testing.T, ss store.Store) {
 
 	// test paging
 	jobTypes = []string{jobType, jobType2}
-	received, err = ss.Job().GetAllByTypesPage(jobTypes, 0, 2)
+	received, err = ss.Job().GetAllByTypesPage(ctx, jobTypes, 0, 2)
 	require.NoError(t, err)
 	require.Len(t, received, 2)
 	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
 	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
 
-	received, err = ss.Job().GetAllByTypesPage(jobTypes, 2, 2)
+	received, err = ss.Job().GetAllByTypesPage(ctx, jobTypes, 2, 2)
 	require.NoError(t, err)
 	require.Len(t, received, 1)
 	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")
 }
 
 func testJobGetAllByStatus(t *testing.T, ss store.Store) {
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+
 	jobType := model.NewId()
 	status := model.NewId()
 
@@ -301,7 +309,7 @@ func testJobGetAllByStatus(t *testing.T, ss store.Store) {
 		defer ss.Job().Delete(job.Id)
 	}
 
-	received, err := ss.Job().GetAllByStatus(status)
+	received, err := ss.Job().GetAllByStatus(ctx, status)
 	require.NoError(t, err)
 	require.Len(t, received, 3)
 	require.Equal(t, received[0].Id, jobs[1].Id)
@@ -592,6 +600,8 @@ func testJobDelete(t *testing.T, ss store.Store) {
 }
 
 func testJobCleanup(t *testing.T, ss store.Store) {
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+
 	now := model.GetMillis()
 	ids := make([]string, 0, 10)
 	for i := 0; i < 10; i++ {
@@ -605,7 +615,7 @@ func testJobCleanup(t *testing.T, ss store.Store) {
 		defer ss.Job().Delete(job.Id)
 	}
 
-	jobs, err := ss.Job().GetAllByStatus(model.JobStatusPending)
+	jobs, err := ss.Job().GetAllByStatus(ctx, model.JobStatusPending)
 	require.NoError(t, err)
 	assert.Len(t, jobs, 10)
 
@@ -613,7 +623,7 @@ func testJobCleanup(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// Should not clean up pending jobs
-	jobs, err = ss.Job().GetAllByStatus(model.JobStatusPending)
+	jobs, err = ss.Job().GetAllByStatus(ctx, model.JobStatusPending)
 	require.NoError(t, err)
 	assert.Len(t, jobs, 10)
 
@@ -626,7 +636,7 @@ func testJobCleanup(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// Should clean up now
-	jobs, err = ss.Job().GetAllByStatus(model.JobStatusSuccess)
+	jobs, err = ss.Job().GetAllByStatus(ctx, model.JobStatusSuccess)
 	require.NoError(t, err)
 	assert.Len(t, jobs, 0)
 }
