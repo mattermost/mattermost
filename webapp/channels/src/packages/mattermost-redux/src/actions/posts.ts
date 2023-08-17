@@ -23,7 +23,7 @@ import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redu
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import {getAllGroupsByName} from 'mattermost-redux/selectors/entities/groups';
-import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled } from 'mattermost-redux/selectors/entities/preferences';
+import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
@@ -1120,13 +1120,14 @@ export async function getProfilesAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
     if (usernamesAndGroupsToLoad.size > 0) {
         // We need to load the profiles synchronously to filter them
         // out of the groups to check
-        const { data } = await getProfilesByUsernames(Array.from(usernamesAndGroupsToLoad))(dispatch, getState) as ActionResult<UserProfile[]>;
-        const loadedProfiles = (data || []).map((p) => p.username);
-        const groupsToCheck = Array.from(usernamesAndGroupsToLoad).filter((name) => !loadedProfiles.includes(name))
+        const getProfilesPromise = getProfilesByUsernames(Array.from(usernamesAndGroupsToLoad))(dispatch, getState);
+        promises.push(getProfilesPromise);
 
-        groupsToCheck.forEach((name) => {
-            promises.push(getGroups(name)(dispatch, getState))
-        })
+        const {data} = await getProfilesPromise as ActionResult<UserProfile[]>;
+        const loadedProfiles = (data || []).map((p) => p.username);
+        const groupsToCheck = Array.from(usernamesAndGroupsToLoad).filter((name) => !loadedProfiles.includes(name));
+
+        groupsToCheck.forEach((name) => promises.push(getGroups(name)(dispatch, getState)));
     }
 
     return Promise.all(promises);

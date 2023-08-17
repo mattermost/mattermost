@@ -50,8 +50,6 @@ export const getAllGroupsByName: (state: GlobalState) => Record<string, Group> =
     },
 );
 
-
-
 export function getMyGroupIds(state: GlobalState) {
     return state.entities.groups.myGroups;
 }
