@@ -1124,8 +1124,8 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
         promises.push(getProfilesPromise);
 
         const {data} = await getProfilesPromise as ActionResult<UserProfile[]>;
-        const loadedProfiles = (data || []).map((p) => p.username);
-        const groupsToCheck = Array.from(usernamesAndGroupsToLoad).filter((name) => !loadedProfiles.includes(name));
+        const loadedProfiles = new Set<string>((data || []).map((p) => p.username));
+        const groupsToCheck = Array.from(usernamesAndGroupsToLoad).filter((name) => !loadedProfiles.has(name));
 
         groupsToCheck.forEach((name) => promises.push(getGroups(name)(dispatch, getState)));
     }
