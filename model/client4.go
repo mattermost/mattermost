@@ -466,10 +466,6 @@ func (c *Client4) oAuthAppRoute(appId string) string {
 	return fmt.Sprintf("/oauth/apps/%v", appId)
 }
 
-func (c *Client4) openGraphRoute() string {
-	return "/opengraph"
-}
-
 func (c *Client4) jobsRoute() string {
 	return "/jobs"
 }
@@ -6872,21 +6868,6 @@ func (c *Client4) GetSupportedTimezone() ([]string, *Response, error) {
 	var timezones []string
 	json.NewDecoder(r.Body).Decode(&timezones)
 	return timezones, BuildResponse(r), nil
-}
-
-// Open Graph Metadata Section
-
-// OpenGraph return the open graph metadata for a particular url if the site have the metadata.
-func (c *Client4) OpenGraph(url string) (map[string]string, *Response, error) {
-	requestBody := make(map[string]string)
-	requestBody["url"] = url
-
-	r, err := c.DoAPIPost(c.openGraphRoute(), MapToJSON(requestBody))
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return MapFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // Jobs Section
