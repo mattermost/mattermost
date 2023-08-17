@@ -54,7 +54,6 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 
 	if err := og.ProcessHTML(body); err != nil {
 		mlog.Warn("parseOpenGraphMetadata processing failed", mlog.String("requestURL", requestURL), mlog.Err(err))
-		return nil, nil, errors.New("parseOpenGraphMetadata processing failed")
 	}
 
 	makeOpenGraphURLsAbsolute(og, requestURL)
