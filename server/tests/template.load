@@ -1,0 +1,32 @@
+LOAD DATABASE
+     FROM      mysql://{{ .mysql_user }}:{{ .mysql_password }}@mysql:3306/{{ .source_schema }}
+     INTO      pgsql://{{ .pg_user }}:{{ .pg_password }}@postgres:5432/{{ .target_schema }}
+
+WITH data only,
+     workers = 8, concurrency = 1,
+     multiple readers per thread, rows per range = 50000
+
+SET PostgreSQL PARAMETERS
+     maintenance_work_mem to '128MB',
+     work_mem to '12MB'
+
+SET MySQL PARAMETERS
+      net_read_timeout  = '120',
+      net_write_timeout = '120'
+
+CAST column Drafts.Priority to text,
+     type int when (= precision 11) to integer drop typemod,
+     type bigint when (= precision 20) to bigint drop typemod,
+     type text to varchar drop typemod,
+     type tinyint when (<= precision 4) to boolean using tinyint-to-boolean,
+     type json to jsonb drop typemod
+
+MATERIALIZE VIEWS exclude_products
+     excluding table names matching ~<IR_>, ~<focalboard>
+
+BEFORE LOAD DO
+     $$ ALTER SCHEMA public RENAME TO {{ .source_schema }}; $$
+
+AFTER LOAD DO
+     $$ UPDATE {{ .source_schema }}.db_migrations set name='add_createat_to_teamembers' where version=92; $$,
+     $$ ALTER SCHEMA {{ .source_schema }} RENAME TO public; $$;

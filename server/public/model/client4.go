@@ -3536,6 +3536,27 @@ func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelV
 	return ch, BuildResponse(r), nil
 }
 
+// ReadMultipleChannels performs a view action on several channels at the same time for a user.
+func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, channelIds []string) (*ChannelViewResponse, *Response, error) {
+	url := fmt.Sprintf(c.channelsRoute()+"/members/%v/mark_read", userId)
+	buf, err := json.Marshal(channelIds)
+	if err != nil {
+		return nil, nil, NewAppError("ReadMultipleChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, url, buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch *ChannelViewResponse
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("ReadMultipleChannels", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
 // GetChannelUnread will return a ChannelUnread object that contains the number of
 // unread messages and mentions for a user.
 func (c *Client4) GetChannelUnread(ctx context.Context, channelId, userId string) (*ChannelUnread, *Response, error) {
