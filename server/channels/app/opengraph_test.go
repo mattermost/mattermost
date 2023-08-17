@@ -5,12 +5,12 @@ package app
 
 import (
 	"bytes"
+	"github.com/mattermost/mattermost/server/public/model"
 	"html/template"
 	"strings"
 	"testing"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
