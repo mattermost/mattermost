@@ -765,6 +765,15 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 		if post.GetProp("from_webhook") == "true" {
 			mentions.addMention(post.UserId, DMMention)
 		}
+	} else if channel.Type == model.ChannelTypeGroup {
+		for id, _ := range channelMemberNotifyPropsMap {
+			mentions.addMention(id, DMMention)
+		}
+
+		// Prevent the user from mentioning themselves
+		if post.GetProp("from_webhook") != "true" {
+			mentions.removeMention(post.UserId)
+		}
 	} else {
 		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
 		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
