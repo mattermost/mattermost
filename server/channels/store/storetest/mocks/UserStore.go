@@ -541,6 +541,32 @@ func (_m *UserStore) GetByEmail(email string) (*model.User, error) {
 	return r0, r1
 }
 
+// GetByRemoteID provides a mock function with given fields: remoteID
+func (_m *UserStore) GetByRemoteID(remoteID string) (*model.User, error) {
+	ret := _m.Called(remoteID)
+
+	var r0 *model.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.User, error)); ok {
+		return rf(remoteID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.User); ok {
+		r0 = rf(remoteID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(remoteID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByUsername provides a mock function with given fields: username
 func (_m *UserStore) GetByUsername(username string) (*model.User, error) {
 	ret := _m.Called(username)
