@@ -219,7 +219,7 @@ func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*m
 	return _returnsA, _returnsB
 }
 
-func (hooks *hooksTimerLayer) NotificationWillBePushed(pushNotification *model.PluginPushNotification) string {
+func (hooks *hooksTimerLayer) NotificationWillBePushed(pushNotification *model.PluginPushNotification) (cancel bool) {
 	startTime := timePkg.Now()
 	_returnsA := hooks.hooksImpl.NotificationWillBePushed(pushNotification)
 	hooks.recordTime(startTime, "NotificationWillBePushed", true)

@@ -1350,12 +1350,12 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 	}{
 		{
 			name:                  "successfully pushed",
-			testCode:              `return ""`,
+			testCode:              `return false`,
 			expectedNotifications: 6,
 		},
 		{
 			name:                  "push notification rejected",
-			testCode:              `return "rejected"`,
+			testCode:              `return true`,
 			expectedNotifications: 0,
 		},
 	}

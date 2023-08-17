@@ -9,7 +9,7 @@ type MyPlugin struct {
     plugin.MattermostPlugin
 }
 
-func (p *MyPlugin) NotificationWillBePushed(notification *model.PluginPushNotification) string {
+func (p *MyPlugin) NotificationWillBePushed(notification *model.PluginPushNotification) (cancel bool) {
     %s
 }
 

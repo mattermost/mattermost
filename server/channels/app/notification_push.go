@@ -142,14 +142,13 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 func (a *App) sendPushNotification(notification *PostNotification, user *model.User, explicitMention, channelWideMention bool, replyToThreadType string) {
 	cancelled := false
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-		rejectionReason := hooks.NotificationWillBePushed(&model.PluginPushNotification{
+		cancelled = hooks.NotificationWillBePushed(&model.PluginPushNotification{
 			Post:    notification.Post.ForPlugin(),
 			Channel: notification.Channel,
 			UserID:  user.Id,
 		})
-		if rejectionReason != "" {
-			mlog.Error("Notification rejected by plugin.", mlog.String("reason", rejectionReason))
-			cancelled = true
+		if cancelled {
+			mlog.Info("Notification cancelled by plugin")
 			return false
 		}
 		return true

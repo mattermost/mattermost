@@ -289,9 +289,8 @@ type Hooks interface {
 	// NotificationWillBePushed is invoked before a push notification is sent to the push
 	// notification server. The intention is to allow plugins to cancel a push notification.
 	//
-	// To reject a push notification, return an non-empty string describing why the notification
-	// was rejected.
+	// To cancel a push notification, return true.
 	//
 	// Minimum server version: 9.0
-	NotificationWillBePushed(pushNotification *model.PluginPushNotification) string
+	NotificationWillBePushed(pushNotification *model.PluginPushNotification) (cancel bool)
 }

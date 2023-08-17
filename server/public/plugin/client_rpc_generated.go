@@ -852,10 +852,10 @@ type Z_NotificationWillBePushedArgs struct {
 }
 
 type Z_NotificationWillBePushedReturns struct {
-	A string
+	A bool
 }
 
-func (g *hooksRPCClient) NotificationWillBePushed(pushNotification *model.PluginPushNotification) string {
+func (g *hooksRPCClient) NotificationWillBePushed(pushNotification *model.PluginPushNotification) (cancel bool) {
 	_args := &Z_NotificationWillBePushedArgs{pushNotification}
 	_returns := &Z_NotificationWillBePushedReturns{}
 	if g.implemented[NotificationWillBePushedID] {
@@ -868,7 +868,7 @@ func (g *hooksRPCClient) NotificationWillBePushed(pushNotification *model.Plugin
 
 func (s *hooksRPCServer) NotificationWillBePushed(args *Z_NotificationWillBePushedArgs, returns *Z_NotificationWillBePushedReturns) error {
 	if hook, ok := s.impl.(interface {
-		NotificationWillBePushed(pushNotification *model.PluginPushNotification) string
+		NotificationWillBePushed(pushNotification *model.PluginPushNotification) (cancel bool)
 	}); ok {
 		returns.A = hook.NotificationWillBePushed(args.A)
 	} else {
