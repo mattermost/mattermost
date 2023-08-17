@@ -1542,7 +1542,7 @@ describe('Actions.Posts', () => {
         expect(index === 2).toBeTruthy();
     });
 
-    describe('getProfilesAndStatusesForPosts', () => {
+    describe('getMentionsAndStatusesForPosts', () => {
         describe('different values for posts argument', () => {
             // Mock the state to prevent any followup requests since we aren't testing those
             const currentUserId = 'user';
@@ -1566,13 +1566,13 @@ describe('Actions.Posts', () => {
             })) as unknown as GetStateFunc;
 
             it('null', async () => {
-                await Actions.getProfilesAndStatusesForPosts(null as any, dispatch as any, getState);
+                await Actions.getMentionsAndStatusesForPosts(null as any, dispatch as any, getState);
             });
 
             it('array of posts', async () => {
                 const posts = [post];
 
-                await Actions.getProfilesAndStatusesForPosts(posts, dispatch as any, getState);
+                await Actions.getMentionsAndStatusesForPosts(posts, dispatch as any, getState);
             });
 
             it('object map of posts', async () => {
@@ -1580,7 +1580,7 @@ describe('Actions.Posts', () => {
                     [post.id]: post,
                 };
 
-                await Actions.getProfilesAndStatusesForPosts(posts, dispatch as any, getState);
+                await Actions.getMentionsAndStatusesForPosts(posts, dispatch as any, getState);
             });
         });
     });
