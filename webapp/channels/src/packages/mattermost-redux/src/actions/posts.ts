@@ -5,6 +5,7 @@ import {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import {UserProfile} from '@mattermost/types/users';
+import {Group} from '@mattermost/types/groups';
 import {Reaction} from '@mattermost/types/reactions';
 import {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
 import {GlobalState} from '@mattermost/types/store';
@@ -21,12 +22,14 @@ import {getCurrentChannelId, getMyChannelMember as getMyChannelMemberSelector} f
 import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
-import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getAllGroupsByName} from 'mattermost-redux/selectors/entities/groups';
+import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled } from 'mattermost-redux/selectors/entities/preferences';
 
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {General, Preferences, Posts} from 'mattermost-redux/constants';
 
+import {getGroups} from 'mattermost-redux/actions/groups';
 import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {
     deletePreferences,
@@ -1039,7 +1042,7 @@ export function getThreadsForPosts(posts: Post[], fetchThreads = true) {
 }
 
 // Note that getProfilesAndStatusesForPosts can take either an array of posts or a map of ids to posts
-export function getProfilesAndStatusesForPosts(postsArrayOrMap: Post[]|PostList['posts'], dispatch: DispatchFunc, getState: GetStateFunc) {
+export async function getProfilesAndStatusesForPosts(postsArrayOrMap: Post[]|PostList['posts'], dispatch: DispatchFunc, getState: GetStateFunc) {
     if (!postsArrayOrMap) {
         // Some API methods return {error} for no results
         return Promise.resolve();
@@ -1112,10 +1115,18 @@ export function getProfilesAndStatusesForPosts(postsArrayOrMap: Post[]|PostList[
     }
 
     // Profiles of users mentioned in the posts
-    const usernamesToLoad = getNeededAtMentionedUsernames(state, postsArray);
+    const usernamesAndGroupsToLoad = getNeededAtMentionedUsernamesAndGroups(state, postsArray);
 
-    if (usernamesToLoad.size > 0) {
-        promises.push(getProfilesByUsernames(Array.from(usernamesToLoad))(dispatch, getState));
+    if (usernamesAndGroupsToLoad.size > 0) {
+        // We need to load the profiles synchronously to filter them
+        // out of the groups to check
+        const { data } = await getProfilesByUsernames(Array.from(usernamesAndGroupsToLoad))(dispatch, getState) as ActionResult<UserProfile[]>;
+        const loadedProfiles = (data || []).map((p) => p.username);
+        const groupsToCheck = Array.from(usernamesAndGroupsToLoad).filter((name) => !loadedProfiles.includes(name))
+
+        groupsToCheck.forEach((name) => {
+            promises.push(getGroups(name)(dispatch, getState))
+        })
     }
 
     return Promise.all(promises);
@@ -1150,18 +1161,23 @@ export function getPostEditHistory(postId: string) {
     });
 }
 
-export function getNeededAtMentionedUsernames(state: GlobalState, posts: Post[]): Set<string> {
+export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts: Post[]): Set<string> {
     let usersByUsername: Record<string, UserProfile>; // Populate this lazily since it's relatively expensive
+    let groupsByName: Record<string, Group>;
 
-    const usernamesToLoad = new Set<string>();
+    const usernamesAndGroupsToLoad = new Set<string>();
 
-    function findNeededUsernames(text?: string) {
+    function findNeededUsernamesAndGroups(text?: string) {
         if (!text || !text.includes('@')) {
             return;
         }
 
         if (!usersByUsername) {
             usersByUsername = getUsersByUsername(state);
+        }
+
+        if (!groupsByName) {
+            groupsByName = getAllGroupsByName(state);
         }
 
         const pattern = /\B@(([a-z0-9_.-]*[a-z0-9_])[.-]*)/gi;
@@ -1179,25 +1195,30 @@ export function getNeededAtMentionedUsernames(state: GlobalState, posts: Post[])
                 continue;
             }
 
+            if (groupsByName[match[1]] || groupsByName[match[2]]) {
+                // We have the group, go to the next match
+                continue;
+            }
+
             // If there's no trailing punctuation, this will only add 1 item to the set
-            usernamesToLoad.add(match[1]);
-            usernamesToLoad.add(match[2]);
+            usernamesAndGroupsToLoad.add(match[1]);
+            usernamesAndGroupsToLoad.add(match[2]);
         }
     }
 
     for (const post of posts) {
         // These correspond to the fields searched by getMentionsEnabledFields on the server
-        findNeededUsernames(post.message);
+        findNeededUsernamesAndGroups(post.message);
 
         if (post.props?.attachments) {
             for (const attachment of post.props.attachments) {
-                findNeededUsernames(attachment.pretext);
-                findNeededUsernames(attachment.text);
+                findNeededUsernamesAndGroups(attachment.pretext);
+                findNeededUsernamesAndGroups(attachment.text);
             }
         }
     }
 
-    return usernamesToLoad;
+    return usernamesAndGroupsToLoad;
 }
 
 export type ExtendedPost = Post & { system_post_ids?: string[] };

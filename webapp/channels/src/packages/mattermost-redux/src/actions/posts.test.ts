@@ -607,56 +607,56 @@ describe('Actions.Posts', () => {
         } as unknown as GlobalState;
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: 'aaa'}),
             ])).toEqual(
             new Set(),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@aaa'}),
             ])).toEqual(
             new Set(),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@aaa @bbb @ccc'}),
             ])).toEqual(
             new Set(['bbb', 'ccc']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@bbb. @ccc.ddd'}),
             ])).toEqual(
             new Set(['bbb.', 'bbb', 'ccc.ddd']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@bbb- @ccc-ddd'}),
             ])).toEqual(
             new Set(['bbb-', 'bbb', 'ccc-ddd']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@bbb_ @ccc_ddd'}),
             ])).toEqual(
             new Set(['bbb_', 'ccc_ddd']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '(@bbb/@ccc) ddd@eee'}),
             ])).toEqual(
             new Set(['bbb', 'ccc']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({
                     message: '@aaa @bbb',
                     props: {
@@ -673,7 +673,7 @@ describe('Actions.Posts', () => {
 
         // should never try to request usernames matching special mentions
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@all'}),
                 TestHelper.getPostMock({message: '@here'}),
                 TestHelper.getPostMock({message: '@channel'}),
