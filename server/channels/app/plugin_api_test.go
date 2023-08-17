@@ -2271,7 +2271,7 @@ func TestSendPushNotification(t *testing.T) {
 				Channel: th.BasicChannel,
 				UserID:  user.Id,
 			}
-			appErr := api.SendPushNotification(notification)
+			appErr := api.SendPluginPushNotification(notification)
 			require.NoError(t, appErr)
 		}(*data.user)
 	}
