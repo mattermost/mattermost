@@ -211,56 +211,49 @@ func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
 	now := model.GetMillis()
 	postIds := []string{}
 
-	err := s.GetReplicaX().Select(&postIds, "SELECT PostId FROM Reactions WHERE UserId = ?", userId)
+	txn, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return err
+	}
+
+	err = txn.Select(&postIds, "SELECT PostId FROM Reactions WHERE UserId = ?", userId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get Reactions with userId=%s", userId)
 	}
 
-	batchIds := [][]string{}
-	batchSize := 1000
-	resultsSize := len(postIds)
-	for i := 0; i < resultsSize; i += batchSize {
-		end := i + batchSize
+	query := s.getQueryBuilder().
+		Delete("Reactions").
+		Where(sq.And{
+			sq.Eq{"PostId": postIds},
+			sq.Eq{"UserId": userId},
+		})
 
-		if end > resultsSize {
-			end = resultsSize
-		}
-
-		batchIds = append(batchIds, postIds[i:end])
+	_, err = txn.ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete reactions with userId=%s", userId)
 	}
+	if err = txn.Commit(); err != nil {
+		return err
+	}
+	finalizeTransactionX(txn, &err)
 
-	for _, batch := range batchIds {
-		txn, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return err
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	for _, postId := range postIds {
+		_, err = transaction.Exec(UpdatePostHasReactionsOnDeleteQuery, now, postId, postId)
 		if err != nil {
-			return err
-		}
-		defer finalizeTransactionX(txn, &err)
-
-		query := s.getQueryBuilder().
-			Delete("Reactions").
-			Where(sq.And{
-				sq.Eq{"PostId": batch},
-				sq.Eq{"UserId": userId},
-			})
-
-		_, err = txn.ExecBuilder(query)
-		if err != nil {
-			return errors.Wrapf(err, "failed to delete reactions with userId=%s", userId)
-		}
-
-		for _, postId := range batch {
-			_, err = txn.Exec(UpdatePostHasReactionsOnDeleteQuery, now, postId, postId)
-			if err != nil {
-				mlog.Warn("Unable to update Post.HasReactions while removing reactions",
-					mlog.String("post_id", postId),
-					mlog.Err(err))
-			}
-		}
-
-		if err = txn.Commit(); err != nil {
-			return err
+			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
+				mlog.String("post_id", postId),
+				mlog.Err(err))
 		}
 		time.Sleep(10 * time.Millisecond)
+	}
+	if err = transaction.Commit(); err != nil {
+		return err
 	}
 
 	return nil
