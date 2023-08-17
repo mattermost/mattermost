@@ -45,19 +45,19 @@ func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localCreateChannel", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "channel", channel)
+	auditREC := c.MakeAuditRecord("localCreateChannel", audit.Fail)
+	defer c.LogAuditRec(auditREC)
+	audit.AddEventParameterAuditable(auditREC, "channel", channel)
 
-	sc, appErr := c.App.CreateChannel(c.AppContext, channel, false)
-	if appErr != nil {
-		c.Err = appErr
+	sc, appERR := c.App.CreateChannel(c.AppContext, channel, false)
+	if appERR != nil {
+		c.Err = appERR
 		return
 	}
 
-	auditRec.Success()
-	auditRec.AddEventResultState(sc)
-	auditRec.AddEventObjectType("channel")
+	auditREC.Success()
+	auditREC.AddEventResultState(sc)
+	auditREC.AddEventObjectType("channel")
 	c.LogAudit("name=" + channel.Name)
 
 	w.WriteHeader(http.StatusCreated)
@@ -85,9 +85,9 @@ func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localUpdateChannelPrivacy", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "privacy", privacy)
+	auditREC := c.MakeAuditRecord("localUpdateChannelPrivacy", audit.Fail)
+	defer c.LogAuditRec(auditREC)
+	audit.AddEventParameter(auditREC, "privacy", privacy)
 
 	if channel.Name == model.DefaultChannelName && model.ChannelType(privacy) == model.ChannelTypePrivate {
 		c.Err = model.NewAppError("updateChannelPrivacy", "api.channel.update_channel_privacy.default_channel_error", nil, "", http.StatusBadRequest)
@@ -101,9 +101,9 @@ func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec.AddEventResultState(channel)
-	auditRec.AddEventObjectType("channel")
-	auditRec.Success()
+	auditREC.AddEventResultState(channel)
+	auditREC.AddEventObjectType("channel")
+	auditREC.Success()
 	c.LogAudit("name=" + updatedChannel.Name)
 
 	if err := json.NewEncoder(w).Encode(updatedChannel); err != nil {
@@ -123,9 +123,9 @@ func localRestoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localRestoreChannel", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
+	auditREC := c.MakeAuditRecord("localRestoreChannel", audit.Fail)
+	defer c.LogAuditRec(auditREC)
+	audit.AddEventParameter(auditREC, "channel_id", c.Params.ChannelId)
 
 	channel, err = c.App.RestoreChannel(c.AppContext, channel, "")
 	if err != nil {
@@ -133,9 +133,9 @@ func localRestoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddEventResultState(channel)
-	auditRec.AddEventObjectType("channel")
-	auditRec.Success()
+	auditREC.AddEventResultState(channel)
+	auditREC.AddEventObjectType("channel")
+	auditREC.Success()
 	c.LogAudit("name=" + channel.Name)
 
 	if err := json.NewEncoder(w).Encode(channel); err != nil {
@@ -149,34 +149,34 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localAddChannelMember", audit.Fail)
-	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
-	defer c.LogAuditRec(auditRec)
+	auditREC := c.MakeAuditRecord("localAddChannelMember", audit.Fail)
+	audit.AddEventParameter(auditREC, "channel_id", c.Params.ChannelId)
+	defer c.LogAuditRec(auditREC)
 
 	props := model.StringInterfaceFromJSON(r.Body)
-	userId, ok := props["user_id"].(string)
-	if !ok || !model.IsValidId(userId) {
+	userID, ok := props["user_id"].(string)
+	if !ok || !model.IsValidId(userID) {
 		c.SetInvalidParam("user_id")
 		return
 	}
 
-	audit.AddEventParameter(auditRec, "user_id", userId)
+	audit.AddEventParameter(auditREC, "user_id", userID)
 
 	member := &model.ChannelMember{
 		ChannelId: c.Params.ChannelId,
-		UserId:    userId,
+		UserId:    userID,
 	}
 
-	postRootId, ok := props["post_root_id"].(string)
-	if ok && postRootId != "" && !model.IsValidId(postRootId) {
+	postRootID, ok := props["post_root_id"].(string)
+	if ok && postRootID != "" && !model.IsValidId(postRootID) {
 		c.SetInvalidParam("post_root_id")
 		return
 	}
 
-	audit.AddEventParameter(auditRec, "post_root_id", postRootId)
+	audit.AddEventParameter(auditREC, "post_root_id", postRootID)
 
-	if ok && len(postRootId) == 26 {
-		rootPost, err := c.App.GetSinglePost(postRootId, false)
+	if ok && len(postRootID) == 26 {
+		rootPost, err := c.App.GetSinglePost(postRootID, false)
 		if err != nil {
 			c.Err = err
 			return
@@ -193,7 +193,7 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audit.AddEventParameterAuditable(auditRec, "channel", channel)
+	audit.AddEventParameterAuditable(auditREC, "channel", channel)
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		c.Err = model.NewAppError("localAddChannelMember", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
@@ -217,17 +217,17 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	cm, err := c.App.AddChannelMember(c.AppContext, member.UserId, channel, app.ChannelMemberOpts{
-		PostRootID: postRootId,
+		PostRootID: postRootID,
 	})
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	auditRec.Success()
-	auditRec.AddMeta("add_user_id", cm.UserId)
-	auditRec.AddEventResultState(cm)
-	auditRec.AddEventObjectType("channel_member")
+	auditREC.Success()
+	auditREC.AddMeta("add_user_id", cm.UserId)
+	auditREC.AddEventResultState(cm)
+	auditREC.AddEventObjectType("channel_member")
 	c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
 
 	w.WriteHeader(http.StatusCreated)
@@ -264,17 +264,17 @@ func localRemoveChannelMember(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localRemoveChannelMember", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
-	audit.AddEventParameter(auditRec, "remove_user_id", c.Params.UserId)
+	auditREC := c.MakeAuditRecord("localRemoveChannelMember", audit.Fail)
+	defer c.LogAuditRec(auditREC)
+	audit.AddEventParameter(auditREC, "channel_id", c.Params.ChannelId)
+	audit.AddEventParameter(auditREC, "remove_user_id", c.Params.UserId)
 
 	if err = c.App.RemoveUserFromChannel(c.AppContext, c.Params.UserId, "", channel); err != nil {
 		c.Err = err
 		return
 	}
 
-	auditRec.Success()
+	auditREC.Success()
 	c.LogAudit("name=" + channel.Name + " user_id=" + c.Params.UserId)
 
 	ReturnStatusOK(w)
@@ -293,36 +293,36 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	originalOldChannel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
+	originalOldChannel, appERR := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appERR != nil {
+		c.Err = appERR
 		return
 	}
 	channel := originalOldChannel.DeepCopy()
 
-	auditRec := c.MakeAuditRecord("localPatchChannel", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "channel_patch", patch)
+	auditREC := c.MakeAuditRecord("localPatchChannel", audit.Fail)
+	defer c.LogAuditRec(auditREC)
+	audit.AddEventParameterAuditable(auditREC, "channel_patch", patch)
 
 	channel.Patch(patch)
-	rchannel, appErr := c.App.UpdateChannel(c.AppContext, channel)
-	if appErr != nil {
-		c.Err = appErr
+	rChannel, appERR := c.App.UpdateChannel(c.AppContext, channel)
+	if appERR != nil {
+		c.Err = appERR
 		return
 	}
 
-	appErr = c.App.FillInChannelProps(c.AppContext, rchannel)
-	if appErr != nil {
-		c.Err = appErr
+	appERR = c.App.FillInChannelProps(c.AppContext, rChannel)
+	if appERR != nil {
+		c.Err = appERR
 		return
 	}
 
-	auditRec.Success()
+	auditREC.Success()
 	c.LogAudit("")
-	auditRec.AddEventResultState(rchannel)
-	auditRec.AddEventObjectType("channel")
+	auditREC.AddEventResultState(rChannel)
+	auditREC.AddEventObjectType("channel")
 
-	if err := json.NewEncoder(w).Encode(rchannel); err != nil {
+	if err := json.NewEncoder(w).Encode(rChannel); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -340,7 +340,7 @@ func localMoveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	props := model.StringInterfaceFromJSON(r.Body)
-	teamId, ok := props["team_id"].(string)
+	teamID, ok := props["team_id"].(string)
 	if !ok {
 		c.SetInvalidParam("team_id")
 		return
@@ -352,22 +352,22 @@ func localMoveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	team, err := c.App.GetTeam(teamId)
+	team, err := c.App.GetTeam(teamID)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localMoveChannel", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "team_id", teamId)
-	audit.AddEventParameter(auditRec, "force", force)
+	auditREC := c.MakeAuditRecord("localMoveChannel", audit.Fail)
+	defer c.LogAuditRec(auditREC)
+	audit.AddEventParameter(auditREC, "team_id", teamID)
+	audit.AddEventParameter(auditREC, "force", force)
 
 	// TODO do we need these?
-	auditRec.AddMeta("channel_id", channel.Id)
-	auditRec.AddMeta("channel_name", channel.Name)
-	auditRec.AddMeta("team_id", team.Id)
-	auditRec.AddMeta("team_name", team.Name)
+	auditREC.AddMeta("channel_id", channel.Id)
+	auditREC.AddMeta("channel_name", channel.Name)
+	auditREC.AddMeta("team_id", team.Id)
+	auditREC.AddMeta("team_name", team.Name)
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		c.Err = model.NewAppError("moveChannel", "api.channel.move_channel.type.invalid", nil, "", http.StatusForbidden)
@@ -394,9 +394,9 @@ func localMoveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddEventResultState(channel)
-	auditRec.AddEventObjectType("channel")
-	auditRec.Success()
+	auditREC.AddEventResultState(channel)
+	auditREC.AddEventObjectType("channel")
+	auditREC.Success()
 	c.LogAudit("channel=" + channel.Name)
 	c.LogAudit("team=" + team.Name)
 
@@ -417,10 +417,10 @@ func localDeleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localDeleteChannel", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	auditRec.AddEventPriorState(channel)
-	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
+	auditREC := c.MakeAuditRecord("localDeleteChannel", audit.Fail)
+	defer c.LogAuditRec(auditREC)
+	auditREC.AddEventPriorState(channel)
+	audit.AddEventParameter(auditREC, "channel_id", c.Params.ChannelId)
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		c.Err = model.NewAppError("localDeleteChannel", "api.channel.delete_channel.type.invalid", nil, "", http.StatusBadRequest)
@@ -437,9 +437,9 @@ func localDeleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.Success()
-	auditRec.AddEventResultState(channel)
-	auditRec.AddEventObjectType("channel")
+	auditREC.Success()
+	auditREC.AddEventResultState(channel)
+	auditREC.AddEventObjectType("channel")
 	c.LogAudit("name=" + channel.Name)
 
 	ReturnStatusOK(w)

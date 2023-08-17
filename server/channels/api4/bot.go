@@ -37,9 +37,9 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	bot.Patch(botPatch)
 
-	auditRec := c.MakeAuditRecord("createBot", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "bot", bot)
+	auditREC := c.MakeAuditRecord("createBot", audit.Fail)
+	defer c.LogAuditRec(auditREC)
+	audit.AddEventParameterAuditable(auditREC, "bot", bot)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateBot) {
 		c.SetPermissionError(model.PermissionCreateBot)
@@ -58,15 +58,15 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdBot, appErr := c.App.CreateBot(c.AppContext, bot)
-	if appErr != nil {
-		c.Err = appErr
+	createdBot, appERR := c.App.CreateBot(c.AppContext, bot)
+	if appERR != nil {
+		c.Err = appERR
 		return
 	}
 
-	auditRec.Success()
-	auditRec.AddEventObjectType("bot")
-	auditRec.AddEventResultState(createdBot) // overwrite meta
+	auditREC.Success()
+	auditREC.AddEventObjectType("bot")
+	auditREC.AddEventResultState(createdBot) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(createdBot); err != nil {
@@ -79,7 +79,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	botUserId := c.Params.BotUserId
+	botUserID := c.Params.BotUserId
 
 	var botPatch *model.BotPatch
 	err := json.NewDecoder(r.Body).Decode(&botPatch)
@@ -88,25 +88,25 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchBot", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "id", botUserId)
-	audit.AddEventParameterAuditable(auditRec, "bot", botPatch)
+	auditREC := c.MakeAuditRecord("patchBot", audit.Fail)
+	defer c.LogAuditRec(auditREC)
+	audit.AddEventParameter(auditREC, "id", botUserID)
+	audit.AddEventParameterAuditable(auditREC, "bot", botPatch)
 
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserID); err != nil {
 		c.Err = err
 		return
 	}
 
-	updatedBot, appErr := c.App.PatchBot(botUserId, botPatch)
-	if appErr != nil {
-		c.Err = appErr
+	updatedBot, appERR := c.App.PatchBot(botUserID, botPatch)
+	if appERR != nil {
+		c.Err = appERR
 		return
 	}
 
-	auditRec.Success()
-	auditRec.AddEventResultState(updatedBot)
-	auditRec.AddEventObjectType("bot")
+	auditREC.Success()
+	auditREC.AddEventResultState(updatedBot)
+	auditREC.AddEventObjectType("bot")
 
 	if err := json.NewEncoder(w).Encode(updatedBot); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -118,13 +118,13 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	botUserId := c.Params.BotUserId
+	botUserID := c.Params.BotUserId
 
 	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 
-	bot, appErr := c.App.GetBot(botUserId, includeDeleted)
-	if appErr != nil {
-		c.Err = appErr
+	bot, appERR := c.App.GetBot(botUserID, includeDeleted)
+	if appERR != nil {
+		c.Err = appERR
 		return
 	}
 
@@ -135,13 +135,13 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 			// Pretend like the bot doesn't exist at all to avoid revealing that the
 			// user is a bot. It's kind of silly in this case, sine we created the bot,
 			// but we don't have read bot permissions.
-			c.Err = model.MakeBotNotFoundError(botUserId)
+			c.Err = model.MakeBotNotFoundError(botUserID)
 			return
 		}
 	} else {
 		// Pretend like the bot doesn't exist at all, to avoid revealing that the
 		// user is a bot.
-		c.Err = model.MakeBotNotFoundError(botUserId)
+		c.Err = model.MakeBotNotFoundError(botUserID)
 		return
 	}
 
@@ -158,27 +158,27 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	onlyOrphaned, _ := strconv.ParseBool(r.URL.Query().Get("only_orphaned"))
 
-	var OwnerId string
+	var OwnerID string
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadOthersBots) {
 		// Get bots created by any user.
-		OwnerId = ""
+		OwnerID = ""
 	} else if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadBots) {
 		// Only get bots created by this user.
-		OwnerId = c.AppContext.Session().UserId
+		OwnerID = c.AppContext.Session().UserId
 	} else {
 		c.SetPermissionError(model.PermissionReadBots)
 		return
 	}
 
-	bots, appErr := c.App.GetBots(&model.BotGetOptions{
+	bots, appERR := c.App.GetBots(&model.BotGetOptions{
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
-		OwnerId:        OwnerId,
+		OwnerId:        OwnerID,
 		IncludeDeleted: includeDeleted,
 		OnlyOrphaned:   onlyOrphaned,
 	})
-	if appErr != nil {
-		c.Err = appErr
+	if appERR != nil {
+		c.Err = appERR
 		return
 	}
 
@@ -204,27 +204,27 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	if c.Err != nil {
 		return
 	}
-	botUserId := c.Params.BotUserId
+	botUserID := c.Params.BotUserId
 
-	auditRec := c.MakeAuditRecord("updateBotActive", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "id", botUserId)
-	audit.AddEventParameter(auditRec, "enable", active)
+	auditREC := c.MakeAuditRecord("updateBotActive", audit.Fail)
+	defer c.LogAuditRec(auditREC)
+	audit.AddEventParameter(auditREC, "id", botUserID)
+	audit.AddEventParameter(auditREC, "enable", active)
 
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserID); err != nil {
 		c.Err = err
 		return
 	}
 
-	bot, err := c.App.UpdateBotActive(c.AppContext, botUserId, active)
+	bot, err := c.App.UpdateBotActive(c.AppContext, botUserID, active)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	auditRec.Success()
-	auditRec.AddEventResultState(bot)
-	auditRec.AddEventObjectType("bot")
+	auditREC.Success()
+	auditREC.AddEventResultState(bot)
+	auditREC.AddEventObjectType("bot")
 
 	if err := json.NewEncoder(w).Encode(bot); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -237,35 +237,35 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	botUserId := c.Params.BotUserId
-	userId := c.Params.UserId
+	botUserID := c.Params.BotUserId
+	userID := c.Params.UserId
 
-	auditRec := c.MakeAuditRecord("assignBot", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "id", botUserId)
-	audit.AddEventParameter(auditRec, "user_id", userId)
+	auditREC := c.MakeAuditRecord("assignBot", audit.Fail)
+	defer c.LogAuditRec(auditREC)
+	audit.AddEventParameter(auditREC, "id", botUserID)
+	audit.AddEventParameter(auditREC, "user_id", userID)
 
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserID); err != nil {
 		c.Err = err
 		return
 	}
 
-	if user, err := c.App.GetUser(userId); err == nil {
+	if user, err := c.App.GetUser(userID); err == nil {
 		if user.IsBot {
 			c.SetPermissionError(model.PermissionAssignBot)
 			return
 		}
 	}
 
-	bot, err := c.App.UpdateBotOwner(botUserId, userId)
+	bot, err := c.App.UpdateBotOwner(botUserID, userID)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	auditRec.Success()
-	auditRec.AddEventResultState(bot)
-	auditRec.AddEventObjectType("bot")
+	auditREC.Success()
+	auditREC.AddEventResultState(bot)
+	auditREC.AddEventObjectType("bot")
 
 	if err := json.NewEncoder(w).Encode(bot); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -285,34 +285,34 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var userPatch model.UserPatch
-	jsonErr := json.NewDecoder(r.Body).Decode(&userPatch)
-	if jsonErr != nil || userPatch.Password == nil || *userPatch.Password == "" {
-		c.SetInvalidParamWithErr("userPatch", jsonErr)
+	jsonERR := json.NewDecoder(r.Body).Decode(&userPatch)
+	if jsonERR != nil || userPatch.Password == nil || *userPatch.Password == "" {
+		c.SetInvalidParamWithErr("userPatch", jsonERR)
 		return
 	}
 
-	systemAdmin, _ := strconv.ParseBool(r.URL.Query().Get("set_system_admin"))
+	systemADMIN, _ := strconv.ParseBool(r.URL.Query().Get("set_system_admin"))
 
-	auditRec := c.MakeAuditRecord("convertBotToUser", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "bot", bot)
-	audit.AddEventParameterAuditable(auditRec, "user_patch", &userPatch)
-	audit.AddEventParameter(auditRec, "set_system_admin", systemAdmin)
+	auditREC := c.MakeAuditRecord("convertBotToUser", audit.Fail)
+	defer c.LogAuditRec(auditREC)
+	audit.AddEventParameterAuditable(auditREC, "bot", bot)
+	audit.AddEventParameterAuditable(auditREC, "user_patch", &userPatch)
+	audit.AddEventParameter(auditREC, "set_system_admin", systemADMIN)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
-	user, err := c.App.ConvertBotToUser(c.AppContext, bot, &userPatch, systemAdmin)
+	user, err := c.App.ConvertBotToUser(c.AppContext, bot, &userPatch, systemADMIN)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	auditRec.Success()
-	auditRec.AddEventResultState(user)
-	auditRec.AddEventObjectType("user")
+	auditREC.Success()
+	auditREC.AddEventResultState(user)
+	auditREC.AddEventObjectType("user")
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
