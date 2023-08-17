@@ -52,6 +52,9 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, fileBackend filest
 
 func (worker *S3PathMigrationWorker) Run() {
 	mlog.Debug("Worker started", mlog.String("worker", worker.name))
+	// We have to re-assign the stop channel again, because
+	// it might happen that the job was restarted due to a config change.
+	worker.stop = make(chan bool, 1)
 
 	defer func() {
 		mlog.Debug("Worker finished", mlog.String("worker", worker.name))
