@@ -42,7 +42,7 @@ import SendButton from './send_button';
 import {IconContainer} from './formatting_bar/formatting_icon';
 
 import './advanced_text_editor.scss';
-import ToggleFormattingBar from './toggle_formatting_bar/toggle_formatting_bar';
+import ToggleFormattingBar from './toggle_formatting_bar';
 
 type Props = {
 

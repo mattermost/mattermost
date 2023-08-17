@@ -257,6 +257,10 @@ func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppErr
 	return api.app.GetUserByUsername(name)
 }
 
+func (api *PluginAPI) GetUserByRemoteID(remoteID string) (*model.User, *model.AppError) {
+	return api.app.GetUserByRemoteID(remoteID)
+}
+
 func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
 	return api.app.GetUsersByUsernames(usernames, true, nil)
 }
