@@ -2392,10 +2392,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link previews have been disabled by the system administrator."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
   },
