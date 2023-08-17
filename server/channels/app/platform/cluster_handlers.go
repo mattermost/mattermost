@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"runtime/debug"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -177,7 +176,6 @@ func (ps *PlatformService) TriggerLoadLicense() {
 }
 
 func (ps *PlatformService) InvalidateAllCaches() {
-	debug.FreeOSMemory()
 	ps.InvalidateAllCachesSkipSend()
 
 	if ps.clusterIFace != nil {
