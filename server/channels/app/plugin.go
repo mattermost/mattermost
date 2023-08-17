@@ -1132,7 +1132,7 @@ func (ch *Channels) shouldPersistTransitionallyPrepackagedPlugin(availablePlugin
 // kind of migration, it's not a one off: new versions of these plugins may still be shipped
 // during the transition period, or new plugins may be added to the list.
 //
-// So intead of a one-time migration, we opt to run this method every time the cluster leader
+// So instead of a one-time migration, we opt to run this method every time the cluster leader
 // changes, but minimizing rework. More than one server may end up persisting the same plugin
 // (but never concurrently!), but all servers will eventually converge on this method becoming a
 // no-op (until this set of plugins changes in a subsequent release).
@@ -1186,7 +1186,7 @@ func (ch *Channels) persistTransitionallyPrepackagedPlugins() {
 	wg.Wait()
 
 	pluginsEnvironment.ClearTransitionallyPrepackagedPlugins()
-	ch.srv.Log().Info("Finished persisting transitionally prepackaged plugin")
+	ch.srv.Log().Info("Finished persisting transitionally prepackaged plugins")
 }
 
 // buildPrepackagedPlugin builds a PrepackagedPlugin from the plugin at the given path, additionally returning the directory in which it was extracted.
