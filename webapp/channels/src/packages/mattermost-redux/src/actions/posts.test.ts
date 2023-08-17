@@ -603,6 +603,14 @@ describe('Actions.Posts', () => {
                         },
                     },
                 },
+                groups: {
+                    groups: [
+                        {
+                            id: '1',
+                            name: 'zzz',
+                        },
+                    ],
+                },
             },
         } as unknown as GlobalState;
 
@@ -622,7 +630,14 @@ describe('Actions.Posts', () => {
 
         expect(
             Actions.getNeededAtMentionedUsernamesAndGroups(state, [
-                TestHelper.getPostMock({message: '@aaa @bbb @ccc'}),
+                TestHelper.getPostMock({message: '@zzz'}),
+            ])).toEqual(
+            new Set(),
+        );
+
+        expect(
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
+                TestHelper.getPostMock({message: '@aaa @bbb @ccc @zzz'}),
             ])).toEqual(
             new Set(['bbb', 'ccc']),
         );
@@ -661,7 +676,7 @@ describe('Actions.Posts', () => {
                     message: '@aaa @bbb',
                     props: {
                         attachments: [
-                            {text: '@ccc @ddd'},
+                            {text: '@ccc @ddd @zzz'},
                             {pretext: '@eee @fff', text: '@ggg'},
                         ],
                     },
