@@ -1268,9 +1268,6 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 	return fi, nil
 }
 
-// SendPushNotification will attempt to send a push notification to `notification.User`, using
-// `notification.Post` as the source of the notification. Note: the NotificationWillBePushed hook will
-// be run after SendPushNotification is called.
 func (api *PluginAPI) SendPushNotification(notification *model.PluginPushNotification) error {
 	var profiles map[string]*model.User
 	var err error
