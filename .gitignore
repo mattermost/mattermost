@@ -44,6 +44,9 @@ e2e-tests/playwright/tests/**/*-window.png
 e2e-tests/playwright/tests/accessibility/**/*-snapshots
 e2e-tests/playwright/.eslintcache
 
+# ignore temporary added configuration for pgloader
+server/tests/temp.load
+
 # Enterprise & products imports files
 imports/imports.go
 
