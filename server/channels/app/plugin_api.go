@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -1272,7 +1271,7 @@ func (api *PluginAPI) SendPluginPushNotification(notification *model.PluginPushN
 	var profiles map[string]*model.User
 	var err error
 	if notification.Channel.Type == model.ChannelTypeGroup {
-		if profiles, err = api.app.Srv().Store().User().GetAllProfilesInChannel(context.Background(), notification.Channel.Id, true); err != nil {
+		if profiles, err = api.app.Srv().Store().User().GetAllProfilesInChannel(api.ctx.Context(), notification.Channel.Id, true); err != nil {
 			return err
 		}
 	}
