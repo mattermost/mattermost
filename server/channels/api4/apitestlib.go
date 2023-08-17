@@ -125,9 +125,9 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	buffer := &mlog.Buffer{}
 
 	testLogger, _ := mlog.NewLogger()
-	logCFG, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
-	if errCFG := testLogger.ConfigureTargets(logCFG, nil); errCFG != nil {
-		panic("failed to configure test logger: " + errCFG.Error())
+	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
+	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
+		panic("failed to configure test logger: " + errCfg.Error())
 	}
 	if errW := mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...); errW != nil {
 		panic("failed to add writer target to test logger: " + errW.Error())
@@ -551,11 +551,11 @@ func (th *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
 		Description: "bot",
 	}
 
-	rBot, _, err := client.CreateBot(context.Background(), bot)
+	rbot, _, err := client.CreateBot(context.Background(), bot)
 	if err != nil {
 		panic(err)
 	}
-	return rBot
+	return rbot
 }
 
 func (th *TestHelper) CreateUser() *model.User {
@@ -575,11 +575,11 @@ func (th *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	rTeam, _, err := client.CreateTeam(context.Background(), team)
+	rteam, _, err := client.CreateTeam(context.Background(), team)
 	if err != nil {
 		panic(err)
 	}
-	return rTeam
+	return rteam
 }
 
 func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
@@ -594,17 +594,17 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 		Password:  "Pa$$word11",
 	}
 
-	rUser, _, err := client.CreateUser(context.Background(), user)
+	ruser, _, err := client.CreateUser(context.Background(), user)
 	if err != nil {
 		panic(err)
 	}
 
-	rUser.Password = "Pa$$word11"
-	_, err = th.App.Srv().Store().User().VerifyEmail(rUser.Id, rUser.Email)
+	ruser.Password = "Pa$$word11"
+	_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 	if err != nil {
 		return nil
 	}
-	return rUser
+	return ruser
 }
 
 func (th *TestHelper) CreateUserWithAuth(authService string) *model.User {
@@ -695,11 +695,11 @@ func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, chan
 		TeamId:      teamId,
 	}
 
-	rChannel, _, err := client.CreateChannel(context.Background(), channel)
+	rchannel, _, err := client.CreateChannel(context.Background(), channel)
 	if err != nil {
 		panic(err)
 	}
-	return rChannel
+	return rchannel
 }
 
 func (th *TestHelper) CreatePost() *model.Post {
@@ -723,22 +723,22 @@ func (th *TestHelper) CreatePostInChannelWithFiles(channel *model.Channel, files
 }
 
 func (th *TestHelper) CreatePostWithFilesWithClient(client *model.Client4, channel *model.Channel, files ...*model.FileInfo) *model.Post {
-	var fileIDs model.StringArray
+	var fileIds model.StringArray
 	for i := range files {
-		fileIDs = append(fileIDs, files[i].Id)
+		fileIds = append(fileIds, files[i].Id)
 	}
 
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   "message_" + model.NewId(),
-		FileIds:   fileIDs,
+		FileIds:   fileIds,
 	}
 
-	rPost, _, err := client.CreatePost(context.Background(), post)
+	rpost, _, err := client.CreatePost(context.Background(), post)
 	if err != nil {
 		panic(err)
 	}
-	return rPost
+	return rpost
 }
 
 func (th *TestHelper) CreatePostWithClient(client *model.Client4, channel *model.Channel) *model.Post {
@@ -749,11 +749,11 @@ func (th *TestHelper) CreatePostWithClient(client *model.Client4, channel *model
 		Message:   "message_" + id,
 	}
 
-	rPost, _, err := client.CreatePost(context.Background(), post)
+	rpost, _, err := client.CreatePost(context.Background(), post)
 	if err != nil {
 		panic(err)
 	}
-	return rPost
+	return rpost
 }
 
 func (th *TestHelper) CreatePinnedPostWithClient(client *model.Client4, channel *model.Channel) *model.Post {
@@ -765,11 +765,11 @@ func (th *TestHelper) CreatePinnedPostWithClient(client *model.Client4, channel 
 		IsPinned:  true,
 	}
 
-	rPost, _, err := client.CreatePost(context.Background(), post)
+	rpost, _, err := client.CreatePost(context.Background(), post)
 	if err != nil {
 		panic(err)
 	}
-	return rPost
+	return rpost
 }
 
 func (th *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel *model.Channel, message string) *model.Post {
@@ -778,11 +778,11 @@ func (th *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 		Message:   message,
 	}
 
-	rPost, _, err := client.CreatePost(context.Background(), post)
+	rpost, _, err := client.CreatePost(context.Background(), post)
 	if err != nil {
 		panic(err)
 	}
-	return rPost
+	return rpost
 }
 
 func (th *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
@@ -1068,16 +1068,16 @@ func CheckServiceUnavailableStatus(tb testing.TB, resp *model.Response) {
 	checkHTTPStatus(tb, resp, http.StatusServiceUnavailable)
 }
 
-func CheckErrorID(tb testing.TB, err error, errorID string) {
+func CheckErrorID(tb testing.TB, err error, errorId string) {
 	tb.Helper()
 
-	require.Error(tb, err, "should have errored with id: %s", errorID)
+	require.Error(tb, err, "should have errored with id: %s", errorId)
 
 	var appError *model.AppError
 	ok := errors.As(err, &appError)
 	require.True(tb, ok, "should have been a model.AppError")
 
-	require.Equalf(tb, errorID, appError.Id, "incorrect error id, actual: %s, expected: %s", appError.Id, errorID)
+	require.Equalf(tb, errorId, appError.Id, "incorrect error id, actual: %s, expected: %s", appError.Id, errorId)
 }
 
 func CheckErrorMessage(tb testing.TB, err error, message string) {
@@ -1122,23 +1122,23 @@ func (th *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 		secure := *cfg.FileSettings.AmazonS3SSL
 		signV2 := *cfg.FileSettings.AmazonS3SignV2
 		region := *cfg.FileSettings.AmazonS3Region
-		s3CLNT, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
+		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return err
 		}
 		bucket := *cfg.FileSettings.AmazonS3Bucket
-		if err := s3CLNT.RemoveObject(context.Background(), bucket, info.Path, s3.RemoveObjectOptions{}); err != nil {
+		if err := s3Clnt.RemoveObject(context.Background(), bucket, info.Path, s3.RemoveObjectOptions{}); err != nil {
 			return err
 		}
 
 		if info.ThumbnailPath != "" {
-			if err := s3CLNT.RemoveObject(context.Background(), bucket, info.ThumbnailPath, s3.RemoveObjectOptions{}); err != nil {
+			if err := s3Clnt.RemoveObject(context.Background(), bucket, info.ThumbnailPath, s3.RemoveObjectOptions{}); err != nil {
 				return err
 			}
 		}
 
 		if info.PreviewPath != "" {
-			if err := s3CLNT.RemoveObject(context.Background(), bucket, info.PreviewPath, s3.RemoveObjectOptions{}); err != nil {
+			if err := s3Clnt.RemoveObject(context.Background(), bucket, info.PreviewPath, s3.RemoveObjectOptions{}); err != nil {
 				return err
 			}
 		}
@@ -1316,7 +1316,7 @@ func (th *TestHelper) MakeGraphQLRequest(input *graphQLInput) (*graphql.Response
 	}
 	defer closeBody(resp)
 
-	var gqlRESP *graphql.Response
-	err = json.NewDecoder(resp.Body).Decode(&gqlRESP)
-	return gqlRESP, err
+	var gqlResp *graphql.Response
+	err = json.NewDecoder(resp.Body).Decode(&gqlResp)
+	return gqlResp, err
 }

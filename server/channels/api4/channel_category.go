@@ -49,8 +49,8 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditREC := c.MakeAuditRecord("createCategoryForTeamForUser", audit.Fail)
-	defer c.LogAuditRec(auditREC)
+	auditRec := c.MakeAuditRecord("createCategoryForTeamForUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	var categoryCreateRequest model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoryCreateRequest)
@@ -59,14 +59,14 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if appERR := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, &categoryCreateRequest); appERR != nil {
-		c.Err = appERR
+	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, &categoryCreateRequest); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	category, appERR := c.App.CreateSidebarCategory(c.AppContext, c.Params.UserId, c.Params.TeamId, &categoryCreateRequest)
-	if appERR != nil {
-		c.Err = appERR
+	category, appErr := c.App.CreateSidebarCategory(c.AppContext, c.Params.UserId, c.Params.TeamId, &categoryCreateRequest)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -76,7 +76,7 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditREC.Success()
+	auditRec.Success()
 
 	w.Write(categoryJSON)
 }
@@ -92,9 +92,9 @@ func getCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	order, appERR := c.App.GetSidebarCategoryOrder(c.AppContext, c.Params.UserId, c.Params.TeamId)
-	if appERR != nil {
-		c.Err = appERR
+	order, appErr := c.App.GetSidebarCategoryOrder(c.AppContext, c.Params.UserId, c.Params.TeamId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -115,13 +115,13 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
-	auditREC := c.MakeAuditRecord("updateCategoryOrderForTeamForUser", audit.Fail)
-	defer c.LogAuditRec(auditREC)
+	auditRec := c.MakeAuditRecord("updateCategoryOrderForTeamForUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	categoryOrder := model.ArrayFromJSON(r.Body)
 
-	for _, categoryID := range categoryOrder {
-		if !c.App.SessionHasPermissionToCategory(c.AppContext, *c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, categoryID) {
+	for _, categoryId := range categoryOrder {
+		if !c.App.SessionHasPermissionToCategory(c.AppContext, *c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, categoryId) {
 			c.SetInvalidParam("category")
 			return
 		}
@@ -133,7 +133,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
-	auditREC.Success()
+	auditRec.Success()
 	w.Write([]byte(model.ArrayToJSON(categoryOrder)))
 }
 
@@ -148,9 +148,9 @@ func getCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	categories, appERR := c.App.GetSidebarCategory(c.AppContext, c.Params.CategoryId)
-	if appERR != nil {
-		c.Err = appERR
+	categories, appErr := c.App.GetSidebarCategory(c.AppContext, c.Params.CategoryId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -174,8 +174,8 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	auditREC := c.MakeAuditRecord("updateCategoriesForTeamForUser", audit.Fail)
-	defer c.LogAuditRec(auditREC)
+	auditRec := c.MakeAuditRecord("updateCategoriesForTeamForUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	var categoriesUpdateRequest []*model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoriesUpdateRequest)
@@ -191,14 +191,14 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		}
 	}
 
-	if appERR := validateSidebarCategories(c, c.Params.TeamId, c.Params.UserId, categoriesUpdateRequest); appERR != nil {
-		c.Err = appERR
+	if appErr := validateSidebarCategories(c, c.Params.TeamId, c.Params.UserId, categoriesUpdateRequest); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	categories, appERR := c.App.UpdateSidebarCategories(c.AppContext, c.Params.UserId, c.Params.TeamId, categoriesUpdateRequest)
-	if appERR != nil {
-		c.Err = appERR
+	categories, appErr := c.App.UpdateSidebarCategories(c.AppContext, c.Params.UserId, c.Params.TeamId, categoriesUpdateRequest)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -208,26 +208,26 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	auditREC.Success()
+	auditRec.Success()
 	w.Write(categoriesJSON)
 }
 
-func validateSidebarCategory(c *Context, teamID, userID string, category *model.SidebarCategoryWithChannels) *model.AppError {
-	channels, appERR := c.App.GetChannelsForTeamForUser(c.AppContext, teamID, userID, &model.ChannelSearchOpts{
+func validateSidebarCategory(c *Context, teamId, userId string, category *model.SidebarCategoryWithChannels) *model.AppError {
+	channels, appErr := c.App.GetChannelsForTeamForUser(c.AppContext, teamId, userId, &model.ChannelSearchOpts{
 		IncludeDeleted: true,
 		LastDeleteAt:   0,
 	})
-	if appERR != nil {
-		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, "", http.StatusBadRequest).Wrap(appERR)
+	if appErr != nil {
+		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, "", http.StatusBadRequest).Wrap(appErr)
 	}
 
-	category.Channels = validateSidebarCategoryChannels(c, userID, category.Channels, channels)
+	category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channels)
 
 	return nil
 }
 
-func validateSidebarCategories(c *Context, teamID, userID string, categories []*model.SidebarCategoryWithChannels) *model.AppError {
-	channels, err := c.App.GetChannelsForTeamForUser(c.AppContext, teamID, userID, &model.ChannelSearchOpts{
+func validateSidebarCategories(c *Context, teamId, userId string, categories []*model.SidebarCategoryWithChannels) *model.AppError {
+	channels, err := c.App.GetChannelsForTeamForUser(c.AppContext, teamId, userId, &model.ChannelSearchOpts{
 		IncludeDeleted: true,
 		LastDeleteAt:   0,
 	})
@@ -236,28 +236,28 @@ func validateSidebarCategories(c *Context, teamID, userID string, categories []*
 	}
 
 	for _, category := range categories {
-		category.Channels = validateSidebarCategoryChannels(c, userID, category.Channels, channels)
+		category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channels)
 	}
 
 	return nil
 }
 
-func validateSidebarCategoryChannels(c *Context, userID string, channelIDs []string, channels model.ChannelList) []string {
+func validateSidebarCategoryChannels(c *Context, userId string, channelIds []string, channels model.ChannelList) []string {
 	var filtered []string
 
-	for _, channelID := range channelIDs {
+	for _, channelId := range channelIds {
 		found := false
 		for _, channel := range channels {
-			if channel.Id == channelID {
+			if channel.Id == channelId {
 				found = true
 				break
 			}
 		}
 
 		if found {
-			filtered = append(filtered, channelID)
+			filtered = append(filtered, channelId)
 		} else {
-			c.Logger.Info("Stopping user from adding channel to their sidebar when they are not a member", mlog.String("user_id", userID), mlog.String("channel_id", channelID))
+			c.Logger.Info("Stopping user from adding channel to their sidebar when they are not a member", mlog.String("user_id", userId), mlog.String("channel_id", channelId))
 		}
 	}
 
@@ -275,8 +275,8 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditREC := c.MakeAuditRecord("updateCategoryForTeamForUser", audit.Fail)
-	defer c.LogAuditRec(auditREC)
+	auditRec := c.MakeAuditRecord("updateCategoryForTeamForUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	var categoryUpdateRequest model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoryUpdateRequest)
@@ -285,16 +285,16 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if appERR := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, &categoryUpdateRequest); appERR != nil {
-		c.Err = appERR
+	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, &categoryUpdateRequest); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
 	categoryUpdateRequest.Id = c.Params.CategoryId
 
-	categories, appERR := c.App.UpdateSidebarCategories(c.AppContext, c.Params.UserId, c.Params.TeamId, []*model.SidebarCategoryWithChannels{&categoryUpdateRequest})
-	if appERR != nil {
-		c.Err = appERR
+	categories, appErr := c.App.UpdateSidebarCategories(c.AppContext, c.Params.UserId, c.Params.TeamId, []*model.SidebarCategoryWithChannels{&categoryUpdateRequest})
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -304,7 +304,7 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditREC.Success()
+	auditRec.Success()
 	w.Write(categoryJSON)
 }
 
@@ -319,15 +319,15 @@ func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditREC := c.MakeAuditRecord("deleteCategoryForTeamForUser", audit.Fail)
-	defer c.LogAuditRec(auditREC)
+	auditRec := c.MakeAuditRecord("deleteCategoryForTeamForUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
-	appERR := c.App.DeleteSidebarCategory(c.AppContext, c.Params.UserId, c.Params.TeamId, c.Params.CategoryId)
-	if appERR != nil {
-		c.Err = appERR
+	appErr := c.App.DeleteSidebarCategory(c.AppContext, c.Params.UserId, c.Params.TeamId, c.Params.CategoryId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	auditREC.Success()
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
