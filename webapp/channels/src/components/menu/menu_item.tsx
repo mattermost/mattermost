@@ -1,13 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactElement, ReactNode, Children, KeyboardEvent, MouseEvent} from 'react';
+import React, {
+    ReactElement,
+    ReactNode,
+    Children,
+    KeyboardEvent,
+    MouseEvent,
+    useContext,
+} from 'react';
 import {styled} from '@mui/material/styles';
+import {useSelector} from 'react-redux';
 import MuiMenuItem from '@mui/material/MenuItem';
 import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
+import {cloneDeep} from 'lodash';
+
+import {getIsMobileView} from 'selectors/views/browser';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+
+import {MenuContext, SubMenuContext} from './menu_context';
 
 export interface Props extends MuiMenuItemProps {
 
@@ -63,7 +76,7 @@ export interface Props extends MuiMenuItemProps {
      */
     isDestructive?: boolean;
 
-    onClick: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
+    onClick?: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
 
     /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
@@ -92,14 +105,42 @@ export function MenuItem(props: Props) {
         ...restProps
     } = props;
 
-    // When both primary and secondary labels are passed, we need to apply minor changes to the styling. Check below in styled component for more details.
-    const hasSecondaryLabel = labels && labels.props && labels.props.children && Children.count(labels.props.children) === 2;
+    const menuContext = useContext(MenuContext);
+
+    const subMenuContext = useContext(SubMenuContext);
+
+    const isMobileView = useSelector(getIsMobileView);
 
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
-            onClick(event);
+            // close submenu first if it is open
+            if (subMenuContext.close) {
+                subMenuContext.close();
+            }
+
+            // And then close the menu
+            if (menuContext.close) {
+                menuContext.close();
+            }
+
+            if (onClick) {
+                if (isMobileView) {
+                    // If the menu is in mobile view, we execute the click event immediately.
+                    onClick(event);
+                } else {
+                    // Clone the event since we delay the click handler until after the menu has closed.
+                    const clonedEvent = cloneDeep(event);
+
+                    menuContext.addOnClosedListener?.(() => {
+                        onClick(clonedEvent);
+                    });
+                }
+            }
         }
     }
+
+    // When both primary and secondary labels are passed, we need to apply minor changes to the styling. Check below in styled component for more details.
+    const hasSecondaryLabel = labels && labels.props && labels.props.children && Children.count(labels.props.children) === 2;
 
     return (
         <MenuItemStyled
