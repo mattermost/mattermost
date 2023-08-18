@@ -8,6 +8,8 @@
   "dependencies": {
     "@floating-ui/react-dom": "1.0.0",
     "@floating-ui/react-dom-interactions": "0.10.3",
+    "@giphy/js-fetch-api": "5.1.0",
+    "@giphy/react-components": "8.1.0",
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",
     "@mattermost/client": "*",
     "@mattermost/compass-components": "^0.2.12",
