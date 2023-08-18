@@ -21,6 +21,7 @@ import {createCallContext, createCallRequest} from 'utils/apps';
 import {DoAppCallResult, intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForContext} from './apps';
+import {streamlinedMarketplaceEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 export function fetchRemoteListing(): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
@@ -45,6 +46,7 @@ export function fetchListing(localOnly = false): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
         const filter = getFilter(state);
+        const isStreamlinedMarketplace = streamlinedMarketplaceEnabled(state);
 
         let plugins: MarketplacePlugin[];
         let apps: MarketplaceApp[] = [];
@@ -57,6 +59,10 @@ export function fetchListing(localOnly = false): ActionFunc {
                 await dispatch(fetchListing(true));
             }
             return {error};
+        }
+
+        if (plugins && isStreamlinedMarketplace) {
+            plugins = plugins.filter(({manifest: {id}}) => STREAMLINED_MARKETPLACE_PLUGIN_IDS.includes(id));
         }
 
         dispatch({
@@ -84,6 +90,15 @@ export function fetchListing(localOnly = false): ActionFunc {
         return {data: apps};
     };
 }
+
+const STREAMLINED_MARKETPLACE_PLUGIN_IDS = [
+    'jira',
+    'github',
+    'com.github.manland.mattermost-plugin-gitlab',
+    'zoom',
+    'mattermost-plugin-servicenow',
+    'com.mattermost.msteams-sync',
+];
 
 // filterListing sets a search filter for marketplace listing, fetching the latest data.
 export function filterListing(filter: string): ActionFunc {

@@ -17,6 +17,7 @@ export const ITEMS_PER_PAGE = 15;
 type MarketplaceListProps = {
     listing: Array<MarketplacePlugin | MarketplaceApp>;
     page: number;
+    perPage?: number;
     noResultsMessage: string;
     noResultsAction?: {
         label: string;
@@ -29,6 +30,7 @@ type MarketplaceListProps = {
 const MarketplaceList = ({
     listing,
     page,
+    perPage = ITEMS_PER_PAGE,
     noResultsMessage,
     noResultsAction,
     filter,
@@ -41,8 +43,8 @@ const MarketplaceList = ({
             return [];
         }
 
-        const pageStart = page * ITEMS_PER_PAGE;
-        const pageEnd = pageStart + ITEMS_PER_PAGE;
+        const pageStart = page * perPage;
+        const pageEnd = pageStart + perPage;
 
         return [...listing].
             sort((a, b) => getName(a).localeCompare(getName(b))).
