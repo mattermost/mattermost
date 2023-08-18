@@ -73,6 +73,7 @@ exports[`components/marketplace/ should render default 1`] = `
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
+      className=""
       componentClass="div"
     >
       <div
@@ -209,6 +210,7 @@ exports[`components/marketplace/ should render with error banner 1`] = `
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
+      className=""
       componentClass="div"
     >
       <div
@@ -362,6 +364,7 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
+      className=""
       componentClass="div"
     >
       <div
@@ -506,6 +509,7 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
+      className=""
       componentClass="div"
     >
       <div
@@ -668,6 +672,7 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
+      className=""
       componentClass="div"
     >
       <div
