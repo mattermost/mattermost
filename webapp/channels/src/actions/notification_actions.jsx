@@ -18,14 +18,18 @@ import {isThreadOpen} from 'selectors/views/threads';
 import {getChannelURL, getPermalinkURL} from 'selectors/urls';
 
 import {getHistory} from 'utils/browser_history';
-import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
+import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions} from 'utils/constants';
 import * as NotificationSounds from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp, isMobileApp, isWindowsApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
-import {stripMarkdown} from 'utils/markdown';
+import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import {runDesktopNotificationHooks} from './hooks';
+import {getUserOrGroupFromMentionName} from 'utils/post_utils';
+import {getMyGroups} from 'mattermost-redux/selectors/entities/groups';
+import {allAtMentions} from 'utils/text_formatting';
+import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 
 const NOTIFY_TEXT_MAX_LENGTH = 50;
 
@@ -92,14 +96,80 @@ export function sendDesktopNotification(post, msgProps) {
             return;
         }
 
-        let notifyLevel = member?.notify_props?.desktop || NotificationLevels.DEFAULT;
+        const channelNotifyProp = member?.notify_props?.desktop || NotificationLevels.DEFAULT;
+        let notifyLevel = channelNotifyProp;
 
         if (notifyLevel === NotificationLevels.DEFAULT) {
             notifyLevel = user?.notify_props?.desktop || NotificationLevels.ALL;
         }
 
+        if (channel.type === 'G' && channelNotifyProp === NotificationLevels.DEFAULT) {
+            notifyLevel = NotificationLevels.ALL;
+        }
+
         if (notifyLevel === NotificationLevels.NONE) {
             return;
+        } else if (channel.type === 'G' && notifyLevel === NotificationLevels.MENTION) {
+            // Compose the whole text in the message, including interactive messages.
+            let text = post.message;
+
+            // We do this on a try catch block to avoid errors from malformed props
+            try {
+                if (post.props && post.props.attachments) {
+                    const attachments = post.props.attachments;
+                    function appendText(toAppend) {
+                        if (toAppend) {
+                            text += `\n${toAppend}`;
+                        }
+                    }
+                    for (const attachment of attachments) {
+                        appendText(attachment.pretext);
+                        appendText(attachment.title);
+                        appendText(attachment.text);
+                        appendText(attachment.footer);
+                        if (attachment.fields) {
+                            for (const field of attachment.fields) {
+                                appendText(field.title);
+                                appendText(field.value);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.log('Could not process the whole attachment for mentions', e);
+            }
+
+            const groups = getMyGroups(state).reduce((prev, v) => {
+                prev[v.name] = v;
+                return prev;
+            }, {});
+
+            const ignoreChannelMentionProp = member?.notify_props?.ignore_channel_mentions || IgnoreChannelMentions.DEFAULT;
+            let ignoreChannelMention = ignoreChannelMentionProp === IgnoreChannelMentions.ON;
+            if (ignoreChannelMentionProp === IgnoreChannelMentions.DEFAULT) {
+                ignoreChannelMention = user?.notify_props?.channel === 'false';
+            }
+
+            const userAndGroups = {...groups, all: !ignoreChannelMention, here: !ignoreChannelMention, channel: !ignoreChannelMention};
+            userAndGroups[user.username] = user;
+
+            const mentionableText = formatWithRenderer(text, new MentionableRenderer());
+            const explicitMentions = allAtMentions(mentionableText);
+
+            let isExplicitlyMentioned = false;
+            for (const mention of explicitMentions) {
+                // Remove leading @
+                const toUse = mention.substring(1);
+                if (getUserOrGroupFromMentionName(userAndGroups, toUse)) {
+                    isExplicitlyMentioned = true;
+                    break;
+                }
+            }
+
+            if (!isExplicitlyMentioned) {
+                return;
+            }
         } else if (notifyLevel === NotificationLevels.MENTION && mentions.indexOf(user.id) === -1 && msgProps.channel_type !== Constants.DM_CHANNEL) {
             return;
         } else if (isCrtReply && notifyLevel === NotificationLevels.ALL && followers.indexOf(currentUserId) === -1) {
