@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, MouseEvent, useCallback, KeyboardEvent} from 'react';
+import React, {memo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {
@@ -55,8 +55,7 @@ const SidebarCategoryMenu = ({
 
     let muteUnmuteCategoryMenuItem: JSX.Element | null = null;
     if (category.type !== CategoryTypes.DIRECT_MESSAGES) {
-        function toggleCategoryMute(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-            event.preventDefault();
+        function toggleCategoryMute() {
             dispatch(setCategoryMuted(category.id, !category.muted));
         }
 
@@ -138,9 +137,7 @@ const SidebarCategoryMenu = ({
         );
     }
 
-    function handleSortChannels(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>, sorting: CategorySorting) {
-        event.preventDefault();
-
+    function handleSortChannels(sorting: CategorySorting) {
         dispatch(setCategorySorting(category.id, sorting));
         trackEvent('ui', `ui_sidebar_sort_dm_${sorting}`);
     }
@@ -197,7 +194,7 @@ const SidebarCategoryMenu = ({
                         defaultMessage='Alphabetically'
                     />
                 )}
-                onClick={(event) => handleSortChannels(event, CategorySorting.Alphabetical)}
+                onClick={() => handleSortChannels(CategorySorting.Alphabetical)}
             />
             <Menu.Item
                 id={`sortByMostRecent-${category.id}`}
@@ -207,7 +204,7 @@ const SidebarCategoryMenu = ({
                         defaultMessage='Recent Activity'
                     />
                 )}
-                onClick={(event) => handleSortChannels(event, CategorySorting.Recency)}
+                onClick={() => handleSortChannels(CategorySorting.Recency)}
             />
             <Menu.Item
                 id={`sortManual-${category.id}`}
@@ -217,7 +214,7 @@ const SidebarCategoryMenu = ({
                         defaultMessage='Manually'
                     />
                 )}
-                onClick={(event) => handleSortChannels(event, CategorySorting.Manual)}
+                onClick={() => handleSortChannels(CategorySorting.Manual)}
             />
         </Menu.SubMenu>
     );

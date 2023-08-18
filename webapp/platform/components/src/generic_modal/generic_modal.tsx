@@ -6,7 +6,6 @@ import classNames from 'classnames';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {FocusTrap} from '../focus_trap';
 import './generic_modal.scss';
 
 export type Props = {
@@ -27,11 +26,6 @@ export type Props = {
     id: string;
     autoCloseOnCancelButton?: boolean;
     autoCloseOnConfirmButton?: boolean;
-
-    /**
-     * If false, bootrap's Modal will not enforce focus on the modal and will
-     * transfer the mechanism to the FocusTrap component instead.
-     */
     enforceFocus?: boolean;
     container?: React.ReactNode | React.ReactNodeArray;
     ariaLabel?: string;
@@ -114,12 +108,6 @@ export class GenericModal extends React.PureComponent<Props, State> {
         this.props.handleKeydown?.(event);
     }
 
-    private handleShow = () => {
-        if (this.props.enforceFocus === false) {
-            this.setState({isFocalTrapActive: true});
-        }
-    }
-
     render() {
         let confirmButton;
         if (this.props.handleConfirm) {
@@ -181,8 +169,6 @@ export class GenericModal extends React.PureComponent<Props, State> {
             </div>
         );
 
-        const isFocusTrapActive = this.props.enforceFocus === false ? this.state.isFocalTrapActive : false;
-
         return (
             <Modal
                 id={this.props.id}
@@ -191,7 +177,6 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 aria-labelledby={this.props.ariaLabel ? undefined : 'genericModalLabel'}
                 dialogClassName={classNames('a11y__modal GenericModal', {GenericModal__compassDesign: this.props.compassDesign}, this.props.className)}
                 show={this.state.show}
-                onShow={this.handleShow}
                 restoreFocus={true}
                 enforceFocus={this.props.enforceFocus}
                 onHide={this.onHide}
@@ -201,49 +186,47 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 container={this.props.container}
                 keyboard={this.props.keyboardEscape}
             >
-                <FocusTrap active={isFocusTrapActive}>
-                    <div
-                        onKeyDown={this.onEnterKeyDown}
-                        tabIndex={this.props.tabIndex || 0}
-                        className='GenericModal__wrapper-enter-key-press-catcher'
-                    >
-                        <Modal.Header closeButton={true}>
-                            {this.props.compassDesign && (
-                                <>
-                                    {headerText}
-                                    {this.props.headerInput}
-                                </>
-                            )}
-                        </Modal.Header>
-                        <Modal.Body>
-                            {this.props.compassDesign ? (
-                                this.props.errorText && (
-                                    <div className='genericModalError'>
-                                        <i className='icon icon-alert-outline'/>
-                                        <span>{this.props.errorText}</span>
-                                    </div>
-                                )
-                            ) : (
-                                headerText
-                            )}
-                            <div className={classNames('GenericModal__body', {padding: this.props.bodyPadding})}>
-                                {this.props.children}
-                            </div>
-                        </Modal.Body>
-                        {(cancelButton || confirmButton || this.props.footerContent) && (
-                            <Modal.Footer className={classNames({divider: this.props.footerDivider})}>
-                                {(cancelButton || confirmButton) ? (
-                                    <>
-                                        {cancelButton}
-                                        {confirmButton}
-                                    </>
-                                ) : (
-                                    this.props.footerContent
-                                )}
-                            </Modal.Footer>
+                <div
+                    onKeyDown={this.onEnterKeyDown}
+                    tabIndex={this.props.tabIndex || 0}
+                    className='GenericModal__wrapper-enter-key-press-catcher'
+                >
+                    <Modal.Header closeButton={true}>
+                        {this.props.compassDesign && (
+                            <>
+                                {headerText}
+                                {this.props.headerInput}
+                            </>
                         )}
-                    </div>
-                </FocusTrap>
+                    </Modal.Header>
+                    <Modal.Body>
+                        {this.props.compassDesign ? (
+                            this.props.errorText && (
+                                <div className='genericModalError'>
+                                    <i className='icon icon-alert-outline'/>
+                                    <span>{this.props.errorText}</span>
+                                </div>
+                            )
+                        ) : (
+                            headerText
+                        )}
+                        <div className={classNames('GenericModal__body', {padding: this.props.bodyPadding})}>
+                            {this.props.children}
+                        </div>
+                    </Modal.Body>
+                    {(cancelButton || confirmButton || this.props.footerContent) && (
+                        <Modal.Footer className={classNames({divider: this.props.footerDivider})}>
+                            {(cancelButton || confirmButton) ? (
+                                <>
+                                    {cancelButton}
+                                    {confirmButton}
+                                </>
+                            ) : (
+                                this.props.footerContent
+                            )}
+                        </Modal.Footer>
+                    )}
+                </div>
             </Modal>
         );
     }

@@ -10,6 +10,7 @@ import {Divider} from '@mui/material';
  * <Menu.Container>
  *   <Menu.Item>
  *   <Menu.Separator />
+ * </Menu.Container>
  */
 export function MenuItemSeparator() {
     return (
