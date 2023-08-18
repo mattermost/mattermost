@@ -264,7 +264,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         const {channels, archivedChannels, shouldHideJoinedChannels, privateChannels} = this.props;
         const {search, searchedChannels, filter} = this.state;
 
-        const allChannels = channels.concat(archivedChannels, privateChannels).sort((a, b) => a.display_name.localeCompare(b.display_name));
+        const allChannels = channels.concat(privateChannels).sort((a, b) => a.display_name.localeCompare(b.display_name));
         const allChannelsWithoutJoined = this.getChannelsWithoutJoined(allChannels);
         const publicChannelsWithoutJoined = this.getChannelsWithoutJoined(channels);
         const archivedChannelsWithoutJoined = this.getChannelsWithoutJoined(archivedChannels);
