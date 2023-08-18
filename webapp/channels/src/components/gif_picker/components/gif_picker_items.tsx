@@ -2,13 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useCallback} from 'react';
-import {GiphyFetch} from '@giphy/js-fetch-api';
+import {useSelector} from 'react-redux';
 import {EmojiVariationsListProps, Grid} from '@giphy/react-components';
+import {GifsResult} from '@giphy/js-fetch-api';
+
+import {getGiphyFetchInstance} from 'mattermost-redux/selectors/entities/general';
 
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
-
-const giphyFetch = new GiphyFetch('DxfEk2t4CR8bv4A1kviDBRMP9i1og3Da');
 
 const GUTTER_BETWEEN_GIFS = 8;
 const NUM_OF_GIFS_COLUMNS = 2;
@@ -20,14 +21,22 @@ interface Props {
 }
 
 function GifPickerItems(props: Props) {
-    const fetchGifs = useCallback((offset: number) => {
-        // We dont have to throttled the fetching as the library does it for us
-        if (props.filter.length > 0) {
-            return giphyFetch.search(props.filter, {offset, limit: 10});
+    const giphyFetch = useSelector(getGiphyFetchInstance);
+
+    const fetchGifs = useCallback(async (offset: number) => {
+        if (!giphyFetch) {
+            return {} as GifsResult;
         }
 
-        return giphyFetch.trending({offset, limit: 10});
-    }, [props.filter]);
+        // We dont have to throttled the fetching as the library does it for us
+        if (props.filter.length > 0) {
+            const filteredResult = await giphyFetch.search(props.filter, {offset, limit: 10});
+            return filteredResult;
+        }
+
+        const trendingResult = await giphyFetch.trending({offset, limit: 10});
+        return trendingResult;
+    }, [props.filter, giphyFetch]);
 
     return (
         <div className='emoji-picker__items gif-picker__items'>
