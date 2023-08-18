@@ -455,6 +455,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
 
         if (this.props.canShowArchivedChannels) {
             channelDropdownItems.push(
+                <Menu.Separator/>,
                 <Menu.Item
                     id='channelsMoreDropdownArchived'
                     onClick={() => this.props.changeFilter(Filter.Archived)}
