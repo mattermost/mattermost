@@ -6100,7 +6100,7 @@ const AdminDefinition = {
                         label: t('admin.customization.enableGifPickerTitle'),
                         label_default: 'Enable GIF Picker:',
                         help_text: t('admin.customization.enableGifPickerDesc'),
-                        help_text_default: 'Allow users to select GIFs from the emoji picker via a Gfycat integration.',
+                        help_text_default: 'Allows users to select GIFs from the emoji picker.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
                     },
                 ],

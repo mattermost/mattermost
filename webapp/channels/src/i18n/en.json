@@ -653,7 +653,7 @@
   "admin.customization.enableCustomEmojiTitle": "Enable Custom Emoji:",
   "admin.customization.enableEmojiPickerDesc": "The emoji picker allows users to select emoji to add as reactions or use in messages. Enabling the emoji picker with a large number of custom emoji may slow down performance.",
   "admin.customization.enableEmojiPickerTitle": "Enable Emoji Picker:",
-  "admin.customization.enableGifPickerDesc": "Allow users to select GIFs from the emoji picker via a Gfycat integration.",
+  "admin.customization.enableGifPickerDesc": "Allows users to select GIFs from the emoji picker.",
   "admin.customization.enableGifPickerTitle": "Enable GIF Picker:",
   "admin.customization.enableInlineLatexDesc": "Enable rendering of inline Latex code. If false, Latex can only be rendered in a code block using syntax highlighting. Please review our <link>documentation</link> for details about text formatting.",
   "admin.customization.enableInlineLatexTitle": "Enable Inline Latex Rendering:",
