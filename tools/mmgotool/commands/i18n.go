@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -216,21 +215,7 @@ func extractCmdF(command *cobra.Command, args []string) error {
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].ID < result[j].ID })
 
-	f, err := os.Create(path.Join(mattermostDir, "i18n", "en.json"))
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	encoder := json.NewEncoder(f)
-	encoder.SetIndent("", "  ")
-	encoder.SetEscapeHTML(false)
-	err = encoder.Encode(result)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return writeMessageFile(path.Join(mattermostDir, "i18n", "en.json"), result)
 }
 
 func checkCmdF(command *cobra.Command, args []string) error {
@@ -688,18 +673,11 @@ func clean(translationDir string, file string, dryRun bool, check bool) (*string
 		return &result, nil
 	}
 
-	newJSON, err := JSONMarshal(newList)
+	err = writeMessageFile(path.Join(translationDir, file), newList)
 	if err != nil {
 		return nil, err
 	}
-	filename := path.Join(translationDir, file)
-	fileInfo, err := os.Lstat(filename)
-	if err != nil {
-		return nil, err
-	}
-	if err = ioutil.WriteFile(filename, newJSON, fileInfo.Mode().Perm()); err != nil {
-		return nil, err
-	}
+
 	return &result, nil
 }
 
@@ -717,11 +695,48 @@ func removeEmptyTranslations(oldList []*i18n.Message) ([]i18n.Message, int) {
 	return newList, count
 }
 
-func JSONMarshal(t interface{}) ([]byte, error) {
-	buffer := &bytes.Buffer{}
-	encoder := json.NewEncoder(buffer)
+func toSimplifiedJSONMessage(t i18n.Message) interface{} {
+	type JSON struct {
+		ID          string `json:"-"`
+		Hash        string `json:"-"`
+		Description string `json:"description,omitempty"`
+		LeftDelim   string `json:"-"`
+		RightDelim  string `json:"-"`
+		Zero        string `json:"zero,omitempty"`
+		One         string `json:"one,omitempty"`
+		Two         string `json:"two,omitempty"`
+		Few         string `json:"few,omitempty"`
+		Many        string `json:"many,omitempty"`
+		Other       string `json:"other,omitempty"`
+	}
+
+	// If anything except Other is set return full format
+	forms := []string{t.Zero, t.One, t.Two, t.Few, t.Many}
+	for _, v := range forms {
+		if v != "" {
+			return JSON(t)
+		}
+	}
+
+	// Otherwise return simple format
+	return t.Other
+}
+
+func writeMessageFile(path string, input []i18n.Message) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	output := map[string]interface{}{}
+	for _, msg := range input {
+		output[msg.ID] = toSimplifiedJSONMessage(msg)
+	}
+
+	encoder := json.NewEncoder(f)
 	encoder.SetEscapeHTML(false)
 	encoder.SetIndent("", "  ")
-	err := encoder.Encode(t)
-	return buffer.Bytes(), err
+
+	return encoder.Encode(&output)
 }
