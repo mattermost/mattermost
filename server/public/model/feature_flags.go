@@ -27,9 +27,6 @@ type FeatureFlags struct {
 	// CallsEnabled controls whether or not the Calls plugin should be enabled
 	CallsEnabled bool
 
-	// Enable DataRetention for Boards
-	BoardsDataRetention bool
-
 	NormalizeLdapDNs bool
 
 	// Enable GraphQL feature
@@ -60,7 +57,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = true
-	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.GraphQL = false
 	f.CallsEnabled = true

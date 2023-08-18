@@ -1212,7 +1212,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 	}
 
 	env := th.App.GetPluginsEnvironment()
-	env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{prepackagePlugin})
+	env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{prepackagePlugin}, nil)
 
 	t.Run("get remote and prepackaged plugins", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1283,7 +1283,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		}
 
 		env := th.App.GetPluginsEnvironment()
-		env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{newerPrepackagePlugin})
+		env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{newerPrepackagePlugin}, nil)
 
 		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
 		require.NoError(t, err)
