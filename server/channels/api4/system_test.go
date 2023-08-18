@@ -877,6 +877,7 @@ func TestCompleteOnboarding(t *testing.T) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableMarketplace = false
 		*cfg.PluginSettings.EnableRemoteMarketplace = true
+		cfg.FeatureFlags.StreamlinedMarketplace = false
 		*cfg.PluginSettings.MarketplaceURL = marketplaceServer.URL
 		*cfg.PluginSettings.AllowInsecureDownloadURL = true
 	})

@@ -988,6 +988,7 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 	t.Run("Get plugins with EnableRemoteMarketplace enabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			cfg.FeatureFlags.StreamlinedMarketplace = false
 		})
 
 		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
@@ -1144,6 +1145,7 @@ func TestGetRemotePluginInMarketplace(t *testing.T) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableMarketplace = true
 		*cfg.PluginSettings.EnableRemoteMarketplace = true
+		cfg.FeatureFlags.StreamlinedMarketplace = false
 		*cfg.PluginSettings.EnableUploads = true
 		*cfg.PluginSettings.MarketplaceURL = testServer.URL
 	})
@@ -1215,6 +1217,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 	t.Run("get remote and prepackaged plugins", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			cfg.FeatureFlags.StreamlinedMarketplace = false
 			*cfg.PluginSettings.EnableUploads = true
 		})
 
@@ -1247,9 +1250,26 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		require.Equal(t, prepackagePlugin.Manifest, plugins[0].Manifest)
 	})
 
+	t.Run("EnableRemoteMarketplace enabled, StreamlinedMarketplace enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			cfg.FeatureFlags.StreamlinedMarketplace = true
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		// No marketplace plugins returned
+		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
+		require.NoError(t, err)
+
+		// Only returns the prepackaged plugins
+		require.Len(t, plugins, 1)
+		require.Equal(t, prepackagePlugin.Manifest, plugins[0].Manifest)
+	})
+
 	t.Run("get prepackaged plugin if newer", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			cfg.FeatureFlags.StreamlinedMarketplace = false
 			*cfg.PluginSettings.EnableUploads = true
 		})
 
@@ -1275,6 +1295,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 	t.Run("prepackaged plugins are not shown in Cloud", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			cfg.FeatureFlags.StreamlinedMarketplace = false
 			*cfg.PluginSettings.EnableUploads = true
 		})
 
