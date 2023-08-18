@@ -39,6 +39,7 @@ export type Props = {
     keyboardEscape?: boolean;
     headerInput?: React.ReactNode;
     bodyPadding?: boolean;
+    bodyDivider?: boolean;
     footerContent?: React.ReactNode;
     footerDivider?: boolean;
     headerButton?: React.ReactNode;
@@ -199,7 +200,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                             </>
                         )}
                     </Modal.Header>
-                    <Modal.Body>
+                    <Modal.Body className={classNames({divider: this.props.bodyDivider})}>
                         {this.props.compassDesign ? (
                             this.props.errorText && (
                                 <div className='genericModalError'>
