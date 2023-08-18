@@ -77,7 +77,7 @@ export function removeDraft(key: string, channelId: string, rootId = '') {
         dispatch(setGlobalItem(key, {message: '', fileInfos: [], uploadsInProgress: []}));
 
         if (syncedDraftsAreAllowedAndEnabled(state)) {
-            const connectionId = getConnectionId(getState() as GlobalState);
+            const connectionId = getConnectionId(state);
             clearDraftTimeout(key);
 
             try {

@@ -8,7 +8,7 @@ import {
     addUsersToChannel,
     openDirectChannelToUserId,
     openGroupChannelToUserIds,
-    loadChannelsForCurrentUser, fetchChannelsAndMembers,
+    loadChannelsForCurrentUser, fetchChannelsAndMembers, getChannelMemberCountsFromMessage,
 } from 'actions/channel_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
 import {CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE} from 'actions/channel_queries';
@@ -22,6 +22,7 @@ import {Client4} from 'mattermost-redux/client';
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import mockStore from 'tests/test_store';
 import configureStore from 'store';
+import {Permissions} from 'mattermost-redux/constants';
 
 const initialState = {
     entities: {
@@ -60,6 +61,9 @@ const initialState = {
             messageCounts: {
                 current_channel_id: {total: 10},
                 current_user_id__existingId: {total: 0},
+            },
+            roles: {
+                current_channel_id: new Set(['channel_role']),
             },
         },
         teams: {
@@ -131,12 +135,17 @@ jest.mock('mattermost-redux/actions/channels', () => ({
     addChannelMember: (...args: any) => ({type: 'MOCK_ADD_CHANNEL_MEMBER', args}),
     createDirectChannel: (...args: any) => ({type: 'MOCK_CREATE_DIRECT_CHANNEL', args}),
     createGroupChannel: (...args: any) => ({type: 'MOCK_CREATE_GROUP_CHANNEL', args}),
+    getChannelMemberCountsByGroup: (...args: any) => ({type: 'MOCK_GET_CHANNEL_MEMBER_COUNTS_BY_GROUP', args}),
 }));
 
 jest.mock('actions/user_actions', () => ({
     loadNewDMIfNeeded: jest.fn(),
     loadNewGMIfNeeded: jest.fn(),
     loadProfilesForSidebar: jest.fn(),
+}));
+
+jest.mock('actions/views/group', () => ({
+    searchAssociatedGroupsForReference: (...args: any) => ({type: 'MOCK_SEARCH_ASSOCIATED_GROUPS_FOR_REFERENCE', args}),
 }));
 
 describe('Actions.Channel', () => {
@@ -491,6 +500,320 @@ describe('Actions.Channel', () => {
                 roles: [...roles],
             });
         }
+    });
+
+    describe('getChannelMemberCountsFromMessage', () => {
+        const channelId = 'current_channel_id';
+        test('should not call any action if there is no LDAP group support or no custom group support', async () => {
+            const testStore = await mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        license: {
+                            ...initialState.entities.general.license,
+                            IsLicensed: 'false',
+                            LDAPGroups: 'false',
+                        },
+                        config: {
+                            ...initialState.entities.general.config,
+                            EnableCustomGroups: 'false',
+                            ExperimentalTimezone: 'false',
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            system_role: {
+                                permissions: [Permissions.USE_GROUP_MENTIONS],
+                            },
+                            team_role: {
+                                permissions: [],
+                            },
+                            channel_role: {
+                                permissions: [],
+                            },
+                        },
+                    },
+                },
+            });
+
+            testStore.dispatch(getChannelMemberCountsFromMessage(channelId, '@group'));
+            expect(testStore.getActions()).toHaveLength(0);
+        });
+
+        test('should call action if LDAP groups enabled', async () => {
+            const testStore = await mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        license: {
+                            ...initialState.entities.general.license,
+                            IsLicensed: 'true',
+                            LDAPGroups: 'true',
+                        },
+                        config: {
+                            ...initialState.entities.general.config,
+                            EnableCustomGroups: 'false',
+                            ExperimentalTimezone: 'false',
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            system_role: {
+                                permissions: [Permissions.USE_GROUP_MENTIONS],
+                            },
+                            team_role: {
+                                permissions: [],
+                            },
+                            channel_role: {
+                                permissions: [],
+                            },
+                        },
+                    },
+                },
+            });
+
+            testStore.dispatch(getChannelMemberCountsFromMessage(channelId, '@group'));
+            expect(testStore.getActions()).toHaveLength(1);
+        });
+
+        test('should call action if custom group support', async () => {
+            const testStore = await mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        license: {
+                            ...initialState.entities.general.license,
+                            IsLicensed: 'false',
+                            LDAPGroups: 'false',
+                        },
+                        config: {
+                            ...initialState.entities.general.config,
+                            EnableCustomGroups: 'true',
+                            ExperimentalTimezone: 'false',
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            system_role: {
+                                permissions: [Permissions.USE_GROUP_MENTIONS],
+                            },
+                            team_role: {
+                                permissions: [],
+                            },
+                            channel_role: {
+                                permissions: [],
+                            },
+                        },
+                    },
+                },
+            });
+
+            testStore.dispatch(getChannelMemberCountsFromMessage(channelId, '@group'));
+            expect(testStore.getActions()).toHaveLength(1);
+        });
+
+        test('should call search if only one mention', async () => {
+            const testStore = await mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        license: {
+                            ...initialState.entities.general.license,
+                            IsLicensed: 'false',
+                            LDAPGroups: 'false',
+                        },
+                        config: {
+                            ...initialState.entities.general.config,
+                            EnableCustomGroups: 'true',
+                            ExperimentalTimezone: 'false',
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            system_role: {
+                                permissions: [Permissions.USE_GROUP_MENTIONS],
+                            },
+                            team_role: {
+                                permissions: [],
+                            },
+                            channel_role: {
+                                permissions: [],
+                            },
+                        },
+                    },
+                },
+            });
+
+            testStore.dispatch(getChannelMemberCountsFromMessage(channelId, '@group'));
+            const actions = testStore.getActions();
+            expect(actions).toHaveLength(1);
+            expect(actions[0].type).toBe('MOCK_SEARCH_ASSOCIATED_GROUPS_FOR_REFERENCE');
+        });
+
+        test('should call get if more than one mention', async () => {
+            const testStore = await mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        license: {
+                            ...initialState.entities.general.license,
+                            IsLicensed: 'false',
+                            LDAPGroups: 'false',
+                        },
+                        config: {
+                            ...initialState.entities.general.config,
+                            EnableCustomGroups: 'true',
+                            ExperimentalTimezone: 'false',
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            system_role: {
+                                permissions: [Permissions.USE_GROUP_MENTIONS],
+                            },
+                            team_role: {
+                                permissions: [],
+                            },
+                            channel_role: {
+                                permissions: [],
+                            },
+                        },
+                    },
+                },
+            });
+
+            testStore.dispatch(getChannelMemberCountsFromMessage(channelId, '@group1 @group2'));
+            const actions = testStore.getActions();
+            expect(actions).toHaveLength(1);
+            expect(actions[0].type).toBe('MOCK_GET_CHANNEL_MEMBER_COUNTS_BY_GROUP');
+        });
+
+        test('should do nothing if there is no mentions in the message', async () => {
+            const testStore = await mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        license: {
+                            ...initialState.entities.general.license,
+                            IsLicensed: 'false',
+                            LDAPGroups: 'false',
+                        },
+                        config: {
+                            ...initialState.entities.general.config,
+                            EnableCustomGroups: 'true',
+                            ExperimentalTimezone: 'false',
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            system_role: {
+                                permissions: [Permissions.USE_GROUP_MENTIONS],
+                            },
+                            team_role: {
+                                permissions: [],
+                            },
+                            channel_role: {
+                                permissions: [],
+                            },
+                        },
+                    },
+                },
+            });
+
+            testStore.dispatch(getChannelMemberCountsFromMessage(channelId, 'hello world'));
+            const actions = testStore.getActions();
+            expect(actions).toHaveLength(0);
+        });
+
+        test('should ignore channel mentions', async () => {
+            const testStore = await mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        license: {
+                            ...initialState.entities.general.license,
+                            IsLicensed: 'false',
+                            LDAPGroups: 'false',
+                        },
+                        config: {
+                            ...initialState.entities.general.config,
+                            EnableCustomGroups: 'true',
+                            ExperimentalTimezone: 'false',
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            system_role: {
+                                permissions: [Permissions.USE_GROUP_MENTIONS],
+                            },
+                            team_role: {
+                                permissions: [],
+                            },
+                            channel_role: {
+                                permissions: [],
+                            },
+                        },
+                    },
+                },
+            });
+
+            testStore.dispatch(getChannelMemberCountsFromMessage(channelId, '@all @here @channel'));
+            const actions = testStore.getActions();
+            expect(actions).toHaveLength(0);
+        });
+
+        test('should do nothing if empty channel id', async () => {
+            const testStore = await mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        license: {
+                            ...initialState.entities.general.license,
+                            IsLicensed: 'false',
+                            LDAPGroups: 'false',
+                        },
+                        config: {
+                            ...initialState.entities.general.config,
+                            EnableCustomGroups: 'true',
+                            ExperimentalTimezone: 'false',
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            system_role: {
+                                permissions: [Permissions.USE_GROUP_MENTIONS],
+                            },
+                            team_role: {
+                                permissions: [],
+                            },
+                            channel_role: {
+                                permissions: [],
+                            },
+                        },
+                    },
+                },
+            });
+
+            testStore.dispatch(getChannelMemberCountsFromMessage('', '@group'));
+            const actions = testStore.getActions();
+            expect(actions).toHaveLength(0);
+        });
     });
 });
 

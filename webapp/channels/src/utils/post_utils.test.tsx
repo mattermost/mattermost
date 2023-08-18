@@ -12,6 +12,7 @@ import EmojiMap from 'utils/emoji_map';
 
 import enMessages from '../i18n/en.json';
 import {GlobalState} from 'types/store';
+import {mentionsMinusSpecialMentionsInText} from 'utils/post_utils';
 
 describe('PostUtils.containsAtChannel', () => {
     test('should return correct @all (same for @channel)', () => {
@@ -1116,5 +1117,21 @@ describe('PostUtils.getPostURL', () => {
     ])('replies should return %s', (expected, postCase, collapsedThreads) => {
         const state = getState(collapsedThreads);
         expect(PostUtils.getPostURL(state, postCase)).toBe(expected);
+    });
+});
+
+describe('PostUtils.mentionsMinusSpecialMentionsInText', () => {
+    test('should not match special mentions', () => {
+        let res = mentionsMinusSpecialMentionsInText('@all');
+        expect(res).toHaveLength(0);
+
+        res = mentionsMinusSpecialMentionsInText('@here');
+        expect(res).toHaveLength(0);
+
+        res = mentionsMinusSpecialMentionsInText('@channel');
+        expect(res).toHaveLength(0);
+
+        res = mentionsMinusSpecialMentionsInText('@all @here @channel');
+        expect(res).toHaveLength(0);
     });
 });

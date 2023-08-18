@@ -324,7 +324,7 @@ export function handleSubmit(draft: PostDraft, preSubmit: () => void, onSubmitte
 
         const teamId = channel.team_id || getCurrentTeamId(state);
         const isLDAPEnabled = isLDAPEnabledAction(state);
-        const enableConfirmNotificationsToChannel = getConfig(state).EnableConfirmNotificationsToChannel === 'true';
+        const enableConfirmNotificationsToChannel = config.EnableConfirmNotificationsToChannel === 'true';
         const useLDAPGroupMentions = isLDAPEnabled && haveIChannelPermission(state, teamId, channel.id, Permissions.USE_GROUP_MENTIONS);
         const useCustomGroupMentions = isCustomGroupsEnabled(state) && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
         const groupsWithAllowReference = useLDAPGroupMentions || useCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, channel.team_id, channel.id) : null;

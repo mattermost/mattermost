@@ -45,6 +45,9 @@ export function haveISystemPermission(state: GlobalState, options: PermissionsOp
 
 export function getPermissionsForRoles(allRoles: Record<string, Role>, roleSet: Set<string>) {
     const permissions = new Set<string>();
+    if (!allRoles) {
+        return permissions;
+    }
 
     for (const roleName of roleSet) {
         const role = allRoles[roleName];

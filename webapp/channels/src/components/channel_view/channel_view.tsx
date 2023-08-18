@@ -62,8 +62,6 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         return null;
     }
 
-    channelViewRef: React.RefObject<HTMLDivElement>;
-
     constructor(props: Props) {
         super(props);
 
@@ -73,13 +71,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
             focusedPostId: props.match.params.postid,
             deferredPostView: ChannelView.createDeferredPostView(),
         };
-
-        this.channelViewRef = React.createRef();
     }
-
-    getChannelView = () => {
-        return this.channelViewRef.current;
-    };
 
     onClickCloseChannel = () => {
         this.props.goToLastViewedChannel();
@@ -152,7 +144,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     className='post-create__container AdvancedTextEditor__ctr'
                     id='post-create'
                 >
-                    <AdvancedCreatePost getChannelView={this.getChannelView}/>
+                    <AdvancedCreatePost/>
                 </div>
             );
         }
@@ -161,7 +153,6 @@ export default class ChannelView extends React.PureComponent<Props, State> {
 
         return (
             <div
-                ref={this.channelViewRef}
                 id='app-content'
                 className='app__content'
             >

@@ -32,7 +32,6 @@ import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload'
 import PostDeletedModal from 'components/post_deleted_modal';
 import {TextboxClass, TextboxElement} from 'components/textbox';
 import UnifiedTextEditorForm from 'components/advanced_text_editor/unified_text_editor_form';
-import {isDraftEmpty} from 'utils/draft';
 import {Posts} from 'mattermost-redux/constants';
 import {SubmitServerError} from 'actions/views/create_comment';
 
@@ -100,9 +99,6 @@ type Props = {
 
     // The last time, if any, the selected post changed. Will be 0 if no post is selected.
     selectedPostFocussedAt: number;
-
-    // Function to set or unset emoji picker for last message
-    emitShortcutReactToLastPostFrom: (location: string) => void;
 
     // Set show preview for textbox
     setShowPreview: (showPreview: boolean) => void;
@@ -452,6 +448,12 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             return;
         }
 
+        if (this.props.rootDeleted) {
+            this.showPostDeletedModal();
+            this.isDraftSubmitting = false;
+            return;
+        }
+
         const res = await this.props.handleSubmit(draft, this.handlePreSubbmit, this.handleSubmitFinished, serverError, latestPost);
 
         if (res.error || res.data.shouldClear) {
@@ -477,8 +479,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }
 
         const draft = this.state.draft;
-        const show = !isDraftEmpty(draft);
-        const updatedDraft = {...draft, message, show};
+        const updatedDraft = {...draft, message};
 
         this.handleDraftChange(updatedDraft);
 
