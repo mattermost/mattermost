@@ -843,6 +843,40 @@ func (s *hooksRPCServer) ConfigurationWillBeSaved(args *Z_ConfigurationWillBeSav
 	return nil
 }
 
+func init() {
+	hookNameToId["NotificationWillBePushed"] = NotificationWillBePushedID
+}
+
+type Z_NotificationWillBePushedArgs struct {
+	A *model.PluginPushNotification
+}
+
+type Z_NotificationWillBePushedReturns struct {
+	A bool
+}
+
+func (g *hooksRPCClient) NotificationWillBePushed(pushNotification *model.PluginPushNotification) (cancel bool) {
+	_args := &Z_NotificationWillBePushedArgs{pushNotification}
+	_returns := &Z_NotificationWillBePushedReturns{}
+	if g.implemented[NotificationWillBePushedID] {
+		if err := g.client.Call("Plugin.NotificationWillBePushed", _args, _returns); err != nil {
+			g.log.Error("RPC call NotificationWillBePushed to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) NotificationWillBePushed(args *Z_NotificationWillBePushedArgs, returns *Z_NotificationWillBePushedReturns) error {
+	if hook, ok := s.impl.(interface {
+		NotificationWillBePushed(pushNotification *model.PluginPushNotification) (cancel bool)
+	}); ok {
+		returns.A = hook.NotificationWillBePushed(args.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook NotificationWillBePushed called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
