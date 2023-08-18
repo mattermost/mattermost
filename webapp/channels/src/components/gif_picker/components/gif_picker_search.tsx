@@ -25,7 +25,7 @@ function GifPickerSearch(props: Props) {
         event.preventDefault();
 
         // remove trailing and leading colons
-        const value = event.target?.value?.trim()?.toLowerCase()?.replace(/^:|:$/g, '') ?? '';
+        const value = event.target?.value?.replace(/^:|:$/g, '') ?? '';
         props.onChange(value);
     }, [props.onChange]);
 

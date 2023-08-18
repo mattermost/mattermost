@@ -5,6 +5,9 @@ import React, {memo, useCallback} from 'react';
 import {GiphyFetch} from '@giphy/js-fetch-api';
 import {EmojiVariationsListProps, Grid} from '@giphy/react-components';
 
+import NoResultsIndicator from 'components/no_results_indicator';
+import {NoResultsVariant} from 'components/no_results_indicator/types';
+
 const giphyFetch = new GiphyFetch('DxfEk2t4CR8bv4A1kviDBRMP9i1og3Da');
 
 const GUTTER_BETWEEN_GIFS = 8;
@@ -34,6 +37,12 @@ function GifPickerItems(props: Props) {
                 gutter={GUTTER_BETWEEN_GIFS}
                 hideAttribution={true}
                 width={props.width}
+                noResultsMessage={
+                    <NoResultsIndicator
+                        variant={NoResultsVariant.ChannelSearch}
+                        titleValues={{channelName: `"${props.filter}"`}}
+                    />
+                }
                 fetchGifs={fetchGifs}
                 onGifClick={props.onClick}
             />
