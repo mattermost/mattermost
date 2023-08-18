@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/gziphandler"
+	"github.com/klauspost/compress/gzhttp"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
@@ -472,7 +472,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsLocal:        false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }
@@ -492,7 +492,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		IsLocal:        false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }
@@ -511,7 +511,7 @@ func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		IsLocal:        false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }

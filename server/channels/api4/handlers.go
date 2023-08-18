@@ -6,7 +6,7 @@ package api4
 import (
 	"net/http"
 
-	"github.com/mattermost/gziphandler"
+	"github.com/klauspost/compress/gzhttp"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
@@ -30,7 +30,7 @@ func (api *API) APIHandler(h handlerFunc) http.Handler {
 		IsLocal:        false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }
@@ -49,7 +49,7 @@ func (api *API) APISessionRequired(h handlerFunc) http.Handler {
 		IsLocal:        false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 
@@ -69,7 +69,7 @@ func (api *API) CloudAPIKeyRequired(h handlerFunc) http.Handler {
 		IsLocal:         false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 
@@ -90,7 +90,7 @@ func (api *API) RemoteClusterTokenRequired(h handlerFunc) http.Handler {
 		IsLocal:                   false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }
@@ -110,7 +110,7 @@ func (api *API) APISessionRequiredMfa(h handlerFunc) http.Handler {
 		IsLocal:        false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 
@@ -131,7 +131,7 @@ func (api *API) APIHandlerTrustRequester(h handlerFunc) http.Handler {
 		IsLocal:        false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 
@@ -151,7 +151,7 @@ func (api *API) APISessionRequiredTrustRequester(h handlerFunc) http.Handler {
 		IsLocal:        false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 
@@ -172,7 +172,7 @@ func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc) http.Handler {
 		DisableWhenBusy: true,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 
@@ -195,7 +195,7 @@ func (api *API) APILocal(h handlerFunc) http.Handler {
 	}
 
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }
