@@ -5,7 +5,6 @@
     width: 832px;
 
     &.streamlined-marketplace {
-
         .modal-header {
             padding: 26px 32px 26px !important;
         }
@@ -225,6 +224,7 @@
         width: 100%;
         flex-direction: column;
         margin-top: 12px;
+
         .nav-tabs {
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         }
