@@ -27,8 +27,7 @@ import {
     getChannelAndMyMember,
     getMyChannelMember,
     getChannelStats,
-    viewChannel,
-    markChannelAsRead,
+    markMultipleChannelsAsRead,
     getChannelMemberCountsByGroup,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
@@ -36,6 +35,7 @@ import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
+import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {
     getThread as fetchThread,
     getCountsAndThreadsSince,
@@ -66,6 +66,7 @@ import {
     checkForModifiedUsers,
     getUser as loadUser,
 } from 'mattermost-redux/actions/users';
+import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {setGlobalItem} from 'actions/storage';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
@@ -456,8 +457,8 @@ export function handleEvent(msg) {
         handleAddEmoji(msg);
         break;
 
-    case SocketEvents.CHANNEL_VIEWED:
-        handleChannelViewedEvent(msg);
+    case SocketEvents.MULTIPLE_CHANNELS_VIEWED:
+        handleMultipleChannelsViewedEvent(msg);
         break;
 
     case SocketEvents.PLUGIN_ENABLED:
@@ -741,15 +742,6 @@ export function handlePostEditEvent(msg) {
     dispatch(receivedPost(post, crtEnabled));
 
     getProfilesAndStatusesForPosts([post], dispatch, getState);
-    const currentChannelId = getCurrentChannelId(getState());
-
-    // Update channel state
-    if (currentChannelId === msg.broadcast.channel_id) {
-        dispatch(getChannelStats(currentChannelId));
-        if (window.isActive) {
-            dispatch(viewChannel(currentChannelId));
-        }
-    }
 }
 
 async function handlePostDeleteEvent(msg) {
@@ -1291,11 +1283,9 @@ function handleReactionRemovedEvent(msg) {
     });
 }
 
-function handleChannelViewedEvent(msg) {
-    // Useful for when multiple devices have the app open to different channels
-    if ((!window.isActive || getCurrentChannelId(getState()) !== msg.data.channel_id) &&
-        getCurrentUserId(getState()) === msg.broadcast.user_id) {
-        dispatch(markChannelAsRead(msg.data.channel_id, '', false));
+function handleMultipleChannelsViewedEvent(msg) {
+    if (getCurrentUserId(getState()) === msg.broadcast.user_id) {
+        dispatch(markMultipleChannelsAsRead(msg.data.channel_times));
     }
 }
 
@@ -1367,20 +1357,32 @@ function handleGroupUpdatedEvent(msg) {
     );
 }
 
-function handleGroupAddedMemberEvent(msg) {
-    return (doDispatch, doGetState) => {
+export function handleGroupAddedMemberEvent(msg) {
+    return async (doDispatch, doGetState) => {
         const state = doGetState();
         const currentUserId = getCurrentUserId(state);
-        const data = JSON.parse(msg.data.group_member);
+        const groupInfo = JSON.parse(msg.data.group_member);
 
-        if (currentUserId === data.user_id) {
-            dispatch(
-                {
-                    type: GroupTypes.ADD_MY_GROUP,
-                    data,
-                    id: data.group_id,
-                },
-            );
+        if (currentUserId === groupInfo.user_id) {
+            const group = getGroup(state, groupInfo.group_id);
+            if (group) {
+                dispatch(
+                    {
+                        type: GroupTypes.ADD_MY_GROUP,
+                        id: groupInfo.group_id,
+                    },
+                );
+            } else {
+                const {error} = await doDispatch(fetchGroup(groupInfo.group_id, true));
+                if (!error) {
+                    dispatch(
+                        {
+                            type: GroupTypes.ADD_MY_GROUP,
+                            id: groupInfo.group_id,
+                        },
+                    );
+                }
+            }
         }
     };
 }

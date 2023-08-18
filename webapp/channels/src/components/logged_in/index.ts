@@ -11,8 +11,8 @@ import {Channel} from '@mattermost/types/channels';
 import {DispatchFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
-import {viewChannel} from 'mattermost-redux/actions/channels';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
+import {markChannelAsViewedOnServer, updateApproximateViewTime} from 'mattermost-redux/actions/channels';
+import {getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, shouldShowTermsOfService} from 'mattermost-redux/selectors/entities/users';
 
@@ -34,10 +34,12 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const license = getLicense(state);
     const config = getConfig(state);
     const showTermsOfService = shouldShowTermsOfService(state);
+    const currentChannelId = getCurrentChannelId(state);
 
     return {
         currentUser: getCurrentUser(state),
-        currentChannelId: getCurrentChannelId(state),
+        currentChannelId,
+        isCurrentChannelManuallyUnread: isManuallyUnread(state, currentChannelId),
         mfaRequired: checkIfMFARequired(getCurrentUser(state), license, config, ownProps.match.url),
         enableTimezone: config.ExperimentalTimezone === 'true',
         showTermsOfService,
@@ -60,7 +62,8 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
         actions: bindActionCreators({
             autoUpdateTimezone,
             getChannelURLAction,
-            viewChannel,
+            markChannelAsViewedOnServer,
+            updateApproximateViewTime,
         }, dispatch),
     };
 }
