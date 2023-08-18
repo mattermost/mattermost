@@ -42,6 +42,7 @@ export type Props = {
     bodyDivider?: boolean;
     footerContent?: React.ReactNode;
     footerDivider?: boolean;
+    appendedContent?: React.ReactNode;
     headerButton?: React.ReactNode;
 };
 
@@ -227,6 +228,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                             )}
                         </Modal.Footer>
                     )}
+                    {Boolean(this.props.appendedContent) && this.props.appendedContent}
                 </div>
             </Modal>
         );
