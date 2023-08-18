@@ -143,9 +143,12 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 	cancelled := false
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 		cancelled = hooks.NotificationWillBePushed(&model.PluginPushNotification{
-			Post:    notification.Post.ForPlugin(),
-			Channel: notification.Channel,
-			UserID:  user.Id,
+			Post:               notification.Post.ForPlugin(),
+			Channel:            notification.Channel,
+			UserID:             user.Id,
+			ExplicitMention:    explicitMention,
+			ChannelWideMention: channelWideMention,
+			ReplyToThreadType:  replyToThreadType,
 		})
 		if cancelled {
 			mlog.Info("Notification cancelled by plugin")
