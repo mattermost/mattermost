@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {useIntl} from 'react-intl';
-import styled, {css} from 'styled-components';
+import styled from 'styled-components';
 import ExternalLink from '../external_link';
 
 import webMrketplaceBannerBackground from 'images/marketplace-notice-background.jpg';
