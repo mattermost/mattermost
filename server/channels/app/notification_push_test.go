@@ -1468,7 +1468,6 @@ func TestPushNotificationRace(t *testing.T) {
 	require.NoError(t, err)
 	s.products["channels"] = ch
 
-	app := New(ServerConnector(s.Channels()))
 	require.NotPanics(t, func() {
 		s.createPushNotificationsHub(th.Context)
 
@@ -1476,9 +1475,9 @@ func TestPushNotificationRace(t *testing.T) {
 
 		// Now we start sending messages after the PN hub is shut down.
 		// We test all 3 notification types.
-		app.clearPushNotification("currentSessionId", "userId", "channelId", "")
+		th.App.clearPushNotification("currentSessionId", "userId", "channelId", "")
 
-		app.UpdateMobileAppBadge("userId")
+		th.App.UpdateMobileAppBadge("userId")
 
 		notification := &PostNotification{
 			Post:    &model.Post{},
@@ -1488,7 +1487,7 @@ func TestPushNotificationRace(t *testing.T) {
 			},
 			Sender: &model.User{},
 		}
-		app.sendPushNotification(notification, &model.User{}, true, false, model.CommentsNotifyAny)
+		th.App.sendPushNotification(notification, &model.User{}, true, false, model.CommentsNotifyAny)
 	})
 }
 
