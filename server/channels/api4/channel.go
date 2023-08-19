@@ -87,6 +87,12 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// check if required fields are present
+	if channel.TeamId == "" || channel.Name == "" || channel.DisplayName == "" {
+		c.SetInvalidParam("channel")
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("createChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "channel", channel)
