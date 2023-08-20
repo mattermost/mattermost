@@ -36,7 +36,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
     border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     background-color: var(--sidebar-bg);
 
-    @media screen and (min-width: 901px) {
+    @media screen and (min-width: 769px) {
         min-width: 200px;
         max-width: 264px;
     }
