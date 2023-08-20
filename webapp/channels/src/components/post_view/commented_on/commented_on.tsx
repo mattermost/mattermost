@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent} from 'react';
+import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {UserProfile as UserProfileType} from '@mattermost/types/users';
@@ -21,9 +21,10 @@ type Props = {
     post: Post;
 }
 
-export default class CommentedOn extends PureComponent<Props> {
-    makeCommentedOnMessage = () => {
-        const {post} = this.props;
+function CommentedOn(props: Props) {
+    const {post, parentPostUser, onCommentClick} = props;
+
+    const makeCommentedOnMessage = () => {
         let message: React.ReactNode = '';
         if (post.message) {
             message = Utils.replaceHtmlEntities(post.message);
@@ -31,7 +32,7 @@ export default class CommentedOn extends PureComponent<Props> {
             message = (
                 <CommentedOnFilesMessage parentPostId={post.id}/>
             );
-        } else if (post.props && post.props.attachments && post.props.attachments.length > 0) {
+        } else if (post.props?.attachments?.length > 0) {
             const attachment = post.props.attachments[0];
             const webhookMessage = attachment.pretext || attachment.title || attachment.text || attachment.fallback || '';
             message = Utils.replaceHtmlEntities(webhookMessage);
@@ -40,42 +41,39 @@ export default class CommentedOn extends PureComponent<Props> {
         return message;
     };
 
-    render() {
-        const message = this.makeCommentedOnMessage();
-        const parentPostUser = this.props.parentPostUser;
-        const parentPostUserId = (parentPostUser && parentPostUser.id) || '';
+    const message = makeCommentedOnMessage();
+    const parentPostUserId = parentPostUser?.id || '';
 
-        const parentUserProfile = (
-            <UserProfile
-                user={parentPostUser}
-                userId={parentPostUserId}
-                displayName={parentPostUser?.username}
-                hasMention={true}
-                disablePopover={false}
-            />
-        );
+    const parentUserProfile = (
+        <UserProfile
+            user={parentPostUser}
+            userId={parentPostUserId}
+            displayName={parentPostUser?.username}
+            hasMention={true}
+            disablePopover={false}
+        />
+    );
 
-        return (
-            <div
-                data-testid='post-link'
-                className='post__link'
-            >
-                <span>
-                    <FormattedMessage
-                        id='post_body.commentedOn'
-                        defaultMessage="Commented on {name}'s message: "
-                        values={{
-                            name: <a className='theme user_name'>{parentUserProfile}</a>,
-                        }}
-                    />
-                    <a
-                        className='theme'
-                        onClick={this.props.onCommentClick}
-                    >
-                        {typeof message === 'string' ? stripMarkdown(message) : message}
-                    </a>
-                </span>
-            </div>
-        );
-    }
+    return (
+        <div
+            data-testid='post-link'
+            className='post__link'
+        >
+            <span>
+                <FormattedMessage
+                    id='post_body.commentedOn'
+                    defaultMessage="Commented on {name}'s message: "
+                    values={{
+                        name: <a className='theme user_name'>{parentUserProfile}</a>,
+                    }}
+                />
+                <a className='theme' onClick={onCommentClick}>
+                    {typeof message === 'string' ? stripMarkdown(message) : message}
+                </a>
+            </span>
+        </div>
+    );
+
 }
+
+export default  memo(CommentedOn);
