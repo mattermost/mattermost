@@ -2392,10 +2392,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link previews have been disabled by the system administrator."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
   },
@@ -4290,6 +4286,10 @@
   {
     "id": "api.user.login.not_verified.app_error",
     "translation": "Login failed because email address has not been verified."
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Login failed because remote users are not allow to log in."
   },
   {
     "id": "api.user.login.use_auth_service.app_error",
