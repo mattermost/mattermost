@@ -1739,7 +1739,6 @@ func testGetTopThreads(t *testing.T, ss store.Store) {
 
 		// make sure we get an error, no panic
 		_, err = ss.Thread().GetTopThreadsForTeamSince(team1.Id, u1.Id, 12, 0, limit)
-		t.Log(err)
 		require.Error(t, err)
 	})
 }
