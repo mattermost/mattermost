@@ -129,6 +129,7 @@ const defaultServerConfig: AdminConfig = {
         EnableGifPicker: true,
         GfycatAPIKey: '2_KtH_W5',
         GfycatAPISecret: '3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof',
+        GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
         EnableCustomEmoji: true,
         EnableEmojiPicker: true,
         PostEditTimeLimit: -1,
