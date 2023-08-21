@@ -137,8 +137,8 @@ func (a *App) GetClusterStatus() []*model.ClusterInfo {
 	return infos
 }
 
-func (s *Server) InvalidateAllCaches() *model.AppError {
-	return s.platform.InvalidateAllCaches()
+func (s *Server) InvalidateAllCaches() {
+	s.platform.InvalidateAllCaches()
 }
 
 func (s *Server) InvalidateAllCachesSkipSend() {
