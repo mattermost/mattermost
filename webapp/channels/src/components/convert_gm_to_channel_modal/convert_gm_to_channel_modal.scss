@@ -7,6 +7,17 @@
     .new-channel-modal__url {
       margin-top: -20px;
     }
+
+    .loadingIndicator {
+      margin-bottom: 48px;
+
+      img {
+        margin: 36px auto;
+        width: 32px;
+        height: 32px;
+        display: block;
+      }
+    }
   }
 }
 

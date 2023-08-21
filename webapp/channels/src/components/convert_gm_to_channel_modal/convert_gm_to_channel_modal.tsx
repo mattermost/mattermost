@@ -19,6 +19,9 @@ import {Team} from '@mattermost/types/teams';
 import {Client4} from 'mattermost-redux/client';
 import TeamSelector from 'components/convert_gm_to_channel_modal/team_selector/team_selector';
 import {trackEvent} from 'actions/telemetry_actions';
+import LoadingSpinner from "components/widgets/loading/loading_spinner";
+import loadingIcon from "images/spinner-48x48-blue.apng";
+import {bool} from "yup";
 
 export type Props = {
     onExited: () => void;
@@ -52,6 +55,9 @@ const ConvertGmToChannelModal = (props: Props) => {
     const [commonTeamsById, setCommonTeamsById] = useState<{[id: string]: Team}>({});
     const [selectedTeamId, setSelectedTeamId] = useState<string>();
 
+    const [commonTeamsFetched, setCommonTeamsFetched] = useState<Boolean>(false);
+    const [loadingAnimationTimeout, setLoadingAnimationTimeout] = useState<boolean>(false);
+
     useEffect(() => {
         const work = async () => {
             const teams = (await Client4.getGroupMessageMembersCommonTeams(props.channel.id)).data;
@@ -60,6 +66,7 @@ const ConvertGmToChannelModal = (props: Props) => {
                 teamsById[team.id] = team;
             });
             setCommonTeamsById(teamsById);
+            setCommonTeamsFetched(true);
 
             // if there is only common team, selected it.
             if (teams.length === 1) {
@@ -68,6 +75,7 @@ const ConvertGmToChannelModal = (props: Props) => {
         };
 
         work();
+        setTimeout(() => setLoadingAnimationTimeout(true), 2000);
     }, [props.channel.id]);
 
     const handleTeamChange = (teamId: string) => {
@@ -102,6 +110,25 @@ const ConvertGmToChannelModal = (props: Props) => {
             >
                 <div className='convert-gm-to-channel-modal-body'>
                     <AllMembersDeactivated/>
+                </div>
+            </GenericModal>
+        );
+    } else if (!commonTeamsFetched || !loadingAnimationTimeout) {
+        return (
+            <GenericModal
+                id='convert-gm-to-channel-modal'
+                className='convert-gm-to-channel-modal'
+                modalHeaderText={formatMessage({id: 'sidebar_left.sidebar_channel_modal.header', defaultMessage: 'Convert to Private Channel'})}
+                compassDesign={true}
+                onExited={handleCancel}
+
+            >
+                <div className='convert-gm-to-channel-modal-body'>
+                    <div className='loadingIndicator'>
+                        <img
+                            src={loadingIcon}
+                        />
+                    </div>
                 </div>
             </GenericModal>
         );
