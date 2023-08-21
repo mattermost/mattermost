@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {HTMLAttributes, useEffect, useRef} from 'react';
+import React, {HTMLAttributes, useEffect, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getIsRhsExpanded, getRhsSize} from 'selectors/rhs';
@@ -26,6 +26,8 @@ function ResizableRhs({
 
     const rhsSize = useSelector(getRhsSize);
     const isRhsExpanded = useSelector(getIsRhsExpanded);
+
+    const [previousRhsExpanded, setPreviousRhsExpanded] = useState(false);
 
     const defaultWidth = RHS_MIN_MAX_WIDTH[rhsSize].default;
 
@@ -53,7 +55,17 @@ function ResizableRhs({
         rightWidthHolderRefElement.style.removeProperty(cssVarProp);
     };
 
-    // If max-width is applied immediately when expanded is canceled, the transition will not work correctly.
+    const handleDividerDoubleClick = (_: number, cssVarProp: string) => {
+        handleResizeEnd(_, cssVarProp);
+
+        document.body.classList.add('layout-changing');
+
+        setTimeout(() => {
+            document.body.classList.remove('layout-changing');
+        }, 1000);
+    };
+
+    // If max-width is applied immediately when expanded is collapsed, the transition will not work correctly.
     useEffect(() => {
         const containerRefElement = containerRef.current;
 
@@ -61,7 +73,9 @@ function ResizableRhs({
             return;
         }
 
-        if (!isRhsExpanded) {
+        setPreviousRhsExpanded(isRhsExpanded);
+
+        if (previousRhsExpanded && !isRhsExpanded) {
             containerRefElement.classList.add('resize-disabled');
 
             setTimeout(() => {
@@ -87,7 +101,7 @@ function ResizableRhs({
                 containerRef={containerRef}
                 onResize={handleResize}
                 onResizeEnd={handleResizeEnd}
-                onDividerDoubleClick={handleResizeEnd}
+                onDividerDoubleClick={handleDividerDoubleClick}
             />
         </div>
     );
