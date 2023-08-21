@@ -10,7 +10,9 @@ import {ChannelsPost} from './channels/post';
 import {ChannelsSidebarLeft} from './channels/sidebar_left';
 import {ChannelsSidebarRight} from './channels/sidebar_right';
 import {FindChannelsModal} from './channels/find_channels_modal';
+import {Footer} from './footer';
 import {GlobalHeader} from './global_header';
+import {MainHeader} from './main_header';
 import {PostDotMenu} from './channels/post_dot_menu';
 import {DeletePostModal} from './channels/delete_post_modal';
 import {PostMenu} from './channels/post_menu';
@@ -26,7 +28,9 @@ const components = {
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
     FindChannelsModal,
+    Footer,
     GlobalHeader,
+    MainHeader,
     PostDotMenu,
     DeletePostModal,
     PostMenu,

@@ -5,6 +5,7 @@ exports[`components/AdvancedCreateComment should match snapshot when cannot post
   onSubmit={[Function]}
 >
   <AdvanceTextEditor
+    additionalControls={Array []}
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={false}
@@ -77,6 +78,7 @@ exports[`components/AdvancedCreateComment should match snapshot, comment with me
   onSubmit={[Function]}
 >
   <AdvanceTextEditor
+    additionalControls={Array []}
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
@@ -144,6 +146,7 @@ exports[`components/AdvancedCreateComment should match snapshot, emoji picker di
 >
   <FileLimitStickyBanner />
   <AdvanceTextEditor
+    additionalControls={Array []}
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
@@ -216,6 +219,7 @@ exports[`components/AdvancedCreateComment should match snapshot, empty comment 1
   onSubmit={[Function]}
 >
   <AdvanceTextEditor
+    additionalControls={Array []}
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
@@ -283,6 +287,7 @@ exports[`components/AdvancedCreateComment should match snapshot, non-empty messa
 >
   <FileLimitStickyBanner />
   <AdvanceTextEditor
+    additionalControls={Array []}
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
