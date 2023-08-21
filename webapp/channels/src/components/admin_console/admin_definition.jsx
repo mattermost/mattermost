@@ -3086,7 +3086,7 @@ const AdminDefinition = {
             url: 'site_config/wrangler',
             title: t('admin.sidebar.wrangler'),
             title_default: 'Wrangler',
-            isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+            isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.POSTS)), it.configIsFalse('FeatureFlags', 'MoveThreadsEnabled')),
             schema: {
                 id: 'WranglerSettings',
                 name: t('admin.site.wrangler'),

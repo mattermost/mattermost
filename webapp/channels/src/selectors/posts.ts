@@ -19,6 +19,7 @@ import {Channel} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
 
 import type {GlobalState} from 'types/store';
+import {moveThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 export function getIsPostBeingEdited(state: GlobalState, postId: string) {
     return state.views.posts.editingPost.postId === postId && state.views.posts.editingPost.show;
@@ -64,9 +65,13 @@ export function makeCanWrangler() {
         'makeCanWrangler',
         getConfig,
         getCurrentUser,
+        moveThreadsEnabled,
         (_state: GlobalState, channelType: Channel['type']) => channelType,
         (_state: GlobalState, _channelType: Channel['type'], replyCount: number) => replyCount,
-        (config: Partial<ClientConfig>, user: UserProfile, channelType: Channel['type'], replyCount: number) => {
+        (config: Partial<ClientConfig>, user: UserProfile, enabled: boolean, channelType: Channel['type'], replyCount: number) => {
+            if (!enabled) {
+                return false;
+            }
             const {
                 WranglerPermittedWranglerUsers,
                 WranglerAllowedEmailDomain,

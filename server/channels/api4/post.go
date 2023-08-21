@@ -1115,6 +1115,10 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.Config().FeatureFlags.MoveThreadsEnabled {
+		c.Err = model.NewAppError("moveThread", "api.post.move_thread.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
 	var moveThreadParams model.MoveThreadParams
 	if jsonErr := json.NewDecoder(r.Body).Decode(&moveThreadParams); jsonErr != nil {
 		c.SetInvalidParamWithErr("post", jsonErr)

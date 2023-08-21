@@ -49,7 +49,7 @@ type FeatureFlags struct {
 
 	DataRetentionConcurrencyEnabled bool
 
-	MoveThreads bool
+	MoveThreadsEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -67,6 +67,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
 	f.DataRetentionConcurrencyEnabled = true
+	f.MoveThreadsEnabled = true
 }
 
 // ToMap returns the feature flags as a map[string]string
