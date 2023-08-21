@@ -2190,10 +2190,18 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter, r *http.Request) {
-	// TODO: don't allow guest users to perform this operation
-
 	c.RequireChannelId()
 	if c.Err != nil {
+		return
+	}
+
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if user.IsGuest() {
+		c.Err = model.NewAppError("Api4.getGroupMessageMembersCommonTeams", "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
 		return
 	}
 
@@ -2219,10 +2227,18 @@ func getGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter, r *htt
 }
 
 func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	// TODO: don't allow guest users to perform this operation
-
 	c.RequireChannelId()
 	if c.Err != nil {
+		return
+	}
+
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if user.IsGuest() {
+		c.Err = model.NewAppError("Api4.convertGroupMessageToChannel", "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
 		return
 	}
 

@@ -2412,6 +2412,10 @@
     "translation": "User is not allowed to create priority post or persistent notification."
   },
   {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "User is not allowed to convert group message to private channel"
+  },
+  {
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
     "translation": "Only root posts are allowed to have priority."
   },

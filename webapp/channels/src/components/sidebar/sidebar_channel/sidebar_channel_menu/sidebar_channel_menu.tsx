@@ -27,6 +27,7 @@ import {copyToClipboard} from 'utils/utils';
 
 import type {PropsFromRedux, OwnProps} from './index';
 import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal';
+import {isGuest} from "mattermost-redux/utils/user_utils";
 
 type Props = PropsFromRedux & OwnProps;
 
@@ -137,7 +138,7 @@ const SidebarChannelMenu = (props: Props) => {
         }
 
         function handleUnmuteChannel() {
-            props.unmuteChannel(props.currentUserId, props.channel.id);
+            props.unmuteChannel(props.currentUser.id, props.channel.id);
         }
 
         muteUnmuteChannelMenuItem = (
@@ -165,7 +166,7 @@ const SidebarChannelMenu = (props: Props) => {
         }
 
         function handleMuteChannel() {
-            props.muteChannel(props.currentUserId, props.channel.id);
+            props.muteChannel(props.currentUser.id, props.channel.id);
         }
 
         muteUnmuteChannelMenuItem = (
@@ -268,7 +269,7 @@ const SidebarChannelMenu = (props: Props) => {
     }
 
     let convertToChannelMenuItem: JSX.Element | null = null;
-    if (props.channel.type === Constants.GM_CHANNEL) {
+    if (props.channel.type === Constants.GM_CHANNEL && !isGuest(props.currentUser.roles)) {
         const convertToChannelText = (
             <FormattedMessage
                 id='sidebar_left.sidebar_channel_menu_convert_to_channel'
