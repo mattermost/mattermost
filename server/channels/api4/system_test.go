@@ -828,6 +828,8 @@ func TestPushNotificationAck(t *testing.T) {
 }
 
 func TestCompleteOnboarding(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
+	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -877,7 +879,6 @@ func TestCompleteOnboarding(t *testing.T) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableMarketplace = false
 		*cfg.PluginSettings.EnableRemoteMarketplace = true
-		cfg.FeatureFlags.StreamlinedMarketplace = false
 		*cfg.PluginSettings.MarketplaceURL = marketplaceServer.URL
 		*cfg.PluginSettings.AllowInsecureDownloadURL = true
 	})

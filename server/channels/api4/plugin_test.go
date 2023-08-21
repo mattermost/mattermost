@@ -462,6 +462,9 @@ func TestDisableOnRemove(t *testing.T) {
 }
 
 func TestGetMarketplacePlugins(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
+	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
+
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -682,6 +685,9 @@ func TestGetMarketplacePlugins(t *testing.T) {
 }
 
 func TestGetInstalledMarketplacePlugins(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
+	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
+
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -825,6 +831,9 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 }
 
 func TestSearchGetMarketplacePlugins(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
+	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
+
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -950,6 +959,9 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 }
 
 func TestGetLocalPluginInMarketplace(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
+	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
+
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1111,6 +1123,9 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 }
 
 func TestGetRemotePluginInMarketplace(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
+	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
+
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1167,6 +1182,9 @@ func TestGetRemotePluginInMarketplace(t *testing.T) {
 }
 
 func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
+	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
+
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1289,6 +1307,9 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 }
 
 func TestInstallMarketplacePlugin(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
+	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1639,6 +1660,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 }
 
 func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
+	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
+
 	path, _ := fileutils.FindDir("tests")
 
 	signatureFilename := "testplugin2.tar.gz.sig"
