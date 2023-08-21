@@ -4036,10 +4036,6 @@
     "translation": "잘못된 제출자 ID"
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Could not decode gif."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "read timeout 항목의 허용되지 않는 값입니다."
   },
@@ -7968,14 +7964,6 @@
     "translation": "getThreadsForUser의 OnlyThreads와 OnlyTotals 매개변수는 상호 배타적입니다"
   },
   {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "팀의 상위 글타래를 가져올 수 없습니다."
-  },
-  {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "사용자의 상위 글타래를 가져올 수 없습니다."
-  },
-  {
     "id": "app.user.get_thread_count_for_user.app_error",
     "translation": "사용자의 글타래 개수를 가져올 수 없습니다."
   },
@@ -8398,18 +8386,6 @@
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
     "translation": "스토어에 초기 관리자 마켓플레이스 방문 상태를 저장하는 동안 오류가 발생했습니다."
-  },
-  {
-    "id": "api.command_templates.unsupported.app_error",
-    "translation": "이 장치에서는 템플릿 명령이 지원되지 않습니다."
-  },
-  {
-    "id": "api.command_templates.name",
-    "translation": "템플릿"
-  },
-  {
-    "id": "api.command_templates.desc",
-    "translation": "템플릿에서 만들기 창을 엽니다"
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
