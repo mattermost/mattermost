@@ -3751,6 +3751,7 @@
   "intro_messages.inviteOthersToWorkspace.title": "Let’s add some people to the workspace!",
   "intro_messages.noCreator": "This is the start of the {name} channel, created on {date}.",
   "intro_messages.noCreatorPrivate": "This is the start of the {name} private channel, created on {date}.",
+  "intro_messages.notificationPreferences": "Notification Preferences",
   "intro_messages.offTopic": "This is the start of {display_name}, a channel for non-work-related conversations.",
   "intro_messages.onlyInvited": " Only invited members can see this private channel.",
   "intro_messages.purpose": " This channel's purpose is: {purpose}",
