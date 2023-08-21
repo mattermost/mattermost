@@ -14,7 +14,6 @@ import GifTrendingIcon from 'components/widgets/icons/gif_trending_icon';
 import GifReactionsIcon from 'components/widgets/icons/gif_reactions_icon';
 import './Header.scss';
 import {GlobalState} from 'types/store';
-import {appProps} from 'components/gif_picker/gif_picker';
 
 function mapStateToProps(state: GlobalState) {
     return {
@@ -57,7 +56,7 @@ const getStyle = makeStyleFromTheme((theme) => {
 
 type Props = {
     action: string;
-    appProps: typeof appProps;
+    appProps: any;
     saveSearchBarText: (searchBarText: string) => void;
     searchTextUpdate: (searchText: string) => void;
     theme: Theme;
@@ -102,7 +101,7 @@ export class Header extends PureComponent<Props, State> {
     renderTabs(props: Props, style: Style) {
         const {appProps, onTrending, onCategories} = props;
         const {header} = appProps;
-        return header.tabs.map((tab, index) => {
+        return header.tabs.map((tab: any, index: any) => {
             let link;
             if (tab === constants.Tab.TRENDING) {
                 link = this.renderTab({name: 'trending', callback: onTrending, Icon: GifTrendingIcon, index, style});
