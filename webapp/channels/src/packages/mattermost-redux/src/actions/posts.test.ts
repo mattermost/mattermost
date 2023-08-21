@@ -1335,36 +1335,6 @@ describe('Actions.Posts', () => {
         expect(state.entities.emojis.nonExistentEmoji.has(missingEmojiName)).toBeTruthy();
     });
 
-    it('getOpenGraphMetadata', async () => {
-        const {dispatch, getState} = store;
-
-        const url = 'https://mattermost.com';
-        const docs = 'https://docs.mattermost.com/';
-
-        nock(Client4.getBaseRoute()).
-            post('/opengraph').
-            reply(200, {type: 'article', url: 'https://mattermost.com/', title: 'Mattermost private cloud messaging', description: 'Open source,  private cloud\nSlack-alternative, \nWorkplace messaging for web, PCs and phones.'});
-        await dispatch(Actions.getOpenGraphMetadata(url));
-
-        nock(Client4.getBaseRoute()).
-            post('/opengraph').
-            reply(200, {type: '', url: '', title: '', description: ''});
-        await dispatch(Actions.getOpenGraphMetadata(docs));
-
-        nock(Client4.getBaseRoute()).
-            post('/opengraph').
-            reply(200, undefined);
-        await dispatch(Actions.getOpenGraphMetadata(docs));
-
-        const state = getState();
-        const metadata = state.entities.posts.openGraph;
-        expect(metadata).toBeTruthy();
-        expect(metadata[url]).toBeTruthy();
-        if (metadata[docs]) {
-            throw new Error('unexpected metadata[docs]');
-        }
-    });
-
     it('doPostAction', async () => {
         nock(Client4.getBaseRoute()).
             post('/posts/posth67ja7ntdkek6g13dp3wka/actions/action7ja7ntdkek6g13dp3wka').
