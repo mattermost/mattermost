@@ -1720,8 +1720,6 @@ func testGetTopThreads(t *testing.T, ss store.Store) {
 			UserId:    u1.Id,
 		})
 		require.NoError(t, err)
-
-		// post 2 has replies after 10 ms unix time.
 		post2, err := ss.Post().Save(&model.Post{
 			ChannelId: channel1.Id,
 			UserId:    localUser.Id,
