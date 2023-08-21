@@ -48,6 +48,8 @@ type FeatureFlags struct {
 	EnableExportDirectDownload bool
 
 	DataRetentionConcurrencyEnabled bool
+
+	MoveThreads bool
 }
 
 func (f *FeatureFlags) SetDefaults() {

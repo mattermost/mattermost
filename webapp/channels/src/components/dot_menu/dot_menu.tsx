@@ -117,6 +117,11 @@ type Props = {
          * Function to set the thread as followed/unfollowed
          */
         setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
+
+        /*
+        * Function to set a key-value pair in the local storage
+        */
+        setGlobalItem: (name: string, value: any) => void;
     }; // TechDebt: Made non-mandatory while converting to typescript
 
     canEdit: boolean;
@@ -380,8 +385,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             break;
 
         // move thread
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.W):
-            this.handleMoveThreadMenuItemActivated(e);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.W):
+            this.handleMoveThreadMenuItemActivated(event);
             this.props.handleDropdownOpened(false);
             break;
 
