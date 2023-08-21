@@ -207,16 +207,14 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	return nil
 }
 
-func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
-	now := model.GetMillis()
-	postIds := []string{}
-
+func (s *SqlReactionStore) permanentDeleteReactions(userId string, postIds *[]string) error {
 	txn, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return err
 	}
+	defer finalizeTransactionX(txn, &err)
 
-	err = txn.Select(&postIds, "SELECT PostId FROM Reactions WHERE UserId = ?", userId)
+	err = txn.Select(postIds, "SELECT PostId FROM Reactions WHERE UserId = ?", userId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get Reactions with userId=%s", userId)
 	}
@@ -235,7 +233,17 @@ func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
 	if err = txn.Commit(); err != nil {
 		return err
 	}
-	finalizeTransactionX(txn, &err)
+	return nil
+}
+
+func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
+	now := model.GetMillis()
+	postIds := []string{}
+
+	err := s.permanentDeleteReactions(userId, &postIds)
+	if err != nil {
+		return err
+	}
 
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {

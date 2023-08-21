@@ -1060,7 +1060,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) (err error) {
 	id := ""
 	for {
 		ids := []string{}
-		err = transaction.Select(&ids, "SELECT Id FROM Posts WHERE ChannelId = ? AND Id > ? ORDER BY Id ASC LIMIT 1000", channelId, id)
+		err = transaction.Select(&ids, "SELECT Id FROM Posts WHERE ChannelId = ? AND Id > ? ORDER BY Id ASC LIMIT 500", channelId, id)
 		if err != nil {
 			return errors.Wrapf(err, "failed to fetch Posts with channelId=%s", channelId)
 		}
