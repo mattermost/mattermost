@@ -5,25 +5,22 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {UserProfile as UserProfileType} from '@mattermost/types/users';
-
 import {Post} from '@mattermost/types/posts';
 
 import * as Utils from 'utils/utils';
 import {stripMarkdown} from 'utils/markdown';
 
 import CommentedOnFilesMessage from 'components/post_view/commented_on_files_message';
-import UserProfile from '../../user_profile';
+import UserProfile from 'components/user_profile';
 
 type Props = {
     enablePostUsernameOverride?: boolean;
     parentPostUser?: UserProfileType;
     onCommentClick?: React.EventHandler<React.MouseEvent>;
     post: Post;
-}
+};
 
-function CommentedOn(props: Props) {
-    const {post, parentPostUser, onCommentClick} = props;
-
+function CommentedOn({post, parentPostUser, onCommentClick}: Props) {
     const makeCommentedOnMessage = () => {
         let message: React.ReactNode = '';
         if (post.message) {
@@ -67,13 +64,15 @@ function CommentedOn(props: Props) {
                         name: <a className='theme user_name'>{parentUserProfile}</a>,
                     }}
                 />
-                <a className='theme' onClick={onCommentClick}>
+                <a
+                    className='theme'
+                    onClick={onCommentClick}
+                >
                     {typeof message === 'string' ? stripMarkdown(message) : message}
                 </a>
             </span>
         </div>
     );
-
 }
 
-export default  memo(CommentedOn);
+export default memo(CommentedOn);
