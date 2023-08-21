@@ -21,6 +21,7 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
         onSubmit: () => {}, //eslint-disable-line no-empty-function
         onUpdateSection: () => {}, //eslint-disable-line no-empty-function
         serverError: '',
+        isGM: false,
     };
 
     test('should match snapshot, DESKTOP on collapsed view', () => {

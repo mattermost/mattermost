@@ -70,6 +70,7 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
           />
           <NotificationSection
             expand={false}
+            isGM={false}
             memberNotificationLevel="all"
             onChange={[Function]}
             onSubmit={[Function]}
@@ -83,6 +84,7 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
           <NotificationSection
             expand={false}
             ignoreChannelMentions="off"
+            isGM={false}
             memberNotificationLevel="all"
             onChange={[Function]}
             onSubmit={[Function]}
@@ -98,6 +100,7 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
               expand={false}
               globalNotificationLevel="all"
               globalNotificationSound="Bing"
+              isGM={false}
               isNotificationsSettingSameAsGlobal={true}
               memberDesktopNotificationSound="Bing"
               memberDesktopSound="on"
@@ -118,6 +121,8 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
             />
             <NotificationSection
               expand={false}
+              globalNotificationLevel="all"
+              isGM={false}
               isNotificationsSettingSameAsGlobal={true}
               memberNotificationLevel="all"
               memberThreadsNotificationLevel="all"
@@ -137,6 +142,7 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
             channelAutoFollowThreads="off"
             expand={false}
             ignoreChannelMentions="off"
+            isGM={false}
             memberNotificationLevel="all"
             onChange={[Function]}
             onSubmit={[Function]}

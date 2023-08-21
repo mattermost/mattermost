@@ -25,6 +25,7 @@ describe('components/channel_notifications_modal/ExpandView', () => {
         onCollapseSection: jest.fn(),
         onSubmit: jest.fn(),
         onReset: jest.fn(),
+        isGM: false,
     };
 
     test('should match snapshot, DESKTOP on expanded view', () => {
