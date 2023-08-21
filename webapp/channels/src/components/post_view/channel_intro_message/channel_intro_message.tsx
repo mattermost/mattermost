@@ -7,7 +7,7 @@ import React from 'react';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {UserProfile as UserProfileRedux} from '@mattermost/types/users';
+import {UserProfile as UserProfileRedux, UserProfile as UserProfileType} from '@mattermost/types/users';
 
 import {Channel} from '@mattermost/types/channels';
 
@@ -28,6 +28,8 @@ import * as Utils from 'utils/utils';
 
 import AddMembersButton from './add_members_button';
 import PluggableIntroButtons from './pluggable_intro_buttons';
+import ChannelNotificationsModal from 'components/channel_notifications_modal';
+import {BellRingOutlineIcon} from '@mattermost/compass-icons/components';
 
 type Props = {
     currentUserId: string;
@@ -95,6 +97,7 @@ function createGMIntroMessage(channel: Channel, centeredIntro: string, profiles:
     const channelIntroId = 'channelIntro';
 
     if (profiles.length > 0) {
+        const currentUserProfile = profiles.find((v) => v.id === currentUserId);
         const pictures = profiles.
             filter((profile) => profile.id !== currentUserId).
             map((profile) => (
@@ -116,16 +119,21 @@ function createGMIntroMessage(channel: Channel, centeredIntro: string, profiles:
                     {pictures}
                 </div>
                 <p className='channel-intro-text'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='intro_messages.GM'
-                        defaultMessage='This is the start of your group message history with {names}.\nMessages and files shared here are not shown to people outside this area.'
+                        defaultMessage={'This is the start of your group message history with {names}.{br}You\'ll be notified <b>for all activity</b> in this group message.'}
                         values={{
+                            b: (chunks) => <b>{chunks}</b>,
                             names: channel.display_name,
+                            br: <br/>,
                         }}
                     />
                 </p>
-                <PluggableIntroButtons channel={channel}/>
-                {createSetHeaderButton(channel)}
+                <div style={{display: 'flex'}}>
+                    {createNotificationPreferencesButton(channel, currentUserProfile)}
+                    <PluggableIntroButtons channel={channel}/>
+                    {createSetHeaderButton(channel)}
+                </div>
             </div>
         );
     }
@@ -187,8 +195,10 @@ function createDMIntroMessage(channel: Channel, centeredIntro: string, teammate?
                         }}
                     />
                 </p>
-                {pluggableButton}
-                {setHeaderButton}
+                <div style={{display: 'flex'}}>
+                    {pluggableButton}
+                    {setHeaderButton}
+                </div>
             </div>
         );
     }
@@ -553,6 +563,29 @@ function createSetHeaderButton(channel: Channel) {
             <FormattedMessage
                 id='intro_messages.setHeader'
                 defaultMessage='Set a Header'
+            />
+        </ToggleModalButton>
+    );
+}
+
+function createNotificationPreferencesButton(channel: Channel, currentUser?: UserProfileType) {
+    const isGM = channel.type === 'G';
+    if (!isGM || !currentUser) {
+        return null;
+    }
+
+    return (
+        <ToggleModalButton
+            modalId={ModalIdentifiers.CHANNEL_NOTIFICATIONS}
+            ariaLabel={Utils.localizeMessage('intro_messages.notificationPreferences', 'Notification Preferences')}
+            className={'intro-links color--link channelIntroButton'}
+            dialogType={ChannelNotificationsModal}
+            dialogProps={{channel, currentUser}}
+        >
+            <BellRingOutlineIcon size={16}/>
+            <FormattedMessage
+                id='intro_messages.notificationPreferences'
+                defaultMessage='NotificationPreferences'
             />
         </ToggleModalButton>
     );

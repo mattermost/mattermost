@@ -3741,7 +3741,7 @@
   "intro_messages.creatorPrivate": "This is the start of the {name} private channel, created by {creator} on {date}.",
   "intro_messages.default": "**Welcome to {display_name}!**\n \nPost messages here that you want everyone to see. Everyone automatically becomes a permanent member of this channel when they join the team.",
   "intro_messages.DM": "This is the start of your direct message history with {teammate}.\nDirect messages and files shared here are not shown to people outside this area.",
-  "intro_messages.GM": "This is the start of your group message history with {names}.\nMessages and files shared here are not shown to people outside this area.",
+  "intro_messages.GM": "This is the start of your group message history with {names}.{br}You'll be notified <b>for all activity</b> in this group message.",
   "intro_messages.group_message": "This is the start of your group message history with these teammates. Messages and files shared here are not shown to people outside this area.",
   "intro_messages.inviteGropusToChannel.button": "Add groups to this private channel",
   "intro_messages.inviteMembersToChannel.button": "Add members to this channel",
