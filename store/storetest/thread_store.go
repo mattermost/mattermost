@@ -1688,6 +1688,62 @@ func testGetTopThreads(t *testing.T, ss store.Store) {
 		// require first element to be post1 with 2 replyCount=2
 		require.Equal(t, topThreadsInTeamOlder.Items[1].PostId, post2.Id)
 	})
+	t.Run("test get top threads does not panic when a user is missing", func(t *testing.T) {
+		const limit = 10
+
+		localUser, err := ss.User().Save(&model.User{
+			Email:    MakeEmail(),
+			Username: model.NewId(),
+		})
+		require.NoError(t, err)
+		defer func() {
+			ss.User().PermanentDelete(localUser.Id)
+		}()
+
+		team1, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		channel1, err := ss.Channel().Save(&model.Channel{
+			TeamId:      team1.Id,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		post1, err := ss.Post().Save(&model.Post{
+			ChannelId: channel1.Id,
+			UserId:    u1.Id,
+		})
+		require.NoError(t, err)
+
+		// post 2 has replies after 10 ms unix time.
+		post2, err := ss.Post().Save(&model.Post{
+			ChannelId: channel1.Id,
+			UserId:    localUser.Id,
+			CreateAt:  1,
+		})
+		require.NoError(t, err)
+
+		threadStoreCreateReply(t, ss, channel1.Id, post1.Id, post1.UserId, 2000)
+		threadStoreCreateReply(t, ss, channel1.Id, post1.Id, localUser.Id, 2000)
+
+		threadStoreCreateReply(t, ss, channel1.Id, post2.Id, post1.UserId, 2000)
+		threadStoreCreateReply(t, ss, channel1.Id, post2.Id, post2.UserId, 2000)
+		threadStoreCreateReply(t, ss, channel1.Id, post2.Id, post1.UserId, 2000)
+
+		// delete the local user
+		ss.User().PermanentDelete(localUser.Id)
+
+		// make sure we get an error, no panic
+		_, err = ss.Thread().GetTopThreadsForTeamSince(team1.Id, u1.Id, 12, 0, limit)
+		t.Log(err)
+		require.Error(t, err)
+	})
 }
 
 func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {

@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -1203,6 +1204,9 @@ func postProcessTopThreads(topThreads []*model.TopThread, s *SqlThreadStore, tea
 	// resolve user, root post for each top thread
 	for _, topThread := range topThreads {
 		postCreator := usersMap[topThread.UserId]
+		if postCreator == nil {
+			return nil, fmt.Errorf("failed to get user=%s for top thread=%s", topThread.UserId, topThread.PostId)
+		}
 		topThread.UserInformation = &model.InsightUserInformation{
 			Id:                postCreator.Id,
 			LastPictureUpdate: postCreator.LastPictureUpdate,
