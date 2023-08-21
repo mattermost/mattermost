@@ -2243,18 +2243,6 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 	return &info, nil
 }
 
-func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThreadList, userID string) (*model.TopThreadList, error) {
-	for _, topThread := range topThreadList.Items {
-		topThread.Post = a.PreparePostForClientWithEmbedsAndImages(c, topThread.Post, false, false, true)
-		sanitizedPost, err := a.SanitizePostMetadataForUser(c, topThread.Post, userID)
-		if err != nil {
-			return nil, err
-		}
-		topThread.Post = sanitizedPost
-	}
-	return topThreadList, nil
-}
-
 func makePostLink(siteURL, teamName, postID string) string {
 	return fmt.Sprintf("%s/%s/pl/%s", siteURL, teamName, postID)
 }

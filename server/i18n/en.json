@@ -2392,10 +2392,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link previews have been disabled by the system administrator."
-  },
-  {
     "id": "api.post.move_thread.no_permission",
     "translation": "You do not have permission to move this thread."
   },
