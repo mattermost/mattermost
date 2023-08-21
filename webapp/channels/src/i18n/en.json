@@ -2982,7 +2982,7 @@
   "channel_modal.type.private.title": "Private Channel",
   "channel_modal.type.public.description": "Anyone can join",
   "channel_modal.type.public.title": "Public Channel",
-  "channel_notifications.allActivity": "For all activity",
+  "channel_notifications.allActivity": "For all activity {isDefault}",
   "channel_notifications.channelAutoFollowThreads": "Auto-follow all new threads in this channel",
   "channel_notifications.channelAutoFollowThreads.help": "When enabled, you will auto-follow all new threads created in this channel unless you unfollow a thread explicitly.",
   "channel_notifications.channelAutoFollowThreads.off.title": "Off",

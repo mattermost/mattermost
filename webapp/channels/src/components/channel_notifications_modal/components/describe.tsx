@@ -102,7 +102,7 @@ export default function Describe({section, isCollapsed, memberNotifyLevel, globa
         return (
             <FormattedMessage
                 id='channel_notifications.onlyMentions'
-                defaultMessage='Only for mentions ({isDefault})'
+                defaultMessage='Only for mentions {isDefault}'
                 values={{isDefault: globalNotifyLevel === NotificationLevels.MENTION ? defaultOption : <></>}}
             />
         );
@@ -113,7 +113,7 @@ export default function Describe({section, isCollapsed, memberNotifyLevel, globa
         return (
             <FormattedMessage
                 id='channel_notifications.allActivity'
-                defaultMessage='For all activity ({isDefault})'
+                defaultMessage='For all activity {isDefault}'
                 values={{isDefault: globalNotifyLevel === NotificationLevels.ALL ? defaultOption : <></>}}
             />
         );
@@ -132,7 +132,7 @@ export default function Describe({section, isCollapsed, memberNotifyLevel, globa
     return (
         <FormattedMessage
             id='channel_notifications.never'
-            defaultMessage='Never ({isDefault})'
+            defaultMessage='Never {isDefault}'
             values={{isDefault: globalNotifyLevel === NotificationLevels.NONE ? defaultOption : <></>}}
         />
     );
