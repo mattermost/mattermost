@@ -23,10 +23,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 func TestPlugin(t *testing.T) {
@@ -1210,7 +1210,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 	}
 
 	env := th.App.GetPluginsEnvironment()
-	env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{prepackagePlugin})
+	env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{prepackagePlugin}, nil)
 
 	t.Run("get remote and prepackaged plugins", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1263,7 +1263,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		}
 
 		env := th.App.GetPluginsEnvironment()
-		env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{newerPrepackagePlugin})
+		env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{newerPrepackagePlugin}, nil)
 
 		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
 		require.NoError(t, err)

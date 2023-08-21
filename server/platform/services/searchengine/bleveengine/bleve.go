@@ -17,8 +17,8 @@ import (
 	"github.com/blevesearch/bleve/v2/analysis/analyzer/standard"
 	"github.com/blevesearch/bleve/v2/mapping"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -217,6 +217,10 @@ func (b *BleveEngine) Stop() *model.AppError {
 	mlog.Info("Stopping Bleve")
 
 	return b.closeIndexes()
+}
+
+func (b *BleveEngine) IsEnabled() bool {
+	return b.IsIndexingEnabled()
 }
 
 func (b *BleveEngine) IsActive() bool {

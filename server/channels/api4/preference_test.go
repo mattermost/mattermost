@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestGetPreferences(t *testing.T) {
@@ -50,8 +50,8 @@ func TestGetPreferences(t *testing.T) {
 	prefs, _, err := client.GetPreferences(context.Background(), user1.Id)
 	require.NoError(t, err)
 
-	// 6 because we have 3 initial preferences insights, tutorial_step and recommended_next_steps added when creating a new user
-	require.Equal(t, len(prefs), 6, "received the wrong number of preferences")
+	// 5 because we have 2 initial preferences tutorial_step and recommended_next_steps added when creating a new user
+	require.Equal(t, len(prefs), 5, "received the wrong number of preferences")
 
 	for _, preference := range prefs {
 		require.Equal(t, preference.UserId, th.BasicUser.Id, "user id does not match")

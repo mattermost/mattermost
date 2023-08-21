@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelTypes, GeneralTypes, PostTypes, UserTypes, ThreadTypes, InsightTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, GeneralTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
 
 import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 import {Posts} from 'mattermost-redux/constants';
@@ -26,8 +26,6 @@ import {
     IDMappedObjects,
     RelationOneToMany,
 } from '@mattermost/types/utilities';
-
-import {TopThread} from '@mattermost/types/insights';
 
 export function removeUnneededMetadata(post: Post) {
     if (!post.metadata) {
@@ -218,7 +216,7 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: Ge
                 const newEmbeds: PostEmbed[] = [];
 
                 for (const embed of otherPost.metadata.embeds) {
-                    if (embed.type === 'permalink' && (embed.data as PostPreviewMetadata).post_id === post.id) {
+                    if (embed.type === 'permalink' && embed.data && (embed.data as PostPreviewMetadata).post_id === post.id) {
                         // skip if the embed is the deleted post
                         continue;
                     }
@@ -305,23 +303,6 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: Ge
                 is_following: following,
             },
         };
-    }
-
-    case InsightTypes.RECEIVED_TOP_THREADS:
-    case InsightTypes.RECEIVED_MY_TOP_THREADS: {
-        const topThreads = Object.values(action.data.items) as TopThread[];
-
-        if (topThreads.length === 0) {
-            return state;
-        }
-
-        const nextState = {...state};
-
-        for (const thread of topThreads) {
-            handlePostReceived(nextState, thread.post);
-        }
-
-        return nextState;
     }
 
     case UserTypes.LOGOUT_SUCCESS:
@@ -1376,13 +1357,6 @@ function storeAcknowledgementsForPost(state: any, post: Post) {
 
 export function openGraph(state: RelationOneToOne<Post, Record<string, OpenGraphMetadata>> = {}, action: GenericAction) {
     switch (action.type) {
-    case PostTypes.RECEIVED_OPEN_GRAPH_METADATA: {
-        const nextState = {...state};
-        nextState[action.url] = action.data;
-
-        return nextState;
-    }
-
     case PostTypes.RECEIVED_NEW_POST:
     case PostTypes.RECEIVED_POST: {
         const post = action.data;

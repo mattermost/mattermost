@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties, useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import classNames from 'classnames';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
@@ -42,7 +42,7 @@ import SendButton from './send_button';
 import {IconContainer} from './formatting_bar/formatting_icon';
 
 import './advanced_text_editor.scss';
-import ToggleFormattingBar from './toggle_formatting_bar/toggle_formatting_bar';
+import ToggleFormattingBar from './toggle_formatting_bar';
 
 type Props = {
 
@@ -78,7 +78,6 @@ type Props = {
     handlePostError: (postError: React.ReactNode) => void;
     emitTypingEvent: () => void;
     handleMouseUpKeyUp: (e: React.MouseEvent<TextboxElement> | React.KeyboardEvent<TextboxElement>) => void;
-    handleSelect: (e: React.SyntheticEvent<TextboxElement>) => void;
     handleKeyDown: (e: React.KeyboardEvent<TextboxElement>) => void;
     postMsgKeyPress: (e: React.KeyboardEvent<TextboxElement>) => void;
     handleChange: (e: React.ChangeEvent<TextboxElement>) => void;
@@ -136,7 +135,6 @@ const AdvanceTextEditor = ({
     handlePostError,
     emitTypingEvent,
     handleMouseUpKeyUp,
-    handleSelect,
     handleKeyDown,
     postMsgKeyPress,
     handleChange,
@@ -169,7 +167,6 @@ const AdvanceTextEditor = ({
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
 
-    const [scrollbarWidth, setScrollbarWidth] = useState(0);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [showFormattingSpacer, setShowFormattingSpacer] = useState(shouldShowPreview);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
@@ -178,13 +175,7 @@ const AdvanceTextEditor = ({
 
     const handleHeightChange = useCallback((height: number, maxHeight: number) => {
         setRenderScrollbar(height > maxHeight);
-
-        window.requestAnimationFrame(() => {
-            if (textboxRef.current) {
-                setScrollbarWidth(Utils.scrollbarWidth(textboxRef.current.getInputBox()));
-            }
-        });
-    }, [textboxRef]);
+    }, []);
 
     const handleShowFormat = useCallback(() => {
         setShowPreview(!shouldShowPreview);
@@ -368,7 +359,6 @@ const AdvanceTextEditor = ({
 
         if (!message) {
             // if we do not have a message we can just render the default state
-            input.style.maxWidth = `${maxWidth}px`;
             setShowFormattingSpacer(false);
             return;
         }
@@ -379,10 +369,8 @@ const AdvanceTextEditor = ({
         const currentWidth = width + inputPaddingX;
 
         if (currentWidth >= maxWidth) {
-            input.style.maxWidth = '100%';
             setShowFormattingSpacer(true);
         } else {
-            input.style.maxWidth = `${maxWidth}px`;
             setShowFormattingSpacer(false);
         }
     }, [message, input]);
@@ -434,11 +422,6 @@ const AdvanceTextEditor = ({
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
                     scroll: renderScrollbar,
                 })}
-                style={
-                    renderScrollbar && scrollbarWidth ? ({
-                        '--detected-scrollbar-width': `${scrollbarWidth}px`,
-                    } as CSSProperties) : undefined
-                }
             >
                 <div
                     id={'speak-'}
@@ -473,7 +456,6 @@ const AdvanceTextEditor = ({
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}
                             onKeyDown={handleKeyDown}
-                            onSelect={handleSelect}
                             onMouseUp={handleMouseUpKeyUp}
                             onKeyUp={handleMouseUpKeyUp}
                             onComposition={emitTypingEvent}
@@ -491,7 +473,6 @@ const AdvanceTextEditor = ({
                             characterLimit={maxPostSize}
                             preview={shouldShowPreview}
                             badConnection={badConnection}
-                            listenForMentionKeyClick={true}
                             useChannelMentions={useChannelMentions}
                             rootId={postId}
                             onWidthChange={handleWidthChange}

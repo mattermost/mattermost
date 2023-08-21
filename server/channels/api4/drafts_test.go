@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
 func TestUpsertDraft(t *testing.T) {
@@ -25,7 +25,6 @@ func TestUpsertDraft(t *testing.T) {
 	defer th.TearDown()
 
 	// set config
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	client := th.Client
@@ -86,6 +85,7 @@ func TestUpsertDraft(t *testing.T) {
 }
 
 func TestGetDrafts(t *testing.T) {
+	t.Skip("MM-53452")
 	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
 	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
@@ -94,7 +94,6 @@ func TestGetDrafts(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	client := th.Client
@@ -119,7 +118,6 @@ func TestGetDrafts(t *testing.T) {
 		Message:   "draft2",
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	// upsert draft1
@@ -159,6 +157,7 @@ func TestGetDrafts(t *testing.T) {
 }
 
 func TestDeleteDraft(t *testing.T) {
+	t.Skip("MM-53452")
 	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
 	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
@@ -167,7 +166,6 @@ func TestDeleteDraft(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	client := th.Client

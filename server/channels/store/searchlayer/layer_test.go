@@ -8,12 +8,13 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/searchlayer"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
+	"github.com/stretchr/testify/require"
 )
 
 // Test to verify race condition on UpdateConfig. The test must run with -race flag in order to verify
@@ -24,7 +25,8 @@ func TestUpdateConfigRace(t *testing.T) {
 		driverName = model.DatabaseDriverPostgres
 	}
 	settings := storetest.MakeSqlSettings(driverName, false)
-	store := sqlstore.New(*settings, nil)
+	store, err := sqlstore.New(*settings, nil)
+	require.NoError(t, err)
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()

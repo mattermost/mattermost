@@ -5,6 +5,9 @@ import React from 'react';
 import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import classNames from 'classnames';
 
+import {UserThread} from '@mattermost/types/threads';
+import {Post} from '@mattermost/types/posts';
+
 import {
     ArrowRightBoldOutlineIcon,
     BookmarkIcon,
@@ -26,24 +29,21 @@ import {
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS, Preferences} from 'utils/constants';
-import DeletePostModal from 'components/delete_post_modal';
+import {ModalData} from 'types/actions';
 import DelayedAction from 'utils/delayed_action';
 import * as Keyboard from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
-import * as Menu from 'components/menu';
 import * as Utils from 'utils/utils';
-import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import {ModalData} from 'types/actions';
 
-import {UserThread} from '@mattermost/types/threads';
-import {Post} from '@mattermost/types/posts';
-import ForwardPostModal from '../forward_post_modal';
 import MoveThreadModal from '../move_thread_modal';
+import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
+import DeletePostModal from 'components/delete_post_modal';
+import ForwardPostModal from 'components/forward_post_modal';
+import * as Menu from 'components/menu';
 
 import {ChangeEvent, trackDotMenuEvent} from './utils';
-
+import PostReminderSubMenu from './post_reminder_submenu';
 import './dot_menu.scss';
-import {PostReminderSubmenu} from './post_reminder_submenu';
 
 type ShortcutKeyProps = {
     shortcutKey: string;
@@ -117,12 +117,6 @@ type Props = {
          * Function to set the thread as followed/unfollowed
          */
         setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
-
-        /**
-         * Function to set a global storage item on the store
-         */
-        setGlobalItem: (name: string, value: any) => void;
-
     }; // TechDebt: Made non-mandatory while converting to typescript
 
     canEdit: boolean;
@@ -136,7 +130,6 @@ type Props = {
 }
 
 type State = {
-    closeMenuManually: boolean;
     canEdit: boolean;
     canDelete: boolean;
 }
@@ -148,7 +141,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         location: Locations.CENTER,
     };
     private editDisableAction: DelayedAction;
-    private buttonRef: React.RefObject<HTMLButtonElement>;
     private canPostBeForwarded: boolean;
 
     constructor(props: Props) {
@@ -157,12 +149,9 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.editDisableAction = new DelayedAction(this.handleEditDisable);
 
         this.state = {
-            closeMenuManually: false,
             canEdit: props.canEdit && !props.isReadOnly,
             canDelete: props.canDelete && !props.isReadOnly,
         };
-
-        this.buttonRef = React.createRef<HTMLButtonElement>();
 
         this.canPostBeForwarded = false;
     }
@@ -175,7 +164,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         return state;
     }
 
-    disableCanEditPostByTime(): void {
+    disableCanEditPostByTime() {
         const {post, isLicensed} = this.props;
         const {canEdit} = this.state;
 
@@ -192,32 +181,29 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         }
     }
 
-    componentDidMount(): void {
+    componentDidMount() {
         this.disableCanEditPostByTime();
     }
 
-    componentWillUnmount(): void {
+    componentWillUnmount() {
         this.editDisableAction.cancel();
     }
 
-    handleEditDisable = (): void => {
+    handleEditDisable = () => {
         this.setState({canEdit: false});
     };
 
-    handleFlagMenuItemActivated = (e: ChangeEvent): void => {
+    handleFlagMenuItemActivated = (e: ChangeEvent) => {
         if (this.props.isFlagged) {
-            trackDotMenuEvent(e, TELEMETRY_LABELS.UNSAVE);
             this.props.actions.unflagPost(this.props.post.id);
+            trackDotMenuEvent(e, TELEMETRY_LABELS.UNSAVE);
         } else {
-            trackDotMenuEvent(e, TELEMETRY_LABELS.SAVE);
             this.props.actions.flagPost(this.props.post.id);
+            trackDotMenuEvent(e, TELEMETRY_LABELS.SAVE);
         }
     };
 
-    // listen to clicks/taps on add reaction menu item and pass to parent handler
-    handleAddReactionMenuItemActivated = (e: ChangeEvent): void => {
-        e.preventDefault();
-
+    handleAddReactionMenuItemActivated = () => {
         // to be safe, make sure the handler function has been defined
         if (this.props.handleAddReactionClick) {
             this.props.handleAddReactionClick();
@@ -225,35 +211,31 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     copyLink = (e: ChangeEvent) => {
-        trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_LINK);
         Utils.copyToClipboard(`${this.props.teamUrl}/pl/${this.props.post.id}`);
+        trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_LINK);
     };
 
     copyText = (e: ChangeEvent) => {
-        trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_TEXT);
         Utils.copyToClipboard(this.props.post.message);
+        trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_TEXT);
     };
 
     handlePinMenuItemActivated = (e: ChangeEvent): void => {
         if (this.props.post.is_pinned) {
-            trackDotMenuEvent(e, TELEMETRY_LABELS.UNPIN);
             this.props.actions.unpinPost(this.props.post.id);
+            trackDotMenuEvent(e, TELEMETRY_LABELS.UNPIN);
         } else {
-            trackDotMenuEvent(e, TELEMETRY_LABELS.PIN);
             this.props.actions.pinPost(this.props.post.id);
+            trackDotMenuEvent(e, TELEMETRY_LABELS.PIN);
         }
     };
 
     handleMarkPostAsUnread = (e: ChangeEvent): void => {
-        e.preventDefault();
-        trackDotMenuEvent(e, TELEMETRY_LABELS.UNREAD);
         this.props.actions.markPostAsUnread(this.props.post, this.props.location);
+        trackDotMenuEvent(e, TELEMETRY_LABELS.UNREAD);
     };
 
     handleDeleteMenuItemActivated = (e: ChangeEvent): void => {
-        e.preventDefault();
-
-        trackDotMenuEvent(e, TELEMETRY_LABELS.DELETE);
         const deletePostModalData = {
             modalId: ModalIdentifiers.DELETE_POST,
             dialogType: DeletePostModal,
@@ -264,6 +246,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         };
 
         this.props.actions.openModal(deletePostModalData);
+
+        trackDotMenuEvent(e, TELEMETRY_LABELS.DELETE);
     };
 
     handleMoveThreadMenuItemActivated = (e: ChangeEvent): void => {
@@ -292,8 +276,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             return;
         }
 
-        e.preventDefault();
-
         trackDotMenuEvent(e, TELEMETRY_LABELS.FORWARD);
         const forwardPostModalData = {
             modalId: ModalIdentifiers.FORWARD_POST_MODAL,
@@ -307,7 +289,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleEditMenuItemActivated = (e: ChangeEvent): void => {
-        trackDotMenuEvent(e, TELEMETRY_LABELS.EDIT);
         this.props.handleDropdownOpened?.(false);
         this.props.actions.setEditingPost(
             this.props.post.id,
@@ -315,6 +296,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.props.post.root_id ? Utils.localizeMessage('rhs_comment.comment', 'Comment') : Utils.localizeMessage('create_post.post', 'Post'),
             this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT || this.props.location === Locations.SEARCH,
         );
+        trackDotMenuEvent(e, TELEMETRY_LABELS.EDIT);
     };
 
     handleSetThreadFollow = (e: ChangeEvent) => {
@@ -346,58 +328,55 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.handleCommentClick?.(e);
     };
 
-    isKeyboardEvent = (e: React.KeyboardEvent): any => {
-        return (e).getModifierState !== undefined;
-    };
+    handleMenuKeydown = (event: React.KeyboardEvent<HTMLDivElement>, forceCloseMenu?: (() => void)) => {
+        event.preventDefault();
 
-    onShortcutKeyDown = (e: React.KeyboardEvent): void => {
-        e.preventDefault();
-        if (!this.isKeyboardEvent(e)) {
+        if (!forceCloseMenu) {
             return;
         }
 
-        const isShiftKeyPressed = e.shiftKey;
+        const isShiftKeyPressed = event.shiftKey;
 
         switch (true) {
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.R):
-            this.handleCommentClick(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.R):
+            forceCloseMenu();
+            this.handleCommentClick(event);
             break;
 
             // edit post
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.E):
-            this.handleEditMenuItemActivated(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.E):
+            forceCloseMenu();
+            this.handleEditMenuItemActivated(event);
             break;
 
             // follow thread
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.F) && !isShiftKeyPressed:
-            this.handleSetThreadFollow(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.F) && !isShiftKeyPressed:
+            forceCloseMenu();
+            this.handleSetThreadFollow(event);
             break;
 
             // forward post
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.F) && isShiftKeyPressed:
-            this.handleForwardMenuItemActivated(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.F) && isShiftKeyPressed:
+            forceCloseMenu();
+            this.handleForwardMenuItemActivated(event);
             break;
 
             // copy link
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.K):
-            this.copyLink(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.K):
+            forceCloseMenu();
+            this.copyLink(event);
             break;
 
             // copy text
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.C):
-            this.copyText(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.C):
+            forceCloseMenu();
+            this.copyText(event);
             break;
 
             // delete post
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.DELETE):
-            this.handleDeleteMenuItemActivated(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.DELETE):
+            forceCloseMenu();
+            this.handleDeleteMenuItemActivated(event);
             break;
 
         // move thread
@@ -407,33 +386,27 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             break;
 
             // pin / unpin
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.P):
-            this.handlePinMenuItemActivated(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.P):
+            forceCloseMenu();
+            this.handlePinMenuItemActivated(event);
             break;
 
             // save / unsave
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.S):
-            this.handleFlagMenuItemActivated(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.S):
+            forceCloseMenu();
+            this.handleFlagMenuItemActivated(event);
             break;
 
             // mark as unread
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.U):
-            this.handleMarkPostAsUnread(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.U):
+            forceCloseMenu();
+            this.handleMarkPostAsUnread(event);
             break;
         }
     };
 
-    handleDropdownOpened = (open: boolean) => {
-        this.props.handleDropdownOpened?.(open);
-        this.setState({closeMenuManually: true});
-    };
-
     handleMenuToggle = (open: boolean) => {
         this.props.handleDropdownOpened?.(open);
-        this.setState({closeMenuManually: false});
     };
 
     render(): JSX.Element {
@@ -441,11 +414,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const isFollowingThread = this.props.isFollowingThread ?? this.props.isMentionedInRootPost;
         const isMobile = this.props.isMobileView;
         const isSystemMessage = PostUtils.isSystemMessage(this.props.post);
-        const deleteShortcutText = (
-            <span>
-                {'delete'}
-            </span>
-        );
 
         this.canPostBeForwarded = !(isSystemMessage);
 
@@ -509,6 +477,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 defaultMessage='Pin'
             />
         );
+
         const unPinPost = (
             <FormattedMessage
                 id='post_info.unpin'
@@ -530,10 +499,9 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 menu={{
                     id: `${this.props.location}_dropdown_${this.props.post.id}`,
                     'aria-label': formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'}),
-                    onKeyDown: this.onShortcutKeyDown,
+                    onKeyDown: this.handleMenuKeydown,
                     width: '264px',
                     onToggle: this.handleMenuToggle,
-                    closeMenuManually: this.state.closeMenuManually,
                 }}
                 menuButtonTooltip={{
                     id: `PostDotMenu-ButtonTooltip-${this.props.post.id}`,
@@ -590,20 +558,23 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 {Boolean(
                     !isSystemMessage &&
                         this.props.isCollapsedThreadsEnabled &&
-                        (
-                            this.props.location === Locations.CENTER ||
+                        (this.props.location === Locations.CENTER ||
                             this.props.location === Locations.RHS_ROOT ||
-                            this.props.location === Locations.RHS_COMMENT
-                        ),
-                ) &&
-                    <Menu.Item
-                        id={`follow_post_thread_${this.props.post.id}`}
-                        data-testid={`follow_post_thread_${this.props.post.id}`}
-                        trailingElements={<ShortcutKey shortcutKey='F'/>}
-                        labels={followPostLabel()}
-                        leadingElement={isFollowingThread ? <MessageMinusOutlineIcon size={18}/> : <MessageCheckOutlineIcon size={18}/>}
-                        onClick={this.handleSetThreadFollow}
-                    />
+                            this.props.location === Locations.RHS_COMMENT)) &&
+                            <Menu.Item
+                                id={`follow_post_thread_${this.props.post.id}`}
+                                data-testid={`follow_post_thread_${this.props.post.id}`}
+                                trailingElements={<ShortcutKey shortcutKey='F'/>}
+                                labels={followPostLabel()}
+                                leadingElement={
+                                    isFollowingThread ? (
+                                        <MessageMinusOutlineIcon size={18}/>
+                                    ) : (
+                                        <MessageCheckOutlineIcon size={18}/>
+                                    )
+                                }
+                                onClick={this.handleSetThreadFollow}
+                            />
                 }
                 {Boolean(!isSystemMessage && !this.props.channelIsArchived && this.props.location !== Locations.SEARCH) &&
                     <Menu.Item
@@ -621,7 +592,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     />
                 }
                 {!isSystemMessage &&
-                    <PostReminderSubmenu
+                    <PostReminderSubMenu
                         userId={this.props.userId}
                         post={this.props.post}
                         isMilitaryTime={this.props.isMilitaryTime}
@@ -710,7 +681,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         id={`delete_post_${this.props.post.id}`}
                         data-testid={`delete_post_${this.props.post.id}`}
                         leadingElement={<TrashCanOutlineIcon size={18}/>}
-                        trailingElements={deleteShortcutText}
+                        trailingElements={<span>{'delete'}</span>}
                         labels={
                             <FormattedMessage
                                 id='post_info.del'

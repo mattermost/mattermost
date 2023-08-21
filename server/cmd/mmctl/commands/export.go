@@ -9,10 +9,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 )
 
@@ -38,6 +38,13 @@ var ExportDownloadCmd = &cobra.Command{
   $ mmctl export download sample_export.zip`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: withClient(exportDownloadCmdF),
+}
+
+var ExportGeneratePresignedURLCmd = &cobra.Command{
+	Use:   "generate-presigned-url [exportname]",
+	Short: "Generate a presigned url for an export file. This is helpful when an export is big and might have trouble downloading from the Mattermost server.",
+	Args:  cobra.ExactArgs(1),
+	RunE:  withClient(exportGeneratePresignedURLCmdF),
 }
 
 var ExportDeleteCmd = &cobra.Command{
@@ -115,6 +122,7 @@ func init() {
 		ExportListCmd,
 		ExportDeleteCmd,
 		ExportDownloadCmd,
+		ExportGeneratePresignedURLCmd,
 		ExportJobCmd,
 	)
 	RootCmd.AddCommand(ExportCmd)
@@ -167,6 +175,22 @@ func exportDeleteCmdF(c client.Client, command *cobra.Command, args []string) er
 	}
 
 	printer.Print(fmt.Sprintf("Export file %q has been deleted", name))
+
+	return nil
+}
+
+func exportGeneratePresignedURLCmdF(c client.Client, command *cobra.Command, args []string) error {
+	name := args[0]
+
+	presignedURL, _, err := c.GeneratePresignedURL(context.TODO(), name)
+	if err != nil {
+		return fmt.Errorf("failed to generate export link: %w", err)
+	}
+
+	printer.PrintT("Export link: {{.Link}}\nExpiration: {{.Expiration}}", map[string]interface{}{
+		"Link":       presignedURL.URL,
+		"Expiration": presignedURL.Expiration.String(),
+	})
 
 	return nil
 }

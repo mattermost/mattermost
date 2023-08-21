@@ -16,7 +16,7 @@ import * as Utils from 'utils/utils';
 import RequestButton from 'components/admin_console/request_button/request_button';
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import TextSetting from 'components/admin_console/text_setting';
-import DropdownSetting from 'components/admin_console/dropdown_setting.jsx';
+import DropdownSetting from 'components/admin_console/dropdown_setting';
 import MultiSelectSetting from 'components/admin_console/multiselect_settings';
 import RadioSetting from 'components/admin_console/radio_setting';
 import ColorSetting from 'components/admin_console/color_setting';

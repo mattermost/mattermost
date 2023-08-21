@@ -16,7 +16,7 @@ import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {t} from 'utils/i18n';
-import {LicenseSkus} from 'utils/constants';
+import {DocLinks, LicenseSkus} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import PermissionsSchemeSummary from './permissions_scheme_summary';
@@ -165,7 +165,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                     subtitleValues={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
-                                href='https://docs.mattermost.com/onboard/advanced-permissions.html'
+                                href={DocLinks.ONBOARD_ADVANCED_PERMISSIONS}
                                 location='permission_scheme_settings'
                             >
                                 {msg}
@@ -235,7 +235,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                                         values={{
                                             link: (msg: React.ReactNode) => (
                                                 <ExternalLink
-                                                    href='https://docs.mattermost.com/onboard/advanced-permissions.html'
+                                                    href={DocLinks.ONBOARD_ADVANCED_PERMISSIONS}
                                                     location='permission_scheme_settings'
                                                 >
                                                     {msg}
@@ -256,7 +256,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                             subtitleValues={{
                                 link: (msg: React.ReactNode) => (
                                     <ExternalLink
-                                        href='https://docs.mattermost.com/onboard/advanced-permissions.html'
+                                        href={DocLinks.ONBOARD_ADVANCED_PERMISSIONS}
                                         location='permission_scheme_settings'
                                     >
                                         {msg}

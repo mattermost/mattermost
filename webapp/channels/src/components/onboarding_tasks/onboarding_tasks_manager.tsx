@@ -22,10 +22,7 @@ import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_tr
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
-import {
-    isReduceOnBoardingTaskList,
-    makeGetCategory,
-} from 'mattermost-redux/selectors/entities/preferences';
+import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserGuestUser, isCurrentUserSystemAdmin, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -39,7 +36,6 @@ import {
 
 import {ModalIdentifiers, TELEMETRY_CATEGORIES, ExploreOtherToolsTourSteps} from 'utils/constants';
 
-import BullsEye from 'components/common/svg_images_components/bulls_eye_svg';
 import Channels from 'components/common/svg_images_components/channels_svg';
 import Clipboard from 'components/common/svg_images_components/clipboard_svg';
 import Gears from 'components/common/svg_images_components/gears_svg';
@@ -63,14 +59,6 @@ const useGetTaskDetails = () => {
             message: formatMessage({
                 id: 'onboardingTask.checklist.task_learn_more_about_messaging',
                 defaultMessage: 'Take a tour of Channels.',
-            }),
-        },
-        [OnboardingTasksName.BOARDS_TOUR]: {
-            id: 'task_plan_sprint_with_kanban_style_boards',
-            svg: BullsEye,
-            message: formatMessage({
-                id: 'onboardingTask.checklist.task_plan_sprint_with_kanban_style_boards',
-                defaultMessage: 'Manage tasks with your first board.',
             }),
         },
         [OnboardingTasksName.PLAYBOOKS_TOUR]: {
@@ -144,9 +132,6 @@ export const useTasksList = () => {
     const isUserAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));
     const isGuestUser = useSelector((state: GlobalState) => isCurrentUserGuestUser(state));
     const isUserFirstAdmin = useSelector(isFirstAdmin);
-    const isThinOnBoardingTaskList = useSelector((state: GlobalState) => {
-        return isReduceOnBoardingTaskList(state);
-    });
 
     // Cloud conditions
     const subscription = useSelector((state: GlobalState) => state.entities.cloud.subscription);
@@ -162,9 +147,6 @@ export const useTasksList = () => {
     const showStartTrialTask = selfHostedTrialCondition || cloudTrialCondition;
 
     const list: Record<string, string> = {...OnboardingTasksName};
-    if (!pluginsList.focalboard || !isUserFirstAdmin) {
-        delete list.BOARDS_TOUR;
-    }
     if (!pluginsList.playbooks || !isUserFirstAdmin) {
         delete list.PLAYBOOKS_TOUR;
     }
@@ -185,12 +167,6 @@ export const useTasksList = () => {
     // invite other users is hidden for guest users
     if (isGuestUser) {
         delete list.INVITE_PEOPLE;
-    }
-
-    if (isThinOnBoardingTaskList) {
-        delete list.DOWNLOAD_APP;
-        delete list.COMPLETE_YOUR_PROFILE;
-        delete list.VISIT_SYSTEM_CONSOLE;
     }
 
     return Object.values(list);
@@ -265,8 +241,6 @@ export const useHandleOnBoardingTaskTrigger = () => {
     const isGuestUser = useSelector((state: GlobalState) => isCurrentUserGuestUser(state));
     const inAdminConsole = matchPath(pathname, {path: '/admin_console'}) != null;
     const inChannels = matchPath(pathname, {path: '/:team/channels/:chanelId'}) != null;
-    const pluginsList = useSelector((state: GlobalState) => state.plugins.plugins);
-    const boards = pluginsList.focalboard;
 
     return (taskName: string) => {
         switch (taskName) {
@@ -295,12 +269,6 @@ export const useHandleOnBoardingTaskTrigger = () => {
             }
             break;
         }
-        case OnboardingTasksName.BOARDS_TOUR: {
-            history.push('/boards');
-            localStorage.setItem(OnboardingTaskCategory, 'true');
-            handleSaveData(taskName, TaskNameMapToSteps[taskName].FINISHED, true);
-            break;
-        }
         case OnboardingTasksName.PLAYBOOKS_TOUR: {
             history.push('/playbooks/start');
             localStorage.setItem(OnboardingTaskCategory, 'true');
@@ -325,7 +293,7 @@ export const useHandleOnBoardingTaskTrigger = () => {
                     user_id: currentUserId,
                     category: tourCategory,
                     name: currentUserId,
-                    value: boards ? ExploreOtherToolsTourSteps.BOARDS_TOUR.toString() : ExploreOtherToolsTourSteps.PLAYBOOKS_TOUR.toString(),
+                    value: ExploreOtherToolsTourSteps.PLAYBOOKS_TOUR.toString(),
                 },
                 {
                     user_id: currentUserId,

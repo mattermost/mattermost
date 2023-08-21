@@ -138,7 +138,6 @@ import {
 } from '@mattermost/types/data_retention';
 import {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import {UserThreadList, UserThread, UserThreadWithPost} from '@mattermost/types/threads';
-import {LeastActiveChannelsResponse, TopChannelResponse, TopReactionResponse, TopThreadResponse, TopDMsResponse} from '@mattermost/types/insights';
 
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
@@ -181,8 +180,6 @@ export default class Client4 {
     };
     userRoles = '';
     telemetryHandler?: TelemetryHandler;
-
-    useBoardsProduct = false;
 
     getUrl() {
         return this.url;
@@ -245,10 +242,6 @@ export default class Client4 {
 
     setTelemetryHandler(telemetryHandler?: TelemetryHandler) {
         this.telemetryHandler = telemetryHandler;
-    }
-
-    setUseBoardsProduct(useBoardsProduct: boolean) {
-        this.useBoardsProduct = useBoardsProduct;
     }
 
     getServerVersion() {
@@ -477,10 +470,6 @@ export default class Client4 {
 
     getDraftsRoute() {
         return `${this.getBaseRoute()}/drafts`;
-    }
-
-    getBoardsRoute() {
-        return `${this.url}/plugins/${this.useBoardsProduct ? 'boards' : 'focalboard'}/api/v2`;
     }
 
     getCSRFFromCookie() {
@@ -1190,13 +1179,6 @@ export default class Client4 {
         );
     }
 
-    archiveAllTeamsExcept = (teamId: string) => {
-        return this.doFetch<StatusOK>(
-            `${this.getTeamRoute(teamId)}/except`,
-            {method: 'delete'},
-        );
-    }
-
     updateTeam = (team: Team) => {
         this.trackEvent('api', 'api_teams_update_name', {team_id: team.id});
 
@@ -1765,13 +1747,20 @@ export default class Client4 {
         );
     };
 
-    getChannelStats = (channelId: string, excludeFilesCount = false) => {
-        const param = excludeFilesCount ? `?exclude_files_count=${excludeFilesCount}` : '';
+    getChannelStats = (channelId: string, includeFileCount = false) => {
+        const param = !includeFileCount ? '?exclude_files_count=true' : '';
         return this.doFetch<ChannelStats>(
             `${this.getChannelRoute(channelId)}/stats${param}`,
             {method: 'get'},
         );
     };
+
+    getChannelsMemberCount = (channelIds: string[]) => {
+        return this.doFetch<Record<string, number>>(
+            `${this.getChannelsRoute()}/stats/member_count`,
+            {method: 'post', body: JSON.stringify(channelIds)}
+        )
+    }
 
     getChannelModerations = (channelId: string) => {
         return this.doFetch<ChannelModeration[]>(
@@ -1794,11 +1783,18 @@ export default class Client4 {
         );
     };
 
-    viewMyChannel = (channelId: string, prevChannelId?: string) => {
-        const data = {channel_id: channelId, prev_channel_id: prevChannelId, collapsed_threads_supported: true};
+    viewMyChannel = (channelId: string) => {
+        const data = {channel_id: channelId, collapsed_threads_supported: true};
         return this.doFetch<ChannelViewResponse>(
             `${this.getChannelsRoute()}/members/me/view`,
             {method: 'post', body: JSON.stringify(data)},
+        );
+    };
+
+    readMultipleChannels = (channelIds: string[]) => {
+        return this.doFetch<ChannelViewResponse>(
+            `${this.getChannelsRoute()}/members/me/mark_read`,
+            {method: 'post', body: JSON.stringify(channelIds)},
         );
     };
 
@@ -2195,74 +2191,6 @@ export default class Client4 {
         );
     };
 
-    getTopReactionsForTeam = (teamId: string, page: number, perPage: number, timeRange: string) => {
-        return this.doFetch<TopReactionResponse>(
-            `${this.getTeamRoute(teamId)}/top/reactions${buildQueryString({page, per_page: perPage, time_range: timeRange})}`,
-            {method: 'get'},
-        );
-    }
-
-    getMyTopReactions = (teamId: string, page: number, perPage: number, timeRange: string) => {
-        return this.doFetch<TopReactionResponse>(
-            `${this.getUsersRoute()}/me/top/reactions${buildQueryString({page, per_page: perPage, time_range: timeRange, team_id: teamId})}`,
-            {method: 'get'},
-        );
-    }
-
-    getTopChannelsForTeam = (teamId: string, page: number, perPage: number, timeRange: string) => {
-        return this.doFetch<TopChannelResponse>(
-            `${this.getTeamRoute(teamId)}/top/channels${buildQueryString({page, per_page: perPage, time_range: timeRange})}`,
-            {method: 'get'},
-        );
-    }
-
-    getMyTopChannels = (teamId: string, page: number, perPage: number, timeRange: string) => {
-        return this.doFetch<TopChannelResponse>(
-            `${this.getUsersRoute()}/me/top/channels${buildQueryString({page, per_page: perPage, time_range: timeRange, team_id: teamId})}`,
-            {method: 'get'},
-        );
-    }
-
-    getTopThreadsForTeam = (teamId: string, page: number, perPage: number, timeRange: string) => {
-        return this.doFetch<TopThreadResponse>(
-            `${this.getTeamRoute(teamId)}/top/threads${buildQueryString({page, per_page: perPage, time_range: timeRange})}`,
-            {method: 'get'},
-        );
-    }
-
-    getMyTopThreads = (teamId: string, page: number, perPage: number, timeRange: string) => {
-        return this.doFetch<TopThreadResponse>(
-            `${this.getUsersRoute()}/me/top/threads${buildQueryString({page, per_page: perPage, time_range: timeRange, team_id: teamId})}`,
-            {method: 'get'},
-        );
-    }
-
-    getLeastActiveChannelsForTeam = (teamId: string, page: number, perPage: number, timeRange: string) => {
-        return this.doFetch<LeastActiveChannelsResponse>(
-            `${this.getTeamRoute(teamId)}/top/inactive_channels${buildQueryString({page, per_page: perPage, time_range: timeRange})}`,
-            {method: 'get'},
-        );
-    }
-    getMyTopDMs = (teamId: string, page: number, perPage: number, timeRange: string) => {
-        return this.doFetch<TopDMsResponse>(
-            `${this.getUsersRoute()}/me/top/dms${buildQueryString({page, per_page: perPage, time_range: timeRange, team_id: teamId})}`,
-            {method: 'get'},
-        );
-    }
-
-    getMyLeastActiveChannels = (teamId: string, page: number, perPage: number, timeRange: string) => {
-        return this.doFetch<LeastActiveChannelsResponse>(
-            `${this.getUsersRoute()}/me/top/inactive_channels${buildQueryString({page, per_page: perPage, time_range: timeRange, team_id: teamId})}`,
-            {method: 'get'},
-        );
-    }
-    getNewTeamMembers = (teamId: string, page: number, perPage: number, timeRange: string) => {
-        return this.doFetch<TopDMsResponse>(
-            `${this.getTeamRoute(teamId)}/top/team_members${buildQueryString({page, per_page: perPage, time_range: timeRange})}`,
-            {method: 'get'},
-        );
-    }
-
     searchPostsWithParams = (teamId: string, params: any) => {
         this.trackEvent('api', 'api_posts_search', {team_id: teamId});
 
@@ -2292,13 +2220,6 @@ export default class Client4 {
 
     searchFiles = (teamId: string, terms: string, isOrSearch: boolean) => {
         return this.searchFilesWithParams(teamId, {terms, is_or_search: isOrSearch});
-    };
-
-    getOpenGraphMetadata = (url: string) => {
-        return this.doFetch<OpenGraphMetadata>(
-            `${this.getBaseRoute()}/opengraph`,
-            {method: 'post', body: JSON.stringify({url})},
-        );
     };
 
     doPostAction = (postId: string, actionId: string, selectedOption = '') => {
@@ -3577,8 +3498,9 @@ export default class Client4 {
         );
     };
 
-    getGroups = (filterAllowReference = false, page = 0, perPage = 10, includeMemberCount = false, hasFilterMember = false) => {
+    getGroups = (q = '', filterAllowReference = false, page = 0, perPage = 10, includeMemberCount = false, hasFilterMember = false) => {
         const qs: any = {
+            q,
             filter_allow_reference: filterAllowReference,
             page,
             per_page: perPage,

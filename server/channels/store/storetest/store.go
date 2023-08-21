@@ -10,9 +10,9 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 // Store can be used to provide mock stores for testing.
@@ -114,17 +114,18 @@ func (s *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 func (s *Store) PostPersistentNotification() store.PostPersistentNotificationStore {
 	return &s.PostPersistentNotificationStore
 }
-func (s *Store) MarkSystemRanUnitTests()            { /* do nothing */ }
-func (s *Store) Close()                             { /* do nothing */ }
-func (s *Store) LockToMaster()                      { /* do nothing */ }
-func (s *Store) UnlockFromMaster()                  { /* do nothing */ }
-func (s *Store) DropAllTables()                     { /* do nothing */ }
-func (s *Store) GetDbVersion(bool) (string, error)  { return "", nil }
-func (s *Store) GetInternalMasterDB() *sql.DB       { return nil }
-func (s *Store) GetInternalReplicaDB() *sql.DB      { return nil }
-func (s *Store) GetInternalReplicaDBs() []*sql.DB   { return nil }
-func (s *Store) RecycleDBConnections(time.Duration) {}
-func (s *Store) GetDBSchemaVersion() (int, error)   { return 1, nil }
+func (s *Store) MarkSystemRanUnitTests()             { /* do nothing */ }
+func (s *Store) Close()                              { /* do nothing */ }
+func (s *Store) LockToMaster()                       { /* do nothing */ }
+func (s *Store) UnlockFromMaster()                   { /* do nothing */ }
+func (s *Store) DropAllTables()                      { /* do nothing */ }
+func (s *Store) GetDbVersion(bool) (string, error)   { return "", nil }
+func (s *Store) GetInternalMasterDB() *sql.DB        { return nil }
+func (s *Store) GetInternalReplicaDB() *sql.DB       { return nil }
+func (s *Store) GetInternalReplicaDBs() []*sql.DB    { return nil }
+func (s *Store) RecycleDBConnections(time.Duration)  {}
+func (s *Store) GetDBSchemaVersion() (int, error)    { return 1, nil }
+func (s *Store) GetLocalSchemaVersion() (int, error) { return 1, nil }
 func (s *Store) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 	return []model.AppliedMigration{}, nil
 }

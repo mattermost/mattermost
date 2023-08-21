@@ -21,13 +21,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 
-	_ "github.com/mattermost/mattermost-server/server/v8/channels/app/oauthproviders/gitlab"
+	_ "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -41,6 +41,7 @@ func TestCreateUser(t *testing.T) {
 		Username:      GenerateTestUsername(),
 		Roles:         model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 		EmailVerified: true,
+		DeleteAt:      1,
 	}
 
 	ruser, resp, err := th.Client.CreateUser(context.Background(), &user)
@@ -53,6 +54,7 @@ func TestCreateUser(t *testing.T) {
 
 	require.Equal(t, user.Nickname, ruser.Nickname, "nickname didn't match")
 	require.Equal(t, model.SystemUserRoleId, ruser.Roles, "did not clear roles")
+	require.Equal(t, int64(0), ruser.DeleteAt, "did not reset deleteAt")
 
 	CheckUserSanitization(t, ruser)
 
@@ -1910,6 +1912,47 @@ func TestUpdateUser(t *testing.T) {
 	})
 }
 
+func TestUpdateAdminUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	th.App.UpdateUserRoles(th.Context, user.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	user.Email = th.GenerateTestEmail()
+
+	th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+
+	_, resp, err := th.Client.UpdateUser(context.Background(), user)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	u2, _, err := th.SystemAdminClient.UpdateUser(context.Background(), user)
+	require.NoError(t, err)
+	require.Equal(t, user.Email, u2.Email)
+}
+
+func TestUpdateBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := th.CreateBotWithSystemAdminClient()
+	botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
+	require.NoError(t, err)
+
+	updateUser, _, err := th.SystemAdminClient.UpdateUser(context.Background(), botUser)
+	require.NoError(t, err)
+	require.Equal(t, botUser.Id, updateUser.Id)
+
+	_, resp, err := th.Client.UpdateUser(context.Background(), botUser)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
 func TestPatchUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2021,6 +2064,48 @@ func TestPatchUser(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestPatchBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := th.CreateBotWithSystemAdminClient()
+	patch := &model.UserPatch{}
+	patch.Email = model.NewString("newemail@test.com")
+
+	user, _, err := th.SystemAdminClient.PatchUser(context.Background(), bot.UserId, patch)
+	require.NoError(t, err)
+	require.Equal(t, bot.UserId, user.Id)
+
+	_, resp, err := th.Client.PatchUser(context.Background(), bot.UserId, patch)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
+func TestPatchAdminUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	th.App.UpdateUserRoles(th.Context, user.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+
+	patch := &model.UserPatch{}
+	patch.Email = model.NewString(th.GenerateTestEmail())
+
+	th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+
+	_, resp, err := th.Client.PatchUser(context.Background(), user.Id, patch)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	_, _, err = th.SystemAdminClient.PatchUser(context.Background(), user.Id, patch)
+	require.NoError(t, err)
+}
+
 func TestUserUnicodeNames(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -2099,7 +2184,6 @@ func TestUpdateUserAuth(t *testing.T) {
 	userAuth := &model.UserAuth{}
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = user.AuthService
-	userAuth.Password = user.Password
 
 	// Regular user can not use endpoint
 	_, respErr, _ := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
@@ -2107,19 +2191,16 @@ func TestUpdateUserAuth(t *testing.T) {
 
 	userAuth.AuthData = model.NewString("test@test.com")
 	userAuth.AuthService = model.UserAuthServiceSaml
-	userAuth.Password = "newpassword"
 	ruser, _, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NoError(t, err)
 
 	// AuthData and AuthService are set, password is set to empty
 	require.Equal(t, *userAuth.AuthData, *ruser.AuthData)
 	require.Equal(t, model.UserAuthServiceSaml, ruser.AuthService)
-	require.Empty(t, ruser.Password)
 
 	// When AuthData or AuthService are empty, password must be valid
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = ""
-	userAuth.Password = "1"
 	_, respErr, _ = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr)
 
@@ -2133,7 +2214,6 @@ func TestUpdateUserAuth(t *testing.T) {
 
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = user.AuthService
-	userAuth.Password = user.Password
 	_, respErr, _ = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr, "Should have errored")
 }
@@ -2185,6 +2265,21 @@ func TestDeleteUser(t *testing.T) {
 	})
 	_, err = th.Client.DeleteUser(context.Background(), selfDeleteUser.Id)
 	require.NoError(t, err)
+}
+
+func TestDeleteBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := th.CreateBotWithSystemAdminClient()
+
+	_, err := th.Client.DeleteUser(context.Background(), bot.UserId)
+	require.Error(t, err)
+	require.Equal(t, err.Error(), ": You do not have the appropriate permissions.")
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
@@ -3747,6 +3842,18 @@ func TestLogin(t *testing.T) {
 		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
 	})
 
+	t.Run("remote user login rejected", func(t *testing.T) {
+		email := th.GenerateTestEmail()
+		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewString("remote-id")}
+		ruser, _, _ := th.Client.CreateUser(context.Background(), &user)
+
+		_, err := th.SystemAdminClient.UpdateUserPassword(context.Background(), ruser.Id, "", "password")
+		require.NoError(t, err)
+
+		_, _, err = th.Client.Login(context.Background(), ruser.Email, "password")
+		CheckErrorID(t, err, "api.user.login.remote_users.login.error")
+	})
+
 	t.Run("login with terms_of_service set", func(t *testing.T) {
 		termsOfService, appErr := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -3795,8 +3902,7 @@ func TestLoginWithLag(t *testing.T) {
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
 
-		appErr = th.App.Srv().InvalidateAllCaches()
-		require.Nil(t, appErr)
+		th.App.Srv().InvalidateAllCaches()
 
 		session, appErr := th.App.GetSession(th.Client.AuthToken)
 		require.Nil(t, appErr)

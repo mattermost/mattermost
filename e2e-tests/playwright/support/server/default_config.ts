@@ -36,7 +36,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             ClusterName: testConfig.haClusterName,
         },
         ExperimentalSettings: {
-            EnableAppBar: true,
+            DisableAppBar: false,
         },
         PasswordSettings: {
             MinimumLength: 5,
@@ -44,6 +44,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             Number: false,
             Uppercase: false,
             Symbol: false,
+            EnableForgotLink: true,
         },
         PluginSettings: {
             EnableUploads: true,
@@ -128,6 +129,7 @@ const defaultServerConfig: AdminConfig = {
         EnableGifPicker: true,
         GfycatAPIKey: '2_KtH_W5',
         GfycatAPISecret: '3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof',
+        GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
         EnableCustomEmoji: true,
         EnableEmojiPicker: true,
         PostEditTimeLimit: -1,
@@ -265,6 +267,7 @@ const defaultServerConfig: AdminConfig = {
         Number: false,
         Uppercase: false,
         Symbol: false,
+        EnableForgotLink: true,
     },
     FileSettings: {
         EnableFileAttachments: true,
@@ -312,6 +315,8 @@ const defaultServerConfig: AdminConfig = {
         ConnectionSecurity: '',
         SendPushNotifications: true,
         PushNotificationServer: 'https://push-test.mattermost.com',
+        PushNotificationServerType: 'custom',
+        PushNotificationServerLocation: 'us',
         PushNotificationContents: 'full',
         PushNotificationBuffer: 1000,
         EnableEmailBatching: false,
@@ -338,11 +343,12 @@ const defaultServerConfig: AdminConfig = {
         ShowFullName: true,
     },
     SupportSettings: {
-        TermsOfServiceLink: 'https://mattermost.com/terms-of-use/',
-        PrivacyPolicyLink: 'https://mattermost.com/privacy-policy/',
-        AboutLink: 'https://docs.mattermost.com/about/product.html/',
-        HelpLink: 'https://mattermost.com/default-help/',
-        ReportAProblemLink: 'https://mattermost.com/default-report-a-problem/',
+        TermsOfServiceLink: 'https://mattermost.com/pl/terms-of-use/',
+        PrivacyPolicyLink: 'https://mattermost.com/pl/privacy-policy/',
+        AboutLink: 'https://docs.mattermost.com/pl/about-mattermost',
+        HelpLink: 'https://mattermost.com/pl/help/',
+        ReportAProblemLink: 'https://mattermost.com/pl/report-a-bug',
+        ForgotPasswordLink: '',
         SupportEmail: '',
         CustomTermsOfServiceEnabled: false,
         CustomTermsOfServiceReAcceptancePeriod: 365,
@@ -500,9 +506,9 @@ const defaultServerConfig: AdminConfig = {
     },
     NativeAppSettings: {
         AppCustomURLSchemes: ['mmauth://', 'mmauthbeta://'],
-        AppDownloadLink: 'https://mattermost.com/download/#mattermostApps',
-        AndroidAppDownloadLink: 'https://mattermost.com/mattermost-android-app/',
-        IosAppDownloadLink: 'https://mattermost.com/mattermost-ios-app/',
+        AppDownloadLink: 'https://mattermost.com/pl/download-apps',
+        AndroidAppDownloadLink: 'https://mattermost.com/pl/android-app/',
+        IosAppDownloadLink: 'https://mattermost.com/pl/ios-app/',
     },
     ClusterSettings: {
         Enable: false,
@@ -534,7 +540,7 @@ const defaultServerConfig: AdminConfig = {
         UseNewSAMLLibrary: false,
         EnableSharedChannels: false,
         EnableRemoteClusterService: false,
-        EnableAppBar: false,
+        DisableAppBar: true,
         DisableRefetchingOnBrowserFocus: false,
         DelayChannelAutocomplete: false,
     },
@@ -566,6 +572,7 @@ const defaultServerConfig: AdminConfig = {
         ClientCert: '',
         ClientKey: '',
         Trace: '',
+        IgnoredPurgeIndexes: '',
     },
     BleveSettings: {
         IndexDir: '',
@@ -577,10 +584,8 @@ const defaultServerConfig: AdminConfig = {
     DataRetentionSettings: {
         EnableMessageDeletion: false,
         EnableFileDeletion: false,
-        EnableBoardsDeletion: false,
         MessageRetentionDays: 365,
         FileRetentionDays: 365,
-        BoardsRetentionDays: 365,
         DeletionJobStartTime: '02:00',
         BatchSize: 3000,
     },
@@ -605,10 +610,7 @@ const defaultServerConfig: AdminConfig = {
         CleanupJobsThresholdDays: -1,
         CleanupConfigThresholdDays: -1,
     },
-    ProductSettings: {
-        EnablePublicSharedBoards: false,
-        EnablePlaybooks: true,
-    },
+    ProductSettings: {},
     PluginSettings: {
         Enable: true,
         EnableUploads: false,
@@ -618,9 +620,6 @@ const defaultServerConfig: AdminConfig = {
         ClientDirectory: './client/plugins',
         Plugins: {},
         PluginStates: {
-            'com.mattermost.apps': {
-                Enable: true,
-            },
             'com.mattermost.calls': {
                 Enable: true,
             },
@@ -642,6 +641,7 @@ const defaultServerConfig: AdminConfig = {
     },
     GuestAccountsSettings: {
         Enable: false,
+        HideTags: false,
         AllowEmailAccounts: true,
         EnforceMultifactorAuthentication: false,
         RestrictCreationToDomains: '',
@@ -668,22 +668,16 @@ const defaultServerConfig: AdminConfig = {
         PermalinkPreviews: true,
         CallsEnabled: true,
         BoardsFeatureFlags: '',
-        BoardsDataRetention: false,
         NormalizeLdapDNs: false,
         GraphQL: false,
-        InsightsEnabled: true,
         CommandPalette: false,
         SendWelcomePost: true,
         PostPriority: true,
         WysiwygEditor: false,
         PeopleProduct: false,
-        ReduceOnBoardingTaskList: false,
-        OnboardingAutoShowLinkedBoard: false,
         ThreadsEverywhere: false,
-        GlobalDrafts: true,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
-        AppsSidebarCategory: false,
         CloudReverseTrial: false,
     },
     ImportSettings: {

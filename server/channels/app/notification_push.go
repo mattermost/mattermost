@@ -14,11 +14,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/plugin"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 type notificationType string
@@ -138,6 +140,27 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 }
 
 func (a *App) sendPushNotification(notification *PostNotification, user *model.User, explicitMention, channelWideMention bool, replyToThreadType string) {
+	cancelled := false
+	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		cancelled = hooks.NotificationWillBePushed(&model.PluginPushNotification{
+			Post:               notification.Post.ForPlugin(),
+			Channel:            notification.Channel,
+			UserID:             user.Id,
+			ExplicitMention:    explicitMention,
+			ChannelWideMention: channelWideMention,
+			ReplyToThreadType:  replyToThreadType,
+		})
+		if cancelled {
+			mlog.Info("Notification cancelled by plugin")
+			return false
+		}
+		return true
+	}, plugin.NotificationWillBePushedID)
+
+	if cancelled {
+		return
+	}
+
 	cfg := a.Config()
 	channel := notification.Channel
 	post := notification.Post

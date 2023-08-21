@@ -64,7 +64,11 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
 
     const iconUrl = component.iconUrl;
     let content: React.ReactNode = (
-        <div className='app-bar__icon-inner'>
+        <div
+            role='button'
+            tabIndex={0}
+            className='app-bar__icon-inner'
+        >
             <img
                 src={iconUrl}
                 onLoad={onImageLoadComplete}
@@ -77,7 +81,11 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
 
     if (!iconUrl) {
         content = (
-            <div className={classNames('app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered', {'app-bar__old-icon--active': isButtonActive})}>
+            <div
+                role='button'
+                tabIndex={0}
+                className={classNames('app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered', {'app-bar__old-icon--active': isButtonActive})}
+            >
                 {component.icon}
             </div>
         );
@@ -89,7 +97,7 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
         );
     }
 
-    const boardsEnabled = component.pluginId === suitePluginIds.focalboard || component.pluginId === suitePluginIds.boards;
+    const boardsEnabled = component.pluginId === suitePluginIds.focalboard;
 
     return (
         <OverlayTrigger

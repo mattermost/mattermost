@@ -153,6 +153,11 @@ describe('notification_actions', () => {
                         isSidebarOpen: true,
                     },
                 },
+                plugins: {
+                    components: {
+                        DesktopNotificationHooks: [],
+                    },
+                },
             };
         });
 
