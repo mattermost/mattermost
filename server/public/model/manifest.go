@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
@@ -191,7 +191,8 @@ type Manifest struct {
 
 	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
 	//
-	// Use the pluginapi.Configuration.CheckRequiredServerConfiguration method to enforce this.
+	// Deprecated: The required server configuration fields should be checked using custom code.
+	// This field will get removed in the next major release.
 	RequiredConfig *Config `json:"required_configuration,omitempty" yaml:"required_configuration,omitempty"`
 }
 
