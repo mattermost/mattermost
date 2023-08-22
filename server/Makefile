@@ -174,7 +174,7 @@ PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.2
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.2
 PLUGIN_PACKAGES += focalboard-v7.11.2
 
