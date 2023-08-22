@@ -35,6 +35,7 @@ import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
+import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {
     getThread as fetchThread,
     getCountsAndThreadsSince,
@@ -52,7 +53,7 @@ import {
     getCustomEmojiForReaction,
     getPosts,
     getPostThread,
-    getProfilesAndStatusesForPosts,
+    getMentionsAndStatusesForPosts,
     getThreadsForPosts,
     postDeleted,
     receivedNewPost,
@@ -65,6 +66,7 @@ import {
     checkForModifiedUsers,
     getUser as loadUser,
 } from 'mattermost-redux/actions/users';
+import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {setGlobalItem} from 'actions/storage';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
@@ -684,7 +686,7 @@ export function handleNewPostEvent(msg) {
 
         myDispatch(handleNewPost(post, msg));
 
-        getProfilesAndStatusesForPosts([post], myDispatch, myGetState);
+        getMentionsAndStatusesForPosts([post], myDispatch, myGetState);
 
         // Since status updates aren't real time, assume another user is online if they have posted and:
         // 1. The user hasn't set their status manually to something that isn't online
@@ -723,7 +725,7 @@ export function handleNewPostEvents(queue) {
         myDispatch(getThreadsForPosts(posts));
 
         // And any other data needed for them
-        getProfilesAndStatusesForPosts(posts, myDispatch, myGetState);
+        getMentionsAndStatusesForPosts(posts, myDispatch, myGetState);
     };
 }
 
@@ -739,7 +741,7 @@ export function handlePostEditEvent(msg) {
     const crtEnabled = isCollapsedThreadsEnabled(getState());
     dispatch(receivedPost(post, crtEnabled));
 
-    getProfilesAndStatusesForPosts([post], dispatch, getState);
+    getMentionsAndStatusesForPosts([post], dispatch, getState);
 }
 
 async function handlePostDeleteEvent(msg) {
@@ -1355,20 +1357,32 @@ function handleGroupUpdatedEvent(msg) {
     );
 }
 
-function handleGroupAddedMemberEvent(msg) {
-    return (doDispatch, doGetState) => {
+export function handleGroupAddedMemberEvent(msg) {
+    return async (doDispatch, doGetState) => {
         const state = doGetState();
         const currentUserId = getCurrentUserId(state);
-        const data = JSON.parse(msg.data.group_member);
+        const groupInfo = JSON.parse(msg.data.group_member);
 
-        if (currentUserId === data.user_id) {
-            dispatch(
-                {
-                    type: GroupTypes.ADD_MY_GROUP,
-                    data,
-                    id: data.group_id,
-                },
-            );
+        if (currentUserId === groupInfo.user_id) {
+            const group = getGroup(state, groupInfo.group_id);
+            if (group) {
+                dispatch(
+                    {
+                        type: GroupTypes.ADD_MY_GROUP,
+                        id: groupInfo.group_id,
+                    },
+                );
+            } else {
+                const {error} = await doDispatch(fetchGroup(groupInfo.group_id, true));
+                if (!error) {
+                    dispatch(
+                        {
+                            type: GroupTypes.ADD_MY_GROUP,
+                            id: groupInfo.group_id,
+                        },
+                    );
+                }
+            }
         }
     };
 }
