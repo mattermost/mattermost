@@ -8,7 +8,6 @@ export const OnboardingTaskCategory = 'onboarding_task_list';
 // Whole task list is based on these
 export const OnboardingTasksName = {
     CHANNELS_TOUR: 'channels_tour',
-    BOARDS_TOUR: 'boards_tour',
     PLAYBOOKS_TOUR: 'playbooks_tour',
     INVITE_PEOPLE: 'invite_people',
     DOWNLOAD_APP: 'download_app',
@@ -34,7 +33,6 @@ export const GenericTaskSteps = {
 
 export const TaskNameMapToSteps = {
     [OnboardingTasksName.CHANNELS_TOUR]: GenericTaskSteps,
-    [OnboardingTasksName.BOARDS_TOUR]: GenericTaskSteps,
     [OnboardingTasksName.PLAYBOOKS_TOUR]: GenericTaskSteps,
     [OnboardingTasksName.COMPLETE_YOUR_PROFILE]: GenericTaskSteps,
     [OnboardingTasksName.EXPLORE_OTHER_TOOLS]: GenericTaskSteps,
