@@ -23,6 +23,10 @@ const typeMessage = {
         id: t('last_users_message.left_channel.type'),
         defaultMessage: '**left the channel**.',
     },
+    [Posts.POST_TYPES.JOIN_LEAVE_CHANNEL]: {
+        id: t('last_users_message.joined_left_channel.type'),
+        defaultMessage: '**joined and left the channel**.',
+    },
     [Posts.POST_TYPES.REMOVE_FROM_CHANNEL]: {
         id: t('last_users_message.removed_from_channel.type'),
         defaultMessage: 'were **removed from the channel**.',

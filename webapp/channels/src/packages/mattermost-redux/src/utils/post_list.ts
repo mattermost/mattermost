@@ -365,6 +365,17 @@ function isUsersRelatedPost(postType: string) {
         postType === Posts.POST_TYPES.REMOVE_FROM_CHANNEL
     );
 }
+function mergeLastSimilarPosts(userActivities: ActivityEntry[]) {
+    const prevPost = userActivities[userActivities.length - 1];
+    const prePrevPost = userActivities[userActivities.length - 2];
+    const prevPostType = prevPost && prevPost.postType;
+    const prePrevPostType = prePrevPost && prePrevPost.postType;
+
+    if (prevPostType === prePrevPostType) {
+        userActivities.pop();
+        prePrevPost.actorId.push(...prevPost.actorId);
+    }
+}
 export function combineUserActivitySystemPost(systemPosts: Post[] = []) {
     if (systemPosts.length === 0) {
         return null;
@@ -382,12 +393,28 @@ export function combineUserActivitySystemPost(systemPosts: Post[] = []) {
         const prevPost = userActivities[userActivities.length - 1];
         const isSamePostType = prevPost && prevPost.postType === post.type;
         const isSameActor = prevPost && prevPost.actorId[0] === post.user_id;
+        const isJoinedPrevPost = prevPost && prevPost.postType === Posts.POST_TYPES.JOIN_CHANNEL;
+        const isLeftCurrentPost = post.type === Posts.POST_TYPES.LEAVE_CHANNEL;
+        const prePrevPost = userActivities[userActivities.length - 2];
+        const isJoinedPrePrevPost = prePrevPost && prePrevPost.postType === Posts.POST_TYPES.JOIN_CHANNEL;
+        const isLeftPrevPost = prevPost && prevPost.postType === Posts.POST_TYPES.LEAVE_CHANNEL;
 
         if (prevPost && isSamePostType && (isSameActor || isRemovedPost)) {
             prevPost.userIds.push(userId);
             prevPost.usernames.push(username);
         } else if (isSamePostType && !isSameActor && !isUsersRelatedPost(postType)) {
             prevPost.actorId.push(actorId);
+            const isSameActors = (prePrevPost && (prePrevPost.actorId.length === prevPost.actorId.length) && (prePrevPost.actorId.every((actor) => prevPost.actorId.includes(actor))));
+            if (isJoinedPrePrevPost && isLeftPrevPost && isSameActors) {
+                userActivities.pop();
+                prePrevPost.actorId.push(...prevPost.actorId);
+                prePrevPost.postType = Posts.POST_TYPES.JOIN_LEAVE_CHANNEL;
+                mergeLastSimilarPosts(userActivities);
+            }
+        } else if (isJoinedPrevPost && isLeftCurrentPost && isSameActor) {
+            prevPost.actorId.push(actorId);
+            prevPost.postType = Posts.POST_TYPES.JOIN_LEAVE_CHANNEL;
+            mergeLastSimilarPosts(userActivities);
         } else {
             userActivities.push({
                 actorId: [actorId],
