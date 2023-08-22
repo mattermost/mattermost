@@ -58,12 +58,14 @@ function ThreadViewerRow({
     }
 
     case PostListUtils.isStartOfNewMessages(listId):
-        return <NewMessageSeparator
-            separatorId={listId}
-            lastViewedAt={lastViewedAt}
-            threadId={threadId}
-            newMessagesSeparatorActions={newMessagesSeparatorActions}
-        />;
+        return (
+            <NewMessageSeparator
+                separatorId={listId}
+                lastViewedAt={lastViewedAt}
+                threadId={threadId}
+                newMessagesSeparatorActions={newMessagesSeparatorActions}
+            />
+        );
 
     case isRootPost:
         return (
