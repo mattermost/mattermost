@@ -170,7 +170,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if (channel.Name != "" && channel.Name != oldChannel.Name) || (channel.DisplayName != "" && channel.DisplayName != oldChannel.DisplayName) || (channel.Purpose != oldChannel.Purpose) {
-			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.cant_update_direct_or_group_messages.app_error", nil, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 
@@ -346,7 +346,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if (patch.Name != nil && *patch.Name != oldChannel.Name) || (patch.DisplayName != nil && *patch.DisplayName != oldChannel.DisplayName) || (patch.Purpose != nil && *patch.Purpose != oldChannel.Purpose) {
-			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.cant_update_direct_or_group_messages.app_error", nil, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 
