@@ -4189,7 +4189,7 @@ func TestImportImportEmoji(t *testing.T) {
 	data = imports.EmojiImportData{Name: ptrStr(model.NewId()), Image: ptrStr(largeImage)}
 	appErr = th.App.importEmoji(th.Context, &data, false)
 	require.NotNil(t, appErr)
-	require.ErrorIs(t, appErr.Unwrap(), utils.SizeLimitExceeded)
+	require.ErrorIs(t, appErr.Unwrap(), utils.ErrSizeLimitExceeded)
 }
 
 func TestImportAttachment(t *testing.T) {
