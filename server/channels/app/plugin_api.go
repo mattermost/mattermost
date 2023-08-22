@@ -1291,6 +1291,6 @@ func (api *PluginAPI) SendPluginPushNotification(notification *model.PluginPushN
 		ProfileMap: profiles,
 		Sender:     sender,
 	}
-	api.app.sendPushNotification(postNotification, user, notification.ExplicitMention, notification.ChannelWideMention, notification.ReplyToThreadType)
+	api.app.sendPushNotification(postNotification, user, notification.ExplicitMention, notification.ChannelWideMention, notification.ReplyToThreadType, notification.MessageOnly)
 	return nil
 }

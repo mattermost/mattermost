@@ -1425,7 +1425,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 						},
 						Sender: &user,
 					}
-					th.App.sendPushNotification(notification, &user, true, false, model.CommentsNotifyAny)
+					th.App.sendPushNotification(notification, &user, true, false, model.CommentsNotifyAny, false)
 				}(*data.user)
 			}
 			wg.Wait()

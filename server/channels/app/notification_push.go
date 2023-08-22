@@ -56,10 +56,11 @@ type PushNotification struct {
 	explicitMention    bool
 	channelWideMention bool
 	replyToThreadType  string
+	rawMessage         bool
 }
 
 func (a *App) sendPushNotificationSync(c request.CTX, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
-	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.AppError {
+	explicitMention bool, channelWideMention bool, replyToThreadType string, messageOnly bool) *model.AppError {
 	cfg := a.Config()
 	msg, appErr := a.BuildPushNotificationMessage(
 		c,
@@ -72,6 +73,7 @@ func (a *App) sendPushNotificationSync(c request.CTX, post *model.Post, user *mo
 		explicitMention,
 		channelWideMention,
 		replyToThreadType,
+		messageOnly,
 	)
 	if appErr != nil {
 		return appErr
@@ -139,7 +141,10 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 	return nil
 }
 
-func (a *App) sendPushNotification(notification *PostNotification, user *model.User, explicitMention, channelWideMention bool, replyToThreadType string) {
+// sendPushNotification builds and sends a push notification to user. `messageOnly` indicates
+// the notification will not add `SenderName:` before the post message text (only affects
+// servers with `cfg.EmailSettings.PushNotificationContents` set to `full`)
+func (a *App) sendPushNotification(notification *PostNotification, user *model.User, explicitMention, channelWideMention bool, replyToThreadType string, messageOnly bool) {
 	cancelled := false
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 		cancelled = hooks.NotificationWillBePushed(&model.PluginPushNotification{
@@ -149,6 +154,7 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 			ExplicitMention:    explicitMention,
 			ChannelWideMention: channelWideMention,
 			ReplyToThreadType:  replyToThreadType,
+			MessageOnly:        messageOnly,
 		})
 		if cancelled {
 			mlog.Info("Notification cancelled by plugin")
@@ -181,6 +187,7 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 		explicitMention:    explicitMention,
 		channelWideMention: channelWideMention,
 		replyToThreadType:  replyToThreadType,
+		rawMessage:         messageOnly,
 	}:
 	case <-a.Srv().PushNotificationsHub.stopChan:
 		return
@@ -188,7 +195,7 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 }
 
 func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, explicitMention, channelWideMention,
-	hasFiles bool, senderName string, channelType model.ChannelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
+	hasFiles bool, senderName string, channelType model.ChannelType, replyToThreadType string, userLocale i18n.TranslateFunc, messageOnly bool) string {
 
 	// If the post only has images then push an appropriate message
 	if postMessage == "" && hasFiles {
@@ -200,6 +207,9 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 
 	if contentsConfig == model.FullNotification {
 		if channelType == model.ChannelTypeDirect && replyToThreadType != model.CommentsNotifyCRT {
+			return model.ClearMentionTags(postMessage)
+		}
+		if messageOnly {
 			return model.ClearMentionTags(postMessage)
 		}
 		return senderName + ": " + model.ClearMentionTags(postMessage)
@@ -376,6 +386,7 @@ func (hub *PushNotificationsHub) start(c request.CTX) {
 						notification.explicitMention,
 						notification.channelWideMention,
 						notification.replyToThreadType,
+						notification.rawMessage,
 					)
 				case notificationTypeUpdateBadge:
 					err = hub.app.updateMobileAppBadgeSync(c, notification.userID)
@@ -584,7 +595,7 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 }
 
 func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
-	explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError) {
+	explicitMention bool, channelWideMention bool, replyToThreadType string, messageOnly bool) (*model.PushNotification, *model.AppError) {
 
 	var msg *model.PushNotification
 
@@ -596,7 +607,7 @@ func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string,
 	if contentsConfig == model.IdLoadedNotification {
 		msg = a.buildIdLoadedPushNotificationMessage(c, channel, post, user)
 	} else {
-		msg = a.buildFullPushNotificationMessage(c, contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
+		msg = a.buildFullPushNotificationMessage(c, contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType, messageOnly)
 	}
 
 	badgeCount, err := a.getUserBadgeCount(user.Id, a.IsCRTEnabledForUser(c, user.Id))
@@ -667,7 +678,7 @@ func (a *App) buildIdLoadedPushNotificationMessage(c request.CTX, channel *model
 }
 
 func (a *App) buildFullPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
-	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.PushNotification {
+	explicitMention bool, channelWideMention bool, replyToThreadType string, messageOnly bool) *model.PushNotification {
 
 	msg := &model.PushNotification{
 		Category:     model.CategoryCanReply,
@@ -741,6 +752,7 @@ func (a *App) buildFullPushNotificationMessage(c request.CTX, contentsConfig str
 		channel.Type,
 		replyToThreadType,
 		userLocale,
+		messageOnly,
 	)
 
 	return msg

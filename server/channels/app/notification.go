@@ -403,6 +403,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					mentionType == KeywordMention || mentionType == ChannelMention || mentionType == DMMention,
 					mentionType == ChannelMention,
 					replyToThreadType,
+					false,
 				)
 			} else {
 				// register that a notification was not sent
@@ -435,6 +436,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 						false,
 						false,
 						"",
+						false,
 					)
 				} else {
 					// register that a notification was not sent
@@ -467,6 +469,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					false,
 					false,
 					model.CommentsNotifyCRT,
+					false,
 				)
 			} else {
 				// register that a notification was not sent

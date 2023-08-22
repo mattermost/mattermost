@@ -580,6 +580,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		Locale                   string
 		PushNotificationContents string
 		ChannelType              model.ChannelType
+		messageOnly              bool
 
 		ExpectedMessage string
 	}{
@@ -587,6 +588,12 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			Message:         "this is a message",
 			ChannelType:     model.ChannelTypeOpen,
 			ExpectedMessage: "user: this is a message",
+		},
+		"full message, public channel, messageOnly flag": {
+			Message:         "this is a message",
+			ChannelType:     model.ChannelTypeOpen,
+			messageOnly:     true,
+			ExpectedMessage: "this is a message",
 		},
 		"full message, public channel, mention": {
 			Message:         "this is a message",
@@ -617,6 +624,12 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			ChannelType:     model.ChannelTypePrivate,
 			ExpectedMessage: "user: this is a message",
 		},
+		"full message, private channel, no sender name": {
+			Message:         "this is a message",
+			ChannelType:     model.ChannelTypePrivate,
+			messageOnly:     true,
+			ExpectedMessage: "this is a message",
+		},
 		"full message, private channel, mention": {
 			Message:         "this is a message",
 			explicitMention: true,
@@ -640,6 +653,12 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			ChannelType:     model.ChannelTypeGroup,
 			ExpectedMessage: "user: this is a message",
 		},
+		"full message, group message channel, no sender name": {
+			Message:         "this is a message",
+			ChannelType:     model.ChannelTypeGroup,
+			messageOnly:     true,
+			ExpectedMessage: "this is a message",
+		},
 		"full message, group message channel, mention": {
 			Message:         "this is a message",
 			explicitMention: true,
@@ -661,6 +680,12 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		"full message, direct message channel, no mention": {
 			Message:         "this is a message",
 			ChannelType:     model.ChannelTypeDirect,
+			ExpectedMessage: "this is a message",
+		},
+		"full message, direct message channel, no sender name": {
+			Message:         "this is a message",
+			ChannelType:     model.ChannelTypeDirect,
+			messageOnly:     true,
 			ExpectedMessage: "this is a message",
 		},
 		"full message, direct message channel, mention": {
@@ -691,6 +716,13 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			Message:                  "this is a message",
 			PushNotificationContents: model.GenericNotification,
 			ChannelType:              model.ChannelTypeOpen,
+			ExpectedMessage:          "user posted a message.",
+		},
+		"generic message with channel, public channel, no mention, no sender name": {
+			Message:                  "this is a message",
+			PushNotificationContents: model.GenericNotification,
+			ChannelType:              model.ChannelTypeOpen,
+			messageOnly:              true,
 			ExpectedMessage:          "user posted a message.",
 		},
 		"generic message with channel, public channel, mention": {
@@ -927,6 +959,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 				tc.ChannelType,
 				tc.replyToThreadType,
 				i18n.GetUserTranslations(locale),
+				tc.messageOnly,
 			)
 
 			assert.Equal(t, tc.ExpectedMessage, actualMessage)
@@ -983,7 +1016,7 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			receiver.NotifyProps["push"] = tc.pushNotifyProps
-			msg, err := th.App.BuildPushNotificationMessage(th.Context, model.FullNotification, post, receiver, channel1, channel1.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
+			msg, err := th.App.BuildPushNotificationMessage(th.Context, model.FullNotification, post, receiver, channel1, channel1.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType, false)
 			require.Nil(t, err)
 			assert.Equal(t, tc.expectedBadge, msg.Badge)
 		})
@@ -1386,7 +1419,7 @@ func TestAllPushNotifications(t *testing.T) {
 					Sender: &user,
 				}
 				// testing all 3 notification types.
-				th.App.sendPushNotification(notification, &user, true, false, model.CommentsNotifyAny)
+				th.App.sendPushNotification(notification, &user, true, false, model.CommentsNotifyAny, false)
 			}(*data.user)
 		case 1:
 			go func(id string) {
@@ -1487,7 +1520,7 @@ func TestPushNotificationRace(t *testing.T) {
 			},
 			Sender: &model.User{},
 		}
-		th.App.sendPushNotification(notification, &model.User{}, true, false, model.CommentsNotifyAny)
+		th.App.sendPushNotification(notification, &model.User{}, true, false, model.CommentsNotifyAny, false)
 	})
 }
 
@@ -1512,7 +1545,7 @@ func TestPushNotificationAttachment(t *testing.T) {
 	ch := &model.Channel{}
 
 	t.Run("The notification should contain the fallback message from the attachment", func(t *testing.T) {
-		pn := th.App.buildFullPushNotificationMessage(th.Context, "full", post, user, ch, ch.Name, "test", false, false, "")
+		pn := th.App.buildFullPushNotificationMessage(th.Context, "full", post, user, ch, ch.Name, "test", false, false, "", false)
 		assert.Equal(t, "test: hello world\nfallback text", pn.Message)
 	})
 
@@ -1635,7 +1668,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 						},
 						Sender: &user,
 					}
-					th.App.sendPushNotification(notification, &user, true, false, model.CommentsNotifyAny)
+					th.App.sendPushNotification(notification, &user, true, false, model.CommentsNotifyAny, false)
 				}(*data.user)
 			case 1:
 				go func(id string) {

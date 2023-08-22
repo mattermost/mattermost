@@ -314,6 +314,7 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 					true,
 					false,
 					"",
+					false,
 				)
 			} else {
 				// register that a notification was not sent

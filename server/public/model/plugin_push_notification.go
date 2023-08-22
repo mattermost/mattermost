@@ -18,4 +18,5 @@ type PluginPushNotification struct {
 	ExplicitMention    bool     // Used to construct the generic "@sender mentioned you" msg when `cfg.EmailSettings.PushNotificationContents` is not set to `full`
 	ChannelWideMention bool     // Used to construct the generic "@sender notified the channel" msg when `cfg.EmailSettings.PushNotificationContents` is not set to `full`
 	ReplyToThreadType  string   // Used to construct the generic CRT msgs when `cfg.EmailSettings.PushNotificationContents` is not set to `full`; see `App.getPushNotificationMessage` for details.
+	MessageOnly        bool     // Used to indicate the notification will not put `SenderName:` before the post message text in the notification (only affects servers with `cfg.EmailSettings.PushNotificationContents` set to `full`)
 }

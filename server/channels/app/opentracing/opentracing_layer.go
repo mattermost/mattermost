@@ -947,7 +947,7 @@ func (a *OpenTracingAppLayer) BuildPostReactions(ctx request.CTX, postID string)
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError) {
+func (a *OpenTracingAppLayer) BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string, messageOnly bool) (*model.PushNotification, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BuildPushNotificationMessage")
 
@@ -959,7 +959,7 @@ func (a *OpenTracingAppLayer) BuildPushNotificationMessage(c request.CTX, conten
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.BuildPushNotificationMessage(c, contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
+	resultVar0, resultVar1 := a.app.BuildPushNotificationMessage(c, contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType, messageOnly)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
