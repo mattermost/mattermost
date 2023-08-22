@@ -3,10 +3,8 @@
 .toast {
     position: absolute;
     z-index: 2;
-    display: flex;
     width: calc(100% - 30px);
-    height: 40px;
-    align-items: center;
+    height: 32px;
     margin: 10px 15px 0;
     background-color: var(--button-bg);
     border-radius: 4px;
@@ -40,8 +38,8 @@
     .toast__dismiss {
         position: absolute;
         right: 0;
-        height: 40px;
-        padding: 4px 8px;
+        height: 32px;
+        padding: 0 8px;
         cursor: pointer;
 
         &:hover {
@@ -57,8 +55,7 @@
         position: absolute;
         z-index: -1;
         width: calc(100% - 40px);
-        height: 40px;
-        padding-top: 4px;
+        height: 32px;
         padding-left: 10px;
         line-height: 31px;
         text-align: center;

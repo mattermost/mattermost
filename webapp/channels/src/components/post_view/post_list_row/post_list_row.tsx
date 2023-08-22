@@ -12,6 +12,7 @@ import {CloudUsage, Limits} from '@mattermost/types/cloud';
 import type {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 
 import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
+import {PluginComponent} from 'types/store/plugins';
 import {Post} from '@mattermost/types/posts';
 import DateSeparator from 'components/post_view/date_separator';
 import NewMessageSeparator from 'components/post_view/new_message_separator/new_message_separator';
@@ -54,6 +55,8 @@ export type PostListRowProps = {
     limitsLoaded: boolean;
     exceededLimitChannelId?: string;
     firstInaccessiblePostTime?: number;
+
+    newMessagesSeparatorActions: PluginComponent[];
 
     actions: {
 
@@ -109,7 +112,12 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
 
         if (PostListUtils.isStartOfNewMessages(listId)) {
             return (
-                <NewMessageSeparator separatorId={listId}/>
+                <NewMessageSeparator
+                    separatorId={listId}
+                    newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
+                    channelId={this.props.post.channel_id}
+                    lastViewedAt={this.props.post.create_at-1}
+                />
             );
         }
 

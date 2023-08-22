@@ -29,7 +29,7 @@ export type PluginsState = {
         PostDropdownMenu: PluginComponent[];
         PostAction: PluginComponent[];
         PostEditorAction: PluginComponent[];
-        UnreadsBarAction: PluginComponent[];
+        NewMessagesSeparatorAction: PluginComponent[];
         FilePreview: PluginComponent[];
         MainMenu: PluginComponent[];
         LinkTooltip: PluginComponent[];

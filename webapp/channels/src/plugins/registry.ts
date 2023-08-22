@@ -508,10 +508,10 @@ export default class PluginRegistry {
         return dispatchPluginComponentAction('PostEditorAction', this.id, component);
     });
 
-    // Register a component to the add to the unreads notification bar.
+    // Register a component to the add to the new messages separator.
     // Accepts a React component. Returns a unique identifier.
-    registerUnreadsBarActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('UnreadsBarAction', this.id, component);
+    registerNewMessagesSeparatorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('NewMessagesSeparatorAction', this.id, component);
     });
 
     // Register a post menu list item by providing some text and an action function.
