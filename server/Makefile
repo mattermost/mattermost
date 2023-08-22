@@ -151,7 +151,7 @@ DIST_PATH_OSX_ARM64=$(DIST_ROOT)/osx_arm64/mattermost
 DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./public/...)$(shell $(GO) list ./... | grep -vE 'server/v8/cmd/mmctl')
+TE_PACKAGES=$(shell $(GO) list ./public/...) $(shell $(GO) list ./... | grep -vE 'server/v8/cmd/mmctl')
 MMCTL_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/cmd/mmctl')
 
 TEMPLATES_DIR=templates
