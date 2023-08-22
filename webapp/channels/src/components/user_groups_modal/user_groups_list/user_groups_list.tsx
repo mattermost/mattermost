@@ -106,7 +106,7 @@ const UserGroupsList = (props: Props) => {
     }, [actions.openModal, onExited, backButtonAction]);
 
     const groupListOpenUp = (groupListItemIndex: number): boolean => {
-        if (groups.length > 1 && groupListItemIndex === 0) {
+        if (groupListItemIndex === 0) {
             return false;
         }
         return true;
@@ -230,7 +230,7 @@ const UserGroupsList = (props: Props) => {
                         onItemsRendered={onItemsRendered}
                         ref={ref}
                         itemSize={() => 52}
-                        height={groups.length >= 8 ? 416 : groups.length * 52}
+                        height={groups.length >= 8 ? 416 : Math.max(groups.length, 3) * 52}
                         width={'100%'}
                     >
                         {Item}
