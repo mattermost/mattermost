@@ -10,10 +10,10 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import * as ServerVersion from 'utils/server_version';
 import * as UserAgent from 'utils/user_agent';
 
-import mattermostIcon from 'images/icon50x50.png';
 import {Notice} from 'components/system_notice/types';
 import ExternalLink from 'components/external_link';
 import {DocLinks} from 'utils/constants';
+import InfoIcon from 'components/widgets/icons/info_icon';
 
 // Notices are objects with the following fields:
 //  - name - string identifier
@@ -36,7 +36,6 @@ const notices: Notice[] = [
                 defaultMessage='**Notice**\nfrom Mattermost'
             />
         ),
-        icon: mattermostIcon,
         body: (
             <FormattedMessage
                 id='system_notice.body.api3'
@@ -70,7 +69,6 @@ const notices: Notice[] = [
                 defaultMessage='**Notice**\nfrom Mattermost'
             />
         ),
-        icon: mattermostIcon,
         body: (
             <FormattedMessage
                 id='system_notice.body.permissions'
@@ -110,7 +108,6 @@ const notices: Notice[] = [
                 defaultMessage='**Notice**\nfrom Mattermost'
             />
         ),
-        icon: mattermostIcon,
         body: (
             <FormattedMessage
                 id='system_notice.body.ee_upgrade_advice'
@@ -155,7 +152,6 @@ const notices: Notice[] = [
                 defaultMessage='**Notice**\nfrom Mattermost'
             />
         ),
-        icon: mattermostIcon,
         allowForget: false,
         body: (
             <FormattedMessage
@@ -187,6 +183,29 @@ const notices: Notice[] = [
             return true;
         },
     },
+    {
+        // This notice is marked as viewed by default for new users on the server.
+        // Any change on this notice should be handled also in the server side.
+        name: 'GMasDM',
+        allowForget: true,
+        title: (
+            <FormattedMessage
+                id='system_notice.title.gm_as_dm'
+                defaultMessage='Updates to Group Messages'
+            />
+        ),
+        icon: (<InfoIcon />),
+        body: (
+            <FormattedMessage
+                id='system_noticy.body.gm_as_dm'
+                defaultMessage='You wil now be notified for all activity in your group messages along with a notification badge for every new message.{br}{br}You can configure this in notification preferences for each group message.'
+                values={{br: (<br />)}}
+            />
+        ),
+        show: (serverVersion, config, license, analytics, currentChannel) => {
+            return currentChannel?.type === 'G';
+        }
+    }
 ];
 
 export default notices;
