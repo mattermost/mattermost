@@ -5,31 +5,32 @@
     z-index: 9999;
     right: 12px;
     bottom: 12px;
+    display: flex;
     width: 386px;
     padding: 18px 20px 0;
     border: 1px solid alpha-color($black, 0.15);
     background-color: var(--center-channel-bg);
     border-radius: 4px;
     box-shadow: 0 20px 30px alpha-color($black, 0.07), 0 14px 20px alpha-color($black, 0.07);
-    display: flex;
 }
 
 .system-notice__logo {
-    height: 36px;
+    height: 20px;
 
     svg {
-        width: 36px;
-        height: 36px;
-        fill: rgb(22, 109, 224);
+        width: 20px;
+        height: 20px;
+        fill: var(--button-bg);
     }
 }
 
 .system-notice__title {
     overflow: hidden;
+    padding-bottom: 10px;
+    font-weight: bold;
     line-height: 16px;
     text-overflow: ellipsis;
     white-space: nowrap;
-    padding-bottom: 10px;
 }
 
 .system-notice__info {
@@ -45,7 +46,6 @@
 .system-notice__body {
     padding: 0 0 16px 16px;
     line-height: 16px;
-    opacity: 0.7;
 }
 
 .system-notice__footer {
@@ -55,6 +55,7 @@
     .btn {
         overflow: hidden;
         flex: 1;
+        font-weight: bold;
         text-overflow: ellipsis;
 
         &:last-child {

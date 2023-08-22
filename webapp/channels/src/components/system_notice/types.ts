@@ -4,7 +4,7 @@
 import React from 'react';
 
 import {AnalyticsRow} from '@mattermost/types/admin';
-import { Channel } from '@mattermost/types/channels';
+import {Channel} from '@mattermost/types/channels';
 
 export type Notice = {
     name: string;

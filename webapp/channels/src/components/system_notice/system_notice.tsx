@@ -15,7 +15,7 @@ import {t} from 'utils/i18n';
 import LocalizedIcon from 'components/localized_icon';
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 import {Notice} from 'components/system_notice/types';
-import { Channel } from '@mattermost/types/channels';
+import {Channel} from '@mattermost/types/channels';
 
 type Props = {
     currentUserId: string;

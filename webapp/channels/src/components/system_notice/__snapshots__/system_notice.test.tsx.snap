@@ -5,64 +5,69 @@ exports[`components/SystemNotice should match snapshot for admin, admin notice 1
   className="system-notice bg--white shadow--2"
 >
   <div
-    className="system-notice__header"
+    className="system-notice__logo"
   >
-    <div
-      className="system-notice__logo"
+    <type
+      0="p"
+      1="r"
+      2="o"
+      3="p"
+      4="s"
+      key="key"
     >
-      <MattermostLogo />
-    </div>
+      rendered
+    </type>
+  </div>
+  <div
+    className="system-notice__body"
+  >
     <div
       className="system-notice__title"
     >
       some title
     </div>
-  </div>
-  <div
-    className="system-notice__body"
-  >
     some body
-  </div>
-  <div
-    className="system-notice__info"
-  >
-    <LocalizedIcon
-      className="fa fa-eye"
-      title={
-        Object {
-          "defaultMessage": "Only visible to System Admins Icon",
-          "id": "system_notice.adminVisible.icon",
+    <div
+      className="system-notice__info"
+    >
+      <LocalizedIcon
+        className="fa fa-eye"
+        title={
+          Object {
+            "defaultMessage": "Only visible to System Admins Icon",
+            "id": "system_notice.adminVisible.icon",
+          }
         }
-      }
-    />
-    <MemoizedFormattedMessage
-      defaultMessage="Only visible to System Admins"
-      id="system_notice.adminVisible"
-    />
-  </div>
-  <div
-    className="system-notice__footer"
-  >
-    <button
-      className="btn btn-transparent"
-      id="systemnotice_remindme"
-      onClick={[Function]}
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Remind Me Later"
-        id="system_notice.remind_me"
       />
-    </button>
-    <button
-      className="btn btn-transparent"
-      id="systemnotice_dontshow"
-      onClick={[Function]}
-    >
       <MemoizedFormattedMessage
-        defaultMessage="Don't Show Again"
-        id="system_notice.dont_show"
+        defaultMessage="Only visible to System Admins"
+        id="system_notice.adminVisible"
       />
-    </button>
+    </div>
+    <div
+      className="system-notice__footer"
+    >
+      <button
+        className="btn btn-primary"
+        id="systemnotice_remindme"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Remind Me Later"
+          id="system_notice.remind_me"
+        />
+      </button>
+      <button
+        className="btn"
+        id="systemnotice_dontshow"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Don't Show Again"
+          id="system_notice.dont_show"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;
@@ -72,47 +77,52 @@ exports[`components/SystemNotice should match snapshot for admin, regular notice
   className="system-notice bg--white shadow--2"
 >
   <div
-    className="system-notice__header"
+    className="system-notice__logo"
   >
-    <div
-      className="system-notice__logo"
+    <type
+      0="p"
+      1="r"
+      2="o"
+      3="p"
+      4="s"
+      key="key"
     >
-      <MattermostLogo />
-    </div>
+      rendered
+    </type>
+  </div>
+  <div
+    className="system-notice__body"
+  >
     <div
       className="system-notice__title"
     >
       some title
     </div>
-  </div>
-  <div
-    className="system-notice__body"
-  >
     some body
-  </div>
-  <div
-    className="system-notice__footer"
-  >
-    <button
-      className="btn btn-transparent"
-      id="systemnotice_remindme"
-      onClick={[Function]}
+    <div
+      className="system-notice__footer"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Remind Me Later"
-        id="system_notice.remind_me"
-      />
-    </button>
-    <button
-      className="btn btn-transparent"
-      id="systemnotice_dontshow"
-      onClick={[Function]}
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Don't Show Again"
-        id="system_notice.dont_show"
-      />
-    </button>
+      <button
+        className="btn btn-primary"
+        id="systemnotice_remindme"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Remind Me Later"
+          id="system_notice.remind_me"
+        />
+      </button>
+      <button
+        className="btn"
+        id="systemnotice_dontshow"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Don't Show Again"
+          id="system_notice.dont_show"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;
@@ -122,47 +132,52 @@ exports[`components/SystemNotice should match snapshot for regular user, admin a
   className="system-notice bg--white shadow--2"
 >
   <div
-    className="system-notice__header"
+    className="system-notice__logo"
   >
-    <div
-      className="system-notice__logo"
+    <type
+      0="p"
+      1="r"
+      2="o"
+      3="p"
+      4="s"
+      key="key"
     >
-      <MattermostLogo />
-    </div>
+      rendered
+    </type>
+  </div>
+  <div
+    className="system-notice__body"
+  >
     <div
       className="system-notice__title"
     >
       some title2
     </div>
-  </div>
-  <div
-    className="system-notice__body"
-  >
     some body2
-  </div>
-  <div
-    className="system-notice__footer"
-  >
-    <button
-      className="btn btn-transparent"
-      id="systemnotice_remindme"
-      onClick={[Function]}
+    <div
+      className="system-notice__footer"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Remind Me Later"
-        id="system_notice.remind_me"
-      />
-    </button>
-    <button
-      className="btn btn-transparent"
-      id="systemnotice_dontshow"
-      onClick={[Function]}
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Don't Show Again"
-        id="system_notice.dont_show"
-      />
-    </button>
+      <button
+        className="btn btn-primary"
+        id="systemnotice_remindme"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Remind Me Later"
+          id="system_notice.remind_me"
+        />
+      </button>
+      <button
+        className="btn"
+        id="systemnotice_dontshow"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Don't Show Again"
+          id="system_notice.dont_show"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;
@@ -180,47 +195,52 @@ exports[`components/SystemNotice should match snapshot for regular user, regular
   className="system-notice bg--white shadow--2"
 >
   <div
-    className="system-notice__header"
+    className="system-notice__logo"
   >
-    <div
-      className="system-notice__logo"
+    <type
+      0="p"
+      1="r"
+      2="o"
+      3="p"
+      4="s"
+      key="key"
     >
-      <MattermostLogo />
-    </div>
+      rendered
+    </type>
+  </div>
+  <div
+    className="system-notice__body"
+  >
     <div
       className="system-notice__title"
     >
       some title
     </div>
-  </div>
-  <div
-    className="system-notice__body"
-  >
     some body
-  </div>
-  <div
-    className="system-notice__footer"
-  >
-    <button
-      className="btn btn-transparent"
-      id="systemnotice_remindme"
-      onClick={[Function]}
+    <div
+      className="system-notice__footer"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Remind Me Later"
-        id="system_notice.remind_me"
-      />
-    </button>
-    <button
-      className="btn btn-transparent"
-      id="systemnotice_dontshow"
-      onClick={[Function]}
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Don't Show Again"
-        id="system_notice.dont_show"
-      />
-    </button>
+      <button
+        className="btn btn-primary"
+        id="systemnotice_remindme"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Remind Me Later"
+          id="system_notice.remind_me"
+        />
+      </button>
+      <button
+        className="btn"
+        id="systemnotice_dontshow"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Don't Show Again"
+          id="system_notice.dont_show"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;
@@ -232,47 +252,52 @@ exports[`components/SystemNotice should match snapshot for show function returni
   className="system-notice bg--white shadow--2"
 >
   <div
-    className="system-notice__header"
+    className="system-notice__logo"
   >
-    <div
-      className="system-notice__logo"
+    <type
+      0="p"
+      1="r"
+      2="o"
+      3="p"
+      4="s"
+      key="key"
     >
-      <MattermostLogo />
-    </div>
+      rendered
+    </type>
+  </div>
+  <div
+    className="system-notice__body"
+  >
     <div
       className="system-notice__title"
     >
       some title
     </div>
-  </div>
-  <div
-    className="system-notice__body"
-  >
     some body
-  </div>
-  <div
-    className="system-notice__footer"
-  >
-    <button
-      className="btn btn-transparent"
-      id="systemnotice_remindme"
-      onClick={[Function]}
+    <div
+      className="system-notice__footer"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Remind Me Later"
-        id="system_notice.remind_me"
-      />
-    </button>
-    <button
-      className="btn btn-transparent"
-      id="systemnotice_dontshow"
-      onClick={[Function]}
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Don't Show Again"
-        id="system_notice.dont_show"
-      />
-    </button>
+      <button
+        className="btn btn-primary"
+        id="systemnotice_remindme"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Remind Me Later"
+          id="system_notice.remind_me"
+        />
+      </button>
+      <button
+        className="btn"
+        id="systemnotice_dontshow"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Don't Show Again"
+          id="system_notice.dont_show"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;
@@ -282,37 +307,42 @@ exports[`components/SystemNotice should match snapshot for with allowForget equa
   className="system-notice bg--white shadow--2"
 >
   <div
-    className="system-notice__header"
+    className="system-notice__logo"
   >
-    <div
-      className="system-notice__logo"
+    <type
+      0="p"
+      1="r"
+      2="o"
+      3="p"
+      4="s"
+      key="key"
     >
-      <MattermostLogo />
-    </div>
+      rendered
+    </type>
+  </div>
+  <div
+    className="system-notice__body"
+  >
     <div
       className="system-notice__title"
     >
       some title
     </div>
-  </div>
-  <div
-    className="system-notice__body"
-  >
     some body
-  </div>
-  <div
-    className="system-notice__footer"
-  >
-    <button
-      className="btn btn-transparent"
-      id="systemnotice_remindme"
-      onClick={[Function]}
+    <div
+      className="system-notice__footer"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Remind Me Later"
-        id="system_notice.remind_me"
-      />
-    </button>
+      <button
+        className="btn btn-primary"
+        id="systemnotice_remindme"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Remind Me Later"
+          id="system_notice.remind_me"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;
