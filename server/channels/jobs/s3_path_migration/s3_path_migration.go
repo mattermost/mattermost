@@ -19,15 +19,13 @@ import (
 )
 
 const (
-	JobName = "S3PathMigration"
-
 	timeBetweenBatches = 1 * time.Second
 )
 
 type S3PathMigrationWorker struct {
 	name        string
-	logger      mlog.LoggerIFace
 	jobServer   *jobs.JobServer
+	logger      mlog.LoggerIFace
 	store       store.Store
 	fileBackend *filestore.S3FileBackend
 
@@ -36,16 +34,17 @@ type S3PathMigrationWorker struct {
 	jobs    chan model.Job
 }
 
-func MakeWorker(jobServer *jobs.JobServer, logger mlog.LoggerIFace, store store.Store, fileBackend filestore.FileBackend) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, store store.Store, fileBackend filestore.FileBackend) model.Worker {
 	// If the type cast fails, it will be nil
 	// which is checked later.
 	s3Backend, _ := fileBackend.(*filestore.S3FileBackend)
+	const workerName = "S3PathMigration"
 	worker := &S3PathMigrationWorker{
+		name:        workerName,
 		jobServer:   jobServer,
-		logger:      logger,
+		logger:      jobServer.Logger().With(mlog.String("workername", workerName)),
 		store:       store,
 		fileBackend: s3Backend,
-		name:        JobName,
 		stop:        make(chan bool, 1),
 		stopped:     make(chan bool, 1),
 		jobs:        make(chan model.Job),
@@ -54,30 +53,32 @@ func MakeWorker(jobServer *jobs.JobServer, logger mlog.LoggerIFace, store store.
 }
 
 func (worker *S3PathMigrationWorker) Run() {
-	mlog.Debug("Worker started", mlog.String("worker", worker.name))
+	worker.logger.Debug("Worker started")
 	// We have to re-assign the stop channel again, because
 	// it might happen that the job was restarted due to a config change.
 	worker.stop = make(chan bool, 1)
 
 	defer func() {
-		mlog.Debug("Worker finished", mlog.String("worker", worker.name))
+		worker.logger.Debug("Worker finished")
 		worker.stopped <- true
 	}()
 
 	for {
 		select {
 		case <-worker.stop:
-			mlog.Debug("Worker received stop signal", mlog.String("worker", worker.name))
+			worker.logger.Debug("Worker received stop signal")
 			return
 		case job := <-worker.jobs:
-			mlog.Debug("Worker received a new candidate job.", mlog.String("worker", worker.name))
+			job.Logger = job.Logger.With(mlog.String("workername", worker.name))
+
+			job.Logger.Debug("Worker received a new candidate job")
 			worker.DoJob(&job)
 		}
 	}
 }
 
 func (worker *S3PathMigrationWorker) Stop() {
-	mlog.Debug("Worker stopping", mlog.String("worker", worker.name))
+	worker.logger.Debug("Worker stopping")
 	close(worker.stop)
 	<-worker.stopped
 }
@@ -107,7 +108,7 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 	defer worker.jobServer.HandleJobPanic(job)
 
 	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		job.Logger.Warn("S3PathMigrationWorker experienced an error while trying to claim job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+		job.Logger.Warn("S3PathMigrationWorker experienced an error while trying to claim job", mlog.Err(err))
 		return
 	} else if !claimed {
 		return
@@ -126,7 +127,7 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 	// We get the job again because ClaimJob changes the job status.
 	job, appErr = worker.jobServer.GetJob(c, job.Id)
 	if appErr != nil {
-		job.Logger.Error("S3PathMigrationWorker: job execution error", mlog.String("worker", worker.name), mlog.Err(appErr))
+		job.Logger.Error("S3PathMigrationWorker: job execution error", mlog.Err(appErr))
 		worker.setJobError(job, appErr)
 		return
 	}
@@ -137,14 +138,14 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 
 	doneCount, appErr := worker.getJobMetadata(job, "done_file_count")
 	if appErr != nil {
-		job.Logger.Error("S3PathMigrationWorker: failed to get done file count", mlog.String("worker", worker.name), mlog.Err(appErr))
+		job.Logger.Error("S3PathMigrationWorker: failed to get done file count", mlog.Err(appErr))
 		worker.setJobError(job, appErr)
 		return
 	}
 
 	startTime, appErr := worker.getJobMetadata(job, "start_create_at")
 	if appErr != nil {
-		job.Logger.Error("S3PathMigrationWorker: failed to get start create_at", mlog.String("worker", worker.name), mlog.Err(appErr))
+		job.Logger.Error("S3PathMigrationWorker: failed to get start create_at", mlog.Err(appErr))
 		worker.setJobError(job, appErr)
 		return
 	}
@@ -160,9 +161,9 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 	for {
 		select {
 		case <-worker.stop:
-			job.Logger.Info("Worker: S3 Migration has been canceled via Worker Stop. Setting the job back to pending.", mlog.String("workername", worker.name))
+			job.Logger.Info("Worker: S3 Migration has been canceled via Worker Stop. Setting the job back to pending.")
 			if err := worker.jobServer.SetJobPending(job); err != nil {
-				mlog.Error("Worker: Failed to mark job as pending", mlog.String("workername", worker.name), mlog.Err(err))
+				worker.logger.Error("Worker: Failed to mark job as pending", mlog.Err(err))
 			}
 			return
 		case <-time.After(timeBetweenBatches):
@@ -188,7 +189,7 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 			}
 
 			if len(files) == 0 {
-				job.Logger.Info("S3PathMigrationWorker: Job is complete", mlog.String("worker", worker.name))
+				job.Logger.Info("S3PathMigrationWorker: Job is complete")
 				worker.setJobSuccess(job)
 				worker.markAsComplete(job)
 				return
@@ -196,7 +197,7 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 
 			// Iterate through the rows in each page.
 			for _, f := range files {
-				job.Logger.Debug("Processing file ID", mlog.String("id", f.Id), mlog.String("worker", worker.name))
+				job.Logger.Debug("Processing file ID", mlog.String("id", f.Id))
 				// We do not fail the job if a single image failed to encode.
 				if f.Path != "" {
 					if err := worker.fileBackend.DecodeFilePathIfNeeded(f.Path); err != nil {
@@ -242,24 +243,24 @@ func (worker *S3PathMigrationWorker) markAsComplete(job *model.Job) {
 	// it will just fall through everything because all files would have
 	// converted. The actual job is idempotent, so there won't be a problem.
 	if err := worker.jobServer.Store.System().Save(&system); err != nil {
-		job.Logger.Error("Worker: Failed to mark s3 path migration as completed in the systems table.", mlog.String("workername", worker.name), mlog.Err(err))
+		job.Logger.Error("Worker: Failed to mark s3 path migration as completed in the systems table.", mlog.Err(err))
 	}
 }
 
 func (worker *S3PathMigrationWorker) setJobSuccess(job *model.Job) {
 	if err := worker.jobServer.SetJobProgress(job, 100); err != nil {
-		job.Logger.Error("Worker: Failed to update progress for job", mlog.String("worker", worker.name), mlog.Err(err))
+		job.Logger.Error("Worker: Failed to update progress for job", mlog.Err(err))
 		worker.setJobError(job, err)
 	}
 
 	if err := worker.jobServer.SetJobSuccess(job); err != nil {
-		job.Logger.Error("S3PathMigrationWorker: Failed to set success for job", mlog.String("worker", worker.name), mlog.Err(err))
+		job.Logger.Error("S3PathMigrationWorker: Failed to set success for job", mlog.Err(err))
 		worker.setJobError(job, err)
 	}
 }
 
 func (worker *S3PathMigrationWorker) setJobError(job *model.Job, appError *model.AppError) {
 	if err := worker.jobServer.SetJobError(job, appError); err != nil {
-		job.Logger.Error("S3PathMigrationWorker: Failed to set job error", mlog.String("worker", worker.name), mlog.Err(err))
+		job.Logger.Error("S3PathMigrationWorker: Failed to set job error", mlog.Err(err))
 	}
 }

@@ -19,16 +19,19 @@ type Worker struct {
 	stopped   chan bool
 	jobs      chan model.Job
 	jobServer *jobs.JobServer
+	logger    mlog.LoggerIFace
 	app       AppIface
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+	const workerName = "Plugins"
 	worker := Worker{
 		name:      "Plugins",
 		stop:      make(chan bool, 1),
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
+		logger:    jobServer.Logger().With(mlog.String("workername", workerName)),
 		app:       app,
 	}
 
@@ -36,27 +39,29 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 }
 
 func (worker *Worker) Run() {
-	mlog.Debug("Worker started", mlog.String("worker", worker.name))
+	worker.logger.Debug("Worker started")
 
 	defer func() {
-		mlog.Debug("Worker finished", mlog.String("worker", worker.name))
+		worker.logger.Debug("Worker finished")
 		worker.stopped <- true
 	}()
 
 	for {
 		select {
 		case <-worker.stop:
-			mlog.Debug("Worker received stop signal", mlog.String("worker", worker.name))
+			worker.logger.Debug("Worker received stop signal")
 			return
 		case job := <-worker.jobs:
-			mlog.Debug("Worker received a new candidate job.", mlog.String("worker", worker.name))
+			job.Logger = job.Logger.With(mlog.String("workername", worker.name))
+
+			job.Logger.Debug("Worker received a new candidate job")
 			worker.DoJob(&job)
 		}
 	}
 }
 
 func (worker *Worker) Stop() {
-	mlog.Debug("Worker stopping", mlog.String("worker", worker.name))
+	worker.logger.Debug("Worker stopping")
 	worker.stop <- true
 	<-worker.stopped
 }
@@ -71,31 +76,31 @@ func (worker *Worker) IsEnabled(cfg *model.Config) bool {
 
 func (worker *Worker) DoJob(job *model.Job) {
 	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		job.Logger.Info("Worker experienced an error while trying to claim job", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
+		job.Logger.Info("Worker experienced an error while trying to claim job", mlog.Err(err))
 		return
 	} else if !claimed {
 		return
 	}
 
 	if err := worker.app.DeleteAllExpiredPluginKeys(); err != nil {
-		job.Logger.Error("Worker: Failed to delete expired keys", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
+		job.Logger.Error("Worker: Failed to delete expired keys", mlog.Err(err))
 		worker.setJobError(job, err)
 		return
 	}
 
-	job.Logger.Info("Worker: Job is complete", mlog.String("worker", worker.name))
+	job.Logger.Info("Worker: Job is complete")
 	worker.setJobSuccess(job)
 }
 
 func (worker *Worker) setJobSuccess(job *model.Job) {
 	if err := worker.jobServer.SetJobSuccess(job); err != nil {
-		job.Logger.Error("Worker: Failed to set success for job", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
+		job.Logger.Error("Worker: Failed to set success for job", mlog.Err(err))
 		worker.setJobError(job, err)
 	}
 }
 
 func (worker *Worker) setJobError(job *model.Job, appError *model.AppError) {
 	if err := worker.jobServer.SetJobError(job, appError); err != nil {
-		job.Logger.Error("Worker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
+		job.Logger.Error("Worker: Failed to set job error", mlog.Err(err))
 	}
 }

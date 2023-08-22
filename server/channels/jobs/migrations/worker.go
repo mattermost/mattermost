@@ -32,12 +32,14 @@ type Worker struct {
 }
 
 func MakeWorker(jobServer *jobs.JobServer, store store.Store) model.Worker {
+	const workerName = "Migrations"
 	worker := Worker{
-		name:      "Migrations",
+		name:      workerName,
 		stop:      make(chan struct{}),
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
+		logger:    jobServer.Logger().With(mlog.String("workername", workerName)),
 		store:     store,
 	}
 
@@ -49,20 +51,22 @@ func (worker *Worker) Run() {
 	if atomic.CompareAndSwapInt32(&worker.closed, 1, 0) {
 		worker.stop = make(chan struct{})
 	}
-	mlog.Debug("Worker started", mlog.String("worker", worker.name))
+	worker.logger.Debug("Worker started")
 
 	defer func() {
-		mlog.Debug("Worker finished", mlog.String("worker", worker.name))
+		worker.logger.Debug("Worker finished")
 		worker.stopped <- true
 	}()
 
 	for {
 		select {
 		case <-worker.stop:
-			mlog.Debug("Worker received stop signal", mlog.String("worker", worker.name))
+			worker.logger.Debug("Worker received stop signal")
 			return
 		case job := <-worker.jobs:
-			mlog.Debug("Worker received a new candidate job.", mlog.String("worker", worker.name))
+			job.Logger = job.Logger.With(mlog.String("workername", worker.name))
+
+			job.Logger.Debug("Worker received a new candidate job")
 			worker.DoJob(&job)
 		}
 	}
@@ -73,7 +77,7 @@ func (worker *Worker) Stop() {
 	if !atomic.CompareAndSwapInt32(&worker.closed, 0, 1) {
 		return
 	}
-	mlog.Debug("Worker stopping", mlog.String("worker", worker.name))
+	worker.logger.Debug("Worker stopping")
 	close(worker.stop)
 	<-worker.stopped
 }
@@ -90,7 +94,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 	defer worker.jobServer.HandleJobPanic(job)
 
 	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		job.Logger.Info("Worker experienced an error while trying to claim job", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
+		job.Logger.Info("Worker experienced an error while trying to claim job", mlog.Err(err))
 		return
 	} else if !claimed {
 		return
@@ -106,29 +110,29 @@ func (worker *Worker) DoJob(job *model.Job) {
 	for {
 		select {
 		case <-cancelWatcherChan:
-			job.Logger.Debug("Worker: Job has been canceled via CancellationWatcher", mlog.String("worker", worker.name))
+			job.Logger.Debug("Worker: Job has been canceled via CancellationWatcher")
 			worker.setJobCanceled(job)
 			return
 
 		case <-worker.stop:
-			job.Logger.Debug("Worker: Job has been canceled via Worker Stop", mlog.String("worker", worker.name))
+			job.Logger.Debug("Worker: Job has been canceled via Worker Stop")
 			worker.setJobCanceled(job)
 			return
 
 		case <-time.After(TimeBetweenBatches * time.Millisecond):
 			done, progress, err := worker.runMigration(job.Data[JobDataKeyMigration], job.Data[JobDataKeyMigrationLastDone])
 			if err != nil {
-				job.Logger.Error("Worker: Failed to run migration", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
+				job.Logger.Error("Worker: Failed to run migration", mlog.Err(err))
 				worker.setJobError(job, err)
 				return
 			} else if done {
-				job.Logger.Info("Worker: Job is complete", mlog.String("worker", worker.name))
+				job.Logger.Info("Worker: Job is complete")
 				worker.setJobSuccess(job)
 				return
 			} else {
 				job.Data[JobDataKeyMigrationLastDone] = progress
 				if err := worker.jobServer.UpdateInProgressJobData(job); err != nil {
-					job.Logger.Error("Worker: Failed to update migration status data for job", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
+					job.Logger.Error("Worker: Failed to update migration status data for job", mlog.Err(err))
 					worker.setJobError(job, err)
 					return
 				}
@@ -139,20 +143,20 @@ func (worker *Worker) DoJob(job *model.Job) {
 
 func (worker *Worker) setJobSuccess(job *model.Job) {
 	if err := worker.jobServer.SetJobSuccess(job); err != nil {
-		job.Logger.Error("Worker: Failed to set success for job", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
+		job.Logger.Error("Worker: Failed to set success for job", mlog.Err(err))
 		worker.setJobError(job, err)
 	}
 }
 
 func (worker *Worker) setJobError(job *model.Job, appError *model.AppError) {
 	if err := worker.jobServer.SetJobError(job, appError); err != nil {
-		job.Logger.Error("Worker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
+		job.Logger.Error("Worker: Failed to set job error", mlog.Err(err))
 	}
 }
 
 func (worker *Worker) setJobCanceled(job *model.Job) {
 	if err := worker.jobServer.SetJobCanceled(job); err != nil {
-		job.Logger.Error("Worker: Failed to mark job as canceled", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
+		job.Logger.Error("Worker: Failed to mark job as canceled", mlog.Err(err))
 	}
 }
 

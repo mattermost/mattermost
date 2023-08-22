@@ -1520,7 +1520,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeBlevePostIndexing,
-		indexer.MakeWorker(s.Jobs, s.Log(), s.platform.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),
+		indexer.MakeWorker(s.Jobs, s.platform.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),
 		nil,
 	)
 
@@ -1562,7 +1562,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeS3PathMigration,
-		s3_path_migration.MakeWorker(s.Jobs, s.Log(), s.Store(), s.FileBackend()),
+		s3_path_migration.MakeWorker(s.Jobs, s.Store(), s.FileBackend()),
 		nil)
 
 	s.Jobs.RegisterJobType(

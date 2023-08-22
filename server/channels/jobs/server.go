@@ -61,6 +61,10 @@ func (srv *JobServer) Config() *model.Config {
 	return srv.ConfigService.Config()
 }
 
+func (srv *JobServer) Logger() mlog.LoggerIFace {
+	return srv.logger
+}
+
 func (srv *JobServer) RegisterJobType(name string, worker model.Worker, scheduler Scheduler) {
 	srv.mut.Lock()
 	defer srv.mut.Unlock()

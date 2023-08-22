@@ -65,7 +65,7 @@ func (scheduler *Scheduler) ScheduleJob(c *request.Context, cfg *model.Config, p
 			if job != nil && job.LastActivityAt < model.GetMillis()-MigrationJobWedgedTimeoutMilliseconds && job.CreateAt < model.GetMillis()-MigrationJobWedgedTimeoutMilliseconds {
 				mlog.Warn("Job appears to be wedged. Rescheduling another instance.", mlog.String("scheduler", model.JobTypeMigrations), mlog.String("wedged_job_id", job.Id), mlog.String("migration_key", key))
 				if err := scheduler.jobServer.SetJobError(job, nil); err != nil {
-					mlog.Error("Worker: Failed to set job error", mlog.String("scheduler", model.JobTypeMigrations), mlog.String("job_id", job.Id), mlog.Err(err))
+					mlog.Error("Worker: Failed to set job error", mlog.String("scheduler", model.JobTypeMigrations), mlog.Err(err))
 				}
 				return scheduler.createJob(c, key, job)
 			}
