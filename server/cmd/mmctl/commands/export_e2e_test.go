@@ -443,11 +443,11 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 
 		// Get job1 again to refresh its status
-		job1, appErr = s.th.App.GetJob(job1.Id)
+		job1, appErr = s.th.App.GetJob(ctx, job1.Id)
 		s.Require().Nil(appErr)
 
 		// Get job2 again to ensure its status did not change
-		job2, _ = s.th.App.GetJob(job2.Id)
+		job2, _ = s.th.App.GetJob(ctx, job2.Id)
 		s.Require().Nil(appErr)
 
 		s.Require().Equal(job1.Status, model.JobStatusCanceled)

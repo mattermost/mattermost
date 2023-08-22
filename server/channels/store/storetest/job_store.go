@@ -36,6 +36,8 @@ func TestJobStore(t *testing.T, ss store.Store) {
 }
 
 func testJobSaveGet(t *testing.T, ss store.Store) {
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+
 	job := &model.Job{
 		Id:     model.NewId(),
 		Type:   model.NewId(),
@@ -52,7 +54,7 @@ func testJobSaveGet(t *testing.T, ss store.Store) {
 
 	defer ss.Job().Delete(job.Id)
 
-	received, err := ss.Job().Get(job.Id)
+	received, err := ss.Job().Get(ctx, job.Id)
 	require.NoError(t, err)
 	require.Equal(t, job.Id, received.Id, "received incorrect job after save")
 	require.Equal(t, "12345", received.Data["Total"])
@@ -137,6 +139,7 @@ func testJobGetAllByType(t *testing.T, ss store.Store) {
 
 func testJobGetAllByTypeAndStatus(t *testing.T, ss store.Store) {
 	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+
 	jobType := model.NewId()
 
 	jobs := []*model.Job{
@@ -489,6 +492,8 @@ func testJobStoreGetCountByStatusAndType(t *testing.T, ss store.Store) {
 }
 
 func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
+
 	job := &model.Job{
 		Id:       model.NewId(),
 		Type:     model.JobTypeDataRetention,
@@ -516,7 +521,7 @@ func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.True(t, updated)
 
-	updatedJob, err := ss.Job().Get(job.Id)
+	updatedJob, err := ss.Job().Get(ctx, job.Id)
 	require.NoError(t, err)
 
 	require.Equal(t, updatedJob.Type, job.Type)
@@ -528,6 +533,7 @@ func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
 }
 
 func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store) {
+	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t, true))
 	job := &model.Job{
 		Id:       model.NewId(),
 		Type:     model.JobTypeDataRetention,
@@ -557,7 +563,7 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store)
 	require.NoError(t, err)
 	require.False(t, updated)
 
-	received, err = ss.Job().Get(job.Id)
+	received, err = ss.Job().Get(ctx, job.Id)
 	require.NoError(t, err)
 
 	require.Equal(t, model.JobStatusPending, received.Status)
@@ -570,7 +576,7 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store)
 	require.True(t, updated, "should have succeeded")
 
 	var startAtSet int64
-	received, err = ss.Job().Get(job.Id)
+	received, err = ss.Job().Get(ctx, job.Id)
 	require.NoError(t, err)
 	require.Equal(t, model.JobStatusInProgress, received.Status)
 	require.NotEqual(t, 0, received.StartAt)
@@ -584,7 +590,7 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store)
 	require.NoError(t, err)
 	require.True(t, updated, "should have succeeded")
 
-	received, err = ss.Job().Get(job.Id)
+	received, err = ss.Job().Get(ctx, job.Id)
 	require.NoError(t, err)
 	require.Equal(t, model.JobStatusSuccess, received.Status)
 	require.Equal(t, startAtSet, received.StartAt)

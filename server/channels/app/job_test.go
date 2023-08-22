@@ -18,6 +18,7 @@ import (
 func TestGetJob(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
 	status := &model.Job{
 		Id:     model.NewId(),
@@ -28,7 +29,7 @@ func TestGetJob(t *testing.T) {
 
 	defer th.App.Srv().Store().Job().Delete(status.Id)
 
-	received, appErr := th.App.GetJob(status.Id)
+	received, appErr := th.App.GetJob(ctx, status.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, status, received, "incorrect job status received")
 }

@@ -1370,7 +1370,7 @@ func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
 	appErr := th.App.InvalidateAllResendInviteEmailJobs(ctx)
 	require.Nil(t, appErr)
 
-	j, e := th.App.Srv().Store().Job().Get(job.Id)
+	j, e := th.App.Srv().Store().Job().Get(ctx, job.Id)
 	require.NoError(t, e)
 	require.Equal(t, j.Status, model.JobStatusCanceled)
 
