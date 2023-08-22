@@ -81,9 +81,6 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
         }
     }, []);
 
-    // TODO: modify when threads are movable based on config settings (instead of always being able to)
-    const canMoveThread = true;
-
     const onHide = useCallback(() => {
         onExited?.();
     }, [onExited]);
@@ -121,7 +118,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
     const notificationText = (
         <FormattedMessage
             id='move_thread_modal.notification.dm_or_gm'
-            defaultMessage='Moving this thread changes who has access' // localization?
+            defaultMessage='Moving this thread changes who has access'
             values={{
                 strong: (x: React.ReactNode) => <strong>{x}</strong>,
             }}
@@ -195,8 +192,6 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
             className='a11y__modal forward-post move-thread'
             id='forward-post-modal'
             show={true}
-
-            // enforceFocus={false}
             autoCloseOnConfirmButton={false}
             compassDesign={true}
             modalHeaderText={formatMessage({
@@ -211,7 +206,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
                 id: 'move_thread_modal.button.cancel',
                 defaultMessage: 'Cancel',
             })}
-            isConfirmDisabled={!canMoveThread || isButtonClicked}
+            isConfirmDisabled={isButtonClicked}
             handleConfirm={handleSubmit}
             handleEnterKeyPress={handleSubmit}
             handleCancel={onHide}
