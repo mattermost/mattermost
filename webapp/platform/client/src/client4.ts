@@ -2214,13 +2214,6 @@ export default class Client4 {
         return this.searchFilesWithParams(teamId, {terms, is_or_search: isOrSearch});
     };
 
-    getOpenGraphMetadata = (url: string) => {
-        return this.doFetch<OpenGraphMetadata>(
-            `${this.getBaseRoute()}/opengraph`,
-            {method: 'post', body: JSON.stringify({url})},
-        );
-    };
-
     doPostAction = (postId: string, actionId: string, selectedOption = '') => {
         return this.doPostActionWithCookie(postId, actionId, '', selectedOption);
     };
@@ -3497,8 +3490,9 @@ export default class Client4 {
         );
     };
 
-    getGroups = (filterAllowReference = false, page = 0, perPage = 10, includeMemberCount = false, hasFilterMember = false) => {
+    getGroups = (q = '', filterAllowReference = false, page = 0, perPage = 10, includeMemberCount = false, hasFilterMember = false) => {
         const qs: any = {
+            q,
             filter_allow_reference: filterAllowReference,
             page,
             per_page: perPage,
