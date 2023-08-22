@@ -31,7 +31,7 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := c.App.GetJob(c.Params.JobId)
+	job, err := c.App.GetJob(c.AppContext, c.Params.JobId)
 	if err != nil {
 		c.Err = err
 		return
@@ -67,7 +67,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := c.App.GetJob(c.Params.JobId)
+	job, err := c.App.GetJob(c.AppContext, c.Params.JobId)
 	if err != nil {
 		c.Err = err
 		return
@@ -218,7 +218,7 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "job_id", c.Params.JobId)
 
-	job, err := c.App.GetJob(c.Params.JobId)
+	job, err := c.App.GetJob(c.AppContext, c.Params.JobId)
 	if err != nil {
 		c.Err = err
 		return
@@ -239,7 +239,7 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.CancelJob(c.Params.JobId); err != nil {
+	if err := c.App.CancelJob(c.AppContext, c.Params.JobId); err != nil {
 		c.Err = err
 		return
 	}

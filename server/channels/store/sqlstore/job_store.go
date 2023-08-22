@@ -202,7 +202,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 	return true, nil
 }
 
-func (jss SqlJobStore) Get(id string) (*model.Job, error) {
+func (jss SqlJobStore) Get(c *request.Context, id string) (*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -210,6 +210,7 @@ func (jss SqlJobStore) Get(id string) (*model.Job, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
 	}
+
 	var status model.Job
 	if err = jss.GetReplicaX().Get(&status, query, args...); err != nil {
 		if err == sql.ErrNoRows {
@@ -217,6 +218,9 @@ func (jss SqlJobStore) Get(id string) (*model.Job, error) {
 		}
 		return nil, errors.Wrapf(err, "failed to get Job with id=%s", id)
 	}
+
+	status.InitLogger(c.Logger())
+
 	return &status, nil
 }
 

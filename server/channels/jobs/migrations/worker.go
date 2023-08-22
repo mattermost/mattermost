@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -25,6 +26,7 @@ type Worker struct {
 	stopped   chan bool
 	jobs      chan model.Job
 	jobServer *jobs.JobServer
+	logger    mlog.LoggerIFace
 	store     store.Store
 	closed    int32
 }
@@ -94,10 +96,11 @@ func (worker *Worker) DoJob(job *model.Job) {
 		return
 	}
 
+	cancelContext := request.EmptyContext(worker.logger) // TODO(Ben): Add worker specific logger
 	cancelCtx, cancelCancelWatcher := context.WithCancel(context.Background())
 	cancelWatcherChan := make(chan struct{}, 1)
-	go worker.jobServer.CancellationWatcher(cancelCtx, job.Id, cancelWatcherChan)
-
+	cancelContext.SetContext(cancelCtx)
+	go worker.jobServer.CancellationWatcher(cancelContext, job.Id, cancelWatcherChan)
 	defer cancelCancelWatcher()
 
 	for {

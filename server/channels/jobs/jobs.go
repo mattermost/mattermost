@@ -4,7 +4,6 @@
 package jobs
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -70,8 +69,8 @@ func (srv *JobServer) _createJob(c *request.Context, jobType string, jobData map
 	return &job, nil
 }
 
-func (srv *JobServer) GetJob(id string) (*model.Job, *model.AppError) {
-	job, err := srv.Store.Job().Get(id)
+func (srv *JobServer) GetJob(c *request.Context, id string) (*model.Job, *model.AppError) {
+	job, err := srv.Store.Job().Get(c, id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -232,14 +231,14 @@ func (srv *JobServer) HandleJobPanic(job *model.Job) {
 	panic(r)
 }
 
-func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
+func (srv *JobServer) RequestCancellation(c *request.Context, jobId string) *model.AppError {
 	updated, err := srv.Store.Job().UpdateStatusOptimistically(jobId, model.JobStatusPending, model.JobStatusCanceled)
 	if err != nil {
 		return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if updated {
 		if srv.metrics != nil {
-			job, err := srv.GetJob(jobId)
+			job, err := srv.GetJob(c, jobId)
 			if err != nil {
 				return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
@@ -262,15 +261,15 @@ func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
 	return model.NewAppError("RequestCancellation", "jobs.request_cancellation.status.error", nil, "id="+jobId, http.StatusInternalServerError)
 }
 
-func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, cancelChan chan struct{}) {
+func (srv *JobServer) CancellationWatcher(c *request.Context, jobId string, cancelChan chan struct{}) {
 	for {
 		select {
-		case <-ctx.Done():
+		case <-c.Context().Done():
 			mlog.Debug("CancellationWatcher for Job Aborting as job has finished.", mlog.String("job_id", jobId))
 			return
 		case <-time.After(CancelWatcherPollingInterval * time.Millisecond):
 			mlog.Debug("CancellationWatcher for Job started polling.", mlog.String("job_id", jobId))
-			jobStatus, err := srv.Store.Job().Get(jobId)
+			jobStatus, err := srv.Store.Job().Get(c, jobId)
 			if err != nil {
 				mlog.Warn("Error getting job", mlog.String("job_id", jobId), mlog.Err(err))
 				continue

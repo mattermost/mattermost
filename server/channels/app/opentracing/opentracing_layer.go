@@ -1074,7 +1074,7 @@ func (a *OpenTracingAppLayer) CanNotifyAdmin(trial bool) bool {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CancelJob(jobId string) *model.AppError {
+func (a *OpenTracingAppLayer) CancelJob(c *request.Context, jobId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CancelJob")
 
@@ -1086,7 +1086,7 @@ func (a *OpenTracingAppLayer) CancelJob(jobId string) *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CancelJob(jobId)
+	resultVar0 := a.app.CancelJob(c, jobId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -6968,7 +6968,7 @@ func (a *OpenTracingAppLayer) GetIncomingWebhooksPageByUser(userID string, page 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetJob(id string) (*model.Job, *model.AppError) {
+func (a *OpenTracingAppLayer) GetJob(c *request.Context, id string) (*model.Job, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJob")
 
@@ -6980,7 +6980,7 @@ func (a *OpenTracingAppLayer) GetJob(id string) (*model.Job, *model.AppError) {
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetJob(id)
+	resultVar0, resultVar1 := a.app.GetJob(c, id)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

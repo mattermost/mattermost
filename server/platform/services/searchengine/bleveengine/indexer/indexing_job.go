@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
 )
@@ -31,11 +32,12 @@ type BleveIndexerWorker struct {
 	stopped   chan bool
 	jobs      chan model.Job
 	jobServer *jobs.JobServer
+	logger    mlog.LoggerIFace
 	engine    *bleveengine.BleveEngine
 	closed    int32
 }
 
-func MakeWorker(jobServer *jobs.JobServer, engine *bleveengine.BleveEngine) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, logger mlog.LoggerIFace, engine *bleveengine.BleveEngine) model.Worker {
 	if engine == nil {
 		return nil
 	}
@@ -45,6 +47,7 @@ func MakeWorker(jobServer *jobs.JobServer, engine *bleveengine.BleveEngine) mode
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
+		logger:    logger,
 		engine:    engine,
 	}
 }
@@ -247,10 +250,11 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		progress.TotalFilesCount = count
 	}
 
+	cancelContext := request.EmptyContext(worker.logger) // TODO(Ben): Add worker specific logger
 	cancelCtx, cancelCancelWatcher := context.WithCancel(context.Background())
 	cancelWatcherChan := make(chan struct{}, 1)
-	go worker.jobServer.CancellationWatcher(cancelCtx, job.Id, cancelWatcherChan)
-
+	cancelContext.SetContext(cancelCtx)
+	go worker.jobServer.CancellationWatcher(cancelContext, job.Id, cancelWatcherChan)
 	defer cancelCancelWatcher()
 
 	for {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 type SimpleWorker struct {
@@ -16,6 +17,7 @@ type SimpleWorker struct {
 	stopped   chan bool
 	jobs      chan model.Job
 	jobServer *JobServer
+	logger    mlog.LoggerIFace
 	execute   func(job *model.Job) error
 	isEnabled func(cfg *model.Config) bool
 }
@@ -27,6 +29,7 @@ func NewSimpleWorker(name string, jobServer *JobServer, execute func(job *model.
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
+		logger:    jobServer.logger,
 		execute:   execute,
 		isEnabled: isEnabled,
 	}
@@ -75,9 +78,11 @@ func (worker *SimpleWorker) DoJob(job *model.Job) {
 		return
 	}
 
+	c := request.EmptyContext(worker.jobServer.logger)
+
 	var appErr *model.AppError
 	// We get the job again because ClaimJob changes the job status.
-	job, appErr = worker.jobServer.GetJob(job.Id)
+	job, appErr = worker.jobServer.GetJob(c, job.Id)
 	if appErr != nil {
 		job.Logger.Error("SimpleWorker: job execution error", mlog.String("worker", worker.name), mlog.Err(appErr))
 		worker.setJobError(job, appErr)

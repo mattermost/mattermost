@@ -53,25 +53,25 @@ func (_m *JobStore) Delete(id string) (string, error) {
 	return r0, r1
 }
 
-// Get provides a mock function with given fields: id
-func (_m *JobStore) Get(id string) (*model.Job, error) {
-	ret := _m.Called(id)
+// Get provides a mock function with given fields: c, id
+func (_m *JobStore) Get(c *request.Context, id string) (*model.Job, error) {
+	ret := _m.Called(c, id)
 
 	var r0 *model.Job
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*model.Job, error)); ok {
-		return rf(id)
+	if rf, ok := ret.Get(0).(func(*request.Context, string) (*model.Job, error)); ok {
+		return rf(c, id)
 	}
-	if rf, ok := ret.Get(0).(func(string) *model.Job); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(*request.Context, string) *model.Job); ok {
+		r0 = rf(c, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Job)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(id)
+	if rf, ok := ret.Get(1).(func(*request.Context, string) error); ok {
+		r1 = rf(c, id)
 	} else {
 		r1 = ret.Error(1)
 	}

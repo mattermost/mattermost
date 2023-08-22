@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -25,6 +26,7 @@ const (
 
 type S3PathMigrationWorker struct {
 	name        string
+	logger      mlog.LoggerIFace
 	jobServer   *jobs.JobServer
 	store       store.Store
 	fileBackend *filestore.S3FileBackend
@@ -34,12 +36,13 @@ type S3PathMigrationWorker struct {
 	jobs    chan model.Job
 }
 
-func MakeWorker(jobServer *jobs.JobServer, store store.Store, fileBackend filestore.FileBackend) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, logger mlog.LoggerIFace, store store.Store, fileBackend filestore.FileBackend) model.Worker {
 	// If the type cast fails, it will be nil
 	// which is checked later.
 	s3Backend, _ := fileBackend.(*filestore.S3FileBackend)
 	worker := &S3PathMigrationWorker{
 		jobServer:   jobServer,
+		logger:      logger,
 		store:       store,
 		fileBackend: s3Backend,
 		name:        JobName,
@@ -117,9 +120,11 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 		return
 	}
 
+	c := request.EmptyContext(worker.logger) // TODO(Ben): Add worker specific logger
+
 	var appErr *model.AppError
 	// We get the job again because ClaimJob changes the job status.
-	job, appErr = worker.jobServer.GetJob(job.Id)
+	job, appErr = worker.jobServer.GetJob(c, job.Id)
 	if appErr != nil {
 		job.Logger.Error("S3PathMigrationWorker: job execution error", mlog.String("worker", worker.name), mlog.Err(appErr))
 		worker.setJobError(job, appErr)

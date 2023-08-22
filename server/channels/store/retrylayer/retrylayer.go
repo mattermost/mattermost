@@ -5448,11 +5448,11 @@ func (s *RetryLayerJobStore) Delete(id string) (string, error) {
 
 }
 
-func (s *RetryLayerJobStore) Get(id string) (*model.Job, error) {
+func (s *RetryLayerJobStore) Get(c *request.Context, id string) (*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.Get(id)
+		result, err := s.JobStore.Get(c, id)
 		if err == nil {
 			return result, nil
 		}

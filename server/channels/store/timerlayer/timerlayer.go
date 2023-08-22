@@ -4391,10 +4391,10 @@ func (s *TimerLayerJobStore) Delete(id string) (string, error) {
 	return result, err
 }
 
-func (s *TimerLayerJobStore) Get(id string) (*model.Job, error) {
+func (s *TimerLayerJobStore) Get(c *request.Context, id string) (*model.Job, error) {
 	start := time.Now()
 
-	result, err := s.JobStore.Get(id)
+	result, err := s.JobStore.Get(c, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

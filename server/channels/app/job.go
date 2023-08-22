@@ -12,8 +12,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) GetJob(id string) (*model.Job, *model.AppError) {
-	job, err := a.Srv().Store().Job().Get(id)
+func (a *App) GetJob(c *request.Context, id string) (*model.Job, *model.AppError) {
+	job, err := a.Srv().Store().Job().Get(c, id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -56,8 +56,8 @@ func (a *App) CreateJob(c *request.Context, job *model.Job) (*model.Job, *model.
 	return a.Srv().Jobs.CreateJob(c, job.Type, job.Data)
 }
 
-func (a *App) CancelJob(jobId string) *model.AppError {
-	return a.Srv().Jobs.RequestCancellation(jobId)
+func (a *App) CancelJob(c *request.Context, jobId string) *model.AppError {
+	return a.Srv().Jobs.RequestCancellation(c, jobId)
 }
 
 func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission) {

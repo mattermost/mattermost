@@ -4827,7 +4827,7 @@ func (s *OpenTracingLayerJobStore) Delete(id string) (string, error) {
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) Get(id string) (*model.Job, error) {
+func (s *OpenTracingLayerJobStore) Get(c *request.Context, id string) (*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -4836,7 +4836,7 @@ func (s *OpenTracingLayerJobStore) Get(id string) (*model.Job, error) {
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.Get(id)
+	result, err := s.JobStore.Get(c, id)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

@@ -725,7 +725,7 @@ type JobStore interface {
 	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error)
-	Get(id string) (*model.Job, error)
+	Get(c *request.Context, id string) (*model.Job, error)
 	GetAllByType(c *request.Context, jobType string) ([]*model.Job, error)
 	GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error)
 	GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error)
