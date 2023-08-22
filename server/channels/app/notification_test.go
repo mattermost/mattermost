@@ -98,8 +98,7 @@ func TestSendNotifications(t *testing.T) {
 
 	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser2, false)
 	require.Nil(t, appErr)
-	appErr = th.App.Srv().InvalidateAllCaches()
-	require.Nil(t, appErr)
+	th.App.Srv().InvalidateAllCaches()
 
 	post3, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
