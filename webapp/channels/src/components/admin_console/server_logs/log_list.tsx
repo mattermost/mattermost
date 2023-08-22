@@ -269,8 +269,8 @@ export default class LogList extends React.PureComponent<Props, State> {
 
         const placeholderEmpty: JSX.Element = (
             <FormattedMessage
-                id='admin.channel_settings.channel_list.no_logs_found'
-                defaultMessage='No logs found'
+                id='admin.channel_settings.channel_list.no_channels_found'
+                defaultMessage='No channels found'
             />
         );
 
