@@ -881,4 +881,3 @@ describe('Actions.Groups', () => {
         expect(JSON.stringify(response) === JSON.stringify(stats[groupID])).toBeTruthy();
     });
 });
-

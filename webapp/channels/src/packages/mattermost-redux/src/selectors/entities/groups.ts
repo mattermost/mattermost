@@ -33,6 +33,23 @@ export function getAllGroups(state: GlobalState) {
     return state.entities.groups.groups;
 }
 
+export const getAllGroupsByName: (state: GlobalState) => Record<string, Group> = createSelector(
+    'getAllGroupsByName',
+    getAllGroups,
+    (groups) => {
+        const groupsByName: Record<string, Group> = {};
+
+        for (const id in groups) {
+            if (groups.hasOwnProperty(id)) {
+                const group = groups[id];
+                groupsByName[group.name] = group;
+            }
+        }
+
+        return groupsByName;
+    },
+);
+
 export function getMyGroupIds(state: GlobalState) {
     return state.entities.groups.myGroups;
 }
