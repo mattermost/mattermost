@@ -12,7 +12,8 @@ type Props = {
     wrapperRef?: React.RefObject<HTMLDivElement>;
     newMessagesSeparatorActions: PluginComponent[];
     lastViewedAt: number;
-    channelId: string;
+    channelId?: string;
+    threadId?: string;
 }
 
 export default class NewMessageSeparator extends React.PureComponent<Props> {
@@ -29,6 +30,7 @@ export default class NewMessageSeparator extends React.PureComponent<Props> {
                         key={item.id}
                         lastViewedAt={this.props.lastViewedAt}
                         channelId={this.props.channelId}
+                        threadId={this.props.threadId}
                     />
                 );
             });

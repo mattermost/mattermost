@@ -55,6 +55,8 @@ export type PostListRowProps = {
     limitsLoaded: boolean;
     exceededLimitChannelId?: string;
     firstInaccessiblePostTime?: number;
+    lastViewedAt: number;
+    channelId: string;
 
     newMessagesSeparatorActions: PluginComponent[];
 
@@ -115,8 +117,8 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
                 <NewMessageSeparator
                     separatorId={listId}
                     newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
-                    channelId={this.props.post.channel_id}
-                    lastViewedAt={this.props.post.create_at-1}
+                    channelId={this.props.channelId}
+                    lastViewedAt={this.props.lastViewedAt}
                 />
             );
         }
