@@ -508,12 +508,12 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleForwardMenuItemActivated}
                     />
                 }
-                <ChannelPermissionGate
-                    channelId={this.props.post.channel_id}
-                    teamId={this.props.teamId}
-                    permissions={[Permissions.ADD_REACTION]}
-                >
-                    {Boolean(isMobile && !isSystemMessage && !this.props.isReadOnly && this.props.enableEmojiPicker) &&
+                {Boolean(isMobile && !isSystemMessage && !this.props.isReadOnly && this.props.enableEmojiPicker) &&
+                    <ChannelPermissionGate
+                        channelId={this.props.post.channel_id}
+                        teamId={this.props.teamId}
+                        permissions={[Permissions.ADD_REACTION]}
+                    >
                         <Menu.Item
                             id={`post_reaction_${this.props.post.id}`}
                             data-testid={`post_reaction_${this.props.post.id}`}
@@ -526,8 +526,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                             leadingElement={<EmoticonPlusOutlineIcon size={18}/>}
                             onClick={this.handleAddReactionMenuItemActivated}
                         />
-                    }
-                </ChannelPermissionGate>
+                    </ChannelPermissionGate>
+                }
                 {Boolean(
                     !isSystemMessage &&
                         this.props.isCollapsedThreadsEnabled &&
