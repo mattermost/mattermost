@@ -56,7 +56,7 @@ type PushNotification struct {
 	explicitMention    bool
 	channelWideMention bool
 	replyToThreadType  string
-	rawMessage         bool
+	messageOnly        bool
 }
 
 func (a *App) sendPushNotificationSync(c request.CTX, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
@@ -187,7 +187,7 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 		explicitMention:    explicitMention,
 		channelWideMention: channelWideMention,
 		replyToThreadType:  replyToThreadType,
-		rawMessage:         messageOnly,
+		messageOnly:        messageOnly,
 	}:
 	case <-a.Srv().PushNotificationsHub.stopChan:
 		return
@@ -386,7 +386,7 @@ func (hub *PushNotificationsHub) start(c request.CTX) {
 						notification.explicitMention,
 						notification.channelWideMention,
 						notification.replyToThreadType,
-						notification.rawMessage,
+						notification.messageOnly,
 					)
 				case notificationTypeUpdateBadge:
 					err = hub.app.updateMobileAppBadgeSync(c, notification.userID)
