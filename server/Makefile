@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract
+.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -151,8 +151,7 @@ DIST_PATH_OSX_ARM64=$(DIST_ROOT)/osx_arm64/mattermost
 DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'server/v8/cmd/mmctl')
-SUITE_PACKAGES=$(shell $(GO) list ./...| grep -vE 'server/v8/cmd/mmctl')
+TE_PACKAGES=$(shell $(GO) list ./public/...) $(shell $(GO) list ./... | grep -vE 'server/v8/cmd/mmctl')
 MMCTL_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/cmd/mmctl')
 
 TEMPLATES_DIR=templates
@@ -161,13 +160,13 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.17.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.18.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.6
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.37.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.38.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
@@ -177,7 +176,7 @@ PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.2
-PLUGIN_PACKAGES += focalboard-v7.11.1
+PLUGIN_PACKAGES += focalboard-v7.11.2
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -210,6 +209,7 @@ endif
 
 include config.mk
 include build/*.mk
+include public/Makefile
 
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.MockCWS=$(MM_ENABLE_CWS_MOCK)"
 
@@ -332,11 +332,11 @@ app-layers: ## Extract interface from App struct
 	$(GO) run ./channels/app/layer_generators -in ./channels/app/app_iface.go -out ./channels/app/opentracing/opentracing_layer.go -template ./channels/app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
-	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@mono-repo
+	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
 
 i18n-check: ## Exit on empty translation strings and translation source strings
-	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@mono-repo
+	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
 	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 
@@ -405,7 +405,7 @@ mmctl-mocks: ## Creates mocks for mmctl
 pluginapi: ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
 
-mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks
+mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public
 
 layers: app-layers store-layers pluginapi
 
@@ -441,7 +441,7 @@ gotestsum:
 test-compile: gotestsum ## Compile tests.
 	@echo COMPILE TESTS
 
-	for package in $(SUITE_PACKAGES) $(EE_PACKAGES); do \
+	for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
 		$(GO) test $(GOFLAGS) -c $$package; \
 	done
 
@@ -486,7 +486,7 @@ test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
-	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(SUITE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m
+	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -511,10 +511,10 @@ test-server-quick: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
-	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -short
+	$(GOBIN)/gotestsum --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -short
 else
 	@echo Running only TE tests
-	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES)" -- $(GOFLAGS) -short
+	$(GOBIN)/gotestsum --packages="$(TE_PACKAGES)" -- $(GOFLAGS) -short
 endif
 
 internal-test-web-client: ## Runs web client tests.
@@ -540,7 +540,7 @@ test-data: run-server inject-test-data ## start a local instance and add test da
 
 inject-test-data: # add test data to the local instance.
 	@if ! ./scripts/wait-for-system-start.sh; then \
-		make stop; \
+		make stop-server; \
 	fi
 
 	@echo ServiceSettings.EnableLocalMode must be set to true.
@@ -553,6 +553,8 @@ inject-test-data: # add test data to the local instance.
 	@echo Login with a system admin account username=sysadmin password=Sys@dmin-sample1
 	@echo Login with a regular account username=user-1 password=SampleUs@r-1
 	@echo ========================================================================
+
+	make stop-server
 
 test-mmctl-unit: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl-unit: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
@@ -708,10 +710,10 @@ config-ldap: ## Configures LDAP.
 	@sed -i'' -e 's|"GroupDisplayNameAttribute": ".*"|"GroupDisplayNameAttribute": "cn"|g' config/config.json
 	@sed -i'' -e 's|"GroupIdAttribute": ".*"|"GroupIdAttribute": "entryUUID"|g' config/config.json
 
-config-reset: ## Resets the config/config.json file to the default.
-	@echo Resetting configuration to default
+config-reset: ## Resets the config/config.json file to the default production values.
+	@echo Resetting configuration to production default
 	rm -f config/config.json
-	OUTPUT_CONFIG=$(PWD)/config/config.json $(GO) $(GOFLAGS) run ./scripts/config_generator
+	OUTPUT_CONFIG=$(PWD)/config/config.json $(GO) $(GOFLAGS) run -tags production ./scripts/config_generator
 
 diff-config: ## Compares default configuration between two mattermost versions
 	@./scripts/diff-config.sh
@@ -811,7 +813,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 mmctl-build: ## Compiles and generates the mmctl binary
-	go build -trimpath -ldflags '$(LDFLAGS)' -o $(GOBIN) ./cmd/mmctl
+	go build -trimpath -ldflags '$(LDFLAGS)' -o bin/mmctl ./cmd/mmctl
 
 mmctl-docs: ## Generate the mmctl docs
 	rm -rf ./cmd/mmctl/docs
@@ -828,3 +830,32 @@ migrations-extract:
 	@echo Listing migration files
 	@echo "# Autogenerated file to synchronize migrations sequence in the PR workflow, please do not edit.\n#" > channels/db/migrations/migrations.list
 	find channels/db/migrations -maxdepth 2 -mindepth 2 | sort >> channels/db/migrations/migrations.list
+
+test-migration:
+	$(GO) install github.com/mattermost/morph/cmd/morph@latest
+	# apply postgres migrations to the new db
+	bin/morph apply up --driver postgres --dsn "${POSTGRES_DSN}" --path ${POSTGRES_MIGRATIONS_PATH} --number -1
+
+	# create temporary file for the config
+	@cp tests/template.load tests/temp.load
+
+	# set required values for the pgloader config, these values are read from /build/dotenv/migration.env in the CI
+	# do for psql credentials
+	@sed -i'' -e 's|{{ .pg_user }}|${PG_USERNAME}|g' tests/temp.load
+	@sed -i'' -e 's|{{ .pg_password }}|${PG_PASSWORD}|g' tests/temp.load
+	@sed -i'' -e 's|{{ .target_schema }}|${PG_SCHEMA}|g' tests/temp.load
+
+	# do for mysql credentials
+	@sed -i'' -e 's|{{ .mysql_user }}|${MYSQL_USERNAME}|g' tests/temp.load
+	@sed -i'' -e 's|{{ .mysql_password }}|${MYSQL_PASSWORD}|g' tests/temp.load
+	@sed -i'' -e 's|{{ .source_schema }}|${MYSQL_SCHEMA}|g' tests/temp.load
+
+	# run pgloader and save the logs
+	pgloader tests/temp.load > migration.log
+
+	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@latest
+	# compare two database contents
+	# db_migrations differ due to a typo in the 92. migration name
+	# for now we exclude plugins such as playbooks and focalboard
+	# we also exlude systems table temporarily due to adding some keys while running the initial migration
+	bin/dbcmp --source "${MYSQL_DSN}" --target "${POSTGRES_DSN}" --exclude="db_migrations","ir_","focalboard","systems"

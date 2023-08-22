@@ -61,7 +61,6 @@ type Store struct {
 	PostAcknowledgementStore        mocks.PostAcknowledgementStore
 	PostPersistentNotificationStore mocks.PostPersistentNotificationStore
 	TrueUpReviewStore               mocks.TrueUpReviewStore
-	DesktopTokensStore              mocks.DesktopTokensStore
 }
 
 func (s *Store) SetContext(context context.Context)                { s.context = context }
@@ -104,7 +103,6 @@ func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
 func (s *Store) TrueUpReview() store.TrueUpReviewStore   { return &s.TrueUpReviewStore }
-func (s *Store) DesktopTokens() store.DesktopTokensStore { return &s.DesktopTokensStore }
 func (s *Store) NotifyAdmin() store.NotifyAdminStore     { return &s.NotifyAdminStore }
 func (s *Store) Group() store.GroupStore                 { return &s.GroupStore }
 func (s *Store) LinkMetadata() store.LinkMetadataStore   { return &s.LinkMetadataStore }
@@ -116,17 +114,18 @@ func (s *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 func (s *Store) PostPersistentNotification() store.PostPersistentNotificationStore {
 	return &s.PostPersistentNotificationStore
 }
-func (s *Store) MarkSystemRanUnitTests()            { /* do nothing */ }
-func (s *Store) Close()                             { /* do nothing */ }
-func (s *Store) LockToMaster()                      { /* do nothing */ }
-func (s *Store) UnlockFromMaster()                  { /* do nothing */ }
-func (s *Store) DropAllTables()                     { /* do nothing */ }
-func (s *Store) GetDbVersion(bool) (string, error)  { return "", nil }
-func (s *Store) GetInternalMasterDB() *sql.DB       { return nil }
-func (s *Store) GetInternalReplicaDB() *sql.DB      { return nil }
-func (s *Store) GetInternalReplicaDBs() []*sql.DB   { return nil }
-func (s *Store) RecycleDBConnections(time.Duration) {}
-func (s *Store) GetDBSchemaVersion() (int, error)   { return 1, nil }
+func (s *Store) MarkSystemRanUnitTests()             { /* do nothing */ }
+func (s *Store) Close()                              { /* do nothing */ }
+func (s *Store) LockToMaster()                       { /* do nothing */ }
+func (s *Store) UnlockFromMaster()                   { /* do nothing */ }
+func (s *Store) DropAllTables()                      { /* do nothing */ }
+func (s *Store) GetDbVersion(bool) (string, error)   { return "", nil }
+func (s *Store) GetInternalMasterDB() *sql.DB        { return nil }
+func (s *Store) GetInternalReplicaDB() *sql.DB       { return nil }
+func (s *Store) GetInternalReplicaDBs() []*sql.DB    { return nil }
+func (s *Store) RecycleDBConnections(time.Duration)  {}
+func (s *Store) GetDBSchemaVersion() (int, error)    { return 1, nil }
+func (s *Store) GetLocalSchemaVersion() (int, error) { return 1, nil }
 func (s *Store) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 	return []model.AppliedMigration{}, nil
 }
@@ -178,6 +177,5 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.PostPriorityStore,
 		&s.PostAcknowledgementStore,
 		&s.PostPersistentNotificationStore,
-		&s.DesktopTokensStore,
 	)
 }

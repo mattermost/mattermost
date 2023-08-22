@@ -190,6 +190,18 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 	return post
 }
 
+func (a *App) sanitizePostMetadataForUserAndChannel(c request.CTX, post *model.Post, previewedPost *model.PreviewPost, previewedChannel *model.Channel, userID string) *model.Post {
+	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 || previewedPost == nil {
+		return post
+	}
+
+	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
+		post.Metadata.Embeds[0].Data = nil
+	}
+
+	return post
+}
+
 func (a *App) SanitizePostMetadataForUser(c request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError) {
 	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
 		return post, nil
@@ -438,7 +450,6 @@ func (a *App) getCustomEmojisForPost(c request.CTX, post *model.Post, reactions 
 	}
 
 	names := getEmojiNamesForPost(post, reactions)
-
 	if len(names) == 0 {
 		return []*model.Emoji{}, nil
 	}

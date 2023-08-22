@@ -49,10 +49,6 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool, options ..
 
 	a := app.New(app.ServerConnector(s.Channels()))
 
-	if model.BuildEnterpriseReady == "true" {
-		a.Srv().LoadLicense()
-	}
-
 	return a, nil
 }
 
@@ -64,5 +60,5 @@ func initStoreCommandContextCobra(command *cobra.Command) (store.Store, error) {
 	}
 
 	config := cfgStore.Get()
-	return sqlstore.New(config.SqlSettings, nil), nil
+	return sqlstore.New(config.SqlSettings, nil)
 }

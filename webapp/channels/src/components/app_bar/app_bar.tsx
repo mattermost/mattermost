@@ -43,7 +43,7 @@ export default function AppBar() {
         return null;
     }
 
-    const coreProductsPluginIds = [suitePluginIds.boards, suitePluginIds.focalboard, suitePluginIds.playbooks];
+    const coreProductsPluginIds = [suitePluginIds.focalboard, suitePluginIds.playbooks];
 
     const [coreProductComponents, pluginComponents] = partition(appBarPluginComponents, ({pluginId}) => {
         return coreProductsPluginIds.includes(pluginId);

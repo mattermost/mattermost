@@ -30,7 +30,6 @@ function mapStateToProps(state: GlobalState, {location: {pathname}}: Props): Com
         unreadStatus: getUnreadStatus(state),
         inGlobalThreads: matchPath(pathname, {path: '/:team/threads/:threadIdentifier?'}) != null,
         inDrafts: matchPath(pathname, {path: '/:team/drafts'}) != null,
-        inActivityAndInsights: matchPath(pathname, {path: '/:team/activity-and-insights'}) != null,
     };
 }
 

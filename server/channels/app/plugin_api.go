@@ -257,6 +257,10 @@ func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppErr
 	return api.app.GetUserByUsername(name)
 }
 
+func (api *PluginAPI) GetUserByRemoteID(remoteID string) (*model.User, *model.AppError) {
+	return api.app.GetUserByRemoteID(remoteID)
+}
+
 func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
 	return api.app.GetUsersByUsernames(usernames, true, nil)
 }
@@ -546,7 +550,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	results, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, model.ModifierMessages)
+	results, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 	if results != nil {
 		results = results.ForPlugin()
 	}
@@ -1261,4 +1265,32 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 		return nil, err
 	}
 	return fi, nil
+}
+
+func (api *PluginAPI) SendPluginPushNotification(notification *model.PluginPushNotification) error {
+	var profiles map[string]*model.User
+	var err error
+	if notification.Channel.Type == model.ChannelTypeGroup {
+		if profiles, err = api.app.Srv().Store().User().GetAllProfilesInChannel(api.ctx.Context(), notification.Channel.Id, true); err != nil {
+			return err
+		}
+	}
+
+	sender, appErr := api.app.GetUser(notification.Post.UserId)
+	if appErr != nil {
+		return appErr
+	}
+	user, appErr := api.app.GetUser(notification.UserID)
+	if appErr != nil {
+		return appErr
+	}
+
+	postNotification := &PostNotification{
+		Post:       notification.Post,
+		Channel:    notification.Channel,
+		ProfileMap: profiles,
+		Sender:     sender,
+	}
+	api.app.sendPushNotification(postNotification, user, notification.ExplicitMention, notification.ChannelWideMention, notification.ReplyToThreadType)
+	return nil
 }
