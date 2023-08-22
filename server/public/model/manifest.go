@@ -188,11 +188,6 @@ type Manifest struct {
 
 	// Plugins can store any kind of data in Props to allow other plugins to use it.
 	Props map[string]any `json:"props,omitempty" yaml:"props,omitempty"`
-
-	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
-	//
-	// Use the pluginapi.Configuration.CheckRequiredServerConfiguration method to enforce this.
-	RequiredConfig *Config `json:"required_configuration,omitempty" yaml:"required_configuration,omitempty"`
 }
 
 type ManifestServer struct {
