@@ -34,19 +34,14 @@ function TextSetting(props: Props) {
     function handleChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
         if (props.type === 'number') {
             props.onChange(props.id, parseInt(event.target.value, 10));
-        } else {
-            // Support for CSV values in text inputs, e.g. "value1,value2,value3", massaged into []string
-            if(props.multiple) {
-                if (event.target.value === '') {
-                    props.onChange(props.id, []);
-                } else if(!event.target.value.includes(',')) {
-                    props.onChange(props.id, [event.target.value]);
-                } else {
-                    props.onChange(props.id, event.target.value.split(','));
-                }
+        } else if (props.type === 'text' && props.multiple) {
+            if (event.target.value === '') {
+                props.onChange(props.id, []);
             } else {
-                props.onChange(props.id, event.target.value);
+                props.onChange(props.id, event.target.value.split(','));
             }
+        } else {
+            props.onChange(props.id, event.target.value);
         }
     }
 
