@@ -376,6 +376,22 @@ function mergeLastSimilarPosts(userActivities: ActivityEntry[]) {
         prePrevPost.actorId.push(...prevPost.actorId);
     }
 }
+function isSameActorsInUserActivities(prevActivity: ActivityEntry, curActivity: ActivityEntry) {
+    const prevPostActorsSet = new Set(prevActivity.actorId);
+    const currentPostActorsSet = new Set(curActivity.actorId);
+
+    if (prevPostActorsSet.size !== currentPostActorsSet.size) {
+        return false;
+    }
+    let hasAllActors = true;
+
+    currentPostActorsSet.forEach((actor) => {
+        if (!prevPostActorsSet.has(actor)) {
+            hasAllActors = false;
+        }
+    });
+    return hasAllActors;
+}
 export function combineUserActivitySystemPost(systemPosts: Post[] = []) {
     if (systemPosts.length === 0) {
         return null;
@@ -404,14 +420,14 @@ export function combineUserActivitySystemPost(systemPosts: Post[] = []) {
             prevPost.usernames.push(username);
         } else if (isSamePostType && !isSameActor && !isUsersRelatedPost(postType)) {
             prevPost.actorId.push(actorId);
-            const isSameActors = (prePrevPost && (prePrevPost.actorId.length === prevPost.actorId.length) && (prePrevPost.actorId.every((actor) => prevPost.actorId.includes(actor))));
+            const isSameActors = (prePrevPost && isSameActorsInUserActivities(prePrevPost, prevPost));
             if (isJoinedPrePrevPost && isLeftPrevPost && isSameActors) {
                 userActivities.pop();
                 prePrevPost.actorId.push(...prevPost.actorId);
                 prePrevPost.postType = Posts.POST_TYPES.JOIN_LEAVE_CHANNEL;
                 mergeLastSimilarPosts(userActivities);
             }
-        } else if (isJoinedPrevPost && isLeftCurrentPost && isSameActor) {
+        } else if (isJoinedPrevPost && isLeftCurrentPost && prevPost.actorId.length === 1 && isSameActor) {
             prevPost.actorId.push(actorId);
             prevPost.postType = Posts.POST_TYPES.JOIN_LEAVE_CHANNEL;
             mergeLastSimilarPosts(userActivities);
