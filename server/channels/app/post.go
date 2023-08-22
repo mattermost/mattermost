@@ -2463,25 +2463,6 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 		}
 	}
 
-	// executor, execError := a.GetUser(user.Id)
-	// if execError != nil {
-	// 	return model.NewAppError("GetUser", "app.post.run_move_thread_command.request_error", nil, "UserID="+user.Id+"", http.StatusBadRequest)
-	// }
-
-	// if user.Id != wpl.RootPost().UserId {
-	// The wrangled thread was not started by the user running the command.
-	// Send a DM to the user who created the root message to let them know.
-
-	// TODO: Implement
-	// err := p.postMoveThreadBotDM(wpl.RootPost().UserId, newPostLink, executor.Username)
-	// if err != nil {
-	// 	p.API.LogError("Unable to send move-thread DM to user",
-	// 		"error", err.Error(),
-	// 		"user_id", wpl.RootPost().UserId,
-	// 	)
-	// }
-	// }
-
 	_, appErr = a.CreatePost(c, &model.Post{
 		UserId:    user.Id,
 		Type:      model.PostTypeWrangler,
