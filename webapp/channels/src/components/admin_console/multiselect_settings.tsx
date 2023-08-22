@@ -44,9 +44,9 @@ State
     }
 
     handleChange = (newValue: ValueType<Option>) => {
-        const values = (newValue as Option[]).map((n) => {
+        const values = newValue ? (newValue as Option[]).map((n) => {
             return n.value;
-        });
+        }) : [];
 
         this.props.onChange(this.props.id, values);
         this.setState({error: false});
