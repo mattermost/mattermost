@@ -157,8 +157,8 @@ export function MenuItem(props: Props) {
             isDestructive={isDestructive}
             hasSecondaryLabel={hasSecondaryLabel}
             isLabelsRowLayout={isLabelsRowLayout}
+            onClick={handleClick}
             onKeyDown={handleClick}
-            onMouseDown={handleClick}
             {...otherProps}
         >
             {leadingElement && <div className='leading-element'>{leadingElement}</div>}
@@ -295,7 +295,7 @@ function isCorrectKeyPressedOnMenuItem(event: MouseEvent<HTMLLIElement> | Keyboa
         }
 
         return false;
-    } else if (event.type === EventTypes.MOUSE_DOWN) {
+    } else if (event.type === EventTypes.CLICK) {
         const mouseEvent = event as MouseEvent<HTMLLIElement>;
         if (mouseEvent.button === 0) {
             return true;
