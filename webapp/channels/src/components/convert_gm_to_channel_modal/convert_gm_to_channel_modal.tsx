@@ -19,9 +19,8 @@ import {Team} from '@mattermost/types/teams';
 import {Client4} from 'mattermost-redux/client';
 import TeamSelector from 'components/convert_gm_to_channel_modal/team_selector/team_selector';
 import {trackEvent} from 'actions/telemetry_actions';
-import LoadingSpinner from "components/widgets/loading/loading_spinner";
 import loadingIcon from "images/spinner-48x48-blue.apng";
-import {bool} from "yup";
+import classNames from "classnames";
 
 export type Props = {
     onExited: () => void;
@@ -97,6 +96,8 @@ const ConvertGmToChannelModal = (props: Props) => {
         props.actions.closeModal(ModalIdentifiers.CONVERT_GM_TO_CHANNEL);
     };
 
+    const showLoader = () => !commonTeamsFetched || !loadingAnimationTimeout;
+
     if (props.profilesInChannel.length === 0) {
         return (
             <GenericModal
@@ -113,25 +114,6 @@ const ConvertGmToChannelModal = (props: Props) => {
                 </div>
             </GenericModal>
         );
-    } else if (!commonTeamsFetched || !loadingAnimationTimeout) {
-        return (
-            <GenericModal
-                id='convert-gm-to-channel-modal'
-                className='convert-gm-to-channel-modal'
-                modalHeaderText={formatMessage({id: 'sidebar_left.sidebar_channel_modal.header', defaultMessage: 'Convert to Private Channel'})}
-                compassDesign={true}
-                onExited={handleCancel}
-
-            >
-                <div className='convert-gm-to-channel-modal-body'>
-                    <div className='loadingIndicator'>
-                        <img
-                            src={loadingIcon}
-                        />
-                    </div>
-                </div>
-            </GenericModal>
-        );
     }
 
     return (
@@ -143,30 +125,46 @@ const ConvertGmToChannelModal = (props: Props) => {
             cancelButtonText={formatMessage({id: 'channel_modal.cancel', defaultMessage: 'Cancel'})}
             isDeleteModal={true}
             compassDesign={true}
-            handleCancel={handleCancel}
-            handleConfirm={handleConfirm}
+            handleCancel={showLoader() ? undefined : handleCancel}
+            handleConfirm={showLoader() ? undefined : handleConfirm}
             onExited={handleCancel}
             autoCloseOnConfirmButton={false}
         >
-            <div className='convert-gm-to-channel-modal-body'>
-                <WarningTextSection channelMemberNames={channelMemberNames}/>
-
+            <div className={classNames({'convert-gm-to-channel-modal-body': true, 'loading': showLoader()})}>
                 {
-                    Object.keys(commonTeamsById).length > 0 &&
-                    <TeamSelector
-                        teamsById={commonTeamsById}
-                        onChange={handleTeamChange}
-                    />
+                    showLoader() &&
+                    <div className='loadingIndicator'>
+                        <img
+                            src={loadingIcon}
+                        />
+                    </div>
                 }
 
-                <ChannelNameFormField
-                    value={channelName}
-                    name='convert-gm-to-channel-modal-channel-name'
-                    placeholder={formatMessage({id: 'sidebar_left.sidebar_channel_modal.channel_name_placeholder', defaultMessage: 'Enter a name for the channel'})}
-                    autoFocus={false}
-                    onDisplayNameChange={handleChannelNameChange}
-                    onURLChange={handleChannelURLChange}
-                />
+                {
+                    !showLoader() &&
+                    (
+                        <React.Fragment>
+                            <WarningTextSection channelMemberNames={channelMemberNames}/>
+
+                            {
+                                Object.keys(commonTeamsById).length > 0 &&
+                                <TeamSelector
+                                    teamsById={commonTeamsById}
+                                    onChange={handleTeamChange}
+                                />
+                            }
+
+                            <ChannelNameFormField
+                                value={channelName}
+                                name='convert-gm-to-channel-modal-channel-name'
+                                placeholder={formatMessage({id: 'sidebar_left.sidebar_channel_modal.channel_name_placeholder', defaultMessage: 'Enter a name for the channel'})}
+                                autoFocus={false}
+                                onDisplayNameChange={handleChannelNameChange}
+                                onURLChange={handleChannelURLChange}
+                            />
+                        </React.Fragment>
+                    )
+                }
             </div>
         </GenericModal>
     );

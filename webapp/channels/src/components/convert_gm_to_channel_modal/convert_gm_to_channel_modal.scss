@@ -3,6 +3,12 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
+      transition: height 200ms ease;
+      height: 320px;
+
+    &.loading {
+      height: 152px;
+    }
 
     .new-channel-modal__url {
       margin-top: -20px;
