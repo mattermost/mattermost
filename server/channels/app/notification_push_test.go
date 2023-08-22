@@ -589,7 +589,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			ChannelType:     model.ChannelTypeOpen,
 			ExpectedMessage: "user: this is a message",
 		},
-		"full message, public channel, messageOnly flag": {
+		"full message, public channel, no sender name": {
 			Message:         "this is a message",
 			ChannelType:     model.ChannelTypeOpen,
 			messageOnly:     true,
@@ -718,7 +718,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			ChannelType:              model.ChannelTypeOpen,
 			ExpectedMessage:          "user posted a message.",
 		},
-		"generic message with channel, public channel, no mention, no sender name": {
+		"generic message with channel, public channel, no mention, messageOnly has no effect": {
 			Message:                  "this is a message",
 			PushNotificationContents: model.GenericNotification,
 			ChannelType:              model.ChannelTypeOpen,
