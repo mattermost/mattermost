@@ -10,7 +10,6 @@ import {GfycatAPIItem} from '@mattermost/types/gifs';
 import {searchIfNeededInitial, searchGfycat} from 'mattermost-redux/actions/gifs';
 
 import SearchGrid from 'components/gif_picker/components/SearchGrid';
-import {appProps} from 'components/gif_picker/gif_picker';
 
 import {GlobalState} from 'types/store';
 
@@ -28,7 +27,7 @@ const mapDispatchToProps = ({
 });
 
 type Props = {
-    appProps: typeof appProps;
+    appProps: any;
     onCategories?: () => void;
     handleItemClick: (gif: GfycatAPIItem) => void;
     searchText: string;

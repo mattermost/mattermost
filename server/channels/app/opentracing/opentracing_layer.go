@@ -10489,6 +10489,28 @@ func (a *OpenTracingAppLayer) GetUserByEmail(email string) (*model.User, *model.
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetUserByRemoteID(remoteID string) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserByRemoteID")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetUserByRemoteID(remoteID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetUserByUsername(username string) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserByUsername")
@@ -18342,6 +18364,28 @@ func (a *OpenTracingAppLayer) UploadFile(c request.CTX, data []byte, channelID s
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.UploadFile(c, data, channelID, filename)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UploadFileForUserAndTeam(c request.CTX, data []byte, channelID string, filename string, rawUserId string, rawTeamId string) (*model.FileInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UploadFileForUserAndTeam")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.UploadFileForUserAndTeam(c, data, channelID, filename, rawUserId, rawTeamId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
