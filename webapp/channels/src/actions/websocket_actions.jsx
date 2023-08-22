@@ -53,7 +53,7 @@ import {
     getCustomEmojiForReaction,
     getPosts,
     getPostThread,
-    getProfilesAndStatusesForPosts,
+    getMentionsAndStatusesForPosts,
     getThreadsForPosts,
     postDeleted,
     receivedNewPost,
@@ -693,7 +693,7 @@ export function handleNewPostEvent(msg) {
 
         myDispatch(handleNewPost(post, msg));
 
-        getProfilesAndStatusesForPosts([post], myDispatch, myGetState);
+        getMentionsAndStatusesForPosts([post], myDispatch, myGetState);
 
         // Since status updates aren't real time, assume another user is online if they have posted and:
         // 1. The user hasn't set their status manually to something that isn't online
@@ -732,7 +732,7 @@ export function handleNewPostEvents(queue) {
         myDispatch(getThreadsForPosts(posts));
 
         // And any other data needed for them
-        getProfilesAndStatusesForPosts(posts, myDispatch, myGetState);
+        getMentionsAndStatusesForPosts(posts, myDispatch, myGetState);
     };
 }
 
@@ -748,7 +748,7 @@ export function handlePostEditEvent(msg) {
     const crtEnabled = isCollapsedThreadsEnabled(getState());
     dispatch(receivedPost(post, crtEnabled));
 
-    getProfilesAndStatusesForPosts([post], dispatch, getState);
+    getMentionsAndStatusesForPosts([post], dispatch, getState);
 }
 
 async function handlePostDeleteEvent(msg) {

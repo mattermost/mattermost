@@ -3490,8 +3490,9 @@ export default class Client4 {
         );
     };
 
-    getGroups = (filterAllowReference = false, page = 0, perPage = 10, includeMemberCount = false, hasFilterMember = false) => {
+    getGroups = (q = '', filterAllowReference = false, page = 0, perPage = 10, includeMemberCount = false, hasFilterMember = false) => {
         const qs: any = {
+            q,
             filter_allow_reference: filterAllowReference,
             page,
             per_page: perPage,
