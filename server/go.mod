@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 	github.com/aws/aws-sdk-go v1.44.293
-	github.com/blang/semver v3.5.1+incompatible
+	github.com/blang/semver/v4 v4.0.0
 	github.com/blevesearch/bleve/v2 v2.3.8
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
@@ -42,7 +42,7 @@ require (
 	github.com/mattermost/gziphandler v0.0.1
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/logr/v2 v2.0.16
-	github.com/mattermost/mattermost/server/public v0.0.6
+	github.com/mattermost/mattermost/server/public v0.0.8
 	github.com/mattermost/morph v1.0.5-0.20230511171014-e76e25978d56
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.2.0
@@ -112,7 +112,6 @@ require (
 	github.com/blevesearch/zapx/v13 v13.3.8 // indirect
 	github.com/blevesearch/zapx/v14 v14.3.8 // indirect
 	github.com/blevesearch/zapx/v15 v15.3.11 // indirect
-	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/corpix/uarand v0.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

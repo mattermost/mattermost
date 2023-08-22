@@ -27,7 +27,7 @@ import Constants, {
     RHSStates,
 } from 'utils/constants';
 import CollapsedReplyThreadsModal
-    from 'components/tours/crt_tour/collapsed_reply_threads_modal/collapsed_reply_threads_modal';
+    from 'components/tours/crt_tour/collapsed_reply_threads_modal';
 
 import {openModal} from 'actions/views/modals';
 
