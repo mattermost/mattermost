@@ -401,17 +401,32 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			} else {
 				endpoint = h.HandlerName
 			}
-			originDevice := "unknown"
-			if session := c.AppContext.Session(); session != nil {
-				originDevice = "web"
-				if session.IsMobileApp() {
-					originDevice = "mobile"
-				}
+
+			originDevice := "web"
+			if isMobile(r) {
+				originDevice = "mobile"
 			}
 
 			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, originDevice, elapsed)
 		}
 	}
+}
+
+func isMobile(r *http.Request) bool {
+	// Post v2
+	queryParam := r.URL.Query().Get("mobilev2")
+	if queryParam == "true" {
+		return true
+	}
+
+	// Pre v2
+	userAgent := r.Header.Get("User-Agent")
+	fields := strings.Fields(userAgent)
+	if len(fields) < 1 {
+		return false
+	}
+	clientAgent := fields[0]
+	return strings.HasPrefix(clientAgent, "rnbeta") || strings.HasPrefix(clientAgent, "Mattermost")
 }
 
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
