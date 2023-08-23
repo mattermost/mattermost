@@ -3053,3 +3053,184 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		require.Empty(t, edits)
 	})
 }
+
+func TestCopyWranglerPostlist(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Create a post with a file attachment
+	fileBytes := []byte("file contents")
+	fileInfo, err := th.App.UploadFile(th.Context, fileBytes, th.BasicChannel.Id, "file.txt")
+	require.Nil(t, err)
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "test message",
+		UserId:    th.BasicUser.Id,
+		FileIds:   []string{fileInfo.Id},
+	}
+	rootPost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	require.Nil(t, err)
+
+	// Add a reaction to the post
+	reaction := &model.Reaction{
+		UserId:    th.BasicUser.Id,
+		PostId:    rootPost.Id,
+		EmojiName: "smile",
+	}
+	_, err = th.App.SaveReactionForPost(th.Context, reaction)
+	require.Nil(t, err)
+
+	// Copy the post to a new channel
+	targetChannel := &model.Channel{
+		TeamId: th.BasicTeam.Id,
+		Name:   "test-channel",
+		Type:   model.ChannelTypeOpen,
+	}
+	targetChannel, err = th.App.CreateChannel(th.Context, targetChannel, false)
+	require.Nil(t, err)
+	wpl := &model.WranglerPostList{
+		Posts:               []*model.Post{rootPost},
+		FileAttachmentCount: 1,
+	}
+	newRootPost, err := th.App.CopyWranglerPostlist(th.Context, wpl, targetChannel)
+	require.Nil(t, err)
+
+	// Check that the new post has the same message and file attachment
+	require.Equal(t, rootPost.Message, newRootPost.Message)
+	require.Len(t, newRootPost.FileIds, 1)
+
+	// Check that the new post has the same reaction
+	reactions, err := th.App.GetReactionsForPost(newRootPost.Id)
+	require.Nil(t, err)
+	require.Len(t, reactions, 1)
+	require.Equal(t, reaction.EmojiName, reactions[0].EmojiName)
+}
+
+func TestValidateMoveOrCopy(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable = model.NewBool(true)
+		cfg.WranglerSettings.MoveThreadFromDirectMessageChannelEnable = model.NewBool(true)
+		cfg.WranglerSettings.MoveThreadFromGroupMessageChannelEnable = model.NewBool(true)
+		cfg.WranglerSettings.MoveThreadToAnotherTeamEnable = model.NewBool(true)
+		cfg.WranglerSettings.MoveThreadMaxCount = model.NewInt64(100)
+	})
+
+	t.Run("empty post list", func(t *testing.T) {
+		err := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{}, th.BasicChannel, th.BasicChannel, th.BasicUser)
+		require.NotNil(t, err)
+		require.Equal(t, "The wrangler post list contains no posts", err.Error())
+	})
+
+	t.Run("moving from private channel with MoveThreadFromPrivateChannelEnable disabled", func(t *testing.T) {
+		privateChannel := &model.Channel{
+			TeamId: th.BasicTeam.Id,
+			Name:   "private-channel",
+			Type:   model.ChannelTypePrivate,
+		}
+		privateChannel, err := th.App.CreateChannel(th.Context, privateChannel, false)
+		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable = model.NewBool(false)
+		})
+
+		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: privateChannel.Id}}}, privateChannel, th.BasicChannel, th.BasicUser)
+		require.NotNil(t, e)
+		require.Equal(t, "Wrangler is currently configured to not allow moving posts from private channels", e.Error())
+	})
+
+	t.Run("moving from direct channel with MoveThreadFromDirectMessageChannelEnable disabled", func(t *testing.T) {
+		directChannel := &model.Channel{
+			TeamId: th.BasicTeam.Id,
+			Name:   "direct-channel",
+			Type:   model.ChannelTypeDirect,
+		}
+		directChannel, err := th.App.createDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings.MoveThreadFromDirectMessageChannelEnable = model.NewBool(false)
+		})
+
+		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: directChannel.Id}}}, directChannel, th.BasicChannel, th.BasicUser)
+		require.NotNil(t, e)
+		require.Equal(t, "Wrangler is currently configured to not allow moving posts from direct message channels", e.Error())
+	})
+
+	t.Run("moving from group channel with MoveThreadFromGroupMessageChannelEnable disabled", func(t *testing.T) {
+		groupChannel := &model.Channel{
+			TeamId: th.BasicTeam.Id,
+			Name:   "group-channel",
+			Type:   model.ChannelTypeGroup,
+		}
+		groupChannel, err := th.App.CreateChannel(th.Context, groupChannel, false)
+		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings.MoveThreadFromGroupMessageChannelEnable = model.NewBool(false)
+		})
+
+		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: groupChannel.Id}}}, groupChannel, th.BasicChannel, th.BasicUser)
+		require.NotNil(t, e)
+		require.Equal(t, "Wrangler is currently configured to not allow moving posts from group message channels", e.Error())
+	})
+
+	t.Run("moving to different team with MoveThreadToAnotherTeamEnable disabled", func(t *testing.T) {
+		team := &model.Team{
+			Name:        "testteam",
+			DisplayName: "testteam",
+			Type:        model.TeamOpen,
+		}
+
+		targetTeam, err := th.App.CreateTeam(th.Context, team)
+		require.Nil(t, err)
+		require.NotNil(t, targetTeam)
+
+		targetChannel := &model.Channel{
+			TeamId: targetTeam.Id,
+			Name:   "test-channel",
+			Type:   model.ChannelTypeOpen,
+		}
+
+		targetChannel, err = th.App.CreateChannel(th.Context, targetChannel, false)
+		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings.MoveThreadToAnotherTeamEnable = model.NewBool(false)
+		})
+
+		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: th.BasicChannel.Id}}}, th.BasicChannel, targetChannel, th.BasicUser)
+		require.NotNil(t, e)
+		require.Equal(t, "Wrangler is currently configured to not allow moving messages to different teams", e.Error())
+	})
+
+	t.Run("moving to channel user is not a member of", func(t *testing.T) {
+		targetChannel := &model.Channel{
+			TeamId: th.BasicTeam.Id,
+			Name:   "test-channel",
+			Type:   model.ChannelTypePrivate,
+		}
+		targetChannel, err := th.App.CreateChannel(th.Context, targetChannel, false)
+		require.Nil(t, err)
+
+		err = th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.SystemAdminUser.Id, th.BasicChannel)
+		require.Nil(t, err)
+
+		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: th.BasicChannel.Id}}}, th.BasicChannel, targetChannel, th.BasicUser)
+		require.NotNil(t, e)
+		require.Equal(t, fmt.Sprintf("Error: channel with ID %s doesn't exist or you are not a member", targetChannel.Id), e.Error())
+	})
+
+	t.Run("moving thread longer than MoveThreadMaxCount", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.WranglerSettings.MoveThreadMaxCount = 1
+		})
+
+		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: th.BasicChannel.Id}, {ChannelId: th.BasicChannel.Id}}}, th.BasicChannel, th.BasicChannel, th.BasicUser)
+		require.NotNil(t, e)
+		require.Equal(t, "Error: the thread is 2 posts long, but this command is configured to only move threads of up to 1 posts", e.Error())
+	})
+}

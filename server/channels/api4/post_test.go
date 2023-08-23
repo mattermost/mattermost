@@ -689,6 +689,241 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 	})
 }
 
+func TestMoveThread(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	client := th.Client
+
+	ctx := context.Background()
+
+	basicUser1 := th.BasicUser
+	basicUser2 := th.BasicUser2
+	basicUser3 := th.CreateUser()
+
+	// Create a new public channel to move the post to
+	publicChannel, resp, err := client.CreateChannel(ctx, &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		Name:        "test-public-channel",
+		DisplayName: "Test Public Channel",
+		Type:        model.ChannelTypeOpen,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.NotNil(t, publicChannel)
+
+	// Create a new private channel to move the post to
+	privateChannel, resp, err := client.CreateChannel(ctx, &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		Name:        "test-private-channel",
+		DisplayName: "Test Private Channel",
+		Type:        model.ChannelTypePrivate,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, privateChannel)
+
+	// Create a new direct message channel to move the post to
+	dmChannel, resp, err := client.CreateDirectChannel(ctx, basicUser1.Id, basicUser2.Id)
+	require.NoError(t, err)
+	require.NotNil(t, dmChannel)
+
+	// Create a new group message channel to move the post to
+	gmChannel, resp, err := client.CreateGroupChannel(ctx, []string{basicUser1.Id, basicUser2.Id, basicUser3.Id})
+	require.NoError(t, err)
+	require.NotNil(t, gmChannel)
+	t.Run("Move to public channel", func(t *testing.T) {
+		// Create a new post to move
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test post",
+		}
+		newPost, resp, err := client.CreatePost(ctx, post)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, newPost)
+
+		// Move the post to the public channel
+		moveThreadParams := &model.MoveThreadParams{
+			ChannelId: publicChannel.Id,
+		}
+		resp, err = client.MoveThread(ctx, newPost.Id, moveThreadParams)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Check that the post was moved to the public channel
+		posts, resp, err := client.GetPostsForChannel(ctx, publicChannel.Id, 0, 100, "", true, false)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, posts)
+		// There should be 2 posts, the system join message for the user who moved it joining the channel, and the post we moved
+		require.Equal(t, 2, len(posts.Posts))
+		require.Equal(t, newPost.Message, posts.Posts[posts.Order[0]].Message)
+	})
+
+	t.Run("Move to private channel", func(t *testing.T) {
+		// Create a new post to move
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test post",
+		}
+		newPost, resp, err := client.CreatePost(ctx, post)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, newPost)
+
+		// Move the post to the private channel
+		moveThreadParams := &model.MoveThreadParams{
+			ChannelId: privateChannel.Id,
+		}
+		resp, err = client.MoveThread(ctx, newPost.Id, moveThreadParams)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Check that the post was moved to the private channel
+		posts, resp, err := client.GetPostsForChannel(ctx, privateChannel.Id, 0, 100, "", true, false)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, posts)
+		// There should be 2 posts, the system join message for the user who moved it joining the channel, and the post we moved
+		require.Equal(t, 2, len(posts.Posts))
+		require.Equal(t, newPost.Message, posts.Posts[posts.Order[0]].Message)
+	})
+
+	t.Run("Move to direct message channel", func(t *testing.T) {
+		// Create a new post to move
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test post",
+		}
+		newPost, resp, err := client.CreatePost(ctx, post)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, newPost)
+
+		// Move the post to the direct message channel
+		moveThreadParams := &model.MoveThreadParams{
+			ChannelId: dmChannel.Id,
+		}
+		resp, err = client.MoveThread(ctx, newPost.Id, moveThreadParams)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Check that the post was moved to the direct message channel
+		posts, resp, err := client.GetPostsForChannel(ctx, dmChannel.Id, 0, 100, "", true, false)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, posts)
+		// There should be 1 post, the post we moved
+		require.Equal(t, 1, len(posts.Posts))
+		require.Equal(t, newPost.Message, posts.Posts[posts.Order[0]].Message)
+	})
+
+	t.Run("Move to group message channel", func(t *testing.T) {
+		// Create a new post to move
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test post",
+		}
+		newPost, resp, err := client.CreatePost(ctx, post)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, newPost)
+
+		// Move the post to the group message channel
+		moveThreadParams := &model.MoveThreadParams{
+			ChannelId: gmChannel.Id,
+		}
+		resp, err = client.MoveThread(ctx, newPost.Id, moveThreadParams)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Check that the post was moved to the group message channel
+		posts, resp, err := client.GetPostsForChannel(ctx, gmChannel.Id, 0, 100, "", true, false)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, posts)
+		// There should be 1 post, the post we moved
+		require.Equal(t, 1, len(posts.Posts))
+		require.Equal(t, newPost.Message, posts.Posts[posts.Order[0]].Message)
+	})
+
+	t.Run("Move thread with more than one post", func(t *testing.T) {
+		// Create a new public channel to move the post to
+		pChannel, resp, err := client.CreateChannel(ctx, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Name:        "test-public-channel2",
+			DisplayName: "Test Public Channel",
+			Type:        model.ChannelTypeOpen,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, pChannel)
+		// Create a new post to use as the root post
+		rootPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "root post",
+		}
+		rootPost, resp, err = client.CreatePost(ctx, rootPost)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, rootPost)
+
+		// Create a new post to move
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test post",
+			RootId:    rootPost.Id,
+		}
+		newPost, resp, err := client.CreatePost(ctx, post)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, newPost)
+
+		// Create another post in the thread
+		post = &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test post 2",
+			RootId:    rootPost.Id,
+		}
+		newPost2, resp, err := client.CreatePost(ctx, post)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, newPost2)
+
+		// Move the thread to the public channel
+		moveThreadParams := &model.MoveThreadParams{
+			ChannelId: pChannel.Id,
+		}
+		resp, err = client.MoveThread(ctx, rootPost.Id, moveThreadParams)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Check that the thread was moved to the public channel
+		posts, resp, err := client.GetPostsForChannel(ctx, pChannel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, posts)
+		// There should be 3 posts, the system join message for the user who moved it joining the channel, and the two posts in the thread
+		// require.Equal(t, 3, len(posts.Posts))
+		fmt.Println(posts.Order)
+		for _, p := range posts.Order {
+			fmt.Println(posts.Posts[p].Id)
+			fmt.Println(posts.Posts[p].Message)
+		}
+		require.Equal(t, "This thread was moved from another channel", posts.Posts[posts.Order[0]].Message)
+		require.Equal(t, newPost2.Message, posts.Posts[posts.Order[1]].Message)
+		require.Equal(t, newPost.Message, posts.Posts[posts.Order[2]].Message)
+		require.Equal(t, rootPost.Message, posts.Posts[posts.Order[3]].Message)
+	})
+}
+
+func ptrInt64(i int64) *int64 {
+	return &i
+}
+
+func ptrBool(b bool) *bool {
+	return &b
+}
+
 func TestCreatePostPublic(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
