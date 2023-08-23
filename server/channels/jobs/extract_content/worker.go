@@ -19,13 +19,13 @@ var ignoredFiles = map[string]bool{
 	"mkv": true,
 }
 
-const jobName = "ExtractContent"
-
 type AppIface interface {
 	ExtractContentFromFileInfo(fileInfo *model.FileInfo) error
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) model.Worker {
+	const workerName = "ExtractContent"
+
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
@@ -85,10 +85,10 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) mode
 		job.Data["processed"] = strconv.Itoa(nFiles)
 
 		if err := jobServer.UpdateInProgressJobData(job); err != nil {
-			job.Logger.Error("Worker: Failed to update job data", mlog.String("worker", model.JobTypeExtractContent), mlog.Err(err))
+			job.Logger.Error("Worker: Failed to update job data", mlog.Err(err))
 		}
 		return nil
 	}
-	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }

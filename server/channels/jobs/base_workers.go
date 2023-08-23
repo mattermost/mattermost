@@ -80,7 +80,7 @@ func (worker *SimpleWorker) DoJob(job *model.Job) {
 		return
 	}
 
-	c := request.EmptyContext(worker.jobServer.logger)
+	c := request.EmptyContext(worker.logger)
 
 	var appErr *model.AppError
 	// We get the job again because ClaimJob changes the job status.

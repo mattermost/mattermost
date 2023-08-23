@@ -8,15 +8,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
-const (
-	JobName = "LastAccessibleFile"
-)
-
 type AppIface interface {
 	ComputeLastAccessibleFileTime() error
 }
 
 func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
+	const workerName = "LastAccessibleFile"
+
 	isEnabled := func(_ *model.Config) bool {
 		return license != nil && *license.Features.Cloud
 	}
@@ -25,6 +23,6 @@ func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface)
 
 		return app.ComputeLastAccessibleFileTime()
 	}
-	worker := jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }

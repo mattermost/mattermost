@@ -253,7 +253,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		progress.TotalFilesCount = count
 	}
 
-	cancelContext := request.EmptyContext(worker.logger) // TODO(Ben): Add worker specific logger
+	cancelContext := request.EmptyContext(worker.logger)
 	cancelCtx, cancelCancelWatcher := context.WithCancel(context.Background())
 	cancelWatcherChan := make(chan struct{}, 1)
 	cancelContext.SetContext(cancelCtx)

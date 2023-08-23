@@ -87,7 +87,7 @@ func (schedulers *Schedulers) Start() {
 						if scheduler == nil || !schedulers.isLeader || !scheduler.Enabled(cfg) {
 							continue
 						}
-						c := request.EmptyContext(schedulers.jobs.logger)
+						c := request.EmptyContext(schedulers.jobs.Logger())
 						if _, err := schedulers.scheduleJob(c, cfg, name, scheduler); err != nil {
 							mlog.Error("Failed to schedule job", mlog.String("scheduler", name), mlog.Err(err))
 							continue

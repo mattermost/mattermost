@@ -15,8 +15,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
 )
 
-const jobName = "ExportProcess"
-
 type AppIface interface {
 	configservice.ConfigService
 	WriteExportFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
@@ -25,6 +23,8 @@ type AppIface interface {
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+	const workerName = "ExportProcess"
+
 	isEnabled := func(cfg *model.Config) bool { return true }
 	execute := func(job *model.Job) error {
 		defer jobServer.HandleJobPanic(job)
@@ -59,7 +59,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 			}
 		}()
 
-		appErr := app.BulkExport(request.EmptyContext(app.Log()), wr, outPath, job, opts)
+		// TODO: The job.Logger should be used here, but the interface is not compatible yet.
+		appErr := app.BulkExport(request.EmptyContext(jobServer.Logger()), wr, outPath, job, opts)
 		wr.Close() // Close never returns an error
 
 		if appErr != nil {
@@ -68,6 +69,6 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 
 		return nil
 	}
-	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }

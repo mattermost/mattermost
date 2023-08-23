@@ -20,8 +20,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
-const jobName = "ImportProcess"
-
 type AppIface interface {
 	configservice.ConfigService
 	RemoveFile(path string) *model.AppError
@@ -33,7 +31,9 @@ type AppIface interface {
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
-	appContext := request.EmptyContext(app.Log())
+	const workerName = "ImportProcess"
+
+	appContext := request.EmptyContext(jobServer.Logger())
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
@@ -113,6 +113,6 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		}
 		return nil
 	}
-	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }

@@ -121,7 +121,7 @@ func (worker *S3PathMigrationWorker) DoJob(job *model.Job) {
 		return
 	}
 
-	c := request.EmptyContext(worker.logger) // TODO(Ben): Add worker specific logger
+	c := request.EmptyContext(worker.logger)
 
 	var appErr *model.AppError
 	// We get the job again because ClaimJob changes the job status.

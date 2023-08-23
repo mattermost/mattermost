@@ -15,8 +15,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
 )
 
-const jobName = "ExportDelete"
-
 type AppIface interface {
 	configservice.ConfigService
 	ListExportDirectory(path string) ([]string, *model.AppError)
@@ -25,6 +23,8 @@ type AppIface interface {
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
+	const workerName = "ExportDelete"
+
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ExportSettings.Directory != "" && *cfg.ExportSettings.RetentionDays > 0
 	}
@@ -61,10 +61,10 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		}
 
 		if err := errors.ErrorOrNil(); err != nil {
-			job.Logger.Warn("Worker: errors occurred", mlog.String("job-name", jobName), mlog.Err(err))
+			job.Logger.Warn("Worker: errors occurred", mlog.Err(err))
 		}
 		return nil
 	}
-	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }
