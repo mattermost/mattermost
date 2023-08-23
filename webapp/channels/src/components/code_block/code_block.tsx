@@ -3,6 +3,10 @@
 
 import React, {useCallback, useEffect, useState} from 'react';
 
+import {useSelector} from 'react-redux';
+
+import {GlobalState} from 'types/store';
+
 import CopyButton from 'components/copy_button';
 
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
@@ -67,11 +71,28 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
         htmlContent = `${searchedContent} ${content}`;
     }
 
+    const codeBlockActions = useSelector((state: GlobalState) => state.plugins.components.CodeBlockAction);
+    const pluginItems = codeBlockActions?.
+        map((item) => {
+            if (!item.component) {
+                return null;
+            }
+
+            const Component = item.component as any;
+            return (
+                <Component
+                    key={item.id}
+                    code={code}
+                />
+            );
+        });
+
     return (
         <div className={className}>
             <div className='post-code__overlay'>
                 <CopyButton content={code}/>
                 {header}
+                {pluginItems}
             </div>
             <div className='hljs'>
                 {lineNumbers}
