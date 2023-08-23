@@ -123,6 +123,7 @@ export type ClientConfig = {
     FeatureFlagGraphQL: string;
     GfycatAPIKey: string;
     GfycatAPISecret: string;
+    GiphySdkKey: string;
     GoogleDeveloperKey: string;
     GuestAccountsEnforceMultifactorAuthentication: string;
     HasImageProxy: string;
@@ -336,6 +337,7 @@ export type ServiceSettings = {
     EnableGifPicker: boolean;
     GfycatAPIKey: string;
     GfycatAPISecret: string;
+    GiphySdkKey: string;
     PostEditTimeLimit: number;
     TimeBetweenUserTypingUpdatesMilliseconds: number;
     EnablePostSearch: boolean;
