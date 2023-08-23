@@ -384,9 +384,10 @@ function makeChannelSearchFilter(channelPrefix: string) {
     const curState = getState();
     const usersInChannels = getUserIdsInChannels(curState);
     const userSearchStrings: RelationOneToOne<UserProfile, string> = {};
+    const SEPARATOR = ';|;';
 
     return (channel: ChannelItem) => {
-        let searchString = `${channel.display_name}${channel.name}`;
+        let searchString = `${channel.display_name}${SEPARATOR}${channel.name}`;
         if (channel.type === Constants.GM_CHANNEL || channel.type === Constants.DM_CHANNEL) {
             const usersInChannel = usersInChannels[channel.id] || new Set([]);
 
@@ -408,7 +409,7 @@ function makeChannelSearchFilter(channelPrefix: string) {
                         continue;
                     }
                     const {nickname, username} = user;
-                    userString = `${nickname}${username}${Utils.getFullName(user)}`;
+                    userString = `${nickname}${SEPARATOR}${username}${SEPARATOR}${Utils.getFullName(user)}`;
                     userSearchStrings[userId] = userString;
                 }
                 searchString += userString;
