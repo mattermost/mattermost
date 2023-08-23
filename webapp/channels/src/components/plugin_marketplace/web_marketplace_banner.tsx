@@ -75,13 +75,11 @@ const Title = styled.div`
     line-height: 24px;
     margin: 4px 0;
     grid-column: 1;
-    display: inline-flex;
-    gap: 6px;
 
-    @media screen and (max-width: 768px) {
-        svg {
-            display: none;
-        }
+    svg {
+        vertical-align: middle;
+        display: inline-block;
+        margin-left: 4px;
     }
 `;
 
