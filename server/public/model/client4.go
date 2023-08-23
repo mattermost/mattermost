@@ -467,10 +467,6 @@ func (c *Client4) oAuthAppRoute(appId string) string {
 	return fmt.Sprintf("/oauth/apps/%v", appId)
 }
 
-func (c *Client4) openGraphRoute() string {
-	return "/opengraph"
-}
-
 func (c *Client4) jobsRoute() string {
 	return "/jobs"
 }
@@ -3536,6 +3532,27 @@ func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelV
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("ViewChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
+// ReadMultipleChannels performs a view action on several channels at the same time for a user.
+func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, channelIds []string) (*ChannelViewResponse, *Response, error) {
+	url := fmt.Sprintf(c.channelsRoute()+"/members/%v/mark_read", userId)
+	buf, err := json.Marshal(channelIds)
+	if err != nil {
+		return nil, nil, NewAppError("ReadMultipleChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, url, buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch *ChannelViewResponse
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("ReadMultipleChannels", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ch, BuildResponse(r), nil
 }
@@ -6756,21 +6773,6 @@ func (c *Client4) GetSupportedTimezone(ctx context.Context) ([]string, *Response
 	var timezones []string
 	json.NewDecoder(r.Body).Decode(&timezones)
 	return timezones, BuildResponse(r), nil
-}
-
-// Open Graph Metadata Section
-
-// OpenGraph return the open graph metadata for a particular url if the site have the metadata.
-func (c *Client4) OpenGraph(ctx context.Context, url string) (map[string]string, *Response, error) {
-	requestBody := make(map[string]string)
-	requestBody["url"] = url
-
-	r, err := c.DoAPIPost(ctx, c.openGraphRoute(), MapToJSON(requestBody))
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return MapFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // Jobs Section
