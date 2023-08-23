@@ -77,10 +77,6 @@ func (a *App) sendPushNotificationSync(c request.CTX, post *model.Post, user *mo
 		return appErr
 	}
 
-	// Add post and channel types for plugins to use in the NotificationWillBePushed hook
-	msg.PostType = post.Type
-	msg.ChannelType = channel.Type
-
 	return a.sendPushNotificationToAllSessions(msg, user.Id, "")
 }
 
@@ -607,6 +603,10 @@ func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string,
 	}
 
 	msg.Badge = badgeCount
+
+	// Add post and channel types for plugins to use in the NotificationWillBePushed hook
+	msg.PostType = post.Type
+	msg.ChannelType = channel.Type
 
 	return msg, nil
 }
