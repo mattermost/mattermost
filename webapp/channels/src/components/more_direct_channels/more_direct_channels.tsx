@@ -291,7 +291,6 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 role='dialog'
                 aria-labelledby='moreDmModalLabel'
                 id='moreDmModal'
-                enforceFocus={false}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title

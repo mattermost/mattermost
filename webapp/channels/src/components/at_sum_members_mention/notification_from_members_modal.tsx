@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
@@ -24,7 +24,7 @@ import {GlobalState} from 'types/store';
 import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import MemberList from '../channel_members_rhs/member_list';
 import {ChannelMembership} from '@mattermost/types/channels';
@@ -96,13 +96,13 @@ function NotificationFromMembersModal(props: Props) {
         };
     });
 
-    const openDirectMessage = async (user: UserProfile) => {
+    const openDirectMessage = useCallback(async (user: UserProfile) => {
         // we first prepare the DM channel...
         await dispatch(openDirectChannelToUserId(user.id));
 
         // ... and then redirect to it
         history.push(teamUrl + '/messages/@' + user.username);
-    };
+    }, [openDirectChannelToUserId, history, teamUrl]);
 
     const handleOnClose = () => {
         dispatch(closeModal(ModalIdentifiers.SUM_OF_MEMBERS_MODAL));
@@ -136,7 +136,8 @@ function NotificationFromMembersModal(props: Props) {
                     members={members}
                     searchTerms={''}
                     editing={false}
-                    actions={{openDirectMessage, loadMore}}
+                    openDirectMessage={openDirectMessage}
+                    loadMore={loadMore}
                     hasNextPage={false}
                     isNextPageLoading={false}
                 />

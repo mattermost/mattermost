@@ -4,7 +4,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import {PunchOutCoordsHeightAndWidth} from '../common/hooks/useMeasurePunchouts';
+import type {Props as PunchOutCoordsHeightAndWidth} from '../common/hooks/useMeasurePunchouts';
 
 type Props = {
     overlayPunchOut: PunchOutCoordsHeightAndWidth | null;

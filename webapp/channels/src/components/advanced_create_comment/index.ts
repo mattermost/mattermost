@@ -46,7 +46,6 @@ import {setShowPreviewOnCreateComment} from 'actions/views/textbox';
 import {openModal} from 'actions/views/modals';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
 
-import {getEmojiMap} from 'selectors/emojis';
 import {canUploadFiles} from 'utils/file_utils';
 
 import AdvancedCreateComment from './advanced_create_comment';
@@ -88,6 +87,7 @@ function makeMapStateToProps() {
         const groupsWithAllowReference = useLDAPGroupMentions || useCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, channel.team_id, channel.id) : null;
         const isFormattingBarHidden = getBool(state, Constants.Preferences.ADVANCED_TEXT_EDITOR, AdvancedTextEditor.COMMENT);
         const currentTeamId = getCurrentTeamId(state);
+        const postEditorActions = state.plugins.components.PostEditorAction;
 
         return {
             currentTeamId,
@@ -116,8 +116,8 @@ function makeMapStateToProps() {
             useLDAPGroupMentions,
             channelMemberCountsByGroup,
             useCustomGroupMentions,
-            emojiMap: getEmojiMap(state),
             canUploadFiles: canUploadFiles(config),
+            postEditorActions,
         };
     };
 }

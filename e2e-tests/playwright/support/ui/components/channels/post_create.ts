@@ -9,7 +9,7 @@ export default class ChannelsPostCreate {
     readonly input;
     readonly attachmentButton;
     readonly emojiButton;
-    readonly sendButton: Locator;
+    readonly sendMessageButton;
 
     constructor(container: Locator) {
         this.container = container;
@@ -17,15 +17,15 @@ export default class ChannelsPostCreate {
         this.input = container.getByTestId('post_textbox');
         this.attachmentButton = container.getByLabel('attachment');
         this.emojiButton = container.getByLabel('select an emoji');
-        this.sendButton = container.getByTestId('SendMessageButton');
+        this.sendMessageButton = container.getByTestId('SendMessageButton');
     }
 
-    async postMessage(message: string) {
+    async writeMessage(message: string) {
         await this.input.fill(message);
     }
 
     async sendMessage() {
-        await this.sendButton.click();
+        await this.sendMessageButton.click();
     }
 
     async toBeVisible() {

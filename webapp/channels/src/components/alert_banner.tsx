@@ -52,6 +52,7 @@ const AlertBanner = ({
     children,
 }: AlertBannerProps) => {
     const {formatMessage} = useIntl();
+    const closeText = formatMessage({id: 'alert_banner.tooltipCloseBtn', defaultMessage: 'Close'});
     const [tooltipId] = useState(`alert_banner_close_btn_tooltip_${Math.random()}`);
 
     const bannerIcon = useCallback(() => {
@@ -119,12 +120,11 @@ const AlertBanner = ({
                     delayShow={Constants.OVERLAY_TIME_DELAY}
                     placement='left'
                     overlay={closeBtnTooltip || (
-                        <Tooltip id={tooltipId}>
-                            {formatMessage({id: 'alert_banner.tooltipCloseBtn', defaultMessage: 'Close'})}
-                        </Tooltip>
+                        <Tooltip id={tooltipId}>{closeText}</Tooltip>
                     )}
                 >
                     <button
+                        aria-label={closeText}
                         className='AlertBanner__closeButton'
                         onClick={onDismiss}
                     >

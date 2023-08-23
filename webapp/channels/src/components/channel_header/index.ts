@@ -116,6 +116,7 @@ function makeMapStateToProps() {
             isFileAttachmentsEnabled: isFileAttachmentsEnabled(config),
             isLastActiveEnabled,
             timestampUnits,
+            hideGuestTags: config.HideGuestTags === 'true',
         };
     };
 }

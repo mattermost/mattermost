@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -14,10 +13,10 @@ import (
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 type fileInfoWithChannelID struct {
@@ -512,33 +511,12 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		From("FileInfo").
 		LeftJoin("Channels as C ON C.Id=FileInfo.ChannelId").
 		LeftJoin("ChannelMembers as CM ON C.Id=CM.ChannelId").
+		Where(sq.Or{sq.Eq{"C.TeamId": teamId}, sq.Eq{"C.TeamId": ""}}).
 		Where(sq.Eq{"FileInfo.DeleteAt": 0}).
 		OrderBy("FileInfo.CreateAt DESC").
 		Limit(100)
 
-	if teamId != "" {
-		query = query.Where(sq.Or{
-			sq.Eq{"C.TeamId": teamId},
-			sq.Eq{"C.TeamId": ""},
-		})
-	}
-
-	now := model.GetMillis()
 	for _, params := range paramsList {
-		if params.Modifier == model.ModifierFiles {
-			// Deliberately keeping non-alphanumeric characters to
-			// prevent surprises in UI.
-			buf, err := json.Marshal(params)
-			if err != nil {
-				return nil, err
-			}
-
-			err = fs.stores.post.LogRecentSearch(userId, buf, now)
-			if err != nil {
-				return nil, err
-			}
-		}
-
 		params.Terms = removeNonAlphaNumericUnquotedTerms(params.Terms, " ")
 
 		if !params.IncludeDeletedChannels {
@@ -713,9 +691,10 @@ func (fs SqlFileInfoStore) CountAll() (int64, error) {
 	return count, nil
 }
 
-func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error) {
+func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID string, includeDeleted bool, limit int) ([]*model.FileForIndexing, error) {
 	files := []*model.FileForIndexing{}
-	sql, args, _ := fs.getQueryBuilder().
+
+	query := fs.getQueryBuilder().
 		Select(fs.queryFields...).
 		From("FileInfo").
 		Where(sq.Or{
@@ -726,10 +705,13 @@ func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID
 			},
 		}).
 		OrderBy("FileInfo.CreateAt ASC, FileInfo.Id ASC").
-		Limit(uint64(limit)).
-		ToSql()
+		Limit(uint64(limit))
 
-	err := fs.GetSearchReplicaX().Select(&files, sql, args...)
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"FileInfo.DeleteAt": 0})
+	}
+
+	err := fs.GetSearchReplicaX().SelectBuilder(&files, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Files")
 	}

@@ -6,7 +6,7 @@ package config
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/stretchr/testify/require"
 )
@@ -807,10 +807,10 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.nps": {
 							Enable: !defaultConfigGen().PluginSettings.PluginStates["com.mattermost.nps"].Enable,
 						},
-						"com.mattermost.apps": {
+						"com.mattermost.calls": {
 							Enable: true,
 						},
-						"com.mattermost.calls": {
+						"playbooks": {
 							Enable: true,
 						},
 					},
@@ -839,10 +839,10 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.newplugin": {
 							Enable: true,
 						},
-						"com.mattermost.apps": {
+						"com.mattermost.calls": {
 							Enable: true,
 						},
-						"com.mattermost.calls": {
+						"playbooks": {
 							Enable: true,
 						},
 					},
@@ -863,10 +863,10 @@ func TestDiff(t *testing.T) {
 					Path:    "PluginSettings.PluginStates",
 					BaseVal: defaultConfigGen().PluginSettings.PluginStates,
 					ActualVal: map[string]*model.PluginState{
-						"com.mattermost.apps": {
+						"com.mattermost.calls": {
 							Enable: true,
 						},
-						"com.mattermost.calls": {
+						"playbooks": {
 							Enable: true,
 						},
 					},

@@ -5,9 +5,6 @@ name: Web App CI Template
 on:
   workflow_call:
 
-defaults:
-  run:
-    shell: bash
 jobs:
   check-lint:
     runs-on: ubuntu-22.04
@@ -17,29 +14,12 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: ci/setup-node
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        id: setup_node
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: 'webapp/package-lock.json'
-      # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
-      #   id: npm-cache
-      #   with:
-      #     path: |
-      #       '**/node_modules'
-      #       'e2e-tests/playwright/node_modules'
-      #       'e2e-tests/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
-      - name: ci/get-node-modules
-        # if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: |
-          make node_modules
-          # make channels/e2e-tests/playwright/node_modules
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
       - name: ci/lint
         run: |
           npm run check
+
   check-i18n:
     runs-on: ubuntu-22.04
     defaults:
@@ -48,26 +28,8 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: ci/setup-node
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        id: setup_node
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: 'webapp/package-lock.json'
-      # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
-      #   id: npm-cache
-      #   with:
-      #     path: |
-      #       '**/node_modules'
-      #       'e2e-tests/playwright/node_modules'
-      #       'e2e-tests/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
-      - name: ci/get-node-modules
-        # if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: |
-          make node_modules
-          # make channels/e2e-tests/playwright/node_modules
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
       - name: ci/lint
         working-directory: webapp/channels
         run: |
@@ -80,16 +42,7 @@ jobs:
           npm run mmjstool -- i18n clean-empty --webapp-dir ./src --mobile-dir /tmp/fake-mobile-dir --check
           npm run mmjstool -- i18n check-empty-src --webapp-dir ./src --mobile-dir /tmp/fake-mobile-dir
           rm -rf tmp
-      - name: ci/lint-boards
-        working-directory: webapp/boards
-        run: |
-          npm run i18n-extract
-          git --no-pager diff --exit-code i18n/en.json || (echo "Please run \"cd webapp/boards && npm run i18n-extract\" and commit the changes in webapp/boards/i18n/en.json." && exit 1)
-      - name: ci/lint-playbooks
-        working-directory: webapp/playbooks
-        run: |
-          npm run i18n-extract
-          git --no-pager diff --exit-code i18n/en.json || (echo "Please run \"cd webapp/playbooks && npm run i18n-extract\" and commit the changes in webapp/playbooks/i18n/en.json." && exit 1)
+
   check-types:
     runs-on: ubuntu-22.04
     defaults:
@@ -98,32 +51,14 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: ci/setup-node
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        id: setup_node
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: 'webapp/package-lock.json'
-      # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
-      #   id: npm-cache
-      #   with:
-      #     path: |
-      #       '**/node_modules'
-      #       'e2e-tests/playwright/node_modules'
-      #       'e2e-tests/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
-      - name: ci/get-node-modules
-        # if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: |
-          make node_modules
-          # make channels/e2e-tests/playwright/node_modules
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
       - name: ci/lint
         run: |
           npm run check-types
+
   test:
     runs-on: ubuntu-22.04
-    needs: [check-types, check-i18n, check-lint]
     permissions:
       checks: write
       pull-requests: write
@@ -133,34 +68,14 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: ci/setup-node
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        id: setup_node
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: 'webapp/package-lock.json'
-      # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
-      #   id: npm-cache
-      #   with:
-      #     path: |
-      #       '**/node_modules'
-      #       'e2e-tests/playwright/node_modules'
-      #       'e2e-tests/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
-      - name: ci/get-node-modules
-        # if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: |
-          make node_modules
-          # make channels/e2e-tests/playwright/node_modules
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
       - name: ci/test
         env:
           NODE_OPTIONS: --max_old_space_size=5120
         run: |
-          npm run test-ci --workspace=boards
-          npm run test-ci --workspace=channels
-          npm run test-ci --workspace=platform/client
-          npm run test-ci --workspace=playbooks
+          npm run test-ci
+
   build:
     runs-on: ubuntu-22.04
     defaults:
@@ -169,29 +84,12 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: ci/setup-node
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        id: setup_node
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: 'webapp/package-lock.json'
-      # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
-      #   id: npm-cache
-      #   with:
-      #     path: |
-      #       '**/node_modules'
-      #       'e2e-tests/playwright/node_modules'
-      #       'e2e-tests/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
-      - name: ci/get-node-modules
-        # if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: |
-          make node_modules
-          # make channels/e2e-tests/playwright/node_modules
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
       - name: ci/build
         run: |
           npm run build
+
   # run-performance-bechmarks:
   #   uses: ./.github/workflows/performance-benchmarks.yml
   #   needs: build

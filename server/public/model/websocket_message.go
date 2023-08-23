@@ -48,6 +48,7 @@ const (
 	WebsocketEventResponse                            = "response"
 	WebsocketEventEmojiAdded                          = "emoji_added"
 	WebsocketEventChannelViewed                       = "channel_viewed"
+	WebsocketEventMultipleChannelsViewed              = "multiple_channels_viewed"
 	WebsocketEventPluginStatusesChanged               = "plugin_statuses_changed"
 	WebsocketEventPluginEnabled                       = "plugin_enabled"
 	WebsocketEventPluginDisabled                      = "plugin_disabled"
@@ -81,6 +82,7 @@ const (
 	WebsocketEventDraftDeleted                        = "draft_deleted"
 	WebsocketEventAcknowledgementAdded                = "post_acknowledgement_added"
 	WebsocketEventAcknowledgementRemoved              = "post_acknowledgement_removed"
+	WebsocketEventPersistentNotificationTriggered     = "persistent_notification_triggered"
 	WebsocketEventHostedCustomerSignupProgressUpdated = "hosted_customer_signup_progress_updated"
 )
 
@@ -176,16 +178,16 @@ type WebSocketEvent struct {
 // PrecomputeJSON precomputes and stores the serialized JSON for all fields other than Sequence.
 // This makes ToJSON much more efficient when sending the same event to multiple connections.
 func (ev *WebSocketEvent) PrecomputeJSON() *WebSocketEvent {
-	copy := ev.Copy()
-	event, _ := json.Marshal(copy.event)
-	data, _ := json.Marshal(copy.data)
-	broadcast, _ := json.Marshal(copy.broadcast)
-	copy.precomputedJSON = &precomputedWebSocketEventJSON{
+	evCopy := ev.Copy()
+	event, _ := json.Marshal(evCopy.event)
+	data, _ := json.Marshal(evCopy.data)
+	broadcast, _ := json.Marshal(evCopy.broadcast)
+	evCopy.precomputedJSON = &precomputedWebSocketEventJSON{
 		Event:     json.RawMessage(event),
 		Data:      json.RawMessage(data),
 		Broadcast: json.RawMessage(broadcast),
 	}
-	return copy
+	return evCopy
 }
 
 func (ev *WebSocketEvent) Add(key string, value any) {
@@ -206,14 +208,14 @@ func NewWebSocketEvent(event, teamId, channelId, userId string, omitUsers map[st
 }
 
 func (ev *WebSocketEvent) Copy() *WebSocketEvent {
-	copy := &WebSocketEvent{
+	evCopy := &WebSocketEvent{
 		event:           ev.event,
 		data:            ev.data,
 		broadcast:       ev.broadcast,
 		sequence:        ev.sequence,
 		precomputedJSON: ev.precomputedJSON,
 	}
-	return copy
+	return evCopy
 }
 
 func (ev *WebSocketEvent) DeepCopy() *WebSocketEvent {
@@ -225,14 +227,14 @@ func (ev *WebSocketEvent) DeepCopy() *WebSocketEvent {
 		}
 	}
 
-	copy := &WebSocketEvent{
+	evCopy := &WebSocketEvent{
 		event:           ev.event,
 		data:            dataCopy,
 		broadcast:       ev.broadcast.copy(),
 		sequence:        ev.sequence,
 		precomputedJSON: ev.precomputedJSON.copy(),
 	}
-	return copy
+	return evCopy
 }
 
 func (ev *WebSocketEvent) GetData() map[string]any {
@@ -248,27 +250,27 @@ func (ev *WebSocketEvent) GetSequence() int64 {
 }
 
 func (ev *WebSocketEvent) SetEvent(event string) *WebSocketEvent {
-	copy := ev.Copy()
-	copy.event = event
-	return copy
+	evCopy := ev.Copy()
+	evCopy.event = event
+	return evCopy
 }
 
 func (ev *WebSocketEvent) SetData(data map[string]any) *WebSocketEvent {
-	copy := ev.Copy()
-	copy.data = data
-	return copy
+	evCopy := ev.Copy()
+	evCopy.data = data
+	return evCopy
 }
 
 func (ev *WebSocketEvent) SetBroadcast(broadcast *WebsocketBroadcast) *WebSocketEvent {
-	copy := ev.Copy()
-	copy.broadcast = broadcast
-	return copy
+	evCopy := ev.Copy()
+	evCopy.broadcast = broadcast
+	return evCopy
 }
 
 func (ev *WebSocketEvent) SetSequence(seq int64) *WebSocketEvent {
-	copy := ev.Copy()
-	copy.sequence = seq
-	return copy
+	evCopy := ev.Copy()
+	evCopy.sequence = seq
+	return evCopy
 }
 
 func (ev *WebSocketEvent) IsValid() bool {

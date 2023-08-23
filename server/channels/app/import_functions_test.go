@@ -14,13 +14,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 func TestImportImportScheme(t *testing.T) {
@@ -4189,7 +4189,7 @@ func TestImportImportEmoji(t *testing.T) {
 	data = imports.EmojiImportData{Name: ptrStr(model.NewId()), Image: ptrStr(largeImage)}
 	appErr = th.App.importEmoji(th.Context, &data, false)
 	require.NotNil(t, appErr)
-	require.ErrorIs(t, appErr.Unwrap(), utils.SizeLimitExceeded)
+	require.ErrorIs(t, appErr.Unwrap(), utils.ErrSizeLimitExceeded)
 }
 
 func TestImportAttachment(t *testing.T) {

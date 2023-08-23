@@ -18,7 +18,6 @@ import {
     isIosChrome,
     isMobileApp,
 } from 'utils/user_agent';
-import {getTable} from 'utils/paste';
 import {
     clearFileInput,
     generateId,
@@ -120,7 +119,7 @@ export type Props = {
     /**
      * Function to be called when upload fails
      */
-    onUploadError: (err: string | ServerError, clientId?: string, channelId?: string, currentRootId?: string) => void;
+    onUploadError: (err: string | ServerError | null, clientId?: string, channelId?: string, currentRootId?: string) => void;
 
     /**
      * Function to be called when file upload starts
@@ -222,13 +221,13 @@ export class FileUpload extends PureComponent<Props, State> {
 
     pluginUploadFiles = (files: File[]) => {
         // clear any existing errors
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
         this.uploadFiles(files);
     };
 
     checkPluginHooksAndUploadFiles = (files: FileList | File[]) => {
         // clear any existing errors
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
 
         let sortedFiles = Array.from(files).sort((a, b) => a.name.localeCompare(b.name, this.props.locale, {numeric: true}));
 
@@ -335,7 +334,7 @@ export class FileUpload extends PureComponent<Props, State> {
             return;
         }
 
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
 
         const items = e.dataTransfer.items || [];
         const droppedFiles = e.dataTransfer.files;
@@ -451,7 +450,7 @@ export class FileUpload extends PureComponent<Props, State> {
     pasteUpload = (e: ClipboardEvent) => {
         const {formatMessage} = this.props.intl;
 
-        if (!e.clipboardData || !e.clipboardData.items || getTable(e.clipboardData)) {
+        if (!e.clipboardData || !e.clipboardData.items || e.clipboardData.getData('text/html')) {
             return;
         }
 
@@ -460,7 +459,7 @@ export class FileUpload extends PureComponent<Props, State> {
             return;
         }
 
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
 
         const items = [];
         for (let i = 0; i < e.clipboardData.items.length; i++) {

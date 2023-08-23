@@ -16,6 +16,7 @@ import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostRecentReactions from 'components/post_view/post_recent_reactions';
 import PostReaction from 'components/post_view/post_reaction';
 import CommentIcon from 'components/common/comment_icon';
+import {PluginComponent} from 'types/store/plugins';
 
 import {Emoji} from '@mattermost/types/emojis';
 import {Post} from '@mattermost/types/posts';
@@ -29,7 +30,6 @@ type Props = {
     enableEmojiPicker?: boolean;
     isReadOnly?: boolean;
     channelIsArchived?: boolean;
-    setActionsMenuInitialisationState: (initializationState: Record<string, boolean>) => void;
     handleCommentClick?: (e: React.MouseEvent) => void;
     handleJumpClick?: (e: React.MouseEvent) => void;
     handleDropdownOpened?: (e: boolean) => void;
@@ -42,7 +42,6 @@ type Props = {
     isMobileView: boolean;
     hasReplies?: boolean;
     isFirstReply?: boolean;
-    isSearchResultsItem?: boolean;
     canReply?: boolean;
     replyCount?: number;
     location: keyof typeof Locations;
@@ -50,6 +49,8 @@ type Props = {
     shortcutReactToLastPostEmittedFrom?: string;
     isPostHeaderVisible?: boolean | null;
     isPostBeingEdited?: boolean;
+    canDelete?: boolean;
+    pluginActions: PluginComponent[];
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
     };
@@ -84,7 +85,9 @@ const PostOptions = (props: Props): JSX.Element => {
     const systemMessage = isSystemMessage(post);
     const isFromAutoResponder = fromAutoResponder(post);
 
-    const removePost = () => props.removePost(props.post);
+    function removePost() {
+        props.removePost(props.post);
+    }
 
     const toggleEmojiPicker = () => {
         setShowEmojiPicker(!showEmojiPicker);
@@ -174,6 +177,24 @@ const PostOptions = (props: Props): JSX.Element => {
             isMenuOpen={showActionsMenu}
         />
     );
+
+    let pluginItems: ReactNode = null;
+    if ((!isEphemeral && !post.failed && !systemMessage) && hoverLocal) {
+        pluginItems = props.pluginActions?.
+            map((item) => {
+                if (item.component) {
+                    const Component = item.component as any;
+                    return (
+                        <Component
+                            post={props.post}
+                            key={item.id}
+                        />
+                    );
+                }
+                return null;
+            }) || [];
+    }
+
     const dotMenu = (
         <DotMenu
             post={props.post}
@@ -201,7 +222,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 </button>
             </div>
         );
-    } else if (isPostDeleted) {
+    } else if (isPostDeleted || (systemMessage && !props.canDelete)) {
         options = null;
     } else if (props.location === Locations.SEARCH) {
         const hasCRTFooter = props.collapsedThreadsEnabled && !post.root_id && (post.reply_count > 0 || post.is_following);
@@ -242,6 +263,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 {showRecentReactions}
                 {postReaction}
                 {flagIcon}
+                {pluginItems}
                 {actionsMenu}
                 {commentIcon}
                 {(collapsedThreadsEnabled || showRecentlyUsedReactions) && dotMenu}

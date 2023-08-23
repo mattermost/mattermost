@@ -3,12 +3,10 @@
 
 import React from 'react';
 
-import {screen} from '@testing-library/react';
-
 import * as redux from 'react-redux';
 import {Provider} from 'react-redux';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import * as cloudActions from 'actions/cloud';

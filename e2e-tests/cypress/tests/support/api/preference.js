@@ -428,15 +428,15 @@ Cypress.Commands.add('apiDisableTutorials', (userId) => {
         },
         {
             user_id: userId,
-            category: 'insights',
-            name: 'insights_tutorial_state',
-            value: '{"insights_modal_viewed":true}',
-        },
-        {
-            user_id: userId,
             category: 'drafts',
             name: 'drafts_tour_tip_showed',
             value: '{"drafts_tour_tip_showed":true}',
+        },
+        {
+            user_id: userId,
+            category: 'app_bar',
+            name: 'channel_with_board_tip_showed',
+            value: '{"channel_with_board_tip_showed":true}',
         },
     ];
 

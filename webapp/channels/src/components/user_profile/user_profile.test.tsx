@@ -5,6 +5,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {UserProfile as UserProfileType} from '@mattermost/types/users';
+import {Preferences} from 'mattermost-redux/constants';
 
 import UserProfile from './user_profile';
 
@@ -14,6 +15,7 @@ describe('components/UserProfile', () => {
         isBusy: false,
         user: {username: 'username'} as UserProfileType,
         userId: 'user_id',
+        theme: Preferences.THEMES.onyx,
     };
 
     test('should match snapshot', () => {

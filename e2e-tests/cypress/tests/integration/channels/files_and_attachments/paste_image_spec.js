@@ -41,6 +41,7 @@ describe('Paste Image', () => {
                     },
                 }],
                 types: [],
+                getData: () => {},
             }});
 
             cy.uiWaitForFileUploadPreview();

@@ -1,7 +1,10 @@
 name: Server CI PR
 on:
   pull_request:
-
+    paths:
+      - "server/**"
+      - "e2e-tests/**"
+      - ".github/**"
 env:
   go-version: "1.19.5"
 concurrency:
@@ -17,3 +20,4 @@ concurrency:
 jobs:
   pr-ci:
     uses: ./.github/workflows/server-ci-template.yml
+    secrets: inherit

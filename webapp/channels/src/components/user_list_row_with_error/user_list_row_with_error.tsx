@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {ConnectedComponent} from 'react-redux';
 
 import BotTag from 'components/widgets/tag/bot_tag';
+import Tag from 'components/widgets/tag/tag';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -154,6 +156,16 @@ export default class UserListRowWithError extends React.PureComponent<Props, Sta
                                 />
 
                                 {this.props.user.is_bot && <BotTag/>}
+                                {this.props.user.remote_id && (
+                                    <Tag
+                                        text={
+                                            <FormattedMessage
+                                                id='admin.user_item.remoteUser'
+                                                defaultMessage='Remote user'
+                                            />
+                                        }
+                                    />
+                                )}
                             </div>
                             <div
                                 id={userCountEmail || undefined}

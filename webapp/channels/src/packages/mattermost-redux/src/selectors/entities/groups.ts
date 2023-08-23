@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
-
+import {GlobalState} from '@mattermost/types/store';
 import {Group, GroupSource} from '@mattermost/types/groups';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {filterGroupsMatchingTerm, sortGroups} from 'mattermost-redux/utils/group_utils';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {UserMentionKey} from 'mattermost-redux/selectors/entities/users';
-import {GlobalState} from '@mattermost/types/store';
 
 import {getCurrentUserLocale} from './i18n';
 
@@ -33,6 +32,23 @@ function getGroupInfoForIds(groupsSet: Record<string, Group>, groupIds: string[]
 export function getAllGroups(state: GlobalState) {
     return state.entities.groups.groups;
 }
+
+export const getAllGroupsByName: (state: GlobalState) => Record<string, Group> = createSelector(
+    'getAllGroupsByName',
+    getAllGroups,
+    (groups) => {
+        const groupsByName: Record<string, Group> = {};
+
+        for (const id in groups) {
+            if (groups.hasOwnProperty(id)) {
+                const group = groups[id];
+                groupsByName[group.name] = group;
+            }
+        }
+
+        return groupsByName;
+    },
+);
 
 export function getMyGroupIds(state: GlobalState) {
     return state.entities.groups.myGroups;

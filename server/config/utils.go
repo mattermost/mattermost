@@ -10,10 +10,10 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // marshalConfig converts the given configuration into JSON bytes for persistence.
@@ -164,13 +164,7 @@ func FixInvalidLocales(cfg *model.Config) bool {
 // Merge merges two configs together. The receiver's values are overwritten with the patch's
 // values except when the patch's values are nil.
 func Merge(cfg *model.Config, patch *model.Config, mergeConfig *utils.MergeConfig) (*model.Config, error) {
-	ret, err := utils.Merge(cfg, patch, mergeConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	retCfg := ret.(model.Config)
-	return &retCfg, nil
+	return utils.Merge(cfg, patch, mergeConfig)
 }
 
 func IsDatabaseDSN(dsn string) bool {

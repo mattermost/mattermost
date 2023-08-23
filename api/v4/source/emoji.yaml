@@ -1,0 +1,308 @@
+  /api/v4/emoji:
+    post:
+      tags:
+        - emoji
+      summary: Create a custom emoji
+      description: |
+        Create a custom emoji for the team.
+        ##### Permissions
+        Must be authenticated.
+      operationId: CreateEmoji
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  description: A file to be uploaded
+                  type: string
+                  format: binary
+                emoji:
+                  description: A JSON object containing a `name` field with the name of the
+                    emoji and a `creator_id` field with the id of the
+                    authenticated user.
+                  type: string
+              required:
+                - image
+                - emoji
+      responses:
+        "201":
+          description: Emoji creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Emoji"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    get:
+      tags:
+        - emoji
+      summary: Get a list of custom emoji
+      description: >
+        Get a page of metadata for custom emoji on the system. Since server
+        version 4.7, sort using the `sort` query parameter.
+
+        ##### Permissions
+
+        Must be authenticated.
+      operationId: GetEmojiList
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of emojis per page.
+          schema:
+            type: integer
+            default: 60
+        - name: sort
+          in: query
+          description: Either blank for no sorting or "name" to sort by emoji names.
+            Minimum server version for sorting is 4.7.
+          schema:
+            type: string
+            default: ""
+      responses:
+        "200":
+          description: Emoji list retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Emoji"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/emoji/{emoji_id}":
+    get:
+      tags:
+        - emoji
+      summary: Get a custom emoji
+      description: |
+        Get some metadata for a custom emoji.
+        ##### Permissions
+        Must be authenticated.
+      operationId: GetEmoji
+      parameters:
+        - name: emoji_id
+          in: path
+          description: Emoji GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Emoji retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Emoji"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - emoji
+      summary: Delete a custom emoji
+      description: >
+        Delete a custom emoji.
+
+        ##### Permissions
+
+        Must have the `manage_team` or `manage_system` permissions or be the user who created the emoji.
+      operationId: DeleteEmoji
+      parameters:
+        - name: emoji_id
+          in: path
+          description: Emoji GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Emoji delete successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Emoji"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/emoji/name/{emoji_name}":
+    get:
+      tags:
+        - emoji
+      summary: Get a custom emoji by name
+      description: |
+        Get some metadata for a custom emoji using its name.
+        ##### Permissions
+        Must be authenticated.
+
+        __Minimum server version__: 4.7
+      operationId: GetEmojiByName
+      parameters:
+        - name: emoji_name
+          in: path
+          description: Emoji name
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Emoji retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Emoji"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/emoji/{emoji_id}/image":
+    get:
+      tags:
+        - emoji
+      summary: Get custom emoji image
+      description: |
+        Get the image for a custom emoji.
+        ##### Permissions
+        Must be authenticated.
+      operationId: GetEmojiImage
+      parameters:
+        - name: emoji_id
+          in: path
+          description: Emoji GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Emoji image retrieval successful
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/emoji/search:
+    post:
+      tags:
+        - emoji
+      summary: Search custom emoji
+      description: >
+        Search for custom emoji by name based on search criteria provided in the
+        request body. A maximum of 200 results are returned.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+
+        __Minimum server version__: 4.7
+      operationId: SearchEmoji
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - term
+              properties:
+                term:
+                  description: The term to match against the emoji name.
+                  type: string
+                prefix_only:
+                  description: Set to only search for names starting with the search term.
+                  type: string
+        description: Search criteria
+        required: true
+      responses:
+        "200":
+          description: Emoji list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Emoji"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/emoji/autocomplete:
+    get:
+      tags:
+        - emoji
+      summary: Autocomplete custom emoji
+      description: >
+        Get a list of custom emoji with names starting with or matching the
+        provided name. Returns a maximum of 100 results.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+
+        __Minimum server version__: 4.7
+      operationId: AutocompleteEmoji
+      parameters:
+        - name: name
+          in: query
+          description: The emoji name to search.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Emoji list retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Emoji"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

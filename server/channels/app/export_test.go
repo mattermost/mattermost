@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 func TestReactionsOfPost(t *testing.T) {
@@ -93,7 +93,7 @@ func TestExportUserChannels(t *testing.T) {
 		Value:    "true",
 	}
 
-	_, appErr := th.App.MarkChannelsAsViewed(th.Context, []string{th.BasicPost.ChannelId}, user.Id, "", true)
+	_, appErr := th.App.MarkChannelsAsViewed(th.Context, []string{th.BasicPost.ChannelId}, user.Id, "", true, th.App.IsCRTEnabledForUser(th.Context, user.Id))
 	require.Nil(t, appErr)
 
 	var preferences model.Preferences

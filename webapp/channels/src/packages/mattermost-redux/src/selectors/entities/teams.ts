@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
-
 import {Permissions} from 'mattermost-redux/constants';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig, isCompatibleWithJoinViewTeamPermissions} from 'mattermost-redux/selectors/entities/general';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
 
@@ -200,13 +199,8 @@ export const getMembersInTeam: (state: GlobalState, teamId: string) => RelationO
     },
 );
 
-export function getTeamMember(state: GlobalState, teamId: string, userId: string) {
-    const members = getMembersInTeams(state)[teamId];
-    if (members) {
-        return members[userId];
-    }
-
-    return null;
+export function getTeamMember(state: GlobalState, teamId: string, userId: string): TeamMembership | undefined {
+    return getMembersInTeams(state)[teamId]?.[userId];
 }
 
 export const getListableTeamIds: (state: GlobalState) => Array<Team['id']> = createIdsSelector(

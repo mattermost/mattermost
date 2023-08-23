@@ -1,0 +1,367 @@
+  /api/v4/oauth/apps:
+    post:
+      tags:
+        - OAuth
+      summary: Register OAuth app
+      description: >
+        Register an OAuth 2.0 client application with Mattermost as the service
+        provider.
+
+        ##### Permissions
+
+        Must have `manage_oauth` permission.
+      operationId: CreateOAuthApp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+                - callback_urls
+                - homepage
+              properties:
+                name:
+                  type: string
+                  description: The name of the client application
+                description:
+                  type: string
+                  description: A short description of the application
+                icon_url:
+                  type: string
+                  description: A URL to an icon to display with the application
+                callback_urls:
+                  type: array
+                  items:
+                    type: string
+                  description: A list of callback URLs for the appliation
+                homepage:
+                  type: string
+                  description: A link to the website of the application
+                is_trusted:
+                  type: boolean
+                  description: Set this to `true` to skip asking users for permission
+        description: OAuth application to register
+        required: true
+      responses:
+        "201":
+          description: App registration successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthApp"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    get:
+      tags:
+        - OAuth
+      summary: Get OAuth apps
+      description: >
+        Get a page of OAuth 2.0 client applications registered with Mattermost.
+
+        ##### Permissions
+
+        With `manage_oauth` permission, the apps registered by the logged in user are returned. With `manage_system_wide_oauth` permission, all apps regardless of creator are returned.
+      operationId: GetOAuthApps
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of apps per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: OAuthApp list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OAuthApp"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/oauth/apps/{app_id}":
+    get:
+      tags:
+        - OAuth
+      summary: Get an OAuth app
+      description: >
+        Get an OAuth 2.0 client application registered with Mattermost.
+
+        ##### Permissions
+
+        If app creator, must have `mange_oauth` permission otherwise `manage_system_wide_oauth` permission is required.
+      operationId: GetOAuthApp
+      parameters:
+        - name: app_id
+          in: path
+          description: Application client id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: App retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthApp"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    put:
+      tags:
+        - OAuth
+      summary: Update an OAuth app
+      description: >
+        Update an OAuth 2.0 client application based on OAuth struct.
+
+        ##### Permissions
+
+        If app creator, must have `mange_oauth` permission otherwise `manage_system_wide_oauth` permission is required.
+      operationId: UpdateOAuthApp
+      parameters:
+        - name: app_id
+          in: path
+          description: Application client id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - name
+                - description
+                - callback_urls
+                - homepage
+              properties:
+                id:
+                  type: string
+                  description: The id of the client application
+                name:
+                  type: string
+                  description: The name of the client application
+                description:
+                  type: string
+                  description: A short description of the application
+                icon_url:
+                  type: string
+                  description: A URL to an icon to display with the application
+                callback_urls:
+                  type: array
+                  items:
+                    type: string
+                  description: A list of callback URLs for the appliation
+                homepage:
+                  type: string
+                  description: A link to the website of the application
+                is_trusted:
+                  type: boolean
+                  description: Set this to `true` to skip asking users for permission. It
+                    will be set to false if value is not provided.
+        description: OAuth application to update
+        required: true
+      responses:
+        "200":
+          description: App update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthApp"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - OAuth
+      summary: Delete an OAuth app
+      description: >
+        Delete and unregister an OAuth 2.0 client application 
+
+        ##### Permissions
+
+        If app creator, must have `mange_oauth` permission otherwise `manage_system_wide_oauth` permission is required.
+      operationId: DeleteOAuthApp
+      parameters:
+        - name: app_id
+          in: path
+          description: Application client id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: App deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/oauth/apps/{app_id}/regen_secret":
+    post:
+      tags:
+        - OAuth
+      summary: Regenerate OAuth app secret
+      description: >
+        Regenerate the client secret for an OAuth 2.0 client application
+        registered with Mattermost.
+
+        ##### Permissions
+
+        If app creator, must have `mange_oauth` permission otherwise `manage_system_wide_oauth` permission is required.
+      operationId: RegenerateOAuthAppSecret
+      parameters:
+        - name: app_id
+          in: path
+          description: Application client id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Secret regeneration successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthApp"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/oauth/apps/{app_id}/info":
+    get:
+      tags:
+        - OAuth
+      summary: Get info on an OAuth app
+      description: >
+        Get public information about an OAuth 2.0 client application registered
+        with Mattermost. The application's client secret will be blanked out.
+
+        ##### Permissions
+
+        Must be authenticated.
+      operationId: GetOAuthAppInfo
+      parameters:
+        - name: app_id
+          in: path
+          description: Application client id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: App retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthApp"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/oauth/apps/authorized":
+    get:
+      tags:
+        - OAuth
+      summary: Get authorized OAuth apps
+      description: >
+        Get a page of OAuth 2.0 client applications authorized to access a
+        user's account.
+
+        ##### Permissions
+
+        Must be authenticated as the user or have `edit_other_users` permission.
+      operationId: GetAuthorizedOAuthAppsForUser
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of apps per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: OAuthApp list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OAuthApp"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

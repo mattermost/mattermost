@@ -65,17 +65,14 @@ describe('components/TextBox', () => {
                 onComposition={() => {}}
                 onHeightChange={() => {}}
                 onKeyDown={() => {}}
-                onSelect={() => {}}
                 onMouseUp={() => {}}
                 onKeyUp={() => {}}
                 onBlur={() => {}}
                 handlePostError={() => {}}
                 suggestionListPosition='top'
                 emojiEnabled={true}
-                isRHS={true}
                 disabled={true}
                 badConnection={true}
-                listenForMentionKeyClick={true}
                 preview={true}
                 openWhenEmpty={true}
             />,

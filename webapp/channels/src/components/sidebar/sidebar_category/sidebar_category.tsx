@@ -14,7 +14,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import {DraggingState} from 'types/store';
-import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates, Preferences, Touched} from 'utils/constants';
+import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isKeyPressed} from 'utils/keyboard';
 import SidebarChannel from '../sidebar_channel';
@@ -38,7 +38,6 @@ type Props = {
     isNewCategory: boolean;
     draggingState: DraggingState;
     currentUserId: string;
-    touchedInviteMembersButton: boolean;
     isAdmin: boolean;
     actions: {
         setCategoryCollapsed: (categoryId: string, collapsed: boolean) => void;
@@ -325,21 +324,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         inviteMembersButton = (
                             <InviteMembersButton
                                 className='followingSibling'
-                                touchedInviteMembersButton={this.props.touchedInviteMembersButton}
                                 isAdmin={this.props.isAdmin}
-                                onClick={() => {
-                                    if (!this.props.touchedInviteMembersButton) {
-                                        this.props.actions.savePreferences(
-                                            this.props.currentUserId,
-                                            [{
-                                                category: Preferences.TOUCHED,
-                                                user_id: this.props.currentUserId,
-                                                name: Touched.INVITE_MEMBERS,
-                                                value: 'true',
-                                            }],
-                                        );
-                                    }
-                                }}
                             />
                         );
                     }

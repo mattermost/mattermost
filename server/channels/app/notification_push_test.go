@@ -17,14 +17,14 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	fmocks "github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/config"
+	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
 func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
@@ -1454,19 +1454,20 @@ func TestPushNotificationRace(t *testing.T) {
 			ConfigStore: memoryStore,
 		},
 		platform.SetFileStore(&fmocks.FileBackend{}),
+		platform.SetExportFileStore(&fmocks.FileBackend{}),
 		platform.StoreOverride(mockStore))
 	require.NoError(t, err)
 	serviceMap := map[product.ServiceKey]any{
-		ServerKey:            s,
-		product.ConfigKey:    s.platform,
-		product.LicenseKey:   &licenseWrapper{s},
-		product.FilestoreKey: s.FileBackend(),
+		ServerKey:                  s,
+		product.ConfigKey:          s.platform,
+		product.LicenseKey:         &licenseWrapper{s},
+		product.FilestoreKey:       s.FileBackend(),
+		product.ExportFilestoreKey: s.ExportFileBackend(),
 	}
 	ch, err := NewChannels(serviceMap)
 	require.NoError(t, err)
 	s.products["channels"] = ch
 
-	app := New(ServerConnector(s.Channels()))
 	require.NotPanics(t, func() {
 		s.createPushNotificationsHub(th.Context)
 
@@ -1474,9 +1475,9 @@ func TestPushNotificationRace(t *testing.T) {
 
 		// Now we start sending messages after the PN hub is shut down.
 		// We test all 3 notification types.
-		app.clearPushNotification("currentSessionId", "userId", "channelId", "")
+		th.App.clearPushNotification("currentSessionId", "userId", "channelId", "")
 
-		app.UpdateMobileAppBadge("userId")
+		th.App.UpdateMobileAppBadge("userId")
 
 		notification := &PostNotification{
 			Post:    &model.Post{},
@@ -1486,7 +1487,7 @@ func TestPushNotificationRace(t *testing.T) {
 			},
 			Sender: &model.User{},
 		}
-		app.sendPushNotification(notification, &model.User{}, true, false, model.CommentsNotifyAny)
+		th.App.sendPushNotification(notification, &model.User{}, true, false, model.CommentsNotifyAny)
 	})
 }
 

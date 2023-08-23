@@ -24,12 +24,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 func newServer(t *testing.T) (*Server, error) {
@@ -42,6 +42,8 @@ func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, erro
 	store, err := config.NewStoreFromBacking(configStore, nil, false)
 	require.NoError(t, err)
 	cfg := store.Get()
+	*cfg.AnnouncementSettings.AdminNoticesEnabled = false
+	*cfg.AnnouncementSettings.UserNoticesEnabled = false
 	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	f(cfg)
 
@@ -110,6 +112,8 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 		AmazonS3SSL:             model.NewBool(false),
 	}
 	*cfg.ServiceSettings.ListenAddress = "localhost:0"
+	*cfg.AnnouncementSettings.AdminNoticesEnabled = false
+	*cfg.AnnouncementSettings.UserNoticesEnabled = false
 	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	_, _, err := store.Set(cfg)
 	require.NoError(t, err)
@@ -191,6 +195,8 @@ func TestStartServerTLSVersion(t *testing.T) {
 	cfg := store.Get()
 	testDir, _ := fileutils.FindDir("tests")
 
+	*cfg.AnnouncementSettings.AdminNoticesEnabled = false
+	*cfg.AnnouncementSettings.UserNoticesEnabled = false
 	*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 	*cfg.ServiceSettings.TLSMinVer = "1.2"
@@ -395,6 +401,22 @@ func TestSentry(t *testing.T) {
 	}}
 	testDir, _ := fileutils.FindDir("tests")
 
+	setSentryDSN := func(t *testing.T, dsn *sentry.Dsn) {
+		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
+
+		// Allow Playbooks to startup
+		oldBuildHash := model.BuildHash
+		model.BuildHash = "dev"
+
+		oldSentryDSN := SentryDSN
+		SentryDSN = dsn.String()
+		t.Cleanup(func() {
+			os.Unsetenv("MM_SERVICEENVIRONMENT")
+			model.BuildHash = oldBuildHash
+			SentryDSN = oldSentryDSN
+		})
+	}
+
 	t.Run("sentry is disabled, should not receive a report", func(t *testing.T) {
 		data := make(chan bool, 1)
 
@@ -408,7 +430,7 @@ func TestSentry(t *testing.T) {
 		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
 		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
 		require.NoError(t, err)
-		SentryDSN = dsn.String()
+		setSentryDSN(t, dsn)
 
 		s, err := newServerWithConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = "localhost:0"
@@ -452,7 +474,7 @@ func TestSentry(t *testing.T) {
 		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
 		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
 		require.NoError(t, err)
-		SentryDSN = dsn.String()
+		setSentryDSN(t, dsn)
 
 		s, err := newServerWithConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = "localhost:0"
@@ -493,4 +515,63 @@ func TestCancelTaskSetsTaskToNil(t *testing.T) {
 	cancelTask(&taskMut, &task)
 	require.Nil(t, task)
 	require.NotPanics(t, func() { cancelTask(&taskMut, &task) })
+}
+
+func TestOriginChecker(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowCorsFrom = ""
+	})
+
+	tcs := []struct {
+		SiteURL      string
+		HeaderScheme string
+		HeaderHost   string
+		Pass         bool
+	}{
+		{
+			HeaderHost:   "test.com",
+			HeaderScheme: "https://",
+			SiteURL:      "https://test.com",
+			Pass:         true,
+		},
+		{
+			HeaderHost:   "test.com",
+			HeaderScheme: "http://",
+			SiteURL:      "https://test.com",
+			Pass:         false,
+		},
+		{
+			HeaderHost:   "test.com",
+			HeaderScheme: "https://",
+			SiteURL:      "https://www.test.com",
+			Pass:         false,
+		},
+		{
+			HeaderHost:   "example.com",
+			HeaderScheme: "http://",
+			SiteURL:      "http://test.com",
+			Pass:         false,
+		},
+		{
+			HeaderHost:   "null",
+			HeaderScheme: "",
+			SiteURL:      "http://test.com",
+			Pass:         false,
+		},
+	}
+
+	for i, tc := range tcs {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = tc.SiteURL
+		})
+
+		r := &http.Request{
+			Header: http.Header{"Origin": []string{fmt.Sprintf("%s%s", tc.HeaderScheme, tc.HeaderHost)}},
+		}
+		res := th.App.OriginChecker()(r)
+		require.Equalf(t, tc.Pass, res, "Test case (%d)", i)
+	}
 }

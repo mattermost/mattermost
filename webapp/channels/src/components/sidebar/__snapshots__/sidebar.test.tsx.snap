@@ -17,7 +17,6 @@ exports[`components/sidebar should match snapshot 1`] = `
     showCreateUserGroupModal={[Function]}
     showMoreChannelsModal={[Function]}
     showNewChannelModal={[Function]}
-    showWorkTemplateButton={true}
     unreadFilterEnabled={false}
     userGroupsEnabled={false}
   />
@@ -28,18 +27,7 @@ exports[`components/sidebar should match snapshot 1`] = `
     id="lhsNavigator"
     role="application"
   >
-    <Connect(ChannelNavigator)
-      canCreateChannel={true}
-      canJoinPublicChannel={true}
-      handleOpenDirectMessagesModal={[Function]}
-      invitePeopleModal={[Function]}
-      showCreateCategoryModal={[Function]}
-      showCreateUserGroupModal={[Function]}
-      showMoreChannelsModal={[Function]}
-      showNewChannelModal={[Function]}
-      unreadFilterEnabled={false}
-      userGroupsEnabled={false}
-    />
+    <Connect(ChannelNavigator) />
   </div>
   <div
     className="sidebar--left__icons"
@@ -72,7 +60,6 @@ exports[`components/sidebar should match snapshot when direct channels modal is 
     showCreateUserGroupModal={[Function]}
     showMoreChannelsModal={[Function]}
     showNewChannelModal={[Function]}
-    showWorkTemplateButton={true}
     unreadFilterEnabled={false}
     userGroupsEnabled={false}
   />
@@ -83,18 +70,7 @@ exports[`components/sidebar should match snapshot when direct channels modal is 
     id="lhsNavigator"
     role="application"
   >
-    <Connect(ChannelNavigator)
-      canCreateChannel={true}
-      canJoinPublicChannel={true}
-      handleOpenDirectMessagesModal={[Function]}
-      invitePeopleModal={[Function]}
-      showCreateCategoryModal={[Function]}
-      showCreateUserGroupModal={[Function]}
-      showMoreChannelsModal={[Function]}
-      showNewChannelModal={[Function]}
-      unreadFilterEnabled={false}
-      userGroupsEnabled={false}
-    />
+    <Connect(ChannelNavigator) />
   </div>
   <div
     className="sidebar--left__icons"
@@ -131,7 +107,6 @@ exports[`components/sidebar should match snapshot when more channels modal is op
     showCreateUserGroupModal={[Function]}
     showMoreChannelsModal={[Function]}
     showNewChannelModal={[Function]}
-    showWorkTemplateButton={true}
     unreadFilterEnabled={false}
     userGroupsEnabled={false}
   />
@@ -142,18 +117,7 @@ exports[`components/sidebar should match snapshot when more channels modal is op
     id="lhsNavigator"
     role="application"
   >
-    <Connect(ChannelNavigator)
-      canCreateChannel={true}
-      canJoinPublicChannel={true}
-      handleOpenDirectMessagesModal={[Function]}
-      invitePeopleModal={[Function]}
-      showCreateCategoryModal={[Function]}
-      showCreateUserGroupModal={[Function]}
-      showMoreChannelsModal={[Function]}
-      showNewChannelModal={[Function]}
-      unreadFilterEnabled={false}
-      userGroupsEnabled={false}
-    />
+    <Connect(ChannelNavigator) />
   </div>
   <div
     className="sidebar--left__icons"
