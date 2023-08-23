@@ -3159,7 +3159,6 @@ type MessageExportSettings struct {
 
 	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
 	GlobalRelaySettings *GlobalRelayMessageExportSettings `access:"compliance_compliance_export"`
-	WranglerSettings    WranglerSettings                  `access:"compliance_compliance_export"`
 }
 
 func (s *MessageExportSettings) SetDefaults() {
