@@ -19,7 +19,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -2204,92 +2203,4 @@ func TestConfigurationWillBeSavedHook(t *testing.T) {
 			"custom_key": "custom_val",
 		}, newCfg.PluginSettings.Plugins["custom_plugin"])
 	})
-}
-
-func TestSendPushNotification(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping TestSendPushNotification test in short mode")
-	}
-
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	api := th.SetupPluginAPI()
-
-	// Create 3 users, each having 2 sessions.
-	type userSession struct {
-		user    *model.User
-		session *model.Session
-	}
-	var userSessions []userSession
-	for i := 0; i < 3; i++ {
-		u := th.CreateUser()
-		sess, err := th.App.CreateSession(&model.Session{
-			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
-			ExpiresAt: model.GetMillis() + 100000,
-		})
-		require.Nil(t, err)
-		// We don't need to track the 2nd session.
-		_, err = th.App.CreateSession(&model.Session{
-			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
-			ExpiresAt: model.GetMillis() + 100000,
-		})
-		require.Nil(t, err)
-		_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, u.Id)
-		require.Nil(t, err)
-		th.AddUserToChannel(u, th.BasicChannel)
-		userSessions = append(userSessions, userSession{
-			user:    u,
-			session: sess,
-		})
-	}
-
-	handler := &testPushNotificationHandler{
-		t:        t,
-		behavior: "simple",
-	}
-	pushServer := httptest.NewServer(
-		http.HandlerFunc(handler.handleReq),
-	)
-	defer pushServer.Close()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.EmailSettings.PushNotificationContents = model.FullNotification
-		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
-	})
-
-	var wg sync.WaitGroup
-	for _, data := range userSessions {
-		wg.Add(1)
-		go func(user model.User) {
-			defer wg.Done()
-			post := th.CreatePost(th.BasicChannel)
-			post.Message = "started a conversation"
-			notification := &model.PluginPushNotification{
-				Post:    post,
-				Channel: th.BasicChannel,
-				UserID:  user.Id,
-			}
-			appErr := api.SendPluginPushNotification(notification)
-			require.NoError(t, appErr)
-		}(*data.user)
-	}
-	wg.Wait()
-
-	// Hack to let the worker goroutines complete.
-	time.Sleep(1 * time.Second)
-	// Server side verification.
-	var numMessages int
-	for _, n := range handler.notifications() {
-		switch n.Type {
-		case model.PushTypeMessage:
-			numMessages++
-			assert.Equal(t, th.BasicChannel.Id, n.ChannelId)
-			assert.Equal(t, fmt.Sprintf("@%s: started a conversation", th.BasicUser.GetDisplayName(model.ShowUsername)), n.Message)
-		default:
-			assert.Fail(t, "should not receive any other push notification types")
-		}
-	}
-	assert.Equal(t, 6, numMessages)
 }

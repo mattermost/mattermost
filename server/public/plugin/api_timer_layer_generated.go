@@ -1266,10 +1266,3 @@ func (api *apiTimerLayer) GetUploadSession(uploadID string) (*model.UploadSessio
 	api.recordTime(startTime, "GetUploadSession", _returnsB == nil)
 	return _returnsA, _returnsB
 }
-
-func (api *apiTimerLayer) SendPluginPushNotification(notification *model.PluginPushNotification) error {
-	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SendPluginPushNotification(notification)
-	api.recordTime(startTime, "SendPluginPushNotification", _returnsA == nil)
-	return _returnsA
-}

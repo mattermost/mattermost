@@ -3639,20 +3639,6 @@ func (_m *API) SendMail(to string, subject string, htmlBody string) *model.AppEr
 	return r0
 }
 
-// SendPluginPushNotification provides a mock function with given fields: notification
-func (_m *API) SendPluginPushNotification(notification *model.PluginPushNotification) error {
-	ret := _m.Called(notification)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.PluginPushNotification) error); ok {
-		r0 = rf(notification)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // SetProfileImage provides a mock function with given fields: userID, data
 func (_m *API) SetProfileImage(userID string, data []byte) *model.AppError {
 	ret := _m.Called(userID, data)

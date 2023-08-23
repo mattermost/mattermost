@@ -1180,15 +1180,6 @@ type API interface {
 	// @tag Upload
 	// Minimum server version: 7.6
 	GetUploadSession(uploadID string) (*model.UploadSession, error)
-
-	// SendPluginPushNotification will attempt to send a push notification to `notification.User`, using
-	// `notification.Post` as the source of the notification. The server will use the PluginPushNotification
-	// data to construct the final push notification according to the server's configuration and license. Refer
-	// to `App.BuildPushNotificationMessage` for the logic used to construct the push notification.
-	// Note: the NotificationWillBePushed hook will be run after SendPluginPushNotification is called.
-	//
-	// Minimum server version: 9.0
-	SendPluginPushNotification(notification *model.PluginPushNotification) error
 }
 
 var handshake = plugin.HandshakeConfig{
