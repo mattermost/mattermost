@@ -2392,6 +2392,10 @@
     }
   },
   {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Thread moving is disabled"
+  },
+  {
     "id": "api.post.move_thread.no_permission",
     "translation": "You do not have permission to move this thread."
   },
