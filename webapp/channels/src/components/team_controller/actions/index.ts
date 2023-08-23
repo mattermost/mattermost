@@ -52,7 +52,6 @@ export function initializeTeam(team: Team): ActionFunc<Team, ServerError> {
             license.IsLicensed === 'true' &&
             (license.LDAPGroups === 'true' || customGroupEnabled)) {
             const groupsParams: GetGroupsParams = {
-                query: '',
                 filter_allow_reference: false,
                 page: 0,
                 per_page: 60,

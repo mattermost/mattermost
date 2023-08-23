@@ -151,7 +151,6 @@ export type GroupCreateWithUserIds = {
 }
 
 export type GetGroupsParams = {
-    query?: string
     filter_allow_reference?: boolean;
     page?: number;
     per_page?: number;
