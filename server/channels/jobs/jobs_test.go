@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -524,6 +525,7 @@ func TestHandleJobPanic(t *testing.T) {
 		job := &model.Job{
 			Type:   model.JobTypeImportProcess,
 			Status: model.JobStatusInProgress,
+			Logger: mlog.CreateConsoleTestLogger(t, true),
 		}
 		job.InitLogger(logger)
 
@@ -546,6 +548,7 @@ func TestHandleJobPanic(t *testing.T) {
 		job := &model.Job{
 			Type:   model.JobTypeImportProcess,
 			Status: model.JobStatusInProgress,
+			Logger: mlog.CreateConsoleTestLogger(t, true),
 		}
 		job.InitLogger(logger)
 
@@ -577,7 +580,7 @@ func TestRequestCancellation(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 
 		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusCanceled).Return(true, nil)
-		mockStore.JobStore.On("Get", "job_id").Return(nil, &store.ErrNotFound{})
+		mockStore.JobStore.On("Get", mock.AnythingOfType("*request.Context"), "job_id").Return(nil, &store.ErrNotFound{})
 
 		err := jobServer.RequestCancellation(ctx, "job_id")
 		expectErrorId(t, "app.job.update.app_error", err)
@@ -592,7 +595,7 @@ func TestRequestCancellation(t *testing.T) {
 		}
 
 		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusCanceled).Return(true, nil)
-		mockStore.JobStore.On("Get", "job_id").Return(job, nil)
+		mockStore.JobStore.On("Get", mock.AnythingOfType("*request.Context"), "job_id").Return(job, nil)
 		mockMetrics.On("DecrementJobActive", "job_type")
 
 		err := jobServer.RequestCancellation(ctx, "job_id")
