@@ -47,6 +47,7 @@ jobs:
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
+            --env MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS="true" \
             -v $(go env GOCACHE):/go/cache \
             -e GOCACHE=/go/cache \
             -v $PWD:/mattermost \
