@@ -11,9 +11,7 @@ jest.mock('selectors/drafts', () => ({
 }));
 
 jest.mock('mattermost-redux/selectors/entities/preferences', () => ({
-    insightsAreEnabled: jest.fn(),
     isCollapsedThreadsEnabled: jest.fn(),
-    localDraftsAreEnabled: jest.fn(),
 }));
 
 beforeEach(() => {
@@ -56,32 +54,14 @@ describe('Selectors.Lhs', () => {
         });
 
         it('handles nothing enabled', () => {
-            jest.spyOn(PreferencesSelectors, 'insightsAreEnabled').mockImplementationOnce(() => false);
             jest.spyOn(PreferencesSelectors, 'isCollapsedThreadsEnabled').mockImplementationOnce(() => false);
-            jest.spyOn(PreferencesSelectors, 'localDraftsAreEnabled').mockImplementationOnce(() => false);
             jest.spyOn(Lhs, 'getDraftsCount').mockImplementationOnce(() => 0);
             const items = Lhs.getVisibleStaticPages(state as GlobalState);
             expect(items).toEqual([]);
         });
 
-        it('handles insights', () => {
-            jest.spyOn(PreferencesSelectors, 'insightsAreEnabled').mockImplementation(() => true);
-            jest.spyOn(PreferencesSelectors, 'isCollapsedThreadsEnabled').mockImplementation(() => false);
-            jest.spyOn(PreferencesSelectors, 'localDraftsAreEnabled').mockImplementation(() => false);
-            jest.spyOn(Lhs, 'getDraftsCount').mockImplementationOnce(() => 0);
-            const items = Lhs.getVisibleStaticPages(state as GlobalState);
-            expect(items).toEqual([
-                {
-                    id: 'activity-and-insights',
-                    isVisible: true,
-                },
-            ]);
-        });
-
         it('handles threads - default off', () => {
-            jest.spyOn(PreferencesSelectors, 'insightsAreEnabled').mockImplementation(() => false);
             jest.spyOn(PreferencesSelectors, 'isCollapsedThreadsEnabled').mockImplementation(() => true);
-            jest.spyOn(PreferencesSelectors, 'localDraftsAreEnabled').mockImplementation(() => false);
             jest.spyOn(Lhs, 'getDraftsCount').mockImplementationOnce(() => 0);
             const items = Lhs.getVisibleStaticPages(state as GlobalState);
             expect(items).toEqual([
@@ -93,18 +73,14 @@ describe('Selectors.Lhs', () => {
         });
 
         it('should not return drafts when empty', () => {
-            jest.spyOn(PreferencesSelectors, 'insightsAreEnabled').mockImplementation(() => false);
             jest.spyOn(PreferencesSelectors, 'isCollapsedThreadsEnabled').mockImplementation(() => false);
-            jest.spyOn(PreferencesSelectors, 'localDraftsAreEnabled').mockImplementation(() => true);
             jest.spyOn(Lhs, 'getDraftsCount').mockImplementationOnce(() => 0);
             const items = Lhs.getVisibleStaticPages(state as GlobalState);
             expect(items).toEqual([]);
         });
 
         it('should return drafts when there are available', () => {
-            jest.spyOn(PreferencesSelectors, 'insightsAreEnabled').mockImplementation(() => false);
             jest.spyOn(PreferencesSelectors, 'isCollapsedThreadsEnabled').mockImplementation(() => false);
-            jest.spyOn(PreferencesSelectors, 'localDraftsAreEnabled').mockImplementation(() => true);
             jest.spyOn(Lhs, 'getDraftsCount').mockImplementationOnce(() => 1);
             const items = Lhs.getVisibleStaticPages(state as GlobalState);
             expect(items).toEqual([

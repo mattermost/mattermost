@@ -15,8 +15,8 @@ import WebSocketClient from 'client/web_websocket_client.jsx';
 import BrowserStore from 'stores/browser_store';
 import {UserProfile} from '@mattermost/types/users';
 import {Channel} from '@mattermost/types/channels';
-
-const BACKSPACE_CHAR = 8;
+import {isKeyPressed} from 'utils/keyboard';
+import Constants from 'utils/constants';
 
 declare global {
     interface Window {
@@ -29,13 +29,15 @@ declare global {
 export type Props = {
     currentUser?: UserProfile;
     currentChannelId?: string;
+    isCurrentChannelManuallyUnread: boolean;
     children?: React.ReactNode;
     mfaRequired: boolean;
     enableTimezone: boolean;
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
         getChannelURLAction: (channel: Channel, teamId: string, url: string) => void;
-        viewChannel: (channelId: string, prevChannelId?: string) => void;
+        markChannelAsViewedOnServer: (channelId: string) => void;
+        updateApproximateViewTime: (channelId: string) => void;
     };
     showTermsOfService: boolean;
     location: {
@@ -205,8 +207,20 @@ export default class LoggedIn extends React.PureComponent<Props> {
 
     private handleBackSpace = (e: KeyboardEvent): void => {
         const excludedElements = ['input', 'textarea'];
+        const targetElement = e.target as HTMLElement;
 
-        if (e.which === BACKSPACE_CHAR && !(excludedElements.includes((e.target as HTMLElement).tagName.toLowerCase()))) {
+        if (!targetElement) {
+            return;
+        }
+
+        const targetsTagName = targetElement.tagName.toLowerCase();
+        const isTargetNotContentEditable = targetElement.getAttribute?.('contenteditable') !== 'true';
+
+        if (
+            isKeyPressed(e, Constants.KeyCodes.BACKSPACE) &&
+            !(excludedElements.includes(targetsTagName)) &&
+            isTargetNotContentEditable
+        ) {
             e.preventDefault();
         }
     };
@@ -214,8 +228,9 @@ export default class LoggedIn extends React.PureComponent<Props> {
     private handleBeforeUnload = (): void => {
         // remove the event listener to prevent getting stuck in a loop
         window.removeEventListener('beforeunload', this.handleBeforeUnload);
-        if (document.cookie.indexOf('MMUSERID=') > -1) {
-            this.props.actions.viewChannel('', this.props.currentChannelId || '');
+        if (document.cookie.indexOf('MMUSERID=') > -1 && this.props.currentChannelId && !this.props.isCurrentChannelManuallyUnread) {
+            this.props.actions.updateApproximateViewTime(this.props.currentChannelId);
+            this.props.actions.markChannelAsViewedOnServer(this.props.currentChannelId);
         }
         WebSocketActions.close();
     };

@@ -8,9 +8,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 type LocalCacheEmojiStore struct {
@@ -90,12 +90,50 @@ func (es *LocalCacheEmojiStore) GetByName(ctx context.Context, name string, allo
 	es.emojiByNameMut.Unlock()
 
 	emoji, err := es.EmojiStore.GetByName(ctx, name, allowFromCache)
+	if err != nil {
+		return nil, err
+	}
 
-	if allowFromCache && err == nil {
+	if allowFromCache {
 		es.addToCache(emoji)
 	}
 
-	return emoji, err
+	return emoji, nil
+}
+
+func (es *LocalCacheEmojiStore) GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error) {
+	emojis := []*model.Emoji{}
+	remainingEmojiNames := make([]string, 0)
+
+	for _, name := range names {
+		if emoji, ok := es.getFromCacheByName(name); ok {
+			emojis = append(emojis, emoji)
+		} else {
+			// If it was invalidated, then we need to query master.
+			es.emojiByNameMut.Lock()
+			if es.emojiByNameInvalidations[name] {
+				ctx = sqlstore.WithMaster(ctx)
+				// And then remove the key from the map.
+				delete(es.emojiByNameInvalidations, name)
+			}
+			es.emojiByNameMut.Unlock()
+
+			remainingEmojiNames = append(remainingEmojiNames, name)
+		}
+	}
+
+	if len(remainingEmojiNames) > 0 {
+		remainingEmojis, err := es.EmojiStore.GetMultipleByName(ctx, remainingEmojiNames)
+		if err != nil {
+			return nil, err
+		}
+		for _, emoji := range remainingEmojis {
+			es.addToCache(emoji)
+			emojis = append(emojis, emoji)
+		}
+	}
+
+	return emojis, nil
 }
 
 func (es *LocalCacheEmojiStore) Delete(emoji *model.Emoji, time int64) error {

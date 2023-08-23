@@ -235,7 +235,6 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
   <ProfilePicture
     hasMention={false}
     isEmoji={false}
-    isRHS={false}
     popoverPlacement="right"
     size="md"
     src="/api/v4/users/user-1/image"
@@ -248,15 +247,12 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     <div
       className="more-modal__name"
     >
-      <span>
+      <span
+        className="d-flex"
+      >
+        <span />
         <span
-          className="light"
-          style={
-            Object {
-              "position": "absolute",
-              "right": 20,
-            }
-          }
+          className="ml-2 light flex-auto"
         />
       </span>
     </div>

@@ -3,9 +3,9 @@
 
 import React from 'react';
 
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+
 import FloatingTimestamp from './floating_timestamp';
-import {screen} from '@testing-library/react';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 
 describe('components/post_view/FloatingTimestamp', () => {
     const baseProps = {

@@ -9,7 +9,7 @@ import (
 
 	plugin "github.com/hashicorp/go-plugin"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // The API can be used to retrieve data or perform actions on behalf of the plugin. Most methods
@@ -1158,13 +1158,7 @@ type API interface {
 	// Minimum server version: 7.1
 	EnsureBotUser(bot *model.Bot) (string, error)
 
-	// RegisterCollectionAndTopic informs the server that this plugin handles
-	// the given collection and topic types.
-	//
-	// It is an error for different plugins to register the same pair of types,
-	// or even to register a new topic against another plugin's collection.
-	//
-	// EXPERIMENTAL: This API is experimental and can be changed without advance notice.
+	// RegisterCollectionAndTopic is no longer supported.
 	//
 	// Minimum server version: 7.6
 	RegisterCollectionAndTopic(collectionType, topicType string) error
@@ -1186,6 +1180,15 @@ type API interface {
 	// @tag Upload
 	// Minimum server version: 7.6
 	GetUploadSession(uploadID string) (*model.UploadSession, error)
+
+	// SendPluginPushNotification will attempt to send a push notification to `notification.User`, using
+	// `notification.Post` as the source of the notification. The server will use the PluginPushNotification
+	// data to construct the final push notification according to the server's configuration and license. Refer
+	// to `App.BuildPushNotificationMessage` for the logic used to construct the push notification.
+	// Note: the NotificationWillBePushed hook will be run after SendPluginPushNotification is called.
+	//
+	// Minimum server version: 9.0
+	SendPluginPushNotification(notification *model.PluginPushNotification) error
 }
 
 var handshake = plugin.HandshakeConfig{

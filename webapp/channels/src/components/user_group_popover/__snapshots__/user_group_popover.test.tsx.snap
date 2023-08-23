@@ -404,6 +404,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -444,6 +445,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -484,6 +486,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -524,6 +527,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -564,6 +568,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -604,6 +609,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -644,6 +650,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -684,6 +691,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -724,6 +732,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -764,6 +773,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -804,6 +814,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -844,6 +855,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -884,6 +896,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -924,6 +937,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",
@@ -964,6 +978,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 "mfa_active": false,
                                 "nickname": "",
                                 "notify_props": Object {
+                                  "calls_desktop_sound": "true",
                                   "channel": "false",
                                   "comments": "never",
                                   "desktop": "default",

@@ -11,8 +11,8 @@ import (
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type selectType int
@@ -215,7 +215,12 @@ func (s *SqlGroupStore) buildInsertGroupUsersQuery(groupId string, userIds []str
 
 func (s *SqlGroupStore) Get(groupId string) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ?", groupId); err != nil {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{"Id": groupId})
+
+	if err := s.GetReplicaX().GetBuilder(&group, builder); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupId)
 		}
@@ -261,7 +266,15 @@ func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
 
 func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE RemoteId = ? AND Source = ?", remoteID, groupSource); err != nil {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{
+			"RemoteId": remoteID,
+			"Source":   groupSource,
+		})
+
+	if err := s.GetReplicaX().GetBuilder(&group, builder); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", fmt.Sprintf("remoteId=%s", remoteID))
 		}
@@ -273,8 +286,15 @@ func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSo
 
 func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error) {
 	groups := []*model.Group{}
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{
+			"DeleteAt": 0,
+			"Source":   groupSource,
+		})
 
-	if err := s.GetReplicaX().Select(&groups, "SELECT * from UserGroups WHERE DeleteAt = 0 AND Source = ?", groupSource); err != nil {
+	if err := s.GetReplicaX().SelectBuilder(&groups, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Groups by groupSource=%v", groupSource)
 	}
 
@@ -303,7 +323,12 @@ func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, error) {
 
 func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 	var retrievedGroup model.Group
-	if err := s.GetReplicaX().Get(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = ?", group.Id); err != nil {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{"Id": group.Id})
+
+	if err := s.GetReplicaX().GetBuilder(&retrievedGroup, builder); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", group.Id)
 		}
@@ -343,7 +368,15 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 
 func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ? AND DeleteAt = 0", groupID); err != nil {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{
+			"Id":       groupID,
+			"DeleteAt": 0,
+		})
+
+	if err := s.GetReplicaX().GetBuilder(&group, builder); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupID)
 		}
@@ -362,7 +395,15 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 
 func (s *SqlGroupStore) Restore(groupID string) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ? AND DeleteAt != 0", groupID); err != nil {
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.And{
+			sq.Eq{"Id": groupID},
+			sq.NotEq{"DeleteAt": 0},
+		})
+
+	if err := s.GetReplicaX().GetBuilder(&group, builder); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupID)
 		}

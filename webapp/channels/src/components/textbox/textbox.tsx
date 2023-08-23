@@ -19,7 +19,7 @@ import CommandProvider from 'components/suggestion/command_provider/command_prov
 import EmoticonProvider from 'components/suggestion/emoticon_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
-import SuggestionList from 'components/suggestion/suggestion_list.jsx';
+import SuggestionList from 'components/suggestion/suggestion_list';
 
 import * as Utils from 'utils/utils';
 
@@ -40,7 +40,6 @@ export type Props = {
     onWidthChange?: (width: number) => void;
     createMessage: string;
     onKeyDown?: (e: KeyboardEvent<TextboxElement>) => void;
-    onSelect?: (e: React.SyntheticEvent<TextboxElement>) => void;
     onMouseUp?: (e: React.MouseEvent<TextboxElement>) => void;
     onKeyUp?: (e: React.KeyboardEvent<TextboxElement>) => void;
     onBlur?: (e: FocusEvent<TextboxElement>) => void;
@@ -52,11 +51,9 @@ export type Props = {
     suggestionListPosition?: React.ComponentProps<typeof SuggestionList>['position'];
     alignWithTextbox?: boolean;
     emojiEnabled?: boolean;
-    isRHS?: boolean;
     characterLimit: number;
     disabled?: boolean;
     badConnection?: boolean;
-    listenForMentionKeyClick?: boolean;
     currentUserId: string;
     currentTeamId: string;
     preview?: boolean;
@@ -85,8 +82,6 @@ export default class Textbox extends React.PureComponent<Props> {
 
     static defaultProps = {
         supportsCommands: true,
-        isRHS: false,
-        listenForMentionKeyClick: false,
         inputComponent: AutosizeTextarea,
         suggestionList: SuggestionList,
     };
@@ -229,8 +224,6 @@ export default class Textbox extends React.PureComponent<Props> {
         this.props.onKeyDown?.(e as KeyboardEvent<TextboxElement>);
     };
 
-    handleSelect = (e: React.SyntheticEvent<TextboxElement>) => this.props.onSelect?.(e);
-
     handleMouseUp = (e: MouseEvent<TextboxElement>) => this.props.onMouseUp?.(e);
 
     handleKeyUp = (e: KeyboardEvent<TextboxElement>) => this.props.onKeyUp?.(e);
@@ -295,7 +288,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     onBlur={this.handleBlur}
                 >
                     <PostMarkdown
-                        isRHS={this.props.isRHS}
                         message={this.props.value}
                         mentionKeys={[]}
                         channelId={this.props.channelId}
@@ -318,7 +310,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     placeholder={this.props.createMessage}
                     onChange={this.handleChange}
                     onKeyPress={this.props.onKeyPress}
-                    onSelect={this.handleSelect}
                     onKeyDown={this.handleKeyDown}
                     onMouseUp={this.handleMouseUp}
                     onKeyUp={this.handleKeyUp}
@@ -336,10 +327,8 @@ export default class Textbox extends React.PureComponent<Props> {
                     channelId={this.props.channelId}
                     value={this.props.value}
                     renderDividers={ALL}
-                    isRHS={this.props.isRHS}
                     disabled={this.props.disabled}
                     contextId={this.props.channelId}
-                    listenForMentionKeyClick={this.props.listenForMentionKeyClick}
                     openWhenEmpty={this.props.openWhenEmpty}
                     alignWithTextbox={this.props.alignWithTextbox}
                 />

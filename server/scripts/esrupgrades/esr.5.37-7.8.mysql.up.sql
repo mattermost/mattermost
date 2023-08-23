@@ -869,6 +869,9 @@ BEGIN
 	DECLARE CreateIndexCreateAt BOOLEAN;
 	DECLARE CreateIndexCreateAtQuery TEXT DEFAULT NULL;
 
+	-- Condition to control whether to update the RootId column.
+	DECLARE UpdateRootId BOOLEAN;
+
 	SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
 		WHERE TABLE_NAME = 'Posts'
 		AND table_schema = DATABASE()
@@ -909,7 +912,10 @@ BEGIN
 
 	IF DropParentId THEN
 		SET DropParentIdQuery = 'DROP COLUMN ParentId';
-		UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId;
+		SELECT COUNT(*) FROM Posts WHERE RootId != ParentId INTO UpdateRootId;
+		IF UpdateRootId THEN
+			UPDATE Posts SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId;
+		END IF;
 	END IF;
 
 	IF ModifyFileIds THEN

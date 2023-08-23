@@ -18,7 +18,6 @@ import {
     isIosChrome,
     isMobileApp,
 } from 'utils/user_agent';
-import {getTable} from 'utils/paste';
 import {
     clearFileInput,
     generateId,
@@ -451,7 +450,7 @@ export class FileUpload extends PureComponent<Props, State> {
     pasteUpload = (e: ClipboardEvent) => {
         const {formatMessage} = this.props.intl;
 
-        if (!e.clipboardData || !e.clipboardData.items || getTable(e.clipboardData)) {
+        if (!e.clipboardData || !e.clipboardData.items || e.clipboardData.getData('text/html')) {
             return;
         }
 

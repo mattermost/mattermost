@@ -7,17 +7,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"runtime/debug"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 func (ps *PlatformService) RegisterClusterHandlers() {
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventPublish, ps.ClusterPublishHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventUpdateStatus, ps.ClusterUpdateStatusHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateAllCaches, ps.ClusterInvalidateAllCachesHandler)
+	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventLoadLicense, ps.LoadLicenseClusterHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelMembersNotifyProps, ps.clusterInvalidateCacheForChannelMembersNotifyPropHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelByName, ps.clusterInvalidateCacheForChannelByNameHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUser, ps.clusterInvalidateCacheForUserHandler)
@@ -155,11 +155,27 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 	ps.Store.Webhook().ClearCaches()
 
 	linkCache.Purge()
-	ps.LoadLicense()
 }
 
-func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
-	debug.FreeOSMemory()
+func (ps *PlatformService) LoadLicenseClusterHandler(_ *model.ClusterMessage) {
+	ps.loadLicense()
+}
+
+func (ps *PlatformService) TriggerLoadLicense() {
+	ps.loadLicense()
+
+	if ps.clusterIFace != nil {
+		msg := &model.ClusterMessage{
+			Event:            model.ClusterEventLoadLicense,
+			SendType:         model.ClusterSendReliable,
+			WaitForAllToSend: true,
+		}
+
+		ps.clusterIFace.SendClusterMessage(msg)
+	}
+}
+
+func (ps *PlatformService) InvalidateAllCaches() {
 	ps.InvalidateAllCachesSkipSend()
 
 	if ps.clusterIFace != nil {
@@ -172,6 +188,4 @@ func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
 
 		ps.clusterIFace.SendClusterMessage(msg)
 	}
-
-	return nil
 }

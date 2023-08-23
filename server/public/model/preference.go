@@ -19,7 +19,6 @@ const (
 	PreferenceCategoryFlaggedPost       = "flagged_post"
 	PreferenceCategoryFavoriteChannel   = "favorite_channel"
 	PreferenceCategorySidebarSettings   = "sidebar_settings"
-	PreferenceCategoryInsights          = "insights"
 
 	PreferenceCategoryDisplaySettings     = "display_settings"
 	PreferenceNameCollapsedThreadsEnabled = "collapsed_reply_threads"
@@ -31,10 +30,6 @@ const (
 	PreferenceNameNameFormat              = "name_format"
 	PreferenceNameUseMilitaryTime         = "use_military_time"
 	PreferenceRecommendedNextSteps        = "recommended_next_steps"
-	PreferenceNameInsights                = "insights_tutorial_state"
-
-	// initial onboarding preferences
-	PreferenceOnboarding = "onboarding"
 
 	PreferenceCategoryTheme = "theme"
 	// the name for theme props is the team id

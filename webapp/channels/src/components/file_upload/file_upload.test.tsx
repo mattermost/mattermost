@@ -206,7 +206,7 @@ describe('components/FileUpload', () => {
         event.preventDefault = jest.fn();
         const getAsFile = jest.fn().mockReturnValue(new File(['test'], 'test.png'));
         const file = {getAsFile, kind: 'file', name: 'test.png'};
-        (event as any).clipboardData = {items: [file], types: ['image/png']};
+        (event as any).clipboardData = {items: [file], types: ['image/png'], getData: () => {}};
 
         const wrapper = shallowWithIntl(
             <FileUpload
@@ -229,7 +229,7 @@ describe('components/FileUpload', () => {
         const event = new Event('paste');
         event.preventDefault = jest.fn();
         const getAsString = jest.fn();
-        (event as any).clipboardData = {items: [{getAsString, kind: 'string', type: 'text/plain'}], types: ['text/plain']};
+        (event as any).clipboardData = {items: [{getAsString, kind: 'string', type: 'text/plain'}], types: ['text/plain'], getData: () => {}};
 
         const wrapper = shallowWithIntl(
             <FileUpload

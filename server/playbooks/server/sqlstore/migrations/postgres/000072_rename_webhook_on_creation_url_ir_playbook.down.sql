@@ -1,1 +1,0 @@
-ALTER TABLE IR_Playbook RENAME COLUMN ConcatenatedWebhookOnCreationURLs TO WebhookOnCreationURL;

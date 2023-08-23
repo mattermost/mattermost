@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {fireEvent, screen} from '@testing-library/react';
 
 import {DeepPartial} from '@mattermost/types/utilities';
 import {GlobalState} from 'types/store';
 import {General} from 'mattermost-redux/constants';
 import {OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {trackEvent} from 'actions/telemetry_actions';
 import {getLicenseSelfServeStatus} from 'mattermost-redux/actions/cloud';
@@ -48,8 +47,8 @@ const seatsMinimumFor5PercentageState = (Math.ceil(seatsPurchased * OverActiveUs
 
 const seatsMinimumFor10PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MAX)) + seatsPurchased;
 
-const text5PercentageState = `Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor5PercentageState - seatsPurchased} seats. Purchase additional seats to remain compliant.`;
-const text10PercentageState = `Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor10PercentageState - seatsPurchased} seats. Purchase additional seats to remain compliant.`;
+const text5PercentageState = `(Only visible to admins) Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor5PercentageState - seatsPurchased} seats. Purchase additional seats to remain compliant.`;
+const text10PercentageState = `(Only visible to admins) Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor10PercentageState - seatsPurchased} seats. Purchase additional seats to remain compliant.`;
 
 const contactSalesTextLink = 'Contact Sales';
 const expandSeatsTextLink = 'Purchase additional seats';
@@ -142,7 +141,7 @@ describe('components/overage_users_banner', () => {
     it('should not render the banner because we are not on overage state', () => {
         renderComponent();
 
-        expect(screen.queryByText('Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
+        expect(screen.queryByText('(Only visible to admins) Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
         expect(getLicenseSelfServeStatus).not.toBeCalled();
     });
 

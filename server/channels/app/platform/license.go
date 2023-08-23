@@ -11,14 +11,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 const (
@@ -31,7 +31,7 @@ const (
 type JWTClaims struct {
 	LicenseID   string `json:"license_id"`
 	ActiveUsers int64  `json:"active_users"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func (ps *PlatformService) LicenseManager() einterfaces.LicenseInterface {
@@ -46,7 +46,7 @@ func (ps *PlatformService) License() *model.License {
 	return ps.licenseValue.Load()
 }
 
-func (ps *PlatformService) LoadLicense() {
+func (ps *PlatformService) loadLicense() {
 	// ENV var overrides all other sources of license.
 	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
@@ -326,9 +326,6 @@ func (ps *PlatformService) RequestTrialLicense(trialRequest *model.TrialLicenseR
 		return err
 	}
 
-	ps.ReloadConfig()
-	ps.InvalidateAllCaches()
-
 	return nil
 }
 
@@ -353,8 +350,8 @@ func (ps *PlatformService) GenerateRenewalToken(expiration time.Duration) (strin
 	claims := &JWTClaims{
 		LicenseID:   license.Id,
 		ActiveUsers: activeUsers,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 

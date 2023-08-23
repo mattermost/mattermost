@@ -4,14 +4,17 @@
 package commands
 
 import (
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/config"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/config"
 )
 
 func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore bool, options ...app.Option) (*app.App, error) {
@@ -46,9 +49,16 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool, options ..
 
 	a := app.New(app.ServerConnector(s.Channels()))
 
-	if model.BuildEnterpriseReady == "true" {
-		a.Srv().LoadLicense()
+	return a, nil
+}
+
+func initStoreCommandContextCobra(command *cobra.Command) (store.Store, error) {
+	cfgDSN := getConfigDSN(command, config.GetEnvironment())
+	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load configuration")
 	}
 
-	return a, nil
+	config := cfgStore.Get()
+	return sqlstore.New(config.SqlSettings, nil)
 }

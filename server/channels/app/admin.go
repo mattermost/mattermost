@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
 var latestVersionCache = cache.NewLRU(cache.LRUOptions{
@@ -137,8 +137,8 @@ func (a *App) GetClusterStatus() []*model.ClusterInfo {
 	return infos
 }
 
-func (s *Server) InvalidateAllCaches() *model.AppError {
-	return s.platform.InvalidateAllCaches()
+func (s *Server) InvalidateAllCaches() {
+	s.platform.InvalidateAllCaches()
 }
 
 func (s *Server) InvalidateAllCachesSkipSend() {

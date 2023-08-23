@@ -1,0 +1,24 @@
+  "/api/v4/imports":
+    get:
+      tags:
+        - imports
+      summary: List import files
+      description: >
+        Lists all available import files.
+
+
+        __Minimum server version__: 5.31
+
+        ##### Permissions
+
+        Must have `manage_system` permissions.
+      operationId: ListImports
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

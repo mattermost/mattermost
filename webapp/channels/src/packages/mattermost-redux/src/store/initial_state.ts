@@ -58,6 +58,7 @@ const state: GlobalState = {
             channelModerations: {},
             channelMemberCountsByGroup: {},
             messageCounts: {},
+            channelsMemberCount: {},
         },
         posts: {
             expandedURLs: {},
@@ -251,16 +252,6 @@ const state: GlobalState = {
                 cloudArchived: 0,
                 teamsLoaded: false,
             },
-        },
-        insights: {
-            topReactions: {},
-            myTopReactions: {},
-        },
-        worktemplates: {
-            categories: [],
-            templatesInCategory: {},
-            playbookTemplates: [],
-            linkedProducts: {},
         },
     },
     errors: [],
