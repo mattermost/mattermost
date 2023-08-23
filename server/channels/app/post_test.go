@@ -3120,7 +3120,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 
 	t.Run("empty post list", func(t *testing.T) {
 		err := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{}, th.BasicChannel, th.BasicChannel, th.BasicUser)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, "The wrangler post list contains no posts", err.Error())
 	})
 
@@ -3138,7 +3138,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		})
 
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: privateChannel.Id}}}, privateChannel, th.BasicChannel, th.BasicUser)
-		require.NotNil(t, e)
+		require.Error(t, e)
 		require.Equal(t, "Wrangler is currently configured to not allow moving posts from private channels", e.Error())
 	})
 
@@ -3156,7 +3156,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		})
 
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: directChannel.Id}}}, directChannel, th.BasicChannel, th.BasicUser)
-		require.NotNil(t, e)
+		require.Error(t, e)
 		require.Equal(t, "Wrangler is currently configured to not allow moving posts from direct message channels", e.Error())
 	})
 
@@ -3174,7 +3174,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		})
 
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: groupChannel.Id}}}, groupChannel, th.BasicChannel, th.BasicUser)
-		require.NotNil(t, e)
+		require.Error(t, e)
 		require.Equal(t, "Wrangler is currently configured to not allow moving posts from group message channels", e.Error())
 	})
 
@@ -3203,7 +3203,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		})
 
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: th.BasicChannel.Id}}}, th.BasicChannel, targetChannel, th.BasicUser)
-		require.NotNil(t, e)
+		require.Error(t, e)
 		require.Equal(t, "Wrangler is currently configured to not allow moving messages to different teams", e.Error())
 	})
 
@@ -3220,7 +3220,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		require.Nil(t, err)
 
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: th.BasicChannel.Id}}}, th.BasicChannel, targetChannel, th.BasicUser)
-		require.NotNil(t, e)
+		require.Error(t, e)
 		require.Equal(t, fmt.Sprintf("Error: channel with ID %s doesn't exist or you are not a member", targetChannel.Id), e.Error())
 	})
 
@@ -3230,7 +3230,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 		})
 
 		e := th.App.ValidateMoveOrCopy(th.Context, &model.WranglerPostList{Posts: []*model.Post{{ChannelId: th.BasicChannel.Id}, {ChannelId: th.BasicChannel.Id}}}, th.BasicChannel, th.BasicChannel, th.BasicUser)
-		require.NotNil(t, e)
+		require.Error(t, e)
 		require.Equal(t, "Error: the thread is 2 posts long, but this command is configured to only move threads of up to 1 posts", e.Error())
 	})
 }
