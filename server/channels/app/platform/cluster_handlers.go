@@ -177,6 +177,7 @@ func (ps *PlatformService) TriggerLoadLicense() {
 }
 
 func (ps *PlatformService) InvalidateAllCaches() {
+	debug.FreeOSMemory()
 	ps.InvalidateAllCachesSkipSend()
 
 	if ps.clusterIFace != nil {
