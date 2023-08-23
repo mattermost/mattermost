@@ -13,8 +13,7 @@ import pluginIconPagerDuty from 'images/icons/pager-duty.svg';
 
 import {ArrowRightIcon} from '@mattermost/compass-icons/components';
 
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
+const WEB_MARKETPLACE_LINK = 'https://mattermost.com/pl/default-mattermost-marketplace.html';
 
 const WebMarketplaceBanner = () => {
     const {formatMessage} = useIntl();
@@ -22,8 +21,8 @@ const WebMarketplaceBanner = () => {
     return (
         <WebMarketplaceBannerRoot className='WebMarketplaceBanner'>
             <ExternalBannerLink
-                href='https://mattermost.com/pl/default-mattermost-marketplace.html'
-                location='plugin_management'
+                href={WEB_MARKETPLACE_LINK}
+                location='marketplace_modal'
             >
                 <Title>
                     {formatMessage({id: 'marketplace_modal.web_marketplace_link.title', defaultMessage: 'Explore Community Integrations'})}
