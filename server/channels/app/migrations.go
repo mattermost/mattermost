@@ -570,6 +570,19 @@ func (s *Server) doElasticsearchFixChannelIndex() {
 		mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
 		return
 	}
+
+	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
+			return
+		}
+
+		if model.BuildEnterpriseReady == "true" && newLicense != nil && *newLicense.Features.Elasticsearch {
+			if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
+				mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
+				return
+			}
+		}
+	})
 }
 
 func (s *Server) doCloudS3PathMigrations() {
