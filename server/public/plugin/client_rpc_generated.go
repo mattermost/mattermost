@@ -5870,3 +5870,32 @@ func (s *apiRPCServer) GetUploadSession(args *Z_GetUploadSessionArgs, returns *Z
 	}
 	return nil
 }
+
+type Z_SendPushNotificationArgs struct {
+	A *model.PushNotification
+	B string
+}
+
+type Z_SendPushNotificationReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
+	_args := &Z_SendPushNotificationArgs{notification, userID}
+	_returns := &Z_SendPushNotificationReturns{}
+	if err := g.client.Call("Plugin.SendPushNotification", _args, _returns); err != nil {
+		log.Printf("RPC call to SendPushNotification API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SendPushNotification(args *Z_SendPushNotificationArgs, returns *Z_SendPushNotificationReturns) error {
+	if hook, ok := s.impl.(interface {
+		SendPushNotification(notification *model.PushNotification, userID string) *model.AppError
+	}); ok {
+		returns.A = hook.SendPushNotification(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SendPushNotification called but not implemented."))
+	}
+	return nil
+}
