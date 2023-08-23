@@ -1290,7 +1290,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		require.Equal(t, newerPrepackagePlugin.Manifest, plugins[0].Manifest)
 	})
 
-	t.Run("prepackaged plugins are not shown in Cloud", func(t *testing.T) {
+	t.Run("prepackaged plugins are shown in Cloud", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = true
 			*cfg.PluginSettings.EnableUploads = true
@@ -1301,8 +1301,15 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
 		require.NoError(t, err)
 
-		require.ElementsMatch(t, marketplacePlugins, plugins)
-		require.Len(t, plugins, 1)
+		expectedPlugins := marketplacePlugins
+		expectedPlugins = append(expectedPlugins, &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: prepackagePlugin.Manifest,
+			},
+		})
+
+		require.ElementsMatch(t, expectedPlugins, plugins)
+		require.Len(t, plugins, 2)
 	})
 }
 
