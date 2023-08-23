@@ -70,7 +70,6 @@ const MarketplaceModal = ({
     const isStreamlinedMarketplaceEnabled = useSelector(streamlinedMarketplaceEnabled);
     const license = useSelector(getLicense);
     const isCloud = isCloudLicense(license);
-    const itemsPerPage = isStreamlinedMarketplaceEnabled ? 6 : ITEMS_PER_PAGE;
 
     const [tabKey, setTabKey] = useState(MarketplaceTabs.ALL_LISTING);
     const [filter, setFilter] = useState('');
@@ -196,7 +195,7 @@ const MarketplaceModal = ({
     }, [filter, handleOnChange, handleOnClear]);
 
     const getFooterContent = useCallback(() => {
-        if (isStreamlinedMarketplaceEnabled && listing.length <= itemsPerPage) {
+        if (isStreamlinedMarketplaceEnabled && listing.length <= ITEMS_PER_PAGE) {
             return null;
         }
 
@@ -204,7 +203,7 @@ const MarketplaceModal = ({
             <FooterPagination
                 page={page}
                 total={tabKey === MarketplaceTabs.ALL_LISTING ? listing.length : installedListing.length}
-                itemsPerPage={itemsPerPage}
+                itemsPerPage={ITEMS_PER_PAGE}
                 onNextPage={handleOnNextPage}
                 onPreviousPage={handleOnPreviousPage}
             />
@@ -253,7 +252,6 @@ const MarketplaceModal = ({
                         listRef={listRef}
                         listing={listing}
                         page={page}
-                        perPage={itemsPerPage}
                         filter={filter}
                         noResultsMessage={formatMessage({id: 'marketplace_modal.no_plugins', defaultMessage: 'No plugins found'})}
                     />
