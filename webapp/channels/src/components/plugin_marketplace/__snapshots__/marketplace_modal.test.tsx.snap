@@ -1,5 +1,225 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`components/marketplace/ doesn't show web marketplace banner in FeatureFlags.StreamlinedMarketplace for Cloud 1`] = `
+<Modal
+  animation={true}
+  aria-label="App Marketplace"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="marketplace-modal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <div
+    className="GenericModal__wrapper-enter-key-press-catcher"
+    onKeyDown={[Function]}
+    tabIndex={0}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+    >
+      <div
+        className="GenericModal__header"
+      >
+        <h1
+          id="genericModalLabel"
+        >
+          App Marketplace
+        </h1>
+      </div>
+    </ModalHeader>
+    <ModalBody
+      bsClass="modal-body"
+      className="divider"
+      componentClass="div"
+    >
+      <div
+        className="genericModalError"
+      >
+        <i
+          className="icon icon-alert-outline"
+        />
+        <span>
+          Error connecting to the marketplace server. Please check your settings in the 
+          <Link
+            key=".1"
+            to="/admin_console/plugins/plugin_management"
+          >
+            System Console
+          </Link>
+          .
+        </span>
+      </div>
+      <div
+        className="GenericModal__body"
+      >
+        <MarketplaceList
+          filter=""
+          listRef={
+            Object {
+              "current": null,
+            }
+          }
+          listing={Array []}
+          noResultsMessage="No plugins found"
+          page={0}
+        />
+      </div>
+    </ModalBody>
+  </div>
+</Modal>
+`;
+
+exports[`components/marketplace/ hides search, shows web marketplace banner in FeatureFlags.StreamlinedMarketplace 1`] = `
+<Modal
+  animation={true}
+  aria-label="App Marketplace"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace with-web-marketplace-link"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="marketplace-modal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <div
+    className="GenericModal__wrapper-enter-key-press-catcher"
+    onKeyDown={[Function]}
+    tabIndex={0}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+    >
+      <div
+        className="GenericModal__header"
+      >
+        <h1
+          id="genericModalLabel"
+        >
+          App Marketplace
+        </h1>
+      </div>
+    </ModalHeader>
+    <ModalBody
+      bsClass="modal-body"
+      className="divider"
+      componentClass="div"
+    >
+      <div
+        className="genericModalError"
+      >
+        <i
+          className="icon icon-alert-outline"
+        />
+        <span>
+          Error connecting to the marketplace server. Please check your settings in the 
+          <Link
+            key=".1"
+            to="/admin_console/plugins/plugin_management"
+          >
+            System Console
+          </Link>
+          .
+        </span>
+      </div>
+      <div
+        className="GenericModal__body"
+      >
+        <MarketplaceList
+          filter=""
+          listRef={
+            Object {
+              "current": null,
+            }
+          }
+          listing={
+            Array [
+              Object {
+                "author_type": "mattermost",
+                "download_url": "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+                "enterprise": false,
+                "homepage_url": "https://github.com/mattermost/mattermost-plugin-nps",
+                "installed_version": "",
+                "manifest": Object {
+                  "description": "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost",
+                  "id": "com.mattermost.nps",
+                  "min_server_version": "5.14.0",
+                  "name": "User Satisfaction Surveys",
+                  "version": "1.0.3",
+                },
+                "release_stage": "production",
+              },
+              Object {
+                "author_type": "mattermost",
+                "download_url": "https://github.com/mattermost/mattermost-test/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+                "enterprise": false,
+                "homepage_url": "https://github.com/mattermost/mattermost-test",
+                "installed_version": "1.0.3",
+                "manifest": Object {
+                  "description": "This plugin is to test",
+                  "id": "com.mattermost.test",
+                  "min_server_version": "5.14.0",
+                  "name": "Test",
+                  "version": "1.0.3",
+                },
+                "release_stage": "production",
+              },
+            ]
+          }
+          noResultsMessage="No plugins found"
+          page={0}
+        />
+      </div>
+    </ModalBody>
+    <WebMarketplaceBanner />
+  </div>
+</Modal>
+`;
+
 exports[`components/marketplace/ should render default 1`] = `
 <Modal
   animation={true}
