@@ -216,7 +216,7 @@ func (srv *JobServer) HandleJobPanic(job *model.Job) {
 
 	sb := &strings.Builder{}
 	pprof.Lookup("goroutine").WriteTo(sb, 2)
-	mlog.Error("Unhandled panic in job", mlog.Any("panic", r), mlog.Any("job", job), mlog.String("stack", sb.String()))
+	job.Logger.Error("Unhandled panic in job", mlog.Any("panic", r), mlog.Any("job", job), mlog.String("stack", sb.String()))
 
 	rerr, ok := r.(error)
 	if !ok {
@@ -225,7 +225,7 @@ func (srv *JobServer) HandleJobPanic(job *model.Job) {
 
 	appErr := srv.SetJobError(job, model.NewAppError("HandleJobPanic", "app.job.update.app_error", nil, "", http.StatusInternalServerError)).Wrap(rerr)
 	if appErr != nil {
-		mlog.Error("Failed to set the job status to 'failed'", mlog.Err(appErr), mlog.Any("job", job))
+		job.Logger.Error("Failed to set the job status to 'failed'", mlog.Err(appErr), mlog.Any("job", job))
 	}
 
 	panic(r)
@@ -265,13 +265,13 @@ func (srv *JobServer) CancellationWatcher(c *request.Context, jobId string, canc
 	for {
 		select {
 		case <-c.Context().Done():
-			mlog.Debug("CancellationWatcher for Job Aborting as job has finished.", mlog.String("job_id", jobId))
+			c.Logger().Debug("CancellationWatcher for Job Aborting as job has finished.", mlog.String("job_id", jobId))
 			return
 		case <-time.After(CancelWatcherPollingInterval * time.Millisecond):
-			mlog.Debug("CancellationWatcher for Job started polling.", mlog.String("job_id", jobId))
+			c.Logger().Debug("CancellationWatcher for Job started polling.", mlog.String("job_id", jobId))
 			jobStatus, err := srv.Store.Job().Get(c, jobId)
 			if err != nil {
-				mlog.Warn("Error getting job", mlog.String("job_id", jobId), mlog.Err(err))
+				c.Logger().Warn("Error getting job", mlog.String("job_id", jobId), mlog.Err(err))
 				continue
 			}
 			if jobStatus.Status == model.JobStatusCancelRequested {

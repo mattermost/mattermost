@@ -43,7 +43,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 			filename := filepath.Base(exports[i])
 			modTime, appErr := app.ExportFileModTime(filepath.Join(exportPath, filename))
 			if appErr != nil {
-				mlog.Debug("Worker: Failed to get file modification time",
+				job.Logger.Debug("Worker: Failed to get file modification time",
 					mlog.Err(appErr), mlog.String("export", exports[i]))
 				errors.Append(appErr)
 				continue
@@ -52,7 +52,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 			if time.Now().After(modTime.Add(retentionTime)) {
 				// remove file data from storage.
 				if appErr := app.RemoveExportFile(exports[i]); appErr != nil {
-					mlog.Debug("Worker: Failed to remove file",
+					job.Logger.Debug("Worker: Failed to remove file",
 						mlog.Err(appErr), mlog.String("export", exports[i]))
 					errors.Append(appErr)
 					continue
@@ -61,7 +61,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		}
 
 		if err := errors.ErrorOrNil(); err != nil {
-			mlog.Warn("Worker: errors occurred", mlog.String("job-name", jobName), mlog.Err(err))
+			job.Logger.Warn("Worker: errors occurred", mlog.String("job-name", jobName), mlog.Err(err))
 		}
 		return nil
 	}
