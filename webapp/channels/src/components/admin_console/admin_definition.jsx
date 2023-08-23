@@ -6085,14 +6085,14 @@ const AdminDefinition = {
         gif: {
             url: 'integrations/gif',
             title: t('admin.sidebar.gif'),
-            title_default: 'GIF (Beta)',
+            title_default: 'GIF',
             isHidden: it.all(
                 it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
             ),
             schema: {
                 id: 'GifSettings',
                 name: t('admin.integrations.gif'),
-                name_default: 'GIF (Beta)',
+                name_default: 'GIF',
                 settings: [
                     {
                         type: Constants.SettingsTypes.TYPE_BOOL,

@@ -109,8 +109,6 @@ const (
 	ServiceSettingsDefaultMaxLoginAttempts = 10
 	ServiceSettingsDefaultAllowCorsFrom    = ""
 	ServiceSettingsDefaultListenAndAddress = ":8065"
-	ServiceSettingsDefaultGfycatAPIKey     = "2_KtH_W5"
-	ServiceSettingsDefaultGfycatAPISecret  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
 	ServiceSettingsDefaultGiphySdkKey      = "yaRojIWaxmKhtSMBaT3uLCAHm0kpMLKw"
 	ServiceSettingsDefaultGiphySdkKeyTest  = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
 	ServiceSettingsDefaultDeveloperFlags   = ""
@@ -348,8 +346,6 @@ type ServiceSettings struct {
 	WebsocketPort                                     *int    `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	WebserverMode                                     *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableGifPicker                                   *bool   `access:"integrations_gif"`
-	GfycatAPIKey                                      *string `access:"integrations_gif"`
-	GfycatAPISecret                                   *string `access:"integrations_gif"`
 	GiphySdkKey                                       *string `access:"integrations_gif"`
 	EnableCustomEmoji                                 *bool   `access:"site_emoji"`
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
@@ -733,14 +729,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableGifPicker == nil {
 		s.EnableGifPicker = NewBool(true)
-	}
-
-	if s.GfycatAPIKey == nil || *s.GfycatAPIKey == "" {
-		s.GfycatAPIKey = NewString(ServiceSettingsDefaultGfycatAPIKey)
-	}
-
-	if s.GfycatAPISecret == nil || *s.GfycatAPISecret == "" {
-		s.GfycatAPISecret = NewString(ServiceSettingsDefaultGfycatAPISecret)
 	}
 
 	if s.GiphySdkKey == nil {
@@ -4178,10 +4166,6 @@ func (o *Config) Sanitize() {
 		o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil &&
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword = FakeSetting
-	}
-
-	if o.ServiceSettings.GfycatAPISecret != nil && *o.ServiceSettings.GfycatAPISecret != "" {
-		*o.ServiceSettings.GfycatAPISecret = FakeSetting
 	}
 
 	if o.ServiceSettings.SplitKey != nil {
