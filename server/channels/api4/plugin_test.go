@@ -1181,6 +1181,66 @@ func TestGetRemotePluginInMarketplace(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestRemoteMarketplaceDisabledByStreamlinedMarketplaceFlag(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
+
+	th := Setup(t)
+	defer th.TearDown()
+
+	marketplacePlugins := []*model.MarketplacePlugin{
+		{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
+				IconData:    "https://example.com/icon.svg",
+				DownloadURL: "www.github.com/example",
+				Manifest: &model.Manifest{
+					Id:               "marketplace.test",
+					Name:             "marketplacetest",
+					Description:      "a marketplace plugin",
+					Version:          "0.1.2",
+					MinServerVersion: "",
+				},
+			},
+			InstalledVersion: "",
+		},
+	}
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		json, err := json.Marshal([]*model.MarketplacePlugin{marketplacePlugins[0]})
+		require.NoError(t, err)
+		res.Write(json)
+	}))
+	defer testServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableMarketplace = true
+		*cfg.PluginSettings.EnableRemoteMarketplace = true
+		*cfg.PluginSettings.EnableUploads = true
+		*cfg.PluginSettings.MarketplaceURL = testServer.URL
+	})
+
+	prepackagePlugin := &plugin.PrepackagedPlugin{
+		Manifest: &model.Manifest{
+			Version: "0.0.1",
+			Id:      "prepackaged.test",
+		},
+	}
+
+	env := th.App.GetPluginsEnvironment()
+	env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{prepackagePlugin}, nil)
+
+	// No marketplace plugins returned
+	plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
+	require.NoError(t, err)
+
+	// Only returns the prepackaged plugins
+	require.Len(t, plugins, 1)
+	require.Equal(t, prepackagePlugin.Manifest, plugins[0].Manifest)
+}
+
 func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
 	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
