@@ -144,6 +144,10 @@ function PostReminderSubmenu(props: Props) {
     return (
         <Menu.SubMenu
             id={`remind_post_${props.post.id}`}
+            menuAriaLabel={formatMessage({
+                id: 'post_info.post_reminder.sub_menu.header',
+                defaultMessage: 'Set a reminder for:',
+            })}
             labels={
                 <FormattedMessage
                     id='post_info.post_reminder.menu'

@@ -11,16 +11,17 @@ import {openModal} from 'actions/views/modals';
 import {ModalIdentifiers} from 'utils/constants';
 import MarkAsReadConfirmModal from './mark_as_read_confirm_modal';
 
-type Props = ({
+type Props = {
     id: string;
     handleViewCategory: () => void;
     numChannels: number;
-})
+}
 
 const MarkAsUnreadItem = ({
     id,
     handleViewCategory,
     numChannels,
+    ...otherProps
 }: Props) => {
     const dispatch = useDispatch();
 
@@ -56,6 +57,7 @@ const MarkAsUnreadItem = ({
                     defaultMessage='Mark category as read'
                 />
             )}
+            {...otherProps}
         />
     );
 };
