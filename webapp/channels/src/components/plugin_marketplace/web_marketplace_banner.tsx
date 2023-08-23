@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 import ExternalLink from '../external_link';
 
-import webMrketplaceBannerBackground from 'images/marketplace-notice-background.jpg';
+import webMarketplaceBannerBackground from 'images/marketplace-notice-background.jpg';
 import pluginIconConfluence from 'images/icons/confluence.svg';
 import pluginIconGiphy from 'images/icons/giphy.svg';
 import pluginIconPagerDuty from 'images/icons/pager-duty.svg';
@@ -59,7 +59,7 @@ const ExternalBannerLink = styled(ExternalLink)`
 `;
 
 const WebMarketplaceBannerRoot = styled.section`
-        background-image: url(${webMrketplaceBannerBackground});
+        background-image: url(${webMarketplaceBannerBackground});
         background-position: center;
         background-repeat: no-repeat;
         background-size: cover;
@@ -77,6 +77,12 @@ const Title = styled.div`
     grid-column: 1;
     display: inline-flex;
     gap: 6px;
+
+    @media screen and (max-width: 768px) {
+        svg {
+            display: none;
+        }
+    }
 `;
 
 const Description = styled.p`
