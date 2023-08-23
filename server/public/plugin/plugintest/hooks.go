@@ -193,20 +193,6 @@ func (_m *Hooks) MessageWillBeUpdated(c *plugin.Context, newPost *model.Post, ol
 	return r0, r1
 }
 
-// NotificationWillBePushed provides a mock function with given fields: pushNotification
-func (_m *Hooks) NotificationWillBePushed(pushNotification *model.PluginPushNotification) bool {
-	ret := _m.Called(pushNotification)
-
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(*model.PluginPushNotification) bool); ok {
-		r0 = rf(pushNotification)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	return r0
-}
-
 // OnActivate provides a mock function with given fields:
 func (_m *Hooks) OnActivate() error {
 	ret := _m.Called()
