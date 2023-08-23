@@ -42,7 +42,6 @@ export default class DeleteCategoryModal extends React.PureComponent<Props, Stat
 
     handleCancel = () => {
     this.props.onExited();
-
     };
 
     render() {
