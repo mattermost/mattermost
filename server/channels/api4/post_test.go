@@ -720,16 +720,19 @@ func TestMoveThread(t *testing.T) {
 		Type:        model.ChannelTypePrivate,
 	})
 	require.NoError(t, err)
+	require.NotNil(t, resp)
 	require.NotNil(t, privateChannel)
 
 	// Create a new direct message channel to move the post to
 	dmChannel, resp, err := client.CreateDirectChannel(ctx, basicUser1.Id, basicUser2.Id)
 	require.NoError(t, err)
+	require.NotNil(t, resp)
 	require.NotNil(t, dmChannel)
 
 	// Create a new group message channel to move the post to
 	gmChannel, resp, err := client.CreateGroupChannel(ctx, []string{basicUser1.Id, basicUser2.Id, basicUser3.Id})
 	require.NoError(t, err)
+	require.NotNil(t, resp)
 	require.NotNil(t, gmChannel)
 	t.Run("Move to public channel", func(t *testing.T) {
 		// Create a new post to move
@@ -856,6 +859,7 @@ func TestMoveThread(t *testing.T) {
 			Type:        model.ChannelTypeOpen,
 		})
 		require.NoError(t, err)
+		require.NotNil(t, resp)
 		require.NotNil(t, pChannel)
 		// Create a new post to use as the root post
 		rootPost := &model.Post{
@@ -914,14 +918,6 @@ func TestMoveThread(t *testing.T) {
 		require.Equal(t, newPost.Message, posts.Posts[posts.Order[2]].Message)
 		require.Equal(t, rootPost.Message, posts.Posts[posts.Order[3]].Message)
 	})
-}
-
-func ptrInt64(i int64) *int64 {
-	return &i
-}
-
-func ptrBool(b bool) *bool {
-	return &b
 }
 
 func TestCreatePostPublic(t *testing.T) {

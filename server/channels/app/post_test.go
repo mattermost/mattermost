@@ -3143,14 +3143,9 @@ func TestValidateMoveOrCopy(t *testing.T) {
 	})
 
 	t.Run("moving from direct channel with MoveThreadFromDirectMessageChannelEnable disabled", func(t *testing.T) {
-		directChannel := &model.Channel{
-			TeamId: th.BasicTeam.Id,
-			Name:   "direct-channel",
-			Type:   model.ChannelTypeDirect,
-		}
 		directChannel, err := th.App.createDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 		require.Nil(t, err)
-
+		require.NotNil(t, directChannel)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.WranglerSettings.MoveThreadFromDirectMessageChannelEnable = model.NewBool(false)
 		})
