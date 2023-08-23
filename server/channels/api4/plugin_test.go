@@ -1290,6 +1290,30 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 	env := th.App.GetPluginsEnvironment()
 	env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{prepackagePlugin}, nil)
 
+	t.Run("prepackaged plugins are shown in Cloud", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		lic := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		defer th.App.Srv().SetLicense(lic)
+
+		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
+		require.NoError(t, err)
+
+		expectedPlugins := marketplacePlugins
+		expectedPlugins = append(expectedPlugins, &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: prepackagePlugin.Manifest,
+			},
+		})
+
+		require.ElementsMatch(t, expectedPlugins, plugins)
+		require.Len(t, plugins, 2)
+	})
+
 	t.Run("get remote and prepackaged plugins", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = true
@@ -1348,28 +1372,6 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 
 		require.Len(t, plugins, 1)
 		require.Equal(t, newerPrepackagePlugin.Manifest, plugins[0].Manifest)
-	})
-
-	t.Run("prepackaged plugins are shown in Cloud", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.EnableRemoteMarketplace = true
-			*cfg.PluginSettings.EnableUploads = true
-		})
-
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
-		require.NoError(t, err)
-
-		expectedPlugins := marketplacePlugins
-		expectedPlugins = append(expectedPlugins, &model.MarketplacePlugin{
-			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				Manifest: prepackagePlugin.Manifest,
-			},
-		})
-
-		require.ElementsMatch(t, expectedPlugins, plugins)
-		require.Len(t, plugins, 2)
 	})
 }
 
