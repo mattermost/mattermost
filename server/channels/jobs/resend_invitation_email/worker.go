@@ -99,14 +99,14 @@ func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
 
 func (rseworker *ResendInvitationEmailWorker) setJobSuccess(job *model.Job) {
 	if err := rseworker.jobServer.SetJobSuccess(job); err != nil {
-		job.Logger.Error("Worker: Failed to set success for job", mlog.String("error", err.Error()))
+		job.Logger.Error("Worker: Failed to set success for job", mlog.Err(err))
 		rseworker.setJobError(job, err)
 	}
 }
 
 func (rseworker *ResendInvitationEmailWorker) setJobError(job *model.Job, appError *model.AppError) {
 	if err := rseworker.jobServer.SetJobError(job, appError); err != nil {
-		job.Logger.Error("Worker: Failed to set job error", mlog.String("error", err.Error()))
+		job.Logger.Error("Worker: Failed to set job error", mlog.Err(err))
 	}
 }
 
@@ -182,14 +182,14 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 	emailList, err := rseworker.cleanEmailData(emailListData)
 	if err != nil {
 		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
-		job.Logger.Error("Worker: Failed to clean emails string data", mlog.String("error", appErr.Error()))
+		job.Logger.Error("Worker: Failed to clean emails string data", mlog.Err(appErr))
 		rseworker.setJobError(job, appErr)
 	}
 
 	channelList, err := rseworker.cleanChannelsData(channelListData)
 	if err != nil {
 		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
-		job.Logger.Error("Worker: Failed to clean channel string data", mlog.String("error", appErr.Error()))
+		job.Logger.Error("Worker: Failed to clean channel string data", mlog.Err(appErr))
 		rseworker.setJobError(job, appErr)
 	}
 
@@ -205,7 +205,7 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 
 	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(&memberInvite, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
-		job.Logger.Error("Worker: Failed to send emails", mlog.String("error", appErr.Error()))
+		job.Logger.Error("Worker: Failed to send emails", mlog.Err(appErr))
 		rseworker.setJobError(job, appErr)
 	}
 	rseworker.telemetryService.SendTelemetry("track_invite_email_resend", map[string]any{interval: interval})
