@@ -37,10 +37,7 @@ jobs:
       - name: Setup needed prepackaged plugins 
         run: |
           cd server
-          mkdir -p prepackaged_plugins
-          cd prepackaged_plugins
-          curl -f -O -L https://plugins-store.test.mattermost.com/release/mattermost-plugin-jira-v3.2.5.tar.gz
-          curl -f -O -L https://plugins-store.test.mattermost.com/release/mattermost-plugin-jira-v3.2.5.tar.gz.sig
+          make prepackaged-plugins PREPACKAGED_PLUGINS=mattermost-plugin-jira-v3.2.5
       - name: Run docker compose
         run: |
           cd server/build
