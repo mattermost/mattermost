@@ -409,7 +409,7 @@ function makeChannelSearchFilter(channelPrefix: string) {
                         continue;
                     }
                     const {nickname, username} = user;
-                    userString = `${nickname}${SEPARATOR}${username}${SEPARATOR}${Utils.getFullName(user)}`;
+                    userString = [nickname, username, Utils.getFullName(user)].join(SEPARATOR);
                     userSearchStrings[userId] = userString;
                 }
                 searchString += userString;
