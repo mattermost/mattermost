@@ -1285,7 +1285,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 		}(user.Id)
 	}
 
-	user.Sanitize(map[string]bool{})
+	newUser.Sanitize(map[string]bool{})
 
 	return newUser, nil
 }
