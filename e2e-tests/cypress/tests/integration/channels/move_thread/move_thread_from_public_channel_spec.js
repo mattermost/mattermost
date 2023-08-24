@@ -9,10 +9,6 @@
 
 // Group: @channels @enterprise @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
-const DEFAULT_CHARACTER_LIMIT = 16383;
-
 describe('Move Thread', () => {
     let user1;
     let user2;
@@ -89,13 +85,13 @@ describe('Move Thread', () => {
         }).then(({channel}) => {
             gmChannel = channel;
 
-            // # Create a private channel to forward to
+            // # Create a private channel to Move Thread to
             return cy.apiCreateChannel(testTeam.id, 'private', 'Private');
         }).then(({channel}) => {
             privateChannel = channel;
 
-            // # Create a second channel to forward to
-            return cy.apiCreateChannel(testTeam.id, 'forward', 'Forward');
+            // # Create a second channel to Move Thread to
+            return cy.apiCreateChannel(testTeam.id, 'Move Thread', 'Move Thread');
         }).then(({channel}) => {
             otherChannel = channel;
 
@@ -111,13 +107,13 @@ describe('Move Thread', () => {
         // # Click on ... button of last post
         cy.clickPostDotMenu(testPost.id);
 
-        // * Assert availability of the Forward menu-item
+        // * Assert availability of the Move Thread menu-item
         cy.findByText('Move Thread').click();
 
-        // # Forward Post
+        // # Move Thread
         moveThread({channelId: otherChannel.id});
 
-        // * Assert post has been forwarded
+        // * Assert post has been moved
         verifyMovedMessage({post: testPost});
     });
 
@@ -131,13 +127,13 @@ describe('Move Thread', () => {
         // # Click on ... button of reply post
         cy.clickPostDotMenu(replyPost.id, 'RHS_COMMENT');
 
-        // * Assert availability of the Forward menu-item
+        // * Assert availability of the Move Thread menu-item
         cy.findByText('Move Thread').click();
 
-        // * Forward Post
+        // * Move Thread
         moveThread({channelId: otherChannel.id});
 
-        // * Assert post has been forwarded
+        // * Assert post has been moved
         verifyMovedMessage({post: testPost});
     });
 
@@ -148,13 +144,13 @@ describe('Move Thread', () => {
         // # Click on ... button of last post
         cy.clickPostDotMenu(testPost.id);
 
-        // * Assert availability of the Forward menu-item
+        // * Assert availability of the Move Thread menu-item
         cy.findByText('Move Thread').click();
 
-        // # Forward Post
+        // # Move Thread
         moveThread({channelId: privateChannel.id});
 
-        // * Assert post has been forwarded
+        // * Assert post has been moved
         verifyMovedMessage({post: testPost});
     });
 
@@ -165,13 +161,13 @@ describe('Move Thread', () => {
         // # Click on ... button of last post
         cy.clickPostDotMenu(testPost.id);
 
-        // * Assert availability of the Forward menu-item
+        // * Assert availability of the Move Thread menu-item
         cy.findByText('Move Thread').click();
 
-        // # Forward Post
+        // # Move Thread
         moveThread({channelId: gmChannel.id});
 
-        // * Assert post has been forwarded
+        // * Assert post has been moved
         verifyMovedMessage({post: testPost});
     });
 
@@ -182,23 +178,23 @@ describe('Move Thread', () => {
         // # Click on ... button of last post
         cy.clickPostDotMenu(testPost.id);
 
-        // * Assert availability of the Forward menu-item
+        // * Assert availability of the Move Thread menu-item
         cy.findByText('Move Thread').click();
 
-        // # Forward Post
+        // # Move Thread
         moveThread({channelId: dmChannel.id});
 
-        // * Assert post has been forwarded
+        // * Assert post has been moved
         verifyMovedMessage({post: testPost});
     });
 
     /**
-     * Verify that the post has been forwarded
+     * Verify that the post has been moved
      *
      * @param {Post} post
      */
     const verifyMovedMessage = ({post}) => {
-        // * Assert post has been forwarded
+        // * Assert post has been moved
         cy.getLastPostId().then((id) => {
             // * Assert last post is visible
             cy.get(`#${id}_message`).should('be.visible').within(() => {
@@ -212,15 +208,11 @@ describe('Move Thread', () => {
     };
 
     /**
-     * Forward Post with optional comment.
+     * Move Thread with optional comment.
      *
-     * @param {string?} options
-     * @param {string?} options.channelId
-     * @param {string?} options.comment
-     * @param {boolean?} options.testLongComment
      */
     const moveThread = () => {
-        // * Assert visibility of the forward post modal
+        // * Assert visibility of the Move Thread modal
         cy.get('#move-thread-modal').should('be.visible').within(() => {
             // * Assert channel select is not existent
             cy.get('.move-thread__select').should('not.exist');
