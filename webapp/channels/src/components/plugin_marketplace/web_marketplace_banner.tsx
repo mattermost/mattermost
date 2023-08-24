@@ -13,7 +13,7 @@ import pluginIconPagerDuty from 'images/icons/pager-duty.svg';
 
 import {ArrowRightIcon} from '@mattermost/compass-icons/components';
 
-const WEB_MARKETPLACE_LINK = 'https://mattermost.com/pl/default-mattermost-marketplace.html';
+const WEB_MARKETPLACE_LINK = 'https://mattermost.com/marketplace';
 
 const WebMarketplaceBanner = () => {
     const {formatMessage} = useIntl();
