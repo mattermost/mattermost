@@ -30,7 +30,7 @@ import {Channel} from '@mattermost/types/channels';
 
 import ForwardPostChannelSelect, {ChannelOption} from '../forward_post_modal/forward_post_channel_select';
 
-import '../forward_post_modal/forward_post_modal.scss';
+import './move_thread_modal.scss';
 import {ClientError} from '@mattermost/client';
 
 export type ActionProps = {
@@ -190,7 +190,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
     return (
         <GenericModal
             className='a11y__modal forward-post move-thread'
-            id='forward-post-modal'
+            id='move-thread-modal'
             show={true}
             autoCloseOnConfirmButton={false}
             compassDesign={true}
@@ -213,7 +213,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
             onExited={onHide}
         >
             <div
-                className={'forward-post__body'}
+                className={'move-thread__body'}
                 ref={measuredRef}
             >
                 {notification}
@@ -222,12 +222,12 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
                     value={selectedChannel}
                     currentBodyHeight={bodyHeight}
                 />
-                <div className={'forward-post__post-preview'}>
-                    <span className={'forward-post__post-preview--title'}>
+                <div className={'move-thread__post-preview'}>
+                    <span className={'move-thread__post-preview--title'}>
                         {messagePreviewTitle}
                     </span>
                     <div
-                        className='post forward-post__post-preview--override'
+                        className='post move-thread__post-preview--override'
                         onClick={preventActionOnPreview}
                     >
                         <PostMessagePreview
