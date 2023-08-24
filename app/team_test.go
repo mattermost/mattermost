@@ -466,41 +466,6 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 
 }
 
-func TestSoftDeleteAllTeamsExcept(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	teams := []*model.Team{
-		{
-			DisplayName: "team-1",
-			Name:        "team-1",
-			Email:       "foo@foo.com",
-			Type:        model.TeamOpen,
-		},
-	}
-	teamId := ""
-	for _, create := range teams {
-		team, err := th.App.CreateTeam(th.Context, create)
-		require.Nil(t, err)
-		teamId = team.Id
-	}
-
-	err := th.App.SoftDeleteAllTeamsExcept(teamId)
-	assert.Nil(t, err)
-	allTeams, err := th.App.GetAllTeams()
-	require.Nil(t, err)
-	for _, team := range allTeams {
-		if team.Id == teamId {
-			require.Equal(t, int64(0), team.DeleteAt)
-			require.Equal(t, false, team.CloudLimitsArchived)
-		} else {
-			require.NotEqual(t, int64(0), team.DeleteAt)
-			require.Equal(t, true, team.CloudLimitsArchived)
-		}
-	}
-
-}
-
 func TestAdjustTeamsFromProductLimits(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
