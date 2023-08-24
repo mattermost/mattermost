@@ -1344,19 +1344,27 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 	}
 
 	tests := []struct {
-		name                  string
-		testCode              string
-		expectedNotifications int
+		name                        string
+		testCode                    string
+		expectedNotifications       int
+		expectedNotificationMessage string
 	}{
 		{
 			name:                  "successfully pushed",
-			testCode:              `return false`,
+			testCode:              `return nil, ""`,
 			expectedNotifications: 6,
 		},
 		{
 			name:                  "push notification rejected",
-			testCode:              `return true`,
+			testCode:              `return nil, "rejected"`,
 			expectedNotifications: 0,
+		},
+		{
+			name: "push notification modified",
+			testCode: `notification.Message = "brand new message"
+	return notification, ""`,
+			expectedNotifications:       6,
+			expectedNotificationMessage: "brand new message",
 		},
 	}
 	for _, tt := range tests {
@@ -1440,7 +1448,11 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 				case model.PushTypeMessage:
 					numMessages++
 					assert.Equal(t, th.BasicChannel.Id, n.ChannelId)
-					assert.Contains(t, n.Message, "mentioned you")
+					if tt.expectedNotificationMessage != "" {
+						assert.Equal(t, tt.expectedNotificationMessage, n.Message)
+					} else {
+						assert.Contains(t, n.Message, "mentioned you")
+					}
 				default:
 					assert.Fail(t, "should not receive any other push notification types")
 				}
