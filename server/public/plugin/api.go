@@ -1181,7 +1181,7 @@ type API interface {
 	// Minimum server version: 7.6
 	GetUploadSession(uploadID string) (*model.UploadSession, error)
 
-	// SendPushNotification will send a push notification to all of user's sessions, using
+	// SendPushNotification will send a push notification to all of user's sessions.
 	//
 	// It is the responsibility of the plugin to respect the server's configuration and licence,
 	// especially related to `cfg.EmailSettings.PushNotificationContents`, particularly
