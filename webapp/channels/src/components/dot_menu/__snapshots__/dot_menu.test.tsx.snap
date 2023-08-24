@@ -308,8 +308,8 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
       />
     }
     leadingElement={
-      <span
-        className="icon-message-arrow-right-outline MenuItem__compass-icon"
+      <MessageArrowRightOutlineIcon
+        size={18}
       />
     }
     onClick={[Function]}
