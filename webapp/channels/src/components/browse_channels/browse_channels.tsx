@@ -197,6 +197,10 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     }
 
                     if (data) {
+                        const channelIDsForMemberCount = data.map((channel: Channel) => channel.id);
+                        if (channelIDsForMemberCount.length > 0) {
+                            this.props.actions.getChannelsMemberCount(channelIDsForMemberCount);
+                        }
                         this.setSearchResults(data);
                     } else {
                         this.setState({searchedChannels: [], searching: false});

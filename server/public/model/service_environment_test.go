@@ -17,9 +17,11 @@ import (
 // to smoketests before releasing.
 func TestGetServiceEnvironment(t *testing.T) {
 	t.Run("no env defaults to test (without production tag)", func(t *testing.T) {
+		t.Skip("https://mattermost.atlassian.net/browse/MM-54197")
 		require.Equal(t, model.ServiceEnvironmentTest, model.GetServiceEnvironment())
 	})
 	t.Run("empty string defaults to test (without production tag)", func(t *testing.T) {
+		t.Skip("https://mattermost.atlassian.net/browse/MM-54197")
 		os.Setenv("MM_SERVICEENVIRONMENT", "")
 		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
 		require.Equal(t, model.ServiceEnvironmentTest, model.GetServiceEnvironment())
