@@ -131,10 +131,6 @@ func (s *Server) License() *model.License {
 	return s.platform.License()
 }
 
-func (s *Server) LoadLicense() {
-	s.platform.LoadLicense()
-}
-
 func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
 	return s.platform.SaveLicense(licenseBytes)
 }
