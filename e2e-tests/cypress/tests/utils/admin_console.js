@@ -306,8 +306,8 @@ export const adminConsoleNavigation = [
     },
     {
         type: ['team', 'e20', 'cloud_enterprise'],
-        header: 'GIF',
-        sidebar: 'GIF',
+        header: 'GIF (Beta)',
+        sidebar: 'GIF (Beta)',
         url: 'admin_console/integrations/gif',
     },
     {
