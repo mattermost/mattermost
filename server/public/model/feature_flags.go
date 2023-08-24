@@ -37,8 +37,6 @@ type FeatureFlags struct {
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
 
-	PeopleProduct bool
-
 	OnboardingTourTips bool
 
 	DeprecateCloudFree bool
@@ -58,7 +56,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.NormalizeLdapDNs = false
 	f.GraphQL = false
 	f.CallsEnabled = true
-	f.PeopleProduct = false
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
