@@ -1940,14 +1940,14 @@ func TestUpdateBotUser(t *testing.T) {
 	})
 
 	bot := th.CreateBotWithSystemAdminClient()
-	botUser, _, err := th.SystemAdminClient.GetUser(th.Context, bot.UserId, "")
+	botUser, _, err := th.SystemAdminClient.GetUser(bot.UserId, "")
 	require.NoError(t, err)
 
-	updateUser, _, err := th.SystemAdminClient.UpdateUser(th.Context, botUser)
+	updateUser, _, err := th.SystemAdminClient.UpdateUser(botUser)
 	require.NoError(t, err)
 	require.Equal(t, botUser.Id, updateUser.Id)
 
-	_, resp, err := th.Client.UpdateUser(th.Context, botUser)
+	_, resp, err := th.Client.UpdateUser(botUser)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
@@ -2075,11 +2075,11 @@ func TestPatchBotUser(t *testing.T) {
 	patch := &model.UserPatch{}
 	patch.Email = model.NewString("newemail@test.com")
 
-	user, _, err := th.SystemAdminClient.PatchUser(th.Context, bot.UserId, patch)
+	user, _, err := th.SystemAdminClient.PatchUser(bot.UserId, patch)
 	require.NoError(t, err)
 	require.Equal(t, bot.UserId, user.Id)
 
-	_, resp, err := th.Client.PatchUser(th.Context, bot.UserId, patch)
+	_, resp, err := th.Client.PatchUser(bot.UserId, patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
@@ -2281,7 +2281,7 @@ func TestDeleteBotUser(t *testing.T) {
 
 	bot := th.CreateBotWithSystemAdminClient()
 
-	_, err := th.Client.DeleteUser(th.Context, bot.UserId)
+	_, err := th.Client.DeleteUser(bot.UserId)
 	require.Error(t, err)
 	require.Equal(t, err.Error(), ": You do not have the appropriate permissions.")
 }
