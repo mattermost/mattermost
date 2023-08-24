@@ -40,6 +40,9 @@ describe('components/post_view/post_list_row', () => {
         usage: {} as CloudUsage,
         post: TestHelper.getPostMock({id: 'post_id_1'}),
         currentUserId: 'user_id_1',
+        newMessagesSeparatorActions: [],
+        lastViewedAt: 0,
+        channelId: 'channel_id_1',
     };
 
     test('should render more messages loading indicator', () => {
