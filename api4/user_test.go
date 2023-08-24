@@ -1931,6 +1931,27 @@ func TestUpdateAdminUser(t *testing.T) {
 	require.Equal(t, user.Email, u2.Email)
 }
 
+func TestUpdateBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := th.CreateBotWithSystemAdminClient()
+	botUser, _, err := th.SystemAdminClient.GetUser(bot.UserId, "")
+	require.NoError(t, err)
+
+	updateUser, _, err := th.SystemAdminClient.UpdateUser(botUser)
+	require.NoError(t, err)
+	require.Equal(t, botUser.Id, updateUser.Id)
+
+	_, resp, err := th.Client.UpdateUser(botUser)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
 func TestPatchUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2042,6 +2063,27 @@ func TestPatchUser(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestPatchBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := th.CreateBotWithSystemAdminClient()
+	patch := &model.UserPatch{}
+	patch.Email = model.NewString("newemail@test.com")
+
+	user, _, err := th.SystemAdminClient.PatchUser(bot.UserId, patch)
+	require.NoError(t, err)
+	require.Equal(t, bot.UserId, user.Id)
+
+	_, resp, err := th.Client.PatchUser(bot.UserId, patch)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
 func TestPatchAdminUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2062,6 +2104,7 @@ func TestPatchAdminUser(t *testing.T) {
 	_, _, err = th.SystemAdminClient.PatchUser(user.Id, patch)
 	require.NoError(t, err)
 }
+
 func TestUserUnicodeNames(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -2226,6 +2269,21 @@ func TestDeleteUser(t *testing.T) {
 	})
 	_, err = th.Client.DeleteUser(selfDeleteUser.Id)
 	require.NoError(t, err)
+}
+
+func TestDeleteBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := th.CreateBotWithSystemAdminClient()
+
+	_, err := th.Client.DeleteUser(bot.UserId)
+	require.Error(t, err)
+	require.Equal(t, err.Error(), ": You do not have the appropriate permissions.")
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
