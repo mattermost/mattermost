@@ -55,6 +55,8 @@ export function getChannelTypeFromPermissions(canCreatePublicChannel: boolean, c
 export function validateDisplayName(displayName: string) {
     const errors: string[] = [];
 
+    displayName = displayName.trim();
+
     if (displayName.length < Constants.MIN_CHANNELNAME_LENGTH) {
         errors.push(localizeMessage('channel_modal.name.longer', 'Channel names must have at least 2 characters.'));
     }

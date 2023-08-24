@@ -53,7 +53,6 @@ const ConvertGmToChannelModal = (props: Props) => {
 
     const [commonTeamsById, setCommonTeamsById] = useState<{[id: string]: Team}>({});
     const [selectedTeamId, setSelectedTeamId] = useState<string>();
-
     const [commonTeamsFetched, setCommonTeamsFetched] = useState<Boolean>(false);
     const [loadingAnimationTimeout, setLoadingAnimationTimeout] = useState<boolean>(false);
 
@@ -87,8 +86,9 @@ const ConvertGmToChannelModal = (props: Props) => {
         }
 
         const {actions} = props;
-        actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, channelName, channelURL);
+        actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, channelName.trim(), channelURL.trim());
         if (props.channelsCategoryId) {
+            console.log(`props.channelsCategoryId: ${props.channelsCategoryId}`);
             actions.moveChannelsInSidebar(props.channelsCategoryId, 0, props.channel.id, false);
         }
         trackEvent('actions', 'convert_group_message_to_private_channel', {channel_id: props.channel.id});
@@ -129,6 +129,7 @@ const ConvertGmToChannelModal = (props: Props) => {
             handleConfirm={showLoader() ? undefined : handleConfirm}
             onExited={handleCancel}
             autoCloseOnConfirmButton={false}
+            isConfirmDisabled={selectedTeamId == undefined || channelName === ''}
         >
             <div className={classNames({'convert-gm-to-channel-modal-body': true, 'loading': showLoader()})}>
                 {

@@ -1514,10 +1514,6 @@ func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([
 }
 
 func (s SqlTeamStore) GetCommonTeamIDsForMultipleUsers(userIDs ...string) ([]string, error) {
-	// select t.id from teams t join (select * from teammembers where userid in
-	// ('4yagyk6abtnkjmk1kzafti3mbc', '9xa5pi4aq3dj5cz947hizkxq6o', 'gpns7ez81bg3xfwy7zgtacnm6e', 'hia8iww74tgyzmssrbos3gq6ra', 'mw4g7tt3mjbcfjyd6jy1aigppy', 'rfegmdpdktrnjyr9479si96xzr', 'txc5h8f9s7n88cpwq9txsani9e', 'x3awpwio1fbwdmd8sr33ptd1ny') AND deleteat = 0)
-	// as tm on t.id = tm.teamid where t.deleteat = 0 group by t.id having count(userid) = 8;
-
 	subQuery := s.getSubQueryBuilder().
 		Select("TeamId, UserId").
 		From("TeamMembers").

@@ -25,7 +25,7 @@ export type Props = {
 import './channel_name_form_field.scss';
 
 const ChannelNameFormField = (props: Props): JSX.Element => {
-    const {value, name, placeholder, onDisplayNameChange} = props;
+    const {value, name, placeholder, onDisplayNameChange, onURLChange} = props;
 
     const intl = useIntl();
     const {formatMessage} = intl;
@@ -53,7 +53,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
             const cleanURL = cleanUpUrlable(displayName);
             setURL(cleanURL);
             setURLError('');
-            props.onURLChange(cleanURL);
+            onURLChange(cleanURL);
         }
     };
 
@@ -76,7 +76,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
         setURL(cleanURL);
         setURLModified(true);
-        props.onURLChange(cleanURL);
+        onURLChange(cleanURL);
     };
 
     return (

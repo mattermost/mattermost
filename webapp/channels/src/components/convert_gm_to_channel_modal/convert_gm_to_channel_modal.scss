@@ -25,7 +25,28 @@
       }
     }
   }
+
+  .DropDown__menu {
+    z-index: 999;
+    max-height: 120px;
+  }
+
+  .DropDown__menu-list {
+    z-index: 999;
+    max-height: 120px;
+  }
+
+  .convert-gm-to-channel-modal-body {
+    overflow-y: visible;
+  }
+
+  .modal-body {
+    overflow: visible;
+  }
+
+  .GenericModal__button.delete.disabled {
+    color: var(--button-color) !important;
+    opacity: 0.65;
+  }
 }
-
-
 

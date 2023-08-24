@@ -27,12 +27,12 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 
     const currentTeamId = getCurrentTeamId(state);
     const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state);
-    const channelsCategoryId = getCategoryInTeamByType(state, currentTeamId, CategoryTypes.CHANNELS);
+    const channelsCategory = getCategoryInTeamByType(state, currentTeamId, CategoryTypes.CHANNELS);
 
     return {
         profilesInChannel: validProfilesInChannel,
         teammateNameDisplaySetting,
-        channelsCategoryId,
+        channelsCategoryId: channelsCategory?.id,
     };
 }
 
