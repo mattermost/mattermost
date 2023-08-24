@@ -17,6 +17,7 @@ import {
     EmoticonPlusOutlineIcon,
     LinkVariantIcon,
     MarkAsUnreadIcon,
+    MessageArrowRightOutlineIcon,
     MessageCheckOutlineIcon,
     MessageMinusOutlineIcon,
     PencilOutlineIcon,
@@ -632,7 +633,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                                 id={'post_info.move_thread'}
                                 defaultMessage={'Move Thread'}
                             />}
-                        leadingElement={Utils.getMenuItemIcon('icon-message-arrow-right-outline')}
+                        leadingElement={<MessageArrowRightOutlineIcon size={18}/>}
                         trailingElements={<ShortcutKey shortcutKey='W'/>}
                         onClick={this.handleMoveThreadMenuItemActivated}
                     />
