@@ -216,6 +216,24 @@ func IsValidMobileAuthRedirectURL(config *model.Config, redirectURL string) bool
 	return false
 }
 
+// Verifyes if the request is coming from a mobile device
+func IsMobileRequest(r *http.Request) bool {
+	userAgent := r.UserAgent()
+	if userAgent == "" {
+		return false
+	}
+
+	// Check if the User-Agent contain keywords found in movile devices
+	mobileKeywords := []string{"Mobile", "Android", "iOS", "iPhone", "iPad"}
+	for _, keyword := range mobileKeywords {
+		if strings.Contains(userAgent, keyword) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // RoundOffToZeroes converts all digits to 0 except the 1st one.
 // Special case: If there is only 1 digit, then returns 0.
 func RoundOffToZeroes(n float64) int64 {
