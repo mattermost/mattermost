@@ -1285,6 +1285,8 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 		}(user.Id)
 	}
 
+	a.SanitizeProfile(newUser, a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem))
+
 	return newUser, nil
 }
 
