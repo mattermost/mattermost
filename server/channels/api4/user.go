@@ -955,6 +955,10 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// we remove the duplicate IDs as it can bring a significant load to the
+	// database.
+	userIDs = model.RemoveDuplicateStrings(userIDs)
+
 	sinceString := r.URL.Query().Get("since")
 
 	options := &store.UserGetByIdsOpts{
