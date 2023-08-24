@@ -120,33 +120,6 @@ func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model
 	return nil
 }
 
-func (a *App) SoftDeleteAllTeamsExcept(teamID string) *model.AppError {
-	teams, appErr := a.GetAllTeams()
-	if appErr != nil {
-		return appErr
-	}
-
-	if teams == nil {
-		return nil
-	}
-	cloudLimitsArchived := true
-	patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-	for _, team := range teams {
-		if team.Id != teamID {
-			_, err := a.PatchTeam(team.Id, patch)
-			if err != nil {
-				return err
-			}
-
-			err = a.SoftDeleteTeam(team.Id)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.AppError) {
 	rteam, err := a.ch.srv.teamService.CreateTeam(team)
 	if err != nil {
