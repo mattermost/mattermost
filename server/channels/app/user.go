@@ -1285,7 +1285,13 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 		}(user.Id)
 	}
 
-	a.SanitizeProfile(newUser, a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem))
+	// notifyProps := newUser.NotifyProps
+	// a.SanitizeProfile(newUser, a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem))
+	// if newUser.Id == c.Session().UserId {
+	// 	newUser.NotifyProps = notifyProps
+	// }
+
+	user.Sanitize(map[string]bool{})
 
 	return newUser, nil
 }
