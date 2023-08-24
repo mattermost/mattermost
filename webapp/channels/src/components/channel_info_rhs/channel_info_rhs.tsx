@@ -25,7 +25,7 @@ import Header from './header';
 
 const Divider = styled.div`
     width: 88%;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     margin: 0 auto;
 `;
 

@@ -57,7 +57,7 @@
             background: rgba(v(center-channel-color-rgb), 0.08);
 
             i {
-                opacity: 0.72;
+                opacity: 0.64;
             }
         }
 
@@ -77,7 +77,7 @@
             position: relative;
             top: -1px;
             font-size: 18px;
-            opacity: 0.56;
+            opacity: 0.72;
         }
     }
 
@@ -115,7 +115,7 @@
             position: relative;
             top: -2px;
             font-size: 16px;
-            opacity: 0.56;
+            opacity: 0.72;
         }
     }
 
@@ -161,8 +161,8 @@
             width: 20px;
             height: 20px;
             margin-right: 8px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            fill: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            fill: rgba(var(--center-channel-color-rgb), 0.72);
             font-size: 1.6rem;
             text-align: center;
 
@@ -306,7 +306,7 @@
         }
 
         .channel-header-archived-icon {
-            opacity: 0.5;
+            opacity: 0.72;
         }
 
         > div {
@@ -429,7 +429,7 @@
             opacity: 1;
 
             button {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
 
                 .edit-icon {
                     display: none;
@@ -437,7 +437,7 @@
 
                 &:focus,
                 &:hover {
-                    color: rgba(var(--center-channel-color-rgb), 0.92);
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
                     text-decoration: none;
                 }
 

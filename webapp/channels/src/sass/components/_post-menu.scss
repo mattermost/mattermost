@@ -85,7 +85,7 @@
             }
 
             .search-item__jump {
-                color: rgba(v(center-channel-color-rgb), 0.72);
+                color: rgba(v(center-channel-color-rgb), 0.64);
 
                 &:hover {
                     color: v(link-color);
@@ -94,13 +94,13 @@
 
             .post-menu__item {
                 display: inline-flex;
-                color: rgba(v(center-channel-color-rgb), 0.72);
-                fill: rgba(v(center-channel-color-rgb), 0.72);
+                color: rgba(v(center-channel-color-rgb), 0.64);
+                fill: rgba(v(center-channel-color-rgb), 0.64);
 
                 &:hover {
                     background: rgba(v(center-channel-color-rgb), 0.08);
-                    color: rgba(v(center-channel-color-rgb), 0.92);
-                    fill: rgba(v(center-channel-color-rgb), 0.92);
+                    color: rgba(v(center-channel-color-rgb), 0.72);
+                    fill: rgba(v(center-channel-color-rgb), 0.72);
                 }
 
                 &:active,

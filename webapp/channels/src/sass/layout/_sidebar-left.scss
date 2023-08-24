@@ -202,7 +202,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
                 font-weight: $font-weight--semibold;
 
                 i::before {
-                    font-weight: $font-weight--semibold;
+                    font-weight: 400;
                 }
             }
         }
@@ -305,7 +305,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         width: 28px;
         height: 28px;
         border-radius: 4px;
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-size: 18px;
         font-weight: 400;
         line-height: 26px;
@@ -529,7 +529,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         border: none;
         background: transparent;
         border-radius: 4px;
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-size: 16px;
         line-height: 16px;
 
@@ -607,7 +607,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             opacity: 1;
 
             >i {
-                color: rgba(var(--sidebar-text-rgb), 0.6);
+                color: rgba(var(--sidebar-text-rgb), 0.64);
                 font-size: 18px;
                 line-height: 16px;
             }
@@ -696,7 +696,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         border: none;
         background-color: var(--sidebar-bg);
         box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.33);
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-family: 'Open Sans', sans-serif;
         text-align: left;
         text-overflow: ellipsis;
@@ -810,7 +810,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         border: none;
         background-color: transparent;
         box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.33);
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-family: 'Open Sans', sans-serif;
         font-size: 12px;
         font-weight: 600;
@@ -1030,7 +1030,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         align-items: center;
 
         /* border: solid 2px transparent; */
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         list-style-type: none;
         opacity: 1;
         transition-duration: $sidebarHeightTransitionDuration;

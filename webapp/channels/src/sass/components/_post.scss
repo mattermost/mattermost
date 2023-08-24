@@ -1148,7 +1148,7 @@
             &.post--hovered,
             &.a11y--active {
                 .post__time {
-                    opacity: 0.72;
+                    opacity: 0.64;
                 }
             }
 
@@ -1213,7 +1213,7 @@
                     }
 
                     .post__time {
-                        opacity: 0.72;
+                        opacity: 0.64;
                     }
 
                     .post__img {
@@ -1375,7 +1375,7 @@
             width: 16px;
             height: 20px;
             margin: 0 0 0 4px;
-            color: rgba(61, 60, 64, 0.72);
+            color: rgba(61, 60, 64, 0.64);
             font-size: 16px;
             line-height: 20px;
 
