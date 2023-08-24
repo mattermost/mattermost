@@ -199,7 +199,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
 const styles: { [Key: string]: CSSProperties} = {
     container: {height: 0, overflow: 'hidden'},
     reference: {height: 'auto', width: '100%'},
-    placeholder: {overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.5, pointerEvents: 'none', position: 'absolute', whiteSpace: 'nowrap', background: 'none', borderColor: 'transparent'},
+    placeholder: {overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.72, pointerEvents: 'none', position: 'absolute', whiteSpace: 'nowrap', background: 'none', borderColor: 'transparent'},
     measuring: {width: 'auto', display: 'inline-block'},
 };
 

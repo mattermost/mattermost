@@ -1148,7 +1148,7 @@
             &.post--hovered,
             &.a11y--active {
                 .post__time {
-                    opacity: 0.5;
+                    opacity: 0.72;
                 }
             }
 
@@ -1213,7 +1213,7 @@
                     }
 
                     .post__time {
-                        opacity: 0.6;
+                        opacity: 0.72;
                     }
 
                     .post__img {
@@ -1759,7 +1759,7 @@
     .post-preview__time {
         margin-right: 4px;
         font-size: 0.9em;
-        opacity: 0.6;
+        opacity: 0.72;
     }
 
     .post__permalink {

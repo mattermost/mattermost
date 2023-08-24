@@ -54,7 +54,7 @@
         }
 
         span.MenuItem__text-color {
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
         }
 
         span.MenuItem__help-text {
@@ -62,7 +62,7 @@
             padding-bottom: 8px;
             font-size: 12px;
             line-height: 16px;
-            opacity: 0.7;
+            opacity: 0.72;
             white-space: normal;
 
             @media (max-width: 768px) {

@@ -692,9 +692,7 @@
 }
 
 .section-min__describe {
-    @include clearfix;
-
-    opacity: 0.7;
+    opacity: 0.72;
     text-overflow: ellipsis;
     white-space: pre;
 }

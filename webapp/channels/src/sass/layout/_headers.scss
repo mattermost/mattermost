@@ -429,7 +429,7 @@
             opacity: 1;
 
             button {
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.72);
 
                 .edit-icon {
                     display: none;
@@ -437,7 +437,7 @@
 
                 &:focus,
                 &:hover {
-                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                    color: rgba(var(--center-channel-color-rgb), 0.92);
                     text-decoration: none;
                 }
 
