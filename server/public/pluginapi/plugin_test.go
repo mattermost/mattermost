@@ -63,7 +63,7 @@ func TestInstallPluginFromURL(t *testing.T) {
 		api.On("GetServerVersion").Return("5.19.0")
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
-		tarData, err := os.ReadFile(filepath.Join("../../../tests", "testplugin.tar.gz"))
+		tarData, err := os.ReadFile(filepath.Join("../../tests", "testplugin.tar.gz"))
 		require.NoError(t, err)
 		expectedManifest := &model.Manifest{Id: "testplugin"}
 		api.On("InstallPlugin", mock.Anything, false).Return(expectedManifest, nil)
