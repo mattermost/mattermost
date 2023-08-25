@@ -20,6 +20,7 @@ import {getNewMessageIndex, getPreviousPostId, getLatestPostId} from 'utils/post
 import NewRepliesBanner from 'components/new_replies_banner';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import {THREADING_TIME as BASE_THREADING_TIME} from 'components/threading/common/options';
+import {PluginComponent} from 'types/store/plugins';
 
 import CreateComment from './create_comment';
 import Row from './thread_viewer_row';
@@ -36,6 +37,8 @@ type Props = {
     selected: Post | FakePost;
     useRelativeTimestamp: boolean;
     isThreadView: boolean;
+    lastViewedAt: number;
+    newMessagesSeparatorActions: PluginComponent[];
 }
 
 type State = {
@@ -386,6 +389,9 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}
                     timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
+                    lastViewedAt={this.props.lastViewedAt}
+                    threadId={this.props.selected.id}
+                    newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
                 />
             </div>
         );
