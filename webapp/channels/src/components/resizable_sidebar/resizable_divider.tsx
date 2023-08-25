@@ -7,6 +7,8 @@ import styled, {createGlobalStyle, css} from 'styled-components';
 import {CssVarKeyForResizable, ResizeDirection} from './constants';
 import {useGlobalState, currentUserSuffix} from 'stores/hooks';
 import {isSizeLessThanSnapSize, isSnapableSpeed, shouldSnapWhenSizeGrown, shouldSnapWhenSizeShrunk} from './utils';
+import {useSelector} from 'react-redux';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 type Props = {
     id?: string;
@@ -95,8 +97,10 @@ function ResizableDivider({
 
     const cssVarKey = `--${props.globalCssVar}`;
 
+    const currentUserID = useSelector(getCurrentUserId);
+
     const [isActive, setIsActive] = useState(false);
-    const [width, setWidth] = useGlobalState<number | null>(null, `resizable_${name}:${currentUserSuffix}`);
+    const [width, setWidth] = useGlobalState<number | null>(null, `resizable_${name}:${currentUserSuffix}`, currentUserID);
 
     const defaultOnResizeChange = (width: number, cssVarProp: string, cssVarValue: string) => {
         containerRef.current?.style.setProperty(cssVarProp, cssVarValue);

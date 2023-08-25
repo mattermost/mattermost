@@ -38,10 +38,12 @@ export const currentUserSuffix = createSelector('currentUserSuffix', [
 export function useGlobalState<TVal>(
     initialValue: TVal,
     name: string,
+    suffix?: string,
 ): [TVal, (value: TVal) => ReturnType<typeof setGlobalItem>] {
     const dispatch = useDispatch();
-    const suffix = useSelector(currentUserAndTeamSuffix);
-    const storedKey = `${name}${suffix}`;
+    const defaultSuffix = useSelector(currentUserAndTeamSuffix);
+    const suffixToUse = suffix || defaultSuffix;
+    const storedKey = `${name}${suffixToUse}`;
 
     const value = useSelector(makeGetGlobalItem(storedKey, initialValue), shallowEqual);
     const setValue = useCallback((newValue) => dispatch(setGlobalItem(storedKey, newValue)), [storedKey]);
