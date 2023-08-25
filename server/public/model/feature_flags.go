@@ -50,6 +50,8 @@ type FeatureFlags struct {
 	DataRetentionConcurrencyEnabled bool
 
 	AllowDisableWebappPrefetch bool
+
+	StreamlinedMarketplace bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -68,6 +70,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableExportDirectDownload = false
 	f.DataRetentionConcurrencyEnabled = true
 	f.AllowDisableWebappPrefetch = false
+	f.StreamlinedMarketplace = true
 }
 
 // ToMap returns the feature flags as a map[string]string

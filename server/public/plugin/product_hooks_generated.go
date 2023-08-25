@@ -119,7 +119,7 @@ type ConfigurationWillBeSavedIFace interface {
 }
 
 type NotificationWillBePushedIFace interface {
-	NotificationWillBePushed(pushNotification *model.PluginPushNotification) (cancel bool)
+	NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
 }
 
 type HooksAdapter struct {
@@ -615,11 +615,11 @@ func (a *HooksAdapter) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Co
 
 }
 
-func (a *HooksAdapter) NotificationWillBePushed(pushNotification *model.PluginPushNotification) (cancel bool) {
+func (a *HooksAdapter) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
 	if _, ok := a.implemented[NotificationWillBePushedID]; !ok {
 		panic("product hooks must implement NotificationWillBePushed")
 	}
 
-	return a.productHooks.(NotificationWillBePushedIFace).NotificationWillBePushed(pushNotification)
+	return a.productHooks.(NotificationWillBePushedIFace).NotificationWillBePushed(pushNotification, userID)
 
 }
