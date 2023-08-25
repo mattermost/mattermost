@@ -664,6 +664,7 @@ func TestSetFileSearchableContent(t *testing.T) {
 		Extension: "jpg",
 		MimeType:  "image/jpeg",
 	})
+	require.Nil(t, err)
 
 	result, err := th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
 	require.Nil(t, err)
