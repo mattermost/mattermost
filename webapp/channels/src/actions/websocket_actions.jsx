@@ -112,9 +112,6 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
-import InteractiveDialog from 'components/interactive_dialog';
-import RemovedFromChannelModal from 'components/removed_from_channel_modal';
-
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
@@ -1050,6 +1047,10 @@ export function handleUserRemovedEvent(msg) {
                     dispatch(loadUser(msg.data.remover_id));
                 }
 
+                // Lazily require this to avoid import loops caused by actions importing components
+                // eslint-disable-next-line global-require
+                const RemovedFromChannelModal = require('components/removed_from_channel_modal').default;
+
                 dispatch(openModal({
                     modalId: ModalIdentifiers.REMOVED_FROM_CHANNEL,
                     dialogType: RemovedFromChannelModal,
@@ -1376,6 +1377,10 @@ function handleOpenDialogEvent(msg) {
     if (dialog.trigger_id !== currentTriggerId) {
         return;
     }
+
+    // Lazily require this to avoid import loops caused by actions importing components
+    // eslint-disable-next-line global-require
+    const InteractiveDialog = require('components/interactive_dialog').default;
 
     store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: InteractiveDialog}));
 }

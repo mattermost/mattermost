@@ -8,8 +8,6 @@ import type {Dispatch} from 'redux';
 
 import {submitInteractiveDialog} from 'mattermost-redux/actions/integrations';
 
-import {getEmojiMap} from 'selectors/emojis';
-
 import type {GlobalState} from 'types/store';
 
 import InteractiveDialog from './interactive_dialog';
@@ -30,7 +28,6 @@ function mapStateToProps(state: GlobalState) {
         submitLabel: data.dialog.submit_label,
         notifyOnCancel: data.dialog.notify_on_cancel,
         state: data.dialog.state,
-        emojiMap: getEmojiMap(state), // HARRISON TODO figure out how to have markdown load emojis
     };
 }
 

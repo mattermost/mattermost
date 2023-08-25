@@ -1,23 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {Provider} from 'react-redux';
 
 import type {DialogElement as TDialogElement} from '@mattermost/types/integrations';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
-import EmojiMap from 'utils/emoji_map';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import type {Props} from './interactive_dialog';
 import InteractiveDialog from './interactive_dialog';
-
-const submitEvent = {
-    preventDefault: jest.fn(),
-} as unknown as React.FormEvent<HTMLFormElement>;
 
 describe('components/interactive_dialog/InteractiveDialog', () => {
     const baseProps: Props = {
@@ -34,7 +25,6 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
         actions: {
             submitInteractiveDialog: jest.fn(),
         },
-        emojiMap: new EmojiMap(new Map()),
     };
 
     describe('generic error message', () => {
@@ -45,23 +35,38 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
                     submitInteractiveDialog: jest.fn().mockResolvedValue({data: {error: 'This is an error.'}}),
                 },
             };
-            const wrapper = shallow<InteractiveDialog>(<InteractiveDialog {...props}/>);
 
-            await wrapper.instance().handleSubmit(submitEvent);
+            renderWithContext(<InteractiveDialog {...props}/>);
 
-            const expected = (
-                <div className='error-text'>
-                    {'This is an error.'}
-                </div>
-            );
-            expect(wrapper.find(Modal.Footer).containsMatchingElement(expected)).toBe(true);
+            expect(screen.queryByText('Submitting...')).not.toBeInTheDocument();
+            expect(screen.queryByText('This is an error.')).not.toBeInTheDocument();
+
+            userEvent.click(screen.getByText('Yes'));
+
+            expect(screen.queryByText('Submitting...')).toBeInTheDocument();
+
+            await waitFor(() => {
+                expect(screen.queryByText('This is an error.')).toBeInTheDocument();
+            });
+
+            expect(screen.queryByText('Submitting...')).not.toBeInTheDocument();
         });
 
         test('should not appear when submit does not return an error', async () => {
-            const wrapper = shallow<InteractiveDialog>(<InteractiveDialog {...baseProps}/>);
-            await wrapper.instance().handleSubmit(submitEvent);
+            renderWithContext(<InteractiveDialog {...baseProps}/>);
 
-            expect(wrapper.find(Modal.Footer).exists('.error-text')).toBe(false);
+            expect(screen.queryByText('Submitting...')).not.toBeInTheDocument();
+            expect(screen.queryByText('This is an error.')).not.toBeInTheDocument();
+
+            userEvent.click(screen.getByText('Yes'));
+
+            expect(screen.queryByText('Submitting...')).toBeInTheDocument();
+
+            await waitFor(() => {
+                expect(screen.queryByText('This is an error.')).not.toBeInTheDocument();
+            });
+
+            expect(screen.queryByText('Submitting...')).not.toBeInTheDocument();
         });
     });
 
@@ -80,7 +85,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
                 ],
                 type: 'select',
                 subtype: '',
-                placeholder: '',
+                placeholder: 'test select',
                 help_text: '',
                 min_length: 0,
                 max_length: 0,
@@ -93,13 +98,11 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
                 elements,
             };
 
-            const store = mockStore({});
-            const wrapper = mountWithIntl(
-                <Provider store={store}>
-                    <InteractiveDialog {...props}/>
-                </Provider>,
+            renderWithContext(
+                <InteractiveDialog {...props}/>,
             );
-            expect(wrapper.find(Modal.Body).find('input').find({defaultValue: 'Option3'}).exists()).toBe(true);
+
+            expect(screen.getByPlaceholderText<HTMLInputElement>('test select').defaultValue).toEqual('Option3');
         });
     });
 
@@ -144,13 +147,10 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
                 (element as any).default = testCase.default;
             }
 
-            const store = mockStore({});
-            const wrapper = mountWithIntl(
-                <Provider store={store}>
-                    <InteractiveDialog {...props}/>
-                </Provider>,
+            renderWithContext(
+                <InteractiveDialog {...props}/>,
             );
-            expect(wrapper.find(Modal.Body).find('input').find({checked: testCase.expectedChecked}).exists()).toBe(true);
+            expect(screen.getByRole<HTMLInputElement>('checkbox').checked).toEqual(testCase.expectedChecked);
         }));
     });
 });

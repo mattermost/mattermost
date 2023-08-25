@@ -225,11 +225,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                     {(elements || introductionText) && (
                         <Modal.Body>
                             {introductionText && (
-                                <DialogIntroductionText
-                                    id='interactiveDialogModalIntroductionText'
-                                    value={introductionText}
-                                    emojiMap={this.props.emojiMap}
-                                />
+                                <DialogIntroductionText value={introductionText}/>
                             )}
                             {elements &&
                             elements.map((e, index) => {
