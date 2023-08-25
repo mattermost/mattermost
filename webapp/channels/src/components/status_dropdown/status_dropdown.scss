@@ -131,7 +131,7 @@ button.custom_status__row {
 
 .custom-status {
     &-emoji {
-        fill: rgba(var(--center-channel-color-rgb), 0.56);
+        fill: rgba(var(--center-channel-color-rgb), 0.64);
     }
 
     &-suggestion-emoji > span:first-child {
@@ -144,7 +144,7 @@ button.custom_status__row {
     border-radius: 4px;
 
     .icon > i:not(.status-icon) {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-family: "compass-icons";
     }
 

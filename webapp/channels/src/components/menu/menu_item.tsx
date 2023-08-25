@@ -257,7 +257,7 @@ const MenuItemStyled = styled(MuiMenuItem, {
                     width: '18px',
                     height: '18px',
                     marginInlineEnd: '10px',
-                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.56)' : 'var(--error-text)',
+                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.64)' : 'var(--error-text)',
                 },
                 '&:hover .leading-element': {
                     color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.72)' : 'var(--button-color)',
@@ -279,7 +279,7 @@ const MenuItemStyled = styled(MuiMenuItem, {
 
                 '&>.label-elements>:last-child': {
                     fontSize: '12px',
-                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.56)' : 'var(--error-text)',
+                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.64)' : 'var(--error-text)',
                 },
                 '&:hover .label-elements>:last-child': {
                     color: isDestructive && 'var(--button-color)',
@@ -298,7 +298,7 @@ const MenuItemStyled = styled(MuiMenuItem, {
                     flexDirection: 'row',
                     flexWrap: 'nowrap',
                     justifyContent: 'flex-end',
-                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.56)' : 'var(--error-text)',
+                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.64)' : 'var(--error-text)',
                     gap: '4px',
                     marginInlineStart: '24px',
                     fontSize: '12px',

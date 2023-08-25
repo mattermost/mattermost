@@ -127,8 +127,8 @@
         border: none;
         background: transparent;
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        fill: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        fill: rgba(var(--center-channel-color-rgb), 0.64);
 
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -170,7 +170,7 @@
 .status-dropdown-menu,
 .StatusModal__input {
     .input-clear-x {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
 
         .icon {
             font-size: 20px;
@@ -268,7 +268,7 @@
 
     &__duration {
         margin-left: 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 14px;
         font-weight: 400;
         line-height: 14px;

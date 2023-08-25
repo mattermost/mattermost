@@ -69,7 +69,7 @@ const Close = styled.button`
     font-size: 17px;
     justify-content: center;
     margin-top: -1px;
-    opacity: 0.56;
+    opacity: 0.64;
     visibility: hidden;
 
     &:hover {

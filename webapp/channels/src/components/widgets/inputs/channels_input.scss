@@ -102,7 +102,7 @@
         font-size: 16px;
 
         &--no-matches {
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
             text-align: center;
 
             span {
@@ -142,7 +142,7 @@
             svg {
                 width: 18px;
                 height: 18px;
-                fill: rgba(var(--center-channel-color-rgb), 0.56);
+                fill: rgba(var(--center-channel-color-rgb), 0.64);
             }
         }
 
@@ -193,7 +193,7 @@
             height: 24px;
             padding: 4px;
             margin-right: 4px;
-            background: rgba(var(--center-channel-color-rgb), 0.56);
+            background: rgba(var(--center-channel-color-rgb), 0.64);
             border-radius: 16px;
         }
 
@@ -237,7 +237,7 @@
             width: 16px;
             height: 16px;
             fill: rgba(var(--center-channel-color-rgb), 0.64);
-            opacity: 0.6;
+            opacity: 0.64;
 
             &:hover {
                 fill: rgba(var(--center-channel-color-rgb), 0.8);

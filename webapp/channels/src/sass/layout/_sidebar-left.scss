@@ -305,7 +305,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         width: 28px;
         height: 28px;
         border-radius: 4px;
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-size: 18px;
         font-weight: 400;
         line-height: 26px;
@@ -513,7 +513,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             .selected {
                 width: 60%;
                 margin-top: 1px;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
                 font-size: 12px;
                 text-align: right;
                 text-transform: none;
@@ -529,7 +529,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         border: none;
         background: transparent;
         border-radius: 4px;
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-size: 16px;
         line-height: 16px;
 
@@ -607,7 +607,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             opacity: 1;
 
             >i {
-                color: rgba(var(--sidebar-text-rgb), 0.6);
+                color: rgba(var(--sidebar-text-rgb), 0.64);
                 font-size: 18px;
                 line-height: 16px;
             }
@@ -696,7 +696,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         border: none;
         background-color: var(--sidebar-bg);
         box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.33);
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-family: 'Open Sans', sans-serif;
         text-align: left;
         text-overflow: ellipsis;
@@ -810,7 +810,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         border: none;
         background-color: transparent;
         box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.33);
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         font-family: 'Open Sans', sans-serif;
         font-size: 12px;
         font-weight: 600;
@@ -911,12 +911,12 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .SidebarChannelGroup .draggingOver {
         border-radius: 4px;
-        box-shadow: inset -1px 0 0 rgba(var(--sidebar-text-rgb), 0.6), inset 0 -1px 0 rgba(var(--sidebar-text-rgb), 0.6), inset 1px 0 0 rgba(var(--sidebar-text-rgb), 0.6), inset 0 1px 0 rgba(var(--sidebar-text-rgb), 0.6);
+        box-shadow: inset -1px 0 0 rgba(var(--sidebar-text-rgb), 0.64), inset 0 -1px 0 rgba(var(--sidebar-text-rgb), 0.64), inset 1px 0 0 rgba(var(--sidebar-text-rgb), 0.64), inset 0 1px 0 rgba(var(--sidebar-text-rgb), 0.64);
 
         .SidebarChannelGroupHeader {
             background-color: var(--sidebar-bg);
             border-radius: 4px 4px 0 0;
-            box-shadow: inset -1px 0 0 rgba(var(--sidebar-text-rgb), 0.6), inset 1px 0 0 rgba(var(--sidebar-text-rgb), 0.6), inset 0 1px 0 rgba(var(--sidebar-text-rgb), 0.6);
+            box-shadow: inset -1px 0 0 rgba(var(--sidebar-text-rgb), 0.64), inset 1px 0 0 rgba(var(--sidebar-text-rgb), 0.64), inset 0 1px 0 rgba(var(--sidebar-text-rgb), 0.64);
         }
     }
 
@@ -1030,7 +1030,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         align-items: center;
 
         /* border: solid 2px transparent; */
-        color: rgba(var(--sidebar-text-rgb), 0.6);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         list-style-type: none;
         opacity: 1;
         transition-duration: $sidebarHeightTransitionDuration;
@@ -1233,7 +1233,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
 
         &.selected {
-            background: rgba(var(--sidebar-text-active-border-rgb), 0.56);
+            background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
 
             &:hover {
                 background: rgba(var(--sidebar-text-active-border-rgb), 0.72);
@@ -1242,7 +1242,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarLink.selected {
-        background: rgba(var(--sidebar-text-active-border-rgb), 0.56);
+        background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
         color: rgba(var(--sidebar-text-rgb), 1);
 
         &:hover {

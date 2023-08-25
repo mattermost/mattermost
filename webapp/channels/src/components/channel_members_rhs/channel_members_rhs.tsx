@@ -302,7 +302,7 @@ const MemberListSeparator = styled.div`
     letter-spacing: 0.02em;
     text-transform: uppercase;
     padding: 0px 12px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     margin-top: 16px;
 `;
 

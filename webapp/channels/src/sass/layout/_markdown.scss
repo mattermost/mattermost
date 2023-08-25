@@ -315,7 +315,7 @@ h6.markdown__heading {
         >i {
             margin-top: 1px;
             margin-left: -2px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 18px;
         }
 
@@ -330,7 +330,7 @@ h6.markdown__heading {
         height: 28px;
         padding: 4px 8px;
         margin-left: 4px;
-        background-color: rgba(var(--center-channel-color-rgb), 0.56);
+        background-color: rgba(var(--center-channel-color-rgb), 0.64);
         border-radius: 4px;
         color: var(--center-channel-bg);
         user-select: none;
@@ -424,7 +424,7 @@ blockquote {
         font-size: 20px;
         font-style: normal;
         font-weight: normal;
-        opacity: 0.6;
+        opacity: 0.64;
         text-decoration: inherit;
     }
 }

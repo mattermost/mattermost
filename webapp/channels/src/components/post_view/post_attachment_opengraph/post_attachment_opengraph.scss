@@ -57,11 +57,11 @@
         padding: 5px;
         background-color: rgba(var(--center-channel-color-rgb), 0);
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
 
         &:hover:not(:active) {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
         }
 
         &:active {
@@ -161,7 +161,7 @@
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             background-color: var(--center-channel-bg);
             border-radius: 50%;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 12px;
             place-content: center;
             place-items: center;

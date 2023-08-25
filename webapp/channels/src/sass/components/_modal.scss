@@ -891,7 +891,7 @@
 
             .more-modal__name_count {
                 font-weight: 400;
-                opacity: 0.6;
+                opacity: 0.64;
             }
 
             svg {
@@ -932,7 +932,7 @@
     .more-modal__description {
         display: block;
         overflow: hidden;
-        opacity: 0.6;
+        opacity: 0.64;
         text-overflow: ellipsis;
         white-space: nowrap;
 
@@ -992,7 +992,7 @@
     .more-modal__lastPostAt {
         display: block;
         margin-left: 5px;
-        opacity: 0.6;
+        opacity: 0.64;
 
         time {
             font-weight: bold;
@@ -1182,7 +1182,7 @@
                 left: 18px;
                 width: 4rem;
                 height: 4rem;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
                 float: left;
 
                 &:hover {
@@ -1206,7 +1206,7 @@
                 width: 4rem;
                 height: 4rem;
                 margin-top: 0;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
                 font-size: 32px;
                 font-weight: normal;
                 line-height: 30px;
