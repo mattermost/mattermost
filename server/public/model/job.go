@@ -81,7 +81,7 @@ type Job struct {
 	Progress       int64     `json:"progress"`
 	Data           StringMap `json:"data"`
 
-	Logger mlog.Sugar `json:"-"`
+	Logger *mlog.Logger `json:"-"`
 }
 
 func (j *Job) Auditable() map[string]interface{} {
@@ -125,7 +125,7 @@ func (j *Job) IsValid() *AppError {
 // InitLogger attaches an annotated logger to a Job.
 // It should always be called after creating a new Job to ensure `Job.Logger` it set.
 func (j *Job) InitLogger(logger mlog.LoggerIFace) {
-	j.Logger = logger.Sugar(
+	j.Logger = logger.With(
 		mlog.String("job_id", j.Id),
 		mlog.String("job_type", j.Type),
 		mlog.String("create_at", time.UnixMilli(j.CreateAt).String()),

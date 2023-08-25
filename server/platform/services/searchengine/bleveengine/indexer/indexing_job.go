@@ -321,7 +321,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 	}
 }
 
-func (worker *BleveIndexerWorker) IndexBatch(logger mlog.SuggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
+func (worker *BleveIndexerWorker) IndexBatch(logger mlog.LoggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
 	if !progress.DonePosts {
 		return worker.IndexPostsBatch(logger, progress)
 	}
@@ -337,7 +337,7 @@ func (worker *BleveIndexerWorker) IndexBatch(logger mlog.SuggerIFace, progress I
 	return progress, model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.index_batch.nothing_left_to_index.error", nil, "", http.StatusInternalServerError)
 }
 
-func (worker *BleveIndexerWorker) IndexPostsBatch(logger mlog.SuggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
+func (worker *BleveIndexerWorker) IndexPostsBatch(logger mlog.LoggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
 	var posts []*model.PostForIndexing
 
 	tries := 0
@@ -405,7 +405,7 @@ func (worker *BleveIndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing,
 	return &posts[len(posts)-1].Post, nil
 }
 
-func (worker *BleveIndexerWorker) IndexFilesBatch(logger mlog.SuggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
+func (worker *BleveIndexerWorker) IndexFilesBatch(logger mlog.LoggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
 	var files []*model.FileForIndexing
 
 	tries := 0
@@ -472,7 +472,7 @@ func (worker *BleveIndexerWorker) BulkIndexFiles(files []*model.FileForIndexing,
 	return &files[len(files)-1].FileInfo, nil
 }
 
-func (worker *BleveIndexerWorker) IndexChannelsBatch(logger mlog.SuggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
+func (worker *BleveIndexerWorker) IndexChannelsBatch(logger mlog.LoggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
 	var channels []*model.Channel
 
 	tries := 0
@@ -518,7 +518,7 @@ func (worker *BleveIndexerWorker) IndexChannelsBatch(logger mlog.SuggerIFace, pr
 	return progress, nil
 }
 
-func (worker *BleveIndexerWorker) BulkIndexChannels(logger mlog.SuggerIFace, channels []*model.Channel, progress IndexingProgress) (*model.Channel, *model.AppError) {
+func (worker *BleveIndexerWorker) BulkIndexChannels(logger mlog.LoggerIFace, channels []*model.Channel, progress IndexingProgress) (*model.Channel, *model.AppError) {
 	batch := worker.engine.ChannelIndex.NewBatch()
 
 	for _, channel := range channels {
@@ -554,7 +554,7 @@ func (worker *BleveIndexerWorker) BulkIndexChannels(logger mlog.SuggerIFace, cha
 	return channels[len(channels)-1], nil
 }
 
-func (worker *BleveIndexerWorker) IndexUsersBatch(logger mlog.SuggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
+func (worker *BleveIndexerWorker) IndexUsersBatch(logger mlog.LoggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
 	var users []*model.UserForIndexing
 
 	tries := 0
@@ -599,7 +599,7 @@ func (worker *BleveIndexerWorker) IndexUsersBatch(logger mlog.SuggerIFace, progr
 	return progress, nil
 }
 
-func (worker *BleveIndexerWorker) BulkIndexUsers(logger mlog.SuggerIFace, users []*model.UserForIndexing, progress IndexingProgress) (*model.UserForIndexing, *model.AppError) {
+func (worker *BleveIndexerWorker) BulkIndexUsers(logger mlog.LoggerIFace, users []*model.UserForIndexing, progress IndexingProgress) (*model.UserForIndexing, *model.AppError) {
 	batch := worker.engine.UserIndex.NewBatch()
 
 	for _, user := range users {

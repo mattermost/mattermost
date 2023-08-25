@@ -59,8 +59,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 			}
 		}()
 
-		// TODO: The job.Logger should be used here, but the interface is not compatible yet.
-		appErr := app.BulkExport(request.EmptyContext(jobServer.Logger()), wr, outPath, job, opts)
+		appErr := app.BulkExport(request.EmptyContext(job.Logger), wr, outPath, job, opts)
 		wr.Close() // Close never returns an error
 
 		if appErr != nil {
