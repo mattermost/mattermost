@@ -1013,6 +1013,7 @@ export const AdvancedSections = {
     PREVIEW_FEATURES: 'advancedPreviewFeatures',
     PERFORMANCE_DEBUGGING: 'performanceDebugging',
     SYNC_DRAFTS: 'syncDrafts',
+    DATA_PREFETCH: 'dataPrefetch',
 };
 
 export const RHSStates = {

@@ -20,7 +20,9 @@ import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
 import {GlobalState} from 'types/store';
 
-import {isCollapsedThreadsEnabled} from '../../packages/mattermost-redux/src/selectors/entities/preferences';
+import {allowDisableWebappPrefetch, getBool, isCollapsedThreadsEnabled} from '../../packages/mattermost-redux/src/selectors/entities/preferences';
+
+import {Preferences} from 'mattermost-redux/constants';
 
 import {trackPreloadedChannels} from './actions';
 import DataPrefetch from './data_prefetch';
@@ -84,6 +86,7 @@ function mapStateToProps(state: GlobalState) {
     const unreadChannels = getUnreadChannels(state, lastUnreadChannel);
     const prefetchQueueObj = prefetchQueue(unreadChannels, memberships, isCollapsedThreadsEnabled(state));
     const prefetchRequestStatus = state.views.channel.channelPrefetchStatus;
+    const disableWebappPrefetchAllowed = allowDisableWebappPrefetch(state)
 
     return {
         currentChannelId: getCurrentChannelId(state),
@@ -91,6 +94,8 @@ function mapStateToProps(state: GlobalState) {
         prefetchRequestStatus,
         sidebarLoaded: isSidebarLoaded(state),
         unreadChannels,
+        disableWebappPrefetchAllowed,
+        dataPrefetchEnabled: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_DATA_PREFETCH, true),
     };
 }
 

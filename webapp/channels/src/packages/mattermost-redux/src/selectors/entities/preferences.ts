@@ -281,3 +281,7 @@ export function deprecateCloudFree(state: GlobalState): boolean {
 export function cloudReverseTrial(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'CloudReverseTrial') === 'true';
 }
+
+export function allowDisableWebappPrefetch(state: GlobalState): boolean {
+    return getFeatureFlagValue(state, 'AllowDisableWebappPrefetch') === 'true';
+}
