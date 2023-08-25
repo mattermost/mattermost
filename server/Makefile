@@ -158,7 +158,7 @@ MMCTL_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/cmd/mmctl')
 TEMPLATES_DIR=templates
 
 # Plugins Packages
-PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
+PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-calls-v0.18.0
@@ -175,7 +175,7 @@ PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.2
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.2
 PLUGIN_PACKAGES += focalboard-v7.11.3
 
