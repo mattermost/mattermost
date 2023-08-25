@@ -25,7 +25,7 @@ const actImmediate = (wrapper: ReactWrapper) =>
 describe('codeBlock', () => {
     const state = {
         plugins: {components: {CodeBlockAction: []}},
-    }
+    };
     const store = mockStore(state);
 
     test('should render typescript code block before syntax highlighting', async () => {
