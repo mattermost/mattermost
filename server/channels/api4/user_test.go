@@ -1725,6 +1725,13 @@ func TestGetUsersByIds(t *testing.T) {
 
 			require.Len(t, users, 1, "1 user should be returned")
 		})
+
+		t.Run("should only return unique users when multiple IDs are requested", func(t *testing.T) {
+			users, _, err := client.GetUsersByIds(context.Background(), []string{th.BasicUser.Id, th.BasicUser.Id, th.BasicUser.Id})
+			require.NoError(t, err)
+
+			require.Len(t, users, 1, "1 user should be returned")
+		})
 	})
 
 	t.Run("should return error when not logged in", func(t *testing.T) {
@@ -3902,8 +3909,7 @@ func TestLoginWithLag(t *testing.T) {
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
 
-		appErr = th.App.Srv().InvalidateAllCaches()
-		require.Nil(t, appErr)
+		th.App.Srv().InvalidateAllCaches()
 
 		session, appErr := th.App.GetSession(th.Client.AuthToken)
 		require.Nil(t, appErr)

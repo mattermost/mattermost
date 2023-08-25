@@ -183,6 +183,7 @@ const initialComponents: PluginsState['components'] = {
     PostDropdownMenu: [],
     PostAction: [],
     PostEditorAction: [],
+    NewMessagesSeparatorAction: [],
     Product: [],
     RightHandSidebarComponent: [],
     UserGuideDropdownItem: [],
