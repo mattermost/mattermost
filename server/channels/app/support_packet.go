@@ -5,11 +5,11 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"runtime"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 
@@ -25,7 +25,7 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	fileDatas := []model.FileData{}
 
 	// A array of the functions that we can iterate through since they all have the same return value
-	functions := []func() (*model.FileData, string){
+	functions := []func() (*model.FileData, error){
 		a.generateSupportPacketYaml,
 		a.createPluginsFile,
 		a.createSanitizedConfigFile,
@@ -34,12 +34,12 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	}
 
 	for _, fn := range functions {
-		fileData, warning := fn()
+		fileData, err := fn()
 
 		if fileData != nil {
 			fileDatas = append(fileDatas, *fileData)
 		} else {
-			warnings = append(warnings, warning)
+			warnings = append(warnings, err.Error())
 		}
 	}
 
@@ -55,7 +55,9 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	return fileDatas
 }
 
-func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
+func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
+	var rErr error
+
 	// Here we are getting information regarding Elastic Search
 	var elasticServerVersion string
 	var elasticServerPlugins []string
@@ -78,21 +80,36 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 
 	uniqueUserCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
-		return nil, errors.Wrap(err, "error while getting user count").Error()
+		rErr = multierror.Append(errors.Wrap(err, "error while getting user count"))
 	}
-
-	analytics, err := a.GetAnalytics("standard", "")
-	if analytics == nil {
-		return nil, errors.Wrap(err, "error while getting analytics").Error()
+	elasticPostIndexing, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeElasticsearchPostIndexing, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post indexing jobs"))
 	}
-
-	elasticPostIndexing, _ := a.Srv().Store().Job().GetAllByTypePage("elasticsearch_post_indexing", 0, 2)
-	elasticPostAggregation, _ := a.Srv().Store().Job().GetAllByTypePage("elasticsearch_post_aggregation", 0, 2)
-	ldapSyncJobs, _ := a.Srv().Store().Job().GetAllByTypePage("ldap_sync", 0, 2)
-	messageExport, _ := a.Srv().Store().Job().GetAllByTypePage("message_export", 0, 2)
-	dataRetentionJobs, _ := a.Srv().Store().Job().GetAllByTypePage("data_retention", 0, 2)
-	complianceJobs, _ := a.Srv().Store().Job().GetAllByTypePage("compliance", 0, 2)
-	migrationJobs, _ := a.Srv().Store().Job().GetAllByTypePage("migrations", 0, 2)
+	elasticPostAggregation, _ := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeElasticsearchPostAggregation, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
+	}
+	ldapSyncJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeLdapSync, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP sync jobs"))
+	}
+	messageExport, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeMessageExport, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting message export jobs"))
+	}
+	dataRetentionJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeDataRetention, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting data retention jobs"))
+	}
+	complianceJobs, err := a.Srv().Store().Job().GetAllByTypePage("compliance", 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting compliance jobs"))
+	}
+	migrationJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeMigrations, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
+	}
 
 	licenseTo := ""
 	supportedUsers := 0
@@ -117,15 +134,6 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 		ElasticServerPlugins:       elasticServerPlugins,
 		ActiveUsers:                int(uniqueUserCount),
 		LicenseSupportedUsers:      supportedUsers,
-		TotalChannels:              int(analytics[0].Value) + int(analytics[1].Value),
-		TotalPosts:                 int(analytics[2].Value),
-		TotalTeams:                 int(analytics[4].Value),
-		WebsocketConnections:       int(analytics[5].Value),
-		MasterDbConnections:        int(analytics[6].Value),
-		ReplicaDbConnections:       int(analytics[7].Value),
-		DailyActiveUsers:           int(analytics[8].Value),
-		MonthlyActiveUsers:         int(analytics[9].Value),
-		InactiveUserCount:          int(analytics[10].Value),
 		ElasticPostIndexingJobs:    elasticPostIndexing,
 		ElasticPostAggregationJobs: elasticPostAggregation,
 		LdapSyncJobs:               ldapSyncJobs,
@@ -135,108 +143,103 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 		MigrationJobs:              migrationJobs,
 	}
 
+	analytics, appErr := a.GetAnalytics("standard", "")
+	if appErr != nil {
+		rErr = multierror.Append(errors.Wrap(appErr, "error while getting analytics"))
+	}
+	if len(analytics) < 11 {
+		rErr = multierror.Append(errors.New("not enought analytics information found"))
+	} else {
+		supportPacket.TotalChannels = int(analytics[0].Value) + int(analytics[1].Value)
+		supportPacket.TotalPosts = int(analytics[2].Value)
+		supportPacket.TotalTeams = int(analytics[4].Value)
+		supportPacket.WebsocketConnections = int(analytics[5].Value)
+		supportPacket.MasterDbConnections = int(analytics[6].Value)
+		supportPacket.ReplicaDbConnections = int(analytics[7].Value)
+		supportPacket.DailyActiveUsers = int(analytics[8].Value)
+		supportPacket.MonthlyActiveUsers = int(analytics[9].Value)
+		supportPacket.InactiveUserCount = int(analytics[10].Value)
+	}
+
 	// Marshal to a Yaml File
 	supportPacketYaml, err := yaml.Marshal(&supportPacket)
-	if err == nil {
-		fileData := model.FileData{
-			Filename: "support_packet.yaml",
-			Body:     supportPacketYaml,
-		}
-		return &fileData, ""
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to marshal support package into yaml"))
 	}
 
-	warning := fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s", err.Error())
-	return nil, warning
+	fileData := &model.FileData{
+		Filename: "support_packet.yaml",
+		Body:     supportPacketYaml,
+	}
+	return fileData, rErr
 }
 
-func (a *App) createPluginsFile() (*model.FileData, string) {
-	var warning string
-
+func (a *App) createPluginsFile() (*model.FileData, error) {
 	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
 	pluginsResponse, appErr := a.GetPlugins()
-	if appErr == nil {
-		pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
-		if err == nil {
-			fileData := model.FileData{
-				Filename: "plugins.json",
-				Body:     pluginsPrettyJSON,
-			}
-
-			return &fileData, ""
-		}
-
-		warning = fmt.Sprintf("json.MarshalIndent(pluginsResponse) Error: %s", err.Error())
-	} else {
-		warning = fmt.Sprintf("c.App.GetPlugins() Error: %s", appErr.Error())
+	if appErr != nil {
+		return nil, errors.Wrap(appErr, "failed to get plugin list for support package")
 	}
 
-	return nil, warning
-}
-
-func (a *App) getNotificationsLog() (*model.FileData, string) {
-	var warning string
-
-	// Getting notifications.log
-	if *a.Config().NotificationLogSettings.EnableFile {
-		// notifications.log
-		notificationsLog := config.GetNotificationsLogFileLocation(*a.Config().LogSettings.FileLocation)
-
-		notificationsLogFileData, notificationsLogFileDataErr := os.ReadFile(notificationsLog)
-
-		if notificationsLogFileDataErr == nil {
-			fileData := model.FileData{
-				Filename: "notifications.log",
-				Body:     notificationsLogFileData,
-			}
-			return &fileData, ""
-		}
-
-		warning = fmt.Sprintf("os.ReadFile(notificationsLog) Error: %s", notificationsLogFileDataErr.Error())
-
-	} else {
-		warning = "Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json"
+	pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal plugin list into json")
 	}
 
-	return nil, warning
+	fileData := &model.FileData{
+		Filename: "plugins.json",
+		Body:     pluginsPrettyJSON,
+	}
+	return fileData, nil
+
 }
 
-func (a *App) getMattermostLog() (*model.FileData, string) {
-	var warning string
-
-	// Getting mattermost.log
-	if *a.Config().LogSettings.EnableFile {
-		// mattermost.log
-		mattermostLog := config.GetLogFileLocation(*a.Config().LogSettings.FileLocation)
-
-		mattermostLogFileData, mattermostLogFileDataErr := os.ReadFile(mattermostLog)
-
-		if mattermostLogFileDataErr == nil {
-			fileData := model.FileData{
-				Filename: "mattermost.log",
-				Body:     mattermostLogFileData,
-			}
-			return &fileData, ""
-		}
-		warning = fmt.Sprintf("os.ReadFile(mattermostLog) Error: %s", mattermostLogFileDataErr.Error())
-
-	} else {
-		warning = "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json"
+func (a *App) getNotificationsLog() (*model.FileData, error) {
+	if !*a.Config().NotificationLogSettings.EnableFile {
+		return nil, errors.New("Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json")
 	}
 
-	return nil, warning
+	notificationsLog := config.GetNotificationsLogFileLocation(*a.Config().LogSettings.FileLocation)
+	notificationsLogFileData, err := os.ReadFile(notificationsLog)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed read notifcation log file at path %s", notificationsLog)
+	}
+
+	fileData := &model.FileData{
+		Filename: "notifications.log",
+		Body:     notificationsLogFileData,
+	}
+	return fileData, nil
 }
 
-func (a *App) createSanitizedConfigFile() (*model.FileData, string) {
+func (a *App) getMattermostLog() (*model.FileData, error) {
+	if !*a.Config().LogSettings.EnableFile {
+		return nil, errors.New("Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json")
+	}
+
+	mattermostLog := config.GetLogFileLocation(*a.Config().LogSettings.FileLocation)
+	mattermostLogFileData, err := os.ReadFile(mattermostLog)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed read mattermost log file at path %s", mattermostLog)
+	}
+
+	fileData := &model.FileData{
+		Filename: "mattermost.log",
+		Body:     mattermostLogFileData,
+	}
+	return fileData, nil
+}
+
+func (a *App) createSanitizedConfigFile() (*model.FileData, error) {
 	// Getting sanitized config, prettifying it, and then adding it to our file data array
 	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
-	if err == nil {
-		fileData := model.FileData{
-			Filename: "sanitized_config.json",
-			Body:     sanitizedConfigPrettyJSON,
-		}
-		return &fileData, ""
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to sanitized config into json")
 	}
 
-	warning := fmt.Sprintf("json.MarshalIndent(c.App.GetSanitizedConfig()) Error: %s", err.Error())
-	return nil, warning
+	fileData := &model.FileData{
+		Filename: "sanitized_config.json",
+		Body:     sanitizedConfigPrettyJSON,
+	}
+	return fileData, nil
 }
