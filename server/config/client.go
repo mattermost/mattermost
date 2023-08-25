@@ -81,6 +81,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableGifPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableGifPicker)
 	props["GfycatApiKey"] = *c.ServiceSettings.GfycatAPIKey
 	props["GfycatApiSecret"] = *c.ServiceSettings.GfycatAPISecret
+	props["GiphySdkKey"] = *c.ServiceSettings.GiphySdkKey
 	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
 
 	props["MaxNotificationsPerChannel"] = strconv.FormatInt(*c.TeamSettings.MaxNotificationsPerChannel, 10)
@@ -127,8 +128,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DataRetentionMessageRetentionDays"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
 	props["DataRetentionFileRetentionDays"] = "0"
-	props["DataRetentionEnableBoardsDeletion"] = "false"
-	props["DataRetentionBoardsRetentionDays"] = "0"
 
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomURLSchemes, ",")
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceURL == model.PluginSettingsDefaultMarketplaceURL)
@@ -201,8 +200,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["DataRetentionMessageRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.MessageRetentionDays), 10)
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
-			props["DataRetentionEnableBoardsDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableBoardsDeletion)
-			props["DataRetentionBoardsRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.BoardsRetentionDays), 10)
 		}
 
 		if license.HasSharedChannels() {
