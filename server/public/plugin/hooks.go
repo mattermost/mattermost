@@ -50,7 +50,8 @@ const (
 	deprecatedGetCollectionMetadataByIdsID    = 32
 	deprecatedGetTopicMetadataByIdsID         = 33
 	ConfigurationWillBeSavedID                = 34
-	MessageHasBeenDeletedID                   = 35
+	NotificationWillBePushedID                = 35
+	MessageHasBeenDeletedID                   = 36
 	TotalHooksID                              = iota
 )
 
@@ -292,4 +293,17 @@ type Hooks interface {
 	// config object can be returned to be stored in place of the provided one.
 	// Minimum server version: 8.0
 	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
+
+	// NotificationWillBePushed is invoked before a push notification is sent to the push
+	// notification server.
+	//
+	// To reject a notification, return an non-empty string describing why the notification was rejected.
+	// To modify the notification, return the replacement, non-nil *model.PushNotification and an empty string.
+	// To allow the notification without modification, return a nil *model.PushNotification and an empty string.
+	//
+	// Note that this method will be called for push notifications created by plugins, including the plugin that
+	// created the notification.
+	//
+	// Minimum server version: 9.0
+	NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
 }

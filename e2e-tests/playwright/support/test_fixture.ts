@@ -18,6 +18,11 @@ type ExtendedFixtures = {
     pages: typeof pages;
 };
 
+type AxeBuilderOptions = {
+    disableColorContrast?: boolean;
+    disableLinkInTextBlock?: boolean;
+};
+
 export const test = base.extend<ExtendedFixtures>({
     // eslint-disable-next-line no-empty-pattern
     axe: async ({}, use) => {
@@ -94,15 +99,29 @@ class PlaywrightExtended {
 }
 
 class AxeBuilderExtended {
-    readonly builder: (page: Page, disableRules?: string[]) => AxeBuilder;
+    readonly builder: (page: Page, options?: AxeBuilderOptions) => AxeBuilder;
 
     // See https://github.com/dequelabs/axe-core/blob/master/doc/API.md#axe-core-tags
     readonly tags: string[] = ['wcag2a', 'wcag2aa'];
 
     constructor() {
-        // See https://github.com/dequelabs/axe-core/blob/master/doc/rule-descriptions.md#wcag-20-level-a--aa-rules
-        this.builder = (page: Page, disableRules?: string[]) => {
-            return new AxeBuilder({page}).withTags(this.tags).disableRules(disableRules || []);
+        this.builder = (page: Page, options: AxeBuilderOptions = {}) => {
+            // See https://github.com/dequelabs/axe-core/blob/master/doc/rule-descriptions.md#wcag-20-level-a--aa-rules
+            const disabledRules: string[] = [];
+
+            if (options.disableColorContrast) {
+                // Disabled in pages due to impact to overall theme of Mattermost.
+                // Option: make use of custom theme to improve color contrast.
+                disabledRules.push('color-contrast');
+            }
+
+            if (options.disableLinkInTextBlock) {
+                // Disabled in pages due to impact to overall theme of Mattermost.
+                // Option: make use of custom theme to improve color contrast.
+                disabledRules.push('link-in-text-block');
+            }
+
+            return new AxeBuilder({page}).withTags(this.tags).disableRules(disabledRules);
         };
     }
 
