@@ -1702,11 +1702,12 @@ func TestPatchUser(t *testing.T) {
 	})
 
 	t.Run("Patch username with a new username", func(t *testing.T) {
-		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
+		u, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
 			Username: model.NewString(model.NewId()),
 		}, true)
 
 		require.Nil(t, err)
+		require.Empty(t, u.Password)
 	})
 }
 
