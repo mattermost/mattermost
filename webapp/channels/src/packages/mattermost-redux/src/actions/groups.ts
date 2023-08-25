@@ -156,14 +156,15 @@ export function getGroup(id: string, includeMemberCount = false): ActionFunc {
     });
 }
 
-export function getGroups(filterAllowReference = false, page = 0, perPage = 10, includeMemberCount = false): ActionFunc {
+export function getGroups(q = '', filterAllowReference = false, page = 0, perPage = 10, includeMemberCount = false): ActionFunc {
     return bindClientFunc({
-        clientFunc: async (param1, param2, param3, param4) => {
-            const result = await Client4.getGroups(param1, param2, param3, param4);
+        clientFunc: async (param1, param2, param3, param4, param5) => {
+            const result = await Client4.getGroups(param1, param2, param3, param4, param5);
             return result;
         },
         onSuccess: [GroupTypes.RECEIVED_GROUPS],
         params: [
+            q,
             filterAllowReference,
             page,
             perPage,
