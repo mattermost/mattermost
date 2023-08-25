@@ -664,16 +664,16 @@ func TestSetFileSearchableContent(t *testing.T) {
 		Extension: "jpg",
 		MimeType:  "image/jpeg",
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
-	result, err := th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
-	require.Nil(t, err)
+	result, appErr := th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
+	require.Nil(t, appErr)
 	assert.Equal(t, 0, len(result.Order))
 
-	err = th.App.SetFileSearchableContent(fileInfo.Id, "searchable")
-	require.Nil(t, err)
+	appErr = th.App.SetFileSearchableContent(fileInfo.Id, "searchable")
+	require.Nil(t, appErr)
 
-	result, err = th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
-	require.Nil(t, err)
+	result, appErr = th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
+	require.Nil(t, appErr)
 	assert.Equal(t, 1, len(result.Order))
 }
