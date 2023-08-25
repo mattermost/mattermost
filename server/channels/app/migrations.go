@@ -555,6 +555,19 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 }
 
 func (s *Server) doElasticsearchFixChannelIndex() {
+	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
+			return
+		}
+
+		if model.BuildEnterpriseReady == "true" && newLicense != nil && *newLicense.Features.Elasticsearch {
+			if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
+				mlog.Fatal("failed to start job for fixing Elasticsearch channels index on license application", mlog.Err(appErr))
+				return
+			}
+		}
+	})
+
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
 		return
@@ -570,19 +583,6 @@ func (s *Server) doElasticsearchFixChannelIndex() {
 		mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
 		return
 	}
-
-	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
-			return
-		}
-
-		if model.BuildEnterpriseReady == "true" && newLicense != nil && *newLicense.Features.Elasticsearch {
-			if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
-				mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
-				return
-			}
-		}
-	})
 }
 
 func (s *Server) doCloudS3PathMigrations() {
