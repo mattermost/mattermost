@@ -133,9 +133,7 @@ describe('Move thread', () => {
      *
      * @param {Post} post
      */
-    const verifyMovedMessage = ({post, comment, showMore}) => {
-        const permaLink = `${Cypress.config('baseUrl')}/${testTeam.name}/pl/${post.id}`;
-
+    const verifyMovedMessage = ({post}) => {
         // * Assert post has been moved
         cy.getLastPostId().then((id) => {
             // * Assert last post is visible
@@ -164,7 +162,7 @@ describe('Move thread', () => {
             cy.get('.GenericModal__button.confirm').should('not.be.disabled');
 
             // * Assert Notification is shown
-            cy.findByTestId('notification-text').should('be.visible').should('contain.text', `Moving this thread changes who has access`);
+            cy.findByTestId('notification-text').should('be.visible').should('contain.text', 'Moving this thread changes who has access');
 
             if (cancel) {
                 // * Assert if button is active

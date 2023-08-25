@@ -191,8 +191,6 @@ describe('Move thread', () => {
      * @param {boolean?} options.cancel
      */
     const moveThreadFromGM = ({cancel = false} = {}) => {
-        const participants = gmChannel.display_name.split(', ').slice(1).join(' and ');
-
         // * Assert visibility of the move thread modal
         cy.get('#move-thread-modal').should('be.visible').within(() => {
             // * Assert channel select is not existent
@@ -202,7 +200,7 @@ describe('Move thread', () => {
             cy.get('.GenericModal__button.confirm').should('not.be.disabled');
 
             // * Assert Notification is shown
-            cy.findByTestId('notification-text').should('be.visible').should('contain.text', `Moving this thread changes who has access`);
+            cy.findByTestId('notification-text').should('be.visible').should('contain.text', 'Moving this thread changes who has access');
 
             if (cancel) {
                 // * Assert if button is active

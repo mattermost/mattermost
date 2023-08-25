@@ -221,7 +221,7 @@ describe('Move Thread', () => {
             cy.get('.GenericModal__button.confirm').should('not.be.disabled');
 
             // * Assert Notification is shown
-            cy.findByTestId('notification-text').should('be.visible').should('contain.text', `Moving this thread changes who has access`);
+            cy.findByTestId('notification-text').should('be.visible').should('contain.text', 'Moving this thread changes who has access');
         });
     };
 });
