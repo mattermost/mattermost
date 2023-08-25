@@ -582,7 +582,7 @@ test-mmctl: gotestsum start-docker
 
 test-mmctl-coverage: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl-coverage: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
-test-mmctl-coveragee2e: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-mmctl-coverage: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-coverage: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-mmctl-coverage: gotestsum start-docker
 	@echo Running all mmctl tests with coverage
