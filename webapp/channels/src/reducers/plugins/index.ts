@@ -184,6 +184,7 @@ const initialComponents: PluginsState['components'] = {
     PostAction: [],
     PostEditorAction: [],
     CodeBlockAction: [],
+    NewMessagesSeparatorAction: [],
     Product: [],
     RightHandSidebarComponent: [],
     UserGuideDropdownItem: [],
