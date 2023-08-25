@@ -75,22 +75,30 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 
 	// Here we are getting information regarding the database (mysql/postgres + current schema version)
 	databaseType, databaseSchemaVersion := a.Srv().DatabaseTypeAndSchemaVersion()
-
 	databaseVersion, _ := a.Srv().Store().GetDbVersion(false)
 
 	uniqueUserCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting user count"))
 	}
-	elasticPostIndexing, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeElasticsearchPostIndexing, 0, 2)
+
+	dataRetentionJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeDataRetention, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting data retention jobs"))
+	}
+	messageExportJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeMessageExport, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting message export jobs"))
+	}
+	elasticPostIndexingJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeElasticsearchPostIndexing, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post indexing jobs"))
 	}
-	elasticPostAggregation, _ := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeElasticsearchPostAggregation, 0, 2)
+	elasticPostAggregationJobs, _ := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeElasticsearchPostAggregation, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
 	}
-	blevePostIndexing, _ := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeBlevePostIndexing, 0, 2)
+	blevePostIndexingJobs, _ := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeBlevePostIndexing, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting bleve post indexing jobs"))
 	}
@@ -98,21 +106,13 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP sync jobs"))
 	}
-	messageExport, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeMessageExport, 0, 2)
+	migrationJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeMigrations, 0, 2)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting message export jobs"))
-	}
-	dataRetentionJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeDataRetention, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting data retention jobs"))
+		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
 	}
 	complianceJobs, err := a.Srv().Store().Job().GetAllByTypePage("compliance", 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting compliance jobs"))
-	}
-	migrationJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeMigrations, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
 	}
 
 	licenseTo := ""
@@ -124,28 +124,30 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 
 	// Creating the struct for support packet yaml file
 	supportPacket := model.SupportPacket{
-		LicenseTo:                  licenseTo,
-		ServerOS:                   runtime.GOOS,
-		ServerArchitecture:         runtime.GOARCH,
-		ServerVersion:              model.CurrentVersion,
-		BuildHash:                  model.BuildHash,
-		DatabaseType:               databaseType,
-		DatabaseVersion:            databaseVersion,
-		DatabaseSchemaVersion:      databaseSchemaVersion,
-		LdapVendorName:             vendorName,
-		LdapVendorVersion:          vendorVersion,
-		ElasticServerVersion:       elasticServerVersion,
-		ElasticServerPlugins:       elasticServerPlugins,
-		ActiveUsers:                int(uniqueUserCount),
-		LicenseSupportedUsers:      supportedUsers,
-		ElasticPostIndexingJobs:    elasticPostIndexing,
-		ElasticPostAggregationJobs: elasticPostAggregation,
-		BlevePostIndexingJobs:      blevePostIndexing,
-		LdapSyncJobs:               ldapSyncJobs,
-		MessageExportJobs:          messageExport,
+		LicenseTo:             licenseTo,
+		ServerOS:              runtime.GOOS,
+		ServerArchitecture:    runtime.GOARCH,
+		ServerVersion:         model.CurrentVersion,
+		BuildHash:             model.BuildHash,
+		DatabaseType:          databaseType,
+		DatabaseVersion:       databaseVersion,
+		DatabaseSchemaVersion: databaseSchemaVersion,
+		LdapVendorName:        vendorName,
+		LdapVendorVersion:     vendorVersion,
+		ElasticServerVersion:  elasticServerVersion,
+		ElasticServerPlugins:  elasticServerPlugins,
+		ActiveUsers:           int(uniqueUserCount),
+		LicenseSupportedUsers: supportedUsers,
+
+		// Jobs
 		DataRetentionJobs:          dataRetentionJobs,
-		ComplianceJobs:             complianceJobs,
+		MessageExportJobs:          messageExportJobs,
+		ElasticPostIndexingJobs:    elasticPostIndexingJobs,
+		ElasticPostAggregationJobs: elasticPostAggregationJobs,
+		BlevePostIndexingJobs:      blevePostIndexingJobs,
+		LdapSyncJobs:               ldapSyncJobs,
 		MigrationJobs:              migrationJobs,
+		ComplianceJobs:             complianceJobs,
 	}
 
 	analytics, appErr := a.GetAnalytics("standard", "")
