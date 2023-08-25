@@ -1235,9 +1235,9 @@ func (a *App) SetFileSearchableContent(fileID string, data string) *model.AppErr
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return model.NewAppError("SetFileSearchableContent", "app.file_info.set_content.app_error", nil, "", http.StatusNotFound).Wrap(err)
+			return model.NewAppError("SetFileSearchableContent", "app.file_info.set_searchable_content.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return model.NewAppError("SetFileSearchableContent", "app.file_info.set_content.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return model.NewAppError("SetFileSearchableContent", "app.file_info.set_searchable_content.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
