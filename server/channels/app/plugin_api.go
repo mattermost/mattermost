@@ -1266,3 +1266,8 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 	}
 	return fi, nil
 }
+
+func (api *PluginAPI) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
+	// Ignoring skipSessionId because it's only used internally to clear push notifications
+	return api.app.sendPushNotificationToAllSessions(notification, userID, "")
+}
