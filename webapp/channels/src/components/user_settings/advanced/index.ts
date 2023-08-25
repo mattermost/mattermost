@@ -25,7 +25,7 @@ function makeMapStateToProps() {
 
         const enablePreviewFeatures = config.EnablePreviewFeatures === 'true';
         const enableUserDeactivation = config.EnableUserDeactivation === 'true';
-        const disableWebappPrefetchAllowed = allowDisableWebappPrefetch(state)
+        const disableWebappPrefetchAllowed = allowDisableWebappPrefetch(state);
 
         return {
             advancedSettingsCategory: getAdvancedSettingsCategory(state, Preferences.CATEGORY_ADVANCED_SETTINGS),

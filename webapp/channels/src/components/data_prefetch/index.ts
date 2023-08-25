@@ -86,7 +86,7 @@ function mapStateToProps(state: GlobalState) {
     const unreadChannels = getUnreadChannels(state, lastUnreadChannel);
     const prefetchQueueObj = prefetchQueue(unreadChannels, memberships, isCollapsedThreadsEnabled(state));
     const prefetchRequestStatus = state.views.channel.channelPrefetchStatus;
-    const disableWebappPrefetchAllowed = allowDisableWebappPrefetch(state)
+    const disableWebappPrefetchAllowed = allowDisableWebappPrefetch(state);
 
     return {
         currentChannelId: getCurrentChannelId(state),
