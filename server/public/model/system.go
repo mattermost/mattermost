@@ -103,6 +103,7 @@ type SupportPacket struct {
 	InactiveUserCount          int      `yaml:"inactive_user_count"`
 	ElasticPostIndexingJobs    []*Job   `yaml:"elastic_post_indexing_jobs"`
 	ElasticPostAggregationJobs []*Job   `yaml:"elastic_post_aggregation_jobs"`
+	BlevePostIndexingJobs      []*Job   `yaml:"bleve_post_indexin_jobs"`
 	LdapSyncJobs               []*Job   `yaml:"ldap_sync_jobs"`
 	MessageExportJobs          []*Job   `yaml:"message_export_jobs"`
 	DataRetentionJobs          []*Job   `yaml:"data_retention_jobs"`

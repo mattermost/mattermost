@@ -90,6 +90,10 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
 	}
+	blevePostIndexing, _ := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeBlevePostIndexing, 0, 2)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting bleve post indexing jobs"))
+	}
 	ldapSyncJobs, err := a.Srv().Store().Job().GetAllByTypePage(model.JobTypeLdapSync, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP sync jobs"))
@@ -136,6 +140,7 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, error) {
 		LicenseSupportedUsers:      supportedUsers,
 		ElasticPostIndexingJobs:    elasticPostIndexing,
 		ElasticPostAggregationJobs: elasticPostAggregation,
+		BlevePostIndexingJobs:      blevePostIndexing,
 		LdapSyncJobs:               ldapSyncJobs,
 		MessageExportJobs:          messageExport,
 		DataRetentionJobs:          dataRetentionJobs,
