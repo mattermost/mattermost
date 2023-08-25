@@ -732,8 +732,6 @@
   "admin.data_retention.retention_days": "{count} {count, plural, one {day} other {days}}",
   "admin.data_retention.retention_years": "{count} {count, plural, one {year} other {years}}",
   "admin.data_retention.settings.title": "Políticas de retenção de dados",
-  "admin.data_retention.form.boardsRetention": "Retenção de quadros",
-  "admin.data_retention.globalPoliciesTable.boards": "Quadros",
   "admin.data_retention.title": "Política de Retenção de Dados",
   "admin.data_retention_feature_discovery.copy": "Guarde seus dados apenas pelo tempo que for necessário. Crie trabalhos de retenção de dados para canais e equipes selecionados para excluir automaticamente dados descartáveis.",
   "admin.data_retention_feature_discovery.title": "Crie cronogramas de retenção de dados com Mattermost Enterprise",
