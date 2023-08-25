@@ -464,6 +464,14 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member."
   },
   {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "%v created this channel from a group message with %v."
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel.post_message.error",
+    "translation": "Failed to create group message to channel conversion post"
+  },
+  {
     "id": "api.cloud.app_error",
     "translation": "Internal error during cloud api request."
   },
