@@ -173,7 +173,7 @@ type Hooks interface {
 	// Note that this method will be called for posts deleted by plugins, including the plugin that
 	// deleted the post.
 	//
-	// Minimum server version: 7.10
+	// Minimum server version: 9.1
 	MessageHasBeenDeleted(c *Context, post *model.Post)
 
 	// ChannelHasBeenCreated is invoked after the channel has been committed to the database.
