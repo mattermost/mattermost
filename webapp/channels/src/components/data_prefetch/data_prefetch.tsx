@@ -89,7 +89,6 @@ export default class DataPrefetch extends React.PureComponent<Props> {
 
     private prefetchData = () => {
         const {prefetchRequestStatus, prefetchQueueObj} = this.props;
-        console.log(prefetchQueueObj)
         for (const priority in prefetchQueueObj) {
             if (!prefetchQueueObj.hasOwnProperty(priority)) {
                 continue;

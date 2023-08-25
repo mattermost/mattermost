@@ -5160,6 +5160,8 @@
   "user_profile.send.dm.yourself": "Send yourself a message",
   "user.settings.advance.confirmDeactivateAccountTitle": "Confirm Deactivation",
   "user.settings.advance.confirmDeactivateDesc": "Are you sure you want to deactivate your account? This can only be reversed by your System Administrator.",
+  "user.settings.advance.dataPrefetch.Desc": "When disabled, messages and user information will be fetched on each channel load instead of being pre-fetched on startup. This setting is recommended for users with a high unread channel count in order to improve application performance.",
+  "user.settings.advance.dataPrefetch.Title": "Allow Mattermost to prefetch channel posts",
   "user.settings.advance.deactivate_member_modal.deactivateButton": "Yes, deactivate my account",
   "user.settings.advance.deactivateAccountTitle": "Deactivate Account",
   "user.settings.advance.deactivateDesc": "Deactivating your account removes your ability to log in to this server and disables all email and mobile notifications. To reactivate your account, contact your System Administrator.",
