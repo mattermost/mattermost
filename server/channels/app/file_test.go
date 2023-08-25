@@ -652,7 +652,7 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 }
 
 func TestSetFileSearchableContent(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	fileInfo, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
