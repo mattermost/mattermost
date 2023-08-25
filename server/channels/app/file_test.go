@@ -666,13 +666,13 @@ func TestSetFileSearchableContent(t *testing.T) {
 	})
 
 	result, err := th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
-	require.NoError(t, err)
+	require.Nil(t, err)
 	assert.Equal(t, 0, len(result.Order))
 
 	err = th.App.SetFileSearchableContent(fileInfo.Id, "searchable")
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	result, err = th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
-	require.NoError(t, err)
+	require.Nil(t, err)
 	assert.Equal(t, 1, len(result.Order))
 }
