@@ -6,10 +6,20 @@ import {shallow} from 'enzyme';
 
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
+import Constants, {ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 
 import AdvancedCreateComment from 'components/advanced_create_comment/advanced_create_comment';
+import AdvancedCreateCommentWithStore from 'components/advanced_create_comment';
+import {screen, waitFor} from '@testing-library/react';
+import {renderWithRealStore, userEvent} from 'tests/react_testing_utils';
+import {WebSocketContext} from 'utils/use_websocket';
+import WebSocketClient from 'client/web_websocket_client';
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import Permissions from 'mattermost-redux/constants/permissions';
+import {setupServer} from 'msw/node';
+import {rest} from 'msw';
 
+global.ResizeObserver = require('resize-observer-polyfill');
 jest.mock('utils/exec_commands', () => ({
     execCommandInsertText: jest.fn(),
 }));
@@ -28,9 +38,13 @@ describe('components/AdvancedCreateComment', () => {
     const rootId = '';
     const latestPostId = '3498nv24823948v23m4nv34';
     const currentUserId = 'zaktnt8bpbgu8mb6ez9k64r7sa';
+    const channel = {
+        id: channelId,
+    };
 
     const baseProps = {
         channelId,
+        channel,
         currentUserId,
         rootId,
         rootDeleted: false,
@@ -61,6 +75,94 @@ describe('components/AdvancedCreateComment', () => {
         getChannelMemberCountsFromMessage: jest.fn(),
         handleSubmit: jest.fn().mockReturnValue({data: {}}),
         openModal: jest.fn(),
+    };
+
+    const initialState = {
+        entities: {
+            general: {
+                config: {
+                    EnableConfirmNotificationsToChannel: 'false',
+                    EnableCustomGroups: 'false',
+                    PostPriority: 'false',
+                    ExperimentalTimezone: 'false',
+                    EnableCustomEmoji: 'false',
+                    AllowSyncedDrafts: 'false',
+                },
+                license: {
+                    IsLicensed: 'false',
+                    LDAPGroups: 'false',
+                },
+            },
+            channels: {
+                channels: {
+                    current_channel_id: {
+                        id: 'current_channel_id',
+                        group_constrained: false,
+                        team_id: 'current_team_id',
+                        type: 'O',
+                    },
+                },
+                stats: {
+                    current_channel_id: {
+                        member_count: 1,
+                    },
+                },
+                roles: {
+                    current_channel_id: new Set(['channel_roles']),
+                },
+                groupsAssociatedToChannel: {},
+                channelMemberCountsByGroup: {
+                    current_channel_id: {},
+                },
+            },
+            teams: {
+                currentTeamId: 'current_team_id',
+                teams: {
+                    current_team_id: {
+                        id: 'current_team_id',
+                        group_constrained: false,
+                    },
+                },
+                myMembers: {
+                    current_team_id: {
+                        roles: 'team_roles',
+                    },
+                },
+                groupsAssociatedToTeam: {},
+            },
+            users: {
+                currentUserId: 'current_user_id',
+                profiles: {
+                    current_user_id: {
+                        id: 'current_user_id',
+                        roles: 'user_roles',
+                        locale: 'en',
+                    },
+                },
+                statuses: {
+                    current_user_id: 'online',
+                },
+            },
+            roles: {
+                roles: {
+                    user_roles: {permissions: []},
+                    channel_roles: {permissions: []},
+                    team_roles: {permissions: []},
+                },
+            },
+            groups: {
+                groups: {},
+            },
+            emojis: {
+                customEmoji: {},
+            },
+            preferences: {
+                myPreferences: {},
+            },
+        },
+        websocket: {
+            connectionId: 'connection_id',
+        },
     };
 
     const emptyDraft = {
@@ -553,31 +655,73 @@ describe('components/AdvancedCreateComment', () => {
         expect(preventDefault).toHaveBeenCalled();
     });
 
-    //     it('should update global draft state if invalid slash command error occurs', async () => {
-    //         const error = new Error('No command found');
-    //         error.server_error_id = 'api.command.execute_command.not_found.app_error';
-    //         const onSubmitWithError = jest.fn(() => Promise.reject(error));
+    it('should update state if invalid slash command error occurs', async () => {
+        const server = setupServer(
+            rest.post('/api/v4/commands/execute', (req, res, ctx) => {
+                return res(
+                    ctx.status(404),
+                    ctx.json({id: 'api.command.execute_command.not_found.app_error', message: 'Command not found'}),
+                );
+            }),
+        );
+        server.listen({
+            onUnhandledRequest: (...args) => {
+                console.log('unhandled', args);
+            },
+        });
+        const currentChannelId = 'current_channel_id';
+        const currentRootId = 'rootId';
+        const draft = {
+            uploadsInProgress: [],
+            fileInfos: [],
+            message: '/some command with arguments',
+            rootId: currentRootId,
+            channelId: currentChannelId,
+        };
 
-    //         const props = {
-    //             ...baseProps,
-    //             draft: {
-    //                 message: '/fakecommand other text',
-    //                 uploadsInProgress: [],
-    //                 fileInfos: [{}, {}, {}],
-    //             },
-    //             onSubmit: onSubmitWithError,
-    //         };
+        const props = {
 
-    //         const wrapper = shallow(
-    //             <AdvancedCreateComment {...props}/>,
-    //         );
+            // For redux
+            rootId: currentRootId,
+            channelId: currentChannelId,
 
-    //         const submitPromise = wrapper.instance().handleSubmit({preventDefault});
-    //         expect(props.onUpdateCommentDraft).not.toHaveBeenCalled();
+            // For component
+            rootDeleted: false,
+        };
 
-    //         await submitPromise;
-    //         expect(props.onUpdateCommentDraft).toHaveBeenCalledWith(props.draft);
-    //     });
+        const draftKey = `${StoragePrefixes.COMMENT_DRAFT}${draft.rootId}`;
+        renderWithRealStore(
+            <WebSocketContext.Provider value={WebSocketClient}>
+                <AdvancedCreateCommentWithStore {...props}/>
+            </WebSocketContext.Provider>, mergeObjects(initialState, {
+                entities: {
+                    roles: {
+                        roles: {
+                            user_roles: {permissions: [Permissions.CREATE_POST]},
+                        },
+                    },
+                },
+                storage: {
+                    storage: {
+                        [draftKey]: {
+                            value: draft,
+                        },
+                    },
+                },
+            }));
+
+        expect(screen.getByTestId('reply_textbox')).toHaveTextContent(draft.message);
+        expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
+        await userEvent.click(screen.getByTestId('SendMessageButton'));
+
+        // Should show the error
+        await waitFor(() => expect(screen.getByTestId('error_container')).toHaveTextContent('Command with a trigger of \'/some\' not found. Click here to send as a message.'));
+
+        // Should keep the message in the draft
+        await waitFor(() => expect(screen.getByTestId('reply_textbox')).toHaveTextContent(draft.message));
+
+        server.close();
+    });
 
     test('removePreview should remove file info and upload in progress with corresponding id', () => {
         const onUpdateCommentDraft = jest.fn();
@@ -655,15 +799,6 @@ describe('components/AdvancedCreateComment', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    // test('should match snapshot, emoji picker disabled', () => {
-    //     const props = {...baseProps, enableEmojiPicker: false};
-    //     const wrapper = shallow(
-    //         <AdvancedCreateComment {...props}/>,
-    //     );
-
-    //     expect(wrapper).toMatchSnapshot();
-    // });
-
     test('check for handleFileUploadChange callback for focus', () => {
         const wrapper = shallow(
             <AdvancedCreateComment {...baseProps}/>,
@@ -674,99 +809,6 @@ describe('components/AdvancedCreateComment', () => {
         instance.handleFileUploadChange();
         expect(instance.focusTextbox).toHaveBeenCalledTimes(1);
     });
-
-    // test('should call functions on handleKeyDown', () => {
-    //     const onMoveHistoryIndexBack = jest.fn();
-    //     const onMoveHistoryIndexForward = jest.fn();
-    //     const onEditLatestPost = jest.fn().
-    //         mockImplementationOnce(() => ({data: true})).
-    //         mockImplementationOnce(() => ({data: false}));
-    //     const wrapper = shallow(
-    //         <AdvancedCreateComment
-    //             {...baseProps}
-    //             ctrlSend={true}
-    //             onMoveHistoryIndexBack={onMoveHistoryIndexBack}
-    //             onMoveHistoryIndexForward={onMoveHistoryIndexForward}
-    //             onEditLatestPost={onEditLatestPost}
-    //         />,
-    //     );
-    //     const instance = wrapper.instance();
-    //     instance.commentMsgKeyPress = jest.fn();
-    //     instance.focusTextbox = jest.fn();
-    //     const blur = jest.fn();
-
-    //     const mockImpl = () => {
-    //         return {
-    //             setSelectionRange: jest.fn(),
-    //             getBoundingClientRect: jest.fn(mockTop),
-    //             blur: jest.fn(),
-    //             focus: jest.fn(),
-    //         };
-    //     };
-
-    //     const mockTop = () => {
-    //         return document.createElement('div');
-    //     };
-
-    //     instance.textboxRef.current = {blur, focus, getInputBox: jest.fn(mockImpl)};
-
-    //     const mockTarget = {
-    //         selectionStart: 0,
-    //         selectionEnd: 0,
-    //         value: 'brown\nfox jumps over lazy dog',
-    //     };
-
-    //     const commentMsgKey = {
-    //         preventDefault: jest.fn(),
-    //         ctrlKey: true,
-    //         key: Constants.KeyCodes.ENTER[0],
-    //         keyCode: Constants.KeyCodes.ENTER[1],
-    //         target: mockTarget,
-    //     };
-    //     instance.handleKeyDown(commentMsgKey);
-    //     expect(instance.commentMsgKeyPress).toHaveBeenCalledTimes(1);
-
-    //     const upKey = {
-    //         preventDefault: jest.fn(),
-    //         ctrlKey: true,
-    //         key: Constants.KeyCodes.UP[0],
-    //         keyCode: Constants.KeyCodes.UP[1],
-    //         target: mockTarget,
-    //     };
-    //     instance.handleKeyDown(upKey);
-    //     expect(upKey.preventDefault).toHaveBeenCalledTimes(1);
-    //     expect(onMoveHistoryIndexBack).toHaveBeenCalledTimes(1);
-
-    //     const downKey = {
-    //         preventDefault: jest.fn(),
-    //         ctrlKey: true,
-    //         key: Constants.KeyCodes.DOWN[0],
-    //         keyCode: Constants.KeyCodes.DOWN[1],
-    //         target: mockTarget,
-    //     };
-    //     instance.handleKeyDown(downKey);
-    //     expect(downKey.preventDefault).toHaveBeenCalledTimes(1);
-    //     expect(onMoveHistoryIndexForward).toHaveBeenCalledTimes(1);
-
-    //     wrapper.setState({draft: {message: '', fileInfos: [], uploadsInProgress: []}});
-    //     const upKeyForEdit = {
-    //         preventDefault: jest.fn(),
-    //         ctrlKey: false,
-    //         key: Constants.KeyCodes.UP[0],
-    //         keyCode: Constants.KeyCodes.UP[1],
-    //         target: mockTarget,
-    //     };
-    //     instance.handleKeyDown(upKeyForEdit);
-    //     expect(upKeyForEdit.preventDefault).toHaveBeenCalledTimes(1);
-    //     expect(onEditLatestPost).toHaveBeenCalledTimes(1);
-    //     expect(blur).toHaveBeenCalledTimes(1);
-
-    //     instance.handleKeyDown(upKeyForEdit);
-    //     expect(upKeyForEdit.preventDefault).toHaveBeenCalledTimes(2);
-    //     expect(onEditLatestPost).toHaveBeenCalledTimes(2);
-    //     expect(instance.focusTextbox).toHaveBeenCalledTimes(1);
-    //     expect(instance.focusTextbox).toHaveBeenCalledWith(true);
-    // });
 
     test('should the RHS thread scroll to bottom one time after mount when props.draft.message is not empty', () => {
         const draft = emptyDraft;
@@ -814,181 +856,6 @@ describe('components/AdvancedCreateComment', () => {
         wrapper.setState({draft: {...draft, uploadsInProgress: [2]}});
         expect(scrollToBottom).toBeCalledTimes(2);
     });
-
-    // test('should be able to format a pasted markdown table', () => {
-    //     const draft = emptyDraft;
-    //     const wrapper = shallow(
-    //         <AdvancedCreateComment
-    //             {...baseProps}
-    //             draft={draft}
-    //         />,
-    //     );
-
-    //     const mockTop = () => {
-    //         return document.createElement('div');
-    //     };
-
-    //     const mockImpl = () => {
-    //         return {
-    //             setSelectionRange: jest.fn(),
-    //             getBoundingClientRect: jest.fn(mockTop),
-    //             focus: jest.fn(),
-    //         };
-    //     };
-
-    //     wrapper.instance().textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-
-    //     const event = {
-    //         target: {
-    //             id: 'reply_textbox',
-    //         },
-    //         preventDefault: jest.fn(),
-    //         clipboardData: {
-    //             items: [1],
-    //             types: ['text/html'],
-    //             getData: () => {
-    //                 return '<table><tr><th>test</th><th>test</th></tr><tr><td>test</td><td>test</td></tr></table>';
-    //             },
-    //         },
-    //     };
-
-    //     const markdownTable = '| test | test |\n| --- | --- |\n| test | test |';
-
-    //     wrapper.instance().pasteHandler(event);
-    //     expect(execCommandInsertText).toHaveBeenCalledWith(markdownTable);
-    // });
-
-    // test('should be able to format a pasted markdown table without headers', () => {
-    //     const draft = emptyDraft;
-    //     const wrapper = shallow(
-    //         <AdvancedCreateComment
-    //             {...baseProps}
-    //             draft={draft}
-    //         />,
-    //     );
-
-    //     const mockTop = () => {
-    //         return document.createElement('div');
-    //     };
-
-    //     const mockImpl = () => {
-    //         return {
-    //             setSelectionRange: jest.fn(),
-    //             getBoundingClientRect: jest.fn(mockTop),
-    //             focus: jest.fn(),
-    //         };
-    //     };
-
-    //     wrapper.instance().textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-
-    //     const event = {
-    //         target: {
-    //             id: 'reply_textbox',
-    //         },
-    //         preventDefault: jest.fn(),
-    //         clipboardData: {
-    //             items: [1],
-    //             types: ['text/html'],
-    //             getData: () => {
-    //                 return '<table><tr><td>test</td><td>test</td></tr><tr><td>test</td><td>test</td></tr></table>';
-    //             },
-    //         },
-    //     };
-
-    //     const markdownTable = '| test | test |\n| --- | --- |\n| test | test |\n';
-
-    //     wrapper.instance().pasteHandler(event);
-    //     expect(execCommandInsertText).toHaveBeenCalledWith(markdownTable);
-    // });
-
-    // test('should be able to format a pasted hyperlink', () => {
-    //     const draft = emptyDraft;
-    //     const wrapper = shallow(
-    //         <AdvancedCreateComment
-    //             {...baseProps}
-    //             draft={draft}
-    //         />,
-    //     );
-
-    //     const mockTop = () => {
-    //         return document.createElement('div');
-    //     };
-
-    //     const mockImpl = () => {
-    //         return {
-    //             setSelectionRange: jest.fn(),
-    //             getBoundingClientRect: jest.fn(mockTop),
-    //             focus: jest.fn(),
-    //         };
-    //     };
-
-    //     wrapper.instance().textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-
-    //     const event = {
-    //         target: {
-    //             id: 'reply_textbox',
-    //         },
-    //         preventDefault: jest.fn(),
-    //         clipboardData: {
-    //             items: [1],
-    //             types: ['text/html'],
-    //             getData: () => {
-    //                 return '<a href="https://test.domain">link text</a>';
-    //             },
-    //         },
-    //     };
-
-    //     const markdownLink = '[link text](https://test.domain)';
-
-    //     wrapper.instance().pasteHandler(event);
-    //     expect(execCommandInsertText).toHaveBeenCalledWith(markdownLink);
-    // });
-
-    // test('should be able to format a github codeblock (pasted as a table)', () => {
-    //     const draft = emptyDraft;
-    //     const wrapper = shallow(
-    //         <AdvancedCreateComment
-    //             {...baseProps}
-    //             draft={draft}
-    //         />,
-    //     );
-
-    //     const mockTop = () => {
-    //         return document.createElement('div');
-    //     };
-
-    //     const mockImpl = () => {
-    //         return {
-    //             setSelectionRange: jest.fn(),
-    //             getBoundingClientRect: jest.fn(mockTop),
-    //             focus: jest.fn(),
-    //         };
-    //     };
-
-    //     wrapper.instance().textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-
-    //     const event = {
-    //         target: {
-    //             id: 'reply_textbox',
-    //         },
-    //         preventDefault: jest.fn(),
-    //         clipboardData: {
-    //             items: [1],
-    //             types: ['text/plain', 'text/html'],
-    //             getData: (type) => {
-    //                 if (type === 'text/plain') {
-    //                     return '// a javascript codeblock example\nif (1 > 0) {\n  return \'condition is true\';\n}';
-    //                 }
-    //                 return '<table class="highlight tab-size js-file-line-container" data-tab-size="8"><tbody><tr><td id="LC1" class="blob-code blob-code-inner js-file-line"><span class="pl-c"><span class="pl-c">//</span> a javascript codeblock example</span></td></tr><tr><td id="L2" class="blob-num js-line-number" data-line-number="2">&nbsp;</td><td id="LC2" class="blob-code blob-code-inner js-file-line"><span class="pl-k">if</span> (<span class="pl-c1">1</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>) {</td></tr><tr><td id="L3" class="blob-num js-line-number" data-line-number="3">&nbsp;</td><td id="LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">\'</span>condition is true<span class="pl-pds">\'</span></span>);</td></tr><tr><td id="L4" class="blob-num js-line-number" data-line-number="4">&nbsp;</td><td id="LC4" class="blob-code blob-code-inner js-file-line">}</td></tr></tbody></table>';
-    //             },
-    //         },
-    //     };
-
-    //     const codeBlockMarkdown = "```\n// a javascript codeblock example\nif (1 > 0) {\n  return 'condition is true';\n}\n```";
-
-    //     wrapper.instance().pasteHandler(event);
-    //     expect(execCommandInsertText).toHaveBeenCalledWith(codeBlockMarkdown);
-    // });
 
     test('should show preview and edit mode, and return focus on preview disable', () => {
         const wrapper = shallow(

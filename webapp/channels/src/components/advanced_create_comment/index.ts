@@ -40,11 +40,11 @@ import {openModal} from 'actions/views/modals';
 
 import AdvancedCreateComment from './advanced_create_comment';
 import {getChannelMemberCountsFromMessage} from 'actions/channel_actions';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
 type OwnProps = {
     rootId: string;
     channelId: string;
-    latestPostId: string;
 };
 
 function makeMapStateToProps() {
@@ -58,7 +58,7 @@ function makeMapStateToProps() {
 
         const messageInHistory = getMessageInHistoryItem(state);
 
-        const channel = state.entities.channels.channels[ownProps.channelId] || {};
+        const channel = getChannel(state, ownProps.channelId) || {};
         const currentUserId = getCurrentUserId(state);
         const canPost = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST);
         const isFormattingBarHidden = getBool(state, Constants.Preferences.ADVANCED_TEXT_EDITOR, AdvancedTextEditor.COMMENT);

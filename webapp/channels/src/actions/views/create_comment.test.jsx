@@ -3,7 +3,7 @@
 
 import {
     removeReaction,
-} from 'mattermost-redux/actions/posts';
+    addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 import {Posts, Permissions} from 'mattermost-redux/constants';
 
 import {
@@ -15,7 +15,7 @@ import {
     handleSubmit,
     makeOnEditLatestPost,
 } from 'actions/views/create_comment';
-import {setGlobalDraftSource} from 'actions/views/drafts';
+import {setGlobalDraftSource, removeDraft} from 'actions/views/drafts';
 import {setGlobalItem, actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import * as PostActions from 'actions/post_actions';
 import {executeCommand} from 'actions/command';
@@ -25,6 +25,7 @@ import {Client4} from 'mattermost-redux/client';
 import {GroupSource} from '@mattermost/types/groups';
 
 import mockStore from 'tests/test_store';
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 
 /* eslint-disable global-require */
 
@@ -456,36 +457,27 @@ describe('handleSubmit', () => {
     ['channel', 'all', 'here'].forEach((mention) => {
         describe(`should not show Confirm Modal for @${mention} mentions`, () => {
             it('when channel member count too low', async () => {
-                const testStore = await mockStore({
-                    ...initialState,
+                const testStore = await mockStore(mergeObjects(initialState, {
                     entities: {
-                        ...initialState.entities,
                         general: {
-                            ...initialState.entities.general,
                             config: {
-                                ...initialState.entities.general.config,
                                 EnableConfirmNotificationsToChannel: 'true',
                             },
                         },
                         roles: {
-                            ...initialState.entities.roles,
                             roles: {
-                                ...initialState.entities.roles.roles,
                                 user_roles: {permissions: [Permissions.USE_CHANNEL_MENTIONS]},
                             },
                         },
                         channels: {
-                            ...initialState.entities.channels,
                             stats: {
-                                ...initialState.entities.channels.stats,
                                 current_channel_id: {
-                                    ...initialState.entities.channels.stats.current_channel_id,
                                     member_count: Constants.NOTIFY_ALL_MEMBERS - 1,
                                 },
                             },
                         },
                     },
-                });
+                }));
                 const draft = {
                     ...baseDraft,
                     message: `Test message @${mention}`,
@@ -498,36 +490,27 @@ describe('handleSubmit', () => {
             });
 
             it('when feature disabled', async () => {
-                const testStore = await mockStore({
-                    ...initialState,
+                const testStore = await mockStore(mergeObjects(initialState, {
                     entities: {
-                        ...initialState.entities,
                         general: {
-                            ...initialState.entities.general,
                             config: {
-                                ...initialState.entities.general.config,
                                 EnableConfirmNotificationsToChannel: 'false',
                             },
                         },
                         roles: {
-                            ...initialState.entities.roles,
                             roles: {
-                                ...initialState.entities.roles.roles,
                                 user_roles: {permissions: [Permissions.USE_CHANNEL_MENTIONS]},
                             },
                         },
                         channels: {
-                            ...initialState.entities.channels,
                             stats: {
-                                ...initialState.entities.channels.stats,
                                 current_channel_id: {
-                                    ...initialState.entities.channels.stats.current_channel_id,
                                     member_count: Constants.NOTIFY_ALL_MEMBERS + 1,
                                 },
                             },
                         },
                     },
-                });
+                }));
                 const draft = {
                     ...baseDraft,
                     message: `Test message @${mention}`,
@@ -540,36 +523,27 @@ describe('handleSubmit', () => {
             });
 
             it('when no mention', async () => {
-                const testStore = await mockStore({
-                    ...initialState,
+                const testStore = await mockStore(mergeObjects(initialState, {
                     entities: {
-                        ...initialState.entities,
                         general: {
-                            ...initialState.entities.general,
                             config: {
-                                ...initialState.entities.general.config,
                                 EnableConfirmNotificationsToChannel: 'true',
                             },
                         },
                         roles: {
-                            ...initialState.entities.roles,
                             roles: {
-                                ...initialState.entities.roles.roles,
                                 user_roles: {permissions: [Permissions.USE_CHANNEL_MENTIONS]},
                             },
                         },
                         channels: {
-                            ...initialState.entities.channels,
                             stats: {
-                                ...initialState.entities.channels.stats,
                                 current_channel_id: {
-                                    ...initialState.entities.channels.stats.current_channel_id,
                                     member_count: Constants.NOTIFY_ALL_MEMBERS + 1,
                                 },
                             },
                         },
                     },
-                });
+                }));
                 const draft = {
                     ...baseDraft,
                     message: `Test message ${mention}`,
@@ -582,36 +556,27 @@ describe('handleSubmit', () => {
             });
 
             it('when user has insufficient permissions', async () => {
-                const testStore = await mockStore({
-                    ...initialState,
+                const testStore = await mockStore(mergeObjects(initialState, {
                     entities: {
-                        ...initialState.entities,
                         general: {
-                            ...initialState.entities.general,
                             config: {
-                                ...initialState.entities.general.config,
                                 EnableConfirmNotificationsToChannel: 'true',
                             },
                         },
                         roles: {
-                            ...initialState.entities.roles,
                             roles: {
-                                ...initialState.entities.roles.roles,
                                 user_roles: {permissions: []},
                             },
                         },
                         channels: {
-                            ...initialState.entities.channels,
                             stats: {
-                                ...initialState.entities.channels.stats,
                                 current_channel_id: {
-                                    ...initialState.entities.channels.stats.current_channel_id,
                                     member_count: Constants.NOTIFY_ALL_MEMBERS + 1,
                                 },
                             },
                         },
                     },
-                });
+                }));
                 const draft = {
                     ...baseDraft,
                     message: `Test message @${mention}`,
@@ -625,36 +590,27 @@ describe('handleSubmit', () => {
         });
 
         it(`should show Confirm Modal for @${mention} mentions when needed`, async () => {
-            const testStore = await mockStore({
-                ...initialState,
+            const testStore = await mockStore(mergeObjects(initialState, {
                 entities: {
-                    ...initialState.entities,
                     general: {
-                        ...initialState.entities.general,
                         config: {
-                            ...initialState.entities.general.config,
                             EnableConfirmNotificationsToChannel: 'true',
                         },
                     },
                     roles: {
-                        ...initialState.entities.roles,
                         roles: {
-                            ...initialState.entities.roles.roles,
                             user_roles: {permissions: [Permissions.USE_CHANNEL_MENTIONS]},
                         },
                     },
                     channels: {
-                        ...initialState.entities.channels,
                         stats: {
-                            ...initialState.entities.channels.stats,
                             current_channel_id: {
-                                ...initialState.entities.channels.stats.current_channel_id,
                                 member_count: Constants.NOTIFY_ALL_MEMBERS + 1,
                             },
                         },
                     },
                 },
-            });
+            }));
             const draft = {
                 ...baseDraft,
                 message: `Test message @${mention}`,
@@ -669,37 +625,28 @@ describe('handleSubmit', () => {
         });
 
         it(`should show Confirm Modal for @${mention} mentions when needed and timezone notification`, async () => {
-            const testStore = await mockStore({
-                ...initialState,
+            const testStore = await mockStore(mergeObjects(initialState, {
                 entities: {
-                    ...initialState.entities,
                     general: {
-                        ...initialState.entities.general,
                         config: {
-                            ...initialState.entities.general.config,
                             EnableConfirmNotificationsToChannel: 'true',
                             ExperimentalTimezone: 'true',
                         },
                     },
                     roles: {
-                        ...initialState.entities.roles,
                         roles: {
-                            ...initialState.entities.roles.roles,
                             user_roles: {permissions: [Permissions.USE_CHANNEL_MENTIONS]},
                         },
                     },
                     channels: {
-                        ...initialState.entities.channels,
                         stats: {
-                            ...initialState.entities.channels.stats,
                             current_channel_id: {
-                                ...initialState.entities.channels.stats.current_channel_id,
                                 member_count: Constants.NOTIFY_ALL_MEMBERS + 1,
                             },
                         },
                     },
                 },
-            });
+            }));
             const draft = {
                 ...baseDraft,
                 message: `Test message @${mention}`,
@@ -723,37 +670,28 @@ describe('handleSubmit', () => {
         });
 
         it(`should show Confirm Modal for @${mention} mentions when needed and timezone notification`, async () => {
-            const testStore = await mockStore({
-                ...initialState,
+            const testStore = await mockStore(mergeObjects(initialState, {
                 entities: {
-                    ...initialState.entities,
                     general: {
-                        ...initialState.entities.general,
                         config: {
-                            ...initialState.entities.general.config,
                             EnableConfirmNotificationsToChannel: 'true',
                             ExperimentalTimezone: 'true',
                         },
                     },
                     roles: {
-                        ...initialState.entities.roles,
                         roles: {
-                            ...initialState.entities.roles.roles,
                             user_roles: {permissions: [Permissions.USE_CHANNEL_MENTIONS]},
                         },
                     },
                     channels: {
-                        ...initialState.entities.channels,
                         stats: {
-                            ...initialState.entities.channels.stats,
                             current_channel_id: {
-                                ...initialState.entities.channels.stats.current_channel_id,
                                 member_count: Constants.NOTIFY_ALL_MEMBERS + 1,
                             },
                         },
                     },
                 },
-            });
+            }));
             const draft = {
                 ...baseDraft,
                 message: `Test message @${mention}`,
@@ -774,34 +712,25 @@ describe('handleSubmit', () => {
     });
 
     it('should show Confirm Modal for @group mention when needed and no timezone notification', async () => {
-        const testStore = await mockStore({
-            ...initialState,
+        const testStore = await mockStore(mergeObjects(initialState, {
             entities: {
-                ...initialState.entities,
                 general: {
-                    ...initialState.entities.general,
                     config: {
-                        ...initialState.entities.general.config,
                         EnableConfirmNotificationsToChannel: 'true',
                         EnableCustomGroups: 'true',
                     },
                     license: {
-                        ...initialState.entities.license,
                         IsLicensed: 'true',
                         LDAPGroups: 'true',
                     },
                 },
                 roles: {
-                    ...initialState.entities.roles,
                     roles: {
-                        ...initialState.entities.roles.roles,
                         user_roles: {permissions: [Permissions.USE_GROUP_MENTIONS]},
                     },
                 },
                 groups: {
-                    ...initialState.entities.groups,
                     groups: {
-                        ...initialState.entities.groups.groups,
                         developers: {
                             id: 'developers_id',
                             name: 'developers',
@@ -812,11 +741,8 @@ describe('handleSubmit', () => {
                     },
                 },
                 channels: {
-                    ...initialState.entities.channels,
                     channelMemberCountsByGroup: {
-                        ...initialState.entities.channels.channelMemberCountsByGroup,
                         current_channel_id: {
-                            ...initialState.entities.channels.channelMemberCountsByGroup.current_channel_id,
                             developers_id: {
                                 channel_member_count: Constants.NOTIFY_ALL_MEMBERS + 1,
                                 channel_member_timezones_count: 0,
@@ -825,7 +751,7 @@ describe('handleSubmit', () => {
                     },
                 },
             },
-        });
+        }));
         const draft = {
             ...baseDraft,
             message: 'Test message @developers',
@@ -840,34 +766,25 @@ describe('handleSubmit', () => {
     });
 
     it('should show Confirm Modal for @group mention when needed and no timezone notification', async () => {
-        const testStore = await mockStore({
-            ...initialState,
+        const testStore = await mockStore(mergeObjects(initialState, {
             entities: {
-                ...initialState.entities,
                 general: {
-                    ...initialState.entities.general,
                     config: {
-                        ...initialState.entities.general.config,
                         EnableConfirmNotificationsToChannel: 'true',
                         EnableCustomGroups: 'true',
                     },
                     license: {
-                        ...initialState.entities.license,
                         IsLicensed: 'true',
                         LDAPGroups: 'true',
                     },
                 },
                 roles: {
-                    ...initialState.entities.roles,
                     roles: {
-                        ...initialState.entities.roles.roles,
                         user_roles: {permissions: [Permissions.USE_GROUP_MENTIONS]},
                     },
                 },
                 groups: {
-                    ...initialState.entities.groups,
                     groups: {
-                        ...initialState.entities.groups.groups,
                         developers: {
                             id: 'developers_id',
                             name: 'developers',
@@ -911,11 +828,8 @@ describe('handleSubmit', () => {
                     },
                 },
                 channels: {
-                    ...initialState.entities.channels,
                     channelMemberCountsByGroup: {
-                        ...initialState.entities.channels.channelMemberCountsByGroup,
                         current_channel_id: {
-                            ...initialState.entities.channels.channelMemberCountsByGroup.current_channel_id,
                             developers_id: {
                                 channel_member_count: 10,
                                 channel_member_timezones_count: 0,
@@ -940,7 +854,7 @@ describe('handleSubmit', () => {
                     },
                 },
             },
-        });
+        }));
         const draft = {
             ...baseDraft,
             message: 'Test message @developers @boss @love @you @software-developers',
@@ -961,34 +875,25 @@ describe('handleSubmit', () => {
     });
 
     it('should show Confirm Modal for @group mention with timezone enabled', async () => {
-        const testStore = await mockStore({
-            ...initialState,
+        const testStore = await mockStore(mergeObjects(initialState, {
             entities: {
-                ...initialState.entities,
                 general: {
-                    ...initialState.entities.general,
                     config: {
-                        ...initialState.entities.general.config,
                         EnableConfirmNotificationsToChannel: 'true',
                         EnableCustomGroups: 'true',
                     },
                     license: {
-                        ...initialState.entities.license,
                         IsLicensed: 'true',
                         LDAPGroups: 'true',
                     },
                 },
                 roles: {
-                    ...initialState.entities.roles,
                     roles: {
-                        ...initialState.entities.roles.roles,
                         user_roles: {permissions: [Permissions.USE_GROUP_MENTIONS]},
                     },
                 },
                 groups: {
-                    ...initialState.entities.groups,
                     groups: {
-                        ...initialState.entities.groups.groups,
                         developers: {
                             id: 'developers_id',
                             name: 'developers',
@@ -999,11 +904,8 @@ describe('handleSubmit', () => {
                     },
                 },
                 channels: {
-                    ...initialState.entities.channels,
                     channelMemberCountsByGroup: {
-                        ...initialState.entities.channels.channelMemberCountsByGroup,
                         current_channel_id: {
-                            ...initialState.entities.channels.channelMemberCountsByGroup.current_channel_id,
                             developers_id: {
                                 channel_member_count: Constants.NOTIFY_ALL_MEMBERS + 1,
                                 channel_member_timezones_count: 5,
@@ -1012,7 +914,7 @@ describe('handleSubmit', () => {
                     },
                 },
             },
-        });
+        }));
         const draft = {
             ...baseDraft,
             message: 'Test message @developers',
@@ -1081,19 +983,15 @@ describe('handleSubmit', () => {
         });
 
         it(`should not set mentionHighlightDisabled when user does have permission and message contains channel @${mention}`, async () => {
-            const testStore = mockStore({
-                ...initialState,
+            const testStore = mockStore(mergeObjects(initialState, {
                 entities: {
-                    ...initialState.entities,
                     roles: {
-                        ...initialState.entities.roles,
                         roles: {
-                            ...initialState.entities.roles.roles,
                             user_roles: {permissions: [Permissions.USE_CHANNEL_MENTIONS]},
                         },
                     },
                 },
-            });
+            }));
             const draft = {
                 ...baseDraft,
                 message: `Test @${mention}`,
@@ -1106,6 +1004,7 @@ describe('handleSubmit', () => {
             expect(actions.find((v) => v.type === 'MOCK_CREATE_POST').args[0].props.mentionHighlightDisabled).toBeFalsy();
         });
     });
+
     it('should not set mentionHighlightDisabled when user does not have useChannelMentions permission and message contains no mention', async () => {
         const testStore = mockStore(initialState);
         const draft = {
@@ -1119,109 +1018,95 @@ describe('handleSubmit', () => {
         expectPosted(actions);
         expect(actions.find((v) => v.type === 'MOCK_CREATE_POST').args[0].props.mentionHighlightDisabled).toBeFalsy();
     });
+
+    test('it adds message into history', async () => {
+        const testStoreActual = mockStore(initialState);
+        await testStoreActual.dispatch(handleSubmit(baseDraft, () => null, () => null, null));
+        const actualActions = testStoreActual.getActions();
+
+        const testStoreExpected = mockStore(initialState);
+        await testStoreExpected.dispatch(addMessageIntoHistory(baseDraft.message));
+
+        expect(actualActions).toEqual(
+            expect.arrayContaining(testStoreExpected.getActions()),
+        );
+
+        expectPosted(actualActions);
+    });
+
+    test('it clears comment draft', async () => {
+        const draft = {...baseDraft, rootId: 'rootId'};
+
+        const testStoreActual = mockStore(initialState);
+        await testStoreActual.dispatch(handleSubmit(draft, () => null, () => null, null));
+        const actualActions = testStoreActual.getActions();
+
+        const testStoreExpected = mockStore(initialState);
+        const key = `${StoragePrefixes.COMMENT_DRAFT}${draft.rootId}`;
+        await testStoreExpected.dispatch(removeDraft(key, draft.channelId, draft.rootId));
+
+        expect(actualActions).toEqual(
+            expect.arrayContaining(testStoreExpected.getActions()),
+        );
+
+        expectPosted(actualActions);
+    });
+
+    test('it submits a reaction when message is +:smile:', async () => {
+        const draft = {...baseDraft, message: '+:smile:'};
+
+        const testStoreActual = mockStore(initialState);
+        await testStoreActual.dispatch(handleSubmit(draft, () => null, () => null, null, latestPostId));
+        const actualActions = testStoreActual.getActions();
+
+        const testStoreExpected = mockStore(initialState);
+        await testStoreExpected.dispatch(submitReaction(latestPostId, '+', 'smile'));
+
+        expect(actualActions).toEqual(
+            expect.arrayContaining(testStoreExpected.getActions()),
+        );
+
+        expectNotPosted(actualActions);
+    });
+
+    test('it submits a command when message is /away', async () => {
+        const draft = {...baseDraft, message: '/away'};
+
+        const testStoreActual = mockStore(initialState);
+        await testStoreActual.dispatch(handleSubmit(draft, () => null, () => null, null));
+        const actualActions = testStoreActual.getActions();
+
+        const testStoreExpected = mockStore(initialState);
+        testStoreExpected.dispatch(submitCommand(channelId, rootId, draft));
+
+        expect(actualActions).toEqual(
+            expect.arrayContaining(testStoreExpected.getActions()),
+        );
+
+        expectNotPosted(actualActions);
+    });
+
+    test('it submits a regular post when we pass the execute command error', async () => {
+        const draft = {...baseDraft, message: '/fakecommand'};
+
+        const testStore = mockStore(initialState);
+        await testStore.dispatch(handleSubmit(draft, () => null, () => null, {server_error_id: 'api.command.execute_command.not_found.app_error', submittedMessage: draft.message}));
+
+        expect(testStore.getActions()).toContainEqual(expect.objectContaining({
+            type: 'MOCK_CREATE_POST',
+            args: expect.arrayContaining([expect.objectContaining({message: draft.message})]),
+        }));
+    });
+
+    test('it submits a regular post when message is something else', async () => {
+        const draft = {...baseDraft, message: 'some text'};
+
+        const testStore = mockStore(initialState);
+        await testStore.dispatch(handleSubmit(draft, () => null, () => null, null));
+
+        expect(testStore.getActions()).toContainEqual(expect.objectContaining({
+            type: 'MOCK_CREATE_POST',
+            args: expect.arrayContaining([expect.objectContaining({message: draft.message})]),
+        }));
+    });
 });
-
-// ===========================================================
-
-// describe('handleSubmit', () => {
-//     const draft = {
-//         message: 'test',
-//         fileInfos: [],
-//         uploadsInProgress: [],
-//         rootId,
-//         channelId,
-//     };
-//     const onSubmit = handleSubmit(channelId, rootId, draft);
-
-//     test('it adds message into history', () => {
-//         store.dispatch(handleSubmit(channelId, rootId, draft));
-
-//         const testStore = mockStore(initialState);
-//         testStore.dispatch(addMessageIntoHistory('test'));
-
-//         expect(store.getActions()).toEqual(
-//             expect.arrayContaining(testStore.getActions()),
-//         );
-//     });
-
-//     test('it clears comment draft', () => {
-//         store.dispatch(handleSubmit(channelId, rootId, draft));
-
-//         const testStore = mockStore(initialState);
-//         const key = `${StoragePrefixes.COMMENT_DRAFT}${rootId}`;
-//         testStore.dispatch(removeDraft(key, channelId, rootId));
-
-//         expect(store.getActions()).toEqual(
-//             expect.arrayContaining(testStore.getActions()),
-//         );
-//     });
-
-//     test('it submits a reaction when message is +:smile:', () => {
-//         store.dispatch(handleSubmit(channelId, rootId,
-//             {
-//                 message: '+:smile:',
-//                 fileInfos: [],
-//                 uploadsInProgress: [],
-//             }
-//         ));
-
-//         const testStore = mockStore(initialState);
-//         testStore.dispatch(submitReaction(latestPostId, '+', 'smile'));
-
-//         expect(store.getActions()).toEqual(
-//             expect.arrayContaining(testStore.getActions()),
-//         );
-//     });
-
-//     test('it submits a command when message is /away', () => {
-//         store.dispatch(handleSubmit(channelId, rootId,
-//             {
-//             message: '/away',
-//             fileInfos: [],
-//             uploadsInProgress: [],
-//         }));
-
-//         const testStore = mockStore(initialState);
-//         testStore.dispatch(submitCommand(channelId, rootId, {message: '/away', fileInfos: [], uploadsInProgress: []}));
-
-//         const commandActions = [{args: ['/away', {channel_id: '4j5j4k3k34j4', root_id: 'fc234c34c23', team_id: '4j5nmn4j3'}], type: 'MOCK_ACTIONS_COMMAND_EXECUTE'}];
-//         expect(store.getActions()).toEqual(
-//             expect.arrayContaining(testStore.getActions()),
-//             expect.arrayContaining(commandActions),
-//         );
-//     });
-
-//     test('it submits a regular post when options.ignoreSlash is true', () => {
-//         store.dispatch(handleSubmit(channelId, rootId,
-//             {
-//             message: '/fakecommand',
-//             fileInfos: [],
-//             uploadsInProgress: [],
-//         }, {ignoreSlash: true}));
-
-//         const testStore = mockStore(initialState);
-//         testStore.dispatch(submitPost(channelId, rootId, {message: '/fakecommand', fileInfos: [], uploadsInProgress: []}));
-
-//         expect(store.getActions()).toEqual(
-//             expect.arrayContaining(testStore.getActions()),
-//             expect.arrayContaining([{args: ['/fakecommand'], type: 'MOCK_ADD_MESSAGE_INTO_HISTORY'}]),
-//         );
-//     });
-
-//     test('it submits a regular post when message is something else', () => {
-//         store.dispatch(handleSubmit(channelId, rootId,
-//             {
-//             message: 'test msg',
-//             fileInfos: [],
-//             uploadsInProgress: [],
-//         }));
-
-//         const testStore = mockStore(initialState);
-//         testStore.dispatch(submitPost(channelId, rootId, {message: 'test msg', fileInfos: [], uploadsInProgress: []}));
-
-//         expect(store.getActions()).toEqual(
-//             expect.arrayContaining(testStore.getActions()),
-//             expect.arrayContaining([{args: ['test msg'], type: 'MOCK_ADD_MESSAGE_INTO_HISTORY'}]),
-//         );
-//     });
-// });

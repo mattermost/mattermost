@@ -265,6 +265,8 @@ const UnifiedTextEditorForm = ({
 
         const upKeyOnly = !ctrlOrMetaKeyPressed && !e.altKey && !e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);
         const messageIsEmpty = message.length === 0;
+        const draftMessageIsEmpty = draft.message.length === 0;
+
         if (upKeyOnly && messageIsEmpty) {
             e.preventDefault();
             if (textboxRef.current) {
@@ -281,11 +283,11 @@ const UnifiedTextEditorForm = ({
         } = e.target as TextboxElement;
 
         if (ctrlKeyCombo) {
-            if (messageIsEmpty && Keyboard.isKeyPressed(e, KeyCodes.UP)) {
+            if (draftMessageIsEmpty && Keyboard.isKeyPressed(e, KeyCodes.UP)) {
                 e.stopPropagation();
                 e.preventDefault();
                 loadPrevMessage(e);
-            } else if (messageIsEmpty && Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
+            } else if (draftMessageIsEmpty && Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
                 e.stopPropagation();
                 e.preventDefault();
                 loadNextMessage(e);

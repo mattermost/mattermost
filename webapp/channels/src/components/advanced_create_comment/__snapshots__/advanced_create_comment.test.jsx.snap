@@ -52,6 +52,11 @@ exports[`components/AdvancedCreateComment should match snapshot when cannot post
   setShowPreview={[Function]}
   shouldShowPreview={false}
   showEmojiPicker={false}
+  textEditorChannel={
+    Object {
+      "id": "g6139tbospd18cmxroesdk3kkc",
+    }
+  }
   textboxRef={
     Object {
       "current": null,
@@ -108,6 +113,11 @@ exports[`components/AdvancedCreateComment should match snapshot, comment with me
   setShowPreview={[Function]}
   shouldShowPreview={false}
   showEmojiPicker={false}
+  textEditorChannel={
+    Object {
+      "id": "g6139tbospd18cmxroesdk3kkc",
+    }
+  }
   textboxRef={
     Object {
       "current": null,
@@ -164,6 +174,11 @@ exports[`components/AdvancedCreateComment should match snapshot, empty comment 1
   setShowPreview={[Function]}
   shouldShowPreview={false}
   showEmojiPicker={false}
+  textEditorChannel={
+    Object {
+      "id": "g6139tbospd18cmxroesdk3kkc",
+    }
+  }
   textboxRef={
     Object {
       "current": null,
@@ -226,6 +241,11 @@ exports[`components/AdvancedCreateComment should match snapshot, non-empty messa
   setShowPreview={[Function]}
   shouldShowPreview={false}
   showEmojiPicker={false}
+  textEditorChannel={
+    Object {
+      "id": "g6139tbospd18cmxroesdk3kkc",
+    }
+  }
   textboxRef={
     Object {
       "current": null,
