@@ -10,19 +10,17 @@ exports[`components/AdvancedCreateComment should match snapshot when cannot post
     badConnection={false}
     canPost={false}
     canUploadFiles={true}
-    channelId="g6139tbospd18cmxroesdk3kkc"
-    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    channelId=""
+    currentUserId=""
     draft={
       Object {
-        "fileInfos": Array [
-          Object {},
-          Object {},
-          Object {},
-        ],
+        "channelId": "",
+        "createAt": 0,
+        "fileInfos": Array [],
         "message": "Test message",
-        "uploadsInProgress": Array [
-          Object {},
-        ],
+        "rootId": "",
+        "updateAt": 0,
+        "uploadsInProgress": Array [],
       }
     }
     emitTypingEvent={[Function]}
@@ -83,8 +81,8 @@ exports[`components/AdvancedCreateComment should match snapshot, comment with me
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
-    channelId="g6139tbospd18cmxroesdk3kkc"
-    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    channelId=""
+    currentUserId=""
     draft={
       Object {
         "fileInfos": Array [],
@@ -144,26 +142,23 @@ exports[`components/AdvancedCreateComment should match snapshot, emoji picker di
 <form
   onSubmit={[Function]}
 >
-  <FileLimitStickyBanner />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
-    channelId="g6139tbospd18cmxroesdk3kkc"
-    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    channelId=""
+    currentUserId=""
     draft={
       Object {
-        "fileInfos": Array [
-          Object {},
-          Object {},
-          Object {},
-        ],
+        "channelId": "",
+        "createAt": 0,
+        "fileInfos": Array [],
         "message": "Test message",
-        "uploadsInProgress": Array [
-          Object {},
-        ],
+        "rootId": "",
+        "updateAt": 0,
+        "uploadsInProgress": Array [],
       }
     }
     emitTypingEvent={[Function]}
@@ -224,12 +219,16 @@ exports[`components/AdvancedCreateComment should match snapshot, empty comment 1
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
-    channelId="g6139tbospd18cmxroesdk3kkc"
-    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    channelId=""
+    currentUserId=""
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "",
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -285,26 +284,23 @@ exports[`components/AdvancedCreateComment should match snapshot, non-empty messa
 <form
   onSubmit={[Function]}
 >
-  <FileLimitStickyBanner />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
-    channelId="g6139tbospd18cmxroesdk3kkc"
-    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    channelId=""
+    currentUserId=""
     draft={
       Object {
-        "fileInfos": Array [
-          Object {},
-          Object {},
-          Object {},
-        ],
+        "channelId": "",
+        "createAt": 0,
+        "fileInfos": Array [],
         "message": "Test message",
-        "uploadsInProgress": Array [
-          Object {},
-        ],
+        "rootId": "",
+        "updateAt": 0,
+        "uploadsInProgress": Array [],
       }
     }
     emitTypingEvent={[Function]}
