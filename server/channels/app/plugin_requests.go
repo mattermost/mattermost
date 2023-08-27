@@ -208,6 +208,9 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		if (session != nil && session.Id != "") && err == nil && csrfCheckPassed {
 			r.Header.Set("Mattermost-User-Id", session.UserId)
 			context.SessionId = session.Id
+
+			r.Header.Del(model.HeaderAuth)
+
 		}
 	}
 
@@ -218,7 +221,6 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 			r.AddCookie(c)
 		}
 	}
-	r.Header.Del(model.HeaderAuth)
 	r.Header.Del("Referer")
 
 	params := mux.Vars(r)
