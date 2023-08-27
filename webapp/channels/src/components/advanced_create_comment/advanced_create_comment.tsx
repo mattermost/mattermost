@@ -60,7 +60,7 @@ import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
 
 const KeyCodes = Constants.KeyCodes;
 
-type Props = {
+export type Props = {
     currentTeamId: string;
 
     // The channel for which this comment is a part of
@@ -136,7 +136,7 @@ type Props = {
     onEditLatestPost: () => ActionResult;
 
     // Function to get the users timezones in the channel
-    getChannelTimezones: (channelId: string) => Promise<ActionResult>;
+     getChannelTimezones: (channelId: string) => Promise<ActionResult>;
 
     // Reset state of createPost request
     resetCreatePostRequest: () => void;
@@ -223,14 +223,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     public draftsForPost: {[postID: string]: PostDraft | null} = {};
     public doInitialScrollToBottom = false;
 
-    // textBoxRef is accessed in advanced_create_comment.test.tsx
-    private textboxRef: React.RefObject<TextboxClass>;
-    get TextBoxRef() {
-        return this.textboxRef;
-    }
-    set TextBoxRef(newTextBoxRef: any) {
-        this.textboxRef = newTextBoxRef;
-    }
+    private readonly textboxRef: React.RefObject<TextboxClass>;
+   
     private lastBlurAt = 0;
     private saveDraftFrame?: number | null;
 
