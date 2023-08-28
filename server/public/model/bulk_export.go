@@ -8,6 +8,7 @@ package model
 const ExportDataDir = "data"
 
 type BulkExportOpts struct {
-	IncludeAttachments bool
-	CreateArchive      bool
+	IncludeAttachments      bool
+	IncludeArchivedChannels bool
+	CreateArchive           bool
 }
