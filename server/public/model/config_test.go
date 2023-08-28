@@ -317,37 +317,12 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 }
 
 func TestConfigDefaultChannelExportPluginState(t *testing.T) {
-	t.Run("should enable ChannelExport plugin by default on enterprise-ready builds", func(t *testing.T) {
+	t.Run("should not enable ChannelExport plugin by default", func(t *testing.T) {
 		BuildEnterpriseReady = "true"
 		c1 := Config{}
 		c1.SetDefaults()
 
-		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-channel-export"].Enable)
-	})
-
-	t.Run("should not enable ChannelExport plugin by default on non-enterprise-ready builds", func(t *testing.T) {
-		BuildEnterpriseReady = ""
-		c1 := Config{}
-		c1.SetDefaults()
-
 		assert.Nil(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-channel-export"])
-	})
-
-	t.Run("should not re-enable ChannelExport plugin after it has been disabled", func(t *testing.T) {
-		BuildEnterpriseReady = ""
-		c1 := Config{
-			PluginSettings: PluginSettings{
-				PluginStates: map[string]*PluginState{
-					"com.mattermost.plugin-channel-export": {
-						Enable: false,
-					},
-				},
-			},
-		}
-
-		c1.SetDefaults()
-
-		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-channel-export"].Enable)
 	})
 }
 
