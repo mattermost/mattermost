@@ -8,7 +8,7 @@ import {Modal} from 'react-bootstrap';
 import Constants from 'utils/constants';
 
 import * as Utils from 'utils/utils';
-import {Group, GroupSearachParams} from '@mattermost/types/groups';
+import {Group, GroupSearchParams} from '@mattermost/types/groups';
 
 import './user_groups_modal.scss';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -47,7 +47,7 @@ export type Props = {
             includeMemberCount?: boolean
         ) => Promise<{data: Group[]}>;
         searchGroups: (
-            params: GroupSearachParams,
+            params: GroupSearchParams,
         ) => Promise<{data: Group[]}>;
     };
 }
@@ -114,7 +114,7 @@ export default class UserGroupsModal extends React.PureComponent<Props, State> {
 
             const searchTimeoutId = window.setTimeout(
                 async () => {
-                    const params: GroupSearachParams = {
+                    const params: GroupSearchParams = {
                         q: searchTerm,
                         filter_allow_reference: true,
                         page: this.state.page,

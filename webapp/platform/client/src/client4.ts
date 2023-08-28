@@ -74,7 +74,7 @@ import {
     UsersWithGroupsAndCount,
     GroupsWithCount,
     GroupCreateWithUserIds,
-    GroupSearachParams,
+    GroupSearchParams,
     CustomGroupPatch,
 } from '@mattermost/types/groups';
 import {PostActionResponse} from '@mattermost/types/integration_actions';
@@ -3562,7 +3562,7 @@ export default class Client4 {
         );
     }
 
-    searchGroups = (params: GroupSearachParams) => {
+    searchGroups = (params: GroupSearchParams) => {
         const p = {
             ...params,
         };

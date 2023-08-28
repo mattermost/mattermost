@@ -11,7 +11,7 @@ import {GlobalState} from 'types/store';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getAllAssociatedGroupsForReference, getMyAllowReferencedGroups, searchAllowReferencedGroups, searchMyAllowReferencedGroups} from 'mattermost-redux/selectors/entities/groups';
 import {getGroups, getGroupsByUserIdPaginated, searchGroups} from 'mattermost-redux/actions/groups';
-import {Group, GroupSearachParams} from '@mattermost/types/groups';
+import {Group, GroupSearchParams} from '@mattermost/types/groups';
 import {ModalIdentifiers} from 'utils/constants';
 import {isModalOpen} from 'selectors/views/modals';
 import {setModalSearchTerm} from 'actions/views/search';
@@ -34,7 +34,7 @@ type Actions = {
         includeMemberCount?: boolean
     ) => Promise<{data: Group[]}>;
     searchGroups: (
-        params: GroupSearachParams,
+        params: GroupSearchParams,
     ) => Promise<{data: Group[]}>;
 };
 

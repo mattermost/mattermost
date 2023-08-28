@@ -17,7 +17,7 @@ import {getCurrentTeam, getMembersInCurrentTeam, getMembersInTeam, getTeam} from
 import {Permissions} from 'mattermost-redux/constants';
 import {RelationOneToOne} from '@mattermost/types/utilities';
 import {TeamMembership} from '@mattermost/types/teams';
-import {GroupSearachParams} from '@mattermost/types/groups';
+import {GroupSearchParams} from '@mattermost/types/groups';
 
 import {addUsersToChannel} from 'actions/channel_actions';
 import {loadStatusesForProfilesList} from 'actions/status_actions';
@@ -109,7 +109,7 @@ type Actions = {
     searchProfiles: (term: string, options: any) => Promise<ActionResult>;
     closeModal: (modalId: string) => void;
     getProfilesInChannel: (channelId: string, page: number, perPage: number, sort: string, options: {active?: boolean}) => Promise<ActionResult>;
-    searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined, opts: GroupSearachParams) => Promise<ActionResult>;
+    searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined, opts: GroupSearchParams) => Promise<ActionResult>;
     getTeamMembersByIds: (teamId: string, userIds: string[]) => Promise<ActionResult>;
 }
 

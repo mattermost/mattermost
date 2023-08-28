@@ -151,7 +151,7 @@ export type GroupCreateWithUserIds = {
     description?: string;
 }
 
-export type GroupSearachParams = {
+export type GroupSearchParams = {
     q: string;
     filter_allow_reference: boolean;
     page: number;
