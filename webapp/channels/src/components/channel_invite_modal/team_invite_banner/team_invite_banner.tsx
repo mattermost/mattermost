@@ -14,7 +14,6 @@ import {Value} from 'components/multiselect/multiselect';
 import AlertBanner from 'components/alert_banner';
 import Markdown from 'components/markdown';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
-import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 
 import {MentionKey} from 'utils/text_formatting';
 import {sendMembersInvites} from 'actions/invite_actions';
@@ -154,29 +153,10 @@ const TeamInviteBanner = (props: Props) => {
         const lastName = userprofiles[userprofiles.length - 1].username;
 
         if (userprofiles.length > 10) {
-            let formattedMessage = {
+            const formattedMessage = {
                 id: t('channel_invite.invite_team_members.messageOverflow'),
-                defaultMessage: 'You can add {firstUser} and {others} to this channel once they are members of the **{team}** team.',
+                defaultMessage: '{firstUser} and {others} were not selected. Please contact your system administrator to add them to the **{team}** team before you can add them to this channel.',
             };
-
-            if (!canAddUsersToTeam) {
-                formattedMessage = {
-                    id: t('channel_invite.invite_team_members.no_permission.messageOverflow'),
-                    defaultMessage: '{firstUser} and {others} were not selected. Please contact your system administrator to add them to the **{team}** team before you can add them to this channel.',
-                };
-            }
-
-            if (type === 'success') {
-                formattedMessage = {
-                    id: t('channel_invite.invite_team_members.success.messageOverflow'),
-                    defaultMessage: '{firstUser} and {others} were added to the {team} team. You can now add them to this channel.',
-                };
-            } else if (type === 'error') {
-                formattedMessage = {
-                    id: t('channel_invite.invite_team_members.error.messageOverflow'),
-                    defaultMessage: '{firstUser} and {others} were not added to the **{team}** team. Please contact your system administrator to add them to the team.',
-                };
-            }
 
             return formatMessage(
                 formattedMessage,
@@ -215,29 +195,11 @@ const TeamInviteBanner = (props: Props) => {
             );
         }
 
-        let formattedMessage = {
+        const formattedMessage = {
             id: t('channel_invite.invite_team_members.message'),
-            defaultMessage: 'You can add {count, plural, =1 {{firstUser}} other {{users} and {lastUser}}} to this channel once they are members of the **{team}** team.',
+            defaultMessage: '{count, plural, =1 {{firstUser} was} other {{users} and {lastUser} were}} not selected. Please contact your system administrator to add them to the **{team}** team before you can add them to this channel.',
+
         };
-
-        if (!canAddUsersToTeam) {
-            formattedMessage = {
-                id: t('channel_invite.invite_team_members.no_permission.message'),
-                defaultMessage: '{count, plural, =1 {{firstUser} was} other {{users} and {lastUser} were}} not selected. Please contact your system administrator to add them to the **{team}** team before you can add them to this channel.',
-            };
-        }
-
-        if (type === 'success') {
-            formattedMessage = {
-                id: t('channel_invite.invite_team_members.success.message'),
-                defaultMessage: '{count, plural, =1 {{firstUser} was} other {{users} and {lastUser} were}} added to the {team} team. You can now add them to this channel.',
-            };
-        } else if (type === 'error') {
-            formattedMessage = {
-                id: t('channel_invite.invite_team_members.error.message'),
-                defaultMessage: '{count, plural, =1 {{firstUser} was} other {{users} and {lastUser} were}} not added to the **{team}** team. Please contact your system administrator to add them to the team.',
-            };
-        }
 
         const message: string = formatMessage(
             formattedMessage,
@@ -306,21 +268,6 @@ const TeamInviteBanner = (props: Props) => {
         setUnsuccessfulInvites([]);
     }, []);
 
-    const buttonText = useCallback(() => {
-        if (loading) {
-            return formatMessage({id: 'channel_invite.invite_team_members.button.adding', defaultMessage: 'Adding...'});
-        }
-        return formatMessage(
-            {
-                id: 'channel_invite.invite_team_members.button',
-                defaultMessage: 'Add {count} users to team',
-            },
-            {
-                count: users.length,
-            },
-        );
-    }, [loading, users.length]);
-
     return (
         <>
             {
@@ -341,22 +288,6 @@ const TeamInviteBanner = (props: Props) => {
                     message={
                         users.length > 0 &&
                         getMessage('invite', users)
-                    }
-                    actionButtonLeft={
-                        users.length > 0 &&
-                        <TeamPermissionGate
-                            teamId={teamId}
-                            permissions={[Permissions.ADD_USER_TO_TEAM]}
-                        >
-                            <button
-                                id='inviteMembersToTeamButton'
-                                className='btn'
-                                onClick={sendInvites}
-                                disabled={loading}
-                            >
-                                {buttonText()}
-                            </button>
-                        </TeamPermissionGate>
                     }
                     onDismiss={dismissAddToTeam}
                     footerMessage={
