@@ -11,7 +11,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {makeGetGlobalItem} from 'selectors/storage';
 import {setGlobalItem} from 'actions/storage';
 
-export const currentUserAndTeamSuffix = createSelector('currentUserAndTeamSuffix', [
+const currentUserAndTeamSuffix = createSelector('currentUserAndTeamSuffix', [
     getCurrentUserId,
     getCurrentTeamId,
 ], (
@@ -19,14 +19,6 @@ export const currentUserAndTeamSuffix = createSelector('currentUserAndTeamSuffix
     teamId,
 ) => {
     return `:${userId}:${teamId}`;
-});
-
-export const currentUserSuffix = createSelector('currentUserSuffix', [
-    getCurrentUserId,
-], (
-    userId,
-) => {
-    return `:${userId}`;
 });
 
 /**
