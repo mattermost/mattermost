@@ -407,31 +407,52 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				endpoint = h.HandlerName
 			}
 
-			originDevice := "web"
-			if isMobile(r) {
-				originDevice = "mobile"
-			}
-
+			originDevice := string(originDevice(r))
 			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, originDevice, elapsed)
 		}
 	}
 }
 
-func isMobile(r *http.Request) bool {
-	// Post v2
-	queryParam := r.URL.Query().Get("mobilev2")
-	if queryParam == "true" {
-		return true
-	}
+type OriginDevice string
 
-	// Pre v2
+const (
+	OriginDeviceUnknown OriginDevice = "unknown"
+	OriginDeviceWeb     OriginDevice = "web"
+	OriginDeviceMobile  OriginDevice = "mobile"
+	OriginDeviceDesktop OriginDevice = "desktop"
+)
+
+// originDevice returns the device from which the provided request was issued. The algorithm roughly looks like:
+// - If the URL contains the query mobilev2=true, then it's mobile
+// - If the first field of the user agent starts with either "rnbeta" or "Mattermost", then it's mobile
+// - If the last field of the user agent starts with "Mattermost", then it's desktop
+// - Otherwise, it's web
+func originDevice(r *http.Request) OriginDevice {
 	userAgent := r.Header.Get("User-Agent")
 	fields := strings.Fields(userAgent)
 	if len(fields) < 1 {
-		return false
+		return OriginDeviceUnknown
 	}
+
+	// Is mobile post v2?
+	queryParam := r.URL.Query().Get("mobilev2")
+	if queryParam == "true" {
+		return OriginDeviceMobile
+	}
+
+	// Is mobile pre v2?
 	clientAgent := fields[0]
-	return strings.HasPrefix(clientAgent, "rnbeta") || strings.HasPrefix(clientAgent, "Mattermost")
+	if strings.HasPrefix(clientAgent, "rnbeta") || strings.HasPrefix(clientAgent, "Mattermost") {
+		return OriginDeviceMobile
+	}
+
+	// Is desktop?
+	if strings.HasPrefix(fields[len(fields)-1], "Mattermost") {
+		return OriginDeviceDesktop
+	}
+
+	// Default to web
+	return OriginDeviceWeb
 }
 
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
