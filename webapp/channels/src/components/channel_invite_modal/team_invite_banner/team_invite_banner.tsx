@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import React, {useCallback} from 'react';
+import {useSelector} from 'react-redux';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {Permissions} from 'mattermost-redux/constants';
 
 import {UserProfile} from '@mattermost/types/users';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {Value} from 'components/multiselect/multiselect';
 import AlertBanner from 'components/alert_banner';
@@ -16,11 +15,10 @@ import Markdown from 'components/markdown';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 
 import {MentionKey} from 'utils/text_formatting';
-import {sendMembersInvites} from 'actions/invite_actions';
-import {InviteResults} from 'components/invitation_modal/result_view';
 import {GlobalState} from '@mattermost/types/store';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
+
 import {t} from 'utils/i18n';
 
 type UserProfileValue = Value & UserProfile;
@@ -29,9 +27,6 @@ export type Props = {
     teamId: string;
     users: UserProfileValue[];
     guests: UserProfileValue[];
-    clearValuesNotInTeam: () => void;
-    removeInvitedUsersCallback: (profiles: UserProfile[]) => void;
-    removeFailedInvitedUsersCallback: (profiles: UserProfile[]) => void;
 }
 
 const TeamInviteBanner = (props: Props) => {
@@ -39,17 +34,9 @@ const TeamInviteBanner = (props: Props) => {
         teamId,
         users,
         guests,
-        clearValuesNotInTeam,
-        removeInvitedUsersCallback,
-        removeFailedInvitedUsersCallback,
     } = props;
 
-    const dispatch = useDispatch<DispatchFunc>();
     const {formatMessage} = useIntl();
-
-    const [successfulInvites, setSuccessfulInvites] = useState<UserProfile[]>([]);
-    const [unsuccessfulInvites, setUnsuccessfulInvites] = useState<UserProfile[]>([]);
-    const [loading, setLoading] = useState(false);
 
     const team = useSelector((state: GlobalState) => getTeam(state, teamId));
     const canAddUsersToTeam = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.ADD_USER_TO_TEAM));
@@ -223,50 +210,8 @@ const TeamInviteBanner = (props: Props) => {
                 }}
             />
         );
-    }, [canAddUsersToTeam, team, formatMessage]);
+    }, [getMentionKeys, getCommaSeparatedUsernames, canAddUsersToTeam, team, formatMessage]);
 
-    const sendInvites = async () => {
-        setLoading(true);
-        const response = await dispatch(sendMembersInvites(teamId, users, []));
-        if ('data' in response) {
-            const inviteResults: InviteResults = response.data;
-            if (inviteResults.notSent.length > 0) {
-                const users: UserProfile[] = [];
-                for (const invite of inviteResults.notSent) {
-                    if ('user' in invite) {
-                        const user = invite.user;
-                        users.push(user);
-                    }
-                }
-                setUnsuccessfulInvites(users);
-                removeFailedInvitedUsersCallback(users);
-            }
-            if (inviteResults.sent.length > 0) {
-                const users: UserProfile[] = [];
-                for (const invite of inviteResults.sent) {
-                    if ('user' in invite) {
-                        const user = invite.user;
-                        users.push(user);
-                    }
-                }
-                setSuccessfulInvites(users);
-                removeInvitedUsersCallback(users);
-            }
-            setLoading(false);
-        }
-    };
-
-    const dismissAddToTeam = useCallback(() => {
-        clearValuesNotInTeam();
-    }, [clearValuesNotInTeam]);
-
-    const dismissSuccessfulInvites = useCallback(() => {
-        setSuccessfulInvites([]);
-    }, []);
-
-    const dismissUnsuccessfulInvites = useCallback(() => {
-        setUnsuccessfulInvites([]);
-    }, []);
 
     return (
         <>
@@ -289,46 +234,10 @@ const TeamInviteBanner = (props: Props) => {
                         users.length > 0 &&
                         getMessage('invite', users)
                     }
-                    onDismiss={dismissAddToTeam}
                     footerMessage={
                         guests.length > 0 &&
                         getGuestMessage()
                     }
-                />
-            }
-            {
-                successfulInvites.length > 0 &&
-                <AlertBanner
-                    id='inviteMembersToTeamBannerSuccess'
-                    mode='success'
-                    onDismiss={dismissSuccessfulInvites}
-                    variant='app'
-                    title={
-                        <FormattedMessage
-                            id='channel_invite.invite_team_members.success.title'
-                            defaultMessage='{count, plural, =1 {1 user was} other {# users were}} added to the team'
-                            values={{
-                                count: successfulInvites.length,
-                            }}
-                        />
-                    }
-                    message={getMessage('success', successfulInvites)}
-                />
-            }
-            {
-                unsuccessfulInvites.length > 0 &&
-                <AlertBanner
-                    id='inviteMembersToTeamBannerFailure'
-                    mode='danger'
-                    onDismiss={dismissUnsuccessfulInvites}
-                    variant='app'
-                    title={
-                        <FormattedMessage
-                            id='channel_invite.invite_team_members.error.title'
-                            defaultMessage='Users could not be added to the team'
-                        />
-                    }
-                    message={getMessage('error', unsuccessfulInvites)}
                 />
             }
         </>
