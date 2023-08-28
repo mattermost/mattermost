@@ -556,15 +556,17 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 
 func (s *Server) doElasticsearchFixChannelIndex() {
 	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		if model.BuildEnterpriseReady != "true" || newLicense == nil || !*newLicense.Features.Elasticsearch {
+			return
+		}
+
 		if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
 			return
 		}
 
-		if model.BuildEnterpriseReady == "true" && newLicense != nil && *newLicense.Features.Elasticsearch {
-			if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
-				mlog.Fatal("failed to start job for fixing Elasticsearch channels index on license application", mlog.Err(appErr))
-				return
-			}
+		if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
+			mlog.Fatal("failed to start job for fixing Elasticsearch channels index on license application", mlog.Err(appErr))
+			return
 		}
 	})
 
