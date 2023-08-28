@@ -394,12 +394,14 @@ $sidebarOpacityAnimationDuration: 0.15s;
         display: flex;
         flex-direction: row;
         align-items: center;
+        overflow: hidden;
     }
 
     .SidebarHeaderMenuWrapper {
         padding-left: 5px;
         background: transparent;
         border-radius: 4px;
+        overflow: hidden;
 
         &:hover,
         &:active,
@@ -1410,11 +1412,14 @@ $sidebarOpacityAnimationDuration: 0.15s;
 }
 
 // Manual override of the global menu (and items) styling for the sidebar dropdown menu
-#sidebarDropdownMenu .MenuItem {
-    >button,
-    >div,
-    >a {
-        padding: 0 32px 0 24px;
+#sidebarDropdownMenu {
+    position: fixed;
+    .MenuItem {
+        >button,
+        >div,
+        >a {
+            padding: 0 32px 0 24px;
+        }
     }
 }
 
