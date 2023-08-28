@@ -8327,6 +8327,10 @@
     "translation": "Invalid display name."
   },
   {
+    "id": "model.channel.is_valid.dm.name.app_error",
+    "translation": "Channel name for a DM must be of the format $USERID2__$USERID1."
+  },
+  {
     "id": "model.channel.is_valid.header.app_error",
     "translation": "Invalid header."
   },

@@ -85,6 +85,26 @@ func TestChannelIsValid(t *testing.T) {
 
 	o.Name = "71b03afcbb2d503d49f87f057549c43db4e19f92"
 	require.NotNil(t, o.IsValid())
+
+	t.Run("DM name", func(t *testing.T) {
+		o := o
+		o.Type = ChannelTypeDirect
+
+		o.Name = NewId() + "__" + NewId()
+		require.Nil(t, o.IsValid())
+
+		o.Name = "__" + NewId()
+		require.NotNil(t, o.IsValid())
+
+		o.Name = NewId() + "__"
+		require.NotNil(t, o.IsValid())
+
+		o.Name = "__"
+		require.NotNil(t, o.IsValid())
+
+		o.Name = ""
+		require.NotNil(t, o.IsValid())
+	})
 }
 
 func TestChannelPreSave(t *testing.T) {

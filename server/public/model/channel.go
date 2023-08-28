@@ -291,6 +291,13 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if o.Type == ChannelTypeDirect {
+		userIds := strings.Split(o.Name, "__")
+		if len(userIds) != 2 || len(userIds[0]) != 26 || len(userIds[1]) != 26 {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.dm.name.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	if o.Type != ChannelTypeDirect && o.Type != ChannelTypeGroup {
 		userIds := strings.Split(o.Name, "__")
 		if ok := gmNameRegex.MatchString(o.Name); ok || (o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1])) {
@@ -377,6 +384,9 @@ func (o *Channel) GetOtherUserIdForDM(userId string) string {
 	}
 
 	userIds := strings.Split(o.Name, "__")
+	if len(userIds) != 2 {
+		return ""
+	}
 
 	var otherUserId string
 
