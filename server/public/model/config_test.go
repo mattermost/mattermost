@@ -340,7 +340,7 @@ func TestTeamSettingsDefaultJoinLeaveMessage(t *testing.T) {
 	c1.SetDefaults()
 
 	// should default to true
-	require.Equal(t, true, c1.TeamSettings.EnableJoinLeaveMessageByDefault)
+	require.Equal(t, NewBool(true), c1.TeamSettings.EnableJoinLeaveMessageByDefault)
 }
 
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
