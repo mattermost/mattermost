@@ -64,7 +64,6 @@ exports[`components/AtMention should match snapshot when mentioning current user
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc1/image"
         userId="abc1"
       />
@@ -97,7 +96,6 @@ exports[`components/AtMention should match snapshot when mentioning user 1`] = `
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc2/image"
         userId="abc2"
       />
@@ -130,7 +128,6 @@ exports[`components/AtMention should match snapshot when mentioning user contain
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc3/image"
         userId="abc3"
       />
@@ -164,7 +161,6 @@ exports[`components/AtMention should match snapshot when mentioning user contain
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc3/image"
         userId="abc3"
       />
@@ -197,7 +193,6 @@ exports[`components/AtMention should match snapshot when mentioning user followe
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc2/image"
         userId="abc2"
       />
@@ -231,7 +226,6 @@ exports[`components/AtMention should match snapshot when mentioning user with di
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc2/image"
         userId="abc2"
       />
@@ -264,7 +258,6 @@ exports[`components/AtMention should match snapshot when mentioning user with mi
         className="user-profile-popover"
         hasMention={false}
         hide={[Function]}
-        isRHS={false}
         src="/api/v4/users/abc2/image"
         userId="abc2"
       />

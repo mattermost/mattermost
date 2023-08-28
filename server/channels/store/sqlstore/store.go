@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	dbsql "database/sql"
 	"fmt"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,10 +21,12 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"github.com/mattermost/morph/models"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/db"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -136,7 +139,7 @@ type SqlStore struct {
 	wgMonitor   *sync.WaitGroup
 }
 
-func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
+func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) (*SqlStore, error) {
 	store := &SqlStore{
 		rrCounter:   0,
 		srCounter:   0,
@@ -148,7 +151,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	err := store.initConnection()
 	if err != nil {
-		mlog.Fatal("Error setting up connections", mlog.Err(err))
+		return nil, errors.Wrap(err, "error setting up connections")
 	}
 
 	store.wgMonitor.Add(1)
@@ -156,32 +159,32 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	ver, err := store.GetDbVersion(true)
 	if err != nil {
-		mlog.Fatal("Error while getting DB version.", mlog.Err(err))
+		return nil, errors.Wrap(err, "error while getting DB version")
 	}
 
 	ok, err := store.ensureMinimumDBVersion(ver)
 	if !ok {
-		mlog.Fatal("Error while checking DB version.", mlog.Err(err))
+		return nil, errors.Wrap(err, "error while checking DB version")
 	}
 
 	err = store.ensureDatabaseCollation()
 	if err != nil {
-		mlog.Fatal("Error while checking DB collation.", mlog.Err(err))
+		return nil, errors.Wrap(err, "error while checking DB collation")
 	}
 
 	err = store.migrate(migrationsDirectionUp, false)
 	if err != nil {
-		mlog.Fatal("Failed to apply database migrations.", mlog.Err(err))
+		return nil, errors.Wrap(err, "failed to apply database migrations")
 	}
 
 	store.isBinaryParam, err = store.computeBinaryParam()
 	if err != nil {
-		mlog.Fatal("Failed to compute binary param", mlog.Err(err))
+		return nil, errors.Wrap(err, "failed to compute binary param")
 	}
 
 	store.pgDefaultTextSearchConfig, err = store.computeDefaultTextSearchConfig()
 	if err != nil {
-		mlog.Fatal("Failed to compute default text search config", mlog.Err(err))
+		return nil, errors.Wrap(err, "failed to compute default text search config")
 	}
 
 	store.stores.team = newSqlTeamStore(store)
@@ -231,7 +234,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
-	return store
+	return store, nil
 }
 
 // SetupConnection sets up the connection to the database and pings it to make sure it's alive.
@@ -1293,6 +1296,34 @@ func (ss *SqlStore) toReserveCase(str string) string {
 	}
 
 	return fmt.Sprintf("`%s`", strings.Title(str))
+}
+
+func (ss *SqlStore) GetLocalSchemaVersion() (int, error) {
+	assets := db.Assets()
+
+	assetsList, err := assets.ReadDir(path.Join("migrations", ss.DriverName()))
+	if err != nil {
+		return 0, err
+	}
+
+	maxVersion := 0
+	for _, entry := range assetsList {
+		// parse the version name from the file name
+		m := models.Regex.FindStringSubmatch(entry.Name())
+		if len(m) < 2 {
+			return 0, fmt.Errorf("migration file name incorrectly formed: %s", entry.Name())
+		}
+
+		version, err := strconv.Atoi(m[1])
+		if err != nil {
+			return 0, err
+		}
+		// store the highest version
+		if maxVersion < version {
+			maxVersion = version
+		}
+	}
+	return maxVersion, nil
 }
 
 func (ss *SqlStore) GetDBSchemaVersion() (int, error) {

@@ -1751,8 +1751,8 @@ export default class Client4 {
         );
     };
 
-    getChannelStats = (channelId: string, excludeFilesCount = false) => {
-        const param = excludeFilesCount ? `?exclude_files_count=${excludeFilesCount}` : '';
+    getChannelStats = (channelId: string, includeFileCount = false) => {
+        const param = !includeFileCount ? '?exclude_files_count=true' : '';
         return this.doFetch<ChannelStats>(
             `${this.getChannelRoute(channelId)}/stats${param}`,
             {method: 'get'},
@@ -1787,11 +1787,18 @@ export default class Client4 {
         );
     };
 
-    viewMyChannel = (channelId: string, prevChannelId?: string) => {
-        const data = {channel_id: channelId, prev_channel_id: prevChannelId, collapsed_threads_supported: true};
+    viewMyChannel = (channelId: string) => {
+        const data = {channel_id: channelId, collapsed_threads_supported: true};
         return this.doFetch<ChannelViewResponse>(
             `${this.getChannelsRoute()}/members/me/view`,
             {method: 'post', body: JSON.stringify(data)},
+        );
+    };
+
+    readMultipleChannels = (channelIds: string[]) => {
+        return this.doFetch<ChannelViewResponse>(
+            `${this.getChannelsRoute()}/members/me/mark_read`,
+            {method: 'post', body: JSON.stringify(channelIds)},
         );
     };
 
@@ -2217,13 +2224,6 @@ export default class Client4 {
 
     searchFiles = (teamId: string, terms: string, isOrSearch: boolean) => {
         return this.searchFilesWithParams(teamId, {terms, is_or_search: isOrSearch});
-    };
-
-    getOpenGraphMetadata = (url: string) => {
-        return this.doFetch<OpenGraphMetadata>(
-            `${this.getBaseRoute()}/opengraph`,
-            {method: 'post', body: JSON.stringify({url})},
-        );
     };
 
     doPostAction = (postId: string, actionId: string, selectedOption = '') => {
@@ -3502,8 +3502,9 @@ export default class Client4 {
         );
     };
 
-    getGroups = (filterAllowReference = false, page = 0, perPage = 10, includeMemberCount = false, hasFilterMember = false) => {
+    getGroups = (q = '', filterAllowReference = false, page = 0, perPage = 10, includeMemberCount = false, hasFilterMember = false) => {
         const qs: any = {
+            q,
             filter_allow_reference: filterAllowReference,
             page,
             per_page: perPage,

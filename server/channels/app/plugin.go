@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -15,7 +16,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/gorilla/mux"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
@@ -27,14 +28,16 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
+// prepackagedPluginsDir is the hard-coded folder name where prepackaged plugins are bundled
+// alongside the server.
 const prepackagedPluginsDir = "prepackaged_plugins"
 
+// pluginSignaturePath tracks the path to the plugin bundle and signature for the given plugin.
 type pluginSignaturePath struct {
 	pluginID      string
-	path          string
+	bundlePath    string
 	signaturePath string
 }
 
@@ -161,16 +164,18 @@ func (ch *Channels) syncPluginsActiveState() {
 				defer wg.Done()
 
 				pluginID := plugin.Manifest.Id
+				logger := ch.srv.Log().With(mlog.String("plugin_id", pluginID), mlog.String("bundle_path", plugin.Path))
+
 				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginID)
 				if err != nil {
-					plugin.WrapLogger(ch.srv.Log()).Error("Unable to activate plugin", mlog.Err(err))
+					logger.Error("Unable to activate plugin", mlog.Err(err))
 					return
 				}
 
 				if activated {
 					// Notify all cluster clients if ready
 					if err := ch.notifyPluginEnabled(updatedManifest); err != nil {
-						ch.srv.Log().Error("Failed to notify cluster on plugin enable", mlog.Err(err))
+						logger.Error("Failed to notify cluster on plugin enable", mlog.Err(err))
 					}
 				}
 			}(plugin)
@@ -181,7 +186,7 @@ func (ch *Channels) syncPluginsActiveState() {
 	}
 
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
+		ch.srv.Log().Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
 }
 
@@ -213,12 +218,12 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 	ch.srv.Log().Info("Starting up plugins")
 
 	if err := os.Mkdir(pluginDir, 0744); err != nil && !os.IsExist(err) {
-		mlog.Error("Failed to start up plugins", mlog.Err(err))
+		ch.srv.Log().Error("Failed to start up plugins", mlog.Err(err))
 		return
 	}
 
 	if err := os.Mkdir(webappPluginDir, 0744); err != nil && !os.IsExist(err) {
-		mlog.Error("Failed to start up plugins", mlog.Err(err))
+		ch.srv.Log().Error("Failed to start up plugins", mlog.Err(err))
 		return
 	}
 
@@ -235,7 +240,7 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		ch.srv.GetMetrics(),
 	)
 	if err != nil {
-		mlog.Error("Failed to start up plugins", mlog.Err(err))
+		ch.srv.Log().Error("Failed to start up plugins", mlog.Err(err))
 		return
 	}
 	ch.pluginsLock.Lock()
@@ -245,18 +250,16 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 	ch.pluginsEnvironment.TogglePluginHealthCheckJob(*ch.cfgSvc.Config().PluginSettings.EnableHealthCheck)
 
 	if err := ch.syncPlugins(); err != nil {
-		mlog.Error("Failed to sync plugins from the file store", mlog.Err(err))
+		ch.srv.Log().Error("Failed to sync plugins from the file store", mlog.Err(err))
 	}
 
-	plugins := ch.processPrepackagedPlugins(prepackagedPluginsDir)
-	pluginsEnvironment = ch.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		mlog.Info("Plugins environment not found, server is likely shutting down")
-		return
+	if err := ch.processPrepackagedPlugins(prepackagedPluginsDir); err != nil {
+		ch.srv.Log().Error("Failed to process prepackaged plugins", mlog.Err(err))
 	}
-	pluginsEnvironment.SetPrepackagedPlugins(plugins)
-
-	ch.installFeatureFlagPlugins()
+	ch.pluginClusterLeaderListenerID = ch.srv.AddClusterLeaderChangedListener(func() {
+		ch.persistTransitionallyPrepackagedPlugins()
+	})
+	ch.persistTransitionallyPrepackagedPlugins()
 
 	// Sync plugin active state when config changes. Also notify plugins.
 	ch.pluginsLock.Lock()
@@ -265,7 +268,6 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		// If plugin status remains unchanged, only then run this.
 		// Because (*App).InitPlugins is already run as a config change hook.
 		if *old.PluginSettings.Enable == *new.PluginSettings.Enable {
-			ch.installFeatureFlagPlugins()
 			ch.syncPluginsActiveState()
 		}
 
@@ -290,7 +292,7 @@ func (a *App) SyncPlugins() *model.AppError {
 // SyncPlugins synchronizes the plugins installed locally
 // with the plugin bundles available in the file store.
 func (ch *Channels) syncPlugins() *model.AppError {
-	mlog.Info("Syncing plugins from the file store")
+	ch.srv.Log().Info("Syncing plugins from the file store")
 
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -307,16 +309,19 @@ func (ch *Channels) syncPlugins() *model.AppError {
 		wg.Add(1)
 		go func(pluginID string) {
 			defer wg.Done()
+
+			logger := ch.srv.Log().With(mlog.String("plugin_id", pluginID))
+
 			// Only handle managed plugins with .filestore flag file.
 			_, err := os.Stat(filepath.Join(*ch.cfgSvc.Config().PluginSettings.Directory, pluginID, managedPluginFileName))
 			if os.IsNotExist(err) {
-				mlog.Warn("Skipping sync for unmanaged plugin", mlog.String("plugin_id", pluginID))
+				logger.Warn("Skipping sync for unmanaged plugin")
 			} else if err != nil {
-				mlog.Error("Skipping sync for plugin after failure to check if managed", mlog.String("plugin_id", pluginID), mlog.Err(err))
+				logger.Error("Skipping sync for plugin after failure to check if managed", mlog.Err(err))
 			} else {
-				mlog.Debug("Removing local installation of managed plugin before sync", mlog.String("plugin_id", pluginID))
+				logger.Info("Removing local installation of managed plugin before sync")
 				if err := ch.removePluginLocally(pluginID); err != nil {
-					mlog.Error("Failed to remove local installation of managed plugin before sync", mlog.String("plugin_id", pluginID), mlog.Err(err))
+					logger.Error("Failed to remove local installation of managed plugin before sync", mlog.Err(err))
 				}
 			}
 		}(plugin.Manifest.Id)
@@ -329,30 +334,41 @@ func (ch *Channels) syncPlugins() *model.AppError {
 		return appErr
 	}
 
+	if len(pluginSignaturePathMap) == 0 {
+		ch.srv.Log().Info("No plugins to sync from the file store")
+		return nil
+	}
+
 	for _, plugin := range pluginSignaturePathMap {
 		wg.Add(1)
 		go func(plugin *pluginSignaturePath) {
 			defer wg.Done()
-			reader, appErr := ch.srv.fileReader(plugin.path)
+			logger := ch.srv.Log().With(mlog.String("plugin_id", plugin.pluginID), mlog.String("bundle_path", plugin.bundlePath))
+
+			bundle, appErr := ch.srv.fileReader(plugin.bundlePath)
 			if appErr != nil {
-				mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+				logger.Error("Failed to open plugin bundle from file store.", mlog.Err(appErr))
 				return
 			}
-			defer reader.Close()
+			defer bundle.Close()
 
-			var signature filestore.ReadCloseSeeker
 			if *ch.cfgSvc.Config().PluginSettings.RequirePluginSignature {
-				signature, appErr = ch.srv.fileReader(plugin.signaturePath)
+				signature, appErr := ch.srv.fileReader(plugin.signaturePath)
 				if appErr != nil {
-					mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
+					logger.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
 					return
 				}
 				defer signature.Close()
+
+				if appErr = ch.verifyPlugin(bundle, signature); appErr != nil {
+					logger.Error("Failed to validate plugin signature", mlog.Err(appErr))
+					return
+				}
 			}
 
-			mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
-			if _, err := ch.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil && err.Id != "app.plugin.blocked.app_error" && err.Id != "app.plugin.skip_installation.app_error" {
-				mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
+			logger.Info("Syncing plugin from file store")
+			if _, err := ch.installPluginLocally(bundle, installPluginLocallyAlways); err != nil && err.Id != "app.plugin.skip_installation.app_error" {
+				logger.Error("Failed to sync plugin from file store", mlog.Err(err))
 			}
 		}(plugin)
 	}
@@ -370,12 +386,14 @@ func (ch *Channels) ShutDownPlugins() {
 		return
 	}
 
-	mlog.Info("Shutting down plugins")
+	ch.srv.Log().Info("Shutting down plugins")
 
 	pluginsEnvironment.Shutdown()
 
 	ch.RemoveConfigListener(ch.pluginConfigListenerID)
 	ch.pluginConfigListenerID = ""
+	ch.srv.RemoveClusterLeaderChangedListener(ch.pluginClusterLeaderListenerID)
+	ch.pluginClusterLeaderListenerID = ""
 
 	// Acquiring lock manually before cleaning up PluginsEnvironment.
 	ch.pluginsLock.Lock()
@@ -383,7 +401,7 @@ func (ch *Channels) ShutDownPlugins() {
 	if ch.pluginsEnvironment == pluginsEnvironment {
 		ch.pluginsEnvironment = nil
 	} else {
-		mlog.Warn("Another PluginsEnvironment detected while shutting down plugins.")
+		ch.srv.Log().Warn("Another PluginsEnvironment detected while shutting down plugins.")
 	}
 }
 
@@ -534,7 +552,7 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
 	plugins := map[string]*model.MarketplacePlugin{}
 
-	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
+	if *a.Config().PluginSettings.EnableRemoteMarketplace && !a.Config().FeatureFlags.StreamlinedMarketplace && !filter.LocalOnly {
 		p, appErr := a.getRemotePlugins()
 		if appErr != nil {
 			return nil, appErr
@@ -543,20 +561,12 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	}
 
 	if !filter.RemoteOnly {
-		// Some plugin don't work on cloud. The remote Marketplace is aware of this fact,
-		// but prepackaged plugins are not. Hence, on a cloud installation prepackaged plugins
-		// shouldn't be shown in the Marketplace modal.
-		// This is a short term fix. The long term solution is to have a separate set of
-		// prepacked plugins for cloud: https://mattermost.atlassian.net/browse/MM-31331.
-		license := a.Srv().License()
-		if license == nil || !license.IsCloud() {
-			appErr := a.mergePrepackagedPlugins(plugins)
-			if appErr != nil {
-				return nil, appErr
-			}
+		appErr := a.mergePrepackagedPlugins(plugins)
+		if appErr != nil {
+			return nil, appErr
 		}
 
-		appErr := a.mergeLocalPlugins(plugins)
+		appErr = a.mergeLocalPlugins(plugins)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -735,7 +745,7 @@ func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.Marke
 		if plugin.Manifest.IconPath != "" {
 			iconData, err = getIcon(filepath.Join(plugin.Path, plugin.Manifest.IconPath))
 			if err != nil {
-				mlog.Warn("Error loading local plugin icon", mlog.String("plugin", plugin.Manifest.Id), mlog.String("icon_path", plugin.Manifest.IconPath), mlog.Err(err))
+				a.Log().Warn("Error loading local plugin icon", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("icon_path", plugin.Manifest.IconPath), mlog.Err(err))
 			}
 		}
 
@@ -850,7 +860,7 @@ func (ch *Channels) notifyPluginEnabled(manifest *model.Manifest) error {
 	// which may result in a 404.
 	for _, status := range statuses {
 		if status.PluginId == manifest.Id && status.Version != manifest.Version {
-			mlog.Debug("Not ready to notify webclients", mlog.String("cluster_id", status.ClusterId), mlog.String("plugin_id", manifest.Id))
+			ch.srv.Log().Debug("Not ready to notify webclients", mlog.String("cluster_id", status.ClusterId), mlog.String("plugin_id", manifest.Id))
 			return nil
 		}
 	}
@@ -874,33 +884,22 @@ func (ch *Channels) getPluginsFromFolder() (map[string]*pluginSignaturePath, *mo
 
 func (ch *Channels) getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignaturePath {
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
-
-	fsPrefix := ""
-	if *ch.cfgSvc.Config().FileSettings.DriverName == model.ImageDriverS3 {
-		ptr := ch.cfgSvc.Config().FileSettings.AmazonS3PathPrefix
-		if ptr != nil && *ptr != "" {
-			fsPrefix = *ptr + "/"
-		}
-	}
-
 	for _, path := range fileStorePaths {
-		path = strings.TrimPrefix(path, fsPrefix)
 		if strings.HasSuffix(path, ".tar.gz") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
 			helper := &pluginSignaturePath{
 				pluginID:      id,
-				path:          path,
+				bundlePath:    path,
 				signaturePath: "",
 			}
 			pluginSignaturePathMap[id] = helper
 		}
 	}
 	for _, path := range fileStorePaths {
-		path = strings.TrimPrefix(path, fsPrefix)
 		if strings.HasSuffix(path, ".tar.gz.sig") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz.sig")
 			if val, ok := pluginSignaturePathMap[id]; !ok {
-				mlog.Warn("Unknown signature", mlog.String("path", path))
+				ch.srv.Log().Warn("Unknown signature", mlog.String("path", path))
 			} else {
 				val.signaturePath = path
 			}
@@ -910,25 +909,48 @@ func (ch *Channels) getPluginsFromFilePaths(fileStorePaths []string) map[string]
 	return pluginSignaturePathMap
 }
 
-func (ch *Channels) processPrepackagedPlugins(pluginsDir string) []*plugin.PrepackagedPlugin {
-	prepackagedPluginsDir, found := fileutils.FindDir(pluginsDir)
+// processPrepackagedPlugins processes the plugins prepackaged with this server in the
+// prepackaged_plugins directory.
+//
+// If enabled, prepackaged plugins are installed or upgraded locally. A list of transitionally
+// prepackaged plugins is also collected for later persistence to the filestore.
+func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) error {
+	prepackagedPluginsPath, found := fileutils.FindDir(prepackagedPluginsDir)
 	if !found {
+		ch.srv.Log().Debug("No prepackaged plugins directory found")
 		return nil
 	}
 
+	ch.srv.Log().Debug("Processing prepackaged plugins in directory", mlog.String("path", prepackagedPluginsPath))
+
 	var fileStorePaths []string
-	err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
+	err := filepath.Walk(prepackagedPluginsPath, func(walkPath string, info os.FileInfo, err error) error {
 		fileStorePaths = append(fileStorePaths, walkPath)
 		return nil
 	})
 	if err != nil {
-		mlog.Error("Failed to walk prepackaged plugins", mlog.Err(err))
-		return nil
+		return errors.Wrap(err, "failed to walk prepackaged plugins")
 	}
 
 	pluginSignaturePathMap := ch.getPluginsFromFilePaths(fileStorePaths)
-	plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
-	prepackagedPlugins := make(chan *plugin.PrepackagedPlugin, len(pluginSignaturePathMap))
+	plugins := make(chan *plugin.PrepackagedPlugin, len(pluginSignaturePathMap))
+
+	// Before processing any prepackaged plugins, take a snapshot of the available manifests
+	// to decide what was synced from the filestore.
+	pluginsEnvironment := ch.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return errors.New("pluginsEnvironment is nil")
+	}
+
+	availablePlugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		return errors.Wrap(err, "failed to list available plugins")
+	}
+
+	availablePluginsMap := make(map[string]*model.BundleInfo, len(availablePlugins))
+	for _, bundleInfo := range availablePlugins {
+		availablePluginsMap[bundleInfo.Manifest.Id] = bundleInfo
+	}
 
 	var wg sync.WaitGroup
 	for _, psPath := range pluginSignaturePathMap {
@@ -938,35 +960,47 @@ func (ch *Channels) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepa
 			p, err := ch.processPrepackagedPlugin(psPath)
 			if err != nil {
 				var appErr *model.AppError
-				// A log line already appears if the plugin is on the blocklist
-				if errors.As(err, &appErr) && (appErr.Id == "app.plugin.blocked.app_error" || appErr.Id == "app.plugin.skip_installation.app_error") {
+				if errors.As(err, &appErr) && appErr.Id == "app.plugin.skip_installation.app_error" {
 					return
 				}
-				mlog.Error("Failed to install prepackaged plugin", mlog.String("path", psPath.path), mlog.Err(err))
+				ch.srv.Log().Error("Failed to install prepackaged plugin", mlog.String("bundle_path", psPath.bundlePath), mlog.Err(err))
 				return
 			}
-			prepackagedPlugins <- p
+
+			plugins <- p
 		}(psPath)
 	}
 
 	wg.Wait()
-	close(prepackagedPlugins)
+	close(plugins)
 
-	for p := range prepackagedPlugins {
-		plugins = append(plugins, p)
+	prepackagedPlugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
+	transitionallyPrepackagedPlugins := make([]*plugin.PrepackagedPlugin, 0)
+	for p := range plugins {
+		if ch.pluginIsTransitionallyPrepackaged(p.Manifest.Id) {
+			if ch.shouldPersistTransitionallyPrepackagedPlugin(availablePluginsMap, p) {
+				transitionallyPrepackagedPlugins = append(transitionallyPrepackagedPlugins, p)
+			}
+		} else {
+			prepackagedPlugins = append(prepackagedPlugins, p)
+		}
 	}
 
-	return plugins
+	pluginsEnvironment.SetPrepackagedPlugins(prepackagedPlugins, transitionallyPrepackagedPlugins)
+
+	return nil
 }
 
 // processPrepackagedPlugin will return the prepackaged plugin metadata and will also
 // install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
 func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
-	mlog.Debug("Processing prepackaged plugin", mlog.String("path", pluginPath.path))
+	logger := ch.srv.Log().With(mlog.String("bundle_path", pluginPath.bundlePath))
 
-	fileReader, err := os.Open(pluginPath.path)
+	logger.Info("Processing prepackaged plugin")
+
+	fileReader, err := os.Open(pluginPath.bundlePath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPath.path)
+		return nil, errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPath.bundlePath)
 	}
 	defer fileReader.Close()
 
@@ -976,103 +1010,187 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	}
 	defer os.RemoveAll(tmpDir)
 
-	plugin, pluginDir, err := getPrepackagedPlugin(pluginPath, fileReader, tmpDir)
+	plugin, pluginDir, err := ch.buildPrepackagedPlugin(pluginPath, fileReader, tmpDir)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.path)
+		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.bundlePath)
 	}
+
+	logger = logger.With(mlog.String("plugin_id", plugin.Manifest.Id))
 
 	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
 	if !*ch.cfgSvc.Config().PluginSettings.AutomaticPrepackagedPlugins {
+		logger.Info("Not installing prepackaged plugin: automatic prepackaged plugins disabled")
 		return plugin, nil
 	}
 
 	// Skip installing if the plugin is has not been previously enabled.
 	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[plugin.Manifest.Id]
 	if pluginState == nil || !pluginState.Enable {
+		logger.Info("Not installing prepackaged plugin: not previously enabled")
 		return plugin, nil
 	}
 
-	mlog.Debug("Installing prepackaged plugin", mlog.String("path", pluginPath.path))
-	if _, err := ch.installExtractedPlugin(plugin.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
-		return nil, errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.path)
+	if _, err := ch.installExtractedPlugin(plugin.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil && err.Id != "app.plugin.skip_installation.app_error" {
+		return nil, errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.bundlePath)
 	}
 
 	return plugin, nil
 }
 
-// installFeatureFlagPlugins handles the automatic installation/upgrade of plugins from feature flags
-func (ch *Channels) installFeatureFlagPlugins() {
-	ffControledPlugins := ch.cfgSvc.Config().FeatureFlags.Plugins()
+var transitionallyPrepackagedPlugins = []string{
+	"antivirus",
+	"focalboard",
+	"mattermost-autolink",
+	"com.mattermost.aws-sns",
+	"com.mattermost.plugin-channel-export",
+	"com.mattermost.confluence",
+	"com.mattermost.custom-attributes",
+	"jenkins",
+	"jitsi",
+	"com.mattermost.plugin-todo",
+	"com.mattermost.welcomebot",
+	"com.mattermost.apps",
+}
 
-	// Respect the automatic prepackaged disable setting
-	if !*ch.cfgSvc.Config().PluginSettings.AutomaticPrepackagedPlugins {
+// pluginIsTransitionallyPrepackaged identifies plugin ids that are currently prepackaged but
+// slated for future removal.
+func (ch *Channels) pluginIsTransitionallyPrepackaged(pluginID string) bool {
+	for _, id := range transitionallyPrepackagedPlugins {
+		if id == pluginID {
+			return true
+		}
+	}
+
+	return false
+}
+
+// shouldPersistTransitionallyPrepackagedPlugin determines if a transitionally prepackaged plugin
+// should be persisted to the filestore, taking into account whether it's already enabled and
+// would improve on what's already in the filestore.
+func (ch *Channels) shouldPersistTransitionallyPrepackagedPlugin(availablePluginsMap map[string]*model.BundleInfo, p *plugin.PrepackagedPlugin) bool {
+	logger := ch.srv.Log().With(mlog.String("plugin_id", p.Manifest.Id), mlog.String("prepackaged_version", p.Manifest.Version))
+
+	// Ignore the plugin altogether unless it was previously enabled.
+	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[p.Manifest.Id]
+	if pluginState == nil || !pluginState.Enable {
+		logger.Debug("Should not persist transitionally prepackaged plugin: not previously enabled")
+		return false
+	}
+
+	// Ignore the plugin if the same or newer version is already available
+	// (having previously synced from the filestore).
+	existing, found := availablePluginsMap[p.Manifest.Id]
+	if !found {
+		logger.Info("Should persist transitionally prepackaged plugin: not currently in filestore")
+		return true
+	}
+
+	prepackagedVersion, err := semver.Parse(p.Manifest.Version)
+	if err != nil {
+		logger.Error("Should not persist transitionally prepackged plugin: invalid prepackaged version", mlog.Err(err))
+		return false
+	}
+
+	logger = logger.With(mlog.String("existing_version", existing.Manifest.Version))
+
+	existingVersion, err := semver.Parse(existing.Manifest.Version)
+	if err != nil {
+		// Consider this an old version and replace with the prepackaged version instead.
+		logger.Warn("Should persist transitionally prepackged plugin: invalid existing version", mlog.Err(err))
+		return true
+	}
+
+	if prepackagedVersion.GT(existingVersion) {
+		logger.Info("Should persist transitionally prepackged plugin: newer version")
+		return true
+	}
+
+	logger.Info("Should not persist transitionally prepackged plugin: not a newer version")
+	return false
+}
+
+// persistTransitionallyPrepackagedPlugins writes plugins that are transitionally prepackaged with
+// the server to the filestore to allow their continued use when the plugin eventually stops being
+// prepackaged.
+//
+// We identify which plugins need to be persisted during startup via processPrepackagedPlugins.
+// Once we persist the set of plugins to the filestore, we clear the list to prevent this server
+// from trying again.
+//
+// In a multi-server cluster, only the cluster leader should persist these plugins to avoid
+// concurrent writes to the filestore. But during an upgrade, there's no guarantee that a freshly
+// upgraded server will be the cluster leader to perform this step in a timely fashion, so the
+// persistence has to be able to happen sometime after startup. Additionally, while this is a
+// kind of migration, it's not a one off: new versions of these plugins may still be shipped
+// during the transition period, or new plugins may be added to the list.
+//
+// So instead of a one-time migration, we opt to run this method every time the cluster leader
+// changes, but minimizing rework. More than one server may end up persisting the same plugin
+// (but never concurrently!), but all servers will eventually converge on this method becoming a
+// no-op (until this set of plugins changes in a subsequent release).
+//
+// Finally, if an error occurs persisting the plugin, we don't try again until the server restarts,
+// or another server becomes cluster leader.
+func (ch *Channels) persistTransitionallyPrepackagedPlugins() {
+	if !ch.srv.IsLeader() {
+		ch.srv.Log().Debug("Not persisting transitionally prepackaged plugins: not the leader")
 		return
 	}
 
-	for pluginID, version := range ffControledPlugins {
-		// Skip installing if the plugin has been previously disabled.
-		pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[pluginID]
-		if pluginState != nil && !pluginState.Enable {
-			ch.srv.Log().Debug("Not auto installing/upgrade because plugin was disabled", mlog.String("plugin_id", pluginID), mlog.String("version", version))
-			continue
-		}
-
-		// Check if we already installed this version as InstallMarketplacePlugin can't handle re-installs well.
-		pluginStatus, err := ch.GetPluginStatus(pluginID)
-		pluginExists := err == nil
-		if pluginExists && pluginStatus.Version == version {
-			continue
-		}
-
-		if version != "" && version != "control" {
-			// If we are on-prem skip installation if this is a downgrade
-			license := ch.srv.License()
-			inCloud := license != nil && *license.Features.Cloud
-			if !inCloud && pluginExists {
-				parsedVersion, err := semver.Parse(version)
-				if err != nil {
-					ch.srv.Log().Debug("Bad version from feature flag", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", version))
-					return
-				}
-				parsedExistingVersion, err := semver.Parse(pluginStatus.Version)
-				if err != nil {
-					ch.srv.Log().Debug("Bad version from plugin manifest", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", pluginStatus.Version))
-					return
-				}
-
-				if parsedVersion.LTE(parsedExistingVersion) {
-					ch.srv.Log().Debug("Skip installation because given version was a downgrade and on-prem installations should not downgrade.", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", pluginStatus.Version))
-					return
-				}
-			}
-
-			_, err := ch.InstallMarketplacePlugin(&model.InstallMarketplacePluginRequest{
-				Id:      pluginID,
-				Version: version,
-			})
-			if err != nil {
-				ch.srv.Log().Debug("Unable to install plugin from FF manifest", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", version))
-			} else {
-				if err := ch.enablePlugin(pluginID); err != nil {
-					ch.srv.Log().Debug("Unable to enable plugin installed from feature flag.", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", version))
-				} else {
-					ch.srv.Log().Debug("Installed and enabled plugin.", mlog.String("plugin_id", pluginID), mlog.String("version", version))
-				}
-			}
-		}
+	pluginsEnvironment := ch.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		ch.srv.Log().Debug("Not persisting transitionally prepackaged plugins: no plugin environment")
+		return
 	}
+
+	transitionallyPrepackagedPlugins := pluginsEnvironment.TransitionallyPrepackagedPlugins()
+	if len(transitionallyPrepackagedPlugins) == 0 {
+		ch.srv.Log().Debug("Not persisting transitionally prepackaged plugins: none found")
+		return
+	}
+
+	var wg sync.WaitGroup
+	for _, p := range transitionallyPrepackagedPlugins {
+		wg.Add(1)
+		go func(p *plugin.PrepackagedPlugin) {
+			defer wg.Done()
+
+			logger := ch.srv.Log().With(mlog.String("plugin_id", p.Manifest.Id), mlog.String("version", p.Manifest.Version))
+
+			logger.Info("Persisting transitionally prepackaged plugin")
+
+			bundleReader, err := os.Open(p.Path)
+			if err != nil {
+				logger.Error("Failed to read transitionally prepackaged plugin", mlog.Err(err))
+			}
+			defer bundleReader.Close()
+
+			signatureReader := bytes.NewReader(p.Signature)
+
+			// Write the plugin to the filestore, but don't bother notifying the peers,
+			// as there's no reason to reload the plugin to run the same version again.
+			appErr := ch.installPluginToFilestore(p.Manifest, bundleReader, signatureReader)
+			if appErr != nil {
+				logger.Error("Failed to persist transitionally prepackaged plugin", mlog.Err(err))
+			}
+		}(p)
+	}
+	wg.Wait()
+
+	pluginsEnvironment.ClearTransitionallyPrepackagedPlugins()
+	ch.srv.Log().Info("Finished persisting transitionally prepackaged plugins")
 }
 
-// getPrepackagedPlugin builds a PrepackagedPlugin from the plugin at the given path, additionally returning the directory in which it was extracted.
-func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSeeker, tmpDir string) (*plugin.PrepackagedPlugin, string, error) {
+// buildPrepackagedPlugin builds a PrepackagedPlugin from the plugin at the given path, additionally returning the directory in which it was extracted.
+func (ch *Channels) buildPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSeeker, tmpDir string) (*plugin.PrepackagedPlugin, string, error) {
 	manifest, pluginDir, appErr := extractPlugin(pluginFile, tmpDir)
 	if appErr != nil {
-		return nil, "", errors.Wrapf(appErr, "Failed to extract plugin with path %s", pluginPath.path)
+		return nil, "", errors.Wrapf(appErr, "Failed to extract plugin with path %s", pluginPath.bundlePath)
 	}
 
 	plugin := new(plugin.PrepackagedPlugin)
 	plugin.Manifest = manifest
-	plugin.Path = pluginPath.path
+	plugin.Path = pluginPath.bundlePath
 
 	if pluginPath.signaturePath != "" {
 		sig := pluginPath.signaturePath
@@ -1090,7 +1208,7 @@ func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSee
 	if manifest.IconPath != "" {
 		iconData, err := getIcon(filepath.Join(pluginDir, manifest.IconPath))
 		if err != nil {
-			mlog.Warn("Error loading local plugin icon", mlog.String("plugin", plugin.Manifest.Id), mlog.String("icon_path", plugin.Manifest.IconPath), mlog.Err(err))
+			ch.srv.Log().Warn("Error loading local plugin icon", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("icon_path", plugin.Manifest.IconPath), mlog.Err(err))
 		}
 		plugin.IconData = iconData
 	}

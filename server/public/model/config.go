@@ -111,6 +111,8 @@ const (
 	ServiceSettingsDefaultListenAndAddress = ":8065"
 	ServiceSettingsDefaultGfycatAPIKey     = "2_KtH_W5"
 	ServiceSettingsDefaultGfycatAPISecret  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
+	ServiceSettingsDefaultGiphySdkKey      = "yaRojIWaxmKhtSMBaT3uLCAHm0kpMLKw"
+	ServiceSettingsDefaultGiphySdkKeyTest  = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
 	ServiceSettingsDefaultDeveloperFlags   = ""
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
@@ -133,7 +135,7 @@ const (
 
 	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/pl/terms-of-use/"
 	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/pl/privacy-policy/"
-	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermomst"
+	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermost"
 	SupportSettingsDefaultHelpLink           = "https://mattermost.com/pl/help/"
 	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/pl/report-a-bug"
 	SupportSettingsDefaultSupportEmail       = ""
@@ -348,6 +350,7 @@ type ServiceSettings struct {
 	EnableGifPicker                                   *bool   `access:"integrations_gif"`
 	GfycatAPIKey                                      *string `access:"integrations_gif"`
 	GfycatAPISecret                                   *string `access:"integrations_gif"`
+	GiphySdkKey                                       *string `access:"integrations_gif"`
 	EnableCustomEmoji                                 *bool   `access:"site_emoji"`
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
 	PostEditTimeLimit                                 *int    `access:"user_management_permissions"`
@@ -738,6 +741,15 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.GfycatAPISecret == nil || *s.GfycatAPISecret == "" {
 		s.GfycatAPISecret = NewString(ServiceSettingsDefaultGfycatAPISecret)
+	}
+
+	if s.GiphySdkKey == nil {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.GiphySdkKey = NewString(ServiceSettingsDefaultGiphySdkKey)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
+			s.GiphySdkKey = NewString(ServiceSettingsDefaultGiphySdkKeyTest)
+		}
 	}
 
 	if s.ExperimentalEnableAuthenticationTransfer == nil {

@@ -558,12 +558,14 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelID := r.URL.Query().Get("in_channel")
 	includeDeleted := r.URL.Query().Get("include_deleted")
 	includeBotAccounts := r.URL.Query().Get("include_bots")
+	includeRemoteUsers := r.URL.Query().Get("include_remote_users")
 	rolesString := r.URL.Query().Get("roles")
 	channelRolesString := r.URL.Query().Get("channel_roles")
 	teamRolesString := r.URL.Query().Get("team_roles")
 
 	includeDeletedBool, _ := strconv.ParseBool(includeDeleted)
 	includeBotAccountsBool, _ := strconv.ParseBool(includeBotAccounts)
+	includeRemoteUsersBool, _ := strconv.ParseBool(includeRemoteUsers)
 
 	roles := []string{}
 	var rolesValid bool
@@ -594,6 +596,7 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	options := &model.UserCountOptions{
 		IncludeDeleted:     includeDeletedBool,
 		IncludeBotAccounts: includeBotAccountsBool,
+		IncludeRemoteUsers: includeRemoteUsersBool,
 		TeamId:             teamID,
 		ChannelId:          channelID,
 		Roles:              roles,
@@ -954,6 +957,10 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("user_ids", err)
 		return
 	}
+
+	// we remove the duplicate IDs as it can bring a significant load to the
+	// database.
+	userIDs = model.RemoveDuplicateStrings(userIDs)
 
 	sinceString := r.URL.Query().Get("since")
 
@@ -1833,6 +1840,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			"api.user.check_user_mfa.bad_code.app_error",
 			"api.user.login.blank_pwd.app_error",
 			"api.user.login.bot_login_forbidden.app_error",
+			"api.user.login.remote_users.login.error",
 			"api.user.login.client_side_cert.certificate.app_error",
 			"api.user.login.inactive.app_error",
 			"api.user.login.not_verified.app_error",
@@ -1931,6 +1939,11 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("login", "api.user.login.guest_accounts.disabled.error", nil, "", http.StatusUnauthorized)
 			return
 		}
+	}
+
+	if user.IsRemote() {
+		c.Err = model.NewAppError("login", "api.user.login.remote_users.login.error", nil, "", http.StatusUnauthorized)
+		return
 	}
 
 	c.LogAuditWithUserId(user.Id, "authenticated")
@@ -3136,8 +3149,8 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 	extendedStr := r.URL.Query().Get("extended")
@@ -3251,8 +3264,8 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -3287,8 +3300,8 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -3321,8 +3334,8 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -3354,8 +3367,8 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
