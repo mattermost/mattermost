@@ -2269,13 +2269,22 @@ func TestSendPushNotification(t *testing.T) {
 			defer wg.Done()
 			post := th.CreatePost(th.BasicChannel)
 			post.Message = "started a conversation"
-			notification := &model.PluginPushNotification{
-				Post:    post,
-				Channel: th.BasicChannel,
-				UserID:  user.Id,
+			notification := &model.PushNotification{
+				Category:    model.CategoryCanReply,
+				Version:     model.PushMessageV2,
+				Type:        model.PushTypeMessage,
+				TeamId:      th.BasicChannel.TeamId,
+				ChannelId:   th.BasicChannel.Id,
+				PostId:      post.Id,
+				RootId:      post.RootId,
+				SenderId:    post.UserId,
+				SenderName:  "Sender Name",
+				PostType:    post.Type,
+				ChannelType: th.BasicChannel.Type,
+				Message:     "Custom message",
 			}
-			appErr := api.SendPluginPushNotification(notification)
-			require.NoError(t, appErr)
+			appErr := api.SendPushNotification(notification, user.Id)
+			require.Nil(t, appErr)
 		}(*data.user)
 	}
 	wg.Wait()
@@ -2289,7 +2298,7 @@ func TestSendPushNotification(t *testing.T) {
 		case model.PushTypeMessage:
 			numMessages++
 			assert.Equal(t, th.BasicChannel.Id, n.ChannelId)
-			assert.Equal(t, fmt.Sprintf("@%s: started a conversation", th.BasicUser.GetDisplayName(model.ShowUsername)), n.Message)
+			assert.Equal(t, "Custom message", n.Message)
 		default:
 			assert.Fail(t, "should not receive any other push notification types")
 		}
