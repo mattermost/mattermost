@@ -300,7 +300,7 @@ type Hooks interface {
 	// Minimum server version: 9.0
 	NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
 
-	// UserHasBeenDeactivated is invoked when a user is made inactive.
+	// UserHasBeenDeactivated is invoked when a user is deactivated.
 	//
 	// Minimum server version: 9.1
 	UserHasBeenDeactivated(c *Context, user *model.User)
