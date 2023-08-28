@@ -27,7 +27,6 @@ import * as Selectors from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
-import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions';
 import {getDisplayedChannels} from 'selectors/views/channel_sidebar';
 import store from 'stores/redux_store';
@@ -311,11 +310,8 @@ export async function loadProfilesForGM() {
     const currentUserId = Selectors.getCurrentUserId(state);
     const collapsedThreads = isCollapsedThreadsEnabled(state);
 
-    const userIdsForLoadingCustomEmojis = new Set();
     for (const channel of getGMsForLoading(state)) {
         const userIds = userIdsInChannels[channel.id] || new Set();
-
-        userIds.forEach((userId) => userIdsForLoadingCustomEmojis.add(userId));
 
         if (userIds.size >= Constants.MIN_USERS_IN_GM) {
             continue;
@@ -347,9 +343,6 @@ export async function loadProfilesForGM() {
 
     await queue.onEmpty();
 
-    if (userIdsForLoadingCustomEmojis.size > 0) {
-        dispatch(loadCustomEmojisForCustomStatusesByUserIds(userIdsForLoadingCustomEmojis));
-    }
     if (newPreferences.length > 0) {
         dispatch(savePreferences(currentUserId, newPreferences));
     }
@@ -360,7 +353,6 @@ export async function loadProfilesForDM() {
     const channels = getMyChannels(state);
     const newPreferences = [];
     const profilesToLoad = [];
-    const profileIds = [];
     const currentUserId = Selectors.getCurrentUserId(state);
     const collapsedThreads = isCollapsedThreadsEnabled(state);
 
@@ -394,7 +386,6 @@ export async function loadProfilesForDM() {
         if (!Selectors.getUser(state, teammateId)) {
             profilesToLoad.push(teammateId);
         }
-        profileIds.push(teammateId);
     }
 
     if (newPreferences.length > 0) {
@@ -404,7 +395,6 @@ export async function loadProfilesForDM() {
     if (profilesToLoad.length > 0) {
         await dispatch(UserActions.getProfilesByIds(profilesToLoad));
     }
-    await dispatch(loadCustomEmojisForCustomStatusesByUserIds(profileIds));
 }
 
 export function autocompleteUsersInTeam(username: string): ThunkActionFunc<Promise<UserAutocomplete>> {

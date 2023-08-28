@@ -5,7 +5,6 @@ import type {RecentEmojiData} from '@mattermost/types/emojis';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -90,11 +89,6 @@ export const getRecentEmojisNames = createSelector(
 
 export function getUserSkinTone(state: GlobalState): string {
     return get(state, Preferences.CATEGORY_EMOJI, Preferences.EMOJI_SKINTONE, 'default');
-}
-
-export function isCustomEmojiEnabled(state: GlobalState) {
-    const config = getConfig(state);
-    return config && config.EnableCustomEmoji === 'true';
 }
 
 export const getOneClickReactionEmojis = createSelector(

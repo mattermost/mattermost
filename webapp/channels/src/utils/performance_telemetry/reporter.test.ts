@@ -369,7 +369,7 @@ function newTestReporter(telemetryEnabled = true, loggedIn = true) {
                 currentUserId: loggedIn ? 'currentUserId' : '',
             },
         },
-    }).store
+    }).store;
     const reporter = new TestPerformanceReporter(client, store);
 
     return {client, reporter};

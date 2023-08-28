@@ -11,8 +11,6 @@ import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/pref
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc} from 'mattermost-redux/types/actions';
 
-import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
-
 import type {GlobalState} from 'types/store';
 
 export function loadStatusesForChannelAndSidebar(): ActionFunc<boolean, GlobalState> {
@@ -96,7 +94,6 @@ export function loadStatusesByIds(userIds: string[]): ActionFunc {
         }
 
         dispatch(getStatusesByIds(userIds));
-        dispatch(loadCustomEmojisForCustomStatusesByUserIds(userIds));
         return {data: true};
     };
 }
@@ -117,7 +114,6 @@ export function loadProfilesMissingStatus(users: UserProfile[]): ActionFunc {
         }
 
         dispatch(getStatusesByIds(missingStatusByIds));
-        dispatch(loadCustomEmojisForCustomStatusesByUserIds(missingStatusByIds));
         return {data: true};
     };
 }

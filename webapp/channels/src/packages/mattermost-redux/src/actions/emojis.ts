@@ -1,28 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
-import {batchActions} from 'redux-batched-actions';
-
 import type {CustomEmoji} from '@mattermost/types/emojis';
-import type {GlobalState} from '@mattermost/types/store';
 
 import {EmojiTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+import {General, Emoji} from 'mattermost-redux/constants';
+import {getShouldFetchEmojiByName} from 'mattermost-redux/selectors/entities/emojis';
+import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {parseEmojiNamesFromText} from 'mattermost-redux/utils/emoji_utils';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 import {getProfilesByIds} from './users';
 
-import {General, Emoji} from '../constants';
-
 export let systemEmojis: Set<string> = new Set();
 export function setSystemEmojis(emojis: Set<string>) {
     systemEmojis = emojis;
 }
+
+// HARRISON TODO figure out where to put the fetchEmojisByName saga
 
 export function createCustomEmoji(emoji: any, image: any) {
     return bindClientFunc({
@@ -47,108 +44,47 @@ export function getCustomEmoji(emojiId: string) {
     });
 }
 
-export function getCustomEmojiByName(name: string): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        console.log('HARRISON getCustomEmojiByName', name);
-
-        let data;
-
-        try {
-            data = await Client4.getCustomEmojiByName(name);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-
-            if (error.status_code === 404) {
-                dispatch({type: EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST, data: name});
-            } else {
-                dispatch(logError(error));
-            }
-
-            return {error};
-        }
-
-        dispatch({
-            type: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
-            data,
-        });
-
-        return {data};
+export function fetchCustomEmojiByName(name: string) {
+    return {
+        type: EmojiTypes.FETCH_EMOJI_BY_NAME,
+        name,
     };
 }
 
-export function getCustomEmojisByName(names: string[]): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        console.log('HARRISON getCustomEmojisByName', names);
-        const neededNames = filterNeededCustomEmojis(getState(), names);
+export function fetchEmojisByNameIfNeeded(names: string[]): ActionFunc {
+    return (dispatch, getState) => {
+        const state = getState();
 
-        if (neededNames.length === 0) {
+        const filteredNames = names.filter((name) => getShouldFetchEmojiByName(state, name));
+
+        if (filteredNames.length === 0) {
             return {data: true};
         }
 
-        // If necessary, split up the list of names into batches based on api4.GetEmojisByNamesMax on the server
-        const batchSize = 200;
-
-        const batches = [];
-        for (let i = 0; i < names.length; i += batchSize) {
-            batches.push(neededNames.slice(i, i + batchSize));
-        }
-
-        let results;
-        try {
-            results = await Promise.all(batches.map((batch) => {
-                return Client4.getCustomEmojisByNames(batch);
-            }));
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-
-        const data = results.flat();
-        const actions: AnyAction[] = [{
-            type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
-            data,
-        }];
-
-        if (data.length !== neededNames.length) {
-            const foundNames = new Set(data.map((emoji) => emoji.name));
-
-            for (const name of neededNames) {
-                if (foundNames.has(name)) {
-                    continue;
-                }
-
-                actions.push({
-                    type: EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST,
-                    data: name,
-                });
-            }
-        }
-
-        dispatch(actions.length > 1 ? batchActions(actions) : actions[0]);
+        dispatch(fetchCustomEmojisByName(filteredNames));
 
         return {data: true};
     };
 }
 
-function filterNeededCustomEmojis(state: GlobalState, names: string[]) {
-    const nonExistentEmoji = state.entities.emojis.nonExistentEmoji;
-    const customEmojisByName = selectCustomEmojisByName(state);
-
-    return names.filter((name) => {
-        return !systemEmojis.has(name) && !nonExistentEmoji.has(name) && !customEmojisByName.has(name);
-    });
+function fetchCustomEmojisByName(names: string[]) {
+    return {
+        type: EmojiTypes.FETCH_EMOJIS_BY_NAME,
+        names,
+    };
 }
 
-export function getCustomEmojisInText(text: string): ActionFuncAsync {
-    return async (dispatch) => {
-        // HARRISON TODO remove this function
-        return {data: false};
+export function getCustomEmojisInText(text: string): ActionFunc {
+    return (dispatch) => {
         if (!text) {
             return {data: true};
         }
 
-        return dispatch(getCustomEmojisByName(parseEmojiNamesFromText(text)));
+        const emojisToLoad = parseEmojiNamesFromText(text);
+
+        dispatch(fetchCustomEmojisByName(Array.from(emojisToLoad)));
+
+        return {data: true};
     };
 }
 

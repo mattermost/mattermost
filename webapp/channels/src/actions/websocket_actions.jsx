@@ -36,7 +36,6 @@ import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
 import {
-    getCustomEmojiForReaction,
     getPosts,
     getPostThread,
     getMentionsAndStatusesForPosts,
@@ -57,6 +56,7 @@ import {
     handleAllThreadsInChannelMarkedRead,
     updateThreadRead,
     decrementThreadCounts,
+    getThread,
 } from 'mattermost-redux/actions/threads';
 import {
     checkForModifiedUsers,
@@ -87,7 +87,7 @@ import {
     getTeam,
     getRelativeTeamUrl,
 } from 'mattermost-redux/selectors/entities/teams';
-import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
+import {getNewestThreadInTeam, getThreads} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
@@ -95,7 +95,6 @@ import {loadChannelsForCurrentUser} from 'actions/channel_actions';
 import {
     getTeamsUsage,
 } from 'actions/cloud';
-import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 import {handleNewPost} from 'actions/post_actions';
@@ -1135,10 +1134,6 @@ export async function handleUserUpdatedEvent(msg) {
     const state = getState();
     const currentUser = getCurrentUser(state);
     const user = msg.data.user;
-    if (user && user.props) {
-        const customStatus = user.props.customStatus ? JSON.parse(user.props.customStatus) : undefined;
-        dispatch(loadCustomEmojisIfNeeded([customStatus?.emoji]));
-    }
 
     if (currentUser.id === user.id) {
         if (user.update_at > currentUser.update_at) {
@@ -1283,8 +1278,6 @@ function handleHelloEvent(msg) {
 
 function handleReactionAddedEvent(msg) {
     const reaction = JSON.parse(msg.data.reaction);
-
-    dispatch(getCustomEmojiForReaction(reaction.emoji_name));
 
     dispatch({
         type: PostTypes.RECEIVED_REACTION,

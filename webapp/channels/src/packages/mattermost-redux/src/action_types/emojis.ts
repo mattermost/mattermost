@@ -9,4 +9,7 @@ export default keyMirror({
     RECEIVED_CUSTOM_EMOJIS: null,
     DELETED_CUSTOM_EMOJI: null,
     CUSTOM_EMOJI_DOES_NOT_EXIST: null,
+
+    FETCH_EMOJI_BY_NAME: null,
+    FETCH_EMOJIS_BY_NAME: null,
 });

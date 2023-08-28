@@ -7,7 +7,6 @@ import {
     addMessageIntoHistory,
 } from 'mattermost-redux/actions/posts';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {
     getPost,
     makeGetPostIdsForThread,
@@ -22,9 +21,9 @@ import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'act
 import * as PostActions from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {updateDraft, removeDraft} from 'actions/views/drafts';
+import {getEmojiMap} from 'selectors/emojis';
 
 import {Constants, StoragePrefixes} from 'utils/constants';
-import EmojiMap from 'utils/emoji_map';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -127,8 +126,7 @@ export function makeOnSubmit(channelId: string, rootId: string, latestPostId: st
 
         const isReaction = Utils.REACTION_PATTERN.exec(message);
 
-        const emojis = getCustomEmojisByName(getState());
-        const emojiMap = new EmojiMap(emojis);
+        const emojiMap = getEmojiMap(getState());
 
         if (isReaction && emojiMap.has(isReaction[2])) {
             dispatch(PostActions.submitReaction(latestPostId, isReaction[1], isReaction[2]));

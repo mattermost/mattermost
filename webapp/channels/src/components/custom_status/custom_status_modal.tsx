@@ -14,12 +14,12 @@ import type {Emoji} from '@mattermost/types/emojis';
 import type {UserCustomStatus} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
+import {fetchEmojisByNameIfNeeded} from 'mattermost-redux/actions/emojis';
 import {setCustomStatusInitialisationState} from 'mattermost-redux/actions/preferences';
 import {setCustomStatus, unsetCustomStatus, removeRecentCustomStatus} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import {loadCustomEmojisForRecentCustomStatuses} from 'actions/emoji_actions';
 import {closeModal} from 'actions/views/modals';
 import {makeGetCustomStatus, getRecentCustomStatuses, showStatusDropdownPulsatingDot, isCustomStatusExpired} from 'selectors/views/custom_status';
 
@@ -153,7 +153,11 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
     };
 
     const loadCustomEmojisForRecentStatuses = () => {
-        dispatch(loadCustomEmojisForRecentCustomStatuses());
+        // HARRISON TODO is this needed?
+
+        const emojisToLoad = new Set<string>();
+        recentCustomStatuses.forEach((customStatus: UserCustomStatus) => emojisToLoad.add(customStatus.emoji));
+        dispatch(fetchEmojisByNameIfNeeded(Array.from(emojisToLoad)));
     };
 
     const handleStatusExpired = () => {

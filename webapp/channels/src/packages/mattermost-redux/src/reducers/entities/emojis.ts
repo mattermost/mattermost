@@ -75,7 +75,7 @@ function storeEmoji(state: IDMappedObjects<CustomEmoji>, emoji: CustomEmoji) {
 //     return post.metadata.emojis.reduce(storeEmoji, state);
 // }
 
-function nonExistentEmoji(state: Set<string> = new Set(), action: AnyAction): Set<string> { // HARRISON TODO remove me
+function nonExistentEmoji(state: Set<string> = new Set(), action: AnyAction): Set<string> { // HARRISON TODO remove me and store this in the saga?
     switch (action.type) {
     case EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST: {
         if (!state.has(action.data)) {

@@ -38,6 +38,7 @@ export function parseEmojiNamesFromText(text: string): string[] {
         return [];
     }
 
+    // HARRISON TODO obviously this doesn't handle Markdown if that matters
     const pattern = /:([A-Za-z0-9_-]+):/gi;
     const customEmojis = new Set<string>();
     let match;
