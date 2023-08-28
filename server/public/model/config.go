@@ -111,7 +111,6 @@ const (
 	ServiceSettingsDefaultListenAndAddress = ":8065"
 	ServiceSettingsDefaultGfycatAPIKey     = "2_KtH_W5"
 	ServiceSettingsDefaultGfycatAPISecret  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
-	ServiceSettingsDefaultGiphySdkKey      = "yaRojIWaxmKhtSMBaT3uLCAHm0kpMLKw"
 	ServiceSettingsDefaultGiphySdkKeyTest  = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
 	ServiceSettingsDefaultDeveloperFlags   = ""
 
@@ -743,10 +742,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.GfycatAPISecret = NewString(ServiceSettingsDefaultGfycatAPISecret)
 	}
 
-	if s.GiphySdkKey == nil {
+	if s.GiphySdkKey == nil || *s.GiphySdkKey == "" {
 		switch GetServiceEnvironment() {
 		case ServiceEnvironmentProduction:
-			s.GiphySdkKey = NewString(ServiceSettingsDefaultGiphySdkKey)
+			s.GiphySdkKey = &GiphySdkKey
 		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.GiphySdkKey = NewString(ServiceSettingsDefaultGiphySdkKeyTest)
 		}
