@@ -227,7 +227,7 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
 * Additional CJK and Hangul compatibility characters: \u2de0-\u2dff
 **/
 // eslint-disable-next-line no-misleading-character-class
-const cjkrPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f\u0400-\u04ff\u0500-\u052f\u2de0-\u2dff]/;
+export const cjkrPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f\u0400-\u04ff\u0500-\u052f\u2de0-\u2dff]/;
 
 export function formatText(
     text: string,

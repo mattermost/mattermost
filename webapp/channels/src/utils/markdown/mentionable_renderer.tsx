@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import marked from 'marked';
+import {EMOJI_PATTERN} from 'utils/emoticons';
 
 /** A Markdown renderer that converts a post into plain text that we can search for mentions */
 export default class MentionableRenderer extends marked.Renderer {
@@ -76,6 +77,7 @@ export default class MentionableRenderer extends marked.Renderer {
     }
 
     public text(text: string) {
-        return text;
+        // Remove all emojis
+        return text.replace(EMOJI_PATTERN, '');
     }
 }

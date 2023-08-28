@@ -387,7 +387,9 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				status = &model.Status{UserId: id, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
-			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
+			isExplicitlyMentioned := mentions.Mentions[id] > GMMention
+			isGM := channel.Type == model.ChannelTypeGroup
+			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], isExplicitlyMentioned, status, post, isGM) {
 				mentionType := mentions.Mentions[id]
 
 				replyToThreadType := ""
@@ -428,7 +430,8 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					status = &model.Status{UserId: id, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 				}
 
-				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post) {
+				isGM := channel.Type == model.ChannelTypeGroup
+				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post, isGM) {
 					a.sendPushNotification(
 						notification,
 						profileMap[id],
@@ -765,20 +768,19 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 		if post.GetProp("from_webhook") == "true" {
 			mentions.addMention(post.UserId, DMMention)
 		}
-	} else if channel.Type == model.ChannelTypeGroup {
-		for id := range channelMemberNotifyPropsMap {
-			mentions.addMention(id, DMMention)
-		}
-
-		// Prevent the user from mentioning themselves
-		if post.GetProp("from_webhook") != "true" {
-			mentions.removeMention(post.UserId)
-		}
 	} else {
 		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
 		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
 
 		mentions = getExplicitMentions(post, keywords, groups)
+
+		// Add a GM mention to all members of a GM channel
+		if channel.Type == model.ChannelTypeGroup {
+			for id := range channelMemberNotifyPropsMap {
+				mentions.addMention(id, GMMention)
+			}
+		}
+
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
 		if post.Type == model.PostTypeAddToChannel {
@@ -1071,6 +1073,9 @@ const (
 
 	// A placeholder that should never be used in practice
 	NoMention MentionType = iota
+
+	// The post is in a GM
+	GMMention
 
 	// The post is in a thread that the user has commented on
 	ThreadMention

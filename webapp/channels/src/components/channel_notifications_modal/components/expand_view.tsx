@@ -118,7 +118,6 @@ export default function ExpandView({
                         />
                     </label>
                 </div>
-                { (section === NotificationSections.DESKTOP || !isGM) &&
                 <div className='radio'>
                     <label className=''>
                         <input
@@ -136,7 +135,6 @@ export default function ExpandView({
                         />
                     </label>
                 </div>
-                }
                 <div className='radio'>
                     <label>
                         <input

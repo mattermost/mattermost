@@ -26,10 +26,9 @@ import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import {runDesktopNotificationHooks} from './hooks';
-import {getUserOrGroupFromMentionName} from 'utils/post_utils';
-import {getMyGroups} from 'mattermost-redux/selectors/entities/groups';
-import {allAtMentions} from 'utils/text_formatting';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
+import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
+import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
 
 const NOTIFY_TEXT_MAX_LENGTH = 50;
 
@@ -140,10 +139,7 @@ export function sendDesktopNotification(post, msgProps) {
                 console.log('Could not process the whole attachment for mentions', e);
             }
 
-            const groups = getMyGroups(state).reduce((prev, v) => {
-                prev[v.name] = v;
-                return prev;
-            }, {});
+            const allMentions = getAllUserMentionKeys(state);
 
             const ignoreChannelMentionProp = member?.notify_props?.ignore_channel_mentions || IgnoreChannelMentions.DEFAULT;
             let ignoreChannelMention = ignoreChannelMentionProp === IgnoreChannelMentions.ON;
@@ -151,17 +147,34 @@ export function sendDesktopNotification(post, msgProps) {
                 ignoreChannelMention = user?.notify_props?.channel === 'false';
             }
 
-            const userAndGroups = {...groups, all: !ignoreChannelMention, here: !ignoreChannelMention, channel: !ignoreChannelMention};
-            userAndGroups[user.username] = user;
-
             const mentionableText = formatWithRenderer(text, new MentionableRenderer());
-            const explicitMentions = allAtMentions(mentionableText);
-
             let isExplicitlyMentioned = false;
-            for (const mention of explicitMentions) {
-                // Remove leading @
-                const toUse = mention.substring(1);
-                if (getUserOrGroupFromMentionName(userAndGroups, toUse)) {
+            for (const mention of allMentions) {
+                if (!mention || !mention.key) {
+                    continue;
+                }
+
+                if (ignoreChannelMention && ['@all', '@here', '@channel'].includes(mention.key)) {
+                    continue;
+                }
+
+                let flags = 'g';
+                if (!mention.caseSensitive) {
+                    flags += 'i';
+                }
+
+                let pattern;
+                if (cjkrPattern.test(mention.key)) {
+                    // In the case of CJK mention key, even if there's no delimiters (such as spaces) at both ends of a word, it is recognized as a mention key
+                    pattern = new RegExp(`()(${escapeRegex(mention.key)})()`, flags);
+                } else {
+                    pattern = new RegExp(
+                        `(^|\\W)(${escapeRegex(mention.key)})(\\b|_+\\b)`,
+                        flags,
+                    );
+                }
+
+                if (pattern.test(mentionableText)) {
                     isExplicitlyMentioned = true;
                     break;
                 }

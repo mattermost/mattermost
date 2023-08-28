@@ -514,12 +514,12 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 	return sessions, nil
 }
 
-func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post) bool {
-	return DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned) &&
+func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
+	return DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM) &&
 		DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId)
 }
 
-func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned bool) bool {
+func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned, isGM bool) bool {
 	userNotifyProps := user.NotifyProps
 	userNotify := userNotifyProps[model.PushNotifyProp]
 	channelNotify, ok := channelNotifyProps[model.PushNotifyProp]
@@ -544,17 +544,17 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 		return false
 	}
 
-	if userNotify == model.UserNotifyMention && channelNotify == model.ChannelNotifyDefault && !wasMentioned {
+	if userNotify == model.UserNotifyMention && channelNotify == model.ChannelNotifyDefault && !isGM && !wasMentioned {
 		return false
 	}
 
-	if (userNotify == model.UserNotifyAll || channelNotify == model.ChannelNotifyAll) &&
+	if (userNotify == model.UserNotifyAll || channelNotify == model.ChannelNotifyAll || (isGM && channelNotify == model.ChannelNotifyDefault)) &&
 		(post.UserId != user.Id || post.GetProp("from_webhook") == "true") {
 		return true
 	}
 
 	if userNotify == model.UserNotifyNone &&
-		channelNotify == model.ChannelNotifyDefault {
+		channelNotify == model.ChannelNotifyDefault && !isGM {
 		return false
 	}
 
