@@ -281,3 +281,7 @@ export function deprecateCloudFree(state: GlobalState): boolean {
 export function cloudReverseTrial(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'CloudReverseTrial') === 'true';
 }
+
+export function streamlinedMarketplaceEnabled(state: GlobalState): boolean {
+    return getFeatureFlagValue(state, 'StreamlinedMarketplace') === 'true';
+}
