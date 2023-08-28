@@ -134,6 +134,7 @@ $app-bar-width: 48px;
     }
 
     &__bottom {
+        position: relative;
         display: flex;
         flex-flow: column;
         align-items: center;

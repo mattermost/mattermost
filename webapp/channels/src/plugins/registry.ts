@@ -208,7 +208,7 @@ export default class PluginRegistry {
     // Accepts the following:
     // - icon - React element to use as the button's icon
     // - action - a function called when the button is clicked, passed the channel and channel member as arguments
-    // - text - a localized string to use as the button's text
+    // - text - a localized string or React element  to use as the button's text
     registerChannelIntroButtonAction = reArg([
         'icon',
         'action',
@@ -220,8 +220,7 @@ export default class PluginRegistry {
     }: {
         icon: ReactResolvable;
         action: PluginComponent['action'];
-        tooltipText: string;
-        text: string;
+        text: ReactResolvable;
     }) => {
         const id = generateId();
 
@@ -495,6 +494,24 @@ export default class PluginRegistry {
         });
 
         return id;
+    });
+
+    // Register a component to the add to the post message menu shown on hover.
+    // Accepts a React component. Returns a unique identifier.
+    registerPostActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('PostAction', this.id, component);
+    });
+
+    // Register a component to the add to the post text editor menu.
+    // Accepts a React component. Returns a unique identifier.
+    registerPostEditorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('PostEditorAction', this.id, component);
+    });
+
+    // Register a component to the add to the new messages separator.
+    // Accepts a React component. Returns a unique identifier.
+    registerNewMessagesSeparatorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('NewMessagesSeparatorAction', this.id, component);
     });
 
     // Register a post menu list item by providing some text and an action function.
@@ -1153,16 +1170,6 @@ export default class PluginRegistry {
         store.dispatch({
             type: ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER,
             data,
-        });
-    });
-
-    registerInsightsHandler = reArg(['handler'], ({handler}) => {
-        store.dispatch({
-            type: ActionTypes.RECEIVED_PLUGIN_INSIGHT,
-            data: {
-                pluginId: this.id,
-                handler,
-            },
         });
     });
 }

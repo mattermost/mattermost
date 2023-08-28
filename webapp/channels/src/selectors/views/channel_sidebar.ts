@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     getAllChannels,
     getCurrentChannelId,
@@ -203,6 +202,33 @@ export function makeGetFilteredChannelIdsForCategory(): (state: GlobalState, cat
             }
 
             const filtered = channelIds.filter((id) => !unreadChannelIdsSet.has(id));
+
+            return filtered.length === channelIds.length ? channelIds : filtered;
+        },
+    );
+}
+
+// Returns a selector that, given a category, returns the ids of channels visible in that category. The returned channels do not
+// include unread channels when the Unreads category is enabled.
+export function makeGetUnreadIdsForCategory(): (state: GlobalState, category: ChannelCategory) => string[] {
+    const getChannelIdsForCategory = makeGetChannelIdsForCategory();
+    const emptyList: string[] = [];
+
+    return createSelector(
+        'makeGetFilteredChannelIdsForCategory',
+        getChannelIdsForCategory,
+        getUnreadChannelIdsSet,
+        shouldShowUnreadsCategory,
+        (channelIds, unreadChannelIdsSet, showUnreadsCategory) => {
+            if (showUnreadsCategory) {
+                return emptyList;
+            }
+
+            const filtered = channelIds.filter((id) => unreadChannelIdsSet.has(id));
+
+            if (filtered.length === 0) {
+                return emptyList;
+            }
 
             return filtered.length === channelIds.length ? channelIds : filtered;
         },

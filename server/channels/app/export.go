@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -18,11 +19,12 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 // We use this map to identify the exportable preferences.
@@ -95,17 +97,17 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 
 	ctx.Logger().Info("Bulk export: exporting channels")
-	if err = a.exportAllChannels(ctx, job, writer, teamNames); err != nil {
+	if err = a.exportAllChannels(ctx, job, writer, teamNames, opts.IncludeArchivedChannels); err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting users")
-	if err = a.exportAllUsers(ctx, job, writer); err != nil {
+	if err = a.exportAllUsers(ctx, job, writer, opts.IncludeArchivedChannels); err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting posts")
-	attachments, err := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments)
+	attachments, err := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
 	if err != nil {
 		return err
 	}
@@ -217,7 +219,7 @@ func (a *App) exportAllTeams(ctx request.CTX, job *model.Job, writer io.Writer) 
 	return teamNames, nil
 }
 
-func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Writer, teamNames map[string]bool) *model.AppError {
+func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Writer, teamNames map[string]bool, withArchived bool) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
 	for {
@@ -237,7 +239,7 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 			afterId = channel.Id
 
 			// Skip deleted.
-			if channel.DeleteAt != 0 {
+			if channel.DeleteAt != 0 && !withArchived {
 				continue
 			}
 			// Skip channels on deleted teams.
@@ -255,7 +257,7 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 	return nil
 }
 
-func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer) *model.AppError {
+func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels bool) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
 	for {
@@ -317,7 +319,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer) 
 			userLine.User.NotifyProps = a.buildUserNotifyProps(user.NotifyProps)
 
 			// Do the Team Memberships.
-			members, err := a.buildUserTeamAndChannelMemberships(user.Id)
+			members, err := a.buildUserTeamAndChannelMemberships(user.Id, includeArchivedChannels)
 			if err != nil {
 				return err
 			}
@@ -333,7 +335,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer) 
 	return nil
 }
 
-func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.UserTeamImportData, *model.AppError) {
+func (a *App) buildUserTeamAndChannelMemberships(userID string, includeArchivedChannels bool) (*[]imports.UserTeamImportData, *model.AppError) {
 	var memberships []imports.UserTeamImportData
 
 	members, err := a.Srv().Store().Team().GetTeamMembersForExport(userID)
@@ -351,7 +353,7 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.User
 		memberData := ImportUserTeamDataFromTeamMember(member)
 
 		// Do the Channel Memberships.
-		channelMembers, err := a.buildUserChannelMemberships(userID, member.TeamId)
+		channelMembers, err := a.buildUserChannelMemberships(userID, member.TeamId, includeArchivedChannels)
 		if err != nil {
 			return nil, err
 		}
@@ -370,8 +372,8 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.User
 	return &memberships, nil
 }
 
-func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]imports.UserChannelImportData, *model.AppError) {
-	members, nErr := a.Srv().Store().Channel().GetChannelMembersForExport(userID, teamID)
+func (a *App) buildUserChannelMemberships(userID string, teamID string, includeArchivedChannels bool) (*[]imports.UserChannelImportData, *model.AppError) {
+	members, nErr := a.Srv().Store().Channel().GetChannelMembersForExport(userID, teamID, includeArchivedChannels)
 	if nErr != nil {
 		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -390,7 +392,6 @@ func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]impo
 }
 
 func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *imports.UserNotifyPropsImportData {
-
 	getProp := func(key string) *string {
 		if v, ok := notifyProps[key]; ok {
 			return &v
@@ -410,7 +411,7 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *imports.UserNot
 	}
 }
 
-func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
+func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool, includeArchivedChannels bool) ([]imports.AttachmentImportData, *model.AppError) {
 	var attachments []imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	var postProcessCount uint64
@@ -423,7 +424,7 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 			logCheckpoint = time.Now()
 		}
 
-		posts, nErr := a.Srv().Store().Post().GetParentsForExportAfter(1000, afterId)
+		posts, nErr := a.Srv().Store().Post().GetParentsForExportAfter(1000, afterId, includeArchivedChannels)
 		if nErr != nil {
 			return nil, model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -818,7 +819,7 @@ func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.App
 }
 
 func (a *App) ListExports() ([]string, *model.AppError) {
-	exports, appErr := a.ListDirectory(*a.Config().ExportSettings.Directory)
+	exports, appErr := a.ListExportDirectory(*a.Config().ExportSettings.Directory)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -831,16 +832,51 @@ func (a *App) ListExports() ([]string, *model.AppError) {
 	return results, nil
 }
 
+func (a *App) GeneratePresignURLForExport(name string) (*model.PresignURLResponse, *model.AppError) {
+	if !a.Config().FeatureFlags.EnableExportDirectDownload {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.featureflag.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	if !*a.Config().FileSettings.DedicatedExportStore {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.config.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	b := a.ExportFileBackend()
+	backend, ok := b.(filestore.FileBackendWithLinkGenerator)
+	if !ok {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.driver.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	p := path.Join(*a.Config().ExportSettings.Directory, filepath.Base(name))
+	found, err := b.FileExists(p)
+	if err != nil {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.fileexist.app_error", nil, "", http.StatusInternalServerError)
+	}
+	if !found {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.notfound.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	link, exp, err := backend.GeneratePublicLink(p)
+	if err != nil {
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.link.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return &model.PresignURLResponse{
+		URL:        link,
+		Expiration: exp,
+	}, nil
+}
+
 func (a *App) DeleteExport(name string) *model.AppError {
 	filePath := filepath.Join(*a.Config().ExportSettings.Directory, name)
 
-	if ok, err := a.FileExists(filePath); err != nil {
+	if ok, err := a.ExportFileExists(filePath); err != nil {
 		return err
 	} else if !ok {
 		return nil
 	}
 
-	return a.RemoveFile(filePath)
+	return a.RemoveExportFile(filePath)
 }
 
 func updateJobProgress(logger mlog.LoggerIFace, store store.Store, job *model.Job, key string, value int) {

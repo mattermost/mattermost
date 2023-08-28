@@ -4044,10 +4044,6 @@
     "translation": "Недопустимый идентификатор автора."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Не удалось декодировать gif."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Недопустимое значение для create_at."
   },
@@ -5841,7 +5837,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 110+"
+    "translation": "Версия 112+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -7161,7 +7157,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "В вашей системе Mattermost теперь 200 пользователей. Когда вы подключаете Mattermost к поставщику системы единого входа в вашей организации, пользователи могут получить доступ к Mattermost без необходимости повторно вводить свои учетные данные. Мы рекомендуем вам интегрировать своего провайдера SAML 2.0 с сервером Mattermost. [Подробнее об интеграции с SAML 2.0] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и готов получать электронные письма о продуктах."
+    "translation": "В вашей системе Mattermost теперь 200 пользователей. Когда вы подключаете Mattermost к поставщику системы единого входа в вашей организации, пользователи могут получить доступ к Mattermost без необходимости повторно вводить свои учетные данные. Мы рекомендуем вам интегрировать своего провайдера SAML 2.0 с сервером Mattermost. [Подробнее об интеграции с SAML 2.0] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/pl/privacy-policy/) и готов получать электронные письма о продуктах."
   },
   {
     "id": "api.server.warn_metric.mfa.contact_us.email_body",
@@ -7173,7 +7169,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "В проектах часто участвуют люди как внутри, так и за пределами организации. С помощью гостевых учетных записей вы можете привлекать внешних партнеров к своей системе Mattermost и указывать, с кем они могут работать и что они могут видеть.\n\n[Подробнее о включении гостевых учетных записей](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и буду получать электронные письма о продуктах."
+    "translation": "В проектах часто участвуют люди как внутри, так и за пределами организации. С помощью гостевых учетных записей вы можете привлекать внешних партнеров к своей системе Mattermost и указывать, с кем они могут работать и что они могут видеть.\n\n[Подробнее о включении гостевых учетных записей](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/pl/privacy-policy/) и буду получать электронные письма о продуктах."
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -7225,7 +7221,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "В вашей системе Mattermost включена многофакторная аутентификация, что дает пользователям возможность защитить свои учетные записи с помощью дополнительных средств аутентификации помимо пароля. Для повышения безопасности всей системы вы можете потребовать, чтобы все учетные записи Mattermost использовали многофакторную аутентификацию.\n\n[Подробнее о применении Многофакторной аутентификации](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nНажимая Начать пробную версию, я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и готов получать электронные письма о продуктах."
+    "translation": "В вашей системе Mattermost включена многофакторная аутентификация, что дает пользователям возможность защитить свои учетные записи с помощью дополнительных средств аутентификации помимо пароля. Для повышения безопасности всей системы вы можете потребовать, чтобы все учетные записи Mattermost использовали многофакторную аутентификацию.\n\n[Подробнее о применении Многофакторной аутентификации](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nНажимая Начать пробную версию, я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/pl/privacy-policy/) и готов получать электронные письма о продуктах."
   },
   {
     "id": "api.server.warn_metric.mfa.notification_body",
@@ -8037,7 +8033,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "В вашей системе Mattermost теперь есть несколько команд. У многих команд есть свой предпочитаемый способ координации и сотрудничества, включая то, как создаются каналы, кто может приглашать новых участников команды и как осуществляется интеграция. Схемы группового управления позволяют вам настраивать права пользователей в каждой команде в соответствии с их конкретными потребностями.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
+    "translation": "В вашей системе Mattermost теперь есть несколько команд. У многих команд есть свой предпочитаемый способ координации и сотрудничества, включая то, как создаются каналы, кто может приглашать новых участников команды и как осуществляется интеграция. Схемы группового управления позволяют вам настраивать права пользователей в каждой команде в соответствии с их конкретными потребностями.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/pl/privacy-policy/) и получаю сообщения о продукте по email."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
@@ -8057,7 +8053,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "В вашей системе Mattermost имеется большое количество сообщений. Поиск в базе данных Mattermost по умолчанию начинает показывать снижение производительности примерно при 2,5 миллионах сообщений. Если сообщений больше 5 миллионов, Elasticsearch может помочь избежать значительных проблем с производительностью, таких как таймауты при поиске и обработке упоминаний. Свяжитесь с нами, чтобы узнать больше и дайте знать, чем мы можем помочь.\n\n[Подробнее об улучшении производительности] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
+    "translation": "В вашей системе Mattermost имеется большое количество сообщений. Поиск в базе данных Mattermost по умолчанию начинает показывать снижение производительности примерно при 2,5 миллионах сообщений. Если сообщений больше 5 миллионов, Elasticsearch может помочь избежать значительных проблем с производительностью, таких как таймауты при поиске и обработке упоминаний. Свяжитесь с нами, чтобы узнать больше и дайте знать, чем мы можем помочь.\n\n[Подробнее об улучшении производительности] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/pl/privacy-policy/) и получаю сообщения о продукте по email."
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
@@ -8077,7 +8073,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Каналы помогают улучшить коммуникацию, но по мере присоединения к Mattermost новых пользователей и создания ими каналов, задача поддержания организованности системы усложняется. Расширенные права позволяют установить, какие пользователи или роли могут выполнять определённые действия, в том числе управление настройками каналов и подписчиков, используя теги @channel или @here для широких групп пользователей, а также для создания новых событий webhook.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
+    "translation": "Каналы помогают улучшить коммуникацию, но по мере присоединения к Mattermost новых пользователей и создания ими каналов, задача поддержания организованности системы усложняется. Расширенные права позволяют установить, какие пользователи или роли могут выполнять определённые действия, в том числе управление настройками каналов и подписчиков, используя теги @channel или @here для широких групп пользователей, а также для создания новых событий webhook.\n\n[Подробнее об использовании расширенных прав] (https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/pl/privacy-policy/) и получаю сообщения о продукте по email."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_title",
@@ -8097,7 +8093,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "При развёртывании Mattermost более, чем на 500 пользователей, мы настоятельно рекомендуем использовать такие функции, как управление пользователями, кластеризация серверов и мониторинг производительности. Свяжитесь с нами, чтобы узнать больше и дайте знать, чем мы можем помочь.\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
+    "translation": "При развёртывании Mattermost более, чем на 500 пользователей, мы настоятельно рекомендуем использовать такие функции, как управление пользователями, кластеризация серверов и мониторинг производительности. Свяжитесь с нами, чтобы узнать больше и дайте знать, чем мы можем помочь.\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/pl/privacy-policy/) и получаю сообщения о продукте по email."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
@@ -8105,7 +8101,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "В Mattermost много переговоров, поэтому может быть сложно понять, где искать важную информацию. Если вы хотите транслировать сообщение для большой аудитории, вы можете настроить каналы объявлений для чтения, к которым может присоединиться любой желающий, но только администраторы каналов могут размещать сообщения.\n\n[Подробнее о создании каналов объявлений только для чтения] (https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
+    "translation": "В Mattermost много переговоров, поэтому может быть сложно понять, где искать важную информацию. Если вы хотите транслировать сообщение для большой аудитории, вы можете настроить каналы объявлений для чтения, к которым может присоединиться любой желающий, но только администраторы каналов могут размещать сообщения.\n\n[Подробнее о создании каналов объявлений только для чтения] (https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation).\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/pl/privacy-policy/) и получаю сообщения о продукте по email."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -8129,7 +8125,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "У вашей системы Mattermost более 100 пользователей. По мере роста вашей базы пользователей, создание новых учётных записей может отнимать много времени. Мы рекомендуем интегрировать Active Directory/LDAP вашей организации, что позволит любому, у кого есть учётная запись, получить доступ к Mattermost.\n\n[Подробнее об интеграции с AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/privacy-policy/) и получаю сообщения о продукте по email."
+    "translation": "У вашей системы Mattermost более 100 пользователей. По мере роста вашей базы пользователей, создание новых учётных записей может отнимать много времени. Мы рекомендуем интегрировать Active Directory/LDAP вашей организации, что позволит любому, у кого есть учётная запись, получить доступ к Mattermost.\n\n[Подробнее об интеграции с AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nНажав кнопку \"Начать использовать пробную версию\", я соглашаюсь с [Соглашением об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политикой конфиденциальности](https://mattermost.com/pl/privacy-policy/) и получаю сообщения о продукте по email."
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
@@ -9096,10 +9092,6 @@
     "translation": "Нам не удалось обработать запрос из-за ограничений для стран, на которые распространяется эмбарго. [Подробнее читайте в нашей документации](https://mattermost.com/pl/limitations-for-embargoed-countries) или обращайтесь по адресу legal@mattermost.com, если у вас есть вопросы об экспортных ограничениях."
   },
   {
-    "id": "api.insights.feature_disabled",
-    "translation": "Insights находится за флагом функции, который не включен."
-  },
-  {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "Параметры OnlyThreads и OnlyTotals для getThreadsForUser являются взаимоисключающими"
   },
@@ -9188,10 +9180,6 @@
     "translation": "Отсутствуют обязательные поля для отправки электронного письма о просрочке."
   },
   {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "Неверный диапазон времени."
-  },
-  {
     "id": "model.group.name.reserved_name.app_error",
     "translation": "имя группы уже существует как зарезервированное имя"
   },
@@ -9232,24 +9220,8 @@
     "translation": "Ошибка при очистке кэша участников команды"
   },
   {
-    "id": "app.recent_searches.app_error",
-    "translation": "Ошибка при получении результатов недавнего поиска"
-  },
-  {
     "id": "app.post_reminder_dm",
     "translation": "Здравствуйте, вот ваше напоминание об этом сообщении от @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
-  },
-  {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "Не удалось получить главные темы для пользователя."
-  },
-  {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "Не удалось получить главные темы для команды."
-  },
-  {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "Невозможно получить топ личных сообщений для пользователя."
   },
   {
     "id": "app.post.cloud.get.app_error",
@@ -9278,10 +9250,6 @@
   {
     "id": "app.job.error",
     "translation": "Ошибка во время выполнения задания."
-  },
-  {
-    "id": "app.insights.feature_disabled",
-    "translation": "Функция Insights отключена."
   },
   {
     "id": "app.file.cloud.get.app_error",
@@ -9464,14 +9432,6 @@
     "translation": "Файлы"
   },
   {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Тип темы уже существует."
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Тип коллекции уже существует."
-  },
-  {
     "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Понижение статуса до Cloud Free"
   },
@@ -9604,20 +9564,8 @@
     "translation": "Вы не можете удалить подтверждение в архивированном канале."
   },
   {
-    "id": "worktemplate.category.product_teams",
-    "translation": "Продуктовые команды"
-  },
-  {
     "id": "model.draft.is_valid.priority.app_error",
     "translation": "Неверный приоритет"
-  },
-  {
-    "id": "app.worktemplates.get_templates.app_error",
-    "translation": "Невозможно получить рабочие шаблоны"
-  },
-  {
-    "id": "app.worktemplates.get_categories.app_error",
-    "translation": "Невозможно получить категории рабочих шаблонов"
   },
   {
     "id": "api.templates.cloud_welcome_email.yearly_plan_button",
@@ -9696,124 +9644,20 @@
     "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
   },
   {
-    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
-    "translation": "Невозможно найти канал, связанный с сценарием."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
-    "translation": "Ошибка при создании сценария."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.channels.create_error",
-    "translation": "Ошибка при создании канала."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.boards.create_error",
-    "translation": "Ошибка при создании доски."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "Ошибка при выполнении рабочего шаблона."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
-    "translation": "У вас нет прав на создание публичного сценария."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
-    "translation": "У вас нет прав на создание публичного канала."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_board",
-    "translation": "У вас нет прав для создания публичной доски."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
-    "translation": "У вас нет прав для создания приватного сценария."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
-    "translation": "У вас нет прав для создания приватного канала."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_board",
-    "translation": "У вас нет прав для создания приватной доски."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "пользователь с таким именем \"{{.Username}}\" уже существует."
-  },
-  {
-    "id": "api.work_templates.disabled",
-    "translation": "Рабочие шаблоны отключены."
   },
   {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Не удалось обновить переводы сервера."
   },
   {
-    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
-    "translation": "Ваша лицензия не поддерживает приватные сценарии."
-  },
-  {
-    "id": "worktemplate.category.companywide",
-    "translation": "Масштаб всей компании"
-  },
-  {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
     "translation": "Неверная служба авторизации: {{.AuthService}}"
   },
   {
-    "id": "worktemplate.category.leadership",
-    "translation": "Лидерство"
-  },
-  {
-    "id": "worktemplate.category.devops",
-    "translation": "DevOps"
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Услуга доступна только в редакции Mattermost Enterprise"
-  },
-  {
-    "id": "api.command_templates.unsupported.app_error",
-    "translation": "Команда шаблонов не поддерживается на вашем устройстве."
-  },
-  {
-    "id": "api.command_templates.name",
-    "translation": "шаблоны"
-  },
-  {
-    "id": "api.command_templates.desc",
-    "translation": "Откройте окно создания из шаблона"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.name_too_long",
-    "translation": "Поле имени не может содержать более 64 символов."
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "ключ продукта не найден"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "интерфейс не ожидаемого типа"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "ошибка при подключении доски"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "ошибка при создании доски"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "ошибка при получении шаблонов досок"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "ошибка при дубликации доски"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9830,5 +9674,205 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Невозможно удалить данные oauth."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "Серверу CWS не удалось подписаться на рассылку новостей."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Недействительный рабочий адрес электронной почты для пробной версии"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Пропуск установки плагина {{.Id}}, поскольку существующая версия плагина идентична текущей или более новая."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "Используйте контрольные списки и автоматизацию, чтобы привлечь ключевых членов команды, и расскажите, как продвигается процесс разрешения инцидента."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Недопустимое значение для байтов при загрузке лицензии."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Версия Elasticsearch {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Невозможно получить токены по типу при аннулировании токенов восстановления пароля"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Невозможно разобрать токен при аннулировании токенов восстановления пароля"
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Сообщения с постоянными уведомлениями должны иметь приоритет \"Срочно\"."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Сообщения постоянных уведомлений допускают максимум {{.MaxRecipients}} получателей."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Сообщения постоянных уведомлений должны иметь минимум 1 получателя."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Проверка постоянного уведомления не прошла."
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Не удалось отправить точный профиль проверки в CWS."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "Пользователю не разрешается создавать приоритетные сообщения или постоянные уведомления."
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Сгенерировать ссылку для загрузки экспорта."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "Драйвер файлового хранилища не поддерживает генерацию ссылок."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Не найден файл экспорта."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|название файла zip|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Невозможно найти запрошенный файл."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Загрузить файл можно здесь: {{.Link}}.\nСрок действия этой ссылки истекает через {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Невозможно получить список экспорта."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "У вас недостаточно прав для выполнения этой команды."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Невозможно сгенерировать предварительный url."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Невозможно найти количество участников для заданных каналов."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Невозможно найти количество участников."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Невозможно обновить участника канала."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "Эти действия требуют использования специализированного экспортного магазина."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Драйвер вашего экспортного хранилища не поддерживает генерацию url-значений."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Ошибка: не указано название организации для самостоятельной регистрации на сайте."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Невозможно удалить маркер при аннулировании маркеров восстановления пароля"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Приоритет имеют только корневые посты."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Невозможно удалить постоянные уведомления по команде."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Невозможно удалить постоянные уведомления по каналу."
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Произошла ошибка при получении Команды."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Неверная частота постоянных уведомлений. Должна быть не менее двух минут."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Не удалось обновить участника канала, превышено ограничения размера реквизита."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "Эта функция ограничена флагом функции."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Не удалось проверить, существует ли файл."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Невозможно сгенерировать заданный url."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "Файл экспорта не найден."
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Не удалось декодировать gif."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Не удалось удалить постоянный пост уведомления"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Сообщить о превышении ограничения на размер реквизита."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Игнорируемые индексы для очистки не должны начинаться с тире."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Неверное общее количество постоянных уведомлений на сообщение. Должно быть положительное число."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Неверное максимальное количество получателей для постоянных уведомлений. Должно быть положительное число."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Произошла ошибка при выполнении хука плагина при сохранении конфигурации."
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Неверное значение channel-auto-follow-threads."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Невозможно найти каталог локального файла сокета."
   }
 ]

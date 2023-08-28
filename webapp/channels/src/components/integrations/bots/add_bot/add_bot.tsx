@@ -19,7 +19,7 @@ import SpinnerButton from 'components/spinner_button';
 import FormError from 'components/form_error';
 
 import {getHistory} from 'utils/browser_history';
-import {AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
+import {AcceptedProfileImageTypes, Constants, DeveloperLinks, ValidationErrors} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import {Team} from '@mattermost/types/teams';
@@ -635,7 +635,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     values={{
                                         link: (msg: React.ReactNode) => (
                                             <ExternalLink
-                                                href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                                href={DeveloperLinks.PERSONAL_ACCESS_TOKENS}
                                                 location='add_bot'
                                             >
                                                 {msg}

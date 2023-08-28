@@ -4,9 +4,9 @@
 package main
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/plugin_api_tests"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/v8/channels/app/plugin_api_tests"
 )
 
 type configuration struct {

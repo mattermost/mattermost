@@ -3,8 +3,7 @@
 
 import {connect} from 'react-redux';
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';

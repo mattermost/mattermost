@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func (api *API) InitUserLocal() {
@@ -231,12 +231,16 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body)
+	userIDs := model.ArrayFromJSON(r.Body)
 
-	if len(userIds) == 0 {
+	if len(userIDs) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
+
+	// we remove the duplicate IDs as it can bring a significant load to the
+	// database.
+	userIDs = model.RemoveDuplicateStrings(userIDs)
 
 	sinceString := r.URL.Query().Get("since")
 
@@ -253,7 +257,7 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		options.Since = since
 	}
 
-	users, appErr := c.App.GetUsersByIds(userIds, options)
+	users, appErr := c.App.GetUsersByIds(userIDs, options)
 	if appErr != nil {
 		c.Err = appErr
 		return

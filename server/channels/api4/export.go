@@ -9,14 +9,15 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitExport() {
 	api.BaseRoutes.Exports.Handle("", api.APISessionRequired(listExports)).Methods("GET")
 	api.BaseRoutes.Export.Handle("", api.APISessionRequired(deleteExport)).Methods("DELETE")
 	api.BaseRoutes.Export.Handle("", api.APISessionRequired(downloadExport)).Methods("GET")
+	api.BaseRoutes.Export.Handle("/presign-url", api.APISessionRequired(generatePresignURLExport)).Methods("POST")
 }
 
 func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -66,7 +67,7 @@ func downloadExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	filePath := filepath.Join(*c.App.Config().ExportSettings.Directory, c.Params.ExportName)
-	if ok, err := c.App.FileExists(filePath); err != nil {
+	if ok, err := c.App.ExportFileExists(filePath); err != nil {
 		c.Err = err
 		return
 	} else if !ok {
@@ -74,7 +75,7 @@ func downloadExport(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := c.App.FileReader(filePath)
+	file, err := c.App.ExportFileReader(filePath)
 	if err != nil {
 		c.Err = err
 		return
@@ -83,4 +84,31 @@ func downloadExport(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/zip")
 	http.ServeContent(w, r, c.Params.ExportName, time.Time{}, file)
+}
+
+func generatePresignURLExport(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("generatePresignURLExport", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	audit.AddEventParameter(auditRec, "export_name", c.Params.ExportName)
+
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	res, appErr := c.App.GeneratePresignURLForExport(c.Params.ExportName)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	data, err := json.Marshal(res)
+	if err != nil {
+		c.Err = model.NewAppError("generatePresignURLExport", "app.export.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(data)
+	auditRec.Success()
 }

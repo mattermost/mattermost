@@ -44,6 +44,17 @@ export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo}: Lo
     });
 }
 
+export function getPlainLogs(page = 0, perPage: number = General.LOGS_PAGE_SIZE_DEFAULT): ActionFunc {
+    return bindClientFunc({
+        clientFunc: Client4.getPlainLogs,
+        onSuccess: [AdminTypes.RECEIVED_PLAIN_LOGS],
+        params: [
+            page,
+            perPage,
+        ],
+    });
+}
+
 export function getAudits(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getAudits,

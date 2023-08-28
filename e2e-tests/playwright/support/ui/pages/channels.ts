@@ -11,18 +11,30 @@ export default class ChannelsPage {
     readonly channels = 'Channels';
     readonly page: Page;
     readonly postCreate;
+    readonly findChannelsModal;
     readonly globalHeader;
     readonly header;
+    readonly headerMobile;
     readonly appBar;
+    readonly sidebarLeft;
     readonly sidebarRight;
+    readonly postDotMenu;
+    readonly postReminderMenu;
+    readonly deletePostModal;
 
     constructor(page: Page) {
         this.page = page;
         this.postCreate = new components.ChannelsPostCreate(page.locator('#post-create'));
+        this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
         this.globalHeader = new components.GlobalHeader(page.locator('#global-header'));
         this.header = new components.ChannelsHeader(page.locator('.channel-header'));
+        this.headerMobile = new components.ChannelsHeaderMobile(page.locator('.navbar'));
         this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
+        this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
+        this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
+        this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
+        this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
     }
 
     async goto(teamName = '', channelName = '') {
@@ -45,8 +57,13 @@ export default class ChannelsPage {
     }
 
     async postMessage(message: string) {
+        await this.writeMessage(message);
+        await this.sendMessage();
+    }
+
+    async writeMessage(message: string) {
         await this.postCreate.input.waitFor();
-        await this.postCreate.postMessage(message);
+        await this.postCreate.writeMessage(message);
     }
 
     async sendMessage() {

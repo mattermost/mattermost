@@ -4,11 +4,12 @@
 package api4
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestBlevePurgeIndexes(t *testing.T) {
@@ -16,7 +17,7 @@ func TestBlevePurgeIndexes(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := th.Client.PurgeBleveIndexes()
+		resp, err := th.Client.PurgeBleveIndexes(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -24,13 +25,13 @@ func TestBlevePurgeIndexes(t *testing.T) {
 	t.Run("as system user with write experimental permission", func(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionPurgeBleveIndexes.Id, model.SystemUserRoleId)
 		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteExperimental.Id, model.SystemUserRoleId)
-		resp, err := th.Client.PurgeBleveIndexes()
+		resp, err := th.Client.PurgeBleveIndexes(context.Background())
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.PurgeBleveIndexes()
+		resp, err := th.SystemAdminClient.PurgeBleveIndexes(context.Background())
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
@@ -38,7 +39,7 @@ func TestBlevePurgeIndexes(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		resp, err := th.SystemAdminClient.PurgeBleveIndexes()
+		resp, err := th.SystemAdminClient.PurgeBleveIndexes(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})

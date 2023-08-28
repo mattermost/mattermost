@@ -10,10 +10,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/config"
 )
 
 var JobserverCmd = &cobra.Command{
@@ -40,8 +40,6 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Srv().Shutdown()
-
-	a.Srv().LoadLicense()
 
 	// Run jobs
 	mlog.Info("Starting Mattermost job server")

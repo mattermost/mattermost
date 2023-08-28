@@ -23,6 +23,8 @@ import {useShowOnboardingTutorialStep} from 'components/tours/onboarding_tour';
 import {OnboardingTourSteps} from 'components/tours';
 
 import {setAddChannelDropdown} from 'actions/views/add_channel_dropdown';
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 type SidebarHeaderContainerProps = {
     id?: string;
@@ -96,7 +98,6 @@ export type Props = {
     unreadFilterEnabled: boolean;
     userGroupsEnabled: boolean;
     canCreateCustomGroups: boolean;
-    showWorkTemplateButton: boolean;
 }
 
 const SidebarHeader: React.FC<Props> = (props: Props): JSX.Element => {
@@ -106,6 +107,7 @@ const SidebarHeader: React.FC<Props> = (props: Props): JSX.Element => {
     const showInviteTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.INVITE_PEOPLE);
     const usageDeltas = useGetUsageDeltas();
     const isAddChannelOpen = useSelector(isAddChannelDropdownOpen);
+    const theme = useSelector(getTheme);
     const openAddChannelOpen = useCallback((open: boolean) => {
         dispatch(setAddChannelDropdown(open));
     }, []);
@@ -117,7 +119,7 @@ const SidebarHeader: React.FC<Props> = (props: Props): JSX.Element => {
     };
 
     return (
-        <>
+        <CompassThemeProvider theme={theme}>
             <SidebarHeaderContainer
                 id={'sidebar-header-container'}
             >
@@ -161,10 +163,9 @@ const SidebarHeader: React.FC<Props> = (props: Props): JSX.Element => {
                     canCreateCustomGroups={props.canCreateCustomGroups}
                     showCreateUserGroupModal={props.showCreateUserGroupModal}
                     userGroupsEnabled={props.userGroupsEnabled}
-                    showWorkTemplateButton={props.showWorkTemplateButton}
                 />
             </SidebarHeaderContainer>
-        </>
+        </CompassThemeProvider>
     );
 };
 

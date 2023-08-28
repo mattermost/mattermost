@@ -1,9 +1,5 @@
 name: "CodeQL"
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !contains( github.ref , 'heads/ref/master') }}
-
 on:
   pull_request:
     # The branches below must be a subset of the branches above
@@ -19,6 +15,7 @@ jobs:
     permissions:
       security-events: write  # for github/codeql-action/autobuild to send a status report
     name: Analyze
+    if: github.repository_owner == 'mattermost'
     runs-on: ubuntu-latest
 
     strategy:

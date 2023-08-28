@@ -11,16 +11,16 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 const ServerKey product.ServiceKey = "server"
@@ -35,19 +35,21 @@ type licenseSvc interface {
 
 // Channels contains all channels related state.
 type Channels struct {
-	srv        *Server
-	cfgSvc     product.ConfigService
-	filestore  filestore.FileBackend
-	licenseSvc licenseSvc
-	routerSvc  *routerService
+	srv             *Server
+	cfgSvc          product.ConfigService
+	filestore       filestore.FileBackend
+	exportFilestore filestore.FileBackend
+	licenseSvc      licenseSvc
+	routerSvc       *routerService
 
 	postActionCookieSecret []byte
 
-	pluginCommandsLock     sync.RWMutex
-	pluginCommands         []*PluginCommand
-	pluginsLock            sync.RWMutex
-	pluginsEnvironment     *plugin.Environment
-	pluginConfigListenerID string
+	pluginCommandsLock            sync.RWMutex
+	pluginCommands                []*PluginCommand
+	pluginsLock                   sync.RWMutex
+	pluginsEnvironment            *plugin.Environment
+	pluginConfigListenerID        string
+	pluginClusterLeaderListenerID string
 
 	productCommandsLock sync.RWMutex
 	productCommands     []*ProductCommand
@@ -83,12 +85,6 @@ type Channels struct {
 
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
-
-	// collectionTypes maps from collection types to the registering plugin id
-	collectionTypes map[string]string
-	// topicTypes maps from topic types to collection types
-	topicTypes                 map[string]string
-	collectionAndTopicTypesMut sync.Mutex
 }
 
 func init() {
@@ -97,10 +93,11 @@ func init() {
 			return NewChannels(services)
 		},
 		Dependencies: map[product.ServiceKey]struct{}{
-			ServerKey:            {},
-			product.ConfigKey:    {},
-			product.LicenseKey:   {},
-			product.FilestoreKey: {},
+			ServerKey:                  {},
+			product.ConfigKey:          {},
+			product.LicenseKey:         {},
+			product.FilestoreKey:       {},
+			product.ExportFilestoreKey: {},
 		},
 	})
 }
@@ -111,11 +108,9 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 		return nil, errors.New("server not passed")
 	}
 	ch := &Channels{
-		srv:             s,
-		imageProxy:      imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap:   map[string]bool{},
-		collectionTypes: map[string]string{},
-		topicTypes:      map[string]string{},
+		srv:           s,
+		imageProxy:    imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap: map[string]bool{},
 	}
 
 	// To get another service:
@@ -127,6 +122,7 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 		product.ConfigKey,
 		product.LicenseKey,
 		product.FilestoreKey,
+		product.ExportFilestoreKey,
 	}
 	for _, svcKey := range requiredServices {
 		svc, ok := services[svcKey]
@@ -147,6 +143,12 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 				return nil, errors.New("Filestore service did not satisfy FileBackend interface")
 			}
 			ch.filestore = filestore
+		case product.ExportFilestoreKey:
+			exportFilestore, ok := svc.(filestore.FileBackend)
+			if !ok {
+				return nil, errors.New("Export filestore service did not satisfy FileBackend interface")
+			}
+			ch.exportFilestore = exportFilestore
 		case product.LicenseKey:
 			svc, ok := svc.(licenseSvc)
 			if !ok {

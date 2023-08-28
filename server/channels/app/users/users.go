@@ -8,11 +8,11 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mfa"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 
 	"github.com/pkg/errors"
 )
@@ -103,6 +103,10 @@ func (us *UserService) GetUserByUsername(username string) (*model.User, error) {
 
 func (us *UserService) GetUserByEmail(email string) (*model.User, error) {
 	return us.store.GetByEmail(email)
+}
+
+func (us *UserService) GetUserByRemoteID(remoteID string) (*model.User, error) {
+	return us.store.GetByRemoteID(remoteID)
 }
 
 func (us *UserService) GetUserByAuth(authData *string, authService string) (*model.User, error) {

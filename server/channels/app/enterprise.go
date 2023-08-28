@@ -4,8 +4,8 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	ejobs "github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/jobs"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	ejobs "github.com/mattermost/mattermost/server/v8/einterfaces/jobs"
 )
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -48,6 +48,12 @@ var jobsElasticsearchIndexerInterface func(*Server) ejobs.IndexerJobInterface
 
 func RegisterJobsElasticsearchIndexerInterface(f func(*Server) ejobs.IndexerJobInterface) {
 	jobsElasticsearchIndexerInterface = f
+}
+
+var jobsElasticsearchFixChannelIndexInterface func(*Server) ejobs.ElasticsearchFixChannelIndexInterface
+
+func RegisterJobsElasticsearchFixChannelIndexInterface(f func(*Server) ejobs.ElasticsearchFixChannelIndexInterface) {
+	jobsElasticsearchFixChannelIndexInterface = f
 }
 
 var jobsLdapSyncInterface func(*App) ejobs.LdapSyncInterface

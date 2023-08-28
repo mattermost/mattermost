@@ -14,79 +14,65 @@ import store from 'stores/redux_store.jsx';
 
 import {Constants} from 'utils/constants';
 
-import Provider from './provider';
-import Suggestion from './suggestion.jsx';
+import Provider, {ResultsCallback} from './provider';
+import {SuggestionContainer, SuggestionProps} from './suggestion';
 
-export type Results = {
-    matchedPretext: string;
-    terms: string[];
-    items: WrappedChannels[];
-    component: React.ElementType;
-}
+export const MIN_CHANNEL_LINK_LENGTH = 2;
 
-type ResultsCallback = (results: Results) => void;
-
-type WrappedChannels = {
+type WrappedChannel = {
     type: string;
     channel?: Channel;
     loading?: boolean;
 }
 
-export class ChannelMentionSuggestion extends Suggestion {
-    render() {
-        const isSelection = this.props.isSelection;
-        const item = this.props.item;
-        const channelIsArchived = item.channel.delete_at && item.channel.delete_at !== 0;
+export const ChannelMentionSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<WrappedChannel>>((props, ref) => {
+    const {item} = props;
+    const channelIsArchived = item.channel && item.channel.delete_at && item.channel.delete_at !== 0;
 
-        const channelName = item.channel.display_name;
-        let channelIcon;
-        if (channelIsArchived) {
-            channelIcon = (
-                <span className='suggestion-list__icon suggestion-list__icon--large'>
-                    <i className='icon icon-archive-outline'/>
-                </span>
-            );
-        } else {
-            channelIcon = (
-                <span className='suggestion-list__icon suggestion-list__icon--large'>
-                    <i className={`icon icon--no-spacing icon-${item.channel.type === Constants.OPEN_CHANNEL ? 'globe' : 'lock'}`}/>
-                </span>
-            );
-        }
-
-        let className = 'suggestion-list__item';
-        if (isSelection) {
-            className += ' suggestion--selected';
-        }
-
-        const description = '~' + item.channel.name;
-
-        return (
-            <div
-                className={className}
-                onClick={this.handleClick}
-                onMouseMove={this.handleMouseMove}
-                {...Suggestion.baseProps}
-            >
-                {channelIcon}
-                <div className='suggestion-list__ellipsis'>
-                    <span className='suggestion-list__main'>
-                        {channelName}
-                    </span>
-                    {description}
-                </div>
-            </div>
+    const channelName = item.channel?.display_name;
+    let channelIcon;
+    if (channelIsArchived) {
+        channelIcon = (
+            <span className='suggestion-list__icon suggestion-list__icon--large'>
+                <i className='icon icon-archive-outline'/>
+            </span>
+        );
+    } else {
+        channelIcon = (
+            <span className='suggestion-list__icon suggestion-list__icon--large'>
+                <i className={`icon icon--no-spacing icon-${item.channel?.type === Constants.OPEN_CHANNEL ? 'globe' : 'lock-outline'}`}/>
+            </span>
         );
     }
-}
+
+    const description = '~' + item.channel?.name;
+
+    return (
+        <SuggestionContainer
+            ref={ref}
+            {...props}
+        >
+            {channelIcon}
+            <div className='suggestion-list__ellipsis'>
+                <span className='suggestion-list__main'>
+                    {channelName}
+                </span>
+                {description}
+            </div>
+        </SuggestionContainer>
+    );
+});
+ChannelMentionSuggestion.displayName = 'ChannelMentionSuggestion';
 
 export default class ChannelMentionProvider extends Provider {
-    lastPrefixTrimmed: string;
-    lastPrefixWithNoResults: string;
-    lastCompletedWord: string;
+    private lastPrefixTrimmed: string;
+    private lastPrefixWithNoResults: string;
+    private lastCompletedWord: string;
     triggerCharacter: string;
+    private delayChannelAutocomplete: boolean;
     autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>;
-    constructor(channelSearchFunc: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>) {
+
+    constructor(channelSearchFunc: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>, delayChannelAutocomplete: boolean) {
         super();
 
         this.lastPrefixTrimmed = '';
@@ -95,9 +81,14 @@ export default class ChannelMentionProvider extends Provider {
         this.triggerCharacter = '~';
 
         this.autocompleteChannels = channelSearchFunc;
+        this.delayChannelAutocomplete = delayChannelAutocomplete;
     }
 
-    handlePretextChanged(pretext: string, resultCallback: ResultsCallback) {
+    setProps(props: {delayChannelAutocomplete: boolean}) {
+        this.delayChannelAutocomplete = props.delayChannelAutocomplete;
+    }
+
+    handlePretextChanged(pretext: string, resultCallback: ResultsCallback<WrappedChannel>) {
         this.resetRequest();
 
         const captured = (/\B(~([^~\r\n]*))$/i).exec(pretext.toLowerCase());
@@ -113,6 +104,10 @@ export default class ChannelMentionProvider extends Provider {
         }
 
         const prefix = captured[2];
+
+        if (this.delayChannelAutocomplete && prefix.length < MIN_CHANNEL_LINK_LENGTH) {
+            return false;
+        }
 
         if (this.lastPrefixTrimmed && prefix.trim() === this.lastPrefixTrimmed) {
             // Don't keep searching if the user keeps typing spaces
@@ -138,7 +133,7 @@ export default class ChannelMentionProvider extends Provider {
 
         const words = prefix.toLowerCase().split(/\s+/);
         const wrappedChannelIds: Record<string, boolean> = {};
-        let wrappedChannels: WrappedChannels[] = [];
+        let wrappedChannels: WrappedChannel[] = [];
         getMyChannels(store.getState()).forEach((item) => {
             if (item.type !== 'O' || item.delete_at > 0) {
                 return;
@@ -199,7 +194,7 @@ export default class ChannelMentionProvider extends Provider {
             }
 
             // Wrap channels in an outer object to avoid overwriting the 'type' property.
-            const wrappedMoreChannels: WrappedChannels[] = [];
+            const wrappedMoreChannels: WrappedChannel[] = [];
             channels.forEach((item) => {
                 if (item.delete_at > 0 && !myMembers[item.id]) {
                     return;

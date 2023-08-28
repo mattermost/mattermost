@@ -5,19 +5,20 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"html"
 	"net/http"
 	"net/url"
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 func (w *Web) InitOAuth() {
@@ -176,7 +177,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
-	w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
+	w.Header().Set("Content-Security-Policy", fmt.Sprintf("frame-ancestors %s", frameAncestors))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926")
 

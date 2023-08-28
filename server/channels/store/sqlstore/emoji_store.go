@@ -11,9 +11,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 type SqlEmojiStore struct {
@@ -52,13 +52,13 @@ func (es SqlEmojiStore) GetByName(ctx context.Context, name string, allowFromCac
 	return es.getBy(ctx, "Name", name)
 }
 
-func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
+func (es SqlEmojiStore) GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error) {
 	// Creating (?, ?, ?) len(names) number of times.
 	keys := strings.Join(strings.Fields(strings.Repeat("? ", len(names))), ",")
 	args := makeStringArgs(names)
 
 	emojis := []*model.Emoji{}
-	if err := es.GetReplicaX().Select(&emojis,
+	if err := es.DBXFromContext(ctx).Select(&emojis,
 		`SELECT
 			*
 		FROM

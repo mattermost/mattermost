@@ -3,20 +3,15 @@
 
 /* eslint-disable no-console, no-process-env */
 
-const childProcess = require('child_process');
 const path = require('path');
-
 const url = require('url');
-
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExternalTemplateRemotesPlugin = require('external-remotes-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
-const nodeExternals = require('webpack-node-externals');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const WebpackPwaManifest = require('webpack-pwa-manifest');
-const LiveReloadPlugin = require('webpack-livereload-plugin');
 
 // const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 
@@ -25,15 +20,11 @@ const packageJson = require('./package.json');
 const NPM_TARGET = process.env.npm_lifecycle_event;
 
 const targetIsRun = NPM_TARGET?.startsWith('run');
-const targetIsTest = NPM_TARGET === 'test';
 const targetIsStats = NPM_TARGET === 'stats';
 const targetIsDevServer = NPM_TARGET?.startsWith('dev-server');
 const targetIsEslint = NPM_TARGET === 'check' || NPM_TARGET === 'fix' || process.env.VSCODE_CWD;
 
 const DEV = targetIsRun || targetIsStats || targetIsDevServer;
-
-const boardsDevServerUrl = process.env.MM_BOARDS_DEV_SERVER_URL ?? 'http://localhost:9006';
-const playbooksDevServerUrl = process.env.MM_PLAYBOOKS_DEV_SERVER_URL ?? 'http://localhost:9007';
 
 const STANDARD_EXCLUDE = [
     /node_modules/,
@@ -55,11 +46,12 @@ if (DEV) {
 const buildTimestamp = Date.now();
 
 var config = {
-    entry: ['./src/root.tsx', './src/root.html'],
+    entry: ['./src/root.tsx'],
     output: {
         publicPath,
         filename: '[name].[contenthash].js',
         chunkFilename: '[name].[contenthash].js',
+        assetModuleFilename: 'files/[contenthash][ext]',
         clean: true,
     },
     module: {
@@ -77,25 +69,29 @@ var config = {
                 },
             },
             {
-                type: 'javascript/auto',
                 test: /\.json$/,
                 include: [
                     path.resolve(__dirname, 'src/i18n'),
                 ],
                 exclude: [/en\.json$/],
-                use: [
-                    {
-                        loader: 'file-loader?name=i18n/[name].[contenthash].[ext]',
-                    },
-                ],
+                type: 'asset/resource',
+                generator: {
+                    filename: 'i18n/[name].[contenthash].json',
+                },
             },
             {
                 test: /\.(css|scss)$/,
+                exclude: /\/highlight\.js\//,
                 use: [
                     DEV ? 'style-loader' : MiniCssExtractPlugin.loader,
                     {
                         loader: 'css-loader',
                     },
+                ],
+            },
+            {
+                test: /\.scss$/,
+                use: [
                     {
                         loader: 'sass-loader',
                         options: {
@@ -108,13 +104,8 @@ var config = {
             },
             {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
+                type: 'asset/resource',
                 use: [
-                    {
-                        loader: 'file-loader',
-                        options: {
-                            name: 'files/[contenthash].[ext]',
-                        },
-                    },
                     {
                         loader: 'image-webpack-loader',
                         options: {},
@@ -123,25 +114,11 @@ var config = {
             },
             {
                 test: /\.apng$/,
-                use: [
-                    {
-                        loader: 'file-loader',
-                        options: {
-                            name: 'files/[contenthash].[ext]',
-                        },
-                    },
-                ],
+                type: 'asset/resource',
             },
             {
-                test: /\.html$/,
-                use: [
-                    {
-                        loader: 'html-loader',
-                        options: {
-                            sources: false,
-                        },
-                    },
-                ],
+                test: /\/highlight\.js\/.*\.css$/,
+                type: 'asset/resource',
             },
         ],
     },
@@ -153,8 +130,10 @@ var config = {
         alias: {
             'mattermost-redux/test': 'packages/mattermost-redux/test',
             'mattermost-redux': 'packages/mattermost-redux/src',
-            reselect: 'packages/reselect/src',
             '@mui/styled-engine': '@mui/styled-engine-sc',
+
+            // This alias restricts single version of styled components acros all packages
+            'styled-components': path.resolve(__dirname, '..', 'node_modules', 'styled-components'),
         },
         extensions: ['.ts', '.tsx', '.js', '.jsx'],
         fallback: {
@@ -189,7 +168,6 @@ var config = {
         new CopyWebpackPlugin({
             patterns: [
                 {from: 'src/images/emoji', to: 'emoji'},
-                {from: 'src/images/worktemplates', to: 'worktemplates'},
                 {from: 'src/images/img_trans.gif', to: 'images'},
                 {from: 'src/images/logo-email.png', to: 'images'},
                 {from: 'src/images/circles.png', to: 'images'},
@@ -303,10 +281,6 @@ function generateCSP() {
     if (DEV) {
         // react-hot-loader and development source maps require eval
         csp += ' \'unsafe-eval\'';
-
-        csp += ' ' + boardsDevServerUrl;
-
-        csp += ' ' + playbooksDevServerUrl;
     }
 
     return csp;
@@ -337,43 +311,17 @@ async function initializeModuleFederation() {
     }
 
     async function getRemoteContainers() {
-        const products = [
-            {name: 'boards', baseUrl: boardsDevServerUrl},
-            {name: 'playbooks', baseUrl: playbooksDevServerUrl},
-        ];
+        const products = [];
 
         const remotes = {};
-
-        if (process.env.MM_DONT_INCLUDE_PRODUCTS) {
-            console.warn('Skipping initialization of products');
-        } else if (DEV) {
-            // For development, we use Webpack dev servers for each product
-            for (const product of products) {
-                remotes[product.name] = `${product.name}@${product.baseUrl}/remote_entry.js`;
-            }
-        } else {
-            // For production, hardcode the URLs of product containers to be based on the web app URL
-            for (const product of products) {
-                remotes[product.name] = `${product.name}@[window.basename]/static/products/${product.name}/remote_entry.js?bt=${buildTimestamp}`;
-            }
-        }
-
-        const aliases = {};
-
         for (const product of products) {
-            if (remotes[product.name]) {
-                continue;
-            }
-
-            // Add false aliases to prevent Webpack from trying to resolve the missing modules
-            aliases[product.name] = false;
-            aliases[`${product.name}/manifest`] = false;
+            remotes[product.name] = `${product.name}@[window.basename]/static/products/${product.name}/remote_entry.js?bt=${buildTimestamp}`;
         }
 
-        return {remotes, aliases};
+        return {remotes};
     }
 
-    const {remotes, aliases} = await getRemoteContainers();
+    const {remotes} = await getRemoteContainers();
 
     const moduleFederationPluginOptions = {
         name: 'mattermost_webapp',
@@ -409,7 +357,7 @@ async function initializeModuleFederation() {
 
     // Desktop specific code for remote module loading
     moduleFederationPluginOptions.exposes = {
-        './app': 'components/app.jsx',
+        './app': 'components/app',
         './store': 'stores/redux_store.jsx',
         './styles': './src/sass/styles.scss',
         './registry': 'module_registry',
@@ -420,11 +368,6 @@ async function initializeModuleFederation() {
 
     // Add this plugin to perform the substitution of window.basename when loading remote containers
     config.plugins.push(new ExternalTemplateRemotesPlugin());
-
-    config.resolve.alias = {
-        ...config.resolve.alias,
-        ...aliases,
-    };
 
     config.plugins.push(new webpack.DefinePlugin({
         REMOTE_CONTAINERS: JSON.stringify(remotes),
@@ -441,32 +384,16 @@ if (DEV) {
     config.devtool = 'source-map';
 }
 
-const env = {
-    STRIPE_PUBLIC_KEY: JSON.stringify(process.env.STRIPE_PUBLIC_KEY || ''),
-};
+const env = {};
 if (DEV) {
     env.PUBLIC_PATH = JSON.stringify(publicPath);
-    env.RUDDER_KEY = JSON.stringify(process.env.RUDDER_KEY || '');
-    env.RUDDER_DATAPLANE_URL = JSON.stringify(process.env.RUDDER_DATAPLANE_URL || '');
-    if (process.env.MM_LIVE_RELOAD) {
-        config.plugins.push(new LiveReloadPlugin());
-    }
 } else {
     env.NODE_ENV = JSON.stringify('production');
-    env.RUDDER_KEY = JSON.stringify(process.env.RUDDER_KEY || '');
-    env.RUDDER_DATAPLANE_URL = JSON.stringify(process.env.RUDDER_DATAPLANE_URL || '');
 }
 
 config.plugins.push(new webpack.DefinePlugin({
     'process.env': env,
 }));
-
-// Test mode configuration
-if (targetIsTest) {
-    config.entry = ['.src/root.tsx'];
-    config.target = 'node';
-    config.externals = [nodeExternals()];
-}
 
 if (targetIsDevServer) {
     const proxyToServer = {

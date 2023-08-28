@@ -57,7 +57,6 @@ exports[`components/login/Login should match snapshot with base login 1`] = `
       >
         <div
           className="login-body-card-content"
-          onKeyDown={[Function]}
           tabIndex={0}
         >
           <p
@@ -65,48 +64,52 @@ exports[`components/login/Login should match snapshot with base login 1`] = `
           >
             Log in
           </p>
-          <div
-            className="login-body-card-form"
+          <form
+            onSubmit={[Function]}
           >
-            <ForwardRef
-              autoFocus={true}
-              containerClassName="login-body-card-form-input"
-              disabled={false}
-              hasError={false}
-              inputSize="large"
-              name="loginId"
-              onChange={[Function]}
-              placeholder="Email"
-              type="text"
-              value=""
-            />
-            <ForwardRef
-              className="login-body-card-form-password-input"
-              disabled={false}
-              hasError={false}
-              inputSize="large"
-              onChange={[Function]}
-              value=""
-            />
             <div
-              className="login-body-card-form-link"
+              className="login-body-card-form"
             >
-              <Link
-                to="/reset_password"
+              <ForwardRef
+                autoFocus={true}
+                containerClassName="login-body-card-form-input"
+                disabled={false}
+                hasError={false}
+                inputSize="large"
+                name="loginId"
+                onChange={[Function]}
+                placeholder="Email"
+                type="text"
+                value=""
+              />
+              <ForwardRef
+                className="login-body-card-form-password-input"
+                disabled={false}
+                hasError={false}
+                inputSize="large"
+                onChange={[Function]}
+                value=""
+              />
+              <div
+                className="login-body-card-form-link"
               >
-                Forgot your password?
-              </Link>
+                <Link
+                  to="/reset_password"
+                >
+                  Forgot your password?
+                </Link>
+              </div>
+              <SaveButton
+                btnClass="btn-primary"
+                defaultMessage="Log in"
+                disabled={false}
+                extraClasses="login-body-card-form-button-submit large"
+                onClick={[Function]}
+                saving={false}
+                savingMessage="Logging in…"
+              />
             </div>
-            <SaveButton
-              btnClass="btn-primary"
-              defaultMessage="Log in"
-              disabled={false}
-              extraClasses="login-body-card-form-button-submit large"
-              onClick={[Function]}
-              saving={false}
-              savingMessage="Logging in…"
-            />
-          </div>
+          </form>
         </div>
       </div>
     </div>

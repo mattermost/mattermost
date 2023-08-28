@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // generateDefaultConfig writes default config to outputFile.

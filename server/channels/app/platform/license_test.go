@@ -9,16 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
-
-func TestLoadLicense(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	th.Service.LoadLicense()
-	require.Nil(t, th.Service.License(), "shouldn't have a valid license")
-}
 
 func TestSaveLicense(t *testing.T) {
 	th := Setup(t)

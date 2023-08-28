@@ -8,6 +8,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 )
 
@@ -40,6 +41,10 @@ type FileBackend interface {
 	RemoveDirectory(path string) error
 }
 
+type FileBackendWithLinkGenerator interface {
+	GeneratePublicLink(path string) (string, time.Duration, error)
+}
+
 type FileBackendSettings struct {
 	DriverName                         string
 	Directory                          string
@@ -55,6 +60,56 @@ type FileBackendSettings struct {
 	AmazonS3Trace                      bool
 	SkipVerify                         bool
 	AmazonS3RequestTimeoutMilliseconds int64
+	AmazonS3PresignExpiresSeconds      int64
+}
+
+func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
+	if *fileSettings.DriverName == model.ImageDriverLocal {
+		return FileBackendSettings{
+			DriverName: *fileSettings.DriverName,
+			Directory:  *fileSettings.Directory,
+		}
+	}
+	return FileBackendSettings{
+		DriverName:                         *fileSettings.DriverName,
+		AmazonS3AccessKeyId:                *fileSettings.AmazonS3AccessKeyId,
+		AmazonS3SecretAccessKey:            *fileSettings.AmazonS3SecretAccessKey,
+		AmazonS3Bucket:                     *fileSettings.AmazonS3Bucket,
+		AmazonS3PathPrefix:                 *fileSettings.AmazonS3PathPrefix,
+		AmazonS3Region:                     *fileSettings.AmazonS3Region,
+		AmazonS3Endpoint:                   *fileSettings.AmazonS3Endpoint,
+		AmazonS3SSL:                        fileSettings.AmazonS3SSL == nil || *fileSettings.AmazonS3SSL,
+		AmazonS3SignV2:                     fileSettings.AmazonS3SignV2 != nil && *fileSettings.AmazonS3SignV2,
+		AmazonS3SSE:                        fileSettings.AmazonS3SSE != nil && *fileSettings.AmazonS3SSE && enableComplianceFeature,
+		AmazonS3Trace:                      fileSettings.AmazonS3Trace != nil && *fileSettings.AmazonS3Trace,
+		AmazonS3RequestTimeoutMilliseconds: *fileSettings.AmazonS3RequestTimeoutMilliseconds,
+		SkipVerify:                         skipVerify,
+	}
+}
+
+func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
+	if *fileSettings.ExportDriverName == model.ImageDriverLocal {
+		return FileBackendSettings{
+			DriverName: *fileSettings.ExportDriverName,
+			Directory:  *fileSettings.ExportDirectory,
+		}
+	}
+	return FileBackendSettings{
+		DriverName:                         *fileSettings.ExportDriverName,
+		AmazonS3AccessKeyId:                *fileSettings.ExportAmazonS3AccessKeyId,
+		AmazonS3SecretAccessKey:            *fileSettings.ExportAmazonS3SecretAccessKey,
+		AmazonS3Bucket:                     *fileSettings.ExportAmazonS3Bucket,
+		AmazonS3PathPrefix:                 *fileSettings.ExportAmazonS3PathPrefix,
+		AmazonS3Region:                     *fileSettings.ExportAmazonS3Region,
+		AmazonS3Endpoint:                   *fileSettings.ExportAmazonS3Endpoint,
+		AmazonS3SSL:                        fileSettings.ExportAmazonS3SSL == nil || *fileSettings.ExportAmazonS3SSL,
+		AmazonS3SignV2:                     fileSettings.ExportAmazonS3SignV2 != nil && *fileSettings.ExportAmazonS3SignV2,
+		AmazonS3SSE:                        fileSettings.ExportAmazonS3SSE != nil && *fileSettings.ExportAmazonS3SSE && enableComplianceFeature,
+		AmazonS3Trace:                      fileSettings.ExportAmazonS3Trace != nil && *fileSettings.ExportAmazonS3Trace,
+		AmazonS3RequestTimeoutMilliseconds: *fileSettings.ExportAmazonS3RequestTimeoutMilliseconds,
+		AmazonS3PresignExpiresSeconds:      *fileSettings.ExportAmazonS3PresignExpiresSeconds,
+		SkipVerify:                         skipVerify,
+	}
 }
 
 func (settings *FileBackendSettings) CheckMandatoryS3Fields() error {
@@ -70,10 +125,24 @@ func (settings *FileBackendSettings) CheckMandatoryS3Fields() error {
 	return nil
 }
 
+// NewFileBackend creates a new file backend
 func NewFileBackend(settings FileBackendSettings) (FileBackend, error) {
+	return newFileBackend(settings, true)
+}
+
+// NewExportFileBackend creates a new file backend for exports, that will not attempt to use bifrost.
+func NewExportFileBackend(settings FileBackendSettings) (FileBackend, error) {
+	return newFileBackend(settings, false)
+}
+
+func newFileBackend(settings FileBackendSettings, canBeCloud bool) (FileBackend, error) {
 	switch settings.DriverName {
 	case driverS3:
-		backend, err := NewS3FileBackend(settings)
+		newBackendFn := NewS3FileBackend
+		if !canBeCloud {
+			newBackendFn = NewS3FileBackendWithoutBifrost
+		}
+		backend, err := newBackendFn(settings)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to connect to the s3 backend")
 		}

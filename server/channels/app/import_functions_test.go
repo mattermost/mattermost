@@ -14,13 +14,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 func TestImportImportScheme(t *testing.T) {
@@ -704,6 +704,21 @@ func TestImportImportChannel(t *testing.T) {
 	assert.Equal(t, *data.Header, channel.Header)
 	assert.Equal(t, *data.Purpose, channel.Purpose)
 	assert.Equal(t, scheme2.Id, *channel.SchemeId)
+
+	// Do a valid archived channel.
+	now := model.GetMillis()
+	data.Name = ptrStr("archivedchannel")
+	data.DisplayName = ptrStr("Archived Channel")
+	data.Type = &chanOpen
+	data.Header = ptrStr("Archived Channel Header")
+	data.Purpose = ptrStr("Archived Channel Purpose")
+	data.Scheme = &scheme1.Name
+	data.DeletedAt = &now
+	err = th.App.importChannel(th.Context, &data, false)
+	require.Nil(t, err, "Expected success in apply mode")
+	aChan, err := th.App.GetChannelByName(th.Context, *data.Name, team.Id, true)
+	require.Nil(t, err, "Failed to get channel from database.")
+	assert.Equal(t, *data.Name, aChan.Name)
 }
 
 func TestImportImportUser(t *testing.T) {
@@ -4189,7 +4204,7 @@ func TestImportImportEmoji(t *testing.T) {
 	data = imports.EmojiImportData{Name: ptrStr(model.NewId()), Image: ptrStr(largeImage)}
 	appErr = th.App.importEmoji(th.Context, &data, false)
 	require.NotNil(t, appErr)
-	require.ErrorIs(t, appErr.Unwrap(), utils.SizeLimitExceeded)
+	require.ErrorIs(t, appErr.Unwrap(), utils.ErrSizeLimitExceeded)
 }
 
 func TestImportAttachment(t *testing.T) {

@@ -5,19 +5,22 @@ package storetest
 
 import (
 	"errors"
+	"sync"
 	"testing"
 
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestJobStore(t *testing.T, ss store.Store) {
 	t.Run("JobSaveGet", func(t *testing.T) { testJobSaveGet(t, ss) })
+	t.Run("JobSaveOnce", func(t *testing.T) { testJobSaveOnce(t, ss) })
 	t.Run("JobGetAllByType", func(t *testing.T) { testJobGetAllByType(t, ss) })
 	t.Run("JobGetAllByTypeAndStatus", func(t *testing.T) { testJobGetAllByTypeAndStatus(t, ss) })
 	t.Run("JobGetAllByTypePage", func(t *testing.T) { testJobGetAllByTypePage(t, ss) })
@@ -54,6 +57,51 @@ func testJobSaveGet(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.Equal(t, job.Id, received.Id, "received incorrect job after save")
 	require.Equal(t, "12345", received.Data["Total"])
+}
+
+func testJobSaveOnce(t *testing.T, ss store.Store) {
+	var wg sync.WaitGroup
+
+	ids := make([]string, 2)
+	for i := 0; i < 2; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			job := &model.Job{
+				Id:     model.NewId(),
+				Type:   model.JobTypeS3PathMigration,
+				Status: model.JobStatusPending,
+				Data: map[string]string{
+					"Processed":     "0",
+					"Total":         "12345",
+					"LastProcessed": "abcd",
+				},
+			}
+
+			job, err := ss.Job().SaveOnce(job)
+			if err != nil {
+				var pqErr *pq.Error
+				if errors.As(err, &pqErr) {
+					t.Logf("%#v\n", pqErr)
+				}
+			}
+			require.NoError(t, err)
+
+			if job != nil {
+				ids[i] = job.Id
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	cnt, err := ss.Job().GetCountByStatusAndType(model.JobStatusPending, model.JobTypeS3PathMigration)
+	require.NoError(t, err)
+	assert.Equal(t, 1, int(cnt))
+
+	for _, id := range ids {
+		ss.Job().Delete(id)
+	}
 }
 
 func testJobGetAllByType(t *testing.T, ss store.Store) {

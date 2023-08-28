@@ -7,20 +7,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"sort"
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestPermanentDeleteChannel(t *testing.T) {
@@ -1422,9 +1419,9 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	unread, err = th.App.GetChannelUnread(th.Context, c1.Id, u2.Id)
 	require.Nil(t, err)
 	require.Equal(t, int64(4), unread.MsgCount)
-	_, err = th.App.MarkChannelsAsViewed(th.Context, []string{c1.Id, pc1.Id}, u1.Id, "", false)
+	_, err = th.App.MarkChannelsAsViewed(th.Context, []string{c1.Id, pc1.Id}, u1.Id, "", false, false)
 	require.Nil(t, err)
-	_, err = th.App.MarkChannelsAsViewed(th.Context, []string{c1.Id, pc1.Id}, u2.Id, "", false)
+	_, err = th.App.MarkChannelsAsViewed(th.Context, []string{c1.Id, pc1.Id}, u2.Id, "", false, false)
 	require.Nil(t, err)
 	unread, err = th.App.GetChannelUnread(th.Context, c1.Id, u2.Id)
 	require.Nil(t, err)
@@ -2108,48 +2105,6 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 	})
 }
 
-// TestMarkChannelsAsViewedPanic verifies that returning an error from a.GetUser
-// does not cause a panic.
-func TestMarkChannelsAsViewedPanic(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	defer th.TearDown()
-
-	mockStore := th.App.Srv().Store().(*mocks.Store)
-	mockUserStore := mocks.UserStore{}
-	mockUserStore.On("Get", context.Background(), "userID").Return(nil, model.NewAppError("SqlUserStore.Get", "app.user.get.app_error", nil, "user_id=userID", http.StatusInternalServerError))
-	mockChannelStore := mocks.ChannelStore{}
-	mockChannelStore.On("Get", "channelID", true).Return(&model.Channel{}, nil)
-	mockChannelStore.On("GetMember", context.Background(), "channelID", "userID").Return(&model.ChannelMember{
-		NotifyProps: model.StringMap{
-			model.PushNotifyProp: model.ChannelNotifyDefault,
-		}}, nil)
-	times := map[string]int64{
-		"userID": 1,
-	}
-	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID").Return(times, nil)
-	mockSessionStore := mocks.SessionStore{}
-	mockOAuthStore := mocks.OAuthStore{}
-	var err error
-	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
-		UserStore:    &mockUserStore,
-		SessionStore: &mockSessionStore,
-		OAuthStore:   &mockOAuthStore,
-		ConfigFn:     th.App.ch.srv.platform.Config,
-		LicenseFn:    th.App.ch.srv.License,
-	})
-	require.NoError(t, err)
-	mockPreferenceStore := mocks.PreferenceStore{}
-	mockPreferenceStore.On("Get", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Preference{Value: "test"}, nil)
-	mockStore.On("Channel").Return(&mockChannelStore)
-	mockStore.On("Preference").Return(&mockPreferenceStore)
-	mockThreadStore := mocks.ThreadStore{}
-	mockThreadStore.On("MarkAllAsReadByChannels", "userID", []string{"channelID"}).Return(nil)
-	mockStore.On("Thread").Return(&mockThreadStore)
-
-	_, appErr := th.App.MarkChannelsAsViewed(th.Context, []string{"channelID"}, "userID", th.Context.Session().Id, false)
-	require.Nil(t, appErr)
-}
-
 func TestClearChannelMembersCache(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
@@ -2193,6 +2148,24 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	resp, err := th.App.GetMemberCountsByGroup(context.Background(), "channelID", true)
 	require.Nil(t, err)
 	require.ElementsMatch(t, cmc, resp)
+}
+
+func TestGetChannelsMemberCount(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockChannelStore := mocks.ChannelStore{}
+	channelsMemberCount := map[string]int64{
+		"channel1": int64(10),
+		"channel2": int64(20),
+	}
+	mockChannelStore.On("GetChannelsMemberCount", []string{"channel1", "channel2"}).Return(channelsMemberCount, nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
+	resp, err := th.App.GetChannelsMemberCount(th.Context, []string{"channel1", "channel2"})
+	require.Nil(t, err)
+	require.Equal(t, channelsMemberCount, resp)
 }
 
 func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
@@ -2256,7 +2229,7 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 	require.Truef(t, found, "did not find created thread in user's threads")
 
 	// Mark channel as read from a client that supports CRT
-	_, appErr = th.App.MarkChannelsAsViewed(th.Context, []string{c1.Id}, u1.Id, th.Context.Session().Id, true)
+	_, appErr = th.App.MarkChannelsAsViewed(th.Context, []string{c1.Id}, u1.Id, th.Context.Session().Id, true, th.App.IsCRTEnabledForUser(th.Context, u1.Id))
 	require.Nil(t, appErr)
 
 	// Thread should be marked as read because CRT has been turned off by user
@@ -2476,504 +2449,4 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 			assert.Equal(t, tc.expected, res)
 		})
 	}
-}
-
-func TestGetTopChannelsForTeamSince(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-
-	// add a bot post to ensure it's not counted
-	_, err := th.Server.Store().Post().Save(&model.Post{
-		Message:   "hello from a bot",
-		ChannelId: channel2.Id,
-		UserId:    th.BasicUser.Id,
-		Props: model.StringInterface{
-			"from_bot": true,
-		},
-	})
-	require.NoError(t, err)
-
-	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-
-	// add a webhook post to ensure it's not counted
-	_, err = th.Server.Store().Post().Save(&model.Post{
-		Message:   "hello from a webhook",
-		ChannelId: channel3.Id,
-		UserId:    th.BasicUser.Id,
-		Props: model.StringInterface{
-			"from_webhook": true,
-		},
-	})
-	require.NoError(t, err)
-
-	// add an oauth app post to ensure it's not counted
-	_, err = th.Server.Store().Post().Save(&model.Post{
-		Message:   "hello from an ouath app",
-		ChannelId: channel3.Id,
-		UserId:    th.BasicUser.Id,
-		Props: model.StringInterface{
-			"from_oauth_app": true,
-		},
-	})
-	require.NoError(t, err)
-
-	// add a plugin post to ensure it's not counted
-	_, err = th.Server.Store().Post().Save(&model.Post{
-		Message:   "hello from a plugin",
-		ChannelId: channel3.Id,
-		UserId:    th.BasicUser.Id,
-		Props: model.StringInterface{
-			"from_plugin": true,
-		},
-	})
-	require.NoError(t, err)
-
-	// add a system post to ensure it's not counted
-	_, err = th.Server.Store().Post().Save(&model.Post{
-		Message:   "system message",
-		Type:      "system_join_channel",
-		ChannelId: channel3.Id,
-		UserId:    th.BasicUser.Id,
-		Props: model.StringInterface{
-			"from_oauth_app": true,
-		},
-	})
-	require.NoError(t, err)
-
-	channel4 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	channel5 := th.CreateChannel(th.Context, th.BasicTeam)
-	channel6 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	th.AddUserToChannel(th.BasicUser, channel2)
-	th.AddUserToChannel(th.BasicUser, channel3)
-	th.AddUserToChannel(th.BasicUser, channel4)
-	th.AddUserToChannel(th.BasicUser, channel5)
-	th.AddUserToChannel(th.BasicUser, channel6)
-
-	channels := [6]*model.Channel{th.BasicChannel, channel2, channel3, channel4, channel5, channel6}
-
-	i := len(channels)
-	for _, channel := range channels {
-		for j := i; j > 0; j-- {
-			th.CreatePost(channel)
-		}
-		i--
-	}
-
-	expectedTopChannels := []struct {
-		ID           string
-		MessageCount int64
-	}{
-		{ID: th.BasicChannel.Id, MessageCount: 7},
-		{ID: channel2.Id, MessageCount: 5},
-		{ID: channel3.Id, MessageCount: 4},
-		{ID: channel4.Id, MessageCount: 3},
-		{ID: channel5.Id, MessageCount: 2},
-	}
-
-	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
-
-	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
-		topChannels, err := th.App.GetTopChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
-		require.Nil(t, err)
-
-		for i, channel := range topChannels.Items {
-			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
-			assert.Equal(t, expectedTopChannels[i].MessageCount, channel.MessageCount)
-		}
-
-		topChannels, err = th.App.GetTopChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 1, PerPage: 5})
-		require.Nil(t, err)
-		assert.Equal(t, channel6.Id, topChannels.Items[0].ID)
-		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
-	})
-}
-
-func TestGetTopChannelsForUserSince(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-
-	// add a bot post to ensure it's not counted
-	_, err := th.Server.Store().Post().Save(&model.Post{
-		Message:   "hello from a bot",
-		ChannelId: channel2.Id,
-		UserId:    th.BasicUser.Id,
-		Props: model.StringInterface{
-			"from_bot": true,
-		},
-	})
-	require.NoError(t, err)
-
-	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-
-	// add a webhook post to ensure it's not counted
-	_, err = th.Server.Store().Post().Save(&model.Post{
-		Message:   "hello from a webhook",
-		ChannelId: channel3.Id,
-		UserId:    th.BasicUser.Id,
-		Props: model.StringInterface{
-			"from_webhook": true,
-		},
-	})
-	require.NoError(t, err)
-
-	channel4 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	channel5 := th.CreateChannel(th.Context, th.BasicTeam)
-	channel6 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	th.AddUserToChannel(th.BasicUser, channel2)
-	th.AddUserToChannel(th.BasicUser, channel3)
-	th.AddUserToChannel(th.BasicUser, channel4)
-	th.AddUserToChannel(th.BasicUser, channel5)
-	th.AddUserToChannel(th.BasicUser, channel6)
-
-	channels := [6]*model.Channel{th.BasicChannel, channel2, channel3, channel4, channel5, channel6}
-
-	i := len(channels)
-	for _, channel := range channels {
-		for j := i; j > 0; j-- {
-			th.CreatePost(channel)
-		}
-		i--
-	}
-
-	expectedTopChannels := []struct {
-		ID           string
-		MessageCount int64
-	}{
-		{ID: th.BasicChannel.Id, MessageCount: 7},
-		{ID: channel2.Id, MessageCount: 5},
-		{ID: channel3.Id, MessageCount: 4},
-		{ID: channel4.Id, MessageCount: 3},
-		{ID: channel5.Id, MessageCount: 2},
-	}
-
-	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
-
-	t.Run("get-top-channels-for-user-since", func(t *testing.T) {
-		topChannels, err := th.App.GetTopChannelsForUserSince(th.Context, th.BasicUser.Id, "", &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
-		require.Nil(t, err)
-
-		for i, channel := range topChannels.Items {
-			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
-			assert.Equal(t, expectedTopChannels[i].MessageCount, channel.MessageCount)
-		}
-
-		topChannels, err = th.App.GetTopChannelsForUserSince(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 1, PerPage: 5})
-		require.Nil(t, err)
-		assert.Equal(t, channel6.Id, topChannels.Items[0].ID)
-		assert.Equal(t, int64(1), topChannels.Items[0].MessageCount)
-	})
-}
-
-func TestPostCountsByDuration(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	channel4 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	channel5 := th.CreateChannel(th.Context, th.BasicTeam)
-	channel6 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	defer func() {
-		th.App.PermanentDeleteChannel(th.Context, channel2)
-		th.App.PermanentDeleteChannel(th.Context, channel3)
-		th.App.PermanentDeleteChannel(th.Context, channel4)
-		th.App.PermanentDeleteChannel(th.Context, channel5)
-		th.App.PermanentDeleteChannel(th.Context, channel6)
-	}()
-	th.AddUserToChannel(th.BasicUser, channel2)
-	th.AddUserToChannel(th.BasicUser, channel3)
-	th.AddUserToChannel(th.BasicUser, channel4)
-	th.AddUserToChannel(th.BasicUser, channel5)
-	th.AddUserToChannel(th.BasicUser, channel6)
-
-	channels := [6]*model.Channel{th.BasicChannel, channel2, channel3, channel4, channel5, channel6}
-	channelIDs := []string{th.BasicChannel.Id, channel2.Id, channel3.Id, channel4.Id, channel5.Id, channel6.Id}
-
-	i := len(channels)
-	for ci, channel := range channels {
-		for j := i; j > 0; j-- {
-			d1 := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC).AddDate(0, 0, ci)
-			d2 := time.Date(2009, time.November, 10, 9, 0, 0, 0, time.UTC).AddDate(0, 0, ci)
-			_, err := th.App.CreatePost(th.Context, &model.Post{
-				UserId:    th.BasicUser.Id,
-				ChannelId: channel.Id,
-				CreateAt:  d1.Unix() * 1000,
-			}, channel, false, false)
-			require.Nil(t, err)
-			_, err = th.App.CreatePost(th.Context, &model.Post{
-				UserId:    th.BasicUser2.Id,
-				ChannelId: channel.Id,
-				CreateAt:  d2.Unix() * 1000,
-			}, channel, false, false)
-			require.Nil(t, err)
-		}
-		i--
-	}
-
-	expectedDayGrouping := map[string]map[string]int{
-		"2009-11-10": {
-			th.BasicChannel.Id: 6,
-		},
-		"2009-11-11": {
-			channel2.Id: 5,
-		},
-		"2009-11-12": {
-			channel3.Id: 4,
-		},
-		"2009-11-13": {
-			channel4.Id: 3,
-		},
-		"2009-11-14": {
-			channel5.Id: 2,
-		},
-		"2009-11-15": {
-			channel6.Id: 1,
-		},
-	}
-
-	expectedHourGrouping := map[string]map[string]int{
-		"2009-11-15T09": {
-			channel6.Id: 1,
-		},
-		"2009-11-15T23": {
-			channel6.Id: 1,
-		},
-	}
-
-	sinceUnixMillis := time.Date(2009, time.November, 9, 23, 0, 0, 0, time.UTC).UnixMilli()
-
-	t.Run("get-post-counts-by-day scoped by user, grouped by day", func(t *testing.T) {
-		dailyPostCount, err := th.App.PostCountsByDuration(th.Context, channelIDs, sinceUnixMillis, &th.BasicUser.Id, model.PostsByDay, time.Now().UTC().Location())
-		require.Nil(t, err)
-		require.GreaterOrEqual(t, len(dailyPostCount), 6)
-
-		for _, item := range dailyPostCount {
-			if strings.HasPrefix(item.Duration, "2009") {
-				expectedCount := expectedDayGrouping[item.Duration][item.ChannelID]
-				assert.Equal(t, expectedCount, item.PostCount)
-			}
-		}
-	})
-
-	t.Run("get-post-counts-by-day all users, grouped by day", func(t *testing.T) {
-		dailyPostCount, err := th.App.PostCountsByDuration(th.Context, channelIDs, sinceUnixMillis, nil, model.PostsByDay, time.Now().UTC().Location())
-		require.Nil(t, err)
-		require.GreaterOrEqual(t, len(dailyPostCount), 6)
-
-		for _, item := range dailyPostCount {
-			if strings.HasPrefix(item.Duration, "2009") {
-				expectedCount := expectedDayGrouping[item.Duration][item.ChannelID]
-				assert.Equal(t, expectedCount*2, item.PostCount)
-			}
-		}
-	})
-
-	t.Run("get-post-counts-by-day all users, grouped by hour", func(t *testing.T) {
-		oneDaySince := time.Date(2009, time.November, 14, 23, 0, 0, 0, time.UTC).UnixMilli()
-		dailyPostCount, err := th.App.PostCountsByDuration(th.Context, channelIDs, oneDaySince, nil, model.PostsByHour, time.Now().UTC().Location())
-		require.Nil(t, err)
-		require.GreaterOrEqual(t, len(dailyPostCount), 1)
-
-		for _, item := range dailyPostCount {
-			if strings.HasPrefix(item.Duration, "2009") {
-				expectedCount := expectedHourGrouping[item.Duration][item.ChannelID]
-				assert.Equal(t, expectedCount, item.PostCount)
-			}
-		}
-	})
-}
-
-//  Top inactive channels
-
-func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
-	channel3 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
-	channel4 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
-	channel5 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
-	channel6 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
-	th.AddUserToChannel(th.BasicUser, channel2)
-	th.AddUserToChannel(th.BasicUser, channel3)
-	th.AddUserToChannel(th.BasicUser, channel4)
-	th.AddUserToChannel(th.BasicUser, channel5)
-	th.AddUserToChannel(th.BasicUser, channel6)
-
-	// delete offtopic, town square, basicChannel channel - which interferes with 'least' active channel results
-	offTopicChannel, appErr := th.App.GetChannelByName(th.Context, "off-topic", th.BasicTeam.Id, false)
-	require.Nil(t, appErr, "Expected nil, didn't receive nil")
-	appErr = th.App.PermanentDeleteChannel(th.Context, offTopicChannel)
-	require.Nil(t, appErr)
-	townSquareChannel, appErr := th.App.GetChannelByName(th.Context, "town-square", th.BasicTeam.Id, false)
-	require.Nil(t, appErr, "Expected nil, didn't receive nil")
-	appErr = th.App.PermanentDeleteChannel(th.Context, townSquareChannel)
-	require.Nil(t, appErr)
-	basicChannel, appErr := th.App.GetChannel(th.Context, th.BasicChannel.Id)
-	require.Nil(t, appErr, "Expected nil, didn't receive nil")
-	appErr = th.App.PermanentDeleteChannel(th.Context, basicChannel)
-	require.Nil(t, appErr)
-
-	// add a bot post to ensure it's counted
-	_, err := th.Server.Store().Post().Save(&model.Post{
-		Message:   "hello from a bot",
-		ChannelId: channel2.Id,
-		UserId:    th.BasicUser.Id,
-		Props: model.StringInterface{
-			"from_bot": true,
-		},
-	})
-	require.NoError(t, err)
-
-	// add a webhook post to ensure it's counted
-	_, err = th.Server.Store().Post().Save(&model.Post{
-		Message:   "hello from a webhook",
-		ChannelId: channel3.Id,
-		UserId:    th.BasicUser.Id,
-		Props: model.StringInterface{
-			"from_webhook": true,
-		},
-	})
-	require.NoError(t, err)
-
-	channels := [5]*model.Channel{channel2, channel3, channel4, channel5, channel6}
-
-	i := len(channels)
-	for _, channel := range channels {
-		for j := i; j > 0; j-- {
-			th.CreatePost(channel)
-		}
-		i--
-	}
-
-	expectedTopChannels := []struct {
-		ID           string
-		MessageCount int64
-	}{
-		{ID: channel6.Id, MessageCount: 1},
-		{ID: channel5.Id, MessageCount: 2},
-		{ID: channel4.Id, MessageCount: 3},
-		{ID: channel3.Id, MessageCount: 5},
-		{ID: channel2.Id, MessageCount: 6},
-	}
-
-	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
-
-	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
-		topChannels, err := th.App.GetTopInactiveChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
-		require.Nil(t, err)
-
-		for i, channel := range topChannels.Items {
-			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
-			assert.Equal(t, expectedTopChannels[i].MessageCount, channel.MessageCount)
-		}
-
-		topChannels, err = th.App.GetTopInactiveChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 1, PerPage: 4})
-		require.Nil(t, err)
-		assert.Equal(t, channel2.Id, topChannels.Items[0].ID)
-		assert.Equal(t, int64(6), topChannels.Items[0].MessageCount)
-
-		// it simulates channel being created recently
-		_ = th.CreatePrivateChannel(th.Context, th.BasicTeam)
-		topChannels, err = th.App.GetTopInactiveChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 6})
-		require.Nil(t, err)
-		assert.Equal(t, 5, len(topChannels.Items))
-	})
-}
-
-func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	// delete offtopic, town-square, th.basicchannel channels - which interferes with 'least' active channel results
-	offTopicChannel, appErr := th.App.GetChannelByName(th.Context, "off-topic", th.BasicTeam.Id, false)
-	require.Nil(t, appErr, "Expected nil, didn't receive nil")
-	appErr = th.App.PermanentDeleteChannel(th.Context, offTopicChannel)
-	require.Nil(t, appErr)
-	townSquareChannel, appErr := th.App.GetChannelByName(th.Context, "town-square", th.BasicTeam.Id, false)
-	require.Nil(t, appErr, "Expected nil, didn't receive nil")
-	appErr = th.App.PermanentDeleteChannel(th.Context, townSquareChannel)
-	require.Nil(t, appErr)
-	basicChannel, appErr := th.App.GetChannel(th.Context, th.BasicChannel.Id)
-	require.Nil(t, appErr, "Expected nil, didn't receive nil")
-	appErr = th.App.PermanentDeleteChannel(th.Context, basicChannel)
-	require.Nil(t, appErr)
-
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
-
-	// add a bot post to ensure it's counted
-	_, err := th.Server.Store().Post().Save(&model.Post{
-		Message:   "hello from a bot",
-		ChannelId: channel2.Id,
-		UserId:    th.BasicUser.Id,
-		Props: model.StringInterface{
-			"from_bot": true,
-		},
-	})
-	require.NoError(t, err)
-
-	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
-
-	// add a webhook post to ensure it's counted
-	_, err = th.Server.Store().Post().Save(&model.Post{
-		Message:   "hello from a webhook",
-		ChannelId: channel3.Id,
-		UserId:    th.BasicUser.Id,
-		Props: model.StringInterface{
-			"from_webhook": true,
-		},
-	})
-	require.NoError(t, err)
-
-	channel4 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
-	channel5 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
-	channel6 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
-	th.AddUserToChannel(th.BasicUser, channel2)
-	th.AddUserToChannel(th.BasicUser, channel3)
-	th.AddUserToChannel(th.BasicUser, channel4)
-	th.AddUserToChannel(th.BasicUser, channel5)
-	th.AddUserToChannel(th.BasicUser, channel6)
-
-	channels := [5]*model.Channel{channel2, channel3, channel4, channel5, channel6}
-
-	i := len(channels)
-	for _, channel := range channels {
-		for j := i; j > 0; j-- {
-			th.CreatePost(channel)
-		}
-		i--
-	}
-
-	expectedTopChannels := []struct {
-		ID           string
-		MessageCount int64
-	}{
-		{ID: channel6.Id, MessageCount: 1},
-		{ID: channel5.Id, MessageCount: 2},
-		{ID: channel4.Id, MessageCount: 3},
-		{ID: channel3.Id, MessageCount: 5},
-		{ID: channel2.Id, MessageCount: 6},
-	}
-
-	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
-
-	t.Run("get-top-channels-for-user-since", func(t *testing.T) {
-		topChannels, err := th.App.GetTopInactiveChannelsForUserSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 4})
-		require.Nil(t, err)
-		require.Equal(t, len(topChannels.Items), 4)
-		for i, channel := range topChannels.Items {
-			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
-			assert.Equal(t, expectedTopChannels[i].MessageCount, channel.MessageCount)
-		}
-
-		topChannels, err = th.App.GetTopInactiveChannelsForUserSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 1, PerPage: 4})
-		require.Nil(t, err)
-		require.Equal(t, len(topChannels.Items), 1)
-		assert.Equal(t, channel2.Id, topChannels.Items[0].ID)
-		assert.Equal(t, int64(6), topChannels.Items[0].MessageCount)
-	})
 }

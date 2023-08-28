@@ -14,20 +14,10 @@ import {getOnPremServerConfig} from './default_config';
 import {createRandomTeam} from './team';
 import {createRandomUser} from './user';
 
-const boardsUserConfigPatch = {
-    updatedFields: {
-        welcomePageViewed: '1',
-        onboardingTourStep: '999',
-        tourCategory: 'board',
-        version72MessageCanceled: 'true',
-    },
-};
-
 export async function initSetup({
     userPrefix = 'user',
     teamPrefix = {name: 'team', displayName: 'Team'},
     withDefaultProfileImage = true,
-    skipBoardsUserConfig = true,
 } = {}) {
     try {
         // Login the admin user via API
@@ -62,12 +52,15 @@ export async function initSetup({
         // Update user preference
         const preferences: PreferenceType[] = [
             {user_id: user.id, category: 'tutorial_step', name: user.id, value: '999'},
+            {
+                user_id: user.id,
+                category: 'drafts',
+                name: 'drafts_tour_tip_showed',
+                value: JSON.stringify({drafts_tour_tip_showed: true}),
+            },
+            {user_id: user.id, category: 'crt_thread_pane_step', name: user.id, value: '999'},
         ];
         await userClient.savePreferences(user.id, preferences);
-
-        if (skipBoardsUserConfig) {
-            await userClient.patchUserConfig(user.id, boardsUserConfigPatch);
-        }
 
         return {
             adminClient,

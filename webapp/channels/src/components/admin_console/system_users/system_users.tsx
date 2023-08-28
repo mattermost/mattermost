@@ -6,12 +6,13 @@ import {FormattedMessage} from 'react-intl';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {Permissions} from 'mattermost-redux/constants';
-
 import {ActionFunc} from 'mattermost-redux/types/actions';
+
 import {ServerError} from '@mattermost/types/errors';
 import {Team} from '@mattermost/types/teams';
-
 import {GetFilteredUsersStatsOpts, UserProfile, UsersStats} from '@mattermost/types/users';
+
+import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import {Constants, UserSearchOptions, SearchUserTeamFilter, UserFilters} from 'utils/constants';
 import * as Utils from 'utils/utils';
@@ -19,11 +20,10 @@ import {t} from 'utils/i18n';
 import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
 
 import LocalizedInput from 'components/localized_input/localized_input';
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import ConfirmModal from 'components/confirm_modal';
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import SystemUsersList from './list';
 
@@ -370,14 +370,15 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
 
         return (
             <div className='wrapper--fixed'>
-                <FormattedAdminHeader
-                    id='admin.system_users.title'
-                    defaultMessage='{siteName} Users'
-                    values={{
-                        siteName: this.props.siteName,
-                    }}
-                />
-
+                <AdminHeader>
+                    <FormattedMessage
+                        id='admin.system_users.title'
+                        defaultMessage='{siteName} Users'
+                        values={{
+                            siteName: this.props.siteName,
+                        }}
+                    />
+                </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <div className='more-modal__list member-list-holder'>

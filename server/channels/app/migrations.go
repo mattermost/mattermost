@@ -6,10 +6,11 @@ package app
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
@@ -473,12 +474,6 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 const existingInstallationPostsThreshold = 10
 
 func (s *Server) doFirstAdminSetupCompleteMigration() {
-	// Don't run the migration until the flag is turned on.
-
-	if !s.platform.Config().FeatureFlags.UseCaseOnboarding {
-		return
-	}
-
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(FirstAdminSetupCompleteKey); err == nil {
 		return
@@ -559,6 +554,53 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 	}
 }
 
+func (s *Server) doElasticsearchFixChannelIndex() {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
+		return
+	}
+
+	license := s.License()
+	if model.BuildEnterpriseReady != "true" || license == nil || !*license.Features.Elasticsearch {
+		mlog.Info("Skipping triggering Elasticsearch channel index fix job as build is not Enterprise ready")
+		return
+	}
+
+	if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
+		mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
+		return
+	}
+}
+
+func (s *Server) doCloudS3PathMigrations() {
+	// This migration is only applicable for cloud environments
+	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
+		return
+	}
+
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store().System().GetByName(model.MigrationKeyS3Path); err == nil {
+		return
+	}
+
+	// If there is a job already pending, no need to schedule again.
+	// This is possible if the pod was rolled over.
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(model.JobTypeS3PathMigration, model.JobStatusPending)
+	if err != nil {
+		mlog.Fatal("failed to get jobs by type and status", mlog.Err(err))
+		return
+	}
+	if len(jobs) > 0 {
+		return
+	}
+
+	if _, appErr := s.Jobs.CreateJobOnce(model.JobTypeS3PathMigration, nil); appErr != nil {
+		mlog.Fatal("failed to start job for migrating s3 file paths", mlog.Err(appErr))
+		return
+	}
+
+}
+
 func (a *App) DoAppMigrations() {
 	a.Srv().doAppMigrations()
 }
@@ -580,4 +622,6 @@ func (s *Server) doAppMigrations() {
 	s.doFirstAdminSetupCompleteMigration()
 	s.doRemainingSchemaMigrations()
 	s.doPostPriorityConfigDefaultTrueMigration()
+	s.doElasticsearchFixChannelIndex()
+	s.doCloudS3PathMigrations()
 }

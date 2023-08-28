@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -94,7 +94,6 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, ss) })
-	t.Run("GetFirstSystemAdminID", func(t *testing.T) { testUserStoreGetFirstSystemAdminID(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -3964,6 +3963,15 @@ func testCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(deletedUser.Id)) }()
 
+	// Remote User
+	remoteId := "remote-id"
+	remoteUser, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		RemoteId: &remoteId,
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(remoteUser.Id)) }()
+
 	// Bot
 	botUser, err := ss.User().Save(&model.User{
 		Email: MakeEmail(),
@@ -4062,6 +4070,71 @@ func testCount(t *testing.T, ss store.Store) {
 			"Include bot accounts and deleted accounts with existing team id and view restrictions not allowing current team",
 			model.UserCountOptions{
 				IncludeBotAccounts: true,
+				IncludeDeleted:     true,
+				TeamId:             teamId,
+				ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{model.NewId()}},
+			},
+			0,
+		},
+		{
+			"Include remote accounts no deleted accounts and no team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     false,
+				TeamId:             "",
+			},
+			5,
+		},
+		{
+			"Include delete accounts no remote accounts and no team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: false,
+				IncludeDeleted:     true,
+				TeamId:             "",
+			},
+			5,
+		},
+		{
+			"Include remote accounts and deleted accounts and no team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     true,
+				TeamId:             "",
+			},
+			6,
+		},
+		{
+			"Include remote accounts and deleted accounts with existing team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     true,
+				TeamId:             teamId,
+			},
+			4,
+		},
+		{
+			"Include remote accounts and deleted accounts with fake team id",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     true,
+				TeamId:             model.NewId(),
+			},
+			0,
+		},
+		{
+			"Include remote accounts and deleted accounts with existing team id and view restrictions allowing team",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
+				IncludeDeleted:     true,
+				TeamId:             teamId,
+				ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{teamId}},
+			},
+			4,
+		},
+		{
+			"Include remote accounts and deleted accounts with existing team id and view restrictions not allowing current team",
+			model.UserCountOptions{
+				IncludeRemoteUsers: true,
 				IncludeDeleted:     true,
 				TeamId:             teamId,
 				ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{model.NewId()}},
@@ -4192,30 +4265,6 @@ func testCount(t *testing.T, ss store.Store) {
 			require.Equal(t, testCase.Expected, count)
 		})
 	}
-}
-
-func testUserStoreGetFirstSystemAdminID(t *testing.T, ss store.Store) {
-	sysAdmin := &model.User{}
-	sysAdmin.Email = MakeEmail()
-	sysAdmin.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
-	sysAdmin, err := ss.User().Save(sysAdmin)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(sysAdmin.Id)) }()
-
-	// We need the second system admin to be created after the first one
-	// our granulirity is ms
-	time.Sleep(1 * time.Millisecond)
-
-	sysAdmin2 := &model.User{}
-	sysAdmin2.Email = MakeEmail()
-	sysAdmin2.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
-	sysAdmin2, err = ss.User().Save(sysAdmin2)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(sysAdmin2.Id)) }()
-
-	returnedId, err := ss.User().GetFirstSystemAdminID()
-	require.NoError(t, err)
-	require.Equal(t, sysAdmin.Id, returnedId)
 }
 
 func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore) {
@@ -5724,7 +5773,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 
 		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
 		require.NoError(t, err)
-		require.Equal(t, "system_guest custom_role", updatedUser.Roles)
+		require.Equal(t, "system_guest", updatedUser.Roles)
 
 		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, user.Id)
 		require.NoError(t, nErr)
@@ -5895,6 +5944,7 @@ func testDeactivateGuests(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
+	startTime := model.GetMillis()
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(u1)
@@ -5909,8 +5959,7 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	user, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 
-	assert.NotZero(t, user.LastPictureUpdate)
-	assert.NotZero(t, user.UpdateAt)
+	assert.GreaterOrEqual(t, user.LastPictureUpdate, startTime)
 
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond)
@@ -5923,8 +5972,8 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	user2, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 
-	assert.True(t, user2.UpdateAt > user.UpdateAt)
-	assert.Zero(t, user2.LastPictureUpdate)
+	assert.Greater(t, user2.UpdateAt, user.UpdateAt)
+	assert.Less(t, user2.LastPictureUpdate, -startTime)
 }
 
 func testGetKnownUsers(t *testing.T, ss store.Store) {

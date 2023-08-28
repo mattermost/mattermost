@@ -16,7 +16,6 @@ import {findSelfHostedProductBySku} from 'utils/hosted_customer';
 import useGetSelfHostedProducts from './useGetSelfHostedProducts';
 
 export default function useCanSelfHostedExpand() {
-    // NOTE: This is a basic implementation to get things up and running, more details to come later.
     const [expansionAvailable, setExpansionAvailable] = useState(false);
     const config = useSelector(getConfig);
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';

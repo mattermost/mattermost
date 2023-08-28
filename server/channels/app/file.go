@@ -24,16 +24,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/docextractor"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/docextractor"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 
 	"github.com/pkg/errors"
 )
@@ -65,8 +65,12 @@ func (a *App) FileBackend() filestore.FileBackend {
 	return a.ch.filestore
 }
 
+func (a *App) ExportFileBackend() filestore.FileBackend {
+	return a.ch.exportFilestore
+}
+
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	fileBackendSettings := settings.ToFileBackendSettings(false, false)
+	fileBackendSettings := filestore.NewFileBackendSettingsFromConfig(settings, false, false)
 	err := fileBackendSettings.CheckMandatoryS3Fields()
 	if err != nil {
 		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest).Wrap(err)
@@ -96,7 +100,7 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	license := a.Srv().License()
 	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections
-	backend, err := filestore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -111,12 +115,20 @@ func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 	return a.ch.srv.ReadFile(path)
 }
 
-func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
-	result, nErr := s.FileBackend().Reader(path)
+func fileReader(backend filestore.FileBackend, path string) (filestore.ReadCloseSeeker, *model.AppError) {
+	result, nErr := backend.Reader(path)
 	if nErr != nil {
 		return nil, model.NewAppError("FileReader", "api.file.file_reader.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return result, nil
+}
+
+func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+	return fileReader(s.FileBackend(), path)
+}
+
+func (s *Server) exportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+	return fileReader(s.ExportFileBackend(), path)
 }
 
 // Caller must close the first return value
@@ -124,16 +136,33 @@ func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppErro
 	return a.Srv().fileReader(path)
 }
 
+// Caller must close the first return value
+func (a *App) ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+	return a.Srv().exportFileReader(path)
+}
+
 func (a *App) FileExists(path string) (bool, *model.AppError) {
 	return a.Srv().fileExists(path)
 }
 
+func (a *App) ExportFileExists(path string) (bool, *model.AppError) {
+	return a.Srv().exportFileExists(path)
+}
+
 func (s *Server) fileExists(path string) (bool, *model.AppError) {
-	result, nErr := s.FileBackend().FileExists(path)
+	return fileExists(s.FileBackend(), path)
+}
+
+func fileExists(backend filestore.FileBackend, path string) (bool, *model.AppError) {
+	result, nErr := backend.FileExists(path)
 	if nErr != nil {
 		return false, model.NewAppError("FileExists", "api.file.file_exists.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return result, nil
+}
+
+func (s *Server) exportFileExists(path string) (bool, *model.AppError) {
+	return fileExists(s.ExportFileBackend(), path)
 }
 
 func (a *App) FileSize(path string) (int64, *model.AppError) {
@@ -144,13 +173,21 @@ func (a *App) FileSize(path string) (int64, *model.AppError) {
 	return size, nil
 }
 
-func (a *App) FileModTime(path string) (time.Time, *model.AppError) {
-	modTime, nErr := a.FileBackend().FileModTime(path)
+func fileModTime(backend filestore.FileBackend, path string) (time.Time, *model.AppError) {
+	modTime, nErr := backend.FileModTime(path)
 	if nErr != nil {
 		return time.Time{}, model.NewAppError("FileModTime", "api.file.file_mod_time.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	return modTime, nil
+}
+
+func (a *App) FileModTime(path string) (time.Time, *model.AppError) {
+	return fileModTime(a.FileBackend(), path)
+}
+
+func (a *App) ExportFileModTime(path string) (time.Time, *model.AppError) {
+	return fileModTime(a.ExportFileBackend(), path)
 }
 
 func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
@@ -169,22 +206,46 @@ func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 	return a.Srv().writeFile(fr, path)
 }
 
-func (s *Server) writeFile(fr io.Reader, path string) (int64, *model.AppError) {
-	result, nErr := s.FileBackend().WriteFile(fr, path)
+func writeFile(backend filestore.FileBackend, fr io.Reader, path string) (int64, *model.AppError) {
+	result, nErr := backend.WriteFile(fr, path)
 	if nErr != nil {
 		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return result, nil
 }
 
-func (s *Server) writeFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError) {
+func (s *Server) writeFile(fr io.Reader, path string) (int64, *model.AppError) {
+	return writeFile(s.FileBackend(), fr, path)
+}
+
+func (s *Server) writeExportFile(fr io.Reader, path string) (int64, *model.AppError) {
+	return writeFile(s.ExportFileBackend(), fr, path)
+}
+
+func (a *App) WriteExportFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError) {
+	return a.Srv().writeExportFileContext(ctx, fr, path)
+}
+
+func (a *App) WriteExportFile(fr io.Reader, path string) (int64, *model.AppError) {
+	return a.Srv().writeExportFile(fr, path)
+}
+
+func writeFileContext(ctx context.Context, backend filestore.FileBackend, fr io.Reader, path string) (int64, *model.AppError) {
 	// Check if we can provide a custom context, otherwise just use the default method.
-	written, err := filestore.TryWriteFileContext(s.FileBackend(), ctx, fr, path)
+	written, err := filestore.TryWriteFileContext(backend, ctx, fr, path)
 	if err != nil {
 		return written, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return written, nil
+}
+
+func (s *Server) writeFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError) {
+	return writeFileContext(ctx, s.FileBackend(), fr, path)
+}
+
+func (s *Server) writeExportFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError) {
+	return writeFileContext(ctx, s.ExportFileBackend(), fr, path)
 }
 
 func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
@@ -199,16 +260,32 @@ func (a *App) RemoveFile(path string) *model.AppError {
 	return a.Srv().removeFile(path)
 }
 
-func (s *Server) removeFile(path string) *model.AppError {
-	nErr := s.FileBackend().RemoveFile(path)
+func (a *App) RemoveExportFile(path string) *model.AppError {
+	return a.Srv().removeExportFile(path)
+}
+
+func removeFile(backend filestore.FileBackend, path string) *model.AppError {
+	nErr := backend.RemoveFile(path)
 	if nErr != nil {
 		return model.NewAppError("RemoveFile", "api.file.remove_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return nil
 }
 
+func (s *Server) removeFile(path string) *model.AppError {
+	return removeFile(s.FileBackend(), path)
+}
+
+func (s *Server) removeExportFile(path string) *model.AppError {
+	return removeFile(s.ExportFileBackend(), path)
+}
+
 func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
 	return a.Srv().listDirectory(path, false)
+}
+
+func (a *App) ListExportDirectory(path string) ([]string, *model.AppError) {
+	return a.Srv().listExportDirectory(path, false)
 }
 
 func (a *App) ListDirectoryRecursively(path string) ([]string, *model.AppError) {
@@ -216,7 +293,10 @@ func (a *App) ListDirectoryRecursively(path string) ([]string, *model.AppError) 
 }
 
 func (s *Server) listDirectory(path string, recursion bool) ([]string, *model.AppError) {
-	backend := s.FileBackend()
+	return listDirectory(s.FileBackend(), path, recursion)
+}
+
+func listDirectory(backend filestore.FileBackend, path string, recursion bool) ([]string, *model.AppError) {
 	var paths []string
 	var nErr error
 
@@ -227,10 +307,14 @@ func (s *Server) listDirectory(path string, recursion bool) ([]string, *model.Ap
 	}
 
 	if nErr != nil {
-		return nil, model.NewAppError("ListDirectory", "api.file.list_directory.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return nil, model.NewAppError("ListExportDirectory", "api.file.list_directory.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	return paths, nil
+}
+
+func (s *Server) listExportDirectory(path string, recursion bool) ([]string, *model.AppError) {
+	return listDirectory(s.ExportFileBackend(), path, recursion)
 }
 
 func (a *App) RemoveDirectory(path string) *model.AppError {
@@ -260,7 +344,7 @@ func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, ol
 		return nil
 	}
 
-	info, err := model.GetInfoForBytes(name, bytes.NewReader(data), len(data))
+	info, err := getInfoForBytes(name, bytes.NewReader(data), len(data))
 	if err != nil {
 		mlog.Warn(
 			"Unable to fully decode file info when migrating post to use FileInfos",
@@ -315,7 +399,7 @@ func (a *App) findTeamIdForFilename(post *model.Post, id, filename string) strin
 }
 
 var fileMigrationLock sync.Mutex
-var oldFilenameMatchExp *regexp.Regexp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
+var oldFilenameMatchExp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
 
 // Parse the path from the Filename of the form /{channelID}/{userID}/{uid}/{nameWithExtension}
 func parseOldFilenames(filenames []string, channelID, userID string) [][]string {
@@ -471,13 +555,27 @@ func GeneratePublicLinkHash(fileID, salt string) string {
 
 // UploadFile uploads a single file in form of a completely constructed byte array for a channel.
 func (a *App) UploadFile(c request.CTX, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
+	return a.UploadFileForUserAndTeam(c, data, channelID, filename, "", "")
+}
+
+func (a *App) UploadFileForUserAndTeam(c request.CTX, data []byte, channelID string, filename string, rawUserId string, rawTeamId string) (*model.FileInfo, *model.AppError) {
 	_, err := a.GetChannel(c, channelID)
 	if err != nil && channelID != "" {
 		return nil, model.NewAppError("UploadFile", "api.file.upload_file.incorrect_channelId.app_error",
 			map[string]any{"channelId": channelID}, "", http.StatusBadRequest)
 	}
 
-	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), "noteam", channelID, "nouser", filename, data)
+	userId := rawUserId
+	if userId == "" {
+		userId = "nouser"
+	}
+
+	teamId := rawTeamId
+	if teamId == "" {
+		teamId = "noteam"
+	}
+
+	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), teamId, channelID, userId, filename, data)
 	if appError != nil {
 		return nil, appError
 	}
@@ -879,7 +977,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	channelID := filepath.Base(rawChannelId)
 	userID := filepath.Base(rawUserId)
 
-	info, err := model.GetInfoForBytes(filename, bytes.NewReader(data), len(data))
+	info, err := getInfoForBytes(filename, bytes.NewReader(data), len(data))
 	if err != nil {
 		err.StatusCode = http.StatusBadRequest
 		return nil, data, err
@@ -1279,7 +1377,7 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 	return nil
 }
 
-func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string) (*model.FileInfoList, *model.AppError) {
+func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
@@ -1290,7 +1388,6 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 	finalParamsList := []*model.SearchParams{}
 
 	for _, params := range paramsList {
-		params.Modifier = modifier
 		params.OrTerms = isOrSearch
 		params.IncludeDeletedChannels = includeDeleted
 		// Don't allow users to search for "*"

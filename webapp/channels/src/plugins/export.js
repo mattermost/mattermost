@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
+import {notifyMe} from 'actions/notification_actions';
 import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 
 import BotTag from 'components/widgets/tag/bot_tag';
 
 import messageHtmlToComponent from 'utils/message_html_to_component';
+import * as NotificationSounds from 'utils/notification_sounds';
 import {formatText} from 'utils/text_formatting';
 import {getHistory} from 'utils/browser_history';
 
@@ -43,11 +45,28 @@ window.Luxon = require('luxon');
 window.StyledComponents = require('styled-components');
 
 // Functions exposed on window for plugins to use.
-window.PostUtils = {formatText, messageHtmlToComponent};
+window.PostUtils = {
+    formatText,
+    messageHtmlToComponent: (html, ...otherArgs) => {
+        // Previously, this function took an extra isRHS argument as the second parameter. For backwards compatibility,
+        // support calling this as either messageHtmlToComponent(html, options) or messageHtmlToComponent(html, isRhs, options)
+
+        let options;
+        if (otherArgs.length === 2) {
+            options = otherArgs[1];
+        } else if (otherArgs.length === 1 && typeof otherArgs[0] === 'object') {
+            options = otherArgs[0];
+        }
+
+        return messageHtmlToComponent(html, options);
+    },
+};
 window.openInteractiveDialog = openInteractiveDialog;
 window.useNotifyAdmin = useNotifyAdmin;
 window.WebappUtils = {
     modals: {openModal, ModalIdentifiers},
+    notificationSounds: {ring: NotificationSounds.ring, stopRing: NotificationSounds.stopRing},
+    sendDesktopNotificationToMe: notifyMe,
 };
 Object.defineProperty(window.WebappUtils, 'browserHistory', {
     get: () => getHistory(),

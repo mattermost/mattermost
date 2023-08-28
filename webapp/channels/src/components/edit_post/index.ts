@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {addMessageIntoHistory, getPostEditHistory} from 'mattermost-redux/actions/posts';
+import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 import {Preferences, Permissions} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -22,6 +22,7 @@ import {GlobalState} from 'types/store';
 import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
 import {setGlobalItem} from '../../actions/storage';
 import {getIsRhsOpen, getPostDraft, getRhsState} from '../../selectors/rhs';
+import {runMessageWillBeUpdatedHooks} from 'actions/hooks';
 
 import EditPost, {Actions} from './edit_post';
 
@@ -67,7 +68,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setDraft: setGlobalItem,
             unsetEditingPost,
             openModal,
-            getPostEditHistory,
+            runMessageWillBeUpdatedHooks,
         }, dispatch),
     };
 }

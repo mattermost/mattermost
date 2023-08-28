@@ -15,6 +15,12 @@
   "env": {
     "cypress/globals": true
   },
+  "settings": {
+    "react": {
+        "pragma": "React",
+        "version": "detect"
+    }
+  },
   "rules": {
     "header/header": [
       2,
@@ -28,6 +34,7 @@
     "cypress/no-async-tests": "error",
     "cypress/no-pause": "error",
     "cypress/no-unnecessary-waiting": 0,
+    "cypress/unsafe-to-chain-command": 0,
     "func-names": 0,
     "import/no-unresolved": 0,
     "max-nested-callbacks": 0,

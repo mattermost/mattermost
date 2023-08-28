@@ -77,7 +77,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 110+"
+    "translation": "Version 112+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
@@ -318,10 +318,6 @@
   {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Create_at har ett ogiltigt värde."
-  },
-  {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Kunde inte tolka gif."
   },
   {
     "id": "model.emoji.user_id.app_error",
@@ -5461,7 +5457,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Din Mattermostinstallation innehåller nu flera team. Olika Team kan ha olika sätt som samarbetet organiseras och koordineras, exempelvis hur kanaler skapas, vem som bjuda in nya teammedlemmar eller hur integrationer hanteras. Med Team Override Schemes har du möjligheten att skräddarsy användarbehörigheter inom specifika team så att deras behov kan mötas.\n\n[Läs mer om avancerade behörigheter](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nGenom att klicka på Starta test godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) och att ta emot mejl om produkten."
+    "translation": "Din Mattermostinstallation innehåller nu flera team. Olika Team kan ha olika sätt som samarbetet organiseras och koordineras, exempelvis hur kanaler skapas, vem som bjuda in nya teammedlemmar eller hur integrationer hanteras. Med Team Override Schemes har du möjligheten att skräddarsy användarbehörigheter inom specifika team så att deras behov kan mötas.\n\n[Läs mer om avancerade behörigheter](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nGenom att klicka på Starta test godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
@@ -5481,7 +5477,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Din Mattermost-installation innehåller en stor mängd meddelanden. Sökfunktionen i Mattermost standarddatabas kommer tappa prestanda efter ca 2,5 miljoner meddelanden. Med över 5 miljoner meddelanden kan Elasticsearch förhindra påverkande prestandaproblem, som exempelvis timeout vid sökningar och @-omnämnanden. Kontakta oss för att veta mer och låt oss hjälpa dig.\n\n[Läs mer om prestandaförbättringar](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) och att ta emot mejl om produkten."
+    "translation": "Din Mattermost-installation innehåller en stor mängd meddelanden. Sökfunktionen i Mattermost standarddatabas kommer tappa prestanda efter ca 2,5 miljoner meddelanden. Med över 5 miljoner meddelanden kan Elasticsearch förhindra påverkande prestandaproblem, som exempelvis timeout vid sökningar och @-omnämnanden. Kontakta oss för att veta mer och låt oss hjälpa dig.\n\n[Läs mer om prestandaförbättringar](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
@@ -5501,7 +5497,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Kanaler ger möjlighet att förbättra kommunikation men med alla användare i Mattermost som skapar och ansluter till kanaler ökar utmaningen att hålla ordning. Med avancerade behörigheter ges du möjligheten att styra vilka användare eller roller som kan göra vad, inklusive hantera kanalinställningar och medlemmar, använda @channel eller @here för att notifiera stora mängder användare eller vem som får skapa nya webhooks.\n\n[Läs mer om hur du använder avancerade behörigheter](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) och att ta emot mejl om produkten."
+    "translation": "Kanaler ger möjlighet att förbättra kommunikation men med alla användare i Mattermost som skapar och ansluter till kanaler ökar utmaningen att hålla ordning. Med avancerade behörigheter ges du möjligheten att styra vilka användare eller roller som kan göra vad, inklusive hantera kanalinställningar och medlemmar, använda @channel eller @here för att notifiera stora mängder användare eller vem som får skapa nya webhooks.\n\n[Läs mer om hur du använder avancerade behörigheter](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_title",
@@ -5521,7 +5517,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost rekommenderar att installationer med fler än 500 användare nyttjar funktionerna för användarhantering, klusterteknik och prestandamätning. Kontakta oss för att veta mer och berätta på vilket sätt vi kan hjälpa till.\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) och att ta emot mejl om produkten."
+    "translation": "Mattermost rekommenderar att installationer med fler än 500 användare nyttjar funktionerna för användarhantering, klusterteknik och prestandamätning. Kontakta oss för att veta mer och berätta på vilket sätt vi kan hjälpa till.\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
@@ -5545,7 +5541,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Med all kommunikation som sker i Mattermost kan det vara utmanande att veta var man hittar viktig information. Om du vill komma ut med ditt budskap till en stor publik kan du skapa read-only Informationskanaler som vem som helst kan ansluta till men där endast administratören kan posta meddelanden.\n\n[Läs mer om att skapa Informationskanaler](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nGenom att klicka på Starta test godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) och att ta emot mejl om produkten."
+    "translation": "Med all kommunikation som sker i Mattermost kan det vara utmanande att veta var man hittar viktig information. Om du vill komma ut med ditt budskap till en stor publik kan du skapa read-only Informationskanaler som vem som helst kan ansluta till men där endast administratören kan posta meddelanden.\n\n[Läs mer om att skapa Informationskanaler](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nGenom att klicka på Starta test godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
@@ -5561,7 +5557,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Din Mattermost-installation har nu 200 användare. När din ansluter Mattermost med din organisations single sign-on tjänst kommer dina användare kunna ansluta till Mattermost utan att ange inloggningsuppgifterna igen. Vi rekommenderar att du integrerar din SAML 2.0-tjänst med din Mattermost.server [Läs mer om integration med SAML 2.0] (https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nGenom att klicka på Starta test godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) och att ta emot mejl om produkten."
+    "translation": "Din Mattermost-installation har nu 200 användare. När din ansluter Mattermost med din organisations single sign-on tjänst kommer dina användare kunna ansluta till Mattermost utan att ange inloggningsuppgifterna igen. Vi rekommenderar att du integrerar din SAML 2.0-tjänst med din Mattermost.server [Läs mer om integration med SAML 2.0] (https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nGenom att klicka på Starta test godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -5581,7 +5577,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Din Mattermostinstallation har nu fler än 100 användare. När användarbasen växer kan kontoskapande vara tidskrävande. Vi rekommenderar att integrera din organisations Active Directory/LDAP med Mattermost så att alla med ett konto får tillgång till Mattermost.\n\n[Läs mer om integration med AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) och att ta emot mejl om produkten."
+    "translation": "Din Mattermostinstallation har nu fler än 100 användare. När användarbasen växer kan kontoskapande vara tidskrävande. Vi rekommenderar att integrera din organisations Active Directory/LDAP med Mattermost så att alla med ett konto får tillgång till Mattermost.\n\n[Läs mer om integration med AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
@@ -5601,7 +5597,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Din Mattermostinstallation har flerfaktorsautentisering aktiverad som ger användaren möjlighet att säkra sitt konto med fler autentiseringslösningar utöver traditionellt lösenord. För att utöka säkerheten för hela installationen kan du kräva flerfaktorsiautentisering av alla anvädare.\n\n[Läs mer om flerfaktorsautentisering](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) och att ta emot mejl om produkten."
+    "translation": "Din Mattermostinstallation har flerfaktorsautentisering aktiverad som ger användaren möjlighet att säkra sitt konto med fler autentiseringslösningar utöver traditionellt lösenord. För att utöka säkerheten för hela installationen kan du kräva flerfaktorsiautentisering av alla anvädare.\n\n[Läs mer om flerfaktorsautentisering](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -5625,7 +5621,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "I projekt involveras ofta personer både från din organisation och från andra. Med Gäst-konton kan externa parter bli en del av ditt Mattermost-system och du kan ange vem de kan jobba tillsammans med och vad de kan se.\n\n[Läs mer om att tillåta gäst-konton](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) och att ta emot produktmejl."
+    "translation": "I projekt involveras ofta personer både från din organisation och från andra. Med Gäst-konton kan externa parter bli en del av ditt Mattermost-system och du kan ange vem de kan jobba tillsammans med och vad de kan se.\n\n[Läs mer om att tillåta gäst-konton](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot produktmejl."
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -9095,10 +9091,6 @@
     "translation": "Vi kunde inte behandla begäran på grund av begränsningar för länder med embargo. [Läs mer i vår dokumentation] (https://mattermost.com/pl/limitations-for-embargoed-countries), eller kontakta legal@mattermost.com för frågor om exportbegränsningar."
   },
   {
-    "id": "api.insights.feature_disabled",
-    "translation": "Insights ligger bakom en funktionsflagga som inte är aktiverad."
-  },
-  {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "Parametrarna OnlyThreads och OnlyTotals för getThreadsForUser utesluter varandra"
   },
@@ -9121,10 +9113,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Elasticsearch-inställningarna har odefinierade värden."
-  },
-  {
-    "id": "app.recent_searches.app_error",
-    "translation": "Fel när senaste sökningar skulle hämtas"
   },
   {
     "id": "api.file.cloud_upload.app_error",
@@ -9153,18 +9141,6 @@
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
     "translation": "Ogiltig värde {{.Value}} på antal samtidiga dekoder. Måste vara ett positivt tal eller -1."
-  },
-  {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "Det går inte att få fram användarens topp-trådar."
-  },
-  {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "Det går inte att få fram teamets topp-trådar."
-  },
-  {
-    "id": "app.insights.feature_disabled",
-    "translation": "Funktionen Insights är inaktiverad."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
@@ -9197,10 +9173,6 @@
   {
     "id": "app.team.clear_cache.app_error",
     "translation": "Fel vid rensning av cache av teammedlemmar"
-  },
-  {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "Det går inte att få fram användarens topp-direktmeddelanden."
   },
   {
     "id": "api.command_marketplace.unsupported.app_error",
@@ -9467,18 +9439,6 @@
     "translation": "Gäståtkomst har inaktiverats"
   },
   {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "Ogiltigt tidsintervall."
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Samlingstypen finns redan."
-  },
-  {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Ämnestypen finns redan."
-  },
-  {
     "id": "app.draft.delete.app_error",
     "translation": "Kunde inte att radera utkastet."
   },
@@ -9527,10 +9487,6 @@
     "translation": "Du kan inte ta bort en bekräftelse i en arkiverad kanal."
   },
   {
-    "id": "worktemplate.category.product_teams",
-    "translation": "Produkt-team"
-  },
-  {
     "id": "model.draft.is_valid.user_id.app_error",
     "translation": "Ogiltigt användarid."
   },
@@ -9569,14 +9525,6 @@
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
     "translation": "Ogiltigt meddelande-id."
-  },
-  {
-    "id": "app.worktemplates.get_templates.app_error",
-    "translation": "Det går inte att få fram arbetsmallar"
-  },
-  {
-    "id": "app.worktemplates.get_categories.app_error",
-    "translation": "Det går inte att få fram kategorier för arbetsmallar"
   },
   {
     "id": "app.post_prority.get_for_post.app_error",
@@ -9695,72 +9643,8 @@
     "translation": "Det gick inte att skapa en statuspost för true up"
   },
   {
-    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
-    "translation": "Det går inte att hitta kanalen som är associerad med en playbook."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
-    "translation": "Fel vid skapandet av en playbook."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.channels.create_error",
-    "translation": "Fel vid skapandet av en kanal."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.boards.create_error",
-    "translation": "Fel vid skapandet av en tavla."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "Fel vid utförandet av en arbetsmall."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
-    "translation": "Du har inte behörighet att skapa en publik playbook."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
-    "translation": "Du har inte behörighet att skapa en publik kanal."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_board",
-    "translation": "Du har inte behörighet att skapa en publik tavla."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
-    "translation": "Du har inte behörighet att skapa en privat playbook."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
-    "translation": "Du har inte behörighet att skapa en privat kanal."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_board",
-    "translation": "Du har inte behörighet att skapa en privat tavla."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "Användaren med användarnamn \"{{.Username}}\" finns redan."
-  },
-  {
-    "id": "api.work_templates.disabled",
-    "translation": "Arbetsmallar är inaktiverade."
-  },
-  {
-    "id": "worktemplate.category.leadership",
-    "translation": "Ledarskap"
-  },
-  {
-    "id": "worktemplate.category.devops",
-    "translation": "DevOps"
-  },
-  {
-    "id": "worktemplate.category.companywide",
-    "translation": "Företagsgemensam"
-  },
-  {
-    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
-    "translation": "Din licens stöder inte privata playbooks."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -9773,46 +9657,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Tjänsten är endast tillgänglig i Mattermost Enterprise-edition"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.name_too_long",
-    "translation": "Fältet Namn får inte innehålla mer än 64 tecken."
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "hittade inte produktnyckeln"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "gränssnittet är inte av förväntad typ"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "error när tavlan uppdaterades"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "fel, ingen tavla skapades"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "fel när mallar för tavlor hämtades"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "fel när tavlan duplicerades"
-  },
-  {
-    "id": "api.command_templates.unsupported.app_error",
-    "translation": "Kommandot för mallar stöds inte på din enhet."
-  },
-  {
-    "id": "api.command_templates.name",
-    "translation": "mallar"
-  },
-  {
-    "id": "api.command_templates.desc",
-    "translation": "Öppna fönstret Skapa från mall"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9831,139 +9675,6 @@
     "translation": "Kunde inte rensa oauth-information."
   },
   {
-    "id": "app.user.run.update_status.title",
-    "translation": "Statusuppdatering"
-  },
-  {
-    "id": "app.user.run.update_status.submit_label",
-    "translation": "Uppdatera status"
-  },
-  {
-    "id": "app.user.run.update_status.reminder_for_next_update",
-    "translation": "Påminnelse om nästa uppdatering"
-  },
-  {
-    "id": "app.user.run.update_status.num_channel",
-    "translation": {
-      "one": "Ge en uppdatering till intressenterna. Detta inlägg kommer att publiceras i {{.Count}} kanal.",
-      "other": "Ge en uppdatering till intressenterna. Detta inlägg kommer att publiceras i {{.Count}} kanaler."
-    }
-  },
-  {
-    "id": "app.user.run.update_status.finish_run.placeholder",
-    "translation": "Markera även körningen som avslutad"
-  },
-  {
-    "id": "app.user.run.update_status.finish_run",
-    "translation": "Slutför körningen"
-  },
-  {
-    "id": "app.user.run.update_status.change_since_last_update",
-    "translation": "Förändring sedan den senaste uppdateringen"
-  },
-  {
-    "id": "app.user.run.status_enable",
-    "translation": "@{{.Username}} aktiverade statusuppdateringar för [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "app.user.run.status_disable",
-    "translation": "@{{.Username}} inaktiverade statusuppdateringarna för [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "app.user.run.request_update",
-    "translation": "@here - @{{.Name}} begärde en statusuppdatering för [{{.RunName}}]({{.RunURL}}). \n"
-  },
-  {
-    "id": "app.user.run.request_join_channel",
-    "translation": "@{{.Name}} är en deltagare i en körning och vill gå med i den här kanalen. Alla medlemmar i kanalen kan bjuda in dem.\n"
-  },
-  {
-    "id": "app.user.run.confirm_finish.title",
-    "translation": "Bekräfta att avsluta körningen"
-  },
-  {
-    "id": "app.user.run.confirm_finish.submit_label",
-    "translation": "Slutför körningen"
-  },
-  {
-    "id": "app.user.run.confirm_finish.num_outstanding",
-    "translation": {
-      "one": "Det finns **{{.Count}} utestående uppgift**. Är du säker på att du vill avsluta körningen *{{.RunName}}* för alla deltagare?",
-      "other": "Det finns **{{.Count}} utestående uppgifter**. Är du säker på att du vill avsluta körningen *{{.RunName}}* för alla deltagare?"
-    }
-  },
-  {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "Lägg till i tidslinjen för körning"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "Kort sammanfattning som visas i tidslinjen"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.help",
-    "translation": "Max 64 tecken"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary",
-    "translation": "Sammanfattning"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.submit_label",
-    "translation": "Lägg till i tidslinjen för körning"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.playbook_run",
-    "translation": "Kör Playbook"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.title",
-    "translation": "Lägg till en ny uppgift"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.submit_label",
-    "translation": "Lägg till en uppgift"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.name",
-    "translation": "Namn"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.description",
-    "translation": "Beskrivning"
-  },
-  {
-    "id": "app.user.new_run.title",
-    "translation": "Kör playbook"
-  },
-  {
-    "id": "app.user.new_run.submit_label",
-    "translation": "Starta körning"
-  },
-  {
-    "id": "app.user.new_run.run_name",
-    "translation": "Namn på körning"
-  },
-  {
-    "id": "app.user.new_run.playbook",
-    "translation": "Playbook"
-  },
-  {
-    "id": "app.user.new_run.intro",
-    "translation": "**Ägare** {{.Username}}"
-  },
-  {
-    "id": "app.user.digest.tasks.zero_assigned",
-    "translation": "Du har 0 tilldelade uppgifter."
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "one": "Du har {{.Count}} tilldelad uppgift som nu är förfallen:",
-      "other": "Du har {{.Count}} tilldelade uppgifter som nu är förfallna:"
-    }
-  },
-  {
     "id": "app.user.digest.tasks.num_assigned",
     "translation": {
       "one": "Du har {{.Count}} tilldelad uppgift:",
@@ -9971,71 +9682,199 @@
     }
   },
   {
-    "id": "app.user.digest.tasks.heading",
-    "translation": "Dina tilldelade uppgifter"
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Felaktigt värde för bytes licensen laddas upp."
   },
   {
-    "id": "app.user.digest.tasks.due_yesterday",
-    "translation": "Skulle utförts igår"
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch-versionen {{.Version}} är högre än {{.MaxVersion}} som är den högsta versionen som stöds"
   },
   {
-    "id": "app.user.digest.tasks.due_x_days_ago",
-    "translation": "Försenad {{.Count}} dagar"
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Hoppar över installationen av plugin {{.Id}} eftersom den befintliga versionen är samma eller nyare."
   },
   {
-    "id": "app.user.digest.tasks.due_in_x_days",
-    "translation": {
-      "one": "Ska utföras inom {{.Count}} dag",
-      "other": "Ska utföras inom {{.Count}} dagar"
-    }
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWS Server misslyckades med att prenumerera på nyhetsbrev."
   },
   {
-    "id": "app.user.digest.tasks.due_today",
-    "translation": "Ska utföras idag"
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Har inte skickat in en korrekt granskningsprofil till CWS."
   },
   {
-    "id": "app.user.digest.tasks.due_after_today",
-    "translation": {
-      "one": "Du har **{{.Count}} tilldelad uppgift som ska utföras idag**.",
-      "other": "Du har **{{.Count}} tilldelade uppgifter som ska utföras idag**."
-    }
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Felaktig företagsmejl för prova på-period"
   },
   {
-    "id": "app.user.digest.tasks.all_tasks_command",
-    "translation": "Använd `/playbook todo` för att se alla dina uppgifter."
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Fel: inget organisationsnamn har angetts för egen onboarding."
   },
   {
-    "id": "app.user.digest.runs_in_progress.zero_in_progress",
-    "translation": "Du har 0 pågående körningar."
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Kunde inte avkoda gif."
   },
   {
-    "id": "app.user.digest.runs_in_progress.num_in_progress",
-    "translation": {
-      "one": "Du har {{.Count}} körning som för närvarande pågår:",
-      "other": "Du har {{.Count}} körningar som för närvarande pågår:"
-    }
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Det går inte att tolka token när lösenordsåterställningstoken är ogiltiga"
   },
   {
-    "id": "app.user.digest.runs_in_progress.heading",
-    "translation": "Körningar som pågår"
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Kunde inte radera persistenta notifieringar per team."
   },
   {
-    "id": "app.user.digest.overdue_status_updates.zero_overdue",
-    "translation": "Du har 0 försenade körningar."
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Persistenta notifieringar måste ha prioriteringen Brådskande."
   },
   {
-    "id": "app.user.digest.overdue_status_updates.num_overdue",
-    "translation": {
-      "one": "Du har {{.Count}} körning som borde ha fått en statusuppdatering:",
-      "other": "Du har {{.Count}} körningar som borde ha fått en statusuppdatering:"
-    }
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Ett fel uppstod när team skulle hämtas."
   },
   {
-    "id": "app.user.digest.overdue_status_updates.heading",
-    "translation": "Status om förseningar"
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Kunde inte radera persistenta notifieringar per kanal."
   },
   {
-    "id": "app.command.execute.error",
-    "translation": "Kunde inte utföra kommandot."
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Ogiltigt maximalt antal mottagare för permanenta notifieringar. Måste vara ett positivt tal."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "Denna åtgärd kräver användning av specifik lagring av export."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "Denna funktion begränsas av en funktionsflagga."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Kan inte generera presigned url."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Kunde inte kontrollera om filen finns."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Det går inte att hämta tokens efter typ när lösenordsåterställningstoken är ogiltiga"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Ogiltigt värde på persistent notifieringar per meddelande. Måste vara ett positivt tal."
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Skapa en länk för att hämta en export."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "File store-drivrutinen stöder inte länkgenerering."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Ingen exportfil har hittats."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[jobb-id|zip filnamn|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Det gick inte att hitta den fil du efterfrågade."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Du kan ladda ner din fil här: {{.Länk}}.\nDenna länk kommer att upphöra att gälla om {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlänk"
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Det gick inte att hämta listan med exporter."
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Du har inte tillräckliga behörigheter för att köra kommandot."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Kan inte generera presign url."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Kan inte hitta medlemsantal för givna kanaler."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Kan inte hitta antalet medlemmar."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Kan inte uppdatera kanalmedlemmen."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Kan inte uppdatera kanalmedlemmen, storleksgränsen för notify props har överskridits."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Din drivrutin för lagring av export har inte stöd för generering av presign url."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "Exportfilen hittades inte."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Kunde inte ta bort persistent notiferingspost"
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Ett fel uppstod när plugin-hooken kördes när konfigurationen sparades."
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Notify props storleksgräns har överskridits."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ignorerade index för rensning ska inte börja med bindestreck."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Ogiltigt värde på persistent notifiering. Måste vara minst två minuter."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Det går inte att ta bort token när lösenordsåterställningstoken är ogiltiga"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Ogiltigt värde för channel-auto-follow-threads."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Det gick inte att hitta katalogen för lokal socket-fil."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Meddelanden med persistenta notifieringar tillåter maximalt {{.MaxRecipients}} mottagare."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Meddelanden med persistenta notifieringar måste ha minst 1 mottagare."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Validering av persistenta notifieringar misslyckades."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "Användaren får inte skapa prioriterade inlägg eller persistenta notifieringar."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Endast rot-meddelanden tillåts ha prioritering."
   }
 ]

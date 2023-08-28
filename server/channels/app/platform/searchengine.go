@@ -4,12 +4,12 @@
 package platform
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (ps *PlatformService) StartSearchEngine() (string, string) {
-	if ps.SearchEngine.ElasticsearchEngine != nil && ps.SearchEngine.ElasticsearchEngine.IsActive() {
+	if ps.SearchEngine.ElasticsearchEngine != nil && ps.SearchEngine.ElasticsearchEngine.IsEnabled() {
 		ps.Go(func() {
 			if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
 				ps.Log().Error(err.Error())

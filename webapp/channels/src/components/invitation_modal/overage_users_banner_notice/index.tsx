@@ -16,10 +16,13 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {PreferenceType} from '@mattermost/types/preferences';
 import {useExpandOverageUsersCheck} from 'components/common/hooks/useExpandOverageUsersCheck';
-import {LicenseLinks, StatTypes, Preferences} from 'utils/constants';
+import {LicenseLinks, StatTypes, Preferences, ConsolePages} from 'utils/constants';
 
 import './overage_users_banner_notice.scss';
 import ExternalLink from 'components/external_link';
+import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
+import {getSiteURL} from 'utils/url';
+import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 
 type AdminHasDismissedArgs = {
     preferenceName: string;
@@ -42,6 +45,10 @@ const OverageUsersBannerNotice = () => {
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
     const overagePreferences = useSelector((state: GlobalState) => getPreferencesCategory(state, Preferences.OVERAGE_USERS_BANNER));
     const activeUsers = ((stats || {})[StatTypes.TOTAL_USERS]) as number || 0;
+    const isSelfHostedPurchaseEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedPurchase;
+    const canSelfHostedExpand = useCanSelfHostedExpand() && isSelfHostedPurchaseEnabled;
+    const siteURL = getSiteURL();
+
     const {
         isBetween5PercerntAnd10PercentPurchasedSeats,
         isOver10PercerntPurchasedSeats,
@@ -67,6 +74,7 @@ const OverageUsersBannerNotice = () => {
         licenseId: license.Id,
         isWarningState: isBetween5PercerntAnd10PercentPurchasedSeats,
         banner: 'invite modal',
+        canSelfHostedExpand: canSelfHostedExpand || false,
     });
 
     if (!hasPermission || adminHasDismissed({overagePreferences, preferenceName})) {
@@ -83,7 +91,27 @@ const OverageUsersBannerNotice = () => {
     };
 
     let message;
-    if (!isGovSku) {
+
+    if (canSelfHostedExpand) {
+        message = (
+            <FormattedMessage
+                id='licensingPage.overageUsersBanner.selfHostedNoticeDescription'
+                defaultMessage={'<a>Purchase additional seats</a> to remain compliant.'}
+                values={{
+                    a: (chunks: React.ReactNode) => {
+                        return (
+                            <ExternalLink
+                                className='overage_users_banner__button'
+                                href={`${siteURL}/${ConsolePages.LICENSE}?action=show_expansion_modal`}
+                            >
+                                {chunks}
+                            </ExternalLink>
+                        );
+                    },
+                }}
+            />
+        );
+    } else if (!isGovSku) {
         message = (
             <FormattedMessage
                 id='licensingPage.overageUsersBanner.noticeDescription'
