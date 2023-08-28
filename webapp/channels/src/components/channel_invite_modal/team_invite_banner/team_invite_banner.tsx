@@ -133,7 +133,7 @@ const TeamInviteBanner = (props: Props) => {
         );
     }, [guests]);
 
-    const getMessage = useCallback((type: string, userprofiles: Array<UserProfileValue | UserProfile>) => {
+    const getMessage = useCallback((userprofiles: Array<UserProfileValue | UserProfile>) => {
         const mentionKeys = getMentionKeys(userprofiles);
         const commaSeparatedUsernames = getCommaSeparatedUsernames(userprofiles);
         const firstName = userprofiles[0].username;
@@ -232,7 +232,7 @@ const TeamInviteBanner = (props: Props) => {
                     }
                     message={
                         users.length > 0 &&
-                        getMessage('invite', users)
+                        getMessage(users)
                     }
                     footerMessage={
                         guests.length > 0 &&

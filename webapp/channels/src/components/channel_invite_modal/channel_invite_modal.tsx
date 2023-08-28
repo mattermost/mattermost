@@ -168,10 +168,6 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         this.setState({usersNotInTeam: [...usersNotInTeam], guestsNotInTeam: []});
     };
 
-    clearValuesNotInTeam = (): void => {
-        this.setState({usersNotInTeam: [], guestsNotInTeam: []});
-    };
-
     public componentDidMount(): void {
         this.props.actions.getProfilesNotInChannel(this.props.channel.team_id, this.props.channel.id, this.props.channel.group_constrained, 0).then(() => {
             this.setUsersLoadingState(false);
@@ -567,9 +563,6 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                             guests={this.state.guestsNotInTeam}
                             teamId={this.props.channel.team_id}
                             users={this.state.usersNotInTeam}
-                            clearValuesNotInTeam={this.clearValuesNotInTeam}
-                            removeInvitedUsersCallback={this.removeInvitedUsers}
-                            removeFailedInvitedUsersCallback={this.removeUsersFromValuesNotInTeam}
                         />
                         {(this.props.emailInvitationsEnabled && this.props.canInviteGuests) && inviteGuestLink}
                     </div>

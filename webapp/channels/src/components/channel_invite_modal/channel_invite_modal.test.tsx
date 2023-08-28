@@ -190,7 +190,7 @@ describe('components/channel_invite_modal', () => {
             />,
         );
 
-        wrapper.setState({values: users, show: true});
+        wrapper.setState({selectedUsers: users, show: true});
         wrapper.instance().handleSubmit();
         expect(wrapper.state('saving')).toEqual(true);
         expect(wrapper.instance().props.actions.addUsersToChannel).toHaveBeenCalledTimes(1);
@@ -219,7 +219,7 @@ describe('components/channel_invite_modal', () => {
             />,
         );
 
-        wrapper.setState({values: users, show: true});
+        wrapper.setState({selectedUsers: users, show: true});
         wrapper.instance().handleSubmit();
         expect(wrapper.state('saving')).toEqual(true);
         expect(wrapper.instance().props.actions.addUsersToChannel).toHaveBeenCalledTimes(1);
@@ -245,7 +245,7 @@ describe('components/channel_invite_modal', () => {
             />,
         );
 
-        wrapper.setState({values: users, show: true});
+        wrapper.setState({selectedUsers: users, show: true});
         wrapper.instance().handleSubmit();
         expect(onAddCallback).toHaveBeenCalled();
         expect(wrapper.instance().props.actions.addUsersToChannel).toHaveBeenCalledTimes(0);

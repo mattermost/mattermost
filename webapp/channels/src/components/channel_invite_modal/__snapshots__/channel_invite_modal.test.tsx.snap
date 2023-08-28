@@ -90,10 +90,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         values={Array []}
       />
       <Memo(TeamInviteBanner)
-        clearValuesNotInTeam={[Function]}
         guests={Array []}
-        removeFailedInvitedUsersCallback={[Function]}
-        removeInvitedUsersCallback={[Function]}
         teamId="eatxocwc3bg9ffo9xyybnj4omr"
         users={Array []}
       />
@@ -192,10 +189,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         values={Array []}
       />
       <Memo(TeamInviteBanner)
-        clearValuesNotInTeam={[Function]}
         guests={Array []}
-        removeFailedInvitedUsersCallback={[Function]}
-        removeInvitedUsersCallback={[Function]}
         teamId="eatxocwc3bg9ffo9xyybnj4omr"
         users={Array []}
       />
@@ -316,10 +310,7 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
         values={Array []}
       />
       <Memo(TeamInviteBanner)
-        clearValuesNotInTeam={[Function]}
         guests={Array []}
-        removeFailedInvitedUsersCallback={[Function]}
-        removeInvitedUsersCallback={[Function]}
         teamId="eatxocwc3bg9ffo9xyybnj4omr"
         users={Array []}
       />

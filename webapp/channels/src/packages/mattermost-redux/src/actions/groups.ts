@@ -9,7 +9,7 @@ import {General} from 'mattermost-redux/constants';
 import {Client4} from 'mattermost-redux/client';
 
 import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {GroupPatch, SyncableType, SyncablePatch, GroupCreateWithUserIds, CustomGroupPatch, GroupSearachParams, GroupSource} from '@mattermost/types/groups';
+import {GroupPatch, SyncableType, SyncablePatch, GroupCreateWithUserIds, CustomGroupPatch, GroupSearchParams, GroupSource} from '@mattermost/types/groups';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -392,7 +392,7 @@ export function removeUsersFromGroup(groupId: string, userIds: string[]): Action
     };
 }
 
-export function searchGroups(params: GroupSearachParams): ActionFunc {
+export function searchGroups(params: GroupSearchParams): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let data;
         try {
