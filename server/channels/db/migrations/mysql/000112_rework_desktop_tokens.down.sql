@@ -1,3 +1,6 @@
+DROP INDEX idx_desktoptokens_token_createat ON DesktopTokens;
+DROP TABLE IF EXISTS DesktopTokens;
+
 CREATE TABLE IF NOT EXISTS DesktopTokens (
     DesktopToken varchar(64) NOT NULL,
     ServerToken varchar(64) NULL,
