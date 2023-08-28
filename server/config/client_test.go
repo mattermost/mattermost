@@ -339,6 +339,19 @@ func TestGetClientConfig(t *testing.T) {
 				"DisableAppBar": "true",
 			},
 		},
+		{
+			"test key for GiphySdkKey",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					GiphySdkKey: model.NewString(""),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"GiphySdkKey": model.ServiceSettingsDefaultGiphySdkKeyTest,
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
