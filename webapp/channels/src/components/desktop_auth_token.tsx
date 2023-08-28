@@ -107,7 +107,7 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
     }, [status]);
 
     useEffect(() => {
-        if (status === DesktopAuthStatus.LoggedIn) {
+        if (serverToken) {
             if (storedClientToken) {
                 tryDesktopLogin();
             } else {
@@ -117,7 +117,7 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
         }
 
         openExternalLoginURL();
-    }, []);
+    }, [serverToken]);
 
     let mainMessage;
     let subMessage;
