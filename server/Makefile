@@ -151,14 +151,14 @@ DIST_PATH_OSX_ARM64=$(DIST_ROOT)/osx_arm64/mattermost
 DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'server/v8/cmd/mmctl')
-SUITE_PACKAGES=$(shell $(GO) list ./...| grep -vE 'server/v8/cmd/mmctl')
+TE_PACKAGES=$(shell $(GO) list ./public/...) $(shell $(GO) list ./... | grep -vE 'server/v8/cmd/mmctl')
 MMCTL_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/cmd/mmctl')
 
 TEMPLATES_DIR=templates
 
 # Plugins Packages
-PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
+PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
+PLUGIN_PACKAGES += mattermost-plugin-antivirus-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-calls-v0.18.0
@@ -167,7 +167,7 @@ PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.6
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.38.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.38.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
@@ -175,9 +175,9 @@ PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.2
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.2
-PLUGIN_PACKAGES += focalboard-v7.11.2
+PLUGIN_PACKAGES += focalboard-v7.11.3
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -301,7 +301,7 @@ plugin-checker:
 	$(GO) run $(GOFLAGS) ./public/plugin/checker
 
 prepackaged-plugins: ## Populate the prepackaged-plugins directory
-	@echo Downloading prepackaged plugins
+	@echo Downloading prepackaged plugins: $(PLUGIN_PACKAGES)
 	mkdir -p prepackaged_plugins
 	@cd prepackaged_plugins && for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
@@ -442,7 +442,7 @@ gotestsum:
 test-compile: gotestsum ## Compile tests.
 	@echo COMPILE TESTS
 
-	for package in $(SUITE_PACKAGES) $(EE_PACKAGES); do \
+	for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
 		$(GO) test $(GOFLAGS) -c $$package; \
 	done
 
@@ -487,7 +487,7 @@ test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
-	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(SUITE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m
+	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -512,10 +512,10 @@ test-server-quick: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
-	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -short
+	$(GOBIN)/gotestsum --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -short
 else
 	@echo Running only TE tests
-	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES)" -- $(GOFLAGS) -short
+	$(GOBIN)/gotestsum --packages="$(TE_PACKAGES)" -- $(GOFLAGS) -short
 endif
 
 internal-test-web-client: ## Runs web client tests.

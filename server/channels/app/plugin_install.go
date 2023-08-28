@@ -90,7 +90,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -289,7 +289,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
 	}
 
-	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace {
+	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace && !ch.cfgSvc.Config().FeatureFlags.StreamlinedMarketplace {
 		var plugin *model.BaseMarketplacePlugin
 		plugin, appErr = ch.getRemoteMarketplacePlugin(request.Id, request.Version)
 		// The plugin might only be prepackaged and not on the Marketplace.

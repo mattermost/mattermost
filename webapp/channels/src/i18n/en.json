@@ -3951,6 +3951,8 @@
   "marketplace_modal.tabs.all_listing": "All",
   "marketplace_modal.tabs.installed_listing": "Installed ({count})",
   "marketplace_modal.title": "App Marketplace",
+  "marketplace_modal.web_marketplace_link.desc": "We have dozens of community integrations available. So definitely do check them out!",
+  "marketplace_modal.web_marketplace_link.title": "Explore Community Integrations",
   "menu.cloudFree.enterpriseTrialDescription": "Your trial is active until {trialEndDay}. Discover our top Enterprise features. <openModalLink>Learn more</openModalLink>",
   "menu.cloudFree.enterpriseTrialTitle": "Enterprise Trial",
   "menu.cloudFree.postTrial.tryEnterprise": "Interested in a limitless plan with high-security features? <openModalLink>See plans</openModalLink>",

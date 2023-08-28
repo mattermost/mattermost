@@ -226,32 +226,32 @@ export function Menu(props: Props) {
     return (
         <CompassDesignProvider theme={theme}>
             {renderMenuButton()}
-            <MuiMenuStyled
-                anchorEl={anchorElement}
-                open={isMenuOpen}
-                onClose={handleMenuClose}
-                onClick={handleMenuClick}
-                onKeyDown={handleMenuKeyDown}
-                className={A11yClassNames.POPUP}
-                width={props.menu.width}
-                disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
-                MenuListProps={{
-                    id: props.menu.id,
-                    'aria-label': props.menu?.['aria-label'] ?? '',
-                }}
-                TransitionProps={{
-                    mountOnEnter: true,
-                    unmountOnExit: true,
-                    timeout: {
-                        enter: MENU_OPEN_ANIMATION_DURATION,
-                        exit: MENU_CLOSE_ANIMATION_DURATION,
-                    },
-                }}
-            >
-                <MenuContext.Provider value={providerValue}>
+            <MenuContext.Provider value={providerValue}>
+                <MuiMenuStyled
+                    anchorEl={anchorElement}
+                    open={isMenuOpen}
+                    onClose={handleMenuClose}
+                    onClick={handleMenuClick}
+                    onKeyDown={handleMenuKeyDown}
+                    className={A11yClassNames.POPUP}
+                    width={props.menu.width}
+                    disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
+                    MenuListProps={{
+                        id: props.menu.id,
+                        'aria-label': props.menu?.['aria-label'] ?? '',
+                    }}
+                    TransitionProps={{
+                        mountOnEnter: true,
+                        unmountOnExit: true,
+                        timeout: {
+                            enter: MENU_OPEN_ANIMATION_DURATION,
+                            exit: MENU_CLOSE_ANIMATION_DURATION,
+                        },
+                    }}
+                >
                     {props.children}
-                </MenuContext.Provider>
-            </MuiMenuStyled>
+                </MuiMenuStyled>
+            </MenuContext.Provider>
         </CompassDesignProvider>
     );
 }

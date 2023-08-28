@@ -287,13 +287,15 @@ type Hooks interface {
 	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
 
 	// NotificationWillBePushed is invoked before a push notification is sent to the push
-	// notification server. The intention is to allow plugins to cancel a push notification.
+	// notification server.
 	//
-	// To cancel a push notification, return true.
+	// To reject a notification, return an non-empty string describing why the notification was rejected.
+	// To modify the notification, return the replacement, non-nil *model.PushNotification and an empty string.
+	// To allow the notification without modification, return a nil *model.PushNotification and an empty string.
 	//
-	// Note that this method will be called for push notification sent by plugins, including
-	// the plugin that created the push notification.
+	// Note that this method will be called for push notifications created by plugins, including the plugin that
+	// created the notification.
 	//
 	// Minimum server version: 9.0
-	NotificationWillBePushed(pushNotification *model.PluginPushNotification) (cancel bool)
+	NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
 }

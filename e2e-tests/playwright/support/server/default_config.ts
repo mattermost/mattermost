@@ -680,6 +680,7 @@ const defaultServerConfig: AdminConfig = {
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
         CloudReverseTrial: false,
+        StreamlinedMarketplace: true
     },
     ImportSettings: {
         Directory: './import',
