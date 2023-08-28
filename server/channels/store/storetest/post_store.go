@@ -4154,6 +4154,14 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	_, nErr := ss.Channel().Save(&c1, -1)
 	require.NoError(t, nErr)
 
+	c2 := model.Channel{}
+	c2.TeamId = t1.Id
+	c2.DisplayName = "Channel2"
+	c2.Name = NewTestId()
+	c2.Type = model.ChannelTypeOpen
+	_, nErr = ss.Channel().Save(&c2, -1)
+	require.NoError(t, nErr)
+
 	u1 := model.User{}
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
@@ -4169,21 +4177,56 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	p1, nErr = ss.Post().Save(p1)
 	require.NoError(t, nErr)
 
-	posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.NoError(t, err)
+	p2 := &model.Post{}
+	p2.ChannelId = c2.Id
+	p2.UserId = u1.Id
+	p2.Message = NewTestId()
+	p2.CreateAt = 1000
+	p2, nErr = ss.Post().Save(p2)
+	require.NoError(t, nErr)
+	nErr = ss.Channel().Delete(c2.Id, model.GetMillis())
+	require.NoError(t, nErr)
 
-	found := false
-	for _, p := range posts {
-		if p.Id == p1.Id {
-			found = true
-			assert.Equal(t, p.Id, p1.Id)
-			assert.Equal(t, p.Message, p1.Message)
-			assert.Equal(t, p.Username, u1.Username)
-			assert.Equal(t, p.TeamName, t1.Name)
-			assert.Equal(t, p.ChannelName, c1.Name)
+	t.Run("without archived channels", func(t *testing.T) {
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false)
+		assert.NoError(t, err)
+
+		found := false
+		foundArchived := false
+		for _, p := range posts {
+			if p.Id == p1.Id {
+				found = true
+				assert.Equal(t, p.Id, p1.Id)
+				assert.Equal(t, p.Message, p1.Message)
+				assert.Equal(t, p.Username, u1.Username)
+				assert.Equal(t, p.TeamName, t1.Name)
+				assert.Equal(t, p.ChannelName, c1.Name)
+			}
+			if p.Id == p2.Id {
+				foundArchived = true
+			}
 		}
-	}
-	assert.True(t, found)
+		assert.True(t, found)
+		assert.False(t, foundArchived, "posts from archived channel should not be returned")
+	})
+
+	t.Run("with archived channels", func(t *testing.T) {
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), true)
+		assert.NoError(t, err)
+
+		found := false
+		for _, p := range posts {
+			if p.Id == p2.Id {
+				found = true
+				assert.Equal(t, p.Id, p2.Id)
+				assert.Equal(t, p.Message, p2.Message)
+				assert.Equal(t, p.Username, u1.Username)
+				assert.Equal(t, p.TeamName, t1.Name)
+				assert.Equal(t, p.ChannelName, c2.Name)
+			}
+		}
+		assert.True(t, found)
+	})
 }
 
 func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {

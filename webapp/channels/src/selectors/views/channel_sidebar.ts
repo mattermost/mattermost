@@ -208,6 +208,33 @@ export function makeGetFilteredChannelIdsForCategory(): (state: GlobalState, cat
     );
 }
 
+// Returns a selector that, given a category, returns the ids of channels visible in that category. The returned channels do not
+// include unread channels when the Unreads category is enabled.
+export function makeGetUnreadIdsForCategory(): (state: GlobalState, category: ChannelCategory) => string[] {
+    const getChannelIdsForCategory = makeGetChannelIdsForCategory();
+    const emptyList: string[] = [];
+
+    return createSelector(
+        'makeGetFilteredChannelIdsForCategory',
+        getChannelIdsForCategory,
+        getUnreadChannelIdsSet,
+        shouldShowUnreadsCategory,
+        (channelIds, unreadChannelIdsSet, showUnreadsCategory) => {
+            if (showUnreadsCategory) {
+                return emptyList;
+            }
+
+            const filtered = channelIds.filter((id) => unreadChannelIdsSet.has(id));
+
+            if (filtered.length === 0) {
+                return emptyList;
+            }
+
+            return filtered.length === channelIds.length ? channelIds : filtered;
+        },
+    );
+}
+
 export function getDraggingState(state: GlobalState): DraggingState {
     return state.views.channelSidebar.draggingState;
 }
