@@ -237,28 +237,28 @@ function ResizableDivider({
         setWidth(null);
     };
 
+    if (disabled) {
+        return null;
+    }
+
     return (
         <>
-            {!disabled && (
-                <>
-                    <Divider
-                        id={id}
-                        className={classNames(className, {
-                            left: dir === ResizeDirection.LEFT,
-                            right: dir === ResizeDirection.RIGHT,
-                        })}
-                        ref={resizeLineRef}
-                        isActive={isActive}
-                        onMouseDown={onMouseDown}
-                        onDoubleClick={onDoubleClick}
-                    />
-                    <ResizableDividerGlobalStyle
-                        varName={props.globalCssVar}
-                        width={width}
-                        active={isActive}
-                    />
-                </>
-            )}
+            <Divider
+                id={id}
+                className={classNames(className, {
+                    left: dir === ResizeDirection.LEFT,
+                    right: dir === ResizeDirection.RIGHT,
+                })}
+                ref={resizeLineRef}
+                isActive={isActive}
+                onMouseDown={onMouseDown}
+                onDoubleClick={onDoubleClick}
+            />
+            <ResizableDividerGlobalStyle
+                varName={props.globalCssVar}
+                width={width}
+                active={isActive}
+            />
         </>
 
     );
