@@ -11,6 +11,7 @@ button {
     }
 
     &.style--none {
+        padding: 0;
         border: none;
         background: transparent;
 
@@ -39,13 +40,16 @@ button {
     padding: 0 20px;
     border: none;
     border-radius: $border-rad * 2;
-    box-shadow: none !important;
     font-size: 14px;
     font-weight: 600;
     outline: none !important;
     transition: all 0.15s ease;
     justify-content: center;
     gap: 8px;
+
+    &:active {
+        box-shadow: none;
+    }
 
     & + .btn {
         margin-left: 8px !important;
