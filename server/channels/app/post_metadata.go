@@ -586,7 +586,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
 
 	// If it's an embedded image, nothing to do.
-	if strings.HasPrefix(requestURL, "data:image/") {
+	if strings.HasPrefix(strings.ToLower(requestURL), "data:image/") {
 		return nil, nil, nil, nil
 	}
 
