@@ -561,7 +561,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     <button
                         id='appsModalCancel'
                         type='button'
-                        className='btn btn-link cancel-button'
+                        className='btn btn-tertiary cancel-button'
                         onClick={this.onHide}
                     >
                         <FormattedMessage

@@ -75,7 +75,7 @@ export default function ResultView(props: Props) {
             <Modal.Footer className={props.footerClass}>
                 <button
                     onClick={props.inviteMore}
-                    className='btn btn-cancel ResultView__inviteMore'
+                    className='btn btn-tertiary ResultView__inviteMore'
                     data-testid='invite-more'
                 >
                     <FormattedMessage

@@ -248,7 +248,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                 nextButton = (
                     <button
                         id='searchableUserListNextBtn'
-                        className='btn btn-link filter-control filter-control__next'
+                        className='btn btn-tertiary filter-control filter-control__next'
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
                     >
@@ -264,7 +264,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                 previousButton = (
                     <button
                         id='searchableUserListPrevBtn'
-                        className='btn btn-link filter-control filter-control__prev'
+                        className='btn btn-tertiary filter-control filter-control__prev'
                         onClick={this.previousPage}
                     >
                         <FormattedMessage

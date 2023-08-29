@@ -246,7 +246,7 @@ State
                 <td className='text-right'>
                     <button
                         type='button'
-                        className='btn btn-link'
+                        className='btn btn-tertiary'
                         onClick={() =>
                             this.setState({showConfirmationModal: true})
                         }

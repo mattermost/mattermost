@@ -235,7 +235,7 @@ export default class EmojiList extends React.PureComponent<Props, State> {
 
                 nextButton = (
                     <SaveButton
-                        btnClass='btn-link'
+                        btnClass='btn-tertiary'
                         extraClasses='pull-right'
                         onClick={this.nextPage}
                         saving={this.state.nextLoading}
@@ -249,7 +249,7 @@ export default class EmojiList extends React.PureComponent<Props, State> {
             if (this.state.page > 0) {
                 previousButton = (
                     <button
-                        className='btn btn-link'
+                        className='btn btn-tertiary'
                         onClick={this.previousPage}
                     >
                         <PreviousIcon additionalClassName='mr-2'/>

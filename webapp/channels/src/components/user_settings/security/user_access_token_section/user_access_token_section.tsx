@@ -556,7 +556,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                             onClick={this.confirmCreateToken}
                         />
                         <button
-                            className='btn btn-link'
+                            className='btn btn-tertiary'
                             onClick={this.stopCreatingToken}
                         >
                             <FormattedMessage

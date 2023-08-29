@@ -144,7 +144,7 @@ export default class ClusterTable extends PureComponent<Props> {
                 <div className='text-right'>
                     <button
                         type='submit'
-                        className='btn btn-link'
+                        className='btn btn-tertiary'
                         onClick={this.props.reload}
                     >
                         <ReloadIcon/>

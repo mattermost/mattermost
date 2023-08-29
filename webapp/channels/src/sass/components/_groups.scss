@@ -161,7 +161,7 @@
         border-top: solid 1px rgba(0, 0, 0, 0.1);
         background: $white;
 
-        .btn-link {
+        .btn-tertiary {
             color: $dark-gray;
 
             &.disabled {
@@ -430,7 +430,7 @@
             border-top: 0;
         }
 
-        .btn-link {
+        .btn-tertiary {
             color: $dark-gray;
 
             &.disabled {

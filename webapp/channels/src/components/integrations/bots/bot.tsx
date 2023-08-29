@@ -409,7 +409,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                                         saving={false}
                                     />
                                     <button
-                                        className='btn btn-sm btn-link'
+                                        className='btn btn-sm btn-tertiary'
                                         onClick={this.closeCreateToken}
                                     >
                                         <FormattedMessage

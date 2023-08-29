@@ -206,7 +206,7 @@ class ImportThemeModal extends React.PureComponent<Props, State> {
                             <button
                                 id='cancelButton'
                                 type='button'
-                                className='btn btn-link'
+                                className='btn btn-tertiary'
                                 onClick={this.handleOnHide}
                             >
                                 <FormattedMessage

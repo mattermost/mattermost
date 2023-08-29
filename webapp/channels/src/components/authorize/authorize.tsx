@@ -156,7 +156,7 @@ export default class Authorize extends React.PureComponent<Props, State> {
                     <div className='prompt__buttons'>
                         <button
                             type='submit'
-                            className='btn btn-link authorize-btn'
+                            className='btn btn-tertiary authorize-btn'
                             onClick={this.handleDeny}
                         >
                             <FormattedMessage

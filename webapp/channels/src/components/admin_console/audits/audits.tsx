@@ -65,7 +65,7 @@ export default class Audits extends React.PureComponent<Props, State> {
                 </h4>
                 <button
                     type='submit'
-                    className='btn btn-link pull-right'
+                    className='btn btn-tertiary pull-right'
                     onClick={this.reload}
                 >
                     <ReloadIcon/>

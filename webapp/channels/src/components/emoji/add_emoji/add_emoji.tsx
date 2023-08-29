@@ -375,7 +375,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 error={this.state.error}
                             />
                             <Link
-                                className='btn btn-link btn-sm'
+                                className='btn btn-tertiary btn-sm'
                                 to={'/' + this.props.team.name + '/emoji'}
                             >
                                 <FormattedMessage

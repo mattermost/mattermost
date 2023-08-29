@@ -11,17 +11,12 @@ button {
     }
 
     &.style--none {
-        padding: 0;
         border: none;
         background: transparent;
 
         &:focus {
             outline: 0;
             text-decoration: none;
-        }
-
-        &.btn {
-            padding: 6px 12px;
         }
 
         &.btn--block {
@@ -37,22 +32,121 @@ button {
 }
 
 .btn {
-    border-radius: $border-rad;
+    // Important is given to override bootstrap styles on different states
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 20px;
+    border: none;
+    border-radius: $border-rad * 2;
+    box-shadow: none !important;
+    font-size: 14px;
+    font-weight: 600;
+    outline: none !important;
     transition: all 0.15s ease;
+    justify-content: center;
+    gap: 8px;
+
+    & + .btn {
+        margin-left: 8px !important;
+    }
+
+    &.btn-full {
+        width: 100%;
+    }
+
+    i {
+        align-items: center;
+        display: flex;
+        height: 18px;
+        justify-content: center;
+        margin-right: 0;
+        width: 18px;
+        font-size: 18px;
+    }
+
+    &.btn-sm {
+        height: 32px;
+        padding: 0 16px;
+        font-size: 12px;
+        gap: 6px;
+    }
+
+    &.btn-lg {
+        font-size: 16px;
+        height: 48px;
+        padding: 0 24px;
+        gap: 10px;
+
+        .i {
+            font-size: 24px;
+            width: 20px;
+            height: 20px;
+        }
+    }
 
     &.btn-primary {
+        position: relative;
         border-color: transparent;
-        background: $primary-color;
+        background-color: rgb(var(--button-bg-rgb));
 
-        &:hover,
-        &:focus,
+        &:disabled,
+        &:disabled:hover,
+        &:disabled:active {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+            opacity: 1;
+        }
+    }
+
+    &.btn-secondary {
+        background: transparent;
+        border: 1px solid rgb(var(--button-bg-rgb));
+        color: rgb(var(--button-bg-rgb));
+
+        &.btn-danger {
+            border-color: rgba(var(--error-text-rgb));
+            color: rgba(var(--error-text-rgb));
+        }
+
+        &:hover {
+            background-color: rgb(var(--button-bg-rgb), 0.08);
+        }
+
         &:active {
-            background: $primary-color--hover;
+            background-color: rgb(var(--button-bg-rgb), 0.16);
+        }
+    }
+
+    &.btn-tertiary {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: rgb(var(--button-bg-rgb));
+
+        &:hover {
+            background-color: rgb(var(--button-bg-rgb), 0.12);
+        }
+
+        &:active {
+            background-color: rgb(var(--button-bg-rgb), 0.16);
+        }
+    }
+
+    &.btn-quaternary {
+        background: transparent;
+        color: rgb(var(--button-bg-rgb));
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        &:active {
+            background-color: rgb(var(--button-bg-rgb), 0.12);
         }
     }
 
     &.btn-danger {
         color: $white;
+        background: var(--error-text);
 
         .app__body & {
             color: $white;
@@ -95,7 +189,7 @@ button {
         }
     }
 
-    &.btn-link {
+    &.btn-tertiary {
         &:active,
         &:focus {
             outline: none;

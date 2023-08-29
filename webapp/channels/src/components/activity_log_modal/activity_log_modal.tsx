@@ -141,7 +141,7 @@ export default class ActivityLogModal extends React.PureComponent<Props, State> 
                     <button
                         id='closeModalButton'
                         type='button'
-                        className='btn btn-link'
+                        className='btn btn-tertiary'
                     >
                         <FormattedMessage
                             id='general_button.close'

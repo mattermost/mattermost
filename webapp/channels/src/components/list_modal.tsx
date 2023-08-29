@@ -240,7 +240,7 @@ export default class ListModal extends React.PureComponent<Props, State> {
                                 {this.state.page > 0 &&
                                 <button
                                     onClick={this.onPrev}
-                                    className='btn btn-link filter-control filter-control__prev'
+                                    className='btn btn-tertiary filter-control filter-control__prev'
                                 >
                                     <FormattedMessage
                                         id='filtered_user_list.prev'
@@ -250,7 +250,7 @@ export default class ListModal extends React.PureComponent<Props, State> {
                                 {this.props.numPerPage && (this.state.items.length >= this.props.numPerPage) && endCount !== this.state.totalCount &&
                                 <button
                                     onClick={this.onNext}
-                                    className='btn btn-link filter-control filter-control__next'
+                                    className='btn btn-tertiary filter-control filter-control__next'
                                 >
                                     <FormattedMessage
                                         id='filtered_user_list.next'

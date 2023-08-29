@@ -233,7 +233,7 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
                     <Modal.Footer>
                         <button
                             type='button'
-                            className='btn btn-link'
+                            className='btn btn-tertiary'
                             onClick={this.doCancel}
                         >
                             <FormattedMessage

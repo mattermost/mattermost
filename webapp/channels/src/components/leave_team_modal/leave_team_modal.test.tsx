@@ -31,7 +31,7 @@ describe('components/LeaveTeamModal', () => {
 
     it('should hide when cancel is clicked', () => {
         const wrapper = shallow(<LeaveTeamModal {...requiredProps}/>);
-        const cancel = wrapper.find('.btn-link').first();
+        const cancel = wrapper.find('.btn-tertiary').first();
 
         cancel.simulate('click');
 

@@ -166,10 +166,6 @@
         padding: 12px 30px 12px 15px;
     }
 
-    .btn {
-        font-size: 13px;
-    }
-
     .info__label {
         margin-bottom: 3px;
         font-size: 0.9em;
@@ -310,17 +306,6 @@
             span {
                 font-family: 'Open Sans', sans-serif;
                 line-height: 10px;
-            }
-        }
-
-        .btn {
-            &.btn-primary {
-                position: relative;
-                margin-top: -4px;
-
-                i {
-                    margin-right: 5px;
-                }
             }
         }
     }

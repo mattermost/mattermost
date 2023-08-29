@@ -342,7 +342,7 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
                     </div>
                     {cardContent}
                     <button
-                        className='Form-btn-link PaymentForm-change'
+                        className='Form-btn-tertiary PaymentForm-change'
                         onClick={this.changePaymentMethod}
                     >
                         <FormattedMessage

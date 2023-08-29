@@ -354,7 +354,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
             return (
                 <ToggleModalButton
                     id='inviteGuest'
-                    className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
+                    className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-tertiary`}
                     modalId={ModalIdentifiers.INVITATION}
                     dialogType={InvitationModal}
                     dialogProps={{
@@ -409,7 +409,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                 valueWithImage={true}
                 backButtonText={localizeMessage('multiselect.cancel', 'Cancel')}
                 backButtonClick={closeMembersInviteModal}
-                backButtonClass={'btn-cancel tertiary-button'}
+                backButtonClass={'btn-tertiary tertiary-button'}
                 customNoOptionsMessage={this.props.emailInvitationsEnabled ? customNoOptionsMessage : null}
             />
         );

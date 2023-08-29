@@ -157,7 +157,7 @@ export default function EditPostTimeLimitModal(props: Props) {
                 </div>
                 <button
                     type='button'
-                    className='btn btn-cancel'
+                    className='btn btn-tertiary'
                     onClick={props.onClose}
                 >
                     <FormattedMessage

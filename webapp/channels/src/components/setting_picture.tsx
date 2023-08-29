@@ -361,7 +361,7 @@ export default class SettingPicture extends Component<Props, State> {
                             {buttonRender}
                             <button
                                 data-testid='cancelSettingPicture'
-                                className='btn btn-link btn-sm theme'
+                                className='btn btn-tertiary btn-sm theme'
                                 onClick={this.handleCancel}
                                 aria-label={localizeMessage('setting_picture.cancel', 'Cancel')}
                             >
