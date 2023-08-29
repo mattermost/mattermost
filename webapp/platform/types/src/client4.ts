@@ -14,12 +14,16 @@ export type ClientResponse<T> = {
     data: T;
 };
 
+/**
+  * @ignoreStatus boolean - If true, status codes > 300 are ignored and don't cause an error
+ */
 export type Options = {
     headers?: { [x: string]: string };
     method?: string;
     url?: string;
     credentials?: 'omit' | 'same-origin' | 'include';
     body?: any;
+    ignoreStatus?: boolean;
 };
 
 export type StatusOK = {

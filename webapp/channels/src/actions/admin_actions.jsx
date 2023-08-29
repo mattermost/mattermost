@@ -444,9 +444,9 @@ export function restartServer() {
     };
 }
 
-export function ping() {
+export function ping(getServerStatus, deviceId) {
     return async () => {
-        const data = await Client4.ping();
+        const data = await Client4.ping(getServerStatus, deviceId);
         return data;
     };
 }
