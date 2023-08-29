@@ -90,7 +90,7 @@ func TestChannelIsValid(t *testing.T) {
 		o := o
 		o.Type = ChannelTypeDirect
 
-		o.Name = NewId() + "__" + NewId()
+		o.Name = GetDMNameFromIds(NewId(), NewId())
 		require.Nil(t, o.IsValid())
 
 		o.Name = "__" + NewId()

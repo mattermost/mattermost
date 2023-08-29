@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -676,7 +677,7 @@ func TestIsBotChannel(t *testing.T) {
 		{
 			Name: "a direct channel with another user",
 			Channel: &Channel{
-				Name: "user1__user2",
+				Name: model.GetDMNameFromIds("user1", "user2"),
 				Type: ChannelTypeDirect,
 			},
 			Expected: false,
@@ -684,7 +685,7 @@ func TestIsBotChannel(t *testing.T) {
 		{
 			Name: "a direct channel with the name containing the bot's ID first",
 			Channel: &Channel{
-				Name: "botUserID__user2",
+				Name: model.GetDMNameFromIds("botUserID", "user2"),
 				Type: ChannelTypeDirect,
 			},
 			Expected: true,
@@ -692,7 +693,7 @@ func TestIsBotChannel(t *testing.T) {
 		{
 			Name: "a direct channel with the name containing the bot's ID second",
 			Channel: &Channel{
-				Name: "user1__botUserID",
+				Name: model.GetDMNameFromIds("user1", "botUserID"),
 				Type: ChannelTypeDirect,
 			},
 			Expected: true,
