@@ -91,8 +91,8 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
         <div className={className}>
             <div className='post-code__overlay'>
                 <CopyButton content={code}/>
-                {header}
                 {pluginItems}
+                {header}
             </div>
             <div className='hljs'>
                 {lineNumbers}
