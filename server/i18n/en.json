@@ -337,7 +337,7 @@
   },
   {
     "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
-    "translation": "You are not allowed to update the name, display_name, and purpose of a direct or group messages."
+    "translation": "You are not allowed to update the name, display_name, and purpose of direct or group messages."
   },
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
@@ -425,7 +425,7 @@
   },
   {
     "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
-    "translation": "You are not allowed to update the name, display_name, and purpose of a direct or group messages."
+    "translation": "You are not allowed to update the name, display_name, and purpose of direct or group messages."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
