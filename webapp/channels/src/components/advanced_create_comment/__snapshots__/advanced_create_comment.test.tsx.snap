@@ -10,13 +10,62 @@ exports[`components/AdvancedCreateComment should match snapshot when cannot post
     badConnection={false}
     canPost={false}
     canUploadFiles={true}
-    channelId=""
-    currentUserId=""
+    channelId="g6139tbospd18cmxroesdk3kkc"
+    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     draft={
       Object {
         "channelId": "",
         "createAt": 0,
-        "fileInfos": Array [],
+        "fileInfos": Array [
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+        ],
         "message": "Test message",
         "rootId": "",
         "updateAt": 0,
@@ -81,12 +130,16 @@ exports[`components/AdvancedCreateComment should match snapshot, comment with me
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
-    channelId=""
-    currentUserId=""
+    channelId="g6139tbospd18cmxroesdk3kkc"
+    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     draft={
       Object {
+        "channelId": "",
+        "createAt": 0,
         "fileInfos": Array [],
         "message": "Test message",
+        "rootId": "",
+        "updateAt": 0,
         "uploadsInProgress": Array [],
       }
     }
@@ -142,19 +195,69 @@ exports[`components/AdvancedCreateComment should match snapshot, emoji picker di
 <form
   onSubmit={[Function]}
 >
+  <FileLimitStickyBanner />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
-    channelId=""
-    currentUserId=""
+    channelId="g6139tbospd18cmxroesdk3kkc"
+    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     draft={
       Object {
         "channelId": "",
         "createAt": 0,
-        "fileInfos": Array [],
+        "fileInfos": Array [
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+        ],
         "message": "Test message",
         "rootId": "",
         "updateAt": 0,
@@ -219,8 +322,8 @@ exports[`components/AdvancedCreateComment should match snapshot, empty comment 1
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
-    channelId=""
-    currentUserId=""
+    channelId="g6139tbospd18cmxroesdk3kkc"
+    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     draft={
       Object {
         "channelId": "",
@@ -284,19 +387,69 @@ exports[`components/AdvancedCreateComment should match snapshot, non-empty messa
 <form
   onSubmit={[Function]}
 >
+  <FileLimitStickyBanner />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
     badConnection={false}
     canPost={true}
     canUploadFiles={true}
-    channelId=""
-    currentUserId=""
+    channelId="g6139tbospd18cmxroesdk3kkc"
+    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
     draft={
       Object {
         "channelId": "",
         "createAt": 0,
-        "fileInfos": Array [],
+        "fileInfos": Array [
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+        ],
         "message": "Test message",
         "rootId": "",
         "updateAt": 0,
