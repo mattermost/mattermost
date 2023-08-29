@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect} from 'react';
+import {useCallback, useEffect} from 'react';
 
 import {useDispatch} from 'react-redux';
 
@@ -87,7 +87,7 @@ function WindowSizeObserver() {
         };
     }, [handleSidebarMediaQueryChangeEvent, setSidebarSizeWhenWindowResized, updateSidebarSize]);
 
-    return <></>;
+    return null;
 }
 
 export default WindowSizeObserver;
