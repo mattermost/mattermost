@@ -3,11 +3,8 @@
 
 /* eslint-disable no-console, no-process-env */
 
-const fs = require('fs');
 const path = require('path');
-
 const url = require('url');
-
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExternalTemplateRemotesPlugin = require('external-remotes-plugin');
 const webpack = require('webpack');
@@ -134,6 +131,9 @@ var config = {
             'mattermost-redux/test': 'packages/mattermost-redux/test',
             'mattermost-redux': 'packages/mattermost-redux/src',
             '@mui/styled-engine': '@mui/styled-engine-sc',
+
+            // This alias restricts single version of styled components acros all packages
+            'styled-components': path.resolve(__dirname, '..', 'node_modules', 'styled-components'),
         },
         extensions: ['.ts', '.tsx', '.js', '.jsx'],
         fallback: {

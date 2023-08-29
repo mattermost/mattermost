@@ -18,12 +18,14 @@ import {GenericAction} from 'mattermost-redux/types/actions';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 
 import PluginManagement from './plugin_management';
+import {streamlinedMarketplaceEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 function mapStateToProps(state: any) {
     return {
         plugins: state.entities.admin.plugins,
         pluginStatuses: state.entities.admin.pluginStatuses,
         appsFeatureFlagEnabled: appsFeatureFlagEnabled(state),
+        streamlinedMarketplaceFlagEnabled: streamlinedMarketplaceEnabled(state),
     };
 }
 

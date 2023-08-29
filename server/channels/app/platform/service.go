@@ -204,7 +204,11 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Timer layer
 			// |
 			// Cache layer
-			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
+			var err error
+			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
+			if err != nil {
+				return nil, err
+			}
 
 			searchStore := searchlayer.NewSearchLayer(
 				retrylayer.New(ps.sqlStore),
@@ -288,7 +292,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	// Step 7: Init License
 	if model.BuildEnterpriseReady == "true" {
-		ps.LoadLicense()
+		ps.TriggerLoadLicense()
 	}
 
 	// Step 8: Init Metrics Server depends on step 6 (store) and 7 (license)
@@ -349,9 +353,7 @@ func (ps *PlatformService) Start() error {
 		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
 
 		message.Add("config", ps.ClientConfigWithComputed())
-		ps.Go(func() {
-			ps.Publish(message)
-		})
+		ps.Publish(message)
 
 		if err := ps.ReconfigureLogger(); err != nil {
 			mlog.Error("Error re-configuring logging after config change", mlog.Err(err))
@@ -364,9 +366,7 @@ func (ps *PlatformService) Start() error {
 
 		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
 		message.Add("license", ps.GetSanitizedClientLicense())
-		ps.Go(func() {
-			ps.Publish(message)
-		})
+		ps.Publish(message)
 
 	})
 	return nil

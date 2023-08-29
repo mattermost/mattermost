@@ -11,6 +11,7 @@ permissions: read-all
 jobs:
   analysis:
     name: Scorecards analysis
+    if: github.repository_owner == 'mattermost'
     runs-on: ubuntu-latest
     permissions:
       # Needed to upload the results to code-scanning dashboard.

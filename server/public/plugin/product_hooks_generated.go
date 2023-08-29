@@ -118,6 +118,10 @@ type ConfigurationWillBeSavedIFace interface {
 	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
 }
 
+type NotificationWillBePushedIFace interface {
+	NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
+}
+
 type HooksAdapter struct {
 	implemented  map[int]struct{}
 	productHooks any
@@ -365,6 +369,15 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		return nil, errors.New("hook has ConfigurationWillBeSaved method but does not implement plugin.ConfigurationWillBeSaved interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements NotificationWillBePushed interface.
+	tt = reflect.TypeOf((*NotificationWillBePushedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[NotificationWillBePushedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("NotificationWillBePushed"); ok {
+		return nil, errors.New("hook has NotificationWillBePushed method but does not implement plugin.NotificationWillBePushed interface")
+	}
+
 	return a, nil
 }
 
@@ -599,5 +612,14 @@ func (a *HooksAdapter) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Co
 	}
 
 	return a.productHooks.(ConfigurationWillBeSavedIFace).ConfigurationWillBeSaved(newCfg)
+
+}
+
+func (a *HooksAdapter) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
+	if _, ok := a.implemented[NotificationWillBePushedID]; !ok {
+		panic("product hooks must implement NotificationWillBePushed")
+	}
+
+	return a.productHooks.(NotificationWillBePushedIFace).NotificationWillBePushed(pushNotification, userID)
 
 }
