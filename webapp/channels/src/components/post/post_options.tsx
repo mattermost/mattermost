@@ -8,7 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import {Posts} from 'mattermost-redux/constants/index';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
-import {Locations} from 'utils/constants';
+import {Locations, Constants} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 import ActionsMenu from 'components/actions_menu';
 import DotMenu from 'components/dot_menu';
@@ -20,7 +20,6 @@ import CommentIcon from 'components/common/comment_icon';
 import {Emoji} from '@mattermost/types/emojis';
 import {Post} from '@mattermost/types/posts';
 import classnames from 'classnames';
-import {useFollowElementDimensions} from '@mattermost/components';
 
 type Props = {
     post: Post;
@@ -130,7 +129,7 @@ const PostOptions = (props: Props): JSX.Element => {
     if (showRecentlyUsedReactions) {
         const showMoreReactions = props.isExpanded ||
             props.location === 'CENTER' ||
-            (document.getElementById('sidebar-right')?.getBoundingClientRect().width ?? 0) > 400;
+            (document.getElementById('sidebar-right')?.getBoundingClientRect().width ?? 0) > Constants.SIDEBAR_MINIMUM_WIDTH;
 
         showRecentReactions = (
             <PostRecentReactions
