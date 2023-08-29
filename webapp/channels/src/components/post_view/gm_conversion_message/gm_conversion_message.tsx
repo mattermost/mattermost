@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from "react";
+import React from 'react';
 import {Post} from '@mattermost/types/posts';
-import {renderUsername} from "components/post_markdown/system_message_helpers";
-import {FormattedMessage, useIntl} from "react-intl";
+import {renderUsername} from 'components/post_markdown/system_message_helpers';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 type Props = {
-    post: Post,
+    post: Post;
 }
 function GMConversionMessage(props: Props): JSX.Element {
     const intl = useIntl();
@@ -22,7 +22,7 @@ function GMConversionMessage(props: Props): JSX.Element {
     }
 
     const renderedConvertedByUsername = renderUsername(convertedByUsername);
-    const gmMembers =  gmMembersDuringConversion.map(renderUsername);
+    const gmMembers = gmMembersDuringConversion.map(renderUsername);
 
     return (
         <FormattedMessage
@@ -33,7 +33,7 @@ function GMConversionMessage(props: Props): JSX.Element {
                 gmMembers: intl.formatList(gmMembers),
             }}
         />
-    )
+    );
 }
 
 export default GMConversionMessage;

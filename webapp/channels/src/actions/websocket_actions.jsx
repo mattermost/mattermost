@@ -79,7 +79,7 @@ import {
     getCurrentTeamId,
     getCurrentTeamUrl,
     getTeam,
-    getRelativeTeamUrl
+    getRelativeTeamUrl,
 } from 'mattermost-redux/selectors/entities/teams';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {

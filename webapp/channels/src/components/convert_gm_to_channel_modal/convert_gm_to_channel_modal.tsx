@@ -19,9 +19,9 @@ import {Team} from '@mattermost/types/teams';
 import {Client4} from 'mattermost-redux/client';
 import TeamSelector from 'components/convert_gm_to_channel_modal/team_selector/team_selector';
 import {trackEvent} from 'actions/telemetry_actions';
-import loadingIcon from "images/spinner-48x48-blue.apng";
-import classNames from "classnames";
-import NoCommonTeamsError from "components/convert_gm_to_channel_modal/no_common_teams/no_common_teams";
+import loadingIcon from 'images/spinner-48x48-blue.apng';
+import classNames from 'classnames';
+import NoCommonTeamsError from 'components/convert_gm_to_channel_modal/no_common_teams/no_common_teams';
 
 export type Props = {
     onExited: () => void;
@@ -54,7 +54,7 @@ const ConvertGmToChannelModal = (props: Props) => {
 
     const [commonTeamsById, setCommonTeamsById] = useState<{[id: string]: Team}>({});
     const [selectedTeamId, setSelectedTeamId] = useState<string>();
-    const [commonTeamsFetched, setCommonTeamsFetched] = useState<Boolean>(false);
+    const [commonTeamsFetched, setCommonTeamsFetched] = useState<boolean>(false);
     const [loadingAnimationTimeout, setLoadingAnimationTimeout] = useState<boolean>(false);
 
     useEffect(() => {
@@ -89,7 +89,6 @@ const ConvertGmToChannelModal = (props: Props) => {
         const {actions} = props;
         actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, channelName.trim(), channelURL.trim());
         if (props.channelsCategoryId) {
-            console.log(`props.channelsCategoryId: ${props.channelsCategoryId}`);
             actions.moveChannelsInSidebar(props.channelsCategoryId, 0, props.channel.id, false);
         }
         trackEvent('actions', 'convert_group_message_to_private_channel', {channel_id: props.channel.id});
@@ -146,9 +145,9 @@ const ConvertGmToChannelModal = (props: Props) => {
             handleConfirm={showLoader() ? undefined : handleConfirm}
             onExited={handleCancel}
             autoCloseOnConfirmButton={false}
-            isConfirmDisabled={selectedTeamId == undefined || channelName === ''}
+            isConfirmDisabled={selectedTeamId === undefined || channelName === ''}
         >
-            <div className={classNames({'convert-gm-to-channel-modal-body': true, 'loading': showLoader()})}>
+            <div className={classNames({'convert-gm-to-channel-modal-body': true, loading: showLoader()})}>
                 {
                     showLoader() &&
                     <div className='loadingIndicator'>

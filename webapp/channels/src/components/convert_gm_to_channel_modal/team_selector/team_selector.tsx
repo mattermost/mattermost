@@ -5,8 +5,8 @@ import React, {useCallback, useEffect, useState} from 'react';
 import DropdownInput, {ValueType} from 'components/dropdown_input';
 import {Team} from '@mattermost/types/teams';
 import {useIntl} from 'react-intl';
-import {useSelector} from "react-redux";
-import {getCurrentLocale} from "selectors/i18n";
+import {useSelector} from 'react-redux';
+import {getCurrentLocale} from 'selectors/i18n';
 
 export type Props = {
     teamsById: {[id: string]: Team};

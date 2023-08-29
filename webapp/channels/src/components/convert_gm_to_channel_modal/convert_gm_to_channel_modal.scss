@@ -1,56 +1,52 @@
 #convert-gm-to-channel-modal {
-  .convert-gm-to-channel-modal-body {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      transition: height 200ms ease;
-      height: 320px;
+    .convert-gm-to-channel-modal-body {
+        display: flex;
+        height: 320px;
+        flex-direction: column;
+        gap: 20px;
+        overflow-y: visible;
+        transition: height 200ms ease;
 
-    &.loading {
-      height: 152px;
+        &.loading {
+            height: 152px;
+        }
+
+        &.error {
+            height: unset;
+        }
+
+        .new-channel-modal__url {
+            margin-top: -20px;
+        }
+
+        .loadingIndicator {
+            margin-bottom: 48px;
+
+            img {
+                display: block;
+                width: 32px;
+                height: 32px;
+                margin: 36px auto;
+            }
+        }
     }
 
-    &.error {
-      height: unset;
+    .DropDown__menu {
+        z-index: 999;
+        max-height: 120px;
     }
 
-    .new-channel-modal__url {
-      margin-top: -20px;
+    .DropDown__menu-list {
+        z-index: 999;
+        max-height: 120px;
     }
 
-    .loadingIndicator {
-      margin-bottom: 48px;
-
-      img {
-        margin: 36px auto;
-        width: 32px;
-        height: 32px;
-        display: block;
-      }
+    .modal-body {
+        overflow: visible;
     }
-  }
 
-  .DropDown__menu {
-    z-index: 999;
-    max-height: 120px;
-  }
-
-  .DropDown__menu-list {
-    z-index: 999;
-    max-height: 120px;
-  }
-
-  .convert-gm-to-channel-modal-body {
-    overflow-y: visible;
-  }
-
-  .modal-body {
-    overflow: visible;
-  }
-
-  .GenericModal__button.delete.disabled {
-    color: var(--button-color) !important;
-    opacity: 0.65;
-  }
+    .GenericModal__button.delete.disabled {
+        color: var(--button-color) !important;
+        opacity: 0.65;
+    }
 }
-

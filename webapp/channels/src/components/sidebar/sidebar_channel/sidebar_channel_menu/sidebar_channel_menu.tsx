@@ -27,7 +27,7 @@ import {copyToClipboard} from 'utils/utils';
 
 import type {PropsFromRedux, OwnProps} from './index';
 import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal';
-import {isGuest} from "mattermost-redux/utils/user_utils";
+import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 type Props = PropsFromRedux & OwnProps;
 

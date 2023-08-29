@@ -16,7 +16,7 @@ import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 import {Channel} from '@mattermost/types/channels';
 import {Post} from '@mattermost/types/posts';
 import {Team} from '@mattermost/types/teams';
-import GMConversionMessage from "components/post_view/gm_conversion_message/gm_conversion_message";
+import GMConversionMessage from 'components/post_view/gm_conversion_message/gm_conversion_message';
 
 export function renderUsername(value: string): ReactNode {
     const username = (value[0] === '@') ? value : `@${value}`;
@@ -361,33 +361,6 @@ function renderChannelUnarchivedMessage(post: Post): ReactNode {
     );
 }
 
-function renderGMConvertedToChannelMessage(post: Post): ReactNode {
-    console.log('renderGMConvertedToChannelMessage!!!!!');
-    console.log(post.props);
-
-    const convertedByUsername = post.props.convertedByUsername;
-    const gmMembersDuringConversion = post.props.gmMembersDuringConversion as string[];
-
-    const renderedConvertedByUsername = renderUsername(convertedByUsername);
-    const renderedGMMembers =  gmMembersDuringConversion.map(renderUsername).join(', ')
-
-    if (!convertedByUsername || !gmMembersDuringConversion) {
-        // returning null renders the original post.message
-        return null;
-    }
-
-    return (
-        <FormattedMessage
-            id='api.channel.group_message_converted_to.private_channel'
-            defaultMessage='{convertedBy} created this channel from a group message with {gmMembers}.'
-            values={{
-                convertedBy: renderedConvertedByUsername,
-                gmMembers: renderedGMMembers,
-            }}
-        />
-    )
-}
-
 function renderMeMessage(post: Post): ReactNode {
     // Trim off the leading and trailing asterisk added to /me messages
     const message = post.message.replace(/^\*|\*$/g, '');
@@ -412,13 +385,10 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.PURPOSE_CHANGE]: renderPurposeChangeMessage,
     [Posts.POST_TYPES.CHANNEL_DELETED]: renderChannelDeletedMessage,
     [Posts.POST_TYPES.CHANNEL_UNARCHIVED]: renderChannelUnarchivedMessage,
-    // [Posts.POST_TYPES.GM_CONVERTED_TO_CHANNEL]: renderGMConvertedToChannelMessage,
     [Posts.POST_TYPES.ME]: renderMeMessage,
 };
 
 export function renderSystemMessage(post: Post, currentTeam: Team, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string): ReactNode {
-    console.log(`renderSystemMessage post.type ${post.type} post.message: ${post.message}`);
-
     const isEphemeral = Utils.isPostEphemeral(post);
     if (isEphemeral && post.props?.type === Posts.POST_TYPES.REMINDER) {
         return renderReminderACKMessage(post, currentTeam, Boolean(isMilitaryTime), timezone);
@@ -462,7 +432,7 @@ export function renderSystemMessage(post: Post, currentTeam: Team, channel: Chan
         // which cannot be done outside a react component.
         return (
             <GMConversionMessage post={post}/>
-        )
+        );
     }
 
     return null;
