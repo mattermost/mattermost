@@ -3148,7 +3148,8 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomURLSchemes     []string `access:"site_customization"`
+	CustomURLSchemes     []string `access:"site_posts"`
+	MaxMarkdownNodes     *int     `access:"site_posts"`
 	ExperimentalTimezone *bool    `access:"experimental_features"`
 }
 
@@ -3156,6 +3157,10 @@ func (s *DisplaySettings) SetDefaults() {
 	if s.CustomURLSchemes == nil {
 		customURLSchemes := []string{}
 		s.CustomURLSchemes = customURLSchemes
+	}
+
+	if s.MaxMarkdownNodes == nil {
+		s.MaxMarkdownNodes = NewInt(0)
 	}
 
 	if s.ExperimentalTimezone == nil {
