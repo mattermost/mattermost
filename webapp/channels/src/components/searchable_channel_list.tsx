@@ -307,13 +307,33 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
     getFilterLabel = () => {
         switch (this.props.filter) {
         case Filter.Archived:
-            return <span>{localizeMessage('more_channels.show_archived_channels', 'Channel Type: Archived')}</span>;
+            return (
+                <FormattedMessage
+                    id='more_channels.show_archived_channels'
+                    defaultMessage='Channel Type: Archived'
+                />
+            );
         case Filter.Public:
-            return <span>{localizeMessage('more_channels.show_public_channels', 'Channel Type: Public')}</span>;
+            return (
+                <FormattedMessage
+                    id='more_channels.show_public_channels'
+                    defaultMessage='Channel Type: Public'
+                />
+            );
         case Filter.Private:
-            return <span>{localizeMessage('more_channels.show_private_channels', 'Channel Type: Private')}</span>;
+            return (
+                <FormattedMessage
+                    id='more_channels.show_private_channels'
+                    defaultMessage='Channel Type: Private'
+                />
+            );
         default:
-            return <span>{localizeMessage('more_channels.show_all_channels', 'Channel Type: All')}</span>;
+            return (
+                <FormattedMessage
+                    id='more_channels.show_all_channels'
+                    defaultMessage='Channel Type: All'
+                />
+            );
         }
     };
 
