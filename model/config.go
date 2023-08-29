@@ -110,7 +110,6 @@ const (
 	ServiceSettingsDefaultListenAndAddress = ":8065"
 	ServiceSettingsDefaultGfycatAPIKey     = "2_KtH_W5"
 	ServiceSettingsDefaultGfycatAPISecret  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
-	ServiceSettingsDefaultGiphySdkKey      = "yaRojIWaxmKhtSMBaT3uLCAHm0kpMLKw"
 	ServiceSettingsDefaultDeveloperFlags   = ""
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
@@ -735,7 +734,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.GiphySdkKey == nil {
 		// This is only applicable for v7.8 ESR
-		s.GiphySdkKey = NewString(ServiceSettingsDefaultGiphySdkKey)
+		s.GiphySdkKey = &GiphySdkKey
 	}
 
 	if s.ExperimentalEnableAuthenticationTransfer == nil {

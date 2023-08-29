@@ -14,6 +14,8 @@ const (
 	EmojiSortByName    = "name"
 )
 
+var GiphySdkKey string
+
 var EmojiPattern = regexp.MustCompile(`:[a-zA-Z0-9_+-]+:`)
 
 type Emoji struct {
