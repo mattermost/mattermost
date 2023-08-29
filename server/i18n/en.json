@@ -2392,10 +2392,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link previews have been disabled by the system administrator."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
   },
@@ -5306,6 +5302,10 @@
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
     "translation": "Some users not found"
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Unable to archive imported channel."
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -9797,7 +9797,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 112+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",

@@ -23,10 +23,11 @@ type EventData struct {
 
 // EventActor is the subject triggering the event
 type EventActor struct {
-	UserId    string `json:"user_id"`
-	SessionId string `json:"session_id"`
-	Client    string `json:"client"`
-	IpAddress string `json:"ip_address"`
+	UserId        string `json:"user_id"`
+	SessionId     string `json:"session_id"`
+	Client        string `json:"client"`
+	IpAddress     string `json:"ip_address"`
+	XForwardedFor string `json:"x_forwarded_for"`
 }
 
 // EventMeta is a key-value store to store related information to the event that is not directly related to the modified entity

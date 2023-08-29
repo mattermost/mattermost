@@ -94,6 +94,9 @@ exports[`components/post_view/post_list_row should render more messages loading 
 
 exports[`components/post_view/post_list_row should render new messages line 1`] = `
 <NewMessageSeparator
+  channelId="channel_id_1"
+  lastViewedAt={0}
+  newMessagesSeparatorActions={Array []}
   separatorId="start-of-new-messages"
 />
 `;
