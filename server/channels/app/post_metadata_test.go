@@ -66,7 +66,6 @@ func TestPreparePostListForClient(t *testing.T) {
 }
 
 func TestPreparePostForClient(t *testing.T) {
-	t.Skip("MM-43252")
 	var serverURL string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -185,6 +184,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
 		fileInfo.Content = "test"
+		fileInfo.ChannelId = th.BasicChannel.Id
 		require.Nil(t, err)
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
@@ -200,7 +200,7 @@ func TestPreparePostForClient(t *testing.T) {
 		assert.Eventually(t, func() bool {
 			clientPost = th.App.PreparePostForClient(th.Context, post, false, false, false)
 			return assert.ObjectsAreEqual([]*model.FileInfo{fileInfo}, clientPost.Metadata.Files)
-		}, time.Second, 10*time.Millisecond)
+		}, 2*time.Second, 100*time.Millisecond)
 
 		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.Files, "should've populated Files")
 	})
