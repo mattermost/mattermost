@@ -58,9 +58,10 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
         menuButton={
           Object {
             "children": <React.Fragment>
-              <span>
-                Channel Type: All
-              </span>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Channel Type: All"
+                id="more_channels.show_all_channels"
+              />
               <ChevronDownIcon
                 color="rgba(var(--center-channel-color-rgb), 0.64)"
                 size={16}
