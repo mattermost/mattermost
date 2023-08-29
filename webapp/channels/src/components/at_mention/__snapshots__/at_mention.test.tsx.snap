@@ -1,5 +1,32 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`components/AtMention should match snapshot when mentioning a group followed by punctuation 1`] = `
+<Fragment>
+  <span>
+    <Memo(AtMentionGroup)
+      group={
+        Object {
+          "allow_reference": true,
+          "create_at": 1,
+          "delete_at": 0,
+          "description": "",
+          "display_name": "group_display_name",
+          "has_syncables": false,
+          "id": "qwerty1",
+          "member_count": 0,
+          "name": "developers",
+          "remote_id": "",
+          "scheme_admin": false,
+          "source": "",
+          "update_at": 1,
+        }
+      }
+    />
+  </span>
+  .
+</Fragment>
+`;
+
 exports[`components/AtMention should match snapshot when mentioning a group that is allowed reference 1`] = `
 <span>
   <Memo(AtMentionGroup)
