@@ -14,7 +14,7 @@ import Constants, {A11yCustomEventTypes, A11yFocusEventDetail, AppEvents, Locati
 
 import * as PostUtils from 'utils/post_utils';
 
-import {PostPluginComponent} from 'types/store/plugins';
+import {PostPluginComponent, PluginComponent} from 'types/store/plugins';
 
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import DateSeparator from 'components/post_view/date_separator';
@@ -118,6 +118,7 @@ export type Props = {
     isPostPriorityEnabled: boolean;
     isCardOpen?: boolean;
     canDelete?: boolean;
+    pluginActions: PluginComponent[];
 };
 
 const PostComponent = (props: Props): JSX.Element => {
@@ -513,7 +514,6 @@ const PostComponent = (props: Props): JSX.Element => {
             {(isSearchResultItem || (props.location !== Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
             <PostAriaLabelDiv
                 ref={postRef}
-                role='listitem'
                 id={getTestId()}
                 data-testid={props.location === 'CENTER' ? 'postView' : ''}
                 tabIndex={0}
@@ -528,7 +528,7 @@ const PostComponent = (props: Props): JSX.Element => {
                         className='search-channel__name__container'
                         aria-hidden='true'
                     >
-                        {Boolean(isSearchResultItem) &&
+                        {(Boolean(isSearchResultItem) || props.isFlaggedPosts) &&
                         <span className='search-channel__name'>
                             {channelDisplayName}
                         </span>
@@ -542,7 +542,7 @@ const PostComponent = (props: Props): JSX.Element => {
                             />
                         </span>
                         }
-                        {Boolean(isSearchResultItem) && Boolean(props.teamDisplayName) &&
+                        {(Boolean(isSearchResultItem) || props.isFlaggedPosts) && Boolean(props.teamDisplayName) &&
                         <span className='search-team__name'>
                             {props.teamDisplayName}
                         </span>

@@ -18,6 +18,7 @@ import {CommandArgs} from '@mattermost/types/integrations';
 import {Group, GroupSource} from '@mattermost/types/groups';
 import {FileInfo} from '@mattermost/types/files';
 import {Emoji} from '@mattermost/types/emojis';
+import {PluginComponent} from 'types/store/plugins';
 
 import * as GlobalActions from 'actions/global_actions';
 import Constants, {
@@ -234,6 +235,7 @@ type Props = {
     channelMemberCountsByGroup: ChannelMemberCountsByGroup;
     useLDAPGroupMentions: boolean;
     useCustomGroupMentions: boolean;
+    postEditorActions: PluginComponent[];
 }
 
 type State = {
@@ -585,6 +587,9 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 channelTimezoneCount,
                 memberNotifyCount,
                 onConfirm: () => this.handleNotifyAllConfirmation(),
+                onExited: () => {
+                    this.isDraftSubmitting = false;
+                },
             },
         });
     };
@@ -689,7 +694,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             return;
         } else if (memberNotifyCount > 0) {
             this.showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount);
-            this.isDraftSubmitting = false;
             return;
         }
 
@@ -1396,7 +1400,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.setState({showEmojiPicker: false});
     };
 
-    setMessageAndCaretPostion = (newMessage: string, newCaretPosition: number) => {
+    setMessageAndCaretPosition = (newMessage: string, newCaretPosition: number) => {
         const textbox = this.textboxRef.current?.getInputBox();
 
         this.setState({
@@ -1415,7 +1419,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     prefillMessage = (message: string, shouldFocus?: boolean) => {
-        this.setMessageAndCaretPostion(message, message.length);
+        this.setMessageAndCaretPosition(message, message.length);
 
         if (shouldFocus) {
             const inputBox = this.textboxRef.current?.getInputBox();
@@ -1437,7 +1441,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
         if (this.state.message === '') {
             const newMessage = ':' + emojiAlias + ': ';
-            this.setMessageAndCaretPostion(newMessage, newMessage.length);
+            this.setMessageAndCaretPosition(newMessage, newMessage.length);
         } else {
             const {message} = this.state;
             const {firstPiece, lastPiece} = splitMessageBasedOnCaretPosition(this.state.caretPosition, message);
@@ -1448,7 +1452,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
             const newCaretPosition =
                 firstPiece === '' ? `:${emojiAlias}: `.length : `${firstPiece} :${emojiAlias}: `.length;
-            this.setMessageAndCaretPostion(newMessage, newCaretPosition);
+            this.setMessageAndCaretPosition(newMessage, newCaretPosition);
         }
 
         this.handleEmojiClose();
@@ -1558,6 +1562,38 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     render() {
         const {draft, canPost} = this.props;
 
+        const pluginItems = this.props.postEditorActions?.
+            map((item) => {
+                if (!item.component) {
+                    return null;
+                }
+
+                const Component = item.component as any;
+                return (
+                    <Component
+                        key={item.id}
+                        draft={draft}
+                        getSelectedText={() => {
+                            const input = this.textboxRef.current?.getInputBox();
+
+                            return {
+                                start: input.selectionStart,
+                                end: input.selectionEnd,
+                            };
+                        }}
+                        updateText={(message: string) => {
+                            this.setState({
+                                message,
+                            });
+                            this.handleDraftChange({
+                                ...this.props.draft,
+                                message,
+                            });
+                        }}
+                    />
+                );
+            });
+
         let centerClass = '';
         if (!this.props.fullWidthTextBox) {
             centerClass = 'center';
@@ -1647,6 +1683,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                                 disabled={this.props.shouldShowPreview}
                             />
                         ),
+                        ...(pluginItems || []),
                     ].filter(Boolean)}
                 />
             </form>

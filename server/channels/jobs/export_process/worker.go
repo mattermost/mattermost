@@ -19,8 +19,7 @@ const jobName = "ExportProcess"
 
 type AppIface interface {
 	configservice.ConfigService
-	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
-	WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
+	WriteExportFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
 	BulkExport(ctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError
 	Log() *mlog.Logger
 }
@@ -39,13 +38,18 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 			opts.IncludeAttachments = true
 		}
 
+		includeArchivedChannels, ok := job.Data["include_archived_channels"]
+		if ok && includeArchivedChannels == "true" {
+			opts.IncludeArchivedChannels = true
+		}
+
 		outPath := *app.Config().ExportSettings.Directory
 		exportFilename := job.Id + "_export.zip"
 
 		rd, wr := io.Pipe()
 
 		go func() {
-			_, appErr := app.WriteFileContext(context.Background(), rd, filepath.Join(outPath, exportFilename))
+			_, appErr := app.WriteExportFileContext(context.Background(), rd, filepath.Join(outPath, exportFilename))
 			if appErr != nil {
 				// we close the reader here to prevent a deadlock when the bulk exporter tries to
 				// write into the pipe while app.WriteFile has already returned. The error will be

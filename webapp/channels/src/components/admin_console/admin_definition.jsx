@@ -55,14 +55,14 @@ import TeamSettings from './team_channel_settings/team';
 import TeamDetails from './team_channel_settings/team/details';
 import ChannelSettings from './team_channel_settings/channel';
 import ChannelDetails from './team_channel_settings/channel/details';
-import PasswordSettings from './password_settings.jsx';
+import PasswordSettings from './password_settings';
 import PushNotificationsSettings from './push_settings';
 import DataRetentionSettings from './data_retention_settings';
 import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
 import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
 import MessageExportSettings from './message_export_settings.jsx';
 import DatabaseSettings from './database_settings.jsx';
-import ElasticSearchSettings from './elasticsearch_settings.jsx';
+import ElasticSearchSettings from './elasticsearch_settings';
 import BleveSettings from './bleve_settings';
 import FeatureFlags from './feature_flags.tsx';
 import ClusterSettings from './cluster_settings.jsx';
@@ -2137,6 +2137,16 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_TEXT,
+                        key: 'SupportSettings.ForgotPasswordLink',
+                        label: t('admin.support.forgotPasswordTitle'),
+                        label_default: 'Forgot Password Custom Link:',
+                        help_text: t('admin.support.forgotPasswordDesc'),
+                        help_text_default: 'The URL for the Forgot Password link on the Mattermost login page. If this field is empty the Forgot Password link takes users to the Password Reset page.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_TEXT,
                         key: 'SupportSettings.ReportAProblemLink',
                         label: t('admin.support.problemTitle'),
                         label_default: 'Report a Problem Link:',
@@ -2343,7 +2353,7 @@ const AdminDefinition = {
                         label: t('admin.privacy.showEmailTitle'),
                         label_default: 'Show Email Address:',
                         help_text: t('admin.privacy.showEmailDescription'),
-                        help_text_default: 'When false, hides the email address of members from everyone except System Administrators.',
+                        help_text_default: 'When false, hides the email address of members from everyone except System Administrators and the System Roles with read/write access to Compliance, Billing, or User Management.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                     },
                     {
@@ -6090,36 +6100,7 @@ const AdminDefinition = {
                         label: t('admin.customization.enableGifPickerTitle'),
                         label_default: 'Enable GIF Picker:',
                         help_text: t('admin.customization.enableGifPickerDesc'),
-                        help_text_default: 'Allow users to select GIFs from the emoji picker via a Gfycat integration.',
-                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
-                    },
-                    {
-                        type: Constants.SettingsTypes.TYPE_TEXT,
-                        key: 'ServiceSettings.GfycatAPIKey',
-                        label: t('admin.customization.gfycatApiKey'),
-                        label_default: 'Gfycat API Key:',
-                        help_text: t('admin.customization.gfycatApiKeyDescription'),
-                        help_text_default: 'Request an API key at <link>https://developers.gfycat.com/signup/#</link>. Enter the client ID you receive via email to this field. When blank, uses the default API key provided by Gfycat.',
-                        help_text_markdown: false,
-                        help_text_values: {
-                            link: (msg) => (
-                                <ExternalLink
-                                    location='admin_console'
-                                    href='https://developers.gfycat.com/signup/#'
-                                >
-                                    {msg}
-                                </ExternalLink>
-                            ),
-                        },
-                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
-                    },
-                    {
-                        type: Constants.SettingsTypes.TYPE_TEXT,
-                        key: 'ServiceSettings.GfycatAPISecret',
-                        label: t('admin.customization.gfycatApiSecret'),
-                        label_default: 'Gfycat API Secret:',
-                        help_text: t('admin.customization.gfycatApiSecretDescription'),
-                        help_text_default: 'The API secret generated by Gfycat for your API key. When blank, uses the default API secret provided by Gfycat.',
+                        help_text_default: 'Allows users to select GIFs from the emoji picker.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
                     },
                 ],

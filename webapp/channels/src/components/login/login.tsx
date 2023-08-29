@@ -59,6 +59,7 @@ import {setCSRFFromCookie} from 'utils/utils';
 import LoginMfa from './login_mfa';
 
 import './login.scss';
+import ExternalLink from 'components/external_link';
 
 const MOBILE_SCREEN_WIDTH = 1200;
 
@@ -98,6 +99,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         CustomDescriptionText,
         SiteName,
         ExperimentalPrimaryTeam,
+        ForgotPasswordLink,
+        PasswordEnableForgotLink,
     } = useSelector(getConfig);
     const {IsLicensed} = useSelector(getLicense);
     const initializing = useSelector((state: GlobalState) => state.requests.users.logout.status === RequestStatus.SUCCESS || !state.storage.initialized);
@@ -360,8 +363,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const onWindowFocus = useCallback(() => {
         if (extraParam === Constants.SIGNIN_VERIFIED && emailParam) {
             passwordInput.current?.focus();
-        } else {
-            loginIdInput.current?.focus();
         }
     }, [emailParam, extraParam]);
 
@@ -703,6 +704,34 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         );
     };
 
+    const getResetPasswordLink = () => {
+        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false') {
+            return null;
+        }
+
+        if (ForgotPasswordLink) {
+            return (
+                <div className='login-body-card-form-link'>
+                    <ExternalLink href={ForgotPasswordLink}>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                    </ExternalLink>
+                </div>
+            );
+        }
+
+        if (enableSignInWithUsername || enableSignInWithEmail) {
+            return (
+                <div className='login-body-card-form-link'>
+                    <Link to='/reset_password'>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                    </Link>
+                </div>
+            );
+        }
+
+        return null;
+    };
+
     const getContent = () => {
         if (showMfa) {
             return (
@@ -802,13 +831,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             hasError={hasError}
                                             disabled={isWaiting}
                                         />
-                                        {(enableSignInWithUsername || enableSignInWithEmail) && (
-                                            <div className='login-body-card-form-link'>
-                                                <Link to='/reset_password'>
-                                                    {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
-                                                </Link>
-                                            </div>
-                                        )}
+                                        {getResetPasswordLink()}
                                         <SaveButton
                                             extraClasses='login-body-card-form-button-submit large'
                                             saving={isWaiting}

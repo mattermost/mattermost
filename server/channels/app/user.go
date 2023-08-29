@@ -284,14 +284,6 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: ruser.Id, Value: "0"}
 
 	preferences := model.Preferences{recommendedNextStepsPref, tutorialStepPref}
-
-	if a.Config().FeatureFlags.InsightsEnabled {
-		// We don't want to show the insights intro modal for new users
-		preferences = append(preferences, model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryInsights, Name: model.PreferenceNameInsights, Value: "{\"insights_modal_viewed\":true}"})
-	} else {
-		preferences = append(preferences, model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryInsights, Name: model.PreferenceNameInsights, Value: "{\"insights_modal_viewed\":false}"})
-	}
-
 	if err := a.Srv().Store().Preference().Save(preferences); err != nil {
 		c.Logger().Warn("Encountered error saving user preferences", mlog.Err(err))
 	}
@@ -316,7 +308,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	// table in CWS. This is then used to calculate how much the customers have to pay in addition for the extra users. If the
 	// workspace is currently on a monthly plan, then this function will not do anything.
 
-	if a.Channels().License().IsCloud() {
+	if a.Channels().License().IsCloud() && !ruser.IsRemote() {
 		go func(userId string) {
 			_, err := a.SendSubscriptionHistoryEvent(userId)
 			if err != nil {
@@ -443,6 +435,20 @@ func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 			return nil, model.NewAppError("GetUserByEmail", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetUserByEmail", MissingAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return user, nil
+}
+
+func (a *App) GetUserByRemoteID(remoteID string) (*model.User, *model.AppError) {
+	user, err := a.ch.srv.userService.GetUserByRemoteID(remoteID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetUserByRemoteID", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetUserByRemoteID", MissingAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return user, nil
@@ -1094,7 +1100,6 @@ func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, as
 }
 
 func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
-	userAuth.Password = ""
 	if _, err := a.Srv().Store().User().UpdateAuthData(userID, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -1270,6 +1275,17 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 
 	a.InvalidateCacheForUser(user.Id)
 	a.onUserProfileChange(user.Id)
+
+	if a.Channels().License().IsCloud() && prev.IsRemote() && !user.IsRemote() {
+		go func(userId string) {
+			_, err := a.SendSubscriptionHistoryEvent(userId)
+			if err != nil {
+				c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
+			}
+		}(user.Id)
+	}
+
+	newUser.Sanitize(map[string]bool{})
 
 	return newUser, nil
 }

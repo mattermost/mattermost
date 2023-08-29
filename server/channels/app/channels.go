@@ -35,19 +35,21 @@ type licenseSvc interface {
 
 // Channels contains all channels related state.
 type Channels struct {
-	srv        *Server
-	cfgSvc     product.ConfigService
-	filestore  filestore.FileBackend
-	licenseSvc licenseSvc
-	routerSvc  *routerService
+	srv             *Server
+	cfgSvc          product.ConfigService
+	filestore       filestore.FileBackend
+	exportFilestore filestore.FileBackend
+	licenseSvc      licenseSvc
+	routerSvc       *routerService
 
 	postActionCookieSecret []byte
 
-	pluginCommandsLock     sync.RWMutex
-	pluginCommands         []*PluginCommand
-	pluginsLock            sync.RWMutex
-	pluginsEnvironment     *plugin.Environment
-	pluginConfigListenerID string
+	pluginCommandsLock            sync.RWMutex
+	pluginCommands                []*PluginCommand
+	pluginsLock                   sync.RWMutex
+	pluginsEnvironment            *plugin.Environment
+	pluginConfigListenerID        string
+	pluginClusterLeaderListenerID string
 
 	productCommandsLock sync.RWMutex
 	productCommands     []*ProductCommand
@@ -91,10 +93,11 @@ func init() {
 			return NewChannels(services)
 		},
 		Dependencies: map[product.ServiceKey]struct{}{
-			ServerKey:            {},
-			product.ConfigKey:    {},
-			product.LicenseKey:   {},
-			product.FilestoreKey: {},
+			ServerKey:                  {},
+			product.ConfigKey:          {},
+			product.LicenseKey:         {},
+			product.FilestoreKey:       {},
+			product.ExportFilestoreKey: {},
 		},
 	})
 }
@@ -119,6 +122,7 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 		product.ConfigKey,
 		product.LicenseKey,
 		product.FilestoreKey,
+		product.ExportFilestoreKey,
 	}
 	for _, svcKey := range requiredServices {
 		svc, ok := services[svcKey]
@@ -139,6 +143,12 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 				return nil, errors.New("Filestore service did not satisfy FileBackend interface")
 			}
 			ch.filestore = filestore
+		case product.ExportFilestoreKey:
+			exportFilestore, ok := svc.(filestore.FileBackend)
+			if !ok {
+				return nil, errors.New("Export filestore service did not satisfy FileBackend interface")
+			}
+			ch.exportFilestore = exportFilestore
 		case product.LicenseKey:
 			svc, ok := svc.(licenseSvc)
 			if !ok {
