@@ -10,6 +10,10 @@
       height: 152px;
     }
 
+    &.error {
+      height: unset;
+    }
+
     .new-channel-modal__url {
       margin-top: -20px;
     }

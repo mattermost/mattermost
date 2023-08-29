@@ -21,6 +21,7 @@ import TeamSelector from 'components/convert_gm_to_channel_modal/team_selector/t
 import {trackEvent} from 'actions/telemetry_actions';
 import loadingIcon from "images/spinner-48x48-blue.apng";
 import classNames from "classnames";
+import NoCommonTeamsError from "components/convert_gm_to_channel_modal/no_common_teams/no_common_teams";
 
 export type Props = {
     onExited: () => void;
@@ -109,8 +110,24 @@ const ConvertGmToChannelModal = (props: Props) => {
                 handleConfirm={handleCancel}
                 onExited={handleCancel}
             >
-                <div className='convert-gm-to-channel-modal-body'>
+                <div className='convert-gm-to-channel-modal-body error'>
                     <AllMembersDeactivated/>
+                </div>
+            </GenericModal>
+        );
+    } else if (!showLoader() && Object.keys(commonTeamsById).length === 0) {
+        return (
+            <GenericModal
+                id='convert-gm-to-channel-modal'
+                className='convert-gm-to-channel-modal'
+                modalHeaderText={formatMessage({id: 'sidebar_left.sidebar_channel_modal.header', defaultMessage: 'Convert to Private Channel'})}
+                confirmButtonText={formatMessage({id: 'generic.okay', defaultMessage: 'Okay'})}
+                compassDesign={true}
+                handleConfirm={handleCancel}
+                onExited={handleCancel}
+            >
+                <div className='convert-gm-to-channel-modal-body error'>
+                    <NoCommonTeamsError/>
                 </div>
             </GenericModal>
         );

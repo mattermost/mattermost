@@ -45,6 +45,7 @@ const (
 	PostTypeChannelRestored        = "system_channel_restored"
 	PostTypeEphemeral              = "system_ephemeral"
 	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
+	PostTypeGMConvertedToChannel   = "system_gm_to_channel"
 	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
 	PostTypeSystemWarnMetricStatus = "warn_metric_status"
 	PostTypeMe                     = "me"
@@ -428,7 +429,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeAddBotTeamsChannels,
 		PostTypeSystemWarnMetricStatus,
 		PostTypeReminder,
-		PostTypeMe:
+		PostTypeMe,
+		PostTypeGMConvertedToChannel:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)

@@ -3569,8 +3569,8 @@ func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedBy
 	return clone.IsValid()
 }
 
-func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelID, convertedBy string) *model.AppError {
-	convertedByUser, appErr := a.GetUser(convertedBy)
+func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelID, convertedByUserId string) *model.AppError {
+	convertedByUser, appErr := a.GetUser(convertedByUserId)
 	if appErr != nil {
 		return appErr
 	}
@@ -3594,9 +3594,12 @@ func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelI
 	post := &model.Post{
 		ChannelId: channelID,
 		Message:   message,
-		Type:      model.PostTypeSystemGeneric,
-		UserId:    convertedBy,
+		Type:      model.PostTypeGMConvertedToChannel,
+		UserId:    convertedByUserId,
 	}
+
+	post.AddProp("convertedByUsername", convertedByUser.Username)
+	post.AddProp("gmMembersDuringConversion", usernames)
 
 	channel, appErr := a.GetChannel(c, channelID)
 	if appErr != nil {
@@ -3604,6 +3607,8 @@ func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelI
 	}
 
 	if _, appErr := a.CreatePost(c, post, channel, false, true); appErr != nil {
+		mlog.Error("Failed to create post for notifying about GM converted to private channel", mlog.Err(appErr))
+
 		return model.NewAppError(
 			"postMessageForConvertGroupMessageToChannel",
 			"api.channel.group_message.converted.to_private_channel.post_message.error",

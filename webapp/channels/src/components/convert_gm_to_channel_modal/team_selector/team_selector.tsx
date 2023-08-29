@@ -5,6 +5,8 @@ import React, {useCallback, useEffect, useState} from 'react';
 import DropdownInput, {ValueType} from 'components/dropdown_input';
 import {Team} from '@mattermost/types/teams';
 import {useIntl} from 'react-intl';
+import {useSelector} from "react-redux";
+import {getCurrentLocale} from "selectors/i18n";
 
 export type Props = {
     teamsById: {[id: string]: Team};
@@ -23,10 +25,13 @@ const TeamSelector = (props: Props): JSX.Element => {
         props.onChange(teamId);
     }, []);
 
+    const currentLocale = useSelector(getCurrentLocale);
     const [options, setOptions] = useState<ValueType[]>([]);
 
     useEffect(() => {
-        setOptions(Object.values(props.teamsById).map((team) => ({value: team.id, label: team.display_name})));
+        const teamValues = Object.values(props.teamsById).map((team) => ({value: team.id, label: team.display_name}));
+        teamValues.sort((teamA, teamB) => teamA.label.localeCompare(teamB.label, currentLocale));
+        setOptions(teamValues);
     }, [props.teamsById]);
 
     return (
