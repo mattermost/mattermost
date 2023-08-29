@@ -111,6 +111,8 @@ const (
 	ServiceSettingsDefaultListenAndAddress = ":8065"
 	ServiceSettingsDefaultGfycatAPIKey     = "2_KtH_W5"
 	ServiceSettingsDefaultGfycatAPISecret  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
+	ServiceSettingsDefaultGiphySdkKey      = "yaRojIWaxmKhtSMBaT3uLCAHm0kpMLKw"
+	ServiceSettingsDefaultGiphySdkKeyTest  = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
 	ServiceSettingsDefaultDeveloperFlags   = ""
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
@@ -133,7 +135,7 @@ const (
 
 	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/pl/terms-of-use/"
 	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/pl/privacy-policy/"
-	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermomst"
+	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermost"
 	SupportSettingsDefaultHelpLink           = "https://mattermost.com/pl/help/"
 	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/pl/report-a-bug"
 	SupportSettingsDefaultSupportEmail       = ""
@@ -348,6 +350,7 @@ type ServiceSettings struct {
 	EnableGifPicker                                   *bool   `access:"integrations_gif"`
 	GfycatAPIKey                                      *string `access:"integrations_gif"`
 	GfycatAPISecret                                   *string `access:"integrations_gif"`
+	GiphySdkKey                                       *string `access:"integrations_gif"`
 	EnableCustomEmoji                                 *bool   `access:"site_emoji"`
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
 	PostEditTimeLimit                                 *int    `access:"user_management_permissions"`
@@ -738,6 +741,15 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.GfycatAPISecret == nil || *s.GfycatAPISecret == "" {
 		s.GfycatAPISecret = NewString(ServiceSettingsDefaultGfycatAPISecret)
+	}
+
+	if s.GiphySdkKey == nil {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.GiphySdkKey = NewString(ServiceSettingsDefaultGiphySdkKey)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
+			s.GiphySdkKey = NewString(ServiceSettingsDefaultGiphySdkKeyTest)
+		}
 	}
 
 	if s.ExperimentalEnableAuthenticationTransfer == nil {
@@ -1546,6 +1558,22 @@ type FileSettings struct {
 	AmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	// Export store settings
+	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportDirectory                          *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3AccessKeyId                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3SecretAccessKey            *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3Bucket                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3PathPrefix                 *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3Region                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3Endpoint                   *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3SSL                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportAmazonS3SignV2                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportAmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportAmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ExportAmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1652,6 +1680,68 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.AmazonS3RequestTimeoutMilliseconds == nil {
 		s.AmazonS3RequestTimeoutMilliseconds = NewInt64(30000)
+	}
+
+	if s.DedicatedExportStore == nil {
+		s.DedicatedExportStore = NewBool(false)
+	}
+
+	if s.ExportDriverName == nil {
+		s.ExportDriverName = NewString(ImageDriverLocal)
+	}
+
+	if s.ExportDirectory == nil || *s.ExportDirectory == "" {
+		s.ExportDirectory = NewString(FileSettingsDefaultDirectory)
+	}
+
+	if s.ExportAmazonS3AccessKeyId == nil {
+		s.ExportAmazonS3AccessKeyId = NewString("")
+	}
+
+	if s.ExportAmazonS3SecretAccessKey == nil {
+		s.ExportAmazonS3SecretAccessKey = NewString("")
+	}
+
+	if s.ExportAmazonS3Bucket == nil {
+		s.ExportAmazonS3Bucket = NewString("")
+	}
+
+	if s.ExportAmazonS3PathPrefix == nil {
+		s.ExportAmazonS3PathPrefix = NewString("")
+	}
+
+	if s.ExportAmazonS3Region == nil {
+		s.ExportAmazonS3Region = NewString("")
+	}
+
+	if s.ExportAmazonS3Endpoint == nil || *s.ExportAmazonS3Endpoint == "" {
+		// Defaults to "s3.amazonaws.com"
+		s.ExportAmazonS3Endpoint = NewString("s3.amazonaws.com")
+	}
+
+	if s.ExportAmazonS3SSL == nil {
+		s.ExportAmazonS3SSL = NewBool(true) // Secure by default.
+	}
+
+	if s.ExportAmazonS3SignV2 == nil {
+		s.ExportAmazonS3SignV2 = new(bool)
+		// Signature v2 is not enabled by default.
+	}
+
+	if s.ExportAmazonS3SSE == nil {
+		s.ExportAmazonS3SSE = NewBool(false) // Not Encrypted by default.
+	}
+
+	if s.ExportAmazonS3Trace == nil {
+		s.ExportAmazonS3Trace = NewBool(false)
+	}
+
+	if s.ExportAmazonS3RequestTimeoutMilliseconds == nil {
+		s.ExportAmazonS3RequestTimeoutMilliseconds = NewInt64(30000)
+	}
+
+	if s.ExportAmazonS3PresignExpiresSeconds == nil {
+		s.ExportAmazonS3PresignExpiresSeconds = NewInt64(21600) // 6h
 	}
 }
 

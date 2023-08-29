@@ -1113,26 +1113,6 @@ func TestCreatePostAsUser(t *testing.T) {
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})
 
-	t.Run("logs warning for user not in channel", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		user := th.CreateUser()
-		th.LinkUserToTeam(user, th.BasicTeam)
-
-		post := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			Message:   "test",
-			UserId:    user.Id,
-		}
-
-		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
-		require.Nil(t, appErr)
-
-		require.NoError(t, th.TestLogger.Flush())
-
-		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to get membership")
-	})
-
 	t.Run("does not log warning for bot user not in channel", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -1429,7 +1409,7 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		page := 0
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{
@@ -1449,7 +1429,7 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		page := 1
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
@@ -1478,7 +1458,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, resultsPage, results.Order)
@@ -1505,7 +1485,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, resultsPage, results.Order)
@@ -1529,7 +1509,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{
@@ -1561,7 +1541,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
+		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
@@ -3028,195 +3008,6 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 	})
 }
 
-func TestGetTopThreadsForTeamSince(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	th.ConfigStore.SetReadOnlyFF(false)
-	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
-
-	// create a public channel, a private channel
-	channelPublic := th.CreateChannel(th.Context, th.BasicTeam)
-	channelPrivate := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	th.AddUserToChannel(th.BasicUser, channelPublic)
-	th.AddUserToChannel(th.BasicUser, channelPrivate)
-	th.AddUserToChannel(th.BasicUser2, channelPublic)
-
-	// create two threads: one in public channel, one in private with only basicUser1
-
-	rootPostPublicChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: channelPublic.Id,
-		Message:   "root post",
-	}, channelPublic, false, true)
-	require.Nil(t, appErr)
-
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser2.Id,
-		ChannelId: channelPublic.Id,
-		RootId:    rootPostPublicChannel.Id,
-		Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
-	}, channelPublic, false, true)
-	require.Nil(t, appErr)
-
-	rootPostPrivateChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: channelPrivate.Id,
-		Message:   "root post",
-	}, channelPrivate, false, true)
-	require.Nil(t, appErr)
-
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: channelPrivate.Id,
-		RootId:    rootPostPrivateChannel.Id,
-		Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
-	}, channelPrivate, false, true)
-	require.Nil(t, appErr)
-
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: channelPrivate.Id,
-		RootId:    rootPostPrivateChannel.Id,
-		Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
-	}, channelPrivate, false, true)
-
-	require.Nil(t, appErr)
-
-	// get top threads for team, as user 1 and user 2
-	// user 1 should see both threads, while user 2 should see only thread in public channel.
-
-	topTeamThreadsByUser1, appErr := th.App.GetTopThreadsForTeamSince(th.Context, th.BasicTeam.Id, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
-	require.Nil(t, appErr)
-	require.Len(t, topTeamThreadsByUser1.Items, 2)
-	require.Equal(t, topTeamThreadsByUser1.Items[0].Post.Id, rootPostPrivateChannel.Id)
-	require.Equal(t, topTeamThreadsByUser1.Items[1].Post.Id, rootPostPublicChannel.Id)
-
-	topTeamThreadsByUser2, appErr := th.App.GetTopThreadsForTeamSince(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
-	require.Nil(t, appErr)
-	require.Len(t, topTeamThreadsByUser2.Items, 1)
-	require.Equal(t, topTeamThreadsByUser2.Items[0].Post.Id, rootPostPublicChannel.Id)
-
-	// add user2 to private channel and it can see 2 top threads.
-	th.AddUserToChannel(th.BasicUser2, channelPrivate)
-	topTeamThreadsByUser2IncludingPrivate, appErr := th.App.GetTopThreadsForTeamSince(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
-	require.Nil(t, appErr)
-	require.Len(t, topTeamThreadsByUser2IncludingPrivate.Items, 2)
-}
-func TestGetTopThreadsForUserSince(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	th.ConfigStore.SetReadOnlyFF(false)
-	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
-
-	// create a public channel, a private channel
-	channelPublic := th.CreateChannel(th.Context, th.BasicTeam)
-	channelPrivate := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	th.AddUserToChannel(th.BasicUser, channelPublic)
-	th.AddUserToChannel(th.BasicUser, channelPrivate)
-	th.AddUserToChannel(th.BasicUser2, channelPublic)
-	th.AddUserToChannel(th.BasicUser2, channelPrivate)
-
-	// create two threads: one in public channel, one in private
-	// post in public channel has both users interacting, post in private only has user1 interacting
-
-	rootPostPublicChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: channelPublic.Id,
-		Message:   "root post pub",
-	}, channelPublic, false, true)
-	require.Nil(t, appErr)
-
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser2.Id,
-		ChannelId: channelPublic.Id,
-		RootId:    rootPostPublicChannel.Id,
-		Message:   "reply post 1",
-	}, channelPublic, false, true)
-	require.Nil(t, appErr)
-
-	rootPostPrivateChannel, appErr := th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: channelPrivate.Id,
-		Message:   "root post priv",
-	}, channelPrivate, false, true)
-	require.Nil(t, appErr)
-
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: channelPrivate.Id,
-		RootId:    rootPostPrivateChannel.Id,
-		Message:   "reply post 1",
-	}, channelPrivate, false, true)
-	require.Nil(t, appErr)
-
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: channelPrivate.Id,
-		RootId:    rootPostPrivateChannel.Id,
-		Message:   "reply post 2",
-	}, channelPrivate, false, true)
-
-	require.Nil(t, appErr)
-
-	// get top threads for user, as user 1 and user 2
-	// user 1 should see both threads, while user 2 should see only thread in public channel
-	// (even if user2 is in the private channel it hasn't interacted with the thread there.)
-
-	topUser1Threads, appErr := th.App.GetTopThreadsForUserSince(th.Context, th.BasicTeam.Id, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
-	require.Nil(t, appErr)
-	require.Len(t, topUser1Threads.Items, 2)
-	require.Equal(t, topUser1Threads.Items[0].Post.Id, rootPostPrivateChannel.Id)
-	require.Equal(t, topUser1Threads.Items[0].ReplyCount, int64(2))
-	require.Equal(t, topUser1Threads.Items[1].Post.Id, rootPostPublicChannel.Id)
-	require.Contains(t, topUser1Threads.Items[1].Participants, th.BasicUser2.Id)
-	require.Equal(t, topUser1Threads.Items[1].ReplyCount, int64(1))
-
-	topUser2Threads, appErr := th.App.GetTopThreadsForUserSince(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
-	require.Nil(t, appErr)
-	require.Len(t, topUser2Threads.Items, 1)
-	require.Equal(t, topUser2Threads.Items[0].Post.Id, rootPostPublicChannel.Id)
-	require.Equal(t, topUser2Threads.Items[0].ReplyCount, int64(1))
-
-	// deleting the root post results in the thread not making it to top threads list
-	_, appErr = th.App.DeletePost(th.Context, rootPostPublicChannel.Id, th.BasicUser.Id)
-	require.Nil(t, appErr)
-
-	topUser1ThreadsAfterPost1Delete, appErr := th.App.GetTopThreadsForUserSince(th.Context, th.BasicTeam.Id, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
-	require.Nil(t, appErr)
-	require.Len(t, topUser1ThreadsAfterPost1Delete.Items, 1)
-
-	// reply with user2 in thread2. deleting that reply, shouldn't give any top thread for user2 if the user2 unsubscribes to the thread after deleting the comment
-	replyPostUser2InPrivate, appErr := th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser2.Id,
-		ChannelId: channelPrivate.Id,
-		RootId:    rootPostPrivateChannel.Id,
-		Message:   "reply post 3",
-	}, channelPrivate, false, true)
-	require.Nil(t, appErr)
-
-	topUser2ThreadsAfterPrivateReply, appErr := th.App.GetTopThreadsForUserSince(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
-	require.Nil(t, appErr)
-	require.Len(t, topUser2ThreadsAfterPrivateReply.Items, 1)
-
-	// deleting reply, and unfollowing thread
-	_, appErr = th.App.DeletePost(th.Context, replyPostUser2InPrivate.Id, th.BasicUser2.Id)
-	require.Nil(t, appErr)
-	// unfollow thread
-	_, err := th.App.Srv().Store().Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
-		Following:       false,
-		UpdateFollowing: true,
-	})
-	require.NoError(t, err)
-
-	topUser2ThreadsAfterPrivateReplyDelete, appErr := th.App.GetTopThreadsForUserSince(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, &model.InsightsOpts{StartUnixMilli: 200, PerPage: 100})
-	require.Nil(t, appErr)
-	require.Len(t, topUser2ThreadsAfterPrivateReplyDelete.Items, 0)
-}
-
 func TestGetEditHistoryForPost(t *testing.T) {
 	t.Skip("This needs fixing, OriginalId seems to be empty for all posts")
 	th := Setup(t).InitBasic()
@@ -3260,122 +3051,5 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		edits, err := th.App.GetEditHistoryForPost("invalid-post-id")
 		require.NotNil(t, err)
 		require.Empty(t, edits)
-	})
-}
-
-func TestGetTopDMsForUserSince(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	th.ConfigStore.SetReadOnlyFF(false)
-	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
-
-	// users
-	user := th.CreateUser()
-	u1 := th.CreateUser()
-	u2 := th.CreateUser()
-	u3 := th.CreateUser()
-	u4 := th.CreateUser()
-	// user direct messages
-	chUser1, nErr := th.App.createDirectChannel(th.Context, u1.Id, user.Id)
-	fmt.Println(chUser1, nErr)
-	require.Nil(t, nErr)
-	chUser2, nErr := th.App.createDirectChannel(th.Context, u2.Id, user.Id)
-	require.Nil(t, nErr)
-	chUser3, nErr := th.App.createDirectChannel(th.Context, u3.Id, user.Id)
-	require.Nil(t, nErr)
-	// other user direct message
-	chUser3User4, nErr := th.App.createDirectChannel(th.Context, u3.Id, u4.Id)
-	require.Nil(t, nErr)
-
-	// sample post data
-	// for u1
-	_, err := th.App.CreatePostAsUser(th.Context, &model.Post{
-		ChannelId: chUser1.Id,
-		UserId:    u1.Id,
-	}, "", false)
-	require.Nil(t, err)
-	_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
-		ChannelId: chUser1.Id,
-		UserId:    user.Id,
-	}, "", false)
-	require.Nil(t, err)
-	// for u2: 1 post
-	_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
-		ChannelId: chUser2.Id,
-		UserId:    u2.Id,
-	}, "", false)
-	require.Nil(t, err)
-	// for user-u3: 3 posts
-	for i := 0; i < 3; i++ {
-		_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
-			ChannelId: chUser3.Id,
-			UserId:    user.Id,
-		}, "", false)
-		require.Nil(t, err)
-	}
-	// for u4-u3: 4 posts
-	_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
-		ChannelId: chUser3User4.Id,
-		UserId:    u3.Id,
-	}, "", false)
-	require.Nil(t, err)
-	_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
-		ChannelId: chUser3User4.Id,
-		UserId:    u4.Id,
-	}, "", false)
-	require.Nil(t, err)
-	_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
-		ChannelId: chUser3User4.Id,
-		UserId:    u3.Id,
-	}, "", false)
-	require.Nil(t, err)
-
-	_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
-		ChannelId: chUser3User4.Id,
-		UserId:    u4.Id,
-	}, "", false)
-	require.Nil(t, err)
-
-	t.Run("should return topDMs when userid is specified ", func(t *testing.T) {
-		topDMs, err := th.App.GetTopDMsForUserSince(user.Id, &model.InsightsOpts{StartUnixMilli: 100, Page: 0, PerPage: 100})
-		require.Nil(t, err)
-		// len of topDMs.Items should be 3
-		require.Len(t, topDMs.Items, 3)
-		// check order, magnitude of items
-		// fmt.Println(topDMs.Items[0].MessageCount, topDMs.Items[1].MessageCount, topDMs.Items[2].MessageCount)
-		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
-		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
-		require.Equal(t, topDMs.Items[1].SecondParticipant.Id, u1.Id)
-		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
-		require.Equal(t, topDMs.Items[2].SecondParticipant.Id, u2.Id)
-		require.Equal(t, topDMs.Items[2].MessageCount, int64(1))
-		// this also ensures that u3-u4 conversation doesn't show up in others' top DMs.
-	})
-	t.Run("topDMs should only consider user's DM channels ", func(t *testing.T) {
-		// u4 only takes part in one conversation
-		topDMs, err := th.App.GetTopDMsForUserSince(u4.Id, &model.InsightsOpts{StartUnixMilli: 100, Page: 0, PerPage: 100})
-		require.Nil(t, err)
-		// len of topDMs.Items should be 3
-		require.Len(t, topDMs.Items, 1)
-		// check order, magnitude of items
-		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
-		require.Equal(t, topDMs.Items[0].MessageCount, int64(4))
-	})
-
-	t.Run("topDMs will not consider deleted second user", func(t *testing.T) {
-		// u4 only takes part in one conversation
-		topDMs, err := th.App.GetTopDMsForUserSince(u4.Id, &model.InsightsOpts{StartUnixMilli: 100, Page: 0, PerPage: 100})
-		require.Nil(t, err)
-		// len of topDMs.Items should be 1
-		require.Len(t, topDMs.Items, 1)
-		// delete user3
-		err = th.App.PermanentDeleteUser(th.Context, u3)
-		require.Nil(t, err)
-		topDMs, err = th.App.GetTopDMsForUserSince(u4.Id, &model.InsightsOpts{StartUnixMilli: 100, Page: 0, PerPage: 100})
-		require.Nil(t, err)
-		// len of topDMs.Items should be 0 since u3 is deleted
-		require.Len(t, topDMs.Items, 0)
 	})
 }

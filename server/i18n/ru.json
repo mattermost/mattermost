@@ -4044,10 +4044,6 @@
     "translation": "Недопустимый идентификатор автора."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Не удалось декодировать gif."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Недопустимое значение для create_at."
   },
@@ -5841,7 +5837,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 110+"
+    "translation": "Версия 112+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -9096,10 +9092,6 @@
     "translation": "Нам не удалось обработать запрос из-за ограничений для стран, на которые распространяется эмбарго. [Подробнее читайте в нашей документации](https://mattermost.com/pl/limitations-for-embargoed-countries) или обращайтесь по адресу legal@mattermost.com, если у вас есть вопросы об экспортных ограничениях."
   },
   {
-    "id": "api.insights.feature_disabled",
-    "translation": "Insights находится за флагом функции, который не включен."
-  },
-  {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "Параметры OnlyThreads и OnlyTotals для getThreadsForUser являются взаимоисключающими"
   },
@@ -9188,10 +9180,6 @@
     "translation": "Отсутствуют обязательные поля для отправки электронного письма о просрочке."
   },
   {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "Неверный диапазон времени."
-  },
-  {
     "id": "model.group.name.reserved_name.app_error",
     "translation": "имя группы уже существует как зарезервированное имя"
   },
@@ -9232,24 +9220,8 @@
     "translation": "Ошибка при очистке кэша участников команды"
   },
   {
-    "id": "app.recent_searches.app_error",
-    "translation": "Ошибка при получении результатов недавнего поиска"
-  },
-  {
     "id": "app.post_reminder_dm",
     "translation": "Здравствуйте, вот ваше напоминание об этом сообщении от @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
-  },
-  {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "Не удалось получить главные темы для пользователя."
-  },
-  {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "Не удалось получить главные темы для команды."
-  },
-  {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "Невозможно получить топ личных сообщений для пользователя."
   },
   {
     "id": "app.post.cloud.get.app_error",
@@ -9278,10 +9250,6 @@
   {
     "id": "app.job.error",
     "translation": "Ошибка во время выполнения задания."
-  },
-  {
-    "id": "app.insights.feature_disabled",
-    "translation": "Функция Insights отключена."
   },
   {
     "id": "app.file.cloud.get.app_error",
@@ -9464,14 +9432,6 @@
     "translation": "Файлы"
   },
   {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Тип темы уже существует."
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Тип коллекции уже существует."
-  },
-  {
     "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Понижение статуса до Cloud Free"
   },
@@ -9604,20 +9564,8 @@
     "translation": "Вы не можете удалить подтверждение в архивированном канале."
   },
   {
-    "id": "worktemplate.category.product_teams",
-    "translation": "Продуктовые команды"
-  },
-  {
     "id": "model.draft.is_valid.priority.app_error",
     "translation": "Неверный приоритет"
-  },
-  {
-    "id": "app.worktemplates.get_templates.app_error",
-    "translation": "Невозможно получить рабочие шаблоны"
-  },
-  {
-    "id": "app.worktemplates.get_categories.app_error",
-    "translation": "Невозможно получить категории рабочих шаблонов"
   },
   {
     "id": "api.templates.cloud_welcome_email.yearly_plan_button",
@@ -9696,124 +9644,20 @@
     "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
   },
   {
-    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
-    "translation": "Невозможно найти канал, связанный с сценарием."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
-    "translation": "Ошибка при создании сценария."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.channels.create_error",
-    "translation": "Ошибка при создании канала."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.boards.create_error",
-    "translation": "Ошибка при создании доски."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "Ошибка при выполнении рабочего шаблона."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
-    "translation": "У вас нет прав на создание публичного сценария."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
-    "translation": "У вас нет прав на создание публичного канала."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_board",
-    "translation": "У вас нет прав для создания публичной доски."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
-    "translation": "У вас нет прав для создания приватного сценария."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
-    "translation": "У вас нет прав для создания приватного канала."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_board",
-    "translation": "У вас нет прав для создания приватной доски."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "пользователь с таким именем \"{{.Username}}\" уже существует."
-  },
-  {
-    "id": "api.work_templates.disabled",
-    "translation": "Рабочие шаблоны отключены."
   },
   {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Не удалось обновить переводы сервера."
   },
   {
-    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
-    "translation": "Ваша лицензия не поддерживает приватные сценарии."
-  },
-  {
-    "id": "worktemplate.category.companywide",
-    "translation": "Масштаб всей компании"
-  },
-  {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
     "translation": "Неверная служба авторизации: {{.AuthService}}"
   },
   {
-    "id": "worktemplate.category.leadership",
-    "translation": "Лидерство"
-  },
-  {
-    "id": "worktemplate.category.devops",
-    "translation": "DevOps"
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Услуга доступна только в редакции Mattermost Enterprise"
-  },
-  {
-    "id": "api.command_templates.unsupported.app_error",
-    "translation": "Команда шаблонов не поддерживается на вашем устройстве."
-  },
-  {
-    "id": "api.command_templates.name",
-    "translation": "шаблоны"
-  },
-  {
-    "id": "api.command_templates.desc",
-    "translation": "Откройте окно создания из шаблона"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.name_too_long",
-    "translation": "Поле имени не может содержать более 64 символов."
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "ключ продукта не найден"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "интерфейс не ожидаемого типа"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "ошибка при подключении доски"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "ошибка при создании доски"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "ошибка при получении шаблонов досок"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "ошибка при дубликации доски"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9832,54 +9676,6 @@
     "translation": "Невозможно удалить данные oauth."
   },
   {
-    "id": "app.user.digest.tasks.due_after_today",
-    "translation": {
-      "few": "У вас есть **{{.Count}} назначенных задачи, которые необходимо выполнить после сегодняшнего дня**.",
-      "many": "У вас есть **{{.Count}} назначенных задач, которые необходимо выполнить после сегодняшнего дня**.",
-      "one": "У вас есть **{{.Count}} назначенная задача, которую необходимо выполнить после сегодняшнего дня**."
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.all_tasks_command",
-    "translation": "Пожалуйста, используйте `/playbook todo`, чтобы увидеть все свои задачи."
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.zero_in_progress",
-    "translation": "В настоящее время у вас нет запусков."
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.num_in_progress",
-    "translation": {
-      "few": "У вас запущено {{.Count}}:",
-      "many": "У вас запущены {{.Count}}:",
-      "one": "У вас запущен {{.Count}}:"
-    }
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.heading",
-    "translation": "Выполняется"
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.zero_overdue",
-    "translation": "У вас просрочено 0 запусков."
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.num_overdue",
-    "translation": {
-      "few": "У вас есть {{.Count}} просроченных запуска для обновления статуса:",
-      "many": "У вас есть {{.Count}} просроченных запусков для обновления статуса:",
-      "one": "У вас есть {{.Count}} просроченный запуск для обновления статуса:"
-    }
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.heading",
-    "translation": "Просроченные обновления статуса"
-  },
-  {
-    "id": "app.command.execute.error",
-    "translation": "Невозможно выполнить команду."
-  },
-  {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
     "translation": "Серверу CWS не удалось подписаться на рассылку новостей."
   },
@@ -9888,256 +9684,12 @@
     "translation": "Недействительный рабочий адрес электронной почты для пробной версии"
   },
   {
-    "id": "app.user.digest.tasks.due_in_x_days",
-    "translation": {
-      "few": "Срок исполнения - {{.Count}} дня",
-      "many": "Срок исполнения - {{.Count}} дней",
-      "one": "Срок исполнения - {{.Count}} день"
-    }
-  },
-  {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "Пропуск установки плагина {{.Id}}, поскольку существующая версия плагина идентична текущей или более новая."
   },
   {
-    "id": "app.plugin.blocked.app_error",
-    "translation": "Плагин {{.Id}} находится в списке блокировки. Некоторые плагины заблокированы, потому что они встроены в данную версию Mattermost."
-  },
-  {
-    "id": "app.user.run.confirm_finish.title",
-    "translation": "Подтвердить завершение запуска"
-  },
-  {
-    "id": "app.user.run.confirm_finish.submit_label",
-    "translation": "Завершить запуск"
-  },
-  {
-    "id": "app.user.run.confirm_finish.num_outstanding",
-    "translation": {
-      "few": "Есть **{{.Count}} невыполненные задачи**. Вы уверены, что хотите завершить запуск *{{.RunName}}* для всех участников?",
-      "many": "Есть **{{.Count}} невыполненных задач**. Вы уверены, что хотите завершить запуск *{{.RunName}}* для всех участников?",
-      "one": "Есть **{{.Count}} невыполненная задача**. Вы уверены, что хотите завершить запуск *{{.RunName}}* для всех участников?"
-    }
-  },
-  {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "Добавить на временную шкалу"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary",
-    "translation": "Сводка"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "Краткая сводка, отображаемая на временной шкале"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.help",
-    "translation": "Максимум 64 символа"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.submit_label",
-    "translation": "Добавить на временную шкалу"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.playbook_run",
-    "translation": "Запуск сценария"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.title",
-    "translation": "Добавить новую задачу"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.submit_label",
-    "translation": "Добавить задачу"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.name",
-    "translation": "Имя"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.description",
-    "translation": "Описание"
-  },
-  {
-    "id": "app.user.new_run.title",
-    "translation": "Запустить сценарий"
-  },
-  {
-    "id": "app.user.new_run.submit_label",
-    "translation": "Запустить"
-  },
-  {
-    "id": "app.user.new_run.run_name",
-    "translation": "Название запуска"
-  },
-  {
-    "id": "app.user.new_run.playbook",
-    "translation": "Сценарий"
-  },
-  {
-    "id": "app.user.new_run.intro",
-    "translation": "**Владелец** {{.Username}}"
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "few": "Вам поручено {{.Count}} задачи:",
-      "many": "Вам поручено {{.Count}} задач:",
-      "one": "Вам поручена {{.Count}} задача:"
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "few": "Вы получили {{.Count}} задачи, срок выполнения которых:",
-      "many": "Вы получили {{.Count}} задач, срок выполнения которых:",
-      "one": "Вы получили {{.Count}} задачу, срок выполнения которой:"
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.zero_assigned",
-    "translation": "У вас нет назначенных задач."
-  },
-  {
-    "id": "app.user.digest.tasks.heading",
-    "translation": "Ваши назначенные задачи"
-  },
-  {
-    "id": "app.user.digest.tasks.due_yesterday",
-    "translation": "Вчера"
-  },
-  {
-    "id": "app.user.digest.tasks.due_x_days_ago",
-    "translation": "Срок исполнения {{.Count}} дн. назад"
-  },
-  {
-    "id": "app.user.digest.tasks.due_today",
-    "translation": "Сегодня"
-  },
-  {
-    "id": "app.user.run.status_enable",
-    "translation": "@{{.Username}} включил обновление статуса для [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "app.user.run.status_disable",
-    "translation": "@{{.Username}} отключил обновление статуса для [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "app.user.run.request_update",
-    "translation": "@here — @{{.Name}} запросил обновление статуса для [{{.RunName}}]({{.RunURL}}). \n"
-  },
-  {
-    "id": "app.user.run.request_join_channel",
-    "translation": "@{{.Name}} является участником запуска и хочет присоединиться к этому каналу. Любой участник канала может пригласить его.\n"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "Обсудите со своей командой отзывы клиентов, расставьте приоритеты и вместе согласуйте прогресс и планы."
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Используйте доску \"Дорожная карта продукта\" (Product Roadmap) для управления отзывами пользователей, назначения ресурсов, просмотра результатов в календарном режиме и определения приоритетности проблем."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Zoom, для облегчения совместной работы. Они будут загружены для вас."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Общайтесь о своих целях и прогрессе работ с командой в режиме асинхронного или реального времени и будьте в курсе всех изменений в едином канале."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Отслеживайте прогресс вашей команды в достижении организационных целей с помощью доски \"Цели и ОКР\" (OKR board). Следите за ходом совещаний с помощью доски \"Повестка совещания\" (Meeting Agenda)."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Усильте межфункциональное сотрудничество команды с помощью контрольных списков задач и автоматизации, которые поддерживают процесс разработки функций. После завершения работы проведите ретроспективу и внесите улучшения в следующий релиз."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты для поддержки выпуска функций, например GitHub. Они будут загружены для вас."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Общайтесь со своей командой о любых блокировках релиза и изменениях в канале, который легко подключается к вашим доскам, плейбукам и другим интеграциям."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Ведите совещания по плану с помощью доски \"Повестка совещания\" (Meeting Agenda). Управляйте своей рабочей нагрузкой с помощью доски \"Задачи проекта\" (Project Tasks)."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "Используйте контрольные списки для распределения областей тестирования и автоматизации задач для проведения комплексного процесса устранения ошибок. Используйте ретроспективу, чтобы проанализировать свой процесс и улучшить его для следующего раза."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Повысьте продуктивность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Jira, для отслеживания хода работы над ошибками. Они будут загружены для вас."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "Планируйте и управляйте сообщениями об ошибках и решениями в едином канале, который легко доступен для вашей команды и организации."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Zoom, для облегчения совместной работы. Они будут загружены для вас."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Общайтесь о своих целях и прогрессе работ с командой в режиме асинхронного или реального времени и будьте в курсе всех изменений в едином канале."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "Отслеживайте прогресс вашей команды в достижении организационных целей с помощью доски \"Цели и ОКР\" (OKR board). Следите за ходом совещаний с помощью доски \"Повестка совещания\" (Meeting Agenda)."
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "Создайте повторяющиеся рабочие процессы, которые легко соблюдать и внедрять, чтобы выпуск продукции был надежным и своевременным."
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "Легко и быстро общайтесь со своей командой по поводу ежедневных этапов, любых блокирующих факторов и изменений в результатах работы."
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Используйте доску релиза продукта (Product Release) для поддержки сроков и процесса выпуска, чтобы каждый знал, какие задачи подлежат выполнению."
-  },
-  {
     "id": "worktemplate.devops.incident_resolution.description.playbook",
     "translation": "Используйте контрольные списки и автоматизацию, чтобы привлечь ключевых членов команды, и расскажите, как продвигается процесс разрешения инцидента."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "Общайтесь со своей командой о приоритетах, добавляйте заинтересованные стороны, предоставляйте обновления и работайте над решением в едином канале."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "Используйте доску по разрешению инцидентов для поддержки повторяющихся процессов и назначения определенных задач для всей команды."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Zoom, для облегчения совместной работы. Они будут загружены для вас."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Общайтесь о своих целях и прогрессе работ с командой в режиме асинхронного или реального времени и будьте в курсе всех изменений в едином канале."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Отслеживайте прогресс вашей команды в достижении организационных целей с помощью доски \"Цели и ОКР\". Следите за ходом совещаний с помощью доски \"Повестка совещания\"."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты. Они будут загружены для вас."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "Обсудите со своей командой новый проект и решите, как вы собираетесь его структурировать, в канале совместной работы."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Используйте доску Kanban для определения и отслеживания задач и хода выполнения проекта."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
@@ -10148,47 +9700,179 @@
     "translation": "Версия Elasticsearch {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
   },
   {
-    "id": "app.user.run.update_status.title",
-    "translation": "Статус обновлен"
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Невозможно получить токены по типу при аннулировании токенов восстановления пароля"
   },
   {
-    "id": "app.user.run.update_status.submit_label",
-    "translation": "Обновить статус"
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Невозможно разобрать токен при аннулировании токенов восстановления пароля"
   },
   {
-    "id": "app.user.run.update_status.reminder_for_next_update",
-    "translation": "Напоминание для следующего обновления"
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Сообщения с постоянными уведомлениями должны иметь приоритет \"Срочно\"."
   },
   {
-    "id": "app.user.run.update_status.num_channel",
-    "translation": {
-      "few": "Предоставьте заинтересованным сторонам обновленную информацию. Этот пост будет транслироваться на {{.Count}} канала.",
-      "many": "Предоставьте заинтересованным сторонам обновленную информацию. Этот пост будет транслироваться на {{.Count}} каналов.",
-      "one": "Предоставьте заинтересованным сторонам обновленную информацию. Этот пост будет транслироваться на {{.Count}} канал."
-    }
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Сообщения постоянных уведомлений допускают максимум {{.MaxRecipients}} получателей."
   },
   {
-    "id": "app.user.run.update_status.finish_run.placeholder",
-    "translation": "Отметьте запуск как завершенный"
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Сообщения постоянных уведомлений должны иметь минимум 1 получателя."
   },
   {
-    "id": "app.user.run.update_status.finish_run",
-    "translation": "Завершить запуск"
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Проверка постоянного уведомления не прошла."
   },
   {
-    "id": "app.user.run.update_status.change_since_last_update",
-    "translation": "Изменения с последнего обновления"
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Не удалось отправить точный профиль проверки в CWS."
   },
   {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Повысьте производительность вашего канала за счет интеграции наиболее часто используемых инструментов, таких как Zoom. Они будут загружены для вас."
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "Пользователю не разрешается создавать приоритетные сообщения или постоянные уведомления."
   },
   {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Общайтесь со своей командой в канале, который легко подключается к вашим доскам и интеграциям."
+    "id": "api.command_exportlink.desc",
+    "translation": "Сгенерировать ссылку для загрузки экспорта."
   },
   {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Отслеживайте прогресс вашей команды в достижении еженедельных целей с помощью разбивки спринтов, определения приоритетов, назначения владельцев и комментариев."
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "Драйвер файлового хранилища не поддерживает генерацию ссылок."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Не найден файл экспорта."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|название файла zip|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Невозможно найти запрошенный файл."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Загрузить файл можно здесь: {{.Link}}.\nСрок действия этой ссылки истекает через {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Невозможно получить список экспорта."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "У вас недостаточно прав для выполнения этой команды."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Невозможно сгенерировать предварительный url."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Невозможно найти количество участников для заданных каналов."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Невозможно найти количество участников."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Невозможно обновить участника канала."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "Эти действия требуют использования специализированного экспортного магазина."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Драйвер вашего экспортного хранилища не поддерживает генерацию url-значений."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Ошибка: не указано название организации для самостоятельной регистрации на сайте."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Невозможно удалить маркер при аннулировании маркеров восстановления пароля"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Приоритет имеют только корневые посты."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Невозможно удалить постоянные уведомления по команде."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Невозможно удалить постоянные уведомления по каналу."
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Произошла ошибка при получении Команды."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Неверная частота постоянных уведомлений. Должна быть не менее двух минут."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Не удалось обновить участника канала, превышено ограничения размера реквизита."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "Эта функция ограничена флагом функции."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Не удалось проверить, существует ли файл."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Невозможно сгенерировать заданный url."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "Файл экспорта не найден."
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Не удалось декодировать gif."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Не удалось удалить постоянный пост уведомления"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Сообщить о превышении ограничения на размер реквизита."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Игнорируемые индексы для очистки не должны начинаться с тире."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Неверное общее количество постоянных уведомлений на сообщение. Должно быть положительное число."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Неверное максимальное количество получателей для постоянных уведомлений. Должно быть положительное число."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Произошла ошибка при выполнении хука плагина при сохранении конфигурации."
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Неверное значение channel-auto-follow-threads."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Невозможно найти каталог локального файла сокета."
   }
 ]

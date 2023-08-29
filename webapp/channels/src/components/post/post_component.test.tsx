@@ -38,6 +38,7 @@ describe('PostComponent', () => {
         recentEmojis: [],
         replyCount: 0,
         team: currentTeam,
+        pluginActions: [],
         actions: {
             markPostAsUnread: jest.fn(),
             emitShortcutReactToLastPostFrom: jest.fn(),
