@@ -1040,6 +1040,22 @@ func (s *TimerLayerChannelStore) GetByNames(team_id string, names []string, allo
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetByNamesIncludeDeleted(team_id string, names []string, allowFromCache bool) ([]*model.Channel, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetByNamesIncludeDeleted(team_id, names, allowFromCache)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetByNamesIncludeDeleted", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error) {
 	start := time.Now()
 
@@ -1056,10 +1072,10 @@ func (s *TimerLayerChannelStore) GetChannelCounts(teamID string, userID string) 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetChannelMembersForExport(userID string, teamID string) ([]*model.ChannelMemberForExport, error) {
+func (s *TimerLayerChannelStore) GetChannelMembersForExport(userID string, teamID string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetChannelMembersForExport(userID, teamID)
+	result, err := s.ChannelStore.GetChannelMembersForExport(userID, teamID, includeArchivedChannel)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5509,10 +5525,10 @@ func (s *TimerLayerPostStore) GetOldestEntityCreationTime() (int64, error) {
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterID string) ([]*model.PostForExport, error) {
+func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.PostForExport, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetParentsForExportAfter(limit, afterID)
+	result, err := s.PostStore.GetParentsForExportAfter(limit, afterID, includeArchivedChannels)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

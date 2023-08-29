@@ -5304,6 +5304,10 @@
     "translation": "Some users not found"
   },
   {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Unable to archive imported channel."
+  },
+  {
     "id": "app.import.import_channel.scheme_deleted.error",
     "translation": "Unable to set a channel to use a deleted scheme."
   },
