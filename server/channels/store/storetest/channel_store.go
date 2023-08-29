@@ -174,7 +174,7 @@ func testChannelStoreSave(t *testing.T, ss store.Store) {
 	require.Error(t, nErr, "should be unique name")
 
 	o1.Id = ""
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 	_, nErr = ss.Channel().Save(&o1, -1)
 	require.Error(t, nErr, "should not be able to save direct channel")
@@ -211,7 +211,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 
 	u1 := &model.User{}
@@ -274,7 +274,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	// Save yourself Direct Message
 	o1.Id = ""
 	o1.DisplayName = "Myself"
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m1)
 	require.NoError(t, nErr, "couldn't save direct channel", nErr)
@@ -448,7 +448,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	o2 := model.Channel{}
 	o2.TeamId = model.NewId()
 	o2.DisplayName = "Direct Name"
-	o2.Name = NewTestId()
+	o2.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o2.Type = model.ChannelTypeDirect
 
 	m1 := model.ChannelMember{}
@@ -550,7 +550,7 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	o2 := model.Channel{}
 	o2.TeamId = model.NewId()
 	o2.DisplayName = "Direct Name"
-	o2.Name = "bb" + model.NewId()
+	o2.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o2.Type = model.ChannelTypeDirect
 
 	o3 := model.Channel{}
@@ -642,7 +642,7 @@ func testGetChannelsWithTeamDataByIds(t *testing.T, ss store.Store) {
 	c2 := model.Channel{}
 	c2.TeamId = t1.Id
 	c2.DisplayName = "Direct Name"
-	c2.Name = "bb" + model.NewId()
+	c2.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	c2.Type = model.ChannelTypeDirect
 
 	c3 := model.Channel{}
@@ -7807,7 +7807,7 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s Sql
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "Name" + model.NewId()
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 
 	userIds := []string{model.NewId(), model.NewId(), model.NewId()}
@@ -7864,7 +7864,7 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "The Direct Channel" + model.NewId()
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 
 	o2 := model.Channel{}
@@ -7926,7 +7926,7 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss stor
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "Different Name" + model.NewId()
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 
 	u1 := &model.User{}
