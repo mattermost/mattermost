@@ -57,7 +57,7 @@
             -webkit-appearance: none;
             appearance: none;
             background: none;
-            color: rgb(var(--center-channel-color-rgb), 0.64);
+            color: rgb(var(--center-channel-color-rgb), 0.73);
             cursor: pointer;
             font: inherit;
             outline: inherit;
@@ -65,7 +65,7 @@
             &:hover,
             &:active,
             &:focus {
-                color: rgb(var(--center-channel-color-rgb), 0.64);
+                color: rgb(var(--center-channel-color-rgb), 0.73);
             }
         }
     }

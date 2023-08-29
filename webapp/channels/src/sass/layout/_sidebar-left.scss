@@ -183,7 +183,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             display: flex;
             padding: 6px 0;
             margin-left: 15px;
-            color: rgba(var(--sidebar-text-rgb), 0.72);
+            color: rgba(var(--sidebar-text-rgb), 0.73);
             line-height: 20px;
             list-style: none;
 
@@ -227,7 +227,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             min-width: 28px;
             height: 28px;
             border: 0;
-            color: rgba(var(--sidebar-text-rgb), 0.72);
+            color: rgba(var(--sidebar-text-rgb), 0.73);
             font-size: 18px;
             vertical-align: middle;
 
@@ -305,7 +305,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         width: 28px;
         height: 28px;
         border-radius: 4px;
-        color: rgba(var(--sidebar-text-rgb), 0.64);
+        color: rgba(var(--sidebar-text-rgb), 0.73);
         font-size: 18px;
         font-weight: 400;
         line-height: 26px;
@@ -342,7 +342,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
 
             i {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.73);
                 font-size: 16px;
                 line-height: 16px;
             }
@@ -398,7 +398,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .AddChannelDropdown_dropdownButton {
         background-color: rgba(var(--sidebar-text-rgb), 0.08);
-        color: rgba(var(--sidebar-text-rgb), 0.72);
+        color: rgba(var(--sidebar-text-rgb), 0.73);
     }
 
     .SidebarMenu {
@@ -418,13 +418,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
 
             i {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.73);
                 font-size: 16px;
                 line-height: 16px;
             }
 
             svg {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.73);
             }
         }
 
@@ -513,7 +513,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             .selected {
                 width: 60%;
                 margin-top: 1px;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.73);
                 font-size: 12px;
                 text-align: right;
                 text-transform: none;
@@ -529,7 +529,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         border: none;
         background: transparent;
         border-radius: 4px;
-        color: rgba(var(--sidebar-text-rgb), 0.64);
+        color: rgba(var(--sidebar-text-rgb), 0.73);
         font-size: 16px;
         line-height: 16px;
 
@@ -607,14 +607,14 @@ $sidebarOpacityAnimationDuration: 0.15s;
             opacity: 1;
 
             >i {
-                color: rgba(var(--sidebar-text-rgb), 0.64);
+                color: rgba(var(--sidebar-text-rgb), 0.73);
                 font-size: 18px;
                 line-height: 16px;
             }
 
             .SidebarCategory_newDropBox-label {
                 margin-left: 8px;
-                color: rgba(var(--sidebar-text-rgb), 0.72);
+                color: rgba(var(--sidebar-text-rgb), 0.73);
                 font-size: 12px;
                 line-height: 16px;
             }
@@ -696,7 +696,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         border: none;
         background-color: var(--sidebar-bg);
         box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.33);
-        color: rgba(var(--sidebar-text-rgb), 0.64);
+        color: rgba(var(--sidebar-text-rgb), 0.73);
         font-family: 'Open Sans', sans-serif;
         text-align: left;
         text-overflow: ellipsis;
@@ -748,7 +748,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             color: rgba(var(--center-channel-color-rgb), 0.9);
 
             i {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.73);
             }
         }
     }
@@ -810,7 +810,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         border: none;
         background-color: transparent;
         box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.33);
-        color: rgba(var(--sidebar-text-rgb), 0.64);
+        color: rgba(var(--sidebar-text-rgb), 0.73);
         font-family: 'Open Sans', sans-serif;
         font-size: 12px;
         font-weight: 600;
@@ -911,12 +911,12 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .SidebarChannelGroup .draggingOver {
         border-radius: 4px;
-        box-shadow: inset -1px 0 0 rgba(var(--sidebar-text-rgb), 0.64), inset 0 -1px 0 rgba(var(--sidebar-text-rgb), 0.64), inset 1px 0 0 rgba(var(--sidebar-text-rgb), 0.64), inset 0 1px 0 rgba(var(--sidebar-text-rgb), 0.64);
+        box-shadow: inset -1px 0 0 rgba(var(--sidebar-text-rgb), 0.73), inset 0 -1px 0 rgba(var(--sidebar-text-rgb), 0.73), inset 1px 0 0 rgba(var(--sidebar-text-rgb), 0.73), inset 0 1px 0 rgba(var(--sidebar-text-rgb), 0.73);
 
         .SidebarChannelGroupHeader {
             background-color: var(--sidebar-bg);
             border-radius: 4px 4px 0 0;
-            box-shadow: inset -1px 0 0 rgba(var(--sidebar-text-rgb), 0.64), inset 1px 0 0 rgba(var(--sidebar-text-rgb), 0.64), inset 0 1px 0 rgba(var(--sidebar-text-rgb), 0.64);
+            box-shadow: inset -1px 0 0 rgba(var(--sidebar-text-rgb), 0.73), inset 1px 0 0 rgba(var(--sidebar-text-rgb), 0.73), inset 0 1px 0 rgba(var(--sidebar-text-rgb), 0.73);
         }
     }
 
@@ -948,7 +948,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         margin: 2px 16px 2px 2px;
         background: transparent;
         border-radius: 4px;
-        color: rgba(var(--sidebar-text-rgb), 0.64);
+        color: rgba(var(--sidebar-text-rgb), 0.73);
         font-size: 18px;
         line-height: 16px;
     }
@@ -974,7 +974,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         margin: 2px 2px 2px auto;
         background: transparent;
         border-radius: 4px;
-        color: rgba(var(--sidebar-text-rgb), 0.64);
+        color: rgba(var(--sidebar-text-rgb), 0.73);
         font-size: 16px;
         line-height: 16px;
 
@@ -1030,7 +1030,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         align-items: center;
 
         /* border: solid 2px transparent; */
-        color: rgba(var(--sidebar-text-rgb), 0.64);
+        color: rgba(var(--sidebar-text-rgb), 0.73);
         list-style-type: none;
         opacity: 1;
         transition-duration: $sidebarHeightTransitionDuration;
@@ -1166,7 +1166,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         border-top: 0;
         border-bottom: 0;
         margin-right: 0;
-        color: rgba(var(--sidebar-text-rgb), 0.72);
+        color: rgba(var(--sidebar-text-rgb), 0.73);
         font-size: 14px;
         text-decoration: none;
 
@@ -1233,20 +1233,20 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
 
         &.selected {
-            background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
+            background: rgba(var(--sidebar-text-active-border-rgb), 0.73);
 
             &:hover {
-                background: rgba(var(--sidebar-text-active-border-rgb), 0.72);
+                background: rgba(var(--sidebar-text-active-border-rgb), 0.73);
             }
         }
     }
 
     .SidebarLink.selected {
-        background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
+        background: rgba(var(--sidebar-text-active-border-rgb), 0.73);
         color: rgba(var(--sidebar-text-rgb), 1);
 
         &:hover {
-            background: rgba(var(--sidebar-text-active-border-rgb), 0.72);
+            background: rgba(var(--sidebar-text-active-border-rgb), 0.73);
         }
     }
 

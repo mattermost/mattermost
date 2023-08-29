@@ -32,7 +32,7 @@
         outline: 0;
 
         &::placeholder {
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            color: rgba(var(--center-channel-color-rgb), 0.73);
         }
 
         &.Input__focus {
@@ -52,7 +52,7 @@
         align-items: center;
         padding: 0 16px;
         margin: 2px 0;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
         font-size: 14px;
         line-height: 20px;
 
@@ -112,7 +112,7 @@
     }
 
     .Input___info {
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
 
         > span.valid {
             margin-left: 7px;
@@ -178,7 +178,7 @@
         border: none;
         margin-left: 12px;
         background-color: var(--center-channel-bg);
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
         font-size: 10px;
         line-height: 14px;
         opacity: 0;

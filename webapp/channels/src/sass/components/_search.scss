@@ -37,7 +37,7 @@
     display: flex;
     height: 100%;
     align-items: center;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.73);
     pointer-events: none;
 }
 
@@ -45,7 +45,7 @@
     position: absolute;
     top: 6px;
     left: 9px;
-    fill: rgba(var(--center-channel-color-rgb), 0.64);
+    fill: rgba(var(--center-channel-color-rgb), 0.73);
     pointer-events: none;
 
     svg {
@@ -68,13 +68,13 @@
     align-items: center;
     justify-content: center;
     margin: 0;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.73);
     cursor: pointer;
     font-size: 16px;
     visibility: hidden;
 
     &:hover {
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
     }
 
     &:active {
@@ -129,13 +129,13 @@
         border: none;
         background: transparent;
         box-shadow: none;
-        color: rgba(var(--global-header-text-rgb), 0.64);
+        color: rgba(var(--global-header-text-rgb), 0.73);
         font-size: 12px;
         line-height: 28px;
         outline: none;
 
         &::placeholder {
-            color: rgba(var(--global-header-text-rgb), 0.64);
+            color: rgba(var(--global-header-text-rgb), 0.73);
             opacity: 1;
         }
 
@@ -208,7 +208,7 @@
 
         .search__font-icon,
         .input-clear-x {
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            color: rgba(var(--center-channel-color-rgb), 0.73);
         }
 
         .searchTypeBadge {
@@ -229,7 +229,7 @@
     .search__font-icon,
     .input-clear-x {
         display: flex;
-        color: rgba(var(--global-header-text-rgb), 0.64);
+        color: rgba(var(--global-header-text-rgb), 0.73);
     }
 }
 
@@ -298,7 +298,7 @@
             overflow: hidden;
             flex-shrink: 1;
             font-weight: 600;
-            opacity: 0.72;
+            opacity: 0.73;
             text-overflow: ellipsis;
             white-space: nowrap;
         }

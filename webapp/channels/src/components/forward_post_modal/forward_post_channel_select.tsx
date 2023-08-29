@@ -79,7 +79,7 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
     let icon;
     const iconProps = {
         size: 16,
-        color: 'rgba(var(--center-channel-color-rgb), 0.64)',
+        color: 'rgba(var(--center-channel-color-rgb), 0.73)',
     };
 
     if (channelIsArchived) {
@@ -220,7 +220,7 @@ const DropdownIndicator = (props: IndicatorProps<ChannelOption>) => {
         <components.DropdownIndicator {...props}>
             <ChevronDownIcon
                 size={16}
-                color={'rgba(var(--center-channel-color-rgb), 0.64)'}
+                color={'rgba(var(--center-channel-color-rgb), 0.73)'}
             />
         </components.DropdownIndicator>
     );

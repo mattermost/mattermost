@@ -53,7 +53,7 @@ const Text = styled.div`
 const Description = styled.div`
     padding: 0 44px 6px;
     font-size: 12px;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.73);
 `;
 
 const ToggleWrapper = styled.div`

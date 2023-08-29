@@ -19,7 +19,7 @@
     background-color: var(--center-channel-bg);
     border-radius: 16px;
     box-shadow: $elevation-1;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.73);
     font-size: 18px;
     line-height: 21px;
 
@@ -50,12 +50,12 @@
     border: none;
     background: transparent;
     border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.73);
     font-size: 18px;
     line-height: 18px;
 
     &:hover {
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
     }
 
     .icon {

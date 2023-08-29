@@ -23,7 +23,7 @@
             position: absolute;
             top: 16px;
             left: 46px;
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            color: rgba(var(--center-channel-color-rgb), 0.73);
             pointer-events: none;
         }
 
@@ -53,7 +53,7 @@
         margin: 0;
 
         span {
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            color: rgba(var(--center-channel-color-rgb), 0.73);
             font-size: 12px;
             line-height: 16px;
         }
@@ -142,7 +142,7 @@
 
             .more-modal__details {
                 padding-left: 0;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.73);
 
                 svg {
                     flex-shrink: 0;
@@ -167,7 +167,7 @@
                         width: 3px;
                         height: 3px;
                         flex-shrink: 0;
-                        background-color: rgba(var(--center-channel-color-rgb), 0.64);
+                        background-color: rgba(var(--center-channel-color-rgb), 0.73);
                         border-radius: 50%;
                     }
 

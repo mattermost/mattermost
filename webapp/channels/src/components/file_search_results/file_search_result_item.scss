@@ -71,7 +71,7 @@
             gap: 8px;
 
             > :not(.Tag) {
-                opacity: 0.64;
+                opacity: 0.73;
             }
 
             .Tag {
@@ -93,9 +93,9 @@
         margin-left: 8px;
         background-color: var(--center-channel-bg);
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
         cursor: pointer;
-        fill: rgba(var(--center-channel-color-rgb), 0.72);
+        fill: rgba(var(--center-channel-color-rgb), 0.73);
         opacity: 0;
         text-decoration: none;
         transition: opacity 0.15s ease;
@@ -110,7 +110,7 @@
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), 0.73);
         }
     }
 

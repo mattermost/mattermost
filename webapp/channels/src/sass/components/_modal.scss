@@ -10,7 +10,7 @@
 
 .modal-backdrop {
     &.in {
-        opacity: 0.64;
+        opacity: 0.73;
     }
 }
 
@@ -866,7 +866,7 @@
             height: 16px;
             margin-top: 0;
             margin-left: 8px;
-            color: rgba(61, 60, 64, 0.72);
+            color: rgba(61, 60, 64, 0.73);
             font-size: 16px;
             line-height: 16px;
 
@@ -891,7 +891,7 @@
 
             .more-modal__name_count {
                 font-weight: 400;
-                opacity: 0.64;
+                opacity: 0.73;
             }
 
             svg {
@@ -932,7 +932,7 @@
     .more-modal__description {
         display: block;
         overflow: hidden;
-        opacity: 0.64;
+        opacity: 0.73;
         text-overflow: ellipsis;
         white-space: nowrap;
 
@@ -969,7 +969,7 @@
         }
 
         .more-modal__shared-actions {
-            color: rgba(61, 60, 64, 0.72);
+            color: rgba(61, 60, 64, 0.73);
 
             .shared-user-icon {
                 width: 16px;
@@ -992,7 +992,7 @@
     .more-modal__lastPostAt {
         display: block;
         margin-left: 5px;
-        opacity: 0.64;
+        opacity: 0.73;
 
         time {
             font-weight: bold;
@@ -1182,11 +1182,11 @@
                 left: 18px;
                 width: 4rem;
                 height: 4rem;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.73);
                 float: left;
 
                 &:hover {
-                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                    color: rgba(var(--center-channel-color-rgb), 0.73);
                 }
 
                 &:active {
@@ -1206,7 +1206,7 @@
                 width: 4rem;
                 height: 4rem;
                 margin-top: 0;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.73);
                 font-size: 32px;
                 font-weight: normal;
                 line-height: 30px;
@@ -1214,8 +1214,8 @@
                 &:hover {
                     background: rgba(var(--center-channel-color-rgb), 0.08);
                     border-radius: 4px;
-                    color: rgba(var(--center-channel-color-rgb), 0.72);
-                    fill: rgba(var(--center-channel-color-rgb), 0.72);
+                    color: rgba(var(--center-channel-color-rgb), 0.73);
+                    fill: rgba(var(--center-channel-color-rgb), 0.73);
                 }
 
                 &:active {

@@ -10,7 +10,7 @@
         border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
         background: var(--sys-center-channel-bg);
         border-radius: 4px;
-        color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.73);
         font-size: 12px;
         font-style: normal;
         font-weight: normal;
@@ -39,7 +39,7 @@
 
         .TeamFilterDropdownButton_more {
             margin-right: 8px;
-            color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+            color: rgba(var(--sys-center-channel-color-rgb), 0.73);
         }
 
         .TeamFilterDropdownButton_icon {
@@ -64,7 +64,7 @@
             height: 32px;
             padding: 9.5px 0 0 0;
             margin-top: -2px;
-            color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+            color: rgba(var(--sys-center-channel-color-rgb), 0.73);
             font-size: 14px;
         }
     }
@@ -114,7 +114,7 @@
             padding-top: 6px;
             margin-right: 8px;
             margin-left: 20px;
-            opacity: 0.64;
+            opacity: 0.73;
             vertical-align: bottom;
 
             &:hover {
@@ -174,7 +174,7 @@
 
     .TeamFilterDropdown_allTeams {
         padding: 4px 0 8px 1px;
-        color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.73);
         font-size: 12px;
         font-weight: normal;
     }
@@ -189,7 +189,7 @@
         padding-top: 8px;
         margin-bottom: 0;
         margin-left: 16px;
-        color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.73);
         font-weight: normal;
     }
 }

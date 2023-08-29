@@ -49,18 +49,18 @@
         align-items: center;
         justify-content: center;
         border-radius: 4px;
-        color: rgba(v(center-channel-color-rgb), 0.64);
+        color: rgba(v(center-channel-color-rgb), 0.73);
         font-size: 1.4rem;
         text-align: center;
         text-decoration: none;
 
         &:focus {
-            color: rgba(v(center-channel-color-rgb), 0.64);
+            color: rgba(v(center-channel-color-rgb), 0.73);
         }
 
         &:hover {
             background: rgba(v(center-channel-color-rgb), 0.08);
-            color: rgba(v(center-channel-color-rgb), 0.72);
+            color: rgba(v(center-channel-color-rgb), 0.73);
         }
 
         &:active {
@@ -163,7 +163,7 @@
             display: inline-block;
             overflow: hidden;
             margin: -4px 0 0 0;
-            color: rgba(v(center-channel-color-rgb), 0.72);
+            color: rgba(v(center-channel-color-rgb), 0.73);
             cursor: pointer;
             font-size: 12px;
             text-overflow: ellipsis;
@@ -196,7 +196,7 @@
 
             .fa {
                 font-size: 20px;
-                opacity: 0.64;
+                opacity: 0.73;
             }
         }
 
@@ -313,7 +313,7 @@
 }
 
 .post-image__archived-tooltip-description {
-    opacity: 0.64;
+    opacity: 0.73;
 }
 
 .post-image__columns {
@@ -469,9 +469,9 @@
     margin-left: 8px;
     background-color: var(--center-channel-bg);
     border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.72);
+    color: rgba(var(--center-channel-color-rgb), 0.73);
     cursor: pointer;
-    fill: rgba(var(--center-channel-color-rgb), 0.72);
+    fill: rgba(var(--center-channel-color-rgb), 0.73);
     text-decoration: none;
     transition: opacity 0.15s ease;
 
@@ -482,7 +482,7 @@
     &:hover {
         display: flex;
         background-color: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
     }
 
     &:focus {
@@ -508,7 +508,7 @@
     .post-image__archived-filename {
         overflow: hidden;
         max-width: 165px;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
         font-weight: 600;
         outline: none;
         text-decoration: none;
@@ -519,7 +519,7 @@
 
     .post-image__archived-label {
         padding-left: 7px;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
         font-size: 10px;
         font-weight: normal;
     }
@@ -551,7 +551,7 @@
                 word-break: break-word;
 
                 &--archived {
-                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    color: rgba(var(--center-channel-color-rgb), 0.73);
                 }
 
                 a {
@@ -563,7 +563,7 @@
                 display: inline-block;
                 overflow: hidden;
                 max-width: 134px;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.73);
                 float: left;
                 text-overflow: ellipsis;
                 white-space: nowrap;
@@ -574,14 +574,14 @@
                 overflow: hidden;
                 max-width: 134px;
                 float: left;
-                opacity: 0.64;
+                opacity: 0.73;
                 text-overflow: ellipsis;
                 white-space: nowrap;
             }
 
             .post-image__size {
                 margin-left: 4px;
-                opacity: 0.64;
+                opacity: 0.73;
             }
         }
     }
@@ -606,17 +606,17 @@
             align-items: center;
             justify-content: center;
             border-radius: 4px;
-            color: rgba(v(center-channel-color-rgb), 0.64);
+            color: rgba(v(center-channel-color-rgb), 0.73);
             font-size: 1.6rem;
             text-decoration: none;
 
             &:focus {
-                color: rgba(v(center-channel-color-rgb), 0.64);
+                color: rgba(v(center-channel-color-rgb), 0.73);
             }
 
             &:hover {
                 background: rgba(v(center-channel-color-rgb), 0.08);
-                color: rgba(v(center-channel-color-rgb), 0.72);
+                color: rgba(v(center-channel-color-rgb), 0.73);
             }
 
             &:active {
@@ -662,7 +662,7 @@
     }
 
     .post-image__uploadingTxt {
-        color: rgba(v(center-channel-color-rgb), 0.64);
+        color: rgba(v(center-channel-color-rgb), 0.73);
     }
 }
 
@@ -742,7 +742,7 @@
     .fa {
         color: $white;
         font-size: 20px;
-        opacity: 0.64;
+        opacity: 0.73;
     }
 }
 

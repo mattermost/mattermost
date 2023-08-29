@@ -386,7 +386,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                     <button id='menuWrapper'>
                         <span>{this.props.shouldShowArchivedChannels ? localizeMessage('more_channels.show_archived_channels', 'Channel Type: Archived') : localizeMessage('more_channels.show_public_channels', 'Channel Type: Public')}</span>
                         <ChevronDownIcon
-                            color={'rgba(var(--center-channel-color-rgb), 0.64)'}
+                            color={'rgba(var(--center-channel-color-rgb), 0.73)'}
                             size={16}
                         />
                     </button>

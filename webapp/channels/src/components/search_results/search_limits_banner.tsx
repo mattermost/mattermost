@@ -31,7 +31,7 @@ border-radius: 4px;
 background-color: rgba(var(--center-channel-color-rgb), 0.04);
 padding: 10px;
 margin: 10px;
-color: rgba(var(--center-channel-color-rgb), 0.72);
+color: rgba(var(--center-channel-color-rgb), 0.73);
 font-weight: 400;
 font-size: 11px;
 line-height: 16px;

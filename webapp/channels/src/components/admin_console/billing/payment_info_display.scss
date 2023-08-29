@@ -133,13 +133,13 @@
     padding: 2px;
     margin-left: 12px;
     border-radius: 4px;
-    color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+    color: rgba(var(--sys-center-channel-color-rgb), 0.73);
     font-size: 18px;
 
     &:hover,
     &:focus {
         background: rgba(var(--sys-center-channel-color-rgb), 0.08);
-        color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.73);
         text-decoration: none;
     }
 }

@@ -72,7 +72,7 @@ const CompletedWrapper = styled.div`
 
     .start-trial-text, .completed-subtitle {
         font-size: 14px !important;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
         line-height: 20px;
     }
 
@@ -83,7 +83,7 @@ const CompletedWrapper = styled.div`
     .disclaimer, .download-apps {
         width: 90%;
         margin-top: 15px;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
         font-family: "Open Sans";
         font-style: normal;
         font-weight: normal;

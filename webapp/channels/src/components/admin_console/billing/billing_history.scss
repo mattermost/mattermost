@@ -98,7 +98,7 @@
 
 .BillingHistory__table-bottomDesc {
     margin-top: 4px;
-    color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+    color: rgba(var(--sys-center-channel-color-rgb), 0.73);
     font-size: 12px;
     line-height: 16px;
 }
@@ -181,7 +181,7 @@
         }
 
         &:disabled {
-            opacity: 0.64;
+            opacity: 0.73;
         }
 
         &:hover:not(:disabled) {

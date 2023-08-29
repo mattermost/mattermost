@@ -14,7 +14,7 @@
             border: none;
             background: transparent;
             border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            color: rgba(var(--center-channel-color-rgb), 0.73);
             cursor: pointer;
             text-align: center;
 
@@ -31,7 +31,7 @@
 
             &:hover {
                 background: rgba(var(--center-channel-color-rgb), 0.08);
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.73);
             }
         }
     }

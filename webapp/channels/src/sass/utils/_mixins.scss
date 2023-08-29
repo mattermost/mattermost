@@ -273,7 +273,7 @@
     border: 0;
     background: none;
     border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.73);
 
     &:focus,
     &:focus-within {
@@ -286,7 +286,7 @@
     &:hover {
         border: 0;
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
     }
 
     &:active {

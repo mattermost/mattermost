@@ -18,7 +18,7 @@ const MenuItemContainer = styled.div`
 `;
 
 const Icon = styled.div`
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.73);
 `;
 
 const MenuItemText = styled.div`
@@ -28,7 +28,7 @@ const MenuItemText = styled.div`
 
 const RightSide = styled.div`
     display: flex;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.73);
 `;
 
 const Badge = styled.div`

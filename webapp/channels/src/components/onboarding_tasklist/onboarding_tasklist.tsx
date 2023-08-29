@@ -69,7 +69,7 @@ const TaskItems = styled.div`
 
     p {
         font-size: 12px;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
         padding: 4px 24px;
     }
 
@@ -101,12 +101,12 @@ const Button = styled.button<{open: boolean}>(({open}) => {
         background: var(--center-channel-bg);
         border: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
         box-shadow: var(--elevation-3);
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.73);
 
         &:hover {
             border-color: rgba(var(--center-channel-color-rgb), 0.24);
             box-shadow: var(--elevation-4);
-            color: rgba(var(--center-channel-color-rgb), 0.72)
+            color: rgba(var(--center-channel-color-rgb), 0.73)
         }
 
         span {

@@ -32,15 +32,15 @@ const ImportantIcon = styled(AlertCircleOutlineIcon)`
 `;
 
 const StandardIcon = styled(MessageTextOutlineIcon)`
-    fill: rgba(var(--center-channel-color-rgb), 0.64);
+    fill: rgba(var(--center-channel-color-rgb), 0.73);
 `;
 
 const AcknowledgementIcon = styled(CheckCircleOutlineIcon)`
-    fill: rgba(var(--center-channel-color-rgb), 0.64);
+    fill: rgba(var(--center-channel-color-rgb), 0.73);
 `;
 
 const PersistentNotificationsIcon = styled(BellRingOutlineIcon)`
-    fill: rgba(var(--center-channel-color-rgb), 0.64);
+    fill: rgba(var(--center-channel-color-rgb), 0.73);
 `;
 
 const Header = styled.h4`

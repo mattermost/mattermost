@@ -25,7 +25,7 @@
 .user-popover-last-active {
     display: block;
     margin: 8px 0 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.73);
     font-size: 11px;
     font-weight: 400;
     letter-spacing: 0.02em;
@@ -112,7 +112,7 @@
                 width: 32px;
                 padding: 0;
                 background-color: unset;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.73);
 
                 &:hover {
                     background: rgba(var(--center-channel-color-rgb), 0.08);
