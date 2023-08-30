@@ -389,6 +389,8 @@ type ServiceSettings struct {
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 }
 
+var GiphySdkKey string
+
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
 		// If the site URL is also not present then assume this is a clean install
