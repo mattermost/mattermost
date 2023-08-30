@@ -26,8 +26,6 @@ import Constants, {ModalIdentifiers} from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
 
 import type {PropsFromRedux, OwnProps} from './index';
-import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 type Props = PropsFromRedux & OwnProps;
 
@@ -268,34 +266,6 @@ const SidebarChannelMenu = (props: Props) => {
         );
     }
 
-    let convertToChannelMenuItem: JSX.Element | null = null;
-    if (props.channel.type === Constants.GM_CHANNEL && !isGuest(props.currentUser.roles)) {
-        const convertToChannelText = (
-            <FormattedMessage
-                id='sidebar_left.sidebar_channel_menu_convert_to_channel'
-                defaultMessage='Convert to Private Channel'
-            />
-        );
-
-        function handleConvertGmToChannel() {
-            props.openModal({
-                modalId: ModalIdentifiers.CONVERT_GM_TO_CHANNEL,
-                dialogType: ConvertGmToChannelModal,
-                dialogProps: {channel: props.channel},
-            });
-            trackEvent('ui', 'ui_sidebar_channel_menu_convertGmToChannel');
-        }
-
-        convertToChannelMenuItem = (
-            <Menu.Item
-                id={'sidebar_left.sidebar_channel_menu_convert_to_channel'}
-                aria-haspopup='true'
-                labels={convertToChannelText}
-                onClick={handleConvertGmToChannel}
-            />
-        );
-    }
-
     return (
         <Menu.Container
             menuButton={{
@@ -320,8 +290,6 @@ const SidebarChannelMenu = (props: Props) => {
             {muteUnmuteChannelMenuItem}
             <Menu.Separator/>
             <ChannelMoveToSubmenu channel={props.channel}/>
-            {convertToChannelMenuItem && <Menu.Separator/>}
-            {convertToChannelMenuItem}
             {(copyLinkMenuItem || addMembersMenuItem) && <Menu.Separator/>}
             {copyLinkMenuItem}
             {addMembersMenuItem}
