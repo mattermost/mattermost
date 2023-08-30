@@ -5080,6 +5080,18 @@
     "translation": "group name is not unique"
   },
   {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "Token does not exist or is expired"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Token is not valid or is expired"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Cannot find a user for this token"
+  },
+  {
     "id": "app.draft.delete.app_error",
     "translation": "Unable to delete the Draft."
   },
@@ -9805,7 +9817,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 112+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",

@@ -879,6 +879,40 @@ func (s *hooksRPCServer) NotificationWillBePushed(args *Z_NotificationWillBePush
 	return nil
 }
 
+func init() {
+	hookNameToId["UserHasBeenDeactivated"] = UserHasBeenDeactivatedID
+}
+
+type Z_UserHasBeenDeactivatedArgs struct {
+	A *Context
+	B *model.User
+}
+
+type Z_UserHasBeenDeactivatedReturns struct {
+}
+
+func (g *hooksRPCClient) UserHasBeenDeactivated(c *Context, user *model.User) {
+	_args := &Z_UserHasBeenDeactivatedArgs{c, user}
+	_returns := &Z_UserHasBeenDeactivatedReturns{}
+	if g.implemented[UserHasBeenDeactivatedID] {
+		if err := g.client.Call("Plugin.UserHasBeenDeactivated", _args, _returns); err != nil {
+			g.log.Error("RPC call UserHasBeenDeactivated to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) UserHasBeenDeactivated(args *Z_UserHasBeenDeactivatedArgs, returns *Z_UserHasBeenDeactivatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserHasBeenDeactivated(c *Context, user *model.User)
+	}); ok {
+		hook.UserHasBeenDeactivated(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserHasBeenDeactivated called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
