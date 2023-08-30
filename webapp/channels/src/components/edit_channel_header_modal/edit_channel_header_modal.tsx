@@ -66,7 +66,7 @@ type State = {
     header?: string;
     saving: boolean;
     show: boolean;
-    serverError?: ServerError;
+    serverError?: ServerError | null;
     postError?: React.ReactNode;
 }
 
@@ -95,9 +95,21 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
     };
 
     private handleChange = (e: React.ChangeEvent<TextboxElement>): void => {
-        this.setState({
-            header: e.target.value,
-        });
+        const isInvalidLength = e.target.value.length > headerMaxLength;
+        if (isInvalidLength) {
+            this.setState({
+                header: e.target.value,
+                serverError: {
+                    server_error_id: 'model.channel.is_valid.header.app_error',
+                    message: 'Invalid header length',
+                },
+            });
+        } else {
+            this.setState({
+                header: e.target.value,
+                serverError: null,
+            });
+        }
     };
 
     public handleSave = async (): Promise<void> => {
@@ -257,7 +269,7 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
                                 channelId={this.props.channel.id!}
                                 id='edit_textbox'
                                 ref={this.editChannelHeaderTextboxRef}
-                                characterLimit={1024}
+                                characterLimit={headerMaxLength}
                                 preview={this.props.shouldShowPreview}
                                 useChannelMentions={false}
                             />
@@ -268,7 +280,7 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
                                 showPreview={this.props.shouldShowPreview}
                                 updatePreview={this.setShowPreview}
                                 hasText={this.state.header ? this.state.header.length > 0 : false}
-                                hasExceededCharacterLimit={this.state.header ? this.state.header.length > 1024 : false}
+                                hasExceededCharacterLimit={this.state.header ? this.state.header.length > headerMaxLength : false}
                                 previewMessageLink={localizeMessage('edit_channel_header.previewHeader', 'Edit Header')}
                             />
                         </div>

@@ -4,7 +4,7 @@
 import React, {ComponentType} from 'react';
 import {Route, RouteProps} from 'react-router-dom';
 
-const HeaderFooterTemplate = React.lazy(() => import('components/header_footer_template'));
+const HeaderFooterTemplate = React.lazy(() => import('components/header_footer_template/header_footer_template'));
 const LoggedIn = React.lazy(() => import('components/logged_in'));
 
 interface Props extends RouteProps {

@@ -141,8 +141,6 @@ export interface Props {
          */
         loadLatestPosts: (channelId: string) => Promise<void>;
 
-        markChannelAsViewed: (channelId: string) => void;
-
         markChannelAsRead: (channelId: string) => void;
         updateNewMessagesAtInChannel: typeof updateNewMessagesAtInChannel;
     };
@@ -230,7 +228,9 @@ export default class PostList extends React.PureComponent<Props, State> {
         }
 
         if (!focusedPostId) {
-            this.markChannelAsReadAndViewed(channelId);
+            // Posts are marked as read from here to not cause a race when loading posts
+            // marking channel as read and viewed after calling for posts in channel
+            this.props.actions.markChannelAsRead(channelId);
         }
 
         if (this.mounted) {
@@ -272,13 +272,6 @@ export default class PostList extends React.PureComponent<Props, State> {
         }
 
         return {error};
-    };
-
-    markChannelAsReadAndViewed = (channelId: string) => {
-        // Posts are marked as read from here to not cause a race when loading posts
-        // marking channel as read and viewed after calling for posts in channel
-        this.props.actions.markChannelAsViewed(channelId);
-        this.props.actions.markChannelAsRead(channelId);
     };
 
     getOldestVisiblePostId = () => {
