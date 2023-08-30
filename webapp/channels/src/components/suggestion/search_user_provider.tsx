@@ -85,6 +85,7 @@ export default class SearchUserProvider extends Provider {
         const usernamePrefix = captured[1];
 
         this.startNewRequest(usernamePrefix);
+
         const data = await this.autocompleteUsersInTeam(usernamePrefix);
 
         if (this.shouldCancelDispatch(usernamePrefix)) {
