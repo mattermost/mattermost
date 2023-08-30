@@ -2278,6 +2278,15 @@ const AdminDefinition = {
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                     },
                     {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'TeamSettings.EnableJoinLeaveMessageByDefault',
+                        label: t('admin.team.enableJoinLeaveMessageTitle'),
+                        label_default: 'Enable join/leave messages by default:',
+                        help_text: t('admin.team.enableJoinLeaveMessageDescription'),
+                        help_text_default: 'Choose the default configuration of system messages displayed when users join or leave channels. Users can override this default by configuring Join/Leave messages in Account Settings > Advanced.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                    },
+                    {
                         type: Constants.SettingsTypes.TYPE_DROPDOWN,
                         key: 'TeamSettings.RestrictDirectMessage',
                         label: t('admin.team.restrictDirectMessage'),
@@ -2353,7 +2362,7 @@ const AdminDefinition = {
                         label: t('admin.privacy.showEmailTitle'),
                         label_default: 'Show Email Address:',
                         help_text: t('admin.privacy.showEmailDescription'),
-                        help_text_default: 'When false, hides the email address of members from everyone except System Administrators.',
+                        help_text_default: 'When false, hides the email address of members from everyone except System Administrators and the System Roles with read/write access to Compliance, Billing, or User Management.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                     },
                     {
