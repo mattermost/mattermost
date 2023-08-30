@@ -399,7 +399,7 @@ type ServiceSettings struct {
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 }
 
-var GiphySdkKey string
+var MattermostGiphySdkKey string
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
@@ -745,12 +745,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.GiphySdkKey == nil || *s.GiphySdkKey == "" {
-		switch GetServiceEnvironment() {
-		case ServiceEnvironmentProduction:
-			s.GiphySdkKey = &GiphySdkKey
-		case ServiceEnvironmentTest, ServiceEnvironmentDev:
-			s.GiphySdkKey = NewString(ServiceSettingsDefaultGiphySdkKeyTest)
-		}
+		s.GiphySdkKey = NewString("")
 	}
 
 	if s.ExperimentalEnableAuthenticationTransfer == nil {

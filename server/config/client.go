@@ -81,8 +81,17 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableGifPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableGifPicker)
 	props["GfycatApiKey"] = *c.ServiceSettings.GfycatAPIKey
 	props["GfycatApiSecret"] = *c.ServiceSettings.GfycatAPISecret
-	props["GiphySdkKey"] = *c.ServiceSettings.GiphySdkKey
 	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
+
+	if model.GetServiceEnvironment() == model.ServiceEnvironmentProduction {
+		if *c.ServiceSettings.GiphySdkKey != "" {
+			props["GiphySdkKey"] = *c.ServiceSettings.GiphySdkKey
+		} else {
+			props["GiphySdkKey"] = model.MattermostGiphySdkKey
+		}
+	} else if model.GetServiceEnvironment() == model.ServiceEnvironmentDev || model.GetServiceEnvironment() == model.ServiceEnvironmentTest {
+		props["GiphySdkKey"] = model.ServiceSettingsDefaultGiphySdkKeyTest
+	}
 
 	props["MaxNotificationsPerChannel"] = strconv.FormatInt(*c.TeamSettings.MaxNotificationsPerChannel, 10)
 	props["EnableConfirmNotificationsToChannel"] = strconv.FormatBool(*c.TeamSettings.EnableConfirmNotificationsToChannel)
