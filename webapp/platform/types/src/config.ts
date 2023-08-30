@@ -70,6 +70,7 @@ export type ClientConfig = {
     EnableGifPicker: string;
     EnableGuestAccounts: string;
     EnableIncomingWebhooks: string;
+    EnableJoinLeaveMessageByDefault: string;
     EnableLatex: string;
     EnableInlineLatex: string;
     EnableLdap: string;
