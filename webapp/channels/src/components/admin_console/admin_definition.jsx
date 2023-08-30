@@ -1863,6 +1863,49 @@ const AdminDefinition = {
                         },
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.LOGGING)),
                     },
+                    {
+                        type: Constants.SettingsTypes.TYPE_LONG_TEXT,
+                        key: 'LogSettings.AdvancedLoggingJSON',
+                        label: t('admin.log.AdvancedLoggingJSONTitle'),
+                        label_default: 'Advanced Logging:',
+                        help_text: t('admin.log.AdvancedLoggingJSONDescription'),
+                        help_text_default: 'The JSON configuration for Advanced Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format is uses.',
+                        help_text_markdown: false,
+                        help_text_values: {
+                            link: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href={DocLinks.ADVANCED_LOGGING}
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                        placeholder: t('admin.log.AdvancedLoggingJSONPlaceholder'),
+                        placeholder_default: 'Enter your JSON configuration',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.LOGGING)),
+                        validate: (value) => {
+                            const valid = new ValidationResult(true, '', '');
+                            if (!value) {
+                                return valid;
+                            }
+                            try {
+                                JSON.parse(value);
+                                return valid;
+                            } catch (error) {
+                                return new ValidationResult(false, '', error.message);
+                            }
+                        },
+                        onConfigLoad: (configVal) => JSON.stringify(configVal, null, '  '),
+                        onConfigSave: (displayVal) => {
+                            // Handle case where field is empty
+                            if (!displayVal) {
+                                return {undefined};
+                            }
+
+                            return JSON.parse(displayVal);
+                        },
+                    },
                 ],
             },
         },
