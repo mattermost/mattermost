@@ -465,7 +465,7 @@
   },
   {
     "id": "api.channel.group_message.converted.to_private_channel",
-    "translation": "%v created this channel from a group message with %v."
+    "translation": "{{.ConvertedByUsername}} created this channel from a group message with {{.GMMembers}}."
   },
   {
     "id": "api.channel.group_message.converted.to_private_channel.post_message.error",
@@ -9898,5 +9898,9 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user."
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} and {{.LastItem}}"
   }
 ]

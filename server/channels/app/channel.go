@@ -3578,7 +3578,7 @@ func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelI
 	users, appErr := a.GetUsersInChannelPage(&model.UserGetOptions{
 		InChannelId: channelID,
 		Page:        0,
-		PerPage:     10,
+		PerPage:     model.ChannelGroupMaxUsers,
 	}, false)
 	if appErr != nil {
 		return appErr
@@ -3589,7 +3589,12 @@ func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelI
 		usernames[i] = user.Username
 	}
 
-	message := fmt.Sprintf(i18n.T("api.channel.group_message.converted.to_private_channel"), convertedByUser.Username, utils.JoinList(usernames))
+	message := fmt.Sprintf(i18n.T(
+		"api.channel.group_message.converted.to_private_channel"),
+		map[string]any{
+			"ConvertedByUsername": convertedByUser.Username,
+			"GMMembers":           utils.JoinList(usernames),
+		})
 
 	post := &model.Post{
 		ChannelId: channelID,
@@ -3598,6 +3603,7 @@ func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelI
 		UserId:    convertedByUserId,
 	}
 
+	// these props are used for re-constructing a localized message on the client
 	post.AddProp("convertedByUsername", convertedByUser.Username)
 	post.AddProp("gmMembersDuringConversion", usernames)
 

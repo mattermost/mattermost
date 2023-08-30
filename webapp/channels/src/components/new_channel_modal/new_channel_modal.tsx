@@ -213,44 +213,6 @@ const NewChannelModal = () => {
         }
     };
 
-    // const handleOnDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     e.preventDefault();
-    //     const {target: {value: displayName}} = e;
-    //
-    //     const displayNameErrors = validateDisplayName(displayName);
-    //
-    //     setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
-    //     setDisplayName(displayName);
-    //     setServerError('');
-    //
-    //     if (!urlModified) {
-    //         setURL(cleanUpUrlable(displayName));
-    //         setURLError('');
-    //     }
-    // };
-
-    // const handleOnDisplayNameBlur = () => {
-    //     if (displayName && !url) {
-    //         setURL(crypto.randomBytes(16).toString('hex'));
-    //     }
-    //     if (!displayNameModified) {
-    //         setDisplayNameModified(true);
-    //     }
-    // };
-
-    // const handleOnURLChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     e.preventDefault();
-    //     const {target: {value: url}} = e;
-    //
-    //     const cleanURL = url.toLowerCase().replace(/\s/g, '-');
-    //     const urlErrors = validateChannelUrl(cleanURL, intl) as string[];
-    //
-    //     setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
-    //     setURL(cleanURL);
-    //     setURLModified(true);
-    //     setServerError('');
-    // };
-
     const handleOnURLChange = (updatedURL: string) => {
         setURL(updatedURL);
     };
@@ -324,33 +286,6 @@ const NewChannelModal = () => {
             onExited={handleOnModalCancel}
         >
             <div className='new-channel-modal-body'>
-                {/*<Input*/}
-                {/*    type='text'*/}
-                {/*    autoComplete='off'*/}
-                {/*    autoFocus={true}*/}
-                {/*    required={true}*/}
-                {/*    name='new-channel-modal-name'*/}
-                {/*    containerClassName='new-channel-modal-name-container'*/}
-                {/*    inputClassName='new-channel-modal-name-input'*/}
-                {/*    label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}*/}
-                {/*    placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}*/}
-                {/*    limit={Constants.MAX_CHANNELNAME_LENGTH}*/}
-                {/*    value={displayName}*/}
-                {/*    customMessage={displayNameModified ? {type: ItemStatus.ERROR, value: displayNameError} : null}*/}
-                {/*    onChange={handleOnDisplayNameChange}*/}
-                {/*    onBlur={handleOnDisplayNameBlur}*/}
-                {/*/>*/}
-                {/*<URLInput*/}
-                {/*    className='new-channel-modal__url'*/}
-                {/*    base={getSiteURL()}*/}
-                {/*    path={`${currentTeamName}/channels`}*/}
-                {/*    pathInfo={url}*/}
-                {/*    limit={Constants.MAX_CHANNELNAME_LENGTH}*/}
-                {/*    shortenLength={Constants.DEFAULT_CHANNELURL_SHORTEN_LENGTH}*/}
-                {/*    error={urlError}*/}
-                {/*    onChange={handleOnURLChange}*/}
-                {/*/>*/}
-
                 <ChannelNameFormField
                     value={displayName}
                     name='new-channel-modal-name'

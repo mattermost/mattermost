@@ -167,8 +167,6 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
                         className={classNames('Input', className, {Input__focus: showLegend})}
                         classNamePrefix={'DropDown'}
                         value={value}
-
-                        // onChange={onChange as any} // types are not working correctly for multiselect
                         onChange={ownOnChange as any} // types are not working correctly for multiselect
                         styles={{...baseStyles, ...styles}}
                         {...otherProps}

@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import 'components/convert_gm_to_channel_modal/warning_text_section/warning_text_section.scss';
 
-const AllMembersDeactivated = (): JSX.Element => {
+const AllMembersDeactivatedError = (): JSX.Element => {
     return (
         <div className='warning-section error'>
             <i className='fa fa-exclamation-circle'/>
@@ -22,4 +22,4 @@ const AllMembersDeactivated = (): JSX.Element => {
     );
 };
 
-export default AllMembersDeactivated;
+export default AllMembersDeactivatedError;

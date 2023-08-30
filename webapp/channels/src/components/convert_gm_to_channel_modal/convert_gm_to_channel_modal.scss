@@ -1,11 +1,18 @@
 #convert-gm-to-channel-modal {
     .convert-gm-to-channel-modal-body {
         display: flex;
-        height: 320px;
         flex-direction: column;
         gap: 20px;
         overflow-y: visible;
         transition: height 200ms ease;
+
+        &.multi-team {
+            height: 340px;
+        }
+
+        &.single-team {
+            height: 230px;
+        }
 
         &.loading {
             height: 152px;

@@ -24,18 +24,19 @@ export type Props = {
 
 import './channel_name_form_field.scss';
 
+// Component for input fields for editing channel display name
+// along with stuff to edit its URL.
 const ChannelNameFormField = (props: Props): JSX.Element => {
     const {value, name, placeholder, onDisplayNameChange, onURLChange} = props;
 
     const intl = useIntl();
     const {formatMessage} = intl;
-
-    const [displayNameModified, setDisplayNameModified] = useState(false);
-    const [displayNameError, setDisplayNameError] = useState('');
-    const [displayName, setDisplayName] = useState('');
-    const [urlModified, setURLModified] = useState(false);
-    const [url, setURL] = useState('');
-    const [urlError, setURLError] = useState('');
+    const [displayNameModified, setDisplayNameModified] = useState<boolean>(false);
+    const [displayNameError, setDisplayNameError] = useState<string>('');
+    const [displayName, setDisplayName] = useState<string>('');
+    const [urlModified, setURLModified] = useState<boolean>(false);
+    const [url, setURL] = useState<string>('');
+    const [urlError, setURLError] = useState<string>('');
 
     const {name: currentTeamName} = useSelector((state: GlobalState) => getCurrentTeam(state));
 
@@ -45,11 +46,14 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
 
         const displayNameErrors = validateDisplayName(displayName);
 
+        // set error if any, else clear it
         setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
         setDisplayName(displayName);
         onDisplayNameChange(displayName);
 
         if (!urlModified) {
+            // if URL isn't explicitly modified, it's derived from the display name
+
             const cleanURL = cleanUpUrlable(displayName);
             setURL(cleanURL);
             setURLError('');

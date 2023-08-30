@@ -2222,7 +2222,7 @@ func getGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter, r *htt
 
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(teams); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response from getGroupMessageMembersCommonTeams", mlog.Err(err))
 	}
 }
 
@@ -2267,6 +2267,6 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(updatedChannel); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response from convertGroupMessageToChannel", mlog.Err(err))
 	}
 }
