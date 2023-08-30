@@ -54,11 +54,15 @@ const determineVisibleSearchHintOptions = (searchTerms: string, searchType: Sear
     const pretext = pretextArray[pretextArray.length - 1];
     const penultimatePretext = pretextArray[pretextArray.length - 2];
 
-    const shouldShowHintOptions = penultimatePretext ? !options.some(({searchTerm}) => penultimatePretext.toLowerCase().endsWith(searchTerm.toLowerCase())) : !options.some(({searchTerm}) => searchTerms.toLowerCase().endsWith(searchTerm.toLowerCase()));
+    const shouldShowHintOptions = penultimatePretext ? !options.some(({searchTerm}) => penultimatePretext.toLowerCase().endsWith(searchTerm.toLowerCase())) || penultimatePretext.startsWith('@') : !options.some(({searchTerm}) => searchTerms.toLowerCase().endsWith(searchTerm.toLowerCase())) || searchTerms.startsWith('@');
 
     if (shouldShowHintOptions) {
         try {
             newVisibleSearchHintOptions = options.filter((option) => {
+                if (pretext.startsWith('@') && option.searchTerm === 'From:') {
+                    return true;
+                }
+
                 return new RegExp(pretext, 'ig').
                     test(option.searchTerm) && option.searchTerm.toLowerCase() !== pretext.toLowerCase();
             });

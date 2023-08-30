@@ -204,9 +204,7 @@ export function showSearchResults(isMentionSearch = false) {
         }
         dispatch(updateSearchResultsTerms(searchTerms));
 
-        const terms = searchTerms.trim().startsWith('@') ? searchTerms.replace('@', 'from:') : searchTerms;
-
-        return dispatch(performSearch(terms));
+        return dispatch(performSearch(searchTerms));
     };
 }
 

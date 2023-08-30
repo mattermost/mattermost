@@ -70,7 +70,7 @@ export default class SearchUserProvider extends Provider {
     }
 
     handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<UserProfile>) {
-        const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext.replace('@', 'from:').toLowerCase());
+        const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext.toLowerCase());
 
         this.doAutocomplete(captured, resultsCallback);
 
