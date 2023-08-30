@@ -296,6 +296,18 @@
     "translation": "Your license does not support channel moderation"
   },
   {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "User is not allowed to convert group message to private channel"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} created this channel from a group message with {{.GMMembers}}."
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel.post_message.error",
+    "translation": "Failed to create group message to channel conversion post"
+  },
+  {
     "id": "api.channel.guest_join_channel.post_and_forget",
     "translation": "%v joined the channel as guest."
   },
@@ -462,14 +474,6 @@
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member."
-  },
-  {
-    "id": "api.channel.group_message.converted.to_private_channel",
-    "translation": "{{.ConvertedByUsername}} created this channel from a group message with {{.GMMembers}}."
-  },
-  {
-    "id": "api.channel.group_message.converted.to_private_channel.post_message.error",
-    "translation": "Failed to create group message to channel conversion post"
   },
   {
     "id": "api.cloud.app_error",
@@ -2418,10 +2422,6 @@
   {
     "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
     "translation": "User is not allowed to create priority post or persistent notification."
-  },
-  {
-    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
-    "translation": "User is not allowed to convert group message to private channel"
   },
   {
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
@@ -4716,14 +4716,6 @@
     "translation": "Unable to save direct channel."
   },
   {
-    "id": "app.channel.get_gm_common_teams.store_error",
-    "translation": "Unable to get common teams for group message members."
-  },
-  {
-    "id": "app.channel.convert_gm_to_channel.store_error",
-    "translation": "Unable to convert group message to channel."
-  },
-  {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
     "translation": "Unable to create initial sidebar categories for user."
   },
@@ -4822,6 +4814,10 @@
   {
     "id": "app.channel.get_for_post.app_error",
     "translation": "Unable to get the channel for the given post."
+  },
+  {
+    "id": "app.channel.get_gm_common_teams.store_error",
+    "translation": "Unable to get common teams for group message members."
   },
   {
     "id": "app.channel.get_member.app_error",
@@ -8060,6 +8056,10 @@
     "translation": "Unsupported syncable type '{{.Value}}'."
   },
   {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} and {{.LastItem}}"
+  },
+  {
     "id": "import_process.worker.do_job.file_exists",
     "translation": "Unable to process import: file does not exists."
   },
@@ -9898,9 +9898,5 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user."
-  },
-  {
-    "id": "humanize.list_join",
-    "translation": "{{.OtherItems}} and {{.LastItem}}"
   }
 ]
