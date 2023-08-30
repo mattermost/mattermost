@@ -17,7 +17,7 @@ export default class NextIcon extends React.PureComponent<Props> {
     };
 
     public render(): JSX.Element {
-        const className = 'fa fa-1x fa-angle-right' + (this.props.additionalClassName ? ' ' + this.props.additionalClassName : '');
+        const className = 'icon icon-chevron-right' + (this.props.additionalClassName ? ' ' + this.props.additionalClassName : '');
         return (
             <LocalizedIcon
                 className={className}

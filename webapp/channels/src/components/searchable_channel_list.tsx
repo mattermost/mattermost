@@ -173,8 +173,8 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
         );
 
         const joinViewChannelButtonClass = classNames('btn', {
-            outlineButton: this.isMemberOfChannel(channel.id),
-            primaryButton: !this.isMemberOfChannel(channel.id),
+            'btn btn-secondary btn-sm outlineButton': this.isMemberOfChannel(channel.id),
+            'btn btn-primary btn-sm primaryButton': !this.isMemberOfChannel(channel.id),
         });
 
         const joinViewChannelButton = (

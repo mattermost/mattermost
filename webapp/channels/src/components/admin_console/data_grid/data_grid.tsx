@@ -266,7 +266,7 @@ class DataGrid extends React.PureComponent<Props, State> {
 
                         <button
                             type='button'
-                            className={'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')}
+                            className={'btn btn-tertiary ml-2 prev ' + (firstPage ? 'disabled' : '')}
                             onClick={prevPageFn}
                             disabled={firstPage}
                         >

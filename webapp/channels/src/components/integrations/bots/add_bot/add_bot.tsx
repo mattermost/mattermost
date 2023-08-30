@@ -523,7 +523,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     {removeImageIcon}
                                 </div>
                                 <div
-                                    className='btn btn-sm btn-primary btn-file sel-btn'
+                                    className='btn btn-sm btn-primary btn-file'
                                 >
                                     <FormattedMessage
                                         id='bots.image.upload'

@@ -104,7 +104,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                             className={
                                 classNames(
                                     'btn',
-                                    'btn-secondary',
+                                    'btn-danger',
                                     'ArchiveButton',
                                     {ArchiveButton___archived: isArchived},
                                     {ArchiveButton___unarchived: !isArchived},
@@ -115,11 +115,9 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                             onClick={noop}
                         >
                             {isArchived ? (
-                                <UnarchiveIcon
-                                    className='channel-icon channel-icon__unarchive'
-                                />
+                                <i className='icon icon-archive-arrow-up-outline'/>
                             ) : (
-                                <ArchiveIcon className='channel-icon channel-icon__archive'/>
+                                <i className='icon icon-archive-outline'/>
                             )}
                             <FormattedMessage
                                 id={archiveBtnID}
@@ -138,7 +136,6 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                 className={
                     classNames(
                         'btn',
-                        'btn-secondary',
                         'ArchiveButton',
                         {ArchiveButton___archived: isArchived},
                         {ArchiveButton___unarchived: !isArchived},
@@ -149,11 +146,9 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                 onClick={toggleArchive}
             >
                 {isArchived ? (
-                    <UnarchiveIcon
-                        className='channel-icon channel-icon__unarchive'
-                    />
+                    <i className='icon icon-archive-arrow-up-outline'/>
                 ) : (
-                    <ArchiveIcon className='channel-icon channel-icon__archive'/>
+                    <i className='icon icon-archive-outline'/>
                 )}
                 <FormattedMessage
                     id={archiveBtnID}

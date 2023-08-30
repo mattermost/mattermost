@@ -373,27 +373,23 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
             <div className='get-app__dialog-body'>
                 {this.renderDialogHeader()}
                 <div className='get-app__buttons'>
-                    <div className='get-app__status'>
-                        {this.renderGoNativeAppMessage()}
-                    </div>
-                    <div className='get-app__status'>
-                        <a
-                            href={this.state.location}
-                            onMouseDown={() => {
-                                this.setPreference(LandingPreferenceTypes.BROWSER, true);
-                            }}
-                            onClick={() => {
-                                this.setPreference(LandingPreferenceTypes.BROWSER, true);
-                                this.setState({navigating: true});
-                            }}
-                            className='btn btn-default btn-lg get-app__continue'
-                        >
-                            <FormattedMessage
-                                id='get_app.continueToBrowser'
-                                defaultMessage='View in Browser'
-                            />
-                        </a>
-                    </div>
+                    {this.renderGoNativeAppMessage()}
+                    <a
+                        href={this.state.location}
+                        onMouseDown={() => {
+                            this.setPreference(LandingPreferenceTypes.BROWSER, true);
+                        }}
+                        onClick={() => {
+                            this.setPreference(LandingPreferenceTypes.BROWSER, true);
+                            this.setState({navigating: true});
+                        }}
+                        className='btn btn-tertiary btn-lg'
+                    >
+                        <FormattedMessage
+                            id='get_app.continueToBrowser'
+                            defaultMessage='View in Browser'
+                        />
+                    </a>
                 </div>
                 <div className='get-app__preference'>
                     <button

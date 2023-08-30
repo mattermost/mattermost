@@ -11,9 +11,11 @@ button {
     }
 
     &.style--none {
-        padding: 0;
-        border: none;
-        background: transparent;
+        &:not(.btn) {
+            padding: 0;
+            border: none;
+            background: transparent;
+        }
 
         &:focus {
             outline: 0;
@@ -93,6 +95,15 @@ button {
         position: relative;
         border-color: transparent;
         background-color: rgb(var(--button-bg-rgb));
+
+        // These hover and active values are for things outside the app__body, the correct theme styles for the primary button are applied in utils.jsx
+        &:hover {
+            background-color: #1A51C8;
+        }
+
+        &:active {
+            background-color: #184AB6;
+        }
 
         &:disabled,
         &:disabled:hover,

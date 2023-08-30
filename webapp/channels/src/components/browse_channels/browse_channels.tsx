@@ -345,7 +345,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 aria-labelledby='browseChannelsModalLabel'
                 compassDesign={true}
                 modalHeaderText={title}
-                headerButton={createNewChannelButton('outlineButton')}
+                headerButton={createNewChannelButton('btn-secondary btn-sm')}
                 autoCloseOnConfirmButton={false}
                 aria-modal={true}
                 enforceFocus={false}

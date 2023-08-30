@@ -148,7 +148,7 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
                             id='create_team.display_name.next'
                             defaultMessage='Next'
                         />
-                        <NextIcon/>
+                        <i className='icon icon-chevron-right'/>
                     </button>
                 </form>
             </div>

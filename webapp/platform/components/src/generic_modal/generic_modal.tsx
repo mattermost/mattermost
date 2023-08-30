@@ -128,7 +128,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 <button
                     autoFocus={this.props.autoFocusConfirmButton}
                     type='submit'
-                    className={classNames('GenericModal__button', isConfirmOrDeleteClassName, this.props.confirmButtonClassName, {
+                    className={classNames('btn btn-primary', isConfirmOrDeleteClassName, this.props.confirmButtonClassName, {
                         disabled: this.props.isConfirmDisabled,
                     })}
                     onClick={this.handleConfirm}
@@ -154,7 +154,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
             cancelButton = (
                 <button
                     type='button'
-                    className={classNames('GenericModal__button cancel', this.props.cancelButtonClassName)}
+                    className={classNames('btn btn-tertiary', this.props.cancelButtonClassName)}
                     onClick={this.handleCancel}
                 >
                     {cancelButtonText}

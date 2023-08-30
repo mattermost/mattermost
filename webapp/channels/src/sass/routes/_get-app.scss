@@ -123,40 +123,6 @@
     }
 }
 
-.get-app__download {
-    border: none !important;
-    background-color: #145dbf !important;
-
-    &:hover {
-        background-color: #145dbf !important;
-        box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1), 0 2px 10px 0 rgba(0, 0, 0, 0.1);
-    }
-
-    &:active,
-    &:focus {
-        background-color: #1151a6 !important;
-    }
-}
-
-.get-app__continue {
-    border-color: #145dbf !important;
-    color: #145dbf !important;
-
-    &:hover {
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1), 0 2px 10px 0 rgba(0, 0, 0, 0.1);
-    }
-
-    &:active {
-        background-color: rgba(20, 93, 191, 0.1) !important;
-        box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1), 0 2px 10px 0 rgba(0, 0, 0, 0.1);
-    }
-
-    &:focus {
-        background-color: rgba(20, 93, 191, 0.1) !important;
-    }
-}
-
 .get-app__preference {
     display: flex;
     margin-top: 23px;

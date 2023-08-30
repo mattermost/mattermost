@@ -248,20 +248,6 @@
         }
     }
 
-    .outlineButton {
-        border: 1px solid var(--button-bg);
-        background: none;
-        border-radius: 4px;
-        color: var(--button-bg);
-        font-size: 12px;
-        font-weight: 600;
-        line-height: 16px;
-    }
-
-    .outlineButton:hover {
-        background-color: rgba(var(--button-bg-rgb), 0.08);
-    }
-
     .filter-controls {
         padding: 0;
 
@@ -281,14 +267,6 @@
 
     .secondary-message {
         margin-bottom: 30px;
-    }
-
-    .primaryButton {
-        background-color: var(--button-bg);
-        border-radius: 4px;
-        color: var(--button-color);
-        font-size: 14px;
-        font-weight: 600;
     }
 
     #createNewChannelButton {
