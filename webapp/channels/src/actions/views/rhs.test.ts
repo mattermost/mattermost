@@ -67,7 +67,7 @@ global.Date.now = jest.fn(() => POST_CREATED_TIME);
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     getPostThread: (...args: any) => ({type: 'MOCK_GET_POST_THREAD', args}),
-    getProfilesAndStatusesForPosts: (...args: any) => ({type: 'MOCK_GET_PROFILES_AND_STATUSES_FOR_POSTS', args}),
+    getMentionsAndStatusesForPosts: (...args: any) => ({type: 'MOCK_GET_MENTIONS_AND_STATUSES_FOR_POSTS', args}),
 }));
 
 jest.mock('mattermost-redux/actions/search', () => ({

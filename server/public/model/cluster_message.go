@@ -9,6 +9,7 @@ const (
 	ClusterEventPublish                                     ClusterEvent = "publish"
 	ClusterEventUpdateStatus                                ClusterEvent = "update_status"
 	ClusterEventInvalidateAllCaches                         ClusterEvent = "inv_all_caches"
+	ClusterEventLoadLicense                                 ClusterEvent = "load_license"
 	ClusterEventInvalidateCacheForReactions                 ClusterEvent = "inv_reactions"
 	ClusterEventInvalidateCacheForChannelMembersNotifyProps ClusterEvent = "inv_channel_members_notify_props"
 	ClusterEventInvalidateCacheForChannelByName             ClusterEvent = "inv_channel_name"

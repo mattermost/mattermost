@@ -4,7 +4,9 @@ LOAD DATABASE
 
 WITH data only,
      workers = 8, concurrency = 1,
-     multiple readers per thread, rows per range = 50000
+     multiple readers per thread, rows per range = 50000,
+     create no tables,
+     preserve index names
 
 SET PostgreSQL PARAMETERS
      maintenance_work_mem to '128MB',
@@ -14,7 +16,10 @@ SET MySQL PARAMETERS
       net_read_timeout  = '120',
       net_write_timeout = '120'
 
-CAST column Drafts.Priority to text,
+CAST column Channels.Type to "channel_type" drop typemod,
+     column Teams.Type to "team_type" drop typemod,
+     column UploadSessions.Type to "upload_session_type" drop typemod,
+     column Drafts.Priority to text,
      type int when (= precision 11) to integer drop typemod,
      type bigint when (= precision 20) to bigint drop typemod,
      type text to varchar drop typemod,
