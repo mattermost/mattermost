@@ -19,6 +19,11 @@ import {getViewportSize} from 'utils/utils';
 
 import AtMentionGroup from 'components/at_mention/at_mention_group';
 
+// Use combined user and group mention
+import AtMention from './at_mention_combined';
+export default AtMention;
+
+// NOt using below
 type Props = {
     currentUserId: string;
     mentionName: string;
@@ -38,7 +43,7 @@ type State = {
     placement?: string;
 }
 
-export default class AtMention extends React.PureComponent<Props, State> {
+export class AtMentionOld extends React.PureComponent<Props, State> {
     buttonRef: React.RefObject<HTMLAnchorElement>;
 
     static defaultProps: Partial<Props> = {
@@ -106,7 +111,7 @@ export default class AtMention extends React.PureComponent<Props, State> {
         }
 
         if (!user) {
-            return <React.Fragment>{this.props.children}</React.Fragment>;
+            return <react.fragment>{this.props.children}</react.fragment>;
         }
 
         const suffix = this.props.mentionName.substring(user.username.length);
