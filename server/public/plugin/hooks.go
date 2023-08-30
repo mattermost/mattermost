@@ -52,7 +52,7 @@ const (
 	ConfigurationWillBeSavedID                = 34
 	NotificationWillBePushedID                = 35
 	UserHasBeenDeactivatedID                  = 36
-  MessageHasBeenDeletedID                   = 37
+	MessageHasBeenDeletedID                   = 37
 	TotalHooksID                              = iota
 )
 
