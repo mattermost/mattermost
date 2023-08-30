@@ -9,7 +9,7 @@ import {
     StripeCardElementChangeEvent,
 } from '@stripe/stripe-js';
 
-import {PaymentMethod} from '@mattermost/types/cloud';
+import {CloudCustomer, PaymentMethod} from '@mattermost/types/cloud';
 
 import {BillingDetails} from 'types/cloud/sku';
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
@@ -35,6 +35,7 @@ type Props = {
     onInputChange?: (billing: BillingDetails) => void;
     onInputBlur?: (billing: BillingDetails) => void;
     buttonFooter?: JSX.Element;
+    customer?: CloudCustomer | undefined;
 };
 
 type State = {
@@ -46,6 +47,7 @@ type State = {
     postalCode: string;
     name: string;
     changePaymentMethod: boolean;
+    company_name: string;
 }
 
 export default class PaymentForm extends React.PureComponent<Props, State> {
@@ -80,7 +82,7 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
     };
 
     private getResetState = (props = this.props) => {
-        const {initialBillingDetails, paymentMethod} = props;
+        const {initialBillingDetails, paymentMethod, customer} = props;
 
         const billingDetails = initialBillingDetails || {} as BillingDetails;
 
@@ -93,6 +95,7 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
             postalCode: billingDetails.postalCode,
             name: billingDetails.name,
             changePaymentMethod: paymentMethod == null,
+            company_name: customer?.name || '',
         };
     };
 
@@ -161,6 +164,20 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
         if (changePaymentMethod) {
             paymentDetails = (
                 <React.Fragment>
+                    <div className='form-row'>
+                        <Input
+                            name='company_name'
+                            type='text'
+                            value={this.state.company_name}
+                            onChange={this.handleInputChange}
+                            onBlur={this.onBlur}
+                            placeholder={Utils.localizeMessage(
+                                'payment_form.company_name',
+                                'Company Name',
+                            )}
+                            required={true}
+                        />
+                    </div>
                     <div className='form-row'>
                         <CardInput
                             forwardedRef={this.cardRef}

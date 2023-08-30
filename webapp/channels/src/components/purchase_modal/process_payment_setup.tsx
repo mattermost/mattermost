@@ -8,7 +8,7 @@ import {RouteComponentProps, withRouter} from 'react-router-dom';
 
 import ComplianceScreenFailedSvg from 'components/common/svg_images_components/access_denied_happy_svg';
 
-import {Address, Feedback, Product} from '@mattermost/types/cloud';
+import {Address, CloudCustomerPatch, Feedback, Product} from '@mattermost/types/cloud';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import {BillingDetails} from 'types/cloud/sku';
@@ -45,7 +45,7 @@ type Props = RouteComponentProps & {
         cwsMockMode: boolean
     ) => Promise<boolean | null>;
     subscribeCloudSubscription:
-    | ((productId: string, shippingAddress: Address, seats?: number, downgradeFeedback?: Feedback) => Promise<ActionResult<Subscription, ComplianceError>>)
+    | ((productId: string, shippingAddress: Address, seats?: number, downgradeFeedback?: Feedback, customerPatch?: CloudCustomerPatch) => Promise<ActionResult<Subscription, ComplianceError>>)
     | null;
     onBack: () => void;
     onClose: () => void;
@@ -136,7 +136,10 @@ class ProcessPaymentSetup extends React.PureComponent<Props, State> {
         }
 
         if (subscribeCloudSubscription) {
-            const result = await subscribeCloudSubscription(this.props.selectedProduct?.id as string, this.props.shippingAddress as Address, this.props.usersCount);
+            const customerPatch = {
+                name: billingDetails?.company_name,
+            } as CloudCustomerPatch;
+            const result = await subscribeCloudSubscription(this.props.selectedProduct?.id as string, this.props.shippingAddress as Address, this.props.usersCount, undefined, customerPatch);
 
             // the action subscribeCloudSubscription returns a true boolean when successful and an error when it fails
             if (result.error) {

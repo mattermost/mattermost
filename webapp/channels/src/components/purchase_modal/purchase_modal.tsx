@@ -840,6 +840,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                             onCardInputChange={this.handleCardInputChange}
                             initialBillingDetails={initialBillingDetails}
                             theme={this.props.theme}
+                            customer={this.props.customer}
                         />
                     ) : (
                         <div className='PaymentDetails'>

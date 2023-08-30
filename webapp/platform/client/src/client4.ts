@@ -3872,7 +3872,7 @@ export default class Client4 {
         );
     }
 
-    subscribeCloudProduct = (productId: string, shippingAddress?: Address, seats = 0, downgradeFeedback?: Feedback) => {
+    subscribeCloudProduct = (productId: string, shippingAddress?: Address, seats = 0, downgradeFeedback?: Feedback, customerPatch?: CloudCustomerPatch) => {
         const body = {
             product_id: productId,
             seats,
@@ -3880,6 +3880,10 @@ export default class Client4 {
         } as any;
         if (shippingAddress) {
             body.shipping_address = shippingAddress;
+        }
+
+        if (customerPatch) {
+            body.customer = customerPatch;
         }
         return this.doFetch<Subscription>(
             `${this.getCloudRoute()}/subscription`,

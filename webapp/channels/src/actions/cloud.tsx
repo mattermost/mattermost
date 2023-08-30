@@ -16,7 +16,7 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
 import {CloudTypes} from 'mattermost-redux/action_types';
 import {getBlankAddressWithCountry} from 'utils/utils';
-import {Address, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
+import {Address, CloudCustomerPatch, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
 
 // Returns true for success, and false for any error
 export function completeStripeAddPaymentMethod(
@@ -87,6 +87,7 @@ export function subscribeCloudSubscription(
     shippingAddress: Address = getBlankAddressWithCountry(),
     seats = 0,
     downgradeFeedback?: Feedback,
+    customerPatch?: CloudCustomerPatch,
 ) {
     return async () => {
         try {
@@ -95,6 +96,7 @@ export function subscribeCloudSubscription(
                 shippingAddress,
                 seats,
                 downgradeFeedback,
+                customerPatch,
             );
 
             return {data: subscription};
