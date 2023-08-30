@@ -271,7 +271,7 @@ func TestUpdateChannel(t *testing.T) {
 		require.NoError(t, err)
 
 		updatedChannel := &model.Channel{Id: groupChannel.Id, Name: "test name"}
-		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel)
+		_, resp, err := client.UpdateChannel(context.Background(), updatedChannel)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
@@ -297,7 +297,7 @@ func TestUpdateChannel(t *testing.T) {
 		require.NoError(t, err)
 
 		updatedChannel := &model.Channel{Id: directChannel.Id, Name: "test name"}
-		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel)
+		_, resp, err := client.UpdateChannel(context.Background(), updatedChannel)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
@@ -433,7 +433,7 @@ func TestPatchChannel(t *testing.T) {
 			Name: new(string),
 		}
 		*groupChannelPatch.Name = "testing"
-		_, resp, err = client.PatchChannel(context.Background(), groupChannel.Id, groupChannelPatch)
+		_, resp, err := client.PatchChannel(context.Background(), groupChannel.Id, groupChannelPatch)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
@@ -468,7 +468,7 @@ func TestPatchChannel(t *testing.T) {
 			Name: new(string),
 		}
 		*directChannelPatch.Name = "test"
-		_, resp, err = client.PatchChannel(context.Background(), directChannel.Id, directChannelPatch)
+		_, resp, err := client.PatchChannel(context.Background(), directChannel.Id, directChannelPatch)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
