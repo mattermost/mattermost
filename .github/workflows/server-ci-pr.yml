@@ -1,10 +1,6 @@
 name: Server CI PR
 on:
   pull_request:
-    paths:
-      - "server/**"
-      - "e2e-tests/**"
-      - ".github/**"
 env:
   go-version: "1.19.5"
 concurrency:
@@ -19,5 +15,17 @@ concurrency:
 
 jobs:
   pr-ci:
-    uses: ./.github/workflows/server-ci-template.yml
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+     - name: status
+       run: |
+         curl --request POST \
+           --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.workflow_run.head_commit.id }} \
+           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+           --header 'content-type: application/json' \
+           --data '{
+             "state": "${{ github.event.workflow_run.conclusion }}",
+             "context": "potato",
+             "target_url": "${{ github.event.workflow_run.html_url }}"
+             }' \
+           --fail
