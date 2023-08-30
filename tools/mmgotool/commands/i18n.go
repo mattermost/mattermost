@@ -11,7 +11,6 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -109,7 +108,7 @@ func init() {
 }
 
 func getBaseFileSrcStrings(mattermostDir string) ([]Translation, error) {
-	jsonFile, err := ioutil.ReadFile(path.Join(mattermostDir, "i18n", "en.json"))
+	jsonFile, err := os.ReadFile(path.Join(mattermostDir, "i18n", "en.json"))
 	if err != nil {
 		return nil, err
 	}
@@ -495,7 +494,7 @@ func extractFromPath(path string, info os.FileInfo, err error, i18nStrings map[s
 		return nil
 	}
 
-	src, err := ioutil.ReadFile(path)
+	src, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
@@ -580,7 +579,7 @@ func checkEmptySrcCmdF(command *cobra.Command, args []string) error {
 		}
 		translationDir = portalDir
 	}
-	srcJSON, err := ioutil.ReadFile(path.Join(translationDir, "en.json"))
+	srcJSON, err := os.ReadFile(path.Join(translationDir, "en.json"))
 	if err != nil {
 		return err
 	}
@@ -647,7 +646,7 @@ func cleanEmptyCmdF(command *cobra.Command, args []string) error {
 	}
 
 	var shippedFiles []string
-	files, err := ioutil.ReadDir(translationDir)
+	files, err := os.ReadDir(translationDir)
 	if err != nil {
 		return err
 	}
@@ -676,7 +675,7 @@ func cleanEmptyCmdF(command *cobra.Command, args []string) error {
 }
 
 func clean(translationDir string, file string, dryRun bool, check bool) (*string, error) {
-	oldJSON, err := ioutil.ReadFile(path.Join(translationDir, file))
+	oldJSON, err := os.ReadFile(path.Join(translationDir, file))
 	if err != nil {
 		return nil, err
 	}
@@ -704,7 +703,7 @@ func clean(translationDir string, file string, dryRun bool, check bool) (*string
 	if err != nil {
 		return nil, err
 	}
-	if err = ioutil.WriteFile(filename, newJSON, fileInfo.Mode().Perm()); err != nil {
+	if err = os.WriteFile(filename, newJSON, fileInfo.Mode().Perm()); err != nil {
 		return nil, err
 	}
 	return &result, nil

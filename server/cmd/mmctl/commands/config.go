@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"reflect"
@@ -368,7 +367,7 @@ func configSetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 }
 
 func configPatchCmdF(c client.Client, _ *cobra.Command, args []string) error {
-	configBytes, err := ioutil.ReadFile(args[0])
+	configBytes, err := os.ReadFile(args[0])
 	if err != nil {
 		return err
 	}
@@ -402,7 +401,7 @@ func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	file, err := ioutil.TempFile(os.TempDir(), "mmctl-*.json")
+	file, err := os.CreateTemp(os.TempDir(), "mmctl-*.json")
 	if err != nil {
 		return err
 	}
@@ -428,7 +427,7 @@ func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 		return cmdErr
 	}
 
-	newConfigBytes, err := ioutil.ReadFile(file.Name())
+	newConfigBytes, err := os.ReadFile(file.Name())
 	if err != nil {
 		return err
 	}

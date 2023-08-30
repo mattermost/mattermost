@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"io/ioutil"
 	"net"
 	"os"
 	"testing"
@@ -15,7 +14,7 @@ import (
 func TestCheckValidSocket(t *testing.T) {
 	t.Skip("https://mattermost.atlassian.net/browse/MM-54264")
 	t.Run("should return error if the file is not a socket", func(t *testing.T) {
-		f, err := ioutil.TempFile(os.TempDir(), "mmctl_socket_")
+		f, err := os.CreateTemp(os.TempDir(), "mmctl_socket_")
 		require.NoError(t, err)
 		defer os.Remove(f.Name())
 		require.NoError(t, os.Chmod(f.Name(), 0600))
@@ -24,7 +23,7 @@ func TestCheckValidSocket(t *testing.T) {
 	})
 
 	t.Run("should return error if the file has not the right permissions", func(t *testing.T) {
-		f, err := ioutil.TempFile(os.TempDir(), "mmctl_socket_")
+		f, err := os.CreateTemp(os.TempDir(), "mmctl_socket_")
 		require.NoError(t, err)
 		require.NoError(t, os.Remove(f.Name()))
 
@@ -37,7 +36,7 @@ func TestCheckValidSocket(t *testing.T) {
 	})
 
 	t.Run("should return nil if the file is a socket and has the right permissions", func(t *testing.T) {
-		f, err := ioutil.TempFile(os.TempDir(), "mmctl_socket_")
+		f, err := os.CreateTemp(os.TempDir(), "mmctl_socket_")
 		require.NoError(t, err)
 		require.NoError(t, os.Remove(f.Name()))
 

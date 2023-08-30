@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -46,10 +45,10 @@ func (s *MmctlE2ETestSuite) TestConfigResetCmdE2E() {
 func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "config_*.json")
+	tmpFile, err := os.CreateTemp(os.TempDir(), "config_*.json")
 	s.Require().Nil(err)
 
-	invalidFile, err := ioutil.TempFile(os.TempDir(), "invalid_config_*.json")
+	invalidFile, err := os.CreateTemp(os.TempDir(), "invalid_config_*.json")
 	s.Require().Nil(err)
 
 	_, err = tmpFile.Write([]byte(configFilePayload))
@@ -180,7 +179,7 @@ func (s *MmctlE2ETestSuite) TestConfigEditCmd() {
 sed -i'old' 's/\"EnableSVGs\": false/\"EnableSVGs\": true/' $1
 rm $1'old'`
 
-		file, err := ioutil.TempFile(os.TempDir(), "config_edit_*.sh")
+		file, err := os.CreateTemp(os.TempDir(), "config_edit_*.sh")
 		s.Require().Nil(err)
 		defer func() {
 			os.Remove(file.Name())

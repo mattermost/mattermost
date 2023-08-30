@@ -7,8 +7,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/mattermost/mattermost/server/public/model"
 
@@ -913,7 +913,7 @@ func migrateAuthToSamlCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 	if !auto {
 		matchesFile := userArgs[2]
 
-		file, err := ioutil.ReadFile(matchesFile)
+		file, err := os.ReadFile(matchesFile)
 		if err != nil {
 			return fmt.Errorf("could not read file: %w", err)
 		}

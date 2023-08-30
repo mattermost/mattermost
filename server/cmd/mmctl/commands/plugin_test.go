@@ -5,7 +5,6 @@ package commands
 
 import (
 	"context"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -23,7 +22,7 @@ import (
 func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 	s.Run("Add 1 plugin", func() {
 		printer.Clean()
-		tmpFile, err := ioutil.TempFile("", "tmpPlugin")
+		tmpFile, err := os.CreateTemp("", "tmpPlugin")
 		s.Require().Nil(err)
 		defer os.Remove(tmpFile.Name())
 
@@ -43,7 +42,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 	s.Run("Add 1 plugin, with force active", func() {
 		printer.Clean()
-		tmpFile, err := ioutil.TempFile("", "tmpPlugin")
+		tmpFile, err := os.CreateTemp("", "tmpPlugin")
 		s.Require().Nil(err)
 		defer os.Remove(tmpFile.Name())
 
@@ -73,7 +72,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 	s.Run("Add 1 plugin with error", func() {
 		printer.Clean()
-		tmpFile, err := ioutil.TempFile("", "tmpPlugin")
+		tmpFile, err := os.CreateTemp("", "tmpPlugin")
 		s.Require().Nil(err)
 		defer os.Remove(tmpFile.Name())
 
@@ -98,7 +97,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 		mockError := errors.New("plugin add error")
 
 		for idx, arg := range args {
-			tmpFile, err := ioutil.TempFile("", "tmpPlugin")
+			tmpFile, err := os.CreateTemp("", "tmpPlugin")
 			s.Require().Nil(err)
 			defer os.Remove(tmpFile.Name())
 			if arg == "fail" {

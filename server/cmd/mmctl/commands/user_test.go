@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -2492,7 +2491,7 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 		fromAuth := "email"
 		toAuth := "saml"
 
-		file, err := ioutil.TempFile("", "users.json")
+		file, err := os.CreateTemp("", "users.json")
 		s.Require().NoError(err)
 		defer os.Remove(file.Name())
 		usersFile := file.Name()
