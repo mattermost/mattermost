@@ -101,7 +101,7 @@ export default function InviteView(props: Props) {
                     defaultMessage: 'team invite link {inviteURL}',
                 }, {inviteURL})
             }
-            className='InviteView__copyLink'
+            className='btn btn-secondary'
             aria-live='polite'
         >
             {!copyText.copiedRecently && (
