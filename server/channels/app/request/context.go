@@ -16,6 +16,7 @@ type Context struct {
 	session        model.Session
 	requestId      string
 	ipAddress      string
+	xForwardedFor  string
 	path           string
 	userAgent      string
 	acceptLanguage string
@@ -58,6 +59,9 @@ func (c *Context) RequestId() string {
 func (c *Context) IPAddress() string {
 	return c.ipAddress
 }
+func (c *Context) XForwardedFor() string {
+	return c.xForwardedFor
+}
 func (c *Context) Path() string {
 	return c.path
 }
@@ -84,6 +88,9 @@ func (c *Context) SetRequestId(s string) {
 }
 func (c *Context) SetIPAddress(s string) {
 	c.ipAddress = s
+}
+func (c *Context) SetXForwardedFor(s string) {
+	c.xForwardedFor = s
 }
 func (c *Context) SetUserAgent(s string) {
 	c.userAgent = s
@@ -123,6 +130,7 @@ type CTX interface {
 	Session() *model.Session
 	RequestId() string
 	IPAddress() string
+	XForwardedFor() string
 	Path() string
 	UserAgent() string
 	AcceptLanguage() string
