@@ -2399,7 +2399,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	c2 := model.Channel{}
 	c2.TeamId = teamId
 	c2.DisplayName = "Unread Direct"
-	c2.Name = "unread-direct-" + model.NewId()
+	c2.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	c2.Type = model.ChannelTypeDirect
 
 	u1 := &model.User{}

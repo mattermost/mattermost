@@ -582,8 +582,7 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 		r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}, false)
 		require.NoError(t, err, err)
 		require.Len(t, r1, 2, "invalid returned channels, expected 2 and got "+strconv.Itoa(len(r1)))
-		require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, r1[0]))
-		require.Equal(t, channelToJSON(t, &o2), channelToJSON(t, r1[1]))
+		require.ElementsMatch(t, []*model.Channel{&o1, &o2}, r1)
 	})
 
 	t.Run("Get 1 existing and 1 not existing channel", func(t *testing.T) {
@@ -591,16 +590,14 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 		r2, err := ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId}, false)
 		require.NoError(t, err, err)
 		require.Len(t, r2, 1, "invalid returned channels, expected 1 and got "+strconv.Itoa(len(r2)))
-		require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, r2[0]), "invalid returned channel")
+		require.ElementsMatch(t, []*model.Channel{&o1}, r2, "invalid returned channel")
 	})
 
 	t.Run("Get 2 existing and 1 deleted channel", func(t *testing.T) {
 		r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id, o3.Id}, true)
 		require.NoError(t, err, err)
 		require.Len(t, r1, 3, "invalid returned channels, expected 3 and got "+strconv.Itoa(len(r1)))
-		require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, r1[0]))
-		require.Equal(t, channelToJSON(t, &o2), channelToJSON(t, r1[1]))
-		require.Equal(t, channelToJSON(t, &o3), channelToJSON(t, r1[2]))
+		require.ElementsMatch(t, []*model.Channel{&o1, &o2, &o3}, r1)
 	})
 }
 
@@ -673,10 +670,20 @@ func testGetChannelsWithTeamDataByIds(t *testing.T, ss store.Store) {
 	res, err := ss.Channel().GetChannelsWithTeamDataByIds([]string{c1.Id, c2.Id}, false)
 	require.NoError(t, err)
 	require.Len(t, res, 2)
-	assert.Equal(t, res[0].Id, c1.Id)
-	assert.Equal(t, res[0].TeamName, t1.Name)
-	assert.Equal(t, res[1].Id, c2.Id)
-	assert.Equal(t, res[1].TeamName, "")
+
+	if res[0].Id == c1.Id {
+		assert.Equal(t, res[0].TeamName, t1.Name)
+
+		assert.Equal(t, res[1].Id, c2.Id)
+		assert.Equal(t, res[1].TeamName, "")
+	} else if res[0].Id == c2.Id {
+		assert.Equal(t, res[0].TeamName, "")
+
+		assert.Equal(t, res[1].Id, c1.Id)
+		assert.Equal(t, res[1].TeamName, t1.Name)
+	} else {
+		assert.Fail(t, "unknown channel id")
+	}
 }
 
 func testChannelStoreGetForPost(t *testing.T, ss store.Store) {
