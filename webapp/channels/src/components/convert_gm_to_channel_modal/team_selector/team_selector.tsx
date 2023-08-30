@@ -39,7 +39,7 @@ const TeamSelector = (props: Props): JSX.Element => {
             className='team_selector'
             required={true}
             onChange={handleTeamChange}
-            value={value ? {label: value.display_name, value: value.id} : null}
+            value={value ? {label: value.display_name, value: value.id} : undefined}
             options={options}
             legend={formatMessage({id: 'sidebar_left.sidebar_channel_modal.select_team_placeholder', defaultMessage: 'Select Team'})}
             placeholder={formatMessage({id: 'sidebar_left.sidebar_channel_modal.select_team_placeholder', defaultMessage: 'Select Team'})}
