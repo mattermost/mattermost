@@ -85,7 +85,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam("role")
 			return
 		}
-		roleValid := utils.StringInSlice(role, roleNamesAll)
+		roleValid := utils.Contains(roleNamesAll, role)
 		if !roleValid {
 			c.SetInvalidParam("role")
 			return

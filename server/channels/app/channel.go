@@ -1103,7 +1103,7 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 
 	for _, channelModerationPatch := range channelModerationsPatch {
 		permissionModified := *channelModerationPatch.Name
-		if channelModerationPatch.Roles.Guests != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(guestRole, guestRolePatch)) {
+		if channelModerationPatch.Roles.Guests != nil && utils.Contains(model.ChannelModeratedPermissionsChangedByPatch(guestRole, guestRolePatch), permissionModified) {
 			if *channelModerationPatch.Roles.Guests {
 				c.Logger().Info("Permission enabled for guests.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			} else {
@@ -1111,7 +1111,7 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 			}
 		}
 
-		if channelModerationPatch.Roles.Members != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(memberRole, memberRolePatch)) {
+		if channelModerationPatch.Roles.Members != nil && utils.Contains(model.ChannelModeratedPermissionsChangedByPatch(memberRole, memberRolePatch), permissionModified) {
 			if *channelModerationPatch.Roles.Members {
 				c.Logger().Info("Permission enabled for members.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			} else {

@@ -16,9 +16,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func StringInSlice(a string, slice []string) bool {
-	for _, b := range slice {
-		if b == a {
+func Contains[T comparable](slice []T, item T) bool {
+	for _, s := range slice {
+		if s == item {
 			return true
 		}
 	}
@@ -40,7 +40,7 @@ func RemoveStringsFromSlice(slice []string, strings ...string) []string {
 	newSlice := []string{}
 
 	for _, item := range slice {
-		if !StringInSlice(item, strings) {
+		if !Contains(strings, item) {
 			newSlice = append(newSlice, item)
 		}
 	}

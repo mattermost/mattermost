@@ -187,13 +187,13 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 
 	builtInRolesMinusChannelRoles := append(utils.RemoveStringsFromSlice(model.BuiltInSchemeManagedRoleIDs, builtInChannelRoles...), model.NewSystemRoleIDs...)
 
-	if utils.StringInSlice(savedRole.Name, builtInRolesMinusChannelRoles) {
+	if utils.Contains(builtInRolesMinusChannelRoles, savedRole.Name) {
 		return savedRole, nil
 	}
 
 	var roleRetrievalFunc func() ([]*model.Role, *model.AppError)
 
-	if utils.StringInSlice(savedRole.Name, builtInChannelRoles) {
+	if utils.Contains(builtInChannelRoles, savedRole.Name) {
 		roleRetrievalFunc = func() ([]*model.Role, *model.AppError) {
 			roles, nErr := a.Srv().Store().Role().AllChannelSchemeRoles()
 			if nErr != nil {

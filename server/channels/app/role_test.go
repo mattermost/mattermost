@@ -37,7 +37,7 @@ func TestGetRolesByNames(t *testing.T) {
 		require.NotNil(t, actualRole)
 		require.Equal(t, testData.channelRole.Name, actualRole.Name)
 
-		require.Equal(t, testData.shouldHavePermission, utils.StringInSlice(testData.permission.Id, actualRole.Permissions))
+		require.Equal(t, testData.shouldHavePermission, utils.Contains(actualRole.Permissions, testData.permission.Id))
 	})
 }
 
@@ -47,7 +47,7 @@ func TestGetRoleByName(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, actualRole)
 		require.Equal(t, testData.channelRole.Name, actualRole.Name)
-		require.Equal(t, testData.shouldHavePermission, utils.StringInSlice(testData.permission.Id, actualRole.Permissions), "row: %+v", testData.truthTableRow)
+		require.Equal(t, testData.shouldHavePermission, utils.Contains(actualRole.Permissions, testData.permission.Id), "row: %+v", testData.truthTableRow)
 	})
 }
 
@@ -57,7 +57,7 @@ func TestGetRoleByID(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, actualRole)
 		require.Equal(t, testData.channelRole.Id, actualRole.Id)
-		require.Equal(t, testData.shouldHavePermission, utils.StringInSlice(testData.permission.Id, actualRole.Permissions), "row: %+v", testData.truthTableRow)
+		require.Equal(t, testData.shouldHavePermission, utils.Contains(actualRole.Permissions, testData.permission.Id), "row: %+v", testData.truthTableRow)
 	})
 }
 
@@ -69,7 +69,7 @@ func TestGetAllRoles(t *testing.T) {
 			if actualRole.Id == testData.channelRole.Id {
 				require.NotNil(t, actualRole)
 				require.Equal(t, testData.channelRole.Id, actualRole.Id)
-				require.Equal(t, testData.shouldHavePermission, utils.StringInSlice(testData.permission.Id, actualRole.Permissions), "row: %+v", testData.truthTableRow)
+				require.Equal(t, testData.shouldHavePermission, utils.Contains(actualRole.Permissions, testData.permission.Id), "row: %+v", testData.truthTableRow)
 			}
 		}
 	})

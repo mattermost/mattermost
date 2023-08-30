@@ -4805,7 +4805,7 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 			require.GreaterOrEqual(t, len(members), 4) // sanity check for team membership
 
 			for _, member := range members {
-				if utils.StringInSlice(member.UserId, tt.inUserIDs) {
+				if utils.Contains(tt.inUserIDs, member.UserId) {
 					require.True(t, member.SchemeAdmin)
 				} else {
 					require.False(t, member.SchemeAdmin)
@@ -4915,7 +4915,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 			require.GreaterOrEqual(t, len(members), 4) // sanity check for channel membership
 
 			for _, member := range members {
-				if utils.StringInSlice(member.UserId, tt.inUserIDs) {
+				if utils.Contains(tt.inUserIDs, member.UserId) {
 					require.True(t, member.SchemeAdmin)
 				} else {
 					require.False(t, member.SchemeAdmin)

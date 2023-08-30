@@ -35,12 +35,12 @@ type searchTest struct {
 func filterTestsByTag(tests []searchTest, tags ...string) []searchTest {
 	filteredTests := []searchTest{}
 	for _, test := range tests {
-		if utils.StringInSlice(EngineAll, test.Tags) {
+		if utils.Contains(test.Tags, EngineAll) {
 			filteredTests = append(filteredTests, test)
 			continue
 		}
 		for _, tag := range tags {
-			if utils.StringInSlice(tag, test.Tags) {
+			if utils.Contains(test.Tags, tag) {
 				filteredTests = append(filteredTests, test)
 				break
 			}

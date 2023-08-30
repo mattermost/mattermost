@@ -46,7 +46,7 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
-		if !utils.StringInSlice(name, cfg.PluginSettings.SignaturePublicKeyFiles) {
+		if !utils.Contains(cfg.PluginSettings.SignaturePublicKeyFiles, name) {
 			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, name)
 		}
 	})

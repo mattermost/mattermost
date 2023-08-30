@@ -362,7 +362,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !utils.StringInSlice(user, users) {
+			if !utils.Contains(users, user) {
 				users = append(users, user)
 			}
 		}
@@ -377,7 +377,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !utils.StringInSlice(user, users) {
+			if !utils.Contains(users, user) {
 				users = append(users, user)
 			}
 		}
