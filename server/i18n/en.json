@@ -5248,6 +5248,10 @@
     "translation": "Unable to save the file info."
   },
   {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Unable to set the searchable content of the file."
+  },
+  {
     "id": "app.group.crud_permission",
     "translation": "Unable to perform operation for that source type."
   },
