@@ -210,7 +210,6 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 			context.SessionId = session.Id
 
 			r.Header.Del(model.HeaderAuth)
-
 		}
 	}
 
