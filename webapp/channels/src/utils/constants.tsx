@@ -199,6 +199,8 @@ export const ActionTypes = keyMirror({
     UPDATE_RHS_SEARCH_TYPE: null,
     UPDATE_RHS_SEARCH_RESULTS_TERMS: null,
 
+    SET_RHS_SIZE: null,
+
     RHS_GO_BACK: null,
 
     SET_RHS_EXPANDED: null,
@@ -255,6 +257,7 @@ export const ActionTypes = keyMirror({
     TOGGLE_LHS: null,
     OPEN_LHS: null,
     CLOSE_LHS: null,
+    SET_LHS_SIZE: null,
     SELECT_STATIC_PAGE: null,
 
     SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
@@ -1490,6 +1493,10 @@ export const Constants = {
     DESKTOP_SCREEN_WIDTH: 1679,
     TABLET_SCREEN_WIDTH: 1020,
     MOBILE_SCREEN_WIDTH: 768,
+
+    SMALL_SIDEBAR_BREAKPOINT: 900,
+    MEDIUM_SIDEBAR_BREAKPOINT: 1200,
+    LARGE_SIDEBAR_BREAKPOINT: 1680,
 
     POST_MODAL_PADDING: 170,
     SCROLL_DELAY: 2000,
