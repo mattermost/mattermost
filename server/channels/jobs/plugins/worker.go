@@ -26,7 +26,7 @@ type Worker struct {
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 	const workerName = "Plugins"
 	worker := Worker{
-		name:      "Plugins",
+		name:      workerName,
 		stop:      make(chan bool, 1),
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
