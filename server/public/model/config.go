@@ -3149,7 +3149,8 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomURLSchemes     []string `access:"site_customization"`
+	CustomURLSchemes     []string `access:"site_posts"`
+	MaxMarkdownNodes     *int     `access:"site_posts"`
 	ExperimentalTimezone *bool    `access:"experimental_features"`
 }
 
@@ -3157,6 +3158,10 @@ func (s *DisplaySettings) SetDefaults() {
 	if s.CustomURLSchemes == nil {
 		customURLSchemes := []string{}
 		s.CustomURLSchemes = customURLSchemes
+	}
+
+	if s.MaxMarkdownNodes == nil {
+		s.MaxMarkdownNodes = NewInt(0)
 	}
 
 	if s.ExperimentalTimezone == nil {
@@ -3502,6 +3507,10 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.ExperimentalSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
 	if appErr := o.SqlSettings.isValid(); appErr != nil {
 		return appErr
 	}
@@ -3577,6 +3586,10 @@ func (s *TeamSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.UserStatusAwayTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.user_status_away_timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.MaxNotificationsPerChannel <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_notify_per_channel.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -3591,6 +3604,14 @@ func (s *TeamSettings) isValid() *AppError {
 
 	if len(*s.SiteName) > SitenameMaxLength {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]any{"MaxLength": SitenameMaxLength}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (s *ExperimentalSettings) isValid() *AppError {
+	if *s.LinkMetadataTimeoutMilliseconds <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.link_metadata_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

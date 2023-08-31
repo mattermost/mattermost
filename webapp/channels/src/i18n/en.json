@@ -667,6 +667,8 @@
   "admin.customization.enableSVGsTitle": "Enable SVGs:",
   "admin.customization.iosAppDownloadLinkDesc": "Add a link to download the iOS app. Users who access the site on a mobile web browser will be prompted with a page giving them the option to download the app. Leave this field blank to prevent the page from appearing.",
   "admin.customization.iosAppDownloadLinkTitle": "iOS App Download Link:",
+  "admin.customization.maxMarkdownNodesDesc": "When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.",
+  "admin.customization.maxMarkdownNodesTitle": "Maximum Markdown Nodes:",
   "admin.customization.restrictLinkPreviewsDesc": "Link previews and image link previews will not be shown for the above list of comma-separated domains.",
   "admin.customization.restrictLinkPreviewsExample": "E.g.: \"internal.mycompany.com, images.example.com\"",
   "admin.customization.restrictLinkPreviewsTitle": "Disable website link previews from these domains:",
