@@ -20,23 +20,22 @@ import {PreferenceType} from '@mattermost/types/preferences';
 import {Reaction} from '@mattermost/types/reactions';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {Invoice, Product, Subscription, CloudCustomer} from '@mattermost/types/cloud';
-import { PostDraft } from 'types/store/draft';
+import {PostDraft} from 'types/store/draft';
 
 export class TestHelper {
     public static getPostDraftMock(override?: Partial<PostDraft>): PostDraft {
-        const defaultPostDraft:PostDraft = {
-            message: "Test message",
+        const defaultPostDraft: PostDraft = {
+            message: 'Test message',
             fileInfos: [],
-            uploadsInProgress:[],
-            channelId: "",
-            rootId: "",
+            uploadsInProgress: [],
+            channelId: '',
+            rootId: '',
             createAt: 0,
             updateAt: 0,
         };
         return Object.assign({}, defaultPostDraft, override);
     }
     public static getUserMock(override: Partial<UserProfile> = {}): UserProfile {
-        
         const defaultUser: UserProfile = {
             id: 'user_id',
             roles: '',

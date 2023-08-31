@@ -136,7 +136,7 @@ export type Props = {
     onEditLatestPost: () => ActionResult;
 
     // Function to get the users timezones in the channel
-     getChannelTimezones: (channelId: string) => Promise<ActionResult>;
+    getChannelTimezones: (channelId: string) => Promise<ActionResult>;
 
     // Reset state of createPost request
     resetCreatePostRequest: () => void;
@@ -224,7 +224,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     public doInitialScrollToBottom = false;
 
     private readonly textboxRef: React.RefObject<TextboxClass>;
-   
+
     private lastBlurAt = 0;
     private saveDraftFrame?: number | null;
 
