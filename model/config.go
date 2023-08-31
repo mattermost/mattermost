@@ -389,7 +389,7 @@ type ServiceSettings struct {
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 }
 
-var GiphySdkKey string
+var MattermostGiphySdkKey string
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
@@ -734,9 +734,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.GfycatAPISecret = NewString(ServiceSettingsDefaultGfycatAPISecret)
 	}
 
-	if s.GiphySdkKey == nil {
-		// This is only applicable for v7.8 ESR
-		s.GiphySdkKey = &GiphySdkKey
+	if s.GiphySdkKey == nil || *s.GiphySdkKey == "" {
+		s.GiphySdkKey = NewString("")
 	}
 
 	if s.ExperimentalEnableAuthenticationTransfer == nil {

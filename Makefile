@@ -213,7 +213,7 @@ include config.mk
 include build/*.mk
 
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.MockCWS=$(MM_ENABLE_CWS_MOCK)"
-LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.GiphySdkKey=$(MM_GIPHY_SDK_KEY)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.MattermostGiphySdkKey=$(MM_GIPHY_SDK_KEY)"
 
 RUN_IN_BACKGROUND ?=
 ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
