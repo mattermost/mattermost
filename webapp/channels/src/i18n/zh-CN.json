@@ -554,6 +554,7 @@
   "admin.cluster.status_table.config_hash": "配置文件MD5",
   "admin.cluster.status_table.hostname": "主机名",
   "admin.cluster.status_table.reload": " 重加载机群状态",
+  "admin.cluster.status_table.schema_version": "数据库模式版本",
   "admin.cluster.status_table.status": "状态",
   "admin.cluster.status_table.url": "Gossip 地址",
   "admin.cluster.status_table.version": "版本",
