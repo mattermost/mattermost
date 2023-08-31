@@ -7484,10 +7484,6 @@
     "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
   },
   {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Decoding of the CA for Elasticsearch failed"
-  },
-  {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Could not open the CA file for Elasticsearch"
   },
@@ -7684,20 +7680,12 @@
     "translation": "Failed to decode search results"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor."
-  },
-  {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Failed to get Elasticsearch server version."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Failed to parse Elasticsearch server version."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
