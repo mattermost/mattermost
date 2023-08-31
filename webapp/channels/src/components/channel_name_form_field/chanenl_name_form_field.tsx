@@ -63,7 +63,9 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
 
     const handleOnDisplayNameBlur = () => {
         if (displayName && !url) {
-            setURL(crypto.randomBytes(16).toString('hex'));
+            const url = crypto.randomBytes(16).toString('hex');
+            setURL(url);
+            onURLChange(url);
         }
         if (!displayNameModified) {
             setDisplayNameModified(true);
