@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {mount, shallow} from 'enzyme';
 
 import {Value} from 'components/multiselect/multiselect';
 import TeamInviteBanner from 'components/channel_invite_modal/team_invite_banner/team_invite_banner';
