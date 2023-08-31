@@ -646,6 +646,21 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	require.NoError(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
 	require.Error(t, err, "thread membership should have been deleted by team policy")
+
+	// create a new thread membership
+	createThreadMembership(userID, post.Id)
+
+	// Delete team policy and thread
+	err = ss.RetentionPolicy().Delete(teamPolicy.ID)
+	require.NoError(t, err)
+	_, err = s.GetMasterX().Exec("DELETE FROM Threads WHERE PostId='" + post.Id + "'")
+	require.NoError(t, err)
+
+	deleted, err := ss.Thread().DeleteOrphanedRows(1000)
+	require.NoError(t, err)
+	require.NotZero(t, deleted)
+	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
+	require.Error(t, err, "thread membership should have been deleted because thread no longer exists")
 }
 
 func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {

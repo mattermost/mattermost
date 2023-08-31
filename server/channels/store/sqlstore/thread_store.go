@@ -944,6 +944,31 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolici
 	}, s.SqlStore, cursor)
 }
 
+// DeleteOrphanedRows removes orphaned rows from Threads and ThreadMemberships
+func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	// We only delete a thread membership if the entire thread no longer exists,
+	// not if the root post has been deleted
+	const threadMembershipsQuery = `
+		DELETE FROM ThreadMemberships WHERE PostId IN (
+			SELECT * FROM (
+				SELECT ThreadMemberships.PostId FROM ThreadMemberships
+				LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
+				WHERE Threads.PostId IS NULL
+				LIMIT ?
+			) AS A
+		)`
+
+	result, err := s.GetMasterX().Exec(threadMembershipsQuery, limit)
+	if err != nil {
+		return
+	}
+	deleted, err = result.RowsAffected()
+	if err != nil {
+		return
+	}
+	return
+}
+
 // return number of unread replies for a single thread
 func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error) {
 	query := s.getQueryBuilder().
