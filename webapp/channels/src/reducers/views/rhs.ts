@@ -14,6 +14,7 @@ import type {GenericAction} from 'mattermost-redux/types/actions';
 import type {RhsState} from 'types/store/rhs';
 
 import {ActionTypes, RHSStates} from 'utils/constants';
+import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 function selectedPostId(state = '', action: GenericAction) {
     switch (action.type) {
@@ -177,6 +178,15 @@ function rhsState(state: RhsState = null, action: GenericAction) {
 
     case UserTypes.LOGOUT_SUCCESS:
         return null;
+    default:
+        return state;
+    }
+}
+
+function size(state: SidebarSize = SidebarSize.MEDIUM, action: GenericAction) {
+    switch (action.type) {
+    case ActionTypes.SET_RHS_SIZE:
+        return action.size;
     default:
         return state;
     }
@@ -381,6 +391,7 @@ export default combineReducers({
     searchTerms,
     searchType,
     searchResultsTerms,
+    size,
     pluggableId,
     isSearchingFlaggedPost,
     isSearchingPinnedPost,

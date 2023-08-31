@@ -26,6 +26,7 @@ import PostEditHistory from 'components/post_edit_history';
 import LoadingScreen from 'components/loading_screen';
 
 import RhsPlugin from 'plugins/rhs_plugin';
+import ResizableRhs from 'components/resizable_sidebar/resizable_rhs';
 
 type Props = {
     isExpanded: boolean;
@@ -65,13 +66,15 @@ type State = {
 
 export default class SidebarRight extends React.PureComponent<Props, State> {
     sidebarRight: React.RefObject<HTMLDivElement>;
+    sidebarRightWidthHolder: React.RefObject<HTMLDivElement>;
     previous: Partial<Props> | undefined = undefined;
     focusSearchBar?: () => void;
 
     constructor(props: Props) {
         super(props);
 
-        this.sidebarRight = React.createRef();
+        this.sidebarRightWidthHolder = React.createRef<HTMLDivElement>();
+        this.sidebarRight = React.createRef<HTMLDivElement>();
         this.state = {
             isOpened: false,
         };
@@ -262,14 +265,20 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
 
         return (
             <>
-                <div className={'sidebar--right sidebar--right--width-holder'}/>
                 <div
+                    className={'sidebar--right sidebar--right--width-holder'}
+                    ref={this.sidebarRightWidthHolder}
+                />
+                <ResizableRhs
                     className={containerClassName}
                     id='sidebar-right'
                     role='complementary'
-                    ref={this.sidebarRight}
+                    rightWidthHolderRef={this.sidebarRightWidthHolder}
                 >
-                    <div className='sidebar-right-container'>
+                    <div
+                        className='sidebar-right-container'
+                        ref={this.sidebarRight}
+                    >
                         {isRHSLoading ? (
                             <div className='sidebar-right__body'>
                                 {/* Sometimes the channel/team is not loaded yet, so we need to wait for it */}
@@ -286,7 +295,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                             </Search>
                         )}
                     </div>
-                </div>
+                </ResizableRhs>
             </>
         );
     }
