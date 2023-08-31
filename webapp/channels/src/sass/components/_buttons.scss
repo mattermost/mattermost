@@ -1,5 +1,26 @@
 @charset 'UTF-8';
 
+.style--none {
+    padding: 0;
+    border: none;
+    background: transparent;
+
+    &:focus {
+        outline: 0;
+        text-decoration: none;
+    }
+
+    &.btn--block {
+        width: 100%;
+        text-align: left;
+    }
+
+    &:hover,
+    &:active {
+        text-decoration: none;
+    }
+}
+
 button {
     .unread-badge {
         display: inline-block;
@@ -8,29 +29,6 @@ button {
         margin: 0 0 0 40px;
         background: #f74343;
         border-radius: 50%;
-    }
-
-    &.style--none {
-        &:not(.btn) {
-            padding: 0;
-            border: none;
-            background: transparent;
-        }
-
-        &:focus {
-            outline: 0;
-            text-decoration: none;
-        }
-
-        &.btn--block {
-            width: 100%;
-            text-align: left;
-        }
-
-        &:hover,
-        &:active {
-            text-decoration: none;
-        }
     }
 }
 
