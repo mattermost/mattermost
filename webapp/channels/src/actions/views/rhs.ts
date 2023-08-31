@@ -32,6 +32,7 @@ import {GlobalState} from 'types/store';
 import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
 
 import {getChannel} from 'mattermost-redux/actions/channels';
+import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
@@ -134,6 +135,35 @@ export function updateSearchTerms(terms: string) {
     return {
         type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
         terms,
+    };
+}
+
+export function setRhsSize(rhsSize?: SidebarSize) {
+    let newSidebarSize = rhsSize;
+    if (!newSidebarSize) {
+        const width = window.innerWidth;
+
+        switch (true) {
+        case width <= Constants.SMALL_SIDEBAR_BREAKPOINT: {
+            newSidebarSize = SidebarSize.SMALL;
+            break;
+        }
+        case width > Constants.SMALL_SIDEBAR_BREAKPOINT && width <= Constants.MEDIUM_SIDEBAR_BREAKPOINT: {
+            newSidebarSize = SidebarSize.MEDIUM;
+            break;
+        }
+        case width > Constants.MEDIUM_SIDEBAR_BREAKPOINT && width <= Constants.LARGE_SIDEBAR_BREAKPOINT: {
+            newSidebarSize = SidebarSize.LARGE;
+            break;
+        }
+        default: {
+            newSidebarSize = SidebarSize.XLARGE;
+        }
+        }
+    }
+    return {
+        type: ActionTypes.SET_RHS_SIZE,
+        size: newSidebarSize,
     };
 }
 

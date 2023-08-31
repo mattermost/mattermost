@@ -2,7 +2,20 @@
 @import 'utils/mixins';
 
 .marketplace-modal {
-    width: 800px;
+    width: 832px;
+
+    &.streamlined-marketplace {
+        .modal-header {
+            padding: 26px 32px 26px !important;
+        }
+
+        &.with-web-marketplace-link {
+            .modal-content {
+                border-bottom-left-radius: 16px !important;
+                border-bottom-right-radius: 16px !important;
+            }
+        }
+    }
 
     div.navigation-row {
         overflow: unset;
@@ -211,6 +224,10 @@
         width: 100%;
         flex-direction: column;
         margin-top: 12px;
+
+        .nav-tabs {
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
     }
 
     .subtitle {
