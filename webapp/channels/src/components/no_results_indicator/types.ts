@@ -9,6 +9,7 @@ export enum NoResultsVariant {
     ChannelFiles = 'ChannelFiles',
     ChannelFilesFiltered = 'ChannelFilesFiltered',
     UserGroups = 'UserGroups',
+    UserGroupsArchived = 'UserGroupsArchived',
     UserGroupMembers = 'UserGroupMembers',
 }
 
