@@ -10,6 +10,7 @@ import {makeGetPostsForIds, UserActivityPost} from 'mattermost-redux/selectors/e
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {createIdsSelector, memoizeResult} from 'mattermost-redux/utils/helpers';
 import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook} from 'mattermost-redux/utils/post_utils';
@@ -25,8 +26,11 @@ export const START_OF_NEW_MESSAGES = 'start-of-new-messages';
 export const MAX_COMBINED_SYSTEM_POSTS = 100;
 
 export function shouldShowJoinLeaveMessages(state: GlobalState) {
+    const config = getConfig(state);
+    const enableJoinLeaveMessage = config.EnableJoinLeaveMessageByDefault === 'true';
+
     // This setting is true or not set if join/leave messages are to be displayed
-    return getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE, true);
+    return getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE, enableJoinLeaveMessage);
 }
 
 interface PostFilterOptions {

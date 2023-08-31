@@ -54,7 +54,7 @@ services:
         condition: service_healthy
 
   webhook-interactions:
-    image:  mattermostdevelopment/mirrored-node:16.10.0
+    image:  mattermostdevelopment/mirrored-node:18.17.1
     command: sh -c "npm install -g axios express client-oauth2@larkox/js-client-oauth2#e24e2eb5dfcbbbb3a59d095e831dbe0012b0ac49 && exec node webhook_serve.js"
     environment:
       NODE_PATH: /usr/local/lib/node_modules/
