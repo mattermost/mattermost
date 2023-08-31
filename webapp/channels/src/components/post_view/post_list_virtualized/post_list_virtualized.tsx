@@ -373,6 +373,8 @@ export default class PostList extends React.PureComponent<Props, State> {
                     isLastPost={isLastPost}
                     loadingNewerPosts={this.props.loadingNewerPosts}
                     loadingOlderPosts={this.props.loadingOlderPosts}
+                    lastViewedAt={this.props.lastViewedAt}
+                    channelId={this.props.channelId}
                 />
             </div>
         );

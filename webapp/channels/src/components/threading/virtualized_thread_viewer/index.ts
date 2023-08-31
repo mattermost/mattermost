@@ -47,6 +47,7 @@ function makeMapStateToProps() {
             showDate: !useRelativeTimestamp,
             lastViewedAt: collapsedThreads ? lastViewedAt : undefined,
         });
+        const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
 
         return {
             currentUserId,
@@ -54,6 +55,8 @@ function makeMapStateToProps() {
             isMobileView: getIsMobileView(state),
             lastPost,
             replyListIds,
+            lastViewedAt,
+            newMessagesSeparatorActions,
         };
     };
 }

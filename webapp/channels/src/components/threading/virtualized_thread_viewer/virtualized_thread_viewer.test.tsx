@@ -63,6 +63,8 @@ describe('components/threading/VirtualizedThreadViewer', () => {
         useRelativeTimestamp: true,
         isMobileView: false,
         isThreadView: true,
+        lastViewedAt: 0,
+        newMessagesSeparatorActions: [],
     };
     test('should scroll to the bottom when the current user makes a new post in the thread', () => {
         const scrollToBottom = jest.fn();
