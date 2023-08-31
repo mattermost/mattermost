@@ -119,7 +119,7 @@ func mySQLRootDSN(dsn string) string {
 		panic("failed to parse dsn " + dsn + ": " + err.Error())
 	}
 
-	cfg.User = "root"
+	cfg.User = "mmuser"
 	cfg.Passwd = rootPwd
 	cfg.DBName = "mysql"
 
