@@ -37,4 +37,6 @@ AFTER LOAD DO
      $$ UPDATE {{ .source_schema }}.db_migrations set name='add_createat_to_teamembers' where version=92; $$,
      $$ CREATE INDEX IF NOT EXISTS idx_posts_message_txt ON {{ .source_schema }}.posts USING gin(to_tsvector('english', message)); $$,
      $$ CREATE INDEX IF NOT EXISTS idx_fileinfo_content_txt ON {{ .source_schema }}.fileinfo USING gin(to_tsvector('english', content)); $$,
-     $$ ALTER SCHEMA {{ .source_schema }} RENAME TO public; $$;
+     $$ ALTER SCHEMA {{ .source_schema }} RENAME TO public; $$,
+     $$ SELECT pg_catalog.set_config('search_path', '"$user", public', false); $$,
+     $$ ALTER USER {{ .pg_user }} SET SEARCH_PATH TO 'public'; $$;
