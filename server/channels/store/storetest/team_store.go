@@ -3681,18 +3681,18 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Find common teams between user 1 and user 2
-		commonTeamIDs, err := ss.Team().GetCommonTeamIDsForMultipleUsers(u1.Id, u2.Id)
-		require.NoError(t, err)
+		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers(u1.Id, u2.Id)
+		require.NoError(t, err2)
 		require.Equal(t, 2, len(commonTeamIDs))
 		require.Contains(t, commonTeamIDs, t1.Id)
 		require.Contains(t, commonTeamIDs, t2.Id)
 
 		// cleanup
-		err = ss.Team().RemoveAllMembersByUser(u1.Id)
-		require.NoError(t, err)
+		err2 = ss.Team().RemoveAllMembersByUser(u1.Id)
+		require.NoError(t, err2)
 
-		err = ss.Team().RemoveAllMembersByUser(u2.Id)
-		require.NoError(t, err)
+		err2 = ss.Team().RemoveAllMembersByUser(u2.Id)
+		require.NoError(t, err2)
 	})
 
 	t.Run("single common teams exist", func(t *testing.T) {
@@ -3709,17 +3709,17 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Find common teams between user 1 and user 2
-		commonTeamIDs, err := ss.Team().GetCommonTeamIDsForMultipleUsers(u1.Id, u2.Id)
-		require.NoError(t, err)
+		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers(u1.Id, u2.Id)
+		require.NoError(t, err2)
 		require.Equal(t, 1, len(commonTeamIDs))
 		require.Contains(t, commonTeamIDs, t1.Id)
 
 		// cleanup
-		err = ss.Team().RemoveAllMembersByUser(u1.Id)
-		require.NoError(t, err)
+		err2 = ss.Team().RemoveAllMembersByUser(u1.Id)
+		require.NoError(t, err2)
 
-		err = ss.Team().RemoveAllMembersByUser(u2.Id)
-		require.NoError(t, err)
+		err2 = ss.Team().RemoveAllMembersByUser(u2.Id)
+		require.NoError(t, err2)
 	})
 
 	t.Run("no common teams exist", func(t *testing.T) {
@@ -3735,16 +3735,16 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Find common teams between user 1 and user 2
-		commonTeamIDs, err := ss.Team().GetCommonTeamIDsForMultipleUsers(u1.Id, u2.Id)
-		require.NoError(t, err)
+		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers(u1.Id, u2.Id)
+		require.NoError(t, err2)
 		require.Equal(t, 0, len(commonTeamIDs))
 
 		// cleanup
-		err = ss.Team().RemoveAllMembersByUser(u1.Id)
-		require.NoError(t, err)
+		err2 = ss.Team().RemoveAllMembersByUser(u1.Id)
+		require.NoError(t, err2)
 
-		err = ss.Team().RemoveAllMembersByUser(u2.Id)
-		require.NoError(t, err)
+		err2 = ss.Team().RemoveAllMembersByUser(u2.Id)
+		require.NoError(t, err2)
 	})
 
 	t.Run("some user have no team members", func(t *testing.T) {
@@ -3759,13 +3759,13 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		// Find common teams between user 1 and user 2
-		commonTeamIDs, err := ss.Team().GetCommonTeamIDsForMultipleUsers(u1.Id, u2.Id)
-		require.NoError(t, err)
+		commonTeamIDs, err2 := ss.Team().GetCommonTeamIDsForMultipleUsers(u1.Id, u2.Id)
+		require.NoError(t, err2)
 		require.Equal(t, 0, len(commonTeamIDs))
 
 		// cleanup
-		err = ss.Team().RemoveAllMembersByUser(u1.Id)
-		require.NoError(t, err)
+		err2 = ss.Team().RemoveAllMembersByUser(u1.Id)
+		require.NoError(t, err2)
 	})
 
 	t.Run("more than two users, common teams exist", func(t *testing.T) {

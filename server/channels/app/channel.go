@@ -3511,13 +3511,13 @@ func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string)
 	return teams, appErr
 }
 
-func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedBy string, gmConversionRequest *model.GroupMessageConversionRequestBody) (*model.Channel, *model.AppError) {
+func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId string, gmConversionRequest *model.GroupMessageConversionRequestBody) (*model.Channel, *model.AppError) {
 	originalChannel, appErr := a.GetChannel(c, gmConversionRequest.ChannelID)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	appErr = a.validateForConvertGroupMessageToChannel(c, convertedBy, originalChannel, gmConversionRequest)
+	appErr = a.validateForConvertGroupMessageToChannel(c, convertedByUserId, originalChannel, gmConversionRequest)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3534,16 +3534,16 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedBy string, gm
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(originalChannel)
-	_ = a.postMessageForConvertGroupMessageToChannel(c, gmConversionRequest.ChannelID, convertedBy)
+	_ = a.postMessageForConvertGroupMessageToChannel(c, gmConversionRequest.ChannelID, convertedByUserId)
 	return updatedChannel, nil
 }
 
-func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedBy string, originalChannel *model.Channel, gmConversionRequest *model.GroupMessageConversionRequestBody) *model.AppError {
+func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedByUserId string, originalChannel *model.Channel, gmConversionRequest *model.GroupMessageConversionRequestBody) *model.AppError {
 	if originalChannel.Type != model.ChannelTypeGroup {
 		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
 	}
 
-	channelMember, appErr := a.GetChannelMember(c, gmConversionRequest.ChannelID, convertedBy)
+	channelMember, appErr := a.GetChannelMember(c, gmConversionRequest.ChannelID, convertedByUserId)
 	if appErr != nil {
 		return appErr
 	}
@@ -3552,7 +3552,7 @@ func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedBy
 		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound)
 	}
 
-	teamMember, appErr := a.GetTeamMember(gmConversionRequest.TeamID, convertedBy)
+	teamMember, appErr := a.GetTeamMember(gmConversionRequest.TeamID, convertedByUserId)
 	if appErr != nil {
 		return appErr
 	}
