@@ -2601,9 +2601,10 @@ func TestViewChannel(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	view.ChannelId = "correctlysizedjunkdddfdfdf"
-	_, resp, err = client.ViewChannel(context.Background(), th.BasicUser.Id, view)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	viewResult, _, err := client.ViewChannel(context.Background(), th.BasicUser.Id, view)
+	require.NoError(t, err)
+	require.Len(t, viewResult.LastViewedAtTimes, 0)
+
 	view.ChannelId = th.BasicChannel.Id
 
 	member, _, err := client.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")

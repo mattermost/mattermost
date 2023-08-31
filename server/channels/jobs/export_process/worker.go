@@ -38,6 +38,11 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 			opts.IncludeAttachments = true
 		}
 
+		includeArchivedChannels, ok := job.Data["include_archived_channels"]
+		if ok && includeArchivedChannels == "true" {
+			opts.IncludeArchivedChannels = true
+		}
+
 		outPath := *app.Config().ExportSettings.Directory
 		exportFilename := job.Id + "_export.zip"
 

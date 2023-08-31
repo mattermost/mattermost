@@ -22,6 +22,10 @@
         max-height: 100%;
         padding: 0;
 
+        &.divider {
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
         .form-control {
             height: 40px;
             box-sizing: border-box;
@@ -106,7 +110,7 @@
         border-radius: 4px;
 
         &.divider {
-            border-top: 1px solid rgba(63, 67, 80, 0.08);
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         }
     }
 
