@@ -9,9 +9,9 @@ import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {GlobalState} from 'types/store';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getAllAssociatedGroupsForReference, getMyAllowReferencedGroups, searchAllowReferencedGroups, searchMyAllowReferencedGroups} from 'mattermost-redux/selectors/entities/groups';
+import {makeGetAllAssociatedGroupsForReference, makeGetMyAllowReferencedGroups, searchAllowReferencedGroups, searchMyAllowReferencedGroups, searchArchivedGroups, getArchivedGroups} from 'mattermost-redux/selectors/entities/groups';
 import {getGroups, getGroupsByUserIdPaginated, searchGroups} from 'mattermost-redux/actions/groups';
-import {Group, GroupSearchParams} from '@mattermost/types/groups';
+import {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearchParams} from '@mattermost/types/groups';
 import {ModalIdentifiers} from 'utils/constants';
 import {isModalOpen} from 'selectors/views/modals';
 import {setModalSearchTerm} from 'actions/views/search';
@@ -20,43 +20,45 @@ import UserGroupsModal from './user_groups_modal';
 
 type Actions = {
     getGroups: (
-        filterAllowReference?: boolean,
-        page?: number,
-        perPage?: number,
-        includeMemberCount?: boolean
+        groupsParams: GetGroupsParams,
     ) => Promise<{data: Group[]}>;
     setModalSearchTerm: (term: string) => void;
     getGroupsByUserIdPaginated: (
-        userId: string,
-        filterAllowReference?: boolean,
-        page?: number,
-        perPage?: number,
-        includeMemberCount?: boolean
+        opts: GetGroupsForUserParams,
     ) => Promise<{data: Group[]}>;
     searchGroups: (
         params: GroupSearchParams,
     ) => Promise<{data: Group[]}>;
 };
 
-function mapStateToProps(state: GlobalState) {
-    const searchTerm = state.views.search.modalSearch;
+function makeMapStateToProps() {
+    const getAllAssociatedGroupsForReference = makeGetAllAssociatedGroupsForReference();
+    const getMyAllowReferencedGroups = makeGetMyAllowReferencedGroups();
 
-    let groups: Group[] = [];
-    let myGroups: Group[] = [];
-    if (searchTerm) {
-        groups = searchAllowReferencedGroups(state, searchTerm);
-        myGroups = searchMyAllowReferencedGroups(state, searchTerm);
-    } else {
-        groups = getAllAssociatedGroupsForReference(state);
-        myGroups = getMyAllowReferencedGroups(state);
-    }
+    return function mapStateToProps(state: GlobalState) {
+        const searchTerm = state.views.search.modalSearch;
 
-    return {
-        showModal: isModalOpen(state, ModalIdentifiers.USER_GROUPS),
-        groups,
-        searchTerm,
-        myGroups,
-        currentUserId: getCurrentUserId(state),
+        let groups: Group[] = [];
+        let myGroups: Group[] = [];
+        let archivedGroups: Group[] = [];
+        if (searchTerm) {
+            groups = searchAllowReferencedGroups(state, searchTerm, true);
+            myGroups = searchMyAllowReferencedGroups(state, searchTerm, true);
+            archivedGroups = searchArchivedGroups(state, searchTerm);
+        } else {
+            groups = getAllAssociatedGroupsForReference(state, true);
+            myGroups = getMyAllowReferencedGroups(state, true);
+            archivedGroups = getArchivedGroups(state);
+        }
+
+        return {
+            showModal: isModalOpen(state, ModalIdentifiers.USER_GROUPS),
+            groups,
+            searchTerm,
+            myGroups,
+            archivedGroups,
+            currentUserId: getCurrentUserId(state),
+        };
     };
 }
 
@@ -71,4 +73,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(UserGroupsModal);
+export default connect(makeMapStateToProps, mapDispatchToProps, null, {forwardRef: true})(UserGroupsModal);

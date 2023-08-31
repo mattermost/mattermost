@@ -1,26 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {createRef, RefObject} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {Modal} from 'react-bootstrap';
 
 import Constants from 'utils/constants';
 
 import * as Utils from 'utils/utils';
-import {Group, GroupSearchParams} from '@mattermost/types/groups';
+import {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearchParams} from '@mattermost/types/groups';
 
 import './user_groups_modal.scss';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-import {debounce} from 'mattermost-redux/actions/helpers';
 import Input from 'components/widgets/inputs/input/input';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 
 import UserGroupsList from './user_groups_list';
+import UserGroupsFilter from './user_groups_filter/user_groups_filter';
 import UserGroupsModalHeader from './user_groups_modal_header';
 import ADLDAPUpsellBanner from './ad_ldap_upsell_banner';
+import {usePagingMeta} from './hooks';
 
 const GROUPS_PER_PAGE = 60;
 
@@ -28,23 +27,17 @@ export type Props = {
     onExited: () => void;
     groups: Group[];
     myGroups: Group[];
+    archivedGroups: Group[];
     searchTerm: string;
     currentUserId: string;
     backButtonAction: () => void;
     actions: {
         getGroups: (
-            filterAllowReference?: boolean,
-            page?: number,
-            perPage?: number,
-            includeMemberCount?: boolean
+            opts: GetGroupsParams,
         ) => Promise<{data: Group[]}>;
         setModalSearchTerm: (term: string) => void;
         getGroupsByUserIdPaginated: (
-            userId: string,
-            filterAllowReference?: boolean,
-            page?: number,
-            perPage?: number,
-            includeMemberCount?: boolean
+            opts: GetGroupsForUserParams,
         ) => Promise<{data: Group[]}>;
         searchGroups: (
             params: GroupSearchParams,
@@ -52,245 +45,190 @@ export type Props = {
     };
 }
 
-type State = {
-    page: number;
-    myGroupsPage: number;
-    loading: boolean;
-    show: boolean;
-    selectedFilter: string;
-    allGroupsFull: boolean;
-    myGroupsFull: boolean;
-}
+const UserGroupsModal = (props: Props) => {
+    const [searchTimeoutId, setSearchTimeoutId] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [show, setShow] = useState(true);
+    const [selectedFilter, setSelectedFilter] = useState('all');
+    const [groupsFull, setGroupsFull] = useState(false);
+    const [groups, setGroups] = useState(props.groups);
 
-export default class UserGroupsModal extends React.PureComponent<Props, State> {
-    divScrollRef: RefObject<HTMLDivElement>;
-    private searchTimeoutId: number;
+    const [page, setPage] = usePagingMeta(selectedFilter);
 
-    constructor(props: Props) {
-        super(props);
-        this.divScrollRef = createRef();
-        this.searchTimeoutId = 0;
+    useEffect(() => {
+        if (selectedFilter === 'all') {
+            setGroups(props.groups);
+        }
+        if (selectedFilter === 'my') {
+            setGroups(props.myGroups);
+        }
+        if (selectedFilter === 'archived') {
+            setGroups(props.archivedGroups);
+        }
+    }, [selectedFilter, props.groups, props.myGroups]);
 
-        this.state = {
-            page: 0,
-            myGroupsPage: 0,
-            loading: true,
-            show: true,
-            selectedFilter: 'all',
-            allGroupsFull: false,
-            myGroupsFull: false,
+    const doHide = () => {
+        setShow(false);
+    };
+
+    const getGroups = useCallback(async (page: number, groupType: string) => {
+        const {actions, currentUserId} = props;
+        setLoading(true);
+        const groupsParams: GetGroupsParams = {
+            filter_allow_reference: false,
+            page,
+            per_page: GROUPS_PER_PAGE,
+            include_member_count: true,
         };
-    }
+        let data: {data: Group[]} = {data: []};
 
-    doHide = () => {
-        this.setState({show: false});
-    };
-
-    async componentDidMount() {
-        const {
-            actions,
-        } = this.props;
-        await Promise.all([
-            actions.getGroups(false, this.state.page, GROUPS_PER_PAGE, true),
-            actions.getGroupsByUserIdPaginated(this.props.currentUserId, false, this.state.myGroupsPage, GROUPS_PER_PAGE, true),
-        ]);
-        this.loadComplete();
-    }
-
-    componentWillUnmount() {
-        this.props.actions.setModalSearchTerm('');
-    }
-
-    componentDidUpdate(prevProps: Props) {
-        if (prevProps.searchTerm !== this.props.searchTerm) {
-            clearTimeout(this.searchTimeoutId);
-            const searchTerm = this.props.searchTerm;
-
-            if (searchTerm === '') {
-                this.loadComplete();
-                this.searchTimeoutId = 0;
-                return;
-            }
-
-            const searchTimeoutId = window.setTimeout(
-                async () => {
-                    const params: GroupSearchParams = {
-                        q: searchTerm,
-                        filter_allow_reference: true,
-                        page: this.state.page,
-                        per_page: GROUPS_PER_PAGE,
-                        include_member_count: true,
-                    };
-                    if (this.state.selectedFilter === 'all') {
-                        await prevProps.actions.searchGroups(params);
-                    } else {
-                        params.user_id = this.props.currentUserId;
-                        await prevProps.actions.searchGroups(params);
-                    }
-                },
-                Constants.SEARCH_TIMEOUT_MILLISECONDS,
-            );
-
-            this.searchTimeoutId = searchTimeoutId;
+        if (groupType === 'all') {
+            groupsParams.include_archived = true;
+            data = await actions.getGroups(groupsParams);
+        } else if (groupType === 'my') {
+            const groupsUserParams = {
+                ...groupsParams,
+                filter_has_member: currentUserId,
+                include_archived: true,
+            } as GetGroupsForUserParams;
+            data = await actions.getGroupsByUserIdPaginated(groupsUserParams);
+        } else if (groupType === 'archived') {
+            groupsParams.filter_archived = true;
+            data = await actions.getGroups(groupsParams);
         }
-    }
 
-    startLoad = () => {
-        this.setState({loading: true});
-    };
-
-    loadComplete = () => {
-        this.setState({loading: false});
-    };
-
-    handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const term = e.target.value;
-        this.props.actions.setModalSearchTerm(term);
-    };
-
-    scrollGetGroups = debounce(
-        async () => {
-            const {page} = this.state;
-            const newPage = page + 1;
-
-            this.setState({page: newPage});
-            this.getGroups(newPage);
-        },
-        500,
-        false,
-        (): void => {},
-    );
-    scrollGetMyGroups = debounce(
-        async () => {
-            const {myGroupsPage} = this.state;
-            const newPage = myGroupsPage + 1;
-
-            this.setState({myGroupsPage: newPage});
-            this.getMyGroups(newPage);
-        },
-        500,
-        false,
-        (): void => {},
-    );
-
-    onScroll = () => {
-        const scrollHeight = this.divScrollRef.current?.scrollHeight || 0;
-        const scrollTop = this.divScrollRef.current?.scrollTop || 0;
-        const clientHeight = this.divScrollRef.current?.clientHeight || 0;
-
-        if ((scrollTop + clientHeight + 30) >= scrollHeight) {
-            if (this.state.selectedFilter === 'all' && this.state.loading === false && !this.state.allGroupsFull) {
-                this.scrollGetGroups();
-            }
-            if (this.state.selectedFilter !== 'all' && this.props.myGroups.length % GROUPS_PER_PAGE === 0 && this.state.loading === false) {
-                this.scrollGetMyGroups();
-            }
+        if (data && data.data.length === 0) {
+            setGroupsFull(true);
+        } else {
+            setGroupsFull(false);
         }
-    };
+        setLoading(false);
+        setSelectedFilter(groupType);
+    }, [props.actions.getGroups, props.actions.getGroupsByUserIdPaginated, props.currentUserId]);
 
-    getMyGroups = async (page: number) => {
-        const {actions} = this.props;
+    useEffect(() => {
+        getGroups(0, 'all');
+        return () => {
+            props.actions.setModalSearchTerm('');
+        };
+    }, []);
 
-        this.startLoad();
-        const data = await actions.getGroupsByUserIdPaginated(this.props.currentUserId, false, page, GROUPS_PER_PAGE, true);
-        if (data.data.length === 0) {
-            this.setState({myGroupsFull: true});
+    useEffect(() => {
+        clearTimeout(searchTimeoutId);
+        const searchTerm = props.searchTerm;
+
+        if (searchTerm === '') {
+            setLoading(false);
+            setSearchTimeoutId(0);
+            return;
         }
-        this.loadComplete();
-        this.setState({selectedFilter: 'my'});
-    };
 
-    getGroups = async (page: number) => {
-        const {actions} = this.props;
-
-        this.startLoad();
-        const data = await actions.getGroups(false, page, GROUPS_PER_PAGE, true);
-        if (data.data.length === 0) {
-            this.setState({allGroupsFull: true});
-        }
-        this.loadComplete();
-        this.setState({selectedFilter: 'all'});
-    };
-
-    render() {
-        const groups = this.state.selectedFilter === 'all' ? this.props.groups : this.props.myGroups;
-
-        return (
-            <Modal
-                dialogClassName='a11y__modal user-groups-modal'
-                show={this.state.show}
-                onHide={this.doHide}
-                onExited={this.props.onExited}
-                role='dialog'
-                aria-labelledby='userGroupsModalLabel'
-                id='userGroupsModal'
-            >
-                <UserGroupsModalHeader
-                    onExited={this.props.onExited}
-                    backButtonAction={this.props.backButtonAction}
-                />
-                <Modal.Body>
-                    {(groups.length === 0 && !this.props.searchTerm) ? <>
-                        <NoResultsIndicator
-                            variant={NoResultsVariant.UserGroups}
-                        />
-                        <ADLDAPUpsellBanner/>
-                    </> : <>
-                        <div className='user-groups-search'>
-                            <Input
-                                type='text'
-                                placeholder={Utils.localizeMessage('user_groups_modal.searchGroups', 'Search Groups')}
-                                onChange={this.handleSearch}
-                                value={this.props.searchTerm}
-                                data-testid='searchInput'
-                                className={'user-group-search-input'}
-                                inputPrefix={<i className={'icon icon-magnify'}/>}
-                            />
-                        </div>
-                        <div className='more-modal__dropdown'>
-                            <MenuWrapper id='groupsFilterDropdown'>
-                                <a>
-                                    <span>{this.state.selectedFilter === 'all' ? Utils.localizeMessage('user_groups_modal.showAllGroups', 'Show: All Groups') : Utils.localizeMessage('user_groups_modal.showMyGroups', 'Show: My Groups')}</span>
-                                    <span className='icon icon-chevron-down'/>
-                                </a>
-                                <Menu
-                                    openLeft={false}
-                                    ariaLabel={Utils.localizeMessage('user_groups_modal.filterAriaLabel', 'Groups Filter Menu')}
-                                >
-                                    <Menu.ItemAction
-                                        id='groupsDropdownAll'
-                                        buttonClass='groups-filter-btn'
-                                        onClick={() => {
-                                            this.getGroups(0);
-                                        }}
-                                        text={Utils.localizeMessage('user_groups_modal.allGroups', 'All Groups')}
-                                        rightDecorator={this.state.selectedFilter === 'all' && <i className='icon icon-check'/>}
-                                    />
-                                    <Menu.ItemAction
-                                        id='groupsDropdownMy'
-                                        buttonClass='groups-filter-btn'
-                                        onClick={() => {
-                                            this.getMyGroups(0);
-                                        }}
-                                        text={Utils.localizeMessage('user_groups_modal.myGroups', 'My Groups')}
-                                        rightDecorator={this.state.selectedFilter !== 'all' && <i className='icon icon-check'/>}
-                                    />
-                                </Menu>
-                            </MenuWrapper>
-                        </div>
-                        <UserGroupsList
-                            groups={groups}
-                            searchTerm={this.props.searchTerm}
-                            loading={this.state.loading}
-                            onScroll={this.onScroll}
-                            ref={this.divScrollRef}
-                            onExited={this.props.onExited}
-                            backButtonAction={this.props.backButtonAction}
-                        />
-                    </>
-                    }
-                </Modal.Body>
-            </Modal>
+        const timeoutId = window.setTimeout(
+            async () => {
+                const params: GroupSearchParams = {
+                    q: searchTerm,
+                    filter_allow_reference: true,
+                    page,
+                    per_page: GROUPS_PER_PAGE,
+                    include_archived: true,
+                    include_member_count: true,
+                };
+                if (selectedFilter === 'all') {
+                    await props.actions.searchGroups(params);
+                } else if (selectedFilter === 'my') {
+                    params.filter_has_member = props.currentUserId;
+                    await props.actions.searchGroups(params);
+                } else if (selectedFilter === 'archived') {
+                    params.filter_archived = true;
+                    await props.actions.searchGroups(params);
+                }
+            },
+            Constants.SEARCH_TIMEOUT_MILLISECONDS,
         );
-    }
-}
+
+        setSearchTimeoutId(timeoutId);
+    }, [props.searchTerm, setSearchTimeoutId]);
+
+    const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const term = e.target.value;
+        props.actions.setModalSearchTerm(term);
+    }, [props.actions.setModalSearchTerm]);
+
+    const loadMoreGroups = useCallback(() => {
+        const newPage = page + 1;
+        setPage(newPage);
+        if (selectedFilter === 'all' && !loading) {
+            getGroups(newPage, 'all');
+        }
+        if (selectedFilter === 'my' && !loading) {
+            getGroups(newPage, 'my');
+        }
+        if (selectedFilter === 'archived' && !loading) {
+            getGroups(newPage, 'archived');
+        }
+    }, [selectedFilter, page, getGroups, loading]);
+
+    const inputPrefix = useMemo(() => {
+        return <i className={'icon icon-magnify'}/>;
+    }, []);
+
+    const noResultsType = useMemo(() => {
+        if (selectedFilter === 'archived') {
+            return NoResultsVariant.UserGroupsArchived;
+        }
+        return NoResultsVariant.UserGroups;
+    }, [selectedFilter]);
+
+    return (
+        <Modal
+            dialogClassName='a11y__modal user-groups-modal'
+            show={show}
+            onHide={doHide}
+            onExited={props.onExited}
+            role='dialog'
+            aria-labelledby='userGroupsModalLabel'
+            id='userGroupsModal'
+        >
+            <UserGroupsModalHeader
+                onExited={props.onExited}
+                backButtonAction={props.backButtonAction}
+            />
+            <Modal.Body>
+                <div className='user-groups-search'>
+                    <Input
+                        type='text'
+                        placeholder={Utils.localizeMessage('user_groups_modal.searchGroups', 'Search Groups')}
+                        onChange={handleSearch}
+                        value={props.searchTerm}
+                        data-testid='searchInput'
+                        className={'user-group-search-input'}
+                        inputPrefix={inputPrefix}
+                    />
+                </div>
+                <UserGroupsFilter
+                    selectedFilter={selectedFilter}
+                    getGroups={getGroups}
+                />
+                {(groups.length === 0 && !props.searchTerm) ? <>
+                    <NoResultsIndicator
+                        variant={noResultsType}
+                    />
+                    <ADLDAPUpsellBanner/>
+                </> : <>
+                    <UserGroupsList
+                        groups={groups}
+                        searchTerm={props.searchTerm}
+                        loading={loading}
+                        hasNextPage={!groupsFull}
+                        loadMoreGroups={loadMoreGroups}
+                        onExited={props.onExited}
+                        backButtonAction={props.backButtonAction}
+                    />
+                </>
+                }
+            </Modal.Body>
+        </Modal>
+    );
+};
+
+export default React.memo(UserGroupsModal);

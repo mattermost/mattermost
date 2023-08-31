@@ -24,14 +24,30 @@ $sidebarOpacityAnimationDuration: 0.15s;
 }
 
 #SidebarContainer {
+    position: relative;
     z-index: 16;
     left: 0;
     display: flex;
-    width: 240px;
+    width: var(--overrideLhsWidth, 240px);
+    min-width: 240px;
+    max-width: 240px;
     height: 100%;
     flex-direction: column;
     border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     background-color: var(--sidebar-bg);
+
+    @media screen and (min-width: 769px) {
+        min-width: 200px;
+        max-width: 264px;
+    }
+
+    @media screen and (min-width: 1201px) {
+        max-width: 304px;
+    }
+
+    @media screen and (min-width: 1681px) {
+        max-width: 440px;
+    }
 
     h1,
     h2,
@@ -376,11 +392,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .sidebar-header {
         display: flex;
+        overflow: hidden;
         flex-direction: row;
         align-items: center;
     }
 
     .SidebarHeaderMenuWrapper {
+        overflow: hidden;
         padding-left: 5px;
         background: transparent;
         border-radius: 4px;
@@ -1159,7 +1177,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
     .SidebarChannel .SidebarLink {
         position: relative;
         display: flex;
-        width: 240px;
+        width: 100%;
         height: 32px;
         align-items: center;
         padding: 7px 16px 7px 19px;
@@ -1361,8 +1379,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
 .multi-teams {
     #SidebarContainer {
-        left: 65px;
-
         +.inner-wrap #app-content {
             margin-left: 305px;
         }
@@ -1396,11 +1412,15 @@ $sidebarOpacityAnimationDuration: 0.15s;
 }
 
 // Manual override of the global menu (and items) styling for the sidebar dropdown menu
-#sidebarDropdownMenu .MenuItem {
-    >button,
-    >div,
-    >a {
-        padding: 0 32px 0 24px;
+#sidebarDropdownMenu {
+    position: fixed;
+
+    .MenuItem {
+        >button,
+        >div,
+        >a {
+            padding: 0 32px 0 24px;
+        }
     }
 }
 

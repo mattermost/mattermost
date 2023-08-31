@@ -987,15 +987,20 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
 
+	// Include archived groups
+	includeArchived := r.URL.Query().Get("include_archived") == "true"
+
 	opts := model.GroupSearchOpts{
 		Q:                         c.Params.Q,
 		IncludeMemberCount:        c.Params.IncludeMemberCount,
 		FilterAllowReference:      c.Params.FilterAllowReference,
+		FilterArchived:            c.Params.FilterArchived,
 		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
 		Source:                    source,
 		FilterHasMember:           c.Params.FilterHasMember,
 		IncludeTimezones:          includeTimezones,
 		IncludeMemberIDs:          c.Params.IncludeMemberIDs,
+		IncludeArchived:           includeArchived,
 	}
 
 	if teamID != "" {
@@ -1147,15 +1152,19 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
 
-	_, err = c.App.DeleteGroup(c.Params.GroupId)
+	group, err = c.App.DeleteGroup(c.Params.GroupId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	b, jsonErr := json.Marshal(group)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.deleteGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return
+	}
 	auditRec.Success()
-
-	ReturnStatusOK(w)
+	w.Write(b)
 }
 
 func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1196,15 +1205,20 @@ func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
 
-	_, err = c.App.RestoreGroup(c.Params.GroupId)
+	restoredGroup, err := c.App.RestoreGroup(c.Params.GroupId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	auditRec.Success()
+	b, jsonErr := json.Marshal(restoredGroup)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.restoreGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return
+	}
 
-	ReturnStatusOK(w)
+	auditRec.Success()
+	w.Write(b)
 }
 
 func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1225,13 +1239,13 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if group.Source != model.GroupSourceCustom {
-		c.Err = model.NewAppError("Api4.deleteGroup", "app.group.crud_permission", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("Api4.addGroupMembers", "app.group.crud_permission", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	appErr = licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom)
 	if appErr != nil {
-		appErr.Where = "Api4.deleteGroup"
+		appErr.Where = "Api4.addGroupMembers"
 		c.Err = appErr
 		return
 	}
@@ -1284,13 +1298,13 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if group.Source != model.GroupSourceCustom {
-		c.Err = model.NewAppError("Api4.deleteGroup", "app.group.crud_permission", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("Api4.deleteGroupMembers", "app.group.crud_permission", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	appErr = licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom)
 	if appErr != nil {
-		appErr.Where = "Api4.deleteGroup"
+		appErr.Where = "Api4.deleteGroupMembers"
 		c.Err = appErr
 		return
 	}
