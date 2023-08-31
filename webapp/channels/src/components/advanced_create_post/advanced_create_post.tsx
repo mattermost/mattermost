@@ -1139,9 +1139,10 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
         const messageIsEmpty = this.state.message.length === 0;
         const draftMessageIsEmpty = this.props.draft.message.length === 0;
+        const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
 
         // fix for FF not capturing the paste without formatting event when using ctrl|cmd + shift + v
-        if (e.key === KeyCodes.V[0] && e.metaKey) {
+        if (e.key === KeyCodes.V[0] && ctrlOrMetaKeyPressed) {
             if (e.shiftKey) {
                 this.isNonFormattedPaste = true;
                 this.timeoutId = window.setTimeout(() => {
@@ -1150,7 +1151,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             }
         }
 
-        const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
         const ctrlEnterKeyCombo = (this.props.ctrlSend || this.props.codeBlockOnCtrlEnter) &&
             Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
             ctrlOrMetaKeyPressed;
