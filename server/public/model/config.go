@@ -399,6 +399,8 @@ type ServiceSettings struct {
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 }
 
+var MattermostGiphySdkKey string
+
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
 		// If the site URL is also not present then assume this is a clean install
@@ -743,12 +745,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.GiphySdkKey == nil || *s.GiphySdkKey == "" {
-		switch GetServiceEnvironment() {
-		case ServiceEnvironmentProduction:
-			s.GiphySdkKey = &GiphySdkKey
-		case ServiceEnvironmentTest, ServiceEnvironmentDev:
-			s.GiphySdkKey = NewString(ServiceSettingsDefaultGiphySdkKeyTest)
-		}
+		s.GiphySdkKey = NewString("")
 	}
 
 	if s.ExperimentalEnableAuthenticationTransfer == nil {
