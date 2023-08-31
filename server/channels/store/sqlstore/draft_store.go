@@ -233,3 +233,56 @@ func (s *SqlDraftStore) determineMaxDraftSize() int {
 
 	return maxDraftSize
 }
+
+func (s *SqlDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt int64, userId string) (int64, string, error) {
+	var drafts []struct {
+		CreateAt int64
+		UserId   string
+	}
+
+	query := s.getQueryBuilder().
+		Select("CreateAt", "UserId").
+		From("Drafts").
+		Where(sq.Or{
+			sq.Gt{"CreateAt": createAt},
+			sq.And{
+				sq.Eq{"CreateAt": createAt},
+				sq.Gt{"UserId": userId},
+			},
+		}).
+		OrderBy("CreateAt", "UserId ASC").
+		Limit(100)
+
+	err := s.GetReplicaX().SelectBuilder(&drafts, query)
+	if err != nil {
+		return 0, "", errors.Wrap(err, "failed to get the list of drafts")
+	}
+
+	if len(drafts) == 0 {
+		return 0, "", nil
+	}
+
+	lastElement := drafts[len(drafts)-1]
+	return lastElement.CreateAt, lastElement.UserId, nil
+}
+
+func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error {
+	sql := `
+		DELETE FROM
+			Drafts d
+		WHERE EXISTS (
+			SELECT 1 FROM Drafts f
+			WHERE d.UserId = f.UserId AND d.ChannelId = f.ChannelId AND d.RootId = f.RootId
+			AND (f.CreateAt > ? OR (f.CreateAt = ? AND f.UserId > ?))
+			ORDER BY CreateAt, UserId ASC
+			LIMIT 100
+		)
+		AND d.Message = ''
+	`
+
+	if _, err := s.GetMasterX().Exec(sql, createAt, createAt, userId); err != nil {
+		return errors.Wrapf(err, "failed to delete empty drafts")
+	}
+
+	return nil
+}

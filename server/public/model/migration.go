@@ -43,4 +43,5 @@ const (
 	MigrationKeyAddReadChannelContentPermissions       = "read_channel_content_permissions"
 	MigrationKeyElasticsearchFixChannelIndex           = "elasticsearch_fix_channel_index_migration"
 	MigrationKeyS3Path                                 = "s3_path_migration"
+	MigrationKeyDeleteEmptyDrafts                      = "delete_empty_drafts_migration"
 )

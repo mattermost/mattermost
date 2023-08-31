@@ -28,6 +28,20 @@ func (_m *DraftStore) Delete(userID string, channelID string, rootID string) err
 	return r0
 }
 
+// DeleteEmptyDraftsByCreateAtAndUserId provides a mock function with given fields: createAt, userId
+func (_m *DraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error {
+	ret := _m.Called(createAt, userId)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int64, string) error); ok {
+		r0 = rf(createAt, userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: userID, channelID, rootID, includeDeleted
 func (_m *DraftStore) Get(userID string, channelID string, rootID string, includeDeleted bool) (*model.Draft, error) {
 	ret := _m.Called(userID, channelID, rootID, includeDeleted)
@@ -78,6 +92,37 @@ func (_m *DraftStore) GetDraftsForUser(userID string, teamID string) ([]*model.D
 	}
 
 	return r0, r1
+}
+
+// GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration provides a mock function with given fields: createAt, userId
+func (_m *DraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt int64, userId string) (int64, string, error) {
+	ret := _m.Called(createAt, userId)
+
+	var r0 int64
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(int64, string) (int64, string, error)); ok {
+		return rf(createAt, userId)
+	}
+	if rf, ok := ret.Get(0).(func(int64, string) int64); ok {
+		r0 = rf(createAt, userId)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(int64, string) string); ok {
+		r1 = rf(createAt, userId)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	if rf, ok := ret.Get(2).(func(int64, string) error); ok {
+		r2 = rf(createAt, userId)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // Upsert provides a mock function with given fields: d
