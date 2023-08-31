@@ -87,6 +87,7 @@ type Store interface {
 	PostAcknowledgement() PostAcknowledgementStore
 	PostPersistentNotification() PostPersistentNotificationStore
 	TrueUpReview() TrueUpReviewStore
+	DesktopTokens() DesktopTokensStore
 }
 
 type RetentionPolicyStore interface {
@@ -648,6 +649,14 @@ type TokenStore interface {
 	Cleanup(expiryTime int64)
 	GetAllTokensByType(tokenType string) ([]*model.Token, error)
 	RemoveAllTokensByType(tokenType string) error
+}
+
+type DesktopTokensStore interface {
+	GetUserId(token string, minCreatedAt int64) (*string, error)
+	Insert(token string, createdAt int64, userId string) error
+	Delete(token string) error
+	DeleteByUserId(userId string) error
+	DeleteOlderThan(minCreatedAt int64) error
 }
 
 type EmojiStore interface {
