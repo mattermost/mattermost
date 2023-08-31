@@ -2562,7 +2562,7 @@ func (s *SqlPostStore) GetMaxPostSize() int {
 	return s.maxPostSizeCached
 }
 
-func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, error) {
+func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, includeArchivedChannel bool) ([]*model.PostForExport, error) {
 	for {
 		rootIds := []string{}
 		err := s.GetReplicaX().Select(&rootIds,
@@ -2586,16 +2586,20 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*m
 			return postsForExport, nil
 		}
 
+		excludeDeletedCond := sq.And{
+			sq.Eq{"Teams.DeleteAt": 0},
+		}
+		if !includeArchivedChannel {
+			excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Channels.DeleteAt": 0})
+		}
+
 		builder := s.getQueryBuilder().
 			Select("p1.*, Users.Username as Username, Teams.Name as TeamName, Channels.Name as ChannelName").
 			FromSelect(sq.Select("*").From("Posts").Where(sq.Eq{"Posts.Id": rootIds}), "p1").
 			InnerJoin("Channels ON p1.ChannelId = Channels.Id").
 			InnerJoin("Teams ON Channels.TeamId = Teams.Id").
 			InnerJoin("Users ON p1.UserId = Users.Id").
-			Where(sq.And{
-				sq.Eq{"Channels.DeleteAt": 0},
-				sq.Eq{"Teams.DeleteAt": 0},
-			}).
+			Where(excludeDeletedCond).
 			OrderBy("p1.Id")
 
 		query, args, err := builder.ToSql()

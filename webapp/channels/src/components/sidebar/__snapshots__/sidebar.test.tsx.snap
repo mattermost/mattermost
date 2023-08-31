@@ -3,8 +3,9 @@
 exports[`components/sidebar should match empty div snapshot when teamId is missing 1`] = `<div />`;
 
 exports[`components/sidebar should match snapshot 1`] = `
-<div
+<ResizableLhs
   className=""
+  disabled={false}
   id="SidebarContainer"
 >
   <SidebarHeader
@@ -27,18 +28,7 @@ exports[`components/sidebar should match snapshot 1`] = `
     id="lhsNavigator"
     role="application"
   >
-    <Connect(ChannelNavigator)
-      canCreateChannel={true}
-      canJoinPublicChannel={true}
-      handleOpenDirectMessagesModal={[Function]}
-      invitePeopleModal={[Function]}
-      showCreateCategoryModal={[Function]}
-      showCreateUserGroupModal={[Function]}
-      showMoreChannelsModal={[Function]}
-      showNewChannelModal={[Function]}
-      unreadFilterEnabled={false}
-      userGroupsEnabled={false}
-    />
+    <Connect(ChannelNavigator) />
   </div>
   <div
     className="sidebar--left__icons"
@@ -53,12 +43,13 @@ exports[`components/sidebar should match snapshot 1`] = `
     onDragStart={[Function]}
   />
   <Connect(DataPrefetch) />
-</div>
+</ResizableLhs>
 `;
 
 exports[`components/sidebar should match snapshot when direct channels modal is open 1`] = `
-<div
+<ResizableLhs
   className=""
+  disabled={false}
   id="SidebarContainer"
 >
   <SidebarHeader
@@ -81,18 +72,7 @@ exports[`components/sidebar should match snapshot when direct channels modal is 
     id="lhsNavigator"
     role="application"
   >
-    <Connect(ChannelNavigator)
-      canCreateChannel={true}
-      canJoinPublicChannel={true}
-      handleOpenDirectMessagesModal={[Function]}
-      invitePeopleModal={[Function]}
-      showCreateCategoryModal={[Function]}
-      showCreateUserGroupModal={[Function]}
-      showMoreChannelsModal={[Function]}
-      showNewChannelModal={[Function]}
-      unreadFilterEnabled={false}
-      userGroupsEnabled={false}
-    />
+    <Connect(ChannelNavigator) />
   </div>
   <div
     className="sidebar--left__icons"
@@ -111,12 +91,13 @@ exports[`components/sidebar should match snapshot when direct channels modal is 
     isExistingChannel={false}
     onModalDismissed={[Function]}
   />
-</div>
+</ResizableLhs>
 `;
 
 exports[`components/sidebar should match snapshot when more channels modal is open 1`] = `
-<div
+<ResizableLhs
   className=""
+  disabled={false}
   id="SidebarContainer"
 >
   <SidebarHeader
@@ -139,18 +120,7 @@ exports[`components/sidebar should match snapshot when more channels modal is op
     id="lhsNavigator"
     role="application"
   >
-    <Connect(ChannelNavigator)
-      canCreateChannel={true}
-      canJoinPublicChannel={true}
-      handleOpenDirectMessagesModal={[Function]}
-      invitePeopleModal={[Function]}
-      showCreateCategoryModal={[Function]}
-      showCreateUserGroupModal={[Function]}
-      showMoreChannelsModal={[Function]}
-      showNewChannelModal={[Function]}
-      unreadFilterEnabled={false}
-      userGroupsEnabled={false}
-    />
+    <Connect(ChannelNavigator) />
   </div>
   <div
     className="sidebar--left__icons"
@@ -165,5 +135,5 @@ exports[`components/sidebar should match snapshot when more channels modal is op
     onDragStart={[Function]}
   />
   <Connect(DataPrefetch) />
-</div>
+</ResizableLhs>
 `;

@@ -380,6 +380,8 @@ export default class PostList extends React.PureComponent<Props, State> {
                     isLastPost={isLastPost}
                     loadingNewerPosts={this.props.loadingNewerPosts}
                     loadingOlderPosts={this.props.loadingOlderPosts}
+                    lastViewedAt={this.props.lastViewedAt}
+                    channelId={this.props.channelId}
                 />
             </div>
         );
@@ -642,7 +644,6 @@ export default class PostList extends React.PureComponent<Props, State> {
 
         return (
             <div
-                role='list'
                 className='a11y__region'
                 data-a11y-sort-order='1'
                 data-a11y-focus-child={true}
@@ -664,12 +665,10 @@ export default class PostList extends React.PureComponent<Props, State> {
                     </React.Fragment>
                 )}
                 <div
-                    role='presentation'
                     className='post-list-holder-by-time'
                     key={'postlist-' + channelId}
                 >
                     <div
-                        role='presentation'
                         className='post-list__table'
                     >
                         <div

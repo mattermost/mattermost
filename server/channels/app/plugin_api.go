@@ -257,6 +257,10 @@ func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppErr
 	return api.app.GetUserByUsername(name)
 }
 
+func (api *PluginAPI) GetUserByRemoteID(remoteID string) (*model.User, *model.AppError) {
+	return api.app.GetUserByRemoteID(remoteID)
+}
+
 func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
 	return api.app.GetUsersByUsernames(usernames, true, nil)
 }
@@ -762,6 +766,10 @@ func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppErr
 	return api.app.GetFileInfo(fileID)
 }
 
+func (api *PluginAPI) SetFileSearchableContent(fileID string, content string) *model.AppError {
+	return api.app.SetFileSearchableContent(fileID, content)
+}
+
 func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	return api.app.GetFileInfos(page, perPage, opt)
 }
@@ -1261,4 +1269,9 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 		return nil, err
 	}
 	return fi, nil
+}
+
+func (api *PluginAPI) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
+	// Ignoring skipSessionId because it's only used internally to clear push notifications
+	return api.app.sendPushNotificationToAllSessions(notification, userID, "")
 }
