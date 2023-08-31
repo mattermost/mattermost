@@ -3,6 +3,7 @@
 
 package utils
 
+// Contains returns true if the slice contains the item.
 func Contains[T comparable](slice []T, item T) bool {
 	for _, s := range slice {
 		if s == item {
