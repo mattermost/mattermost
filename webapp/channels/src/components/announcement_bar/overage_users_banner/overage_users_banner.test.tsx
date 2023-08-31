@@ -47,8 +47,8 @@ const seatsMinimumFor5PercentageState = (Math.ceil(seatsPurchased * OverActiveUs
 
 const seatsMinimumFor10PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MAX)) + seatsPurchased;
 
-const text5PercentageState = `Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor5PercentageState - seatsPurchased} seats. Purchase additional seats to remain compliant.`;
-const text10PercentageState = `Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor10PercentageState - seatsPurchased} seats. Purchase additional seats to remain compliant.`;
+const text5PercentageState = `(Only visible to admins) Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor5PercentageState - seatsPurchased} seats. Purchase additional seats to remain compliant.`;
+const text10PercentageState = `(Only visible to admins) Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor10PercentageState - seatsPurchased} seats. Purchase additional seats to remain compliant.`;
 
 const contactSalesTextLink = 'Contact Sales';
 const expandSeatsTextLink = 'Purchase additional seats';
@@ -141,7 +141,7 @@ describe('components/overage_users_banner', () => {
     it('should not render the banner because we are not on overage state', () => {
         renderComponent();
 
-        expect(screen.queryByText('Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
+        expect(screen.queryByText('(Only visible to admins) Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
         expect(getLicenseSelfServeStatus).not.toBeCalled();
     });
 

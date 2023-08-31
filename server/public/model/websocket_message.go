@@ -48,6 +48,7 @@ const (
 	WebsocketEventResponse                            = "response"
 	WebsocketEventEmojiAdded                          = "emoji_added"
 	WebsocketEventChannelViewed                       = "channel_viewed"
+	WebsocketEventMultipleChannelsViewed              = "multiple_channels_viewed"
 	WebsocketEventPluginStatusesChanged               = "plugin_statuses_changed"
 	WebsocketEventPluginEnabled                       = "plugin_enabled"
 	WebsocketEventPluginDisabled                      = "plugin_disabled"

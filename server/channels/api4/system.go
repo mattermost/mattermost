@@ -317,11 +317,7 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr := c.App.Srv().InvalidateAllCaches()
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
+	c.App.Srv().InvalidateAllCaches()
 
 	auditRec.Success()
 

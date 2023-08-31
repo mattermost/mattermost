@@ -48,6 +48,89 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
     <div
       id="modalPreferenceContainer"
     >
+      <Menu
+        menu={
+          Object {
+            "aria-label": "Browse channels",
+            "id": "browseChannelsDropdown",
+          }
+        }
+        menuButton={
+          Object {
+            "children": <React.Fragment>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Channel Type: All"
+                id="more_channels.show_all_channels"
+              />
+              <ChevronDownIcon
+                color="rgba(var(--center-channel-color-rgb), 0.64)"
+                size={16}
+              />
+            </React.Fragment>,
+            "id": "menuWrapper",
+          }
+        }
+      >
+        <MenuItem
+          aria-label="All channel types"
+          id="channelsMoreDropdownAll"
+          key="channelsMoreDropdownAll"
+          labels={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="All channel types"
+              id="suggestion.all"
+            />
+          }
+          leadingElement={
+            <GlobeCheckedIcon
+              size={16}
+            />
+          }
+          onClick={[Function]}
+          trailingElements={
+            <CheckIcon
+              color="var(--button-bg)"
+              size={18}
+            />
+          }
+        />
+        <MenuItem
+          aria-label="Public channels"
+          id="channelsMoreDropdownPublic"
+          key="channelsMoreDropdownPublic"
+          labels={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Public channels"
+              id="suggestion.public"
+            />
+          }
+          leadingElement={
+            <GlobeIcon
+              size={16}
+            />
+          }
+          onClick={[Function]}
+          trailingElements={null}
+        />
+        <MenuItem
+          aria-label="Private channels"
+          id="channelsMoreDropdownPrivate"
+          key="channelsMoreDropdownPrivate"
+          labels={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Private channels"
+              id="suggestion.private"
+            />
+          }
+          leadingElement={
+            <LockOutlineIcon
+              size={16}
+            />
+          }
+          onClick={[Function]}
+          trailingElements={null}
+        />
+      </Menu>
       <div
         id="hideJoinedPreferenceCheckbox"
         onClick={[Function]}
@@ -65,7 +148,7 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
   </div>
   <div
     className="more-modal__list"
-    role="application"
+    role="search"
     tabIndex={-1}
   >
     <div

@@ -9,9 +9,14 @@ import {makeGetDraftsCount} from 'selectors/drafts';
 import {
     isCollapsedThreadsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
+import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 export function getIsLhsOpen(state: GlobalState): boolean {
     return state.views.lhs.isOpen;
+}
+
+export function getLhsSize(state: GlobalState): SidebarSize {
+    return state.views.lhs.size;
 }
 
 export function getCurrentStaticPageId(state: GlobalState): string {
