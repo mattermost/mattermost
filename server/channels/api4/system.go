@@ -598,7 +598,6 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	location = res.Header.Get("Location")
 
 	// If the location length is > 2100, we can probably ignore. Fixes https://mattermost.atlassian.net/browse/MM-54219
-	// see: https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
 	if len(location) > 2100 {
 		// Treating as a "failure". Cache failures to prevent retries.
 		redirectLocationDataCache.SetWithExpiry(url, "", 1*time.Hour)

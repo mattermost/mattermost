@@ -126,6 +126,7 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 		tmpMessage.AckId = model.NewId()
 
+		a.Log().Error(fmt.Sprintf("<><> sending pushNotification: %#+v\n", tmpMessage))
 		err := a.sendToPushProxy(tmpMessage, session)
 		if err != nil {
 			a.NotificationsLog().Error("Notification error",
