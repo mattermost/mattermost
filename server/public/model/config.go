@@ -111,7 +111,6 @@ const (
 	ServiceSettingsDefaultListenAndAddress = ":8065"
 	ServiceSettingsDefaultGfycatAPIKey     = "2_KtH_W5"
 	ServiceSettingsDefaultGfycatAPISecret  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
-	ServiceSettingsDefaultGiphySdkKey      = "yaRojIWaxmKhtSMBaT3uLCAHm0kpMLKw"
 	ServiceSettingsDefaultGiphySdkKeyTest  = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
 	ServiceSettingsDefaultDeveloperFlags   = ""
 
@@ -398,6 +397,8 @@ type ServiceSettings struct {
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 }
+
+var MattermostGiphySdkKey string
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
@@ -742,13 +743,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.GfycatAPISecret = NewString(ServiceSettingsDefaultGfycatAPISecret)
 	}
 
-	if s.GiphySdkKey == nil {
-		switch GetServiceEnvironment() {
-		case ServiceEnvironmentProduction:
-			s.GiphySdkKey = NewString(ServiceSettingsDefaultGiphySdkKey)
-		case ServiceEnvironmentTest, ServiceEnvironmentDev:
-			s.GiphySdkKey = NewString(ServiceSettingsDefaultGiphySdkKeyTest)
-		}
+	if s.GiphySdkKey == nil || *s.GiphySdkKey == "" {
+		s.GiphySdkKey = NewString("")
 	}
 
 	if s.ExperimentalEnableAuthenticationTransfer == nil {
