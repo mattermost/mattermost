@@ -106,7 +106,7 @@
     "@redux-devtools/extension": "3.2.3",
     "@testing-library/jest-dom": "5.16.4",
     "@testing-library/react": "12.1.4",
-    "@testing-library/user-event": "12.1.4",
+    "@testing-library/user-event": "13.5.0",
     "@types/bootstrap": "4.5.0",
     "@types/country-list": "2.1.0",
     "@types/enzyme": "3.10.11",
