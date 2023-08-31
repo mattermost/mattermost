@@ -749,6 +749,7 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.channel_guest.description",
 		Permissions: []string{
 			PermissionReadChannel.Id,
+			PermissionReadChannelContent.Id,
 			PermissionAddReaction.Id,
 			PermissionRemoveReaction.Id,
 			PermissionUploadFile.Id,
@@ -767,6 +768,7 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.channel_user.description",
 		Permissions: []string{
 			PermissionReadChannel.Id,
+			PermissionReadChannelContent.Id,
 			PermissionAddReaction.Id,
 			PermissionRemoveReaction.Id,
 			PermissionManagePublicChannelMembers.Id,

@@ -103,6 +103,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	expected1 := map[string][]string{
 		"channel_user": {
 			model.PermissionReadChannel.Id,
+			model.PermissionReadChannelContent.Id,
 			model.PermissionAddReaction.Id,
 			model.PermissionRemoveReaction.Id,
 			model.PermissionManagePublicChannelMembers.Id,

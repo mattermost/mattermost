@@ -258,14 +258,16 @@ func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userID stri
 	if session.IsUnrestricted() {
 		return true
 	}
-	if a.SessionHasPermissionToUser(session, userID) {
+
+	err := a.SessionHasPermissionToManageBot(session, userID)
+	if err == nil {
 		return true
 	}
-
-	if err := a.SessionHasPermissionToManageBot(session, userID); err == nil {
-		return true
+	if err.Id == "store.sql_bot.get.missing.app_error" && err.Unwrap() != nil {
+		if a.SessionHasPermissionToUser(session, userID) {
+			return true
+		}
 	}
-
 	return false
 }
 
@@ -402,5 +404,5 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 }
 
 func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
-	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannel) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(userID, channel.TeamId, model.PermissionReadPublicChannel))
+	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(userID, channel.TeamId, model.PermissionReadPublicChannel))
 }
