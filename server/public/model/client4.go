@@ -467,10 +467,6 @@ func (c *Client4) oAuthAppRoute(appId string) string {
 	return fmt.Sprintf("/oauth/apps/%v", appId)
 }
 
-func (c *Client4) openGraphRoute() string {
-	return "/opengraph"
-}
-
 func (c *Client4) jobsRoute() string {
 	return "/jobs"
 }
@@ -3540,6 +3536,27 @@ func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelV
 	return ch, BuildResponse(r), nil
 }
 
+// ReadMultipleChannels performs a view action on several channels at the same time for a user.
+func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, channelIds []string) (*ChannelViewResponse, *Response, error) {
+	url := fmt.Sprintf(c.channelsRoute()+"/members/%v/mark_read", userId)
+	buf, err := json.Marshal(channelIds)
+	if err != nil {
+		return nil, nil, NewAppError("ReadMultipleChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, url, buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch *ChannelViewResponse
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("ReadMultipleChannels", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
 // GetChannelUnread will return a ChannelUnread object that contains the number of
 // unread messages and mentions for a user.
 func (c *Client4) GetChannelUnread(ctx context.Context, channelId, userId string) (*ChannelUnread, *Response, error) {
@@ -5493,7 +5510,7 @@ func (c *Client4) GetGroupsAssociatedToChannelsByTeam(ctx context.Context, teamI
 // GetGroups retrieves Mattermost Groups
 func (c *Client4) GetGroups(ctx context.Context, opts GroupSearchOpts) ([]*Group, *Response, error) {
 	path := fmt.Sprintf(
-		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v&include_channel_member_count=%v&include_timezones=%v",
+		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v&include_channel_member_count=%v&include_timezones=%v&include_archived=%v&filter_archived=%v",
 		c.groupsRoute(),
 		opts.IncludeMemberCount,
 		opts.NotAssociatedToTeam,
@@ -5504,6 +5521,8 @@ func (c *Client4) GetGroups(ctx context.Context, opts GroupSearchOpts) ([]*Group
 		opts.Source,
 		opts.IncludeChannelMemberCount,
 		opts.IncludeTimezones,
+		opts.IncludeArchived,
+		opts.FilterArchived,
 	)
 	if opts.Since > 0 {
 		path = fmt.Sprintf("%s&since=%v", path, opts.Since)
@@ -6756,21 +6775,6 @@ func (c *Client4) GetSupportedTimezone(ctx context.Context) ([]string, *Response
 	var timezones []string
 	json.NewDecoder(r.Body).Decode(&timezones)
 	return timezones, BuildResponse(r), nil
-}
-
-// Open Graph Metadata Section
-
-// OpenGraph return the open graph metadata for a particular url if the site have the metadata.
-func (c *Client4) OpenGraph(ctx context.Context, url string) (map[string]string, *Response, error) {
-	requestBody := make(map[string]string)
-	requestBody["url"] = url
-
-	r, err := c.DoAPIPost(ctx, c.openGraphRoute(), MapToJSON(requestBody))
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return MapFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // Jobs Section

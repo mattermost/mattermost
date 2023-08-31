@@ -1468,7 +1468,15 @@ func (s SqlChannelStore) GetByName(teamId string, name string, allowFromCache bo
 	return s.getByName(teamId, name, false, allowFromCache)
 }
 
+func (s SqlChannelStore) GetByNamesIncludeDeleted(teamId string, names []string, allowFromCache bool) ([]*model.Channel, error) {
+	return s.getByNames(teamId, names, allowFromCache, true)
+}
+
 func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) ([]*model.Channel, error) {
+	return s.getByNames(teamId, names, allowFromCache, false)
+}
+
+func (s SqlChannelStore) getByNames(teamId string, names []string, allowFromCache, includeArchivedChannels bool) ([]*model.Channel, error) {
 	var channels []*model.Channel
 
 	if allowFromCache {
@@ -1481,7 +1489,9 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 			visited[name] = struct{}{}
 			var cacheItem *model.Channel
 			if err := channelByNameCache.Get(teamId+name, &cacheItem); err == nil {
-				channels = append(channels, cacheItem)
+				if includeArchivedChannels || cacheItem.DeleteAt == 0 {
+					channels = append(channels, cacheItem)
+				}
 			} else {
 				misses = append(misses, name)
 			}
@@ -1490,15 +1500,17 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 	}
 
 	if len(names) > 0 {
+		cond := sq.And{
+			sq.Eq{"Name": names},
+		}
+		if !includeArchivedChannels {
+			cond = append(cond, sq.Eq{"DeleteAt": 0})
+		}
+
 		builder := s.getQueryBuilder().
 			Select("*").
 			From("Channels").
-			Where(
-				sq.And{
-					sq.Eq{"Name": names},
-					sq.Eq{"DeleteAt": 0},
-				},
-			)
+			Where(cond)
 
 		if teamId != "" {
 			builder = builder.Where(sq.Eq{"TeamId": teamId})
@@ -2020,6 +2032,82 @@ func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) ([]model.S
 	return dbMembersTimezone, nil
 }
 
+func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+	query := s.getQueryBuilder().Select(
+		"Channels.Id",
+		"Channels.Type",
+		"Channels.TotalMsgCount",
+		"Channels.LastPostAt",
+		"ChannelMembers.MsgCount",
+		"ChannelMembers.MentionCount",
+		"ChannelMembers.NotifyProps",
+		"ChannelMembers.LastViewedAt",
+	).
+		From("ChannelMembers").
+		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
+		Where(sq.Eq{
+			"ChannelMembers.ChannelId": channelIDs,
+			"ChannelMembers.UserId":    userID,
+		})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "channel_tosql")
+	}
+
+	var channels []struct {
+		Id            string
+		Type          string
+		TotalMsgCount int
+		LastPostAt    int64
+		MsgCount      int
+		MentionCount  int
+		NotifyProps   model.StringMap
+		LastViewedAt  int64
+	}
+
+	err = s.GetReplicaX().Select(&channels, queryString, args...)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "failed to find channels with unreads and with mentions data")
+	}
+
+	channelsWithUnreads := []string{}
+	channelsWithMentions := []string{}
+	readTimes := map[string]int64{}
+
+	for i := range channels {
+		channel := channels[i]
+		hasMentions := (channel.MentionCount > 0)
+		hasUnreads := (channel.TotalMsgCount-channel.MsgCount > 0) || hasMentions
+
+		if hasUnreads {
+			channelsWithUnreads = append(channelsWithUnreads, channel.Id)
+		}
+
+		notify := channel.NotifyProps[model.PushNotifyProp]
+		if notify == model.ChannelNotifyDefault {
+			notify = userNotifyProps[model.PushNotifyProp]
+		}
+		if notify == model.UserNotifyAll || channel.Type == string(model.ChannelTypeDirect) {
+			if hasUnreads {
+				channelsWithMentions = append(channelsWithMentions, channel.Id)
+			}
+		} else if notify == model.UserNotifyMention {
+			if hasMentions {
+				channelsWithMentions = append(channelsWithMentions, channel.Id)
+			}
+		}
+
+		if channel.LastPostAt > channel.LastViewedAt {
+			readTimes[channel.Id] = channel.LastPostAt
+		} else {
+			readTimes[channel.Id] = channel.LastViewedAt
+		}
+	}
+
+	return channelsWithUnreads, channelsWithMentions, readTimes, nil
+}
+
 func (s SqlChannelStore) GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
 	selectSQL, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
 		Where(sq.Eq{
@@ -2511,6 +2599,10 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		TotalMsgCount     int64
 		TotalMsgCountRoot int64
 	}{}
+
+	if len(channelIds) == 0 {
+		return map[string]int64{}, nil
+	}
 
 	// We use the question placeholder format for both databases, because
 	// we replace that with the dollar format later on.
@@ -3426,9 +3518,14 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			InnerJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
 			Where(sq.Eq{"RetentionPoliciesChannels.PolicyId": opts.PolicyID})
 	} else if opts.ExcludePolicyConstrained {
-		query = query.
-			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
-			Where("RetentionPoliciesChannels.ChannelId IS NULL")
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			query = query.
+				LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
+				Where("RetentionPoliciesChannels.ChannelId IS NULL")
+
+		} else {
+			query = query.Where(sq.Expr(`c.Id NOT IN (SELECT ChannelId FROM RetentionPoliciesChannels)`))
+		}
 	} else if opts.IncludePolicyID {
 		query = query.
 			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId")
@@ -4111,34 +4208,36 @@ func (s SqlChannelStore) GetAllChannelsForExportAfter(limit int, afterId string)
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, error) {
+func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error) {
 	members := []*model.ChannelMemberForExport{}
-	err := s.GetReplicaX().Select(&members, `
-		SELECT
-			ChannelMembers.ChannelId,
-			ChannelMembers.UserId,
-			ChannelMembers.Roles,
-			ChannelMembers.LastViewedAt,
-			ChannelMembers.MsgCount,
-			ChannelMembers.MentionCount,
-			ChannelMembers.MentionCountRoot,
-			COALESCE(ChannelMembers.UrgentMentionCount, 0) AS UrgentMentionCount,
-			ChannelMembers.MsgCountRoot,
-			ChannelMembers.NotifyProps,
-			ChannelMembers.LastUpdateAt,
-			ChannelMembers.SchemeUser,
-			ChannelMembers.SchemeAdmin,
-			(ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) as SchemeGuest,
-			Channels.Name as ChannelName
-		FROM
-			ChannelMembers
-		INNER JOIN
-			Channels ON ChannelMembers.ChannelId = Channels.Id
-		WHERE
-			ChannelMembers.UserId = ?
-			AND Channels.TeamId = ?
-			AND Channels.DeleteAt = 0`,
-		userId, teamId)
+	q := `
+	SELECT
+		ChannelMembers.ChannelId,
+		ChannelMembers.UserId,
+		ChannelMembers.Roles,
+		ChannelMembers.LastViewedAt,
+		ChannelMembers.MsgCount,
+		ChannelMembers.MentionCount,
+		ChannelMembers.MentionCountRoot,
+		COALESCE(ChannelMembers.UrgentMentionCount, 0) AS UrgentMentionCount,
+		ChannelMembers.MsgCountRoot,
+		ChannelMembers.NotifyProps,
+		ChannelMembers.LastUpdateAt,
+		ChannelMembers.SchemeUser,
+		ChannelMembers.SchemeAdmin,
+		(ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) as SchemeGuest,
+		Channels.Name as ChannelName
+	FROM
+		ChannelMembers
+	INNER JOIN
+		Channels ON ChannelMembers.ChannelId = Channels.Id
+	WHERE
+		ChannelMembers.UserId = ?
+		AND Channels.TeamId = ?`
+	if !includeArchivedChannel {
+		q += " AND Channels.DeleteAt = 0"
+	}
+	err := s.GetReplicaX().Select(&members, q, userId, teamId)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Channels for export")
 	}

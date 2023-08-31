@@ -86,7 +86,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         });
     });
 
-    it('MM-T1467 Accessibility Support in More Channels Dialog screen', () => {
+    it('MM-T1467 Accessibility Support in Browse Channels Dialog screen', () => {
         function getChannelAriaLabel(channel) {
             return channel.display_name.toLowerCase() + ', ' + channel.purpose.toLowerCase();
         }
@@ -117,8 +117,8 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                     // # Hide already joined channels
                     cy.findByText('Hide Joined').click();
 
-                    // # Focus on the Create Channel button and TAB three time
-                    cy.get('#createNewChannelButton').focus().tab().tab().tab();
+                    // # Focus on the Create Channel button and TAB four time
+                    cy.get('#createNewChannelButton').focus().tab().tab().tab().tab();
 
                     // * Verify channel name is highlighted and reader reads the channel name and channel description
                     cy.get('#moreChannelsList').within(() => {

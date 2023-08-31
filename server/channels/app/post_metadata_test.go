@@ -2473,7 +2473,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, img)
 		assert.Error(t, err)
 		assert.IsType(t, &url.Error{}, err)
-		assert.Equal(t, httpservice.AddressForbidden, err.(*url.Error).Err)
+		assert.Equal(t, httpservice.ErrAddressForbidden, err.(*url.Error).Err)
 
 		requestURL = th.App.GetSiteURL() + "/api/v4/image?url=" + url.QueryEscape(requestURL)
 

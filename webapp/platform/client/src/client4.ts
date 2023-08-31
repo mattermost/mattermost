@@ -74,8 +74,10 @@ import {
     UsersWithGroupsAndCount,
     GroupsWithCount,
     GroupCreateWithUserIds,
-    GroupSearachParams,
+    GroupSearchParams,
     CustomGroupPatch,
+    GetGroupsParams,
+    GetGroupsForUserParams,
 } from '@mattermost/types/groups';
 import {PostActionResponse} from '@mattermost/types/integration_actions';
 import {
@@ -753,6 +755,18 @@ export default class Client4 {
         }
 
         return profile;
+    };
+
+    loginWithDesktopToken = async (token: string) => {
+        const body: any = {
+            token,
+            deviceId: '',
+        };
+
+        return await this.doFetch<UserProfile>(
+            `${this.getUsersRoute()}/login/desktop_token`,
+            {method: 'post', body: JSON.stringify(body)},
+        );
     };
 
     loginById = (id: string, password: string, token = '') => {
@@ -1775,11 +1789,18 @@ export default class Client4 {
         );
     };
 
-    viewMyChannel = (channelId: string, prevChannelId?: string) => {
-        const data = {channel_id: channelId, prev_channel_id: prevChannelId, collapsed_threads_supported: true};
+    viewMyChannel = (channelId: string) => {
+        const data = {channel_id: channelId, collapsed_threads_supported: true};
         return this.doFetch<ChannelViewResponse>(
             `${this.getChannelsRoute()}/members/me/view`,
             {method: 'post', body: JSON.stringify(data)},
+        );
+    };
+
+    readMultipleChannels = (channelIds: string[]) => {
+        return this.doFetch<ChannelViewResponse>(
+            `${this.getChannelsRoute()}/members/me/mark_read`,
+            {method: 'post', body: JSON.stringify(channelIds)},
         );
     };
 
@@ -2205,13 +2226,6 @@ export default class Client4 {
 
     searchFiles = (teamId: string, terms: string, isOrSearch: boolean) => {
         return this.searchFilesWithParams(teamId, {terms, is_or_search: isOrSearch});
-    };
-
-    getOpenGraphMetadata = (url: string) => {
-        return this.doFetch<OpenGraphMetadata>(
-            `${this.getBaseRoute()}/opengraph`,
-            {method: 'post', body: JSON.stringify({url})},
-        );
     };
 
     doPostAction = (postId: string, actionId: string, selectedOption = '') => {
@@ -3490,19 +3504,9 @@ export default class Client4 {
         );
     };
 
-    getGroups = (filterAllowReference = false, page = 0, perPage = 10, includeMemberCount = false, hasFilterMember = false) => {
-        const qs: any = {
-            filter_allow_reference: filterAllowReference,
-            page,
-            per_page: perPage,
-            include_member_count: includeMemberCount,
-        };
-
-        if (hasFilterMember) {
-            qs.filter_has_member = hasFilterMember;
-        }
+    getGroups = (opts: GetGroupsForUserParams | GetGroupsParams) => {
         return this.doFetch<Group[]>(
-            `${this.getGroupsRoute()}${buildQueryString(qs)}`,
+            `${this.getGroupsRoute()}${buildQueryString(opts)}`,
             {method: 'get'},
         );
     };
@@ -3560,7 +3564,7 @@ export default class Client4 {
         );
     }
 
-    searchGroups = (params: GroupSearachParams) => {
+    searchGroups = (params: GroupSearchParams) => {
         return this.doFetch<Group[]>(
             `${this.getGroupsRoute()}${buildQueryString(params)}`,
             {method: 'get'},
@@ -3660,6 +3664,13 @@ export default class Client4 {
         return this.doFetch<Group>(
             `${this.getGroupRoute(groupId)}`,
             {method: 'delete'},
+        );
+    }
+
+    restoreGroup = (groupId: string) => {
+        return this.doFetch<Group>(
+            `${this.getGroupRoute(groupId)}/restore`,
+            {method: 'post'},
         );
     }
 
