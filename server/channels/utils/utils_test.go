@@ -290,7 +290,7 @@ func TestIsMobileRequest(t *testing.T) {
 		{"Mozilla/5.0 (Android 12; Mobile)", true},
 		{"Mozilla/5.0 (Linux; Android 12; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.9999.99 Mobile Safari/537.36", true},
 
-		// Test cases with NO movile devices
+		// Test cases with NO mobile devices
 		{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36", false},
 		{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36", false},
 	}
