@@ -766,6 +766,10 @@ func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppErr
 	return api.app.GetFileInfo(fileID)
 }
 
+func (api *PluginAPI) SetFileSearchableContent(fileID string, content string) *model.AppError {
+	return api.app.SetFileSearchableContent(fileID, content)
+}
+
 func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	return api.app.GetFileInfos(page, perPage, opt)
 }

@@ -4345,6 +4345,35 @@ func (s *apiRPCServer) GetFileInfo(args *Z_GetFileInfoArgs, returns *Z_GetFileIn
 	return nil
 }
 
+type Z_SetFileSearchableContentArgs struct {
+	A string
+	B string
+}
+
+type Z_SetFileSearchableContentReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SetFileSearchableContent(fileID string, content string) *model.AppError {
+	_args := &Z_SetFileSearchableContentArgs{fileID, content}
+	_returns := &Z_SetFileSearchableContentReturns{}
+	if err := g.client.Call("Plugin.SetFileSearchableContent", _args, _returns); err != nil {
+		log.Printf("RPC call to SetFileSearchableContent API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SetFileSearchableContent(args *Z_SetFileSearchableContentArgs, returns *Z_SetFileSearchableContentReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetFileSearchableContent(fileID string, content string) *model.AppError
+	}); ok {
+		returns.A = hook.SetFileSearchableContent(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SetFileSearchableContent called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetFileInfosArgs struct {
 	A int
 	B int
