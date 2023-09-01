@@ -684,7 +684,7 @@ const AdvanceTextEditor = ({
                         {labels}
                         <label
                             id={`advancedTextEditorLabel-${location}`}
-                            className="sr-only"
+                            className='sr-only'
                         >
                             {Utils.localizeMessage(
                                 'channelView.login.successfull',
