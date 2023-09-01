@@ -53,11 +53,18 @@
         color: var(--center-channel-color);
         float: left;
 
+        i {
+            position: relative;
+            top: -1px;
+            font-size: 18px;
+            opacity: 0.64;
+        }
+
         &:hover {
             background: rgba(v(center-channel-color-rgb), 0.08);
 
             i {
-                opacity: 0.73;
+                opacity: 0.72;
             }
         }
 
@@ -71,13 +78,6 @@
             i {
                 opacity: 1;
             }
-        }
-
-        i {
-            position: relative;
-            top: -1px;
-            font-size: 18px;
-            opacity: 0.73;
         }
     }
 
