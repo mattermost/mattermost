@@ -326,6 +326,19 @@ func TestGetClientConfig(t *testing.T) {
 				"ExperimentalSharedChannels": "true",
 			},
 		},
+		{
+			"config key for GiphySdkKey",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					GiphySdkKey: model.NewString("TestKey"),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"GiphySdkKey": "TestKey",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

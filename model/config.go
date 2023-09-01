@@ -344,6 +344,7 @@ type ServiceSettings struct {
 	EnableGifPicker                                   *bool   `access:"integrations_gif"`
 	GfycatAPIKey                                      *string `access:"integrations_gif"`
 	GfycatAPISecret                                   *string `access:"integrations_gif"`
+	GiphySdkKey                                       *string `access:"integrations_gif"` // telemetry: none
 	EnableCustomEmoji                                 *bool   `access:"site_emoji"`
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
 	PostEditTimeLimit                                 *int    `access:"user_management_permissions"`
@@ -387,6 +388,8 @@ type ServiceSettings struct {
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 }
+
+var MattermostGiphySdkKey string
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
@@ -729,6 +732,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.GfycatAPISecret == nil || *s.GfycatAPISecret == "" {
 		s.GfycatAPISecret = NewString(ServiceSettingsDefaultGfycatAPISecret)
+	}
+
+	if s.GiphySdkKey == nil || *s.GiphySdkKey == "" {
+		s.GiphySdkKey = NewString("")
 	}
 
 	if s.ExperimentalEnableAuthenticationTransfer == nil {
