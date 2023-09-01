@@ -344,7 +344,7 @@ type ServiceSettings struct {
 	EnableGifPicker                                   *bool   `access:"integrations_gif"`
 	GfycatAPIKey                                      *string `access:"integrations_gif"`
 	GfycatAPISecret                                   *string `access:"integrations_gif"`
-	GiphySdkKey                                       *string `access:"integrations_gif"`
+	GiphySdkKey                                       *string `access:"integrations_gif"` // telemetry: none
 	EnableCustomEmoji                                 *bool   `access:"site_emoji"`
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
 	PostEditTimeLimit                                 *int    `access:"user_management_permissions"`
