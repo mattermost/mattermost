@@ -14,16 +14,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
 )
-
-func StringInSlice(a string, slice []string) bool {
-	for _, b := range slice {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
 
 // RemoveStringFromSlice removes the first occurrence of a from slice.
 func RemoveStringFromSlice(a string, slice []string) []string {
@@ -40,7 +32,7 @@ func RemoveStringsFromSlice(slice []string, strings ...string) []string {
 	newSlice := []string{}
 
 	for _, item := range slice {
-		if !StringInSlice(item, strings) {
+		if !pUtils.Contains(strings, item) {
 			newSlice = append(newSlice, item)
 		}
 	}
