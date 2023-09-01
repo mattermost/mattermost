@@ -10,7 +10,7 @@ import useCopyText from 'components/common/hooks/useCopyText';
 
 const ChannelInfoRhsTopButtons = styled.div`
     display: flex;
-    color: rgba(var(--center-channel-color-rgb), 0.73);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     margin-top: 24px;
     padding: 0 18px;
 `;

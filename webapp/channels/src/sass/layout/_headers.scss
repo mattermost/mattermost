@@ -115,7 +115,7 @@
             position: relative;
             top: -2px;
             font-size: 16px;
-            opacity: 0.73;
+            opacity: 0.64;
         }
     }
 
@@ -437,7 +437,7 @@
 
                 &:focus,
                 &:hover {
-                    color: rgba(var(--center-channel-color-rgb), 0.73);
+                    color: rgba(var(--center-channel-color-rgb), 0.88);
                     text-decoration: none;
                 }
 
