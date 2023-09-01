@@ -107,14 +107,14 @@ services:
       # https://github.com/cypress-io/cypress/issues/1243
       CI: "1"
       # Ensure we're independent from the global node environment
-      PATH: /app/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /cypress/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     ulimits:
       nofile:
         soft: 8096
         hard: 1048576
-    working_dir: /app
+    working_dir: /cypress
     volumes:
-      - "../../e2e-tests/cypress/:/app"
+      - "../../e2e-tests/cypress/:/cypress"
 
   utils:
     image: "mattermostdevelopment/mirrored-golang:1.19.5"
