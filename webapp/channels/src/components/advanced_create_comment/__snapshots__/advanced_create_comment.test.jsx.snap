@@ -144,7 +144,6 @@ exports[`components/AdvancedCreateComment should match snapshot, emoji picker di
 <form
   onSubmit={[Function]}
 >
-  <FileLimitStickyBanner />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
@@ -285,7 +284,6 @@ exports[`components/AdvancedCreateComment should match snapshot, non-empty messa
 <form
   onSubmit={[Function]}
 >
-  <FileLimitStickyBanner />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}

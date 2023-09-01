@@ -15,19 +15,6 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
       <Connect(SystemPermissionGate)
         permissions={
           Array [
-            "sysconsole_write_billing",
-          ]
-        }
-      >
-        <MenuCloudTrial
-          id="menuCloudTrial"
-        />
-      </Connect(SystemPermissionGate)>
-    </MenuGroup>
-    <MenuGroup>
-      <Connect(SystemPermissionGate)
-        permissions={
-          Array [
             "sysconsole_write_about_edition_and_license",
           ]
         }
@@ -622,11 +609,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
         }
       >
         <MenuItemLink
-          className=""
-          disabled={false}
           id="createTeam"
           show={true}
-          sibling={false}
           text="Create a Team"
           to="/create_team"
         />

@@ -162,13 +162,41 @@ exports[`components/select_team/SelectTeam should match snapshot, on create team
           >
             <div>
               <MemoizedFormattedMessage
-                defaultMessage="No teams are available to join. Please ask your administrator for an invite."
-                id="signup_team.no_open_teams"
+                defaultMessage="No teams are available to join. Please create a new team or ask your administrator for an invite."
+                id="signup_team.no_open_teams_canCreate"
               />
             </div>
           </div>
         </InfiniteScroll>
       </div>
+      <Connect(SystemPermissionGate)
+        permissions={
+          Array [
+            "create_team",
+          ]
+        }
+      >
+        <div
+          className="margin--extra"
+          style={
+            Object {
+              "marginTop": "0.5em",
+            }
+          }
+        >
+          <Link
+            className="signup-team-login"
+            id="createNewTeamLink"
+            onClick={[Function]}
+            to="/create_team"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Create a team"
+              id="login.createTeam"
+            />
+          </Link>
+        </div>
+      </Connect(SystemPermissionGate)>
       <Connect(SystemPermissionGate)
         permissions={
           Array [

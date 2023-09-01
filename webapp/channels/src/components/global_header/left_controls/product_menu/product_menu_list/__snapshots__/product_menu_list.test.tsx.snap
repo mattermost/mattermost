@@ -5,12 +5,6 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
   <div
     onClick={[Function]}
   >
-    <MenuCloudTrial
-      id="menuCloudTrial"
-    />
-    <MenuItemCloudLimit
-      id="menuItemCloudLimit"
-    />
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -203,12 +197,6 @@ exports[`components/global/product_switcher_menu should match snapshot with most
   <div
     onClick={[Function]}
   >
-    <MenuCloudTrial
-      id="menuCloudTrial"
-    />
-    <MenuItemCloudLimit
-      id="menuItemCloudLimit"
-    />
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -527,12 +515,6 @@ exports[`components/global/product_switcher_menu should show integrations should
   <div
     onClick={[Function]}
   >
-    <MenuCloudTrial
-      id="menuCloudTrial"
-    />
-    <MenuItemCloudLimit
-      id="menuItemCloudLimit"
-    />
     <Connect(SystemPermissionGate)
       permissions={
         Array [

@@ -2,24 +2,8 @@
 
 exports[`components/Menu should match snapshot with cloud free and team limit reached 1`] = `
 <MenuItemLink
-  className="MenuItem__with-icon-tooltip"
-  disabled={true}
   id="createTeam"
   show={true}
-  sibling={
-    <RestrictedIndicator
-      blocked={true}
-      feature="mattermost.feature.create_multiple_teams"
-      messageAdminPostTrial="Multiple teams allow for context-specific spaces that are more attuned to your and your teams’ needs. Upgrade to the Professional plan to create unlimited teams."
-      messageAdminPreTrial="Create unlimited teams with one of our paid plans. Get the full experience of Enterprise when you start a free, 30 day trial."
-      messageEndUser="Multiple teams allow for context-specific spaces that are more attuned to your teams’ needs."
-      minimumPlanRequiredForFeature="professional"
-      titleAdminPostTrial="Upgrade to create unlimited teams"
-      titleAdminPreTrial="Try unlimited teams with a free trial"
-      titleEndUser="Multiple teams available in paid plans"
-      tooltipMessage="During your trial you are able to create multiple teams. These teams will be archived after your trial."
-    />
-  }
   text="Create a Team"
   to="/create_team"
 />
@@ -27,24 +11,8 @@ exports[`components/Menu should match snapshot with cloud free and team limit re
 
 exports[`components/Menu should match snapshot with cloud free trial 1`] = `
 <MenuItemLink
-  className="MenuItem__with-icon-tooltip"
-  disabled={false}
   id="createTeam"
   show={true}
-  sibling={
-    <RestrictedIndicator
-      blocked={false}
-      feature="mattermost.feature.create_multiple_teams"
-      messageAdminPostTrial="Multiple teams allow for context-specific spaces that are more attuned to your and your teams’ needs. Upgrade to the Professional plan to create unlimited teams."
-      messageAdminPreTrial="Create unlimited teams with one of our paid plans. Get the full experience of Enterprise when you start a free, 30 day trial."
-      messageEndUser="Multiple teams allow for context-specific spaces that are more attuned to your teams’ needs."
-      minimumPlanRequiredForFeature="professional"
-      titleAdminPostTrial="Upgrade to create unlimited teams"
-      titleAdminPreTrial="Try unlimited teams with a free trial"
-      titleEndUser="Multiple teams available in paid plans"
-      tooltipMessage="During your trial you are able to create multiple teams. These teams will be archived after your trial."
-    />
-  }
   text="Create a Team"
   to="/create_team"
 />
@@ -218,11 +186,8 @@ exports[`components/Menu should match snapshot with guest access disabled and no
       }
     >
       <MenuItemLink
-        className=""
-        disabled={false}
         id="createTeam"
         show={true}
-        sibling={false}
         text="Create a Team"
         to="/create_team"
       />
@@ -419,11 +384,8 @@ exports[`components/Menu should match snapshot with id 1`] = `
       }
     >
       <MenuItemLink
-        className=""
-        disabled={false}
         id="createTeam"
         show={true}
-        sibling={false}
         text="Create a Team"
         to="/create_team"
       />
@@ -619,11 +581,8 @@ exports[`components/Menu should match snapshot with most of the thing disabled 1
       }
     >
       <MenuItemLink
-        className=""
-        disabled={false}
         id="createTeam"
         show={true}
-        sibling={false}
         text="Create a Team"
         to="/create_team"
       />
@@ -637,19 +596,6 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
 <Menu
   ariaLabel="main menu"
 >
-  <MenuGroup>
-    <Connect(SystemPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_write_billing",
-        ]
-      }
-    >
-      <MenuCloudTrial
-        id="menuCloudTrial"
-      />
-    </Connect(SystemPermissionGate)>
-  </MenuGroup>
   <MenuGroup>
     <Connect(SystemPermissionGate)
       permissions={
@@ -1232,11 +1178,8 @@ exports[`components/Menu should match snapshot with most of the thing enabled 1`
       }
     >
       <MenuItemLink
-        className=""
-        disabled={false}
         id="createTeam"
         show={true}
-        sibling={false}
         text="Create a Team"
         to="/create_team"
       />
@@ -1250,19 +1193,6 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
 <Menu
   ariaLabel="main menu"
 >
-  <MenuGroup>
-    <Connect(SystemPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_write_billing",
-        ]
-      }
-    >
-      <MenuCloudTrial
-        id="menuCloudTrial"
-      />
-    </Connect(SystemPermissionGate)>
-  </MenuGroup>
   <MenuGroup>
     <Connect(SystemPermissionGate)
       permissions={
@@ -1847,11 +1777,8 @@ exports[`components/Menu should match snapshot with plugins 1`] = `
       }
     >
       <MenuItemLink
-        className=""
-        disabled={false}
         id="createTeam"
         show={true}
-        sibling={false}
         text="Create a Team"
         to="/create_team"
       />
@@ -1880,19 +1807,6 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
 <Menu
   ariaLabel="main menu"
 >
-  <MenuGroup>
-    <Connect(SystemPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_write_billing",
-        ]
-      }
-    >
-      <MenuCloudTrial
-        id="menuCloudTrial"
-      />
-    </Connect(SystemPermissionGate)>
-  </MenuGroup>
   <MenuGroup>
     <Connect(SystemPermissionGate)
       permissions={
