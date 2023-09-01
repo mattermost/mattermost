@@ -47,6 +47,12 @@ button {
     justify-content: center;
     gap: 8px;
 
+
+    &.btn-icon {
+        width: 40px;
+        padding: 0;
+    }
+
     &:not(.a11y--active) {
         box-shadow: none;
     }
@@ -78,6 +84,11 @@ button {
         padding: 0 16px;
         font-size: 12px;
         gap: 6px;
+
+        &.btn-icon {
+            width: 32px;
+            padding: 0;
+        }
     }
 
     &.btn-lg {
@@ -85,6 +96,11 @@ button {
         height: 48px;
         padding: 0 24px;
         gap: 10px;
+
+        &.btn-icon {
+            width: 48px;
+            padding: 0;
+        }
 
         .i {
             font-size: 24px;
@@ -230,30 +246,4 @@ button {
 
 %btn-transition {
     transition: all 0.15s ease;
-}
-
-.btn-icon {
-    width: 3.2rem;
-    height: 3.2rem;
-    padding: 0;
-    border: none;
-    background: transparent;
-    border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-    fill: rgba(var(--center-channel-color-rgb), 0.56);
-    font-size: 1.6rem;
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-        fill: rgba(var(--center-channel-color-rgb), 0.72);
-    }
-
-    &:active,
-    &--active,
-    &--active:hover {
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: v(button-bg);
-        fill: v(button-bg);
-    }
 }
