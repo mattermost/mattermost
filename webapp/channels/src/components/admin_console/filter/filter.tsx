@@ -232,7 +232,7 @@ class Filter extends React.PureComponent<Props, State> {
 
                     <button
                         type='button'
-                        className='Filter_apply style--none btn btn-primary'
+                        className='btn btn-primary btn-sm Filter_apply'
                         disabled={!this.state.optionsModified}
                         onClick={this.onFilter}
                     >

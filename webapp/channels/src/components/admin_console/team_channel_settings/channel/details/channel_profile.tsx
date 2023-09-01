@@ -97,17 +97,15 @@ export const ChannelProfile: React.SFC<ChannelProfileProps> = (props: ChannelPro
                                 classNames(
                                     'btn',
                                     'btn-secondary',
-                                    'ArchiveButton',
-                                    {ArchiveButton___archived: isArchived},
-                                    {ArchiveButton___unarchived: !isArchived},
+                                    {'btn-danger': !isArchived},
                                     {disabled: isDisabled},
                                 )
                             }
                             onClick={props.onToggleArchive}
                         >
                             {isArchived ?
-                                <UnarchiveIcon className='channel-icon channel-icon__unarchive'/> :
-                                <ArchiveIcon className='channel-icon channel-icon__archive'/>}
+                                <i className='icon icon-archive-arrow-up-outline'/> :
+                                <i className='icon icon-archive-outline'/>}
                             <FormattedMessage
                                 id={archiveBtnID}
                                 defaultMessage={archiveBtnDefault}

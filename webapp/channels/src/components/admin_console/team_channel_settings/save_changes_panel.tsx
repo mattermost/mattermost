@@ -29,7 +29,7 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
             />
             <BlockableLink
                 id='cancelButtonSettings'
-                className='cancel-button'
+                className='btn btn-quaternary'
                 to={cancelLink}
             >
                 <FormattedMessage

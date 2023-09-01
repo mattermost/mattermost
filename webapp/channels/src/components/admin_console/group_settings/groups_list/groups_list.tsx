@@ -187,10 +187,10 @@ export default class GroupsList extends React.PureComponent<Props, State> {
             return (
                 <button
                     type='button'
-                    className='btn btn-inactive disabled'
+                    className='btn btn-primary'
                     disabled={this.props.readOnly}
                 >
-                    <i className='icon fa fa-link'/>
+                    <i className='icon icon-link-variant'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.link_selected'
                         defaultMessage='Link Selected Groups'

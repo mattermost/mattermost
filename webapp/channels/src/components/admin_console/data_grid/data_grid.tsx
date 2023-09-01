@@ -15,6 +15,7 @@ import DataGridRow from './data_grid_row';
 import DataGridSearch from './data_grid_search';
 
 import './data_grid.scss';
+import IconButton from '@mattermost/compass-components/components/icon-button';
 
 export type Column = {
     name: string | JSX.Element;
@@ -263,10 +264,9 @@ class DataGrid extends React.PureComponent<Props, State> {
                                 total,
                             }}
                         />
-
                         <button
                             type='button'
-                            className={'btn btn-tertiary ml-2 prev ' + (firstPage ? 'disabled' : '')}
+                            className={'btn btn-quaternary ml-2 prev ' + (firstPage ? 'disabled' : '')}
                             onClick={prevPageFn}
                             disabled={firstPage}
                         >
@@ -274,7 +274,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                         </button>
                         <button
                             type='button'
-                            className={'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')}
+                            className={'btn btn-quaternary next ' + (lastPage ? 'disabled' : '')}
                             onClick={nextPageFn}
                             disabled={lastPage}
                         >

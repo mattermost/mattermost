@@ -47,6 +47,10 @@ button {
     justify-content: center;
     gap: 8px;
 
+    &:not(.a11y--active) {
+        box-shadow: none;
+    }
+
     &:active {
         box-shadow: none;
     }
@@ -118,8 +122,22 @@ button {
         color: rgb(var(--button-bg-rgb));
 
         &.btn-danger {
-            border-color: rgba(var(--error-text-rgb));
-            color: rgba(var(--error-text-rgb));
+            border-color: currentColor;
+            background: transparent;
+            color: var(--error-text);
+
+            &:hover {
+                color: var(--error-text);
+                border-color: currentColor;
+                background-color: rgba(var(--error-text-color-rgb), 0.08);
+            }
+
+            &:active,
+            &:focus {
+                color: var(--error-text);
+                border-color: currentColor;
+                background-color: rgba(var(--error-text-color-rgb), 0.16);
+            }
         }
 
         &:hover {

@@ -914,7 +914,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             lastMessage = <div className='col-sm-12'><div className='form-group half'>{this.state.lastMessage}</div></div>;
         }
 
-        let btnClass = 'btn';
+        let btnClass = 'btn btn-primary';
         if (this.state.fileSelected) {
             btnClass = 'btn btn-primary';
         }
@@ -1154,7 +1154,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                         <div className='file__upload'>
                                             <button
                                                 type='button'
-                                                className={classNames(['btn', {'btn-primary': enableUploads}])}
+                                                className={classNames(['btn', {'btn-tertiary': enableUploads}])}
                                                 disabled={!enableUploadButton || this.props.isDisabled}
                                             >
                                                 <FormattedMessage

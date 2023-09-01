@@ -168,7 +168,7 @@ export default function EditPostTimeLimitModal(props: Props) {
                 <button
                     id='linkModalCloseButton'
                     type='button'
-                    className='btn btn-default'
+                    className='btn btn-tertiary'
                     onClick={save}
                     disabled={saving}
                 >

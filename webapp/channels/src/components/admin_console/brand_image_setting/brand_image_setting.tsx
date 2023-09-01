@@ -178,11 +178,6 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
     };
 
     render() {
-        let letbtnDefaultClass = 'btn';
-        if (!this.props.disabled) {
-            letbtnDefaultClass += ' btn-default';
-        }
-
         let img = null;
         if (this.state.brandImage) {
             img = (
@@ -263,7 +258,7 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
                     <div className='file__upload mt-5'>
                         <button
                             type='button'
-                            className={letbtnDefaultClass}
+                            className='btn-tertiary'
                             disabled={this.props.disabled}
                         >
                             <FormattedMessage

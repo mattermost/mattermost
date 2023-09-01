@@ -300,7 +300,7 @@ Object {
               <div
                 class="disclaimer"
               >
-                By selecting Start trial, I agree to the 
+                By selecting Start trial, I agree to the
                 <a
                   href="https://mattermost.com/software-evaluation-agreement/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123"
                   location="start_trial_form_modal"
@@ -309,7 +309,7 @@ Object {
                 >
                   Mattermost Software Evaluation Agreement
                 </a>
-                , 
+                ,
                 <a
                   href="https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123"
                   location="start_trial_form_modal"
@@ -324,7 +324,7 @@ Object {
                 class="buttons"
               >
                 <button
-                  class="confirm-btn btn btn-default"
+                  class="confirm-btn btn btn-tertiary"
                   disabled=""
                   type="button"
                 >
