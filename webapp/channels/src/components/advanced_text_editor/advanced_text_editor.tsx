@@ -683,8 +683,8 @@ const AdvanceTextEditor = ({
                     >
                         {labels}
                         <label
-                            id='advancedTextEditorCellAriaLabel'
-                            style={{display: 'none', visibility: 'hidden', height: 0}}
+                            id={`advancedTextEditorLabel-${location}`}
+                            className="sr-only"
                         >
                             {Utils.localizeMessage(
                                 'channelView.login.successfull',
