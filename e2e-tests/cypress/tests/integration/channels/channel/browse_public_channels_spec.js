@@ -14,7 +14,7 @@ function verifyNoChannelToJoinMessage(isVisible) {
     cy.findByText('No public channels').should(isVisible ? 'be.visible' : 'not.exist');
 }
 
-describe('more public channels', () => {
+describe('browse public channels', () => {
     let testUser;
     let otherUser;
     let testTeam;
@@ -41,7 +41,7 @@ describe('more public channels', () => {
         });
     });
 
-    it('MM-T1664 Channels do not disappear from More Channels modal', () => {
+    it('MM-T1664 Channels do not disappear from Browse Channels modal', () => {
         // # Login as other user
         cy.apiLogin(otherUser);
 
@@ -51,8 +51,14 @@ describe('more public channels', () => {
         // # Go to LHS and click 'Browse channels'
         cy.uiBrowseOrCreateChannel('Browse channels').click();
 
-        // * Assert that the moreChannelsModel is visible
-        cy.findByRole('dialog', {name: 'Browse Channels'}).should('be.visible').within(() => {
+        // * Assert that the browse channel modal is visible
+        cy.findByRole('dialog', {name: 'Browse Channels'}).should('be.visible').then(() => {
+            // # Click on dropdown
+            cy.findByText('Channel Type: All').should('be.visible').click();
+
+            // # Click archived channels
+            cy.findByText('Public channels').should('be.visible').click();
+
             // # Click hide joined checkbox if not already checked
             cy.findByText('Hide Joined').should('be.visible').then(($checkbox) => {
                 if (!$checkbox.prop('checked')) {
@@ -92,7 +98,13 @@ describe('more public channels', () => {
         cy.uiBrowseOrCreateChannel('Browse channels').click();
 
         // * Assert the moreChannelsModel is visible
-        cy.findByRole('dialog', {name: 'Browse Channels'}).should('be.visible').within(() => {
+        cy.findByRole('dialog', {name: 'Browse Channels'}).should('be.visible').then(() => {
+            // # Click on dropdown
+            cy.findByText('Channel Type: All').should('be.visible').click();
+
+            // # Click archived channels
+            cy.findByText('Public channels').should('be.visible').click();
+
             // * Assert that the "No more channels to join" message is visible
             verifyNoChannelToJoinMessage(true);
         });

@@ -848,31 +848,67 @@ func init() {
 }
 
 type Z_NotificationWillBePushedArgs struct {
-	A *model.PluginPushNotification
+	A *model.PushNotification
+	B string
 }
 
 type Z_NotificationWillBePushedReturns struct {
-	A bool
+	A *model.PushNotification
+	B string
 }
 
-func (g *hooksRPCClient) NotificationWillBePushed(pushNotification *model.PluginPushNotification) (cancel bool) {
-	_args := &Z_NotificationWillBePushedArgs{pushNotification}
+func (g *hooksRPCClient) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
+	_args := &Z_NotificationWillBePushedArgs{pushNotification, userID}
 	_returns := &Z_NotificationWillBePushedReturns{}
 	if g.implemented[NotificationWillBePushedID] {
 		if err := g.client.Call("Plugin.NotificationWillBePushed", _args, _returns); err != nil {
 			g.log.Error("RPC call NotificationWillBePushed to plugin failed.", mlog.Err(err))
 		}
 	}
-	return _returns.A
+	return _returns.A, _returns.B
 }
 
 func (s *hooksRPCServer) NotificationWillBePushed(args *Z_NotificationWillBePushedArgs, returns *Z_NotificationWillBePushedReturns) error {
 	if hook, ok := s.impl.(interface {
-		NotificationWillBePushed(pushNotification *model.PluginPushNotification) (cancel bool)
+		NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
 	}); ok {
-		returns.A = hook.NotificationWillBePushed(args.A)
+		returns.A, returns.B = hook.NotificationWillBePushed(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("Hook NotificationWillBePushed called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["UserHasBeenDeactivated"] = UserHasBeenDeactivatedID
+}
+
+type Z_UserHasBeenDeactivatedArgs struct {
+	A *Context
+	B *model.User
+}
+
+type Z_UserHasBeenDeactivatedReturns struct {
+}
+
+func (g *hooksRPCClient) UserHasBeenDeactivated(c *Context, user *model.User) {
+	_args := &Z_UserHasBeenDeactivatedArgs{c, user}
+	_returns := &Z_UserHasBeenDeactivatedReturns{}
+	if g.implemented[UserHasBeenDeactivatedID] {
+		if err := g.client.Call("Plugin.UserHasBeenDeactivated", _args, _returns); err != nil {
+			g.log.Error("RPC call UserHasBeenDeactivated to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) UserHasBeenDeactivated(args *Z_UserHasBeenDeactivatedArgs, returns *Z_UserHasBeenDeactivatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserHasBeenDeactivated(c *Context, user *model.User)
+	}); ok {
+		hook.UserHasBeenDeactivated(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserHasBeenDeactivated called but not implemented."))
 	}
 	return nil
 }
@@ -4309,6 +4345,35 @@ func (s *apiRPCServer) GetFileInfo(args *Z_GetFileInfoArgs, returns *Z_GetFileIn
 	return nil
 }
 
+type Z_SetFileSearchableContentArgs struct {
+	A string
+	B string
+}
+
+type Z_SetFileSearchableContentReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SetFileSearchableContent(fileID string, content string) *model.AppError {
+	_args := &Z_SetFileSearchableContentArgs{fileID, content}
+	_returns := &Z_SetFileSearchableContentReturns{}
+	if err := g.client.Call("Plugin.SetFileSearchableContent", _args, _returns); err != nil {
+		log.Printf("RPC call to SetFileSearchableContent API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SetFileSearchableContent(args *Z_SetFileSearchableContentArgs, returns *Z_SetFileSearchableContentReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetFileSearchableContent(fileID string, content string) *model.AppError
+	}); ok {
+		returns.A = hook.SetFileSearchableContent(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SetFileSearchableContent called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetFileInfosArgs struct {
 	A int
 	B int
@@ -5869,31 +5934,31 @@ func (s *apiRPCServer) GetUploadSession(args *Z_GetUploadSessionArgs, returns *Z
 	return nil
 }
 
-type Z_SendPluginPushNotificationArgs struct {
-	A *model.PluginPushNotification
+type Z_SendPushNotificationArgs struct {
+	A *model.PushNotification
+	B string
 }
 
-type Z_SendPluginPushNotificationReturns struct {
-	A error
+type Z_SendPushNotificationReturns struct {
+	A *model.AppError
 }
 
-func (g *apiRPCClient) SendPluginPushNotification(notification *model.PluginPushNotification) error {
-	_args := &Z_SendPluginPushNotificationArgs{notification}
-	_returns := &Z_SendPluginPushNotificationReturns{}
-	if err := g.client.Call("Plugin.SendPluginPushNotification", _args, _returns); err != nil {
-		log.Printf("RPC call to SendPluginPushNotification API failed: %s", err.Error())
+func (g *apiRPCClient) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
+	_args := &Z_SendPushNotificationArgs{notification, userID}
+	_returns := &Z_SendPushNotificationReturns{}
+	if err := g.client.Call("Plugin.SendPushNotification", _args, _returns); err != nil {
+		log.Printf("RPC call to SendPushNotification API failed: %s", err.Error())
 	}
 	return _returns.A
 }
 
-func (s *apiRPCServer) SendPluginPushNotification(args *Z_SendPluginPushNotificationArgs, returns *Z_SendPluginPushNotificationReturns) error {
+func (s *apiRPCServer) SendPushNotification(args *Z_SendPushNotificationArgs, returns *Z_SendPushNotificationReturns) error {
 	if hook, ok := s.impl.(interface {
-		SendPluginPushNotification(notification *model.PluginPushNotification) error
+		SendPushNotification(notification *model.PushNotification, userID string) *model.AppError
 	}); ok {
-		returns.A = hook.SendPluginPushNotification(args.A)
-		returns.A = encodableError(returns.A)
+		returns.A = hook.SendPushNotification(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API SendPluginPushNotification called but not implemented."))
+		return encodableError(fmt.Errorf("API SendPushNotification called but not implemented."))
 	}
 	return nil
 }

@@ -90,6 +90,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
     <CompassThemeProvider
       theme={Object {}}
     >
+      <WindowSizeObserver />
       <Connect(ModalController) />
       <Connect(_class) />
       <Connect(SystemNotice) />
