@@ -652,7 +652,10 @@ describe('handleChannelUpdatedEvent', () => {
     test('when a channel is updated', () => {
         const testStore = configureStore(initialState);
 
-        const channel = {id: 'channel'};
+        const channel = {
+            id: 'channel',
+            team_id: 'team',
+        };
         const msg = {data: {channel: JSON.stringify(channel)}};
 
         testStore.dispatch(handleChannelUpdatedEvent(msg));
@@ -665,7 +668,10 @@ describe('handleChannelUpdatedEvent', () => {
     test('should not change URL when current channel is updated', () => {
         const testStore = configureStore(initialState);
 
-        const channel = {id: 'channel'};
+        const channel = {
+            id: 'channel',
+            team_id: 'team',
+        };
         const msg = {data: {channel: JSON.stringify(channel)}};
 
         testStore.dispatch(handleChannelUpdatedEvent(msg));

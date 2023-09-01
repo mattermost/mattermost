@@ -459,6 +459,43 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       show={false}
       text="Edit Conversation Header"
     />
+    <MenuItemToggleModalRedux
+      dialogProps={
+        Object {
+          "channel": Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          },
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="convertGMPrivateChannel"
+      modalId="convert_gm_to_channel"
+      show={false}
+      text="Convert to Private Channel"
+    />
+  </MenuGroup>
+  <MenuGroup>
     <Connect(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
@@ -1251,6 +1288,43 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       show={false}
       text="Edit Conversation Header"
     />
+    <MenuItemToggleModalRedux
+      dialogProps={
+        Object {
+          "channel": Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          },
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="convertGMPrivateChannel"
+      modalId="convert_gm_to_channel"
+      show={false}
+      text="Convert to Private Channel"
+    />
+  </MenuGroup>
+  <MenuGroup>
     <Connect(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
