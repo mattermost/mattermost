@@ -47,12 +47,10 @@ import {searchForTerm} from 'actions/post_actions';
 import {getHistory} from 'utils/browser_history';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
-import {isDesktopApp} from 'utils/user_agent';
 import {t} from 'utils/i18n';
 import store from 'stores/redux_store.jsx';
 
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
-import {getIsMobileView} from 'selectors/views/browser';
 
 import {FileInfo} from '@mattermost/types/files';
 import {Team} from '@mattermost/types/teams';
@@ -890,10 +888,6 @@ export function isValidBotUsername(name: string) {
     return error;
 }
 
-export function isMobile() {
-    return getIsMobileView(store.getState());
-}
-
 export function loadImage(
     url: string,
     onLoad: ((this: XMLHttpRequest, ev: ProgressEvent) => any) | null,
@@ -1720,9 +1714,9 @@ const TrackFlowSources: Record<string, string> = {
 };
 
 function getTrackFlowSource() {
-    if (isMobile()) {
+    if (UserAgent.isMobile()) {
         return TrackFlowSources.wm;
-    } else if (isDesktopApp()) {
+    } else if (UserAgent.isDesktopApp()) {
         return TrackFlowSources.d;
     }
     return TrackFlowSources.wd;

@@ -273,8 +273,6 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
             return null;
         }
 
-        // const isMobile = this.props.isMobileView TODO;
-
         const pluginItems = this.props.pluginMenuItems?.
             filter((item) => {
                 return item.filter ? item.filter(this.props.post.id) : item;
