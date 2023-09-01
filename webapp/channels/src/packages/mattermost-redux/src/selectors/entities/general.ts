@@ -115,6 +115,14 @@ export const isMarketplaceEnabled: (state: GlobalState) => boolean = createSelec
     },
 );
 
+export const isLDAPEnabled: (state: GlobalState) => boolean = createSelector(
+    'isLDAPEnabled',
+    getLicense,
+    (license) => {
+        return license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
+    },
+);
+
 export const getGiphyFetchInstance: (state: GlobalState) => GiphyFetch | null = createSelector(
     'getGiphyFetchInstance',
     (state) => getConfig(state).GiphySdkKey,

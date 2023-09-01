@@ -1711,7 +1711,6 @@ function handleUpsertDraftEvent(msg) {
     return async (doDispatch) => {
         const draft = JSON.parse(msg.data.draft);
         const {key, value} = transformServerDraft(draft);
-        value.show = true;
 
         doDispatch(setGlobalDraft(key, value, true));
     };

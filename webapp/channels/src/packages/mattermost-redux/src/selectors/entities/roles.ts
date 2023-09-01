@@ -206,10 +206,10 @@ export const haveIGroupPermission: (state: GlobalState, groupID: string, permiss
 );
 
 export function haveIChannelPermission(state: GlobalState, teamId: string, channelId: string, permission: string): boolean {
-    return (
+    return Boolean(
         getMySystemPermissions(state).has(permission) ||
         getMyPermissionsByTeam(state)[teamId]?.has(permission) ||
-        getMyPermissionsByChannel(state)[channelId]?.has(permission)
+        getMyPermissionsByChannel(state)[channelId]?.has(permission),
     );
 }
 

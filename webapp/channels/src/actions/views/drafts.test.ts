@@ -141,7 +141,7 @@ describe('draft actions', () => {
             jest.useFakeTimers('modern');
             jest.setSystemTime(42);
 
-            await store.dispatch(updateDraft(key, draft, '', false));
+            await store.dispatch(updateDraft(key, draft, false, true));
 
             const testStore = mockStore(initialState);
 
@@ -157,9 +157,40 @@ describe('draft actions', () => {
             jest.useRealTimers();
         });
 
+        it('calls setGlobalItem action correctly delayed', async () => {
+            jest.useFakeTimers('modern');
+            jest.setSystemTime(42);
+
+            await store.dispatch(updateDraft(key, draft, false, false));
+
+            const testStore = mockStore(initialState);
+
+            const expectedKey = StoragePrefixes.DRAFT + channelId;
+            testStore.dispatch(setGlobalItem(expectedKey, {
+                ...draft,
+                createAt: 42,
+                updateAt: 42,
+            }));
+            testStore.dispatch(setGlobalDraftSource(expectedKey, false));
+
+            expect(store.getActions()).toHaveLength(0);
+            jest.runOnlyPendingTimers();
+            expect(store.getActions()).toEqual(testStore.getActions());
+            jest.useRealTimers();
+        });
+
         it('calls upsertDraft correctly', async () => {
-            await store.dispatch(updateDraft(key, draft, '', true));
+            await store.dispatch(updateDraft(key, draft, true, true));
             expect(upsertDraftSpy).toHaveBeenCalled();
+        });
+
+        it('calls upsertDraft correctly delayed', async () => {
+            jest.useFakeTimers('modern');
+            await store.dispatch(updateDraft(key, draft, true, false));
+            expect(upsertDraftSpy).toHaveBeenCalledTimes(0);
+            jest.runOnlyPendingTimers();
+            expect(upsertDraftSpy).toHaveBeenCalled();
+            jest.useRealTimers();
         });
     });
 

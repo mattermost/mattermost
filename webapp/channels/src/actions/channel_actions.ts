@@ -32,9 +32,15 @@ import {
     CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE,
 } from 'actions/channel_queries';
 
+import {Permissions} from 'mattermost-redux/constants';
 import {getHistory} from 'utils/browser_history';
 import {Constants, Preferences, NotificationLevels} from 'utils/constants';
 import {getDirectChannelName} from 'utils/utils';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {mentionsMinusSpecialMentionsInText} from 'utils/post_utils';
+import {searchAssociatedGroupsForReference} from './views/group';
 
 export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFunc {
     return async (dispatch, getState) => {
@@ -274,5 +280,34 @@ export function fetchChannelsAndMembers(teamId: Team['id'] = ''): ActionFunc<{ch
         await dispatch(batchActions(actions));
 
         return {data: {channels, channelMembers, roles}};
+    };
+}
+
+export function getChannelMemberCountsFromMessage(channelId: string, message: string): ActionFunc {
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        const channel = state.entities.channels.channels[channelId] || {};
+
+        const config = getConfig(state);
+        const license = getLicense(state);
+
+        const isLDAPEnabled = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
+        const useLDAPGroupMentions = isLDAPEnabled && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
+        const useCustomGroupMentions = isCustomGroupsEnabled(state) && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
+        const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
+        const currentTeamId = getCurrentTeamId(state);
+
+        if ((useLDAPGroupMentions || useCustomGroupMentions) && channelId) {
+            const mentions = mentionsMinusSpecialMentionsInText(message);
+
+            if (mentions.length === 1) {
+                dispatch(searchAssociatedGroupsForReference(mentions[0], currentTeamId, channelId));
+            } else if (mentions.length > 1) {
+                dispatch(ChannelActions.getChannelMemberCountsByGroup(channelId, isTimezoneEnabled));
+            }
+        }
+
+        return {data: true};
     };
 }

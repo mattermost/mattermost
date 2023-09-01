@@ -298,7 +298,7 @@ export function postMessageOnKeyPress(
     now = 0,
     lastChannelSwitchAt = 0,
     caretPosition = 0,
-): {allowSending: boolean; ignoreKeyPress?: boolean} {
+): {allowSending: boolean; ignoreKeyPress?: boolean; message?: string; withClosedCodeBlock?: boolean} {
     if (!event) {
         return {allowSending: false};
     }
@@ -773,4 +773,20 @@ export function hasRequestedPersistentNotifications(priority?: PostPriorityMetad
         priority?.priority === PostPriority.URGENT &&
         priority?.persistent_notifications
     );
+}
+
+export function extractCommand(message: string) {
+    if (message[0] !== '/') {
+        return '';
+    }
+
+    const tokens = message.split(' ');
+    if (tokens.length > 0) {
+        return tokens[0].substring(1);
+    }
+
+    return '';
+}
+export function isStatusSlashCommand(command: string) {
+    return command === 'online' || command === 'away' || command === 'dnd' || command === 'offline';
 }

@@ -39,6 +39,7 @@
     "eslint-import-resolver-webpack": "0.13.2",
     "eslint-plugin-formatjs": "4.9.1",
     "mini-css-extract-plugin": "2.7.5",
+    "msw": "1.2.4",
     "sass": "1.62.1",
     "sass-loader": "13.2.2",
     "strip-ansi": "6.0.1",

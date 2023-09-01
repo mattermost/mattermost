@@ -15,11 +15,15 @@ interface Props {
 }
 
 function MessageSubmitError(props: Props) {
+    const testId = 'error_container';
     if (isErrorInvalidSlashCommand(props.error)) {
         const slashCommand = props.submittedMessage?.split(' ')[0];
 
         return (
-            <div className='has-error'>
+            <div
+                data-testid={testId}
+                className='has-error'
+            >
                 <label className='control-label'>
                     <FormattedMessage
                         id='message_submit_error.invalidCommand'
@@ -47,7 +51,10 @@ function MessageSubmitError(props: Props) {
     }
 
     return (
-        <div className='has-error'>
+        <div
+            data-testid={testId}
+            className='has-error'
+        >
             <label className='control-label'>{props.error.message.trim()}</label>
         </div>
     );

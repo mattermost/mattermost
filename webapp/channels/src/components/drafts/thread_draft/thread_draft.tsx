@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useMemo, useEffect} from 'react';
+import React, {memo, useCallback, useEffect} from 'react';
 import {useDispatch} from 'react-redux';
 
 import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
@@ -15,7 +15,7 @@ import {getPost} from 'mattermost-redux/actions/posts';
 
 import {selectPost} from 'actions/views/rhs';
 import {removeDraft} from 'actions/views/drafts';
-import {makeOnSubmit} from 'actions/views/create_comment';
+import {submitPost} from 'actions/views/create_comment';
 
 import DraftTitle from '../draft_title';
 import DraftActions from '../draft_actions';
@@ -56,14 +56,6 @@ function ThreadDraft({
         }
     }, [thread?.id]);
 
-    const onSubmit = useMemo(() => {
-        if (thread) {
-            return makeOnSubmit(channel.id, thread.id, '');
-        }
-
-        return () => Promise.resolve({data: true});
-    }, [channel.id, thread?.id]);
-
     const handleOnDelete = useCallback((id: string) => {
         dispatch(removeDraft(id, channel.id, rootId));
     }, [channel.id, rootId]);
@@ -73,11 +65,13 @@ function ThreadDraft({
     }, [channel]);
 
     const handleOnSend = useCallback(async (id: string) => {
-        await dispatch(onSubmit(value));
+        if (thread) {
+            await dispatch(submitPost(channel.id, thread.id, value));
+        }
 
         handleOnDelete(id);
         handleOnEdit();
-    }, [value, onSubmit]);
+    }, [channel.id, thread?.id, value]);
 
     if (!thread) {
         return null;

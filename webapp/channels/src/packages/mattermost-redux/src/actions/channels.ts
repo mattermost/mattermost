@@ -451,7 +451,7 @@ export function getChannelAndMyMember(channelId: string): ActionFunc {
     };
 }
 
-export function getChannelTimezones(channelId: string): ActionFunc {
+export function getChannelTimezones(channelId: string) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let channelTimezones;
         try {

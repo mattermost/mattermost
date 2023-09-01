@@ -4,11 +4,9 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-import {isNil} from 'lodash';
 
 import {PreferenceType} from '@mattermost/types/preferences';
-import {Group, GroupSource} from '@mattermost/types/groups';
-import {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
+import {Channel} from '@mattermost/types/channels';
 import {Emoji} from '@mattermost/types/emojis';
 import {ServerError} from '@mattermost/types/errors';
 import {FileInfo} from '@mattermost/types/files';
@@ -19,49 +17,25 @@ import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 import * as GlobalActions from 'actions/global_actions';
 
 import {PostDraft} from 'types/store/draft';
-import {PluginComponent} from 'types/store/plugins';
 import {ModalData} from 'types/actions';
 
 import Constants, {AdvancedTextEditor as AdvancedTextEditorConst, Locations, ModalIdentifiers, Preferences} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import {
-    specialMentionsInText,
-    postMessageOnKeyPress,
     shouldFocusMainTextbox,
     isErrorInvalidSlashCommand,
     splitMessageBasedOnCaretPosition,
-    groupsMentionedInText,
-    mentionsMinusSpecialMentionsInText,
 } from 'utils/post_utils';
-import {
-    getHtmlTable,
-    hasHtmlLink,
-    formatMarkdownMessage,
-    isGitHubCodeBlock,
-    formatGithubCodePaste,
-    isTextUrl,
-    formatMarkdownLinkMessage,
-} from 'utils/paste';
-import {
-    applyMarkdown,
-    ApplyMarkdownOptions,
-} from 'utils/markdown/apply_markdown';
-import {execCommandInsertText} from 'utils/exec_commands';
 
-import NotifyConfirmModal from 'components/notify_confirm_modal';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 import PostDeletedModal from 'components/post_deleted_modal';
-import {FilePreviewInfo} from 'components/file_preview/file_preview';
-import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import {TextboxClass, TextboxElement} from 'components/textbox';
-import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
-
-const KeyCodes = Constants.KeyCodes;
+import UnifiedTextEditorForm from 'components/advanced_text_editor/unified_text_editor_form';
+import {Posts} from 'mattermost-redux/constants';
+import {SubmitServerError} from 'actions/views/create_comment';
 
 type Props = {
-    currentTeamId: string;
 
     // The channel for which this comment is a part of
     channelId: string;
@@ -75,9 +49,6 @@ type Props = {
     // The root message is deleted
     rootDeleted: boolean;
 
-    // The number of channel members
-    channelMembersCount: number;
-
     // The current history message selected
     messageInHistory?: string;
 
@@ -89,12 +60,6 @@ type Props = {
 
     // Determines if the submit button should be rendered
     enableAddButton?: boolean;
-
-    // Force message submission on CTRL/CMD + ENTER
-    codeBlockOnCtrlEnter?: boolean;
-
-    // Set to force form submission on CTRL/CMD + ENTER instead of just ENTER
-    ctrlSend?: boolean;
 
     // The id of the latest post in this channel
     latestPostId?: string;
@@ -108,71 +73,32 @@ type Props = {
     // Determines if the current user can edit the post
     canPost: boolean;
 
-    // Determines if the user is allowed to upload files
-    canUploadFiles: boolean;
-
     // Called to clear file uploads in progress
     clearCommentDraftUploads: () => void;
 
     // Called when comment draft needs to be updated
-    onUpdateCommentDraft: (draft?: PostDraft, save?: boolean) => void;
-
-    // Called when comment draft needs to be updated for a specific root ID
-    updateCommentDraftWithRootId: (rootID: string, draft: PostDraft, save?: boolean) => void;
-
-    // Called when submitting the comment
-    onSubmit: (draft: PostDraft, options: {ignoreSlash: boolean}) => void;
+    onUpdateCommentDraft: (draft: PostDraft, save?: boolean, instant?: boolean) => void;
 
     // Called when resetting comment message history index
     onResetHistoryIndex: () => void;
 
     // Called when navigating back through comment message history
-    onMoveHistoryIndexBack: () => void;
+    moveHistoryIndexBack: (index: string) => Promise<void>;
 
     // Called when navigating forward through comment message history
-    onMoveHistoryIndexForward: () => void;
+    moveHistoryIndexForward: (index: string) => Promise<void>;
 
     // Called to initiate editing the user's latest post
     onEditLatestPost: () => ActionResult;
 
-    // Function to get the users timezones in the channel
-    getChannelTimezones: (channelId: string) => Promise<ActionResult>;
-
     // Reset state of createPost request
     resetCreatePostRequest: () => void;
-
-    // Determines if @channel should warn in this channel
-    enableConfirmNotificationsToChannel: boolean;
-
-    // Determines if the emoji picker is enabled
-    enableEmojiPicker: boolean;
-
-    // Determines if the gif picker is enabled.
-    enableGifPicker: boolean;
-
-    // Determines if the connection may be bad to warn user
-    badConnection: boolean;
-
-    // Determines the maximum length of a post
-    maxPostSize: number;
 
     // Determines if the RHS is in expanded state
     rhsExpanded: boolean;
 
-    // Determines if timezones are enabled on the server.
-    isTimezoneEnabled: boolean;
-
     // The last time, if any, the selected post changed. Will be 0 if no post is selected.
     selectedPostFocussedAt: number;
-
-    // Function to set or unset emoji picker for last message
-    emitShortcutReactToLastPostFrom: (location: string) => void;
-
-    // Determines if the current user can send special channel mentions
-    useChannelMentions: boolean;
-
-    // Determines if the current user can send LDAP group mentions
-    useLDAPGroupMentions: boolean;
 
     // Set show preview for textbox
     setShowPreview: (showPreview: boolean) => void;
@@ -184,25 +110,22 @@ type Props = {
     scrollToBottom?: () => void;
 
     // Group member mention
-    getChannelMemberCountsByGroup: (channelID: string, isTimezoneEnabled: boolean) => void;
-    groupsWithAllowReference: Map<string, Group> | null;
-    channelMemberCountsByGroup: ChannelMemberCountsByGroup;
+    getChannelMemberCountsFromMessage: (channelID: string, message: string) => void;
+
     focusOnMount?: boolean;
     isThreadView?: boolean;
     openModal: <P>(modalData: ModalData<P>) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
-    useCustomGroupMentions: boolean;
     isFormattingBarHidden: boolean;
-    searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
-    postEditorActions: PluginComponent[];
+    channel: Channel;
+    handleSubmit: (draft: PostDraft, preSubmit: () => void, onSubmitted: (res: ActionResult, draft: PostDraft) => void, serverError: SubmitServerError, latestPost: string | undefined) => ActionResult;
 }
 
 type State = {
+    draft: PostDraft;
     showEmojiPicker: boolean;
-    uploadsProgressPercent: {[clientID: string]: FilePreviewInfo};
     renderScrollbar: boolean;
     scrollbarWidth: number;
-    draft?: PostDraft;
     rootId?: string;
     messageInHistory?: string;
     createPostErrorId?: string;
@@ -214,16 +137,10 @@ type State = {
     isFormattingBarHidden: boolean;
 };
 
-function isDraftEmpty(draft: PostDraft): boolean {
-    return !draft || (!draft.message && draft.fileInfos.length === 0);
-}
-
 class AdvancedCreateComment extends React.PureComponent<Props, State> {
     private lastBlurAt = 0;
     private draftsForPost: {[postID: string]: PostDraft | null} = {};
     private doInitialScrollToBottom = false;
-
-    private saveDraftFrame?: number | null;
 
     private isDraftSubmitting = false;
     private isDraftEdited = false;
@@ -240,7 +157,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             createPostErrorId: props.createPostErrorId,
             rootId: props.rootId,
             messageInHistory: props.messageInHistory,
-            draft: state.draft || {...props.draft, caretPosition: props.draft.message.length, uploadsInProgress: []},
         };
 
         const rootChanged = props.rootId !== state.rootId || props.draft.rootId !== state.draft?.rootId;
@@ -263,19 +179,39 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         this.state = {
             showEmojiPicker: false,
-            uploadsProgressPercent: {},
             renderScrollbar: false,
             scrollbarWidth: 0,
             errorClass: null,
             serverError: null,
             showFormat: false,
             isFormattingBarHidden: props.isFormattingBarHidden,
-            caretPosition: props.draft.caretPosition,
+            caretPosition: props.draft.message.length,
+            draft: {...props.draft, uploadsInProgress: []},
         };
 
         this.textboxRef = React.createRef();
         this.fileUploadRef = React.createRef();
     }
+
+    fillMessageFromHistory() {
+        const lastMessage = this.props.messageInHistory;
+        this.setState((prev) => ({
+            draft: {
+                ...prev.draft,
+                message: lastMessage || '',
+            },
+        }));
+    }
+
+    loadPrevMessage = (e: React.KeyboardEvent) => {
+        e.preventDefault();
+        this.props.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT).then(() => this.fillMessageFromHistory());
+    };
+
+    loadNextMessage = (e: React.KeyboardEvent) => {
+        e.preventDefault();
+        this.props.moveHistoryIndexForward(Posts.MESSAGE_TYPES.COMMENT).then(() => this.fillMessageFromHistory());
+    };
 
     componentDidMount() {
         const {clearCommentDraftUploads, onResetHistoryIndex, setShowPreview, draft} = this.props;
@@ -287,9 +223,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             this.focusTextbox();
         }
 
-        document.addEventListener('paste', this.pasteHandler);
         document.addEventListener('keydown', this.focusTextboxIfNecessary);
-        window.addEventListener('beforeunload', this.saveDraftWithShow);
         this.getChannelMemberCountsByGroup();
 
         // When draft.message is not empty, set doInitialScrollToBottom to true so that
@@ -302,9 +236,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
     componentWillUnmount() {
         this.props.resetCreatePostRequest?.();
-        document.removeEventListener('paste', this.pasteHandler);
         document.removeEventListener('keydown', this.focusTextboxIfNecessary);
-        window.removeEventListener('beforeunload', this.saveDraftWithShow);
         this.saveDraftOnUnmount();
     }
 
@@ -341,57 +273,19 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     }
 
     getChannelMemberCountsByGroup = () => {
-        const {useLDAPGroupMentions, useCustomGroupMentions, channelId, isTimezoneEnabled, searchAssociatedGroupsForReference, getChannelMemberCountsByGroup, draft, currentTeamId} = this.props;
-
-        if ((useLDAPGroupMentions || useCustomGroupMentions) && channelId) {
-            const mentions = mentionsMinusSpecialMentionsInText(draft.message);
-
-            if (mentions.length === 1) {
-                searchAssociatedGroupsForReference(mentions[0], currentTeamId, channelId);
-            } else if (mentions.length > 1) {
-                getChannelMemberCountsByGroup(channelId, isTimezoneEnabled);
-            }
-        }
+        this.props.getChannelMemberCountsFromMessage(this.props.channelId, this.props.draft.message);
     };
 
     saveDraftOnUnmount = () => {
-        if (!this.isDraftEdited || !this.state.draft || this.props.rootDeleted) {
+        if (!this.isDraftEdited || this.props.rootDeleted) {
             return;
         }
 
-        const updatedDraft = {
-            ...this.state.draft,
-            show: !isDraftEmpty(this.state.draft),
-        } as PostDraft;
-
-        this.props.onUpdateCommentDraft(updatedDraft, true);
+        this.props.onUpdateCommentDraft(this.state.draft, true);
     };
 
-    saveDraftWithShow = () => {
-        this.setState((prev) => {
-            if (prev.draft) {
-                return {
-                    draft: {
-                        ...prev.draft,
-                        show: !isDraftEmpty(prev.draft),
-                    } as PostDraft,
-                };
-            }
-
-            return {
-                draft: prev.draft,
-            };
-        }, () => {
-            this.saveDraft(true);
-        });
-    };
-
-    saveDraft = (save = false) => {
-        if (this.saveDraftFrame) {
-            clearTimeout(this.saveDraftFrame);
-            this.props.onUpdateCommentDraft(this.state.draft, save);
-            this.saveDraftFrame = null;
-        }
+    saveDraft = () => {
+        this.props.onUpdateCommentDraft(this.state.draft, true);
     };
 
     setShowPreview = (newPreviewValue: boolean) => {
@@ -427,63 +321,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         });
     };
 
-    pasteHandler = (event: ClipboardEvent) => {
-        const {clipboardData, target} = event;
-
-        if (!clipboardData || !clipboardData.items || !target || (target as TextboxElement)?.id !== 'reply_textbox') {
-            return;
-        }
-
-        const {selectionStart, selectionEnd} = target as TextboxElement;
-
-        const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
-        const hasTextUrl = isTextUrl(clipboardData);
-        const hasHTMLLinks = hasHtmlLink(clipboardData);
-        const htmlTable = getHtmlTable(clipboardData);
-        const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
-        const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
-
-        if (!htmlTable && !hasHTMLLinks && !shouldApplyLinkMarkdown) {
-            return;
-        }
-
-        event.preventDefault();
-
-        const message = this.state.draft?.message ?? '';
-
-        // execCommand's insertText' triggers a 'change' event, hence we need not set respective state explicitly.
-        if (shouldApplyLinkMarkdown) {
-            const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
-            execCommandInsertText(formattedLink);
-        } else if (shouldApplyGithubCodeBlock) {
-            const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
-            execCommandInsertText(formattedCodeBlock);
-        } else {
-            const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, this.state.caretPosition);
-            execCommandInsertText(formattedMarkdown);
-        }
-    };
-
-    handleNotifyAllConfirmation = () => {
-        this.doSubmit();
-    };
-
-    showNotifyAllModal = (mentions: string[], channelTimezoneCount: number, memberNotifyCount: number) => {
-        this.props.openModal({
-            modalId: ModalIdentifiers.NOTIFY_CONFIRM_MODAL,
-            dialogType: NotifyConfirmModal,
-            dialogProps: {
-                mentions,
-                channelTimezoneCount,
-                memberNotifyCount,
-                onConfirm: () => this.handleNotifyAllConfirmation(),
-                onExited: () => {
-                    this.isDraftSubmitting = false;
-                },
-            },
-        });
-    };
-
     toggleEmojiPicker = (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e?.stopPropagation();
         const showEmojiPicker = !this.state.showEmojiPicker;
@@ -502,7 +339,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             return;
         }
 
-        const draft = this.state.draft!;
+        const draft = this.state.draft;
 
         let newMessage: string;
         if (draft.message === '') {
@@ -533,7 +370,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     };
 
     handleGifClick = (gif: string) => {
-        const draft = this.state.draft!;
+        const draft = this.state.draft;
 
         let newMessage: string;
         if (draft.message === '') {
@@ -560,124 +397,47 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.focusTextbox();
     };
 
-    handlePostError = (postError: React.ReactNode) => {
-        this.setState({postError});
+    handleSubmitFinished = (res: ActionResult, draft: PostDraft) => {
+        const scrollPostListToBottom = this.props.scrollToBottom;
+        const message = draft.message;
+
+        if (res.error) {
+            const err = res.error;
+            err.submittedMessage = message;
+            this.setState({
+                serverError: err,
+                draft,
+            });
+            this.isDraftSubmitting = false;
+            return;
+        }
+
+        this.setState({draft: this.props.draft});
+        this.setState({
+            serverError: null,
+            postError: null,
+            showFormat: false,
+        });
+
+        scrollPostListToBottom?.();
+        this.isDraftSubmitting = false;
+        this.draftsForPost[draft.rootId] = null;
     };
 
-    handleSubmit = async (e: React.FormEvent | React.MouseEvent) => {
+    handlePreSubbmit = () => {
+        const fasterThanHumanWillClick = 150;
+        const forceFocus = (Date.now() - this.lastBlurAt < fasterThanHumanWillClick);
+        this.focusTextbox(forceFocus);
+    };
+
+    handleSubmit = async (e: React.FormEvent) => {
+        const draft = this.state.draft;
+        const serverError = this.state.serverError;
+        const latestPost = this.props.latestPostId;
+
         e.preventDefault();
         this.setShowPreview(false);
         this.isDraftSubmitting = true;
-
-        const {
-            channelMembersCount,
-            enableConfirmNotificationsToChannel,
-            useChannelMentions,
-            isTimezoneEnabled,
-            groupsWithAllowReference,
-            channelMemberCountsByGroup,
-            useLDAPGroupMentions,
-            useCustomGroupMentions,
-        } = this.props;
-        const draft = this.state.draft!;
-        const notificationsToChannel = enableConfirmNotificationsToChannel && useChannelMentions;
-        let memberNotifyCount = 0;
-        let channelTimezoneCount = 0;
-        let mentions: string[] = [];
-
-        const specialMentions = specialMentionsInText(draft.message);
-        const hasSpecialMentions = Object.values(specialMentions).includes(true);
-
-        if (enableConfirmNotificationsToChannel && !hasSpecialMentions && (useLDAPGroupMentions || useCustomGroupMentions)) {
-            // Groups mentioned in users text
-            const mentionGroups = groupsMentionedInText(draft.message, groupsWithAllowReference);
-            if (mentionGroups.length > 0) {
-                mentionGroups.
-                    forEach((group) => {
-                        if (group.source === GroupSource.Ldap && !useLDAPGroupMentions) {
-                            return;
-                        }
-                        if (group.source === GroupSource.Custom && !useCustomGroupMentions) {
-                            return;
-                        }
-                        const mappedValue = channelMemberCountsByGroup[group.id];
-                        if (mappedValue && mappedValue.channel_member_count > Constants.NOTIFY_ALL_MEMBERS && mappedValue.channel_member_count > memberNotifyCount) {
-                            memberNotifyCount = mappedValue.channel_member_count;
-                            channelTimezoneCount = mappedValue.channel_member_timezones_count;
-                        }
-                        mentions.push(`@${group.name}`);
-                    });
-                mentions = [...new Set(mentions)];
-            }
-        }
-
-        if (!useLDAPGroupMentions && !useCustomGroupMentions && mentions.length > 0) {
-            const updatedDraft = {
-                ...draft,
-                props: {
-                    ...draft.props,
-                    disable_group_highlight: true,
-                },
-            };
-
-            this.props.onUpdateCommentDraft(updatedDraft);
-            this.setState({draft: updatedDraft});
-        }
-
-        if (notificationsToChannel &&
-            channelMembersCount > Constants.NOTIFY_ALL_MEMBERS &&
-            hasSpecialMentions) {
-            memberNotifyCount = channelMembersCount - 1;
-            for (const k in specialMentions) {
-                if (specialMentions[k]) {
-                    mentions.push('@' + k);
-                }
-            }
-
-            if (isTimezoneEnabled) {
-                const {data} = await this.props.getChannelTimezones(this.props.channelId);
-                channelTimezoneCount = data ? data.length : 0;
-            }
-        }
-
-        if (!useChannelMentions && hasSpecialMentions) {
-            const updatedDraft = {
-                ...draft,
-                props: {
-                    ...draft.props,
-                    mentionHighlightDisabled: true,
-                },
-            };
-
-            this.props.onUpdateCommentDraft(updatedDraft);
-            this.setState({draft: updatedDraft});
-        }
-
-        if (memberNotifyCount > 0) {
-            this.showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount);
-            return;
-        }
-
-        await this.doSubmit(e);
-    };
-
-    doSubmit = async (e?: React.FormEvent) => {
-        if (e) {
-            e.preventDefault();
-        }
-
-        const draft = this.state.draft!;
-        const enableAddButton = this.shouldEnableAddButton();
-
-        if (!enableAddButton) {
-            this.isDraftSubmitting = false;
-            return;
-        }
-
-        if (draft.uploadsInProgress.length > 0) {
-            this.isDraftSubmitting = false;
-            return;
-        }
 
         if (this.state.postError) {
             this.setState({errorClass: 'animation--highlight'});
@@ -694,82 +454,15 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             return;
         }
 
-        const fasterThanHumanWillClick = 150;
-        const forceFocus = (Date.now() - this.lastBlurAt < fasterThanHumanWillClick);
-        this.focusTextbox(forceFocus);
+        const res = await this.props.handleSubmit(draft, this.handlePreSubbmit, this.handleSubmitFinished, serverError, latestPost);
 
-        const serverError = this.state.serverError;
-        let ignoreSlash = false;
-        if (isErrorInvalidSlashCommand(serverError) && draft.message === serverError?.submittedMessage) {
-            ignoreSlash = true;
+        if (res.error || res.data.shouldClear) {
+            this.handleSubmitFinished(res, draft);
         }
-
-        const options = {ignoreSlash};
-
-        try {
-            await this.props.onSubmit(draft, options);
-
-            this.setState({
-                postError: null,
-                serverError: null,
-                showFormat: false,
-            });
-        } catch (err: any) {
-            if (isErrorInvalidSlashCommand(err)) {
-                this.props.onUpdateCommentDraft(draft);
-            }
-            err.submittedMessage = draft.message;
-            this.setState({serverError: err});
-            this.isDraftSubmitting = false;
-            return;
-        }
-
-        if (this.saveDraftFrame) {
-            clearTimeout(this.saveDraftFrame);
-        }
-
-        this.isDraftSubmitting = false;
-        this.setState({draft: {...this.props.draft, uploadsInProgress: []}});
-        this.draftsForPost[this.props.rootId] = null;
     };
 
-    commentMsgKeyPress = (e: React.KeyboardEvent<TextboxElement>) => {
-        const {ctrlSend, codeBlockOnCtrlEnter} = this.props;
-
-        const {allowSending} = postMessageOnKeyPress(
-            e,
-            this.state.draft!.message,
-            Boolean(ctrlSend),
-            Boolean(codeBlockOnCtrlEnter),
-            0,
-            0,
-            this.state.caretPosition,
-        );
-
-        if (allowSending) {
-            e.persist?.();
-
-            this.isDraftSubmitting = true;
-            this.textboxRef.current?.blur();
-            this.handleSubmit(e);
-
-            this.setShowPreview(false);
-            setTimeout(() => {
-                this.focusTextbox();
-            });
-        }
-
-        this.emitTypingEvent();
-    };
-
-    reactToLastMessage = (e: React.KeyboardEvent<TextboxElement>) => {
-        e.preventDefault();
-
-        const {emitShortcutReactToLastPostFrom} = this.props;
-
-        // Here we are not handling conditions such as check for modals,  popups etc. as shortcut is only trigger on
-        // textbox input focus. Since all of them will already be closed as soon as they loose focus.
-        emitShortcutReactToLastPostFrom(Locations.RHS_ROOT);
+    handlePostError = (postError: React.ReactNode) => {
+        this.setState({postError});
     };
 
     emitTypingEvent = () => {
@@ -785,9 +478,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             serverError = null;
         }
 
-        const draft = this.state.draft!;
-        const show = isDraftEmpty(draft) ? false : draft.show;
-        const updatedDraft = {...draft, message, show};
+        const draft = this.state.draft;
+        const updatedDraft = {...draft, message};
 
         this.handleDraftChange(updatedDraft);
 
@@ -799,29 +491,11 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.draftsForPost[this.props.rootId] = updatedDraft;
     };
 
-    handleDraftChange = (draft: PostDraft, rootId?: string, save = false, instant = false) => {
+    handleDraftChange = (draft: PostDraft, save = false, instant = false) => {
         this.isDraftEdited = true;
 
-        if (this.saveDraftFrame) {
-            clearTimeout(this.saveDraftFrame);
-        }
-
-        const saveDraft = () => {
-            if (typeof rootId == 'undefined') {
-                this.props.onUpdateCommentDraft(draft);
-            } else {
-                this.props.updateCommentDraftWithRootId(rootId, draft, save);
-            }
-        };
-
-        if (instant) {
-            saveDraft();
-        } else {
-            this.saveDraftFrame = window.setTimeout(() => {
-                saveDraft();
-            }, Constants.SAVE_DRAFT_TIMEOUT);
-        }
-        this.draftsForPost[this.props.rootId] = draft;
+        this.props.onUpdateCommentDraft(draft, save, instant);
+        this.draftsForPost[draft.rootId] = draft;
     };
 
     handleMouseUpKeyUp = (e: React.MouseEvent | React.KeyboardEvent) => {
@@ -830,197 +504,11 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         });
     };
 
-    handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
-        const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
-        const lastMessageReactionKeyCombo = ctrlOrMetaKeyPressed && e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
-
-        const ctrlKeyCombo = Keyboard.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
-        const ctrlAltCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.altKey;
-        const shiftAltCombo = !Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && e.altKey;
-
-        // listen for line break key combo and insert new line character
-        if (Utils.isUnhandledLineBreakKeyCombo(e)) {
-            this.setState({
-                draft: {
-                    ...this.state.draft!,
-                    message: Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>),
-                },
-            });
-            return;
+    handleEditLatestPost = () => {
+        const {data: canEditNow} = this.props.onEditLatestPost();
+        if (!canEditNow) {
+            this.focusTextbox(true);
         }
-
-        if (
-            (this.props.ctrlSend || this.props.codeBlockOnCtrlEnter) &&
-            Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
-            (e.ctrlKey || e.metaKey)
-        ) {
-            this.setShowPreview(false);
-            this.commentMsgKeyPress(e);
-            return;
-        }
-
-        const draft = this.state.draft!;
-        const {message} = draft;
-
-        if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
-            this.textboxRef.current?.blur();
-        }
-
-        if (
-            !e.ctrlKey &&
-            !e.metaKey &&
-            !e.altKey &&
-            !e.shiftKey &&
-            Keyboard.isKeyPressed(e, KeyCodes.UP) &&
-            message === ''
-        ) {
-            e.preventDefault();
-            if (this.textboxRef.current) {
-                this.textboxRef.current.blur();
-            }
-
-            const {data: canEditNow} = this.props.onEditLatestPost();
-            if (!canEditNow) {
-                this.focusTextbox(true);
-            }
-        }
-
-        const {
-            selectionStart,
-            selectionEnd,
-            value,
-        } = e.target as TextboxElement;
-
-        if (ctrlKeyCombo) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
-                e.preventDefault();
-                this.props.onMoveHistoryIndexBack();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
-                e.preventDefault();
-                this.props.onMoveHistoryIndexForward();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.B)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'bold',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.I)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'italic',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Utils.isTextSelectedInPostOrReply(e) && Keyboard.isKeyPressed(e, KeyCodes.K)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'link',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            }
-        } else if (ctrlAltCombo) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.K)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'link',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.C)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'code',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.E)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.toggleEmojiPicker();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.T)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.toggleAdvanceTextEditor();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.setShowPreview(!this.props.shouldShowPreview);
-            }
-        } else if (shiftAltCombo) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.X)) {
-                e.stopPropagation();
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'strike',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.SEVEN)) {
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'ol',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.EIGHT)) {
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'ul',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.NINE)) {
-                e.preventDefault();
-                this.applyMarkdown({
-                    markdownMode: 'quote',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
-            }
-        }
-
-        if (lastMessageReactionKeyCombo) {
-            this.reactToLastMessage(e);
-        }
-    };
-
-    applyMarkdown = (options: ApplyMarkdownOptions) => {
-        if (this.props.shouldShowPreview) {
-            return;
-        }
-
-        const res = applyMarkdown(options);
-
-        const draft = this.state.draft!;
-        const modifiedDraft = {
-            ...draft,
-            message: res.message,
-        };
-
-        this.handleDraftChange(modifiedDraft);
-
-        this.setState({
-            draft: modifiedDraft,
-        }, () => {
-            const textbox = this.textboxRef.current?.getInputBox();
-            Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
-        });
     };
 
     handleFileUploadChange = () => {
@@ -1045,33 +533,27 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.focusTextbox();
     };
 
-    handleUploadProgress = (filePreviewInfo: FilePreviewInfo) => {
-        const uploadsProgressPercent = {...this.state.uploadsProgressPercent, [filePreviewInfo.clientId]: filePreviewInfo};
-        this.setState({uploadsProgressPercent});
-    };
-
     handleFileUploadComplete = (fileInfos: FileInfo[], clientIds: string[], _: string, rootId?: string) => {
-        const draft = this.draftsForPost[rootId!]!;
-        const uploadsInProgress = [...draft.uploadsInProgress];
-        const newFileInfos = sortFileInfos([...draft.fileInfos, ...fileInfos], this.props.locale);
+        const draft = {...this.draftsForPost[rootId!]!};
 
         // remove each finished file from uploads
         for (let i = 0; i < clientIds.length; i++) {
-            const index = uploadsInProgress.indexOf(clientIds[i]);
+            if (draft.uploadsInProgress) {
+                const index = draft.uploadsInProgress.indexOf(clientIds[i]);
 
-            if (index !== -1) {
-                uploadsInProgress.splice(index, 1);
+                if (index !== -1) {
+                    draft.uploadsInProgress.splice(index, 1);
+                }
             }
         }
 
-        const modifiedDraft = {
-            ...draft,
-            fileInfos: newFileInfos,
-            uploadsInProgress,
-        };
-        this.handleDraftChange(modifiedDraft, rootId!, true, true);
+        if (draft.fileInfos) {
+            draft.fileInfos = sortFileInfos(draft.fileInfos.concat(fileInfos), this.props.locale);
+        }
+
+        this.handleDraftChange(draft, true, true);
         if (this.props.rootId === rootId) {
-            this.setState({draft: modifiedDraft});
+            this.setState({draft});
         }
     };
 
@@ -1089,7 +571,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 ...draft,
                 uploadsInProgress,
             };
-            this.props.updateCommentDraftWithRootId(rootId, modifiedDraft, true);
+            this.props.onUpdateCommentDraft(modifiedDraft, true);
             this.draftsForPost[rootId] = modifiedDraft;
             if (this.props.rootId === rootId) {
                 this.setState({draft: modifiedDraft});
@@ -1140,16 +622,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.draftsForPost[this.props.rootId] = modifiedDraft;
 
         this.handleFileUploadChange();
-
-        if (this.saveDraftFrame) {
-            clearTimeout(this.saveDraftFrame);
-        }
-
-        this.saveDraftFrame = window.setTimeout(() => {}, Constants.SAVE_DRAFT_TIMEOUT);
-    };
-
-    getFileUploadTarget = () => {
-        return this.textboxRef.current?.getInputBox();
     };
 
     toggleAdvanceTextEditor = () => {
@@ -1171,19 +643,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }
     };
 
-    shouldEnableAddButton = () => {
-        const {draft} = this.state;
-        if (draft) {
-            const message = draft.message ? draft.message.trim() : '';
-            const fileInfos = draft.fileInfos ? draft.fileInfos : [];
-            if (message.trim().length !== 0 || fileInfos.length !== 0) {
-                return true;
-            }
-        }
-
-        return isErrorInvalidSlashCommand(this.state.serverError);
-    };
-
     showPostDeletedModal = () => {
         this.props.openModal({
             modalId: ModalIdentifiers.POST_DELETED_MODAL,
@@ -1193,104 +652,69 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
     handleBlur = () => {
         if (!this.isDraftSubmitting) {
-            this.saveDraftWithShow();
+            this.saveDraft();
         }
         this.lastBlurAt = Date.now();
+    };
+
+    onMessageChange = (message: string, callback?: (() => void) | undefined) => {
+        const draft = this.state.draft;
+        const modifiedDraft = {
+            ...draft,
+            message,
+        };
+        this.handleDraftChange(modifiedDraft);
+        this.setState({
+            draft: modifiedDraft,
+        }, callback);
     };
 
     render() {
         const draft = this.state.draft!;
 
-        const pluginItems = this.props.postEditorActions?.
-            map((item) => {
-                if (!item.component) {
-                    return null;
-                }
-
-                const Component = item.component as any;
-                return (
-                    <Component
-                        key={item.id}
-                        draft={draft}
-                        getSelectedText={() => {
-                            const input = this.textboxRef.current?.getInputBox();
-
-                            return {
-                                start: input.selectionStart,
-                                end: input.selectionEnd,
-                            };
-                        }}
-                        updateText={(message: string) => {
-                            const draft = this.state.draft!;
-                            const modifiedDraft = {
-                                ...draft,
-                                message,
-                            };
-                            this.handleDraftChange(modifiedDraft);
-                            this.setState({
-                                draft: modifiedDraft,
-                            });
-                        }}
-                    />
-                );
-            });
-
         return (
-            <form onSubmit={this.handleSubmit}>
-                {
-                    this.props.canPost &&
-                    (this.props.draft.fileInfos.length > 0 || this.props.draft.uploadsInProgress.length > 0) &&
-                    <FileLimitStickyBanner/>
-                }
-                <AdvancedTextEditor
-                    location={Locations.RHS_COMMENT}
-                    textboxRef={this.textboxRef}
-                    currentUserId={this.props.currentUserId}
-                    message={draft.message}
-                    showEmojiPicker={this.state.showEmojiPicker}
-                    uploadsProgressPercent={this.state.uploadsProgressPercent}
-                    channelId={this.props.channelId}
-                    postId={this.props.rootId}
-                    errorClass={this.state.errorClass}
-                    serverError={this.state.serverError}
-                    isFormattingBarHidden={this.state.isFormattingBarHidden}
-                    draft={this.props.draft}
-                    handleSubmit={this.handleSubmit}
-                    removePreview={this.removePreview}
-                    setShowPreview={this.setShowPreview}
-                    shouldShowPreview={this.props.shouldShowPreview}
-                    maxPostSize={this.props.maxPostSize}
-                    canPost={this.props.canPost}
-                    applyMarkdown={this.applyMarkdown}
-                    useChannelMentions={this.props.useChannelMentions}
-                    badConnection={this.props.badConnection}
-                    canUploadFiles={this.props.canUploadFiles}
-                    enableEmojiPicker={this.props.enableEmojiPicker}
-                    enableGifPicker={this.props.enableGifPicker}
-                    handleBlur={this.handleBlur}
-                    postError={this.state.postError}
-                    handlePostError={this.handlePostError}
-                    emitTypingEvent={this.emitTypingEvent}
-                    handleMouseUpKeyUp={this.handleMouseUpKeyUp}
-                    handleKeyDown={this.handleKeyDown}
-                    postMsgKeyPress={this.commentMsgKeyPress}
-                    handleChange={this.handleChange}
-                    toggleEmojiPicker={this.toggleEmojiPicker}
-                    handleGifClick={this.handleGifClick}
-                    handleEmojiClick={this.handleEmojiClick}
-                    hideEmojiPicker={this.hideEmojiPicker}
-                    toggleAdvanceTextEditor={this.toggleAdvanceTextEditor}
-                    handleUploadProgress={this.handleUploadProgress}
-                    handleUploadError={this.handleUploadError}
-                    handleFileUploadComplete={this.handleFileUploadComplete}
-                    handleUploadStart={this.handleUploadStart}
-                    handleFileUploadChange={this.handleFileUploadChange}
-                    getFileUploadTarget={this.getFileUploadTarget}
-                    fileUploadRef={this.fileUploadRef}
-                    isThreadView={this.props.isThreadView}
-                    additionalControls={pluginItems.filter(Boolean)}
-                />
-            </form>
+            <UnifiedTextEditorForm
+                location={Locations.RHS_COMMENT}
+                textboxRef={this.textboxRef}
+                currentUserId={this.props.currentUserId}
+                message={draft.message}
+                showEmojiPicker={this.state.showEmojiPicker}
+                postId={this.props.rootId}
+                errorClass={this.state.errorClass}
+                serverError={this.state.serverError}
+                isFormattingBarHidden={this.state.isFormattingBarHidden}
+                draft={this.props.draft}
+                handleSubmit={this.handleSubmit}
+                removePreview={this.removePreview}
+                setShowPreview={this.setShowPreview}
+                shouldShowPreview={this.props.shouldShowPreview}
+                canPost={this.props.canPost}
+                handleBlur={this.handleBlur}
+                postError={this.state.postError}
+                handlePostError={this.handlePostError}
+                emitTypingEvent={this.emitTypingEvent}
+                handleMouseUpKeyUp={this.handleMouseUpKeyUp}
+                handleChange={this.handleChange}
+                toggleEmojiPicker={this.toggleEmojiPicker}
+                handleGifClick={this.handleGifClick}
+                handleEmojiClick={this.handleEmojiClick}
+                hideEmojiPicker={this.hideEmojiPicker}
+                toggleAdvanceTextEditor={this.toggleAdvanceTextEditor}
+                handleUploadError={this.handleUploadError}
+                handleFileUploadComplete={this.handleFileUploadComplete}
+                handleUploadStart={this.handleUploadStart}
+                handleFileUploadChange={this.handleFileUploadChange}
+                fileUploadRef={this.fileUploadRef}
+                isThreadView={this.props.isThreadView}
+                onEditLatestPost={this.handleEditLatestPost}
+                onMessageChange={this.onMessageChange}
+                loadNextMessage={this.loadNextMessage}
+                loadPrevMessage={this.loadPrevMessage}
+                caretPosition={this.state.caretPosition}
+                saveDraft={this.saveDraft}
+                focusTextbox={this.focusTextbox}
+                textEditorChannel={this.props.channel}
+            />
         );
     }
 }
