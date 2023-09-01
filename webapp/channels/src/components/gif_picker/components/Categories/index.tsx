@@ -15,7 +15,6 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getImageSrc} from 'utils/post_utils';
 
 import InfiniteScroll from 'components/gif_picker/components/InfiniteScroll';
-import {appProps} from 'components/gif_picker/gif_picker';
 
 import './Categories.scss';
 
@@ -39,7 +38,7 @@ const mapDispatchToProps = ({
 });
 
 type Props = {
-    appProps: typeof appProps;
+    appProps: any;
     gifs?: Record<string, GfycatAPIItem>;
     hasMore?: boolean;
     onSearch: () => void;

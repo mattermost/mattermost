@@ -20,7 +20,7 @@ export const getCurrentSearchForCurrentTeam: (state: GlobalState) => string = cr
 export const getAllUserMentionKeys: (state: GlobalState) => UserMentionKey[] = createSelector(
     'getAllUserMentionKeys',
     getCurrentUserMentionKeys,
-    getMyGroupMentionKeys,
+    (state: GlobalState) => getMyGroupMentionKeys(state, false),
     (userMentionKeys, groupMentionKeys) => {
         return userMentionKeys.concat(groupMentionKeys);
     },

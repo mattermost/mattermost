@@ -19,6 +19,7 @@ type Props = {
 
 const CreateNewCategoryMenuItem = ({
     id,
+    ...otherProps
 }: Props) => {
     const dispatch = useDispatch();
     const handleCreateCategory = useCallback(() => {
@@ -41,6 +42,7 @@ const CreateNewCategoryMenuItem = ({
                     defaultMessage='Create New Category'
                 />
             )}
+            {...otherProps}
         />
     );
 };
