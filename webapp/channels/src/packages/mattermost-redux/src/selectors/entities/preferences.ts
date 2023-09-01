@@ -282,10 +282,6 @@ export function cloudReverseTrial(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'CloudReverseTrial') === 'true';
 }
 
-export function allowDisableWebappPrefetch(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'AllowDisableWebappPrefetch') === 'true';
-}
-
 export function streamlinedMarketplaceEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'StreamlinedMarketplace') === 'true';
 }

@@ -68,6 +68,8 @@ describe('/components/data_prefetch', () => {
             last_post_at: 1235,
             last_root_post_at: 1235,
         })],
+        disableWebappPrefetchAllowed: false,
+        dataPrefetchEnabled: true,
     };
 
     beforeEach(() => {

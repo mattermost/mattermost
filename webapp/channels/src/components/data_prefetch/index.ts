@@ -8,6 +8,7 @@ import {getCurrentChannelId, getUnreadChannels} from 'mattermost-redux/selectors
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
+import {isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 
 import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {PostList} from '@mattermost/types/posts';
@@ -20,7 +21,7 @@ import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
 import {GlobalState} from 'types/store';
 
-import {allowDisableWebappPrefetch, getBool, isCollapsedThreadsEnabled} from '../../packages/mattermost-redux/src/selectors/entities/preferences';
+import {getBool, isCollapsedThreadsEnabled} from '../../packages/mattermost-redux/src/selectors/entities/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
 
@@ -86,7 +87,7 @@ function mapStateToProps(state: GlobalState) {
     const unreadChannels = getUnreadChannels(state, lastUnreadChannel);
     const prefetchQueueObj = prefetchQueue(unreadChannels, memberships, isCollapsedThreadsEnabled(state));
     const prefetchRequestStatus = state.views.channel.channelPrefetchStatus;
-    const disableWebappPrefetchAllowed = allowDisableWebappPrefetch(state);
+    const disableWebappPrefetchAllowed = isPerformanceDebuggingEnabled(state);
 
     return {
         currentChannelId: getCurrentChannelId(state),
