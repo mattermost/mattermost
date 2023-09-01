@@ -144,6 +144,24 @@ func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
 	require.Equal(t, *c1.SamlSettings.CanonicalAlgorithm, testAlgorithm)
 }
 
+func TestWranglerSettingsIsValid(t *testing.T) {
+	// // Test valid domains
+	w := &WranglerSettings{
+		AllowedEmailDomain: []string{"example.com", "subdomain.example.com"},
+	}
+	if err := w.IsValid(); err != nil {
+		t.Errorf("Expected no error for valid domains, but got %v", err)
+	}
+
+	// Test invalid domains
+	w = &WranglerSettings{
+		AllowedEmailDomain: []string{"example", "example..com", "example-.com", "-example.com", "example.com.", "example.com-"},
+	}
+	if err := w.IsValid(); err == nil {
+		t.Errorf("Expected error for invalid domains, but got none")
+	}
+}
+
 func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()

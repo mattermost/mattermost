@@ -1164,8 +1164,6 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	sourcePost, err := c.App.GetPostIfAuthorized(c.AppContext, c.Params.PostId, c.AppContext.Session(), false)
 	if err != nil {
 		c.Err = err
-
-		// Post is inaccessible due to cloud plan's limit.
 		if err.Id == "app.post.cloud.get.app_error" {
 			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
 		}

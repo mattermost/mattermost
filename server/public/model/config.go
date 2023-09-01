@@ -3105,10 +3105,10 @@ func (w *WranglerSettings) SetDefaults() {
 		w.MoveThreadFromPrivateChannelEnable = NewBool(true)
 	}
 	if w.MoveThreadFromDirectMessageChannelEnable == nil {
-		w.MoveThreadFromDirectMessageChannelEnable = NewBool(true)
+		w.MoveThreadFromDirectMessageChannelEnable = NewBool(false)
 	}
 	if w.MoveThreadFromGroupMessageChannelEnable == nil {
-		w.MoveThreadFromGroupMessageChannelEnable = NewBool(true)
+		w.MoveThreadFromGroupMessageChannelEnable = NewBool(false)
 	}
 }
 
