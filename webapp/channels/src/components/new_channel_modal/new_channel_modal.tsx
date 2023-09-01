@@ -92,6 +92,7 @@ const NewChannelModal = () => {
     const [urlError, setURLError] = useState('');
     const [purposeError, setPurposeError] = useState('');
     const [serverError, setServerError] = useState('');
+    const [channelInputError, setChannelInputError] = useState(false);
 
     // create a board along with the channel
     const pluginsComponentsList = useSelector((state: GlobalState) => state.plugins.components);
@@ -236,7 +237,7 @@ const NewChannelModal = () => {
         e.stopPropagation();
     };
 
-    const canCreate = displayName && !urlError && type && !purposeError && !serverError && canCreateFromPluggable;
+    const canCreate = displayName && !urlError && type && !purposeError && !serverError && canCreateFromPluggable && !channelInputError;
 
     const newBoardInfoIcon = (
         <OverlayTrigger
@@ -292,6 +293,7 @@ const NewChannelModal = () => {
                     placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
                     onDisplayNameChange={onChannelDisplayNameChanged}
                     onURLChange={handleOnURLChange}
+                    onErrorStateChange={setChannelInputError}
                 />
                 <PublicPrivateSelector
                     className='new-channel-modal-type-selector'

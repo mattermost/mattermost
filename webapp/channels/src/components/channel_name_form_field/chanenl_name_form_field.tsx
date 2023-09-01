@@ -3,7 +3,7 @@
 
 import Input from 'components/widgets/inputs/input/input';
 import Constants, {ItemStatus} from 'utils/constants';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {cleanUpUrlable, getSiteURL, validateChannelUrl} from 'utils/url';
 import {validateDisplayName} from 'components/new_channel_modal/new_channel_modal';
 import crypto from 'crypto';
@@ -20,6 +20,7 @@ export type Props = {
     onDisplayNameChange: (name: string) => void;
     onURLChange: (url: string) => void;
     autoFocus?: boolean;
+    onErrorStateChange?: (isError: boolean) => void;
 }
 
 import './channel_name_form_field.scss';
@@ -27,7 +28,7 @@ import './channel_name_form_field.scss';
 // Component for input fields for editing channel display name
 // along with stuff to edit its URL.
 const ChannelNameFormField = (props: Props): JSX.Element => {
-    const {value, name, placeholder, onDisplayNameChange, onURLChange} = props;
+    const {value, name, placeholder, onDisplayNameChange, onURLChange, onErrorStateChange} = props;
 
     const intl = useIntl();
     const {formatMessage} = intl;
@@ -84,6 +85,12 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         setURLModified(true);
         onURLChange(cleanURL);
     };
+
+    useEffect(() => {
+        if (onErrorStateChange) {
+            onErrorStateChange(Boolean(displayNameError) || Boolean(urlError));
+        }
+    }, [displayNameError, urlError]);
 
     return (
         <React.Fragment>
