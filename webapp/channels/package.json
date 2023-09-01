@@ -3,7 +3,7 @@
   "browser": {
     "./client/web_client.jsx": "./client/browser_web_client.jsx"
   },
-  "version": "8.0.0",
+  "version": "9.0.0",
   "private": true,
   "dependencies": {
     "@floating-ui/react-dom": "1.0.0",
