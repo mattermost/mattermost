@@ -356,16 +356,6 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// might be duplicating requests.
 	a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PendingPostIDsCacheTTL)
 
-	// We make a copy of the post for the plugin hook to avoid a race condition,
-	// and to remove the non-GOB-encodable Metadata from it.
-	pluginPost := rpost.ForPlugin()
-	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-			hooks.MessageHasBeenPosted(pluginContext, pluginPost)
-			return true
-		}, plugin.MessageHasBeenPostedID)
-	})
-
 	if a.Metrics() != nil {
 		a.Metrics().IncrementPostCreate()
 	}
@@ -379,6 +369,16 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 			a.Metrics().IncrementPostFileAttachment(len(post.FileIds))
 		}
 	}
+
+	// We make a copy of the post for the plugin hook to avoid a race condition,
+	// and to remove the non-GOB-encodable Metadata from it.
+	pluginPost := rpost.ForPlugin()
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.MessageHasBeenPosted(pluginContext, pluginPost)
+			return true
+		}, plugin.MessageHasBeenPostedID)
+	})
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents

@@ -214,6 +214,19 @@ describe('components/AtMention', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
+    test('should match snapshot when mentioning a group followed by punctuation', () => {
+        const wrapper = shallow<AtMention>(
+            <AtMention
+                {...baseProps}
+                mentionName='developers.'
+            >
+                {'(at)-developers.'}
+            </AtMention>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
     test('should have placement state based on ref position of click handler', () => {
         const wrapper = shallow<AtMention>(
             <AtMention

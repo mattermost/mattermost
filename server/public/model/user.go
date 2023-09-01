@@ -62,6 +62,8 @@ const (
 	UserLocaleMaxLength   = 5
 	UserTimezoneMaxRunes  = 256
 	UserRolesMaxLength    = 256
+
+	DesktopTokenTTL = time.Minute * 3
 )
 
 //msgp:tuple User

@@ -29,7 +29,7 @@ import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {General, Preferences, Posts} from 'mattermost-redux/constants';
 
-import {getGroups} from 'mattermost-redux/actions/groups';
+import {searchGroups} from 'mattermost-redux/actions/groups';
 import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {
     deletePreferences,
@@ -1127,7 +1127,16 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
         const loadedProfiles = new Set<string>((data || []).map((p) => p.username));
         const groupsToCheck = Array.from(usernamesAndGroupsToLoad).filter((name) => !loadedProfiles.has(name));
 
-        groupsToCheck.forEach((name) => promises.push(getGroups(name)(dispatch, getState)));
+        groupsToCheck.forEach((name) => {
+            const groupParams = {
+                q: name,
+                filter_allow_reference: true,
+                page: 0,
+                per_page: 60,
+                include_member_count: true,
+            };
+            promises.push(searchGroups(groupParams)(dispatch, getState));
+        });
     }
 
     return Promise.all(promises);
