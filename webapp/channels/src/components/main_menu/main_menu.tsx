@@ -7,8 +7,7 @@ import {injectIntl, IntlShape} from 'react-intl';
 import {Permissions} from 'mattermost-redux/constants';
 
 import * as GlobalActions from 'actions/global_actions';
-import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
-import {Constants, LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
+import {Constants, ModalIdentifiers} from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {makeUrlSafe} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
@@ -27,7 +26,6 @@ import AboutBuildModal from 'components/about_build_modal';
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 
 import Menu from 'components/widgets/menu/menu';
-import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 import TeamGroupsManageModal from 'components/team_groups_manage_modal';
 
 import {trackEvent} from 'actions/telemetry_actions';
@@ -154,8 +152,6 @@ export class MainMenu extends React.PureComponent<Props> {
 
         const someIntegrationEnabled = this.props.enableIncomingWebhooks || this.props.enableOutgoingWebhooks || this.props.enableCommands || this.props.enableOAuthServiceProvider || this.props.canManageSystemBots;
         const showIntegrations = !this.props.mobile && someIntegrationEnabled && this.props.canManageIntegrations;
-        const teamsLimitReached = this.props.isStarterFree && !this.props.isFreeTrial && this.props.usageDeltaTeams >= 0;
-        const createTeamRestricted = this.props.isCloud && (this.props.isFreeTrial || teamsLimitReached);
 
         const {formatMessage} = this.props.intl;
 
@@ -315,7 +311,7 @@ export class MainMenu extends React.PureComponent<Props> {
                     <SystemPermissionGate permissions={[Permissions.CREATE_TEAM]}>
                         <Menu.ItemLink
                             id='createTeam'
-                            show={!teamsLimitReached}
+                            show={true}
                             to='/create_team'
                             text={formatMessage({id: 'navbar_dropdown.create', defaultMessage: 'Create a Team'})}
                             icon={<i className='fa fa-plus-square'/>}
@@ -478,48 +474,7 @@ export class MainMenu extends React.PureComponent<Props> {
                         <Menu.ItemLink
                             id='createTeam'
                             to='/create_team'
-                            className={createTeamRestricted ? 'MenuItem__with-icon-tooltip' : ''}
-                            disabled={teamsLimitReached}
                             text={formatMessage({id: 'navbar_dropdown.create', defaultMessage: 'Create a Team'})}
-                            sibling={createTeamRestricted && (
-                                <RestrictedIndicator
-                                    feature={MattermostFeatures.CREATE_MULTIPLE_TEAMS}
-                                    minimumPlanRequiredForFeature={LicenseSkus.Professional}
-                                    blocked={!this.props.isFreeTrial}
-                                    tooltipMessage={formatMessage({
-                                        id: 'navbar_dropdown.create.tooltip.cloudFreeTrial',
-                                        defaultMessage: 'During your trial you are able to create multiple teams. These teams will be archived after your trial.',
-                                    })}
-                                    titleAdminPreTrial={formatMessage({
-                                        id: 'navbar_dropdown.create.modal.titleAdminPreTrial',
-                                        defaultMessage: 'Try unlimited teams with a free trial',
-                                    })}
-                                    messageAdminPreTrial={formatMessage({
-                                        id: 'navbar_dropdown.create.modal.messageAdminPreTrial',
-                                        defaultMessage: 'Create unlimited teams with one of our paid plans. Get the full experience of Enterprise when you start a free, {trialLength} day trial.',
-                                    },
-                                    {
-                                        trialLength: FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS,
-                                    },
-                                    )}
-                                    titleAdminPostTrial={formatMessage({
-                                        id: 'navbar_dropdown.create.modal.titleAdminPostTrial',
-                                        defaultMessage: 'Upgrade to create unlimited teams',
-                                    })}
-                                    messageAdminPostTrial={formatMessage({
-                                        id: 'navbar_dropdown.create.modal.messageAdminPostTrial',
-                                        defaultMessage: 'Multiple teams allow for context-specific spaces that are more attuned to your and your teams’ needs. Upgrade to the Professional plan to create unlimited teams.',
-                                    })}
-                                    titleEndUser={formatMessage({
-                                        id: 'navbar_dropdown.create.modal.titleEndUser',
-                                        defaultMessage: 'Multiple teams available in paid plans',
-                                    })}
-                                    messageEndUser={formatMessage({
-                                        id: 'navbar_dropdown.create.modal.messageEndUser',
-                                        defaultMessage: 'Multiple teams allow for context-specific spaces that are more attuned to your teams’ needs.',
-                                    })}
-                                />
-                            )}
                         />
                     </SystemPermissionGate>
                 </Menu.Group>

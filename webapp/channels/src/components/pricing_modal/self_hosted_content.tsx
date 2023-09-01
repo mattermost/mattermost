@@ -187,7 +187,6 @@ function SelfHostedContent(props: ContentProps) {
                         price='$0'
                         rate={formatMessage({id: 'pricing_modal.price.freeForever', defaultMessage: 'Free forever'})}
                         isCloud={false}
-                        cloudFreeDeprecated={false}
                         planLabel={
                             isStarter ? (
                                 <PlanLabel
@@ -224,7 +223,6 @@ function SelfHostedContent(props: ContentProps) {
                             ),
                         })}
                         isCloud={false}
-                        cloudFreeDeprecated={false}
                         planLabel={
                             isProfessional ? (
                                 <PlanLabel
@@ -284,7 +282,6 @@ function SelfHostedContent(props: ContentProps) {
                         plan='Enterprise'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.enterprise', defaultMessage: 'Administration, security, and compliance for large teams'})}
                         isCloud={false}
-                        cloudFreeDeprecated={false}
                         planLabel={
                             isEnterprise ? (
                                 <PlanLabel

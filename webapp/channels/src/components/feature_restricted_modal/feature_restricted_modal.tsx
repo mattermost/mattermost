@@ -11,11 +11,8 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 
-import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import {GenericModal} from '@mattermost/components';
 import {NotifyStatus} from 'components/common/hooks/useGetNotifyAdmin';
@@ -60,7 +57,6 @@ const FeatureRestrictedModal = ({
         dispatch(getPrevTrialLicense());
     }, []);
 
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const hasCloudPriorTrial = useSelector(checkHadPriorTrial);
     const prevTrialLicense = useSelector((state: GlobalState) => state.entities.admin.prevTrialLicense);
     const hasSelfHostedPriorTrial = prevTrialLicense.IsLicensed === 'true';
@@ -68,8 +64,6 @@ const FeatureRestrictedModal = ({
     const hasPriorTrial = hasCloudPriorTrial || hasSelfHostedPriorTrial;
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.FEATURE_RESTRICTED_MODAL));
-    const license = useSelector(getLicense);
-    const isCloud = license?.Cloud === 'true';
     const openPricingModal = useOpenPricingModal();
 
     const [notifyAdminBtnText, notifyAdmin, notifyRequestStatus] = useNotifyAdmin({
@@ -102,7 +96,7 @@ const FeatureRestrictedModal = ({
 
     const getTitle = () => {
         if (isSystemAdmin) {
-            return (hasPriorTrial || cloudFreeDeprecated) ? titleAdminPostTrial : titleAdminPreTrial;
+            return (hasPriorTrial) ? titleAdminPostTrial : titleAdminPreTrial;
         }
 
         return titleEndUser;
@@ -110,13 +104,13 @@ const FeatureRestrictedModal = ({
 
     const getMessage = () => {
         if (isSystemAdmin) {
-            return (hasPriorTrial || cloudFreeDeprecated) ? messageAdminPostTrial : messageAdminPreTrial;
+            return (hasPriorTrial) ? messageAdminPostTrial : messageAdminPreTrial;
         }
 
         return messageEndUser;
     };
 
-    const showStartTrial = isSystemAdmin && !hasPriorTrial && !cloudFreeDeprecated;
+    const showStartTrial = isSystemAdmin && !hasPriorTrial;
 
     // define what is the secondary button text and action, by default will be the View Plan button
     let secondaryBtnMsg = formatMessage({id: 'feature_restricted_modal.button.plans', defaultMessage: 'View plans'});
@@ -129,26 +123,14 @@ const FeatureRestrictedModal = ({
         secondaryBtnAction = customSecondaryButton.action;
     }
 
-    let trialBtn;
-    if (isCloud) {
-        trialBtn = (
-            <CloudStartTrialButton
-                extraClass='button-trial'
-                message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Start trial'})}
-                telemetryId={'start_cloud_trial_after_team_creation_restricted'}
-                onClick={dismissAction}
-            />
-        );
-    } else {
-        trialBtn = (
-            <StartTrialBtn
-                message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Start trial'})}
-                onClick={dismissAction}
-                telemetryId='start_self_hosted_trial_after_team_creation_restricted'
-                btnClass='btn btn-primary'
-                renderAsButton={true}
-            />);
-    }
+    const trialBtn = (
+        <StartTrialBtn
+            message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Start trial'})}
+            onClick={dismissAction}
+            telemetryId='start_self_hosted_trial_after_team_creation_restricted'
+            btnClass='btn btn-primary'
+            renderAsButton={true}
+        />);
 
     return (
         <GenericModal

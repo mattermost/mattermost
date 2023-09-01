@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
 import {Action} from 'mattermost-redux/types/actions';
-import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {
     getInt,
     isCustomGroupsEnabled,
@@ -25,7 +25,6 @@ import {GlobalState} from 'types/store';
 import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps} from 'components/onboarding_tasks';
 import {openModal} from 'actions/views/modals';
 import {ModalData} from 'types/actions';
-import {CloudProducts} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 
 import ProductMenuList from './product_menu_list';
@@ -58,18 +57,16 @@ function mapStateToProps(state: GlobalState) {
 
     const subscription = getCloudSubscription(state);
     const license = getLicense(state);
-    const subscriptionProduct = getSubscriptionProduct(state);
 
     const isCloud = isCloudLicense(license);
-    const isCloudStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
-    const isCloudFreeTrial = isCloud && subscription?.is_free_trial === 'true';
+    const isCloudEnterpriseFreeTrial = isCloud && subscription?.is_free_trial === 'true';
 
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
     const isSelfHostedStarter = isEnterpriseReady && (license.IsLicensed === 'false');
     const isSelfHostedFreeTrial = license.IsTrial === 'true';
 
-    const isStarterFree = isCloudStarterFree || isSelfHostedStarter;
-    const isFreeTrial = isCloudFreeTrial || isSelfHostedFreeTrial;
+    const isStarterFree = isSelfHostedStarter;
+    const isFreeTrial = isCloudEnterpriseFreeTrial || isSelfHostedFreeTrial;
 
     return {
         isMobile,

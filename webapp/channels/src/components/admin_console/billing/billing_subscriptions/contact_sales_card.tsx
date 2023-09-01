@@ -70,20 +70,6 @@ const ContactSalesCard = (props: Props) => {
         );
     } else {
         switch (subscriptionPlan) {
-        case CloudProducts.STARTER:
-            title = (
-                <FormattedMessage
-                    id='admin.billing.subscription.privateCloudCard.cloudFree.title'
-                    defaultMessage='Upgrade to Cloud Professional'
-                />
-            );
-            description = (
-                <FormattedMessage
-                    id='admin.billing.subscription.privateCloudCard.cloudFree.description'
-                    defaultMessage='Optimize your processes with Guest Accounts, Office365 suite integrations, GitLab SSO and advanced permissions.'
-                />
-            );
-            break;
         case CloudProducts.PROFESSIONAL:
             title = (
                 <FormattedMessage

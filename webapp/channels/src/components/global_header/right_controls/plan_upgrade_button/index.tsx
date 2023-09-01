@@ -6,10 +6,10 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import Constants, {CloudProducts} from 'utils/constants';
+import Constants from 'utils/constants';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getCloudProducts, getCloudSubscription} from 'mattermost-redux/actions/cloud';
-import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct as selectSubscriptionProduct, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import {getCloudSubscription as selectCloudSubscription, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import useOpenPricingModal, {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
@@ -50,13 +50,10 @@ const PlanUpgradeButton = (): JSX.Element | null => {
 
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
     const subscription = useSelector(selectCloudSubscription);
-    const product = useSelector(selectSubscriptionProduct);
     const config = useSelector(getConfig);
     const license = useSelector(getLicense);
 
     const isEnterpriseTrial = subscription?.is_free_trial === 'true';
-
-    const isCloudFree = product?.sku === CloudProducts.STARTER;
 
     const isSelfHostedEnterpriseTrial = !isCloud && license.IsTrial === 'true';
     const isSelfHostedStarter = license.IsLicensed === 'false';
@@ -72,7 +69,7 @@ const PlanUpgradeButton = (): JSX.Element | null => {
     }
 
     // for cloud, only show when subscribed to free or enterprise trial plans
-    if (isCloud && !(isCloudFree || isEnterpriseTrial)) {
+    if (isCloud && !(isEnterpriseTrial)) {
         return null;
     }
 
