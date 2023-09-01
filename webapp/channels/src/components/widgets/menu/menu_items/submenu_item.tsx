@@ -6,9 +6,12 @@ import classNames from 'classnames';
 
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
+
 import {showMobileSubMenuModal} from 'actions/global_actions';
 
 import type {Menu} from 'types/store/plugins';
+
+import {isMobile as isMobileViewHack} from '../is_mobile_view_hack';
 
 import './menu_item.scss';
 import Constants from 'utils/constants';
@@ -94,7 +97,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
     private onClick = (event: React.SyntheticEvent<HTMLElement>) => {
         event.preventDefault();
         const {id, postId, subMenu, action, root, isHeader} = this.props;
-        const isMobile = Utils.isMobile();
+        const isMobile = isMobileViewHack();
         if (isHeader) {
             event.stopPropagation();
             return;
@@ -141,7 +144,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
 
     public render() {
         const {id, postId, text, selectedValueText, subMenu, icon, filter, ariaLabel, direction, styleSelectableItem, extraText, renderSelected, rightDecorator, tabIndex} = this.props;
-        const isMobile = Utils.isMobile();
+        const isMobile = isMobileViewHack();
 
         if (filter && !filter(id)) {
             return ('');
