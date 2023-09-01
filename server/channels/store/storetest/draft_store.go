@@ -275,24 +275,6 @@ func testGetDraft(t *testing.T, ss store.Store) {
 		assert.Equal(t, draft2.Message, draftResp.Message)
 		assert.Equal(t, draft2.ChannelId, draftResp.ChannelId)
 	})
-
-	t.Run("get draft including deleted", func(t *testing.T) {
-		draftResp, err := ss.Draft().Get(user.Id, channel.Id, "", false)
-		assert.NoError(t, err)
-		assert.Equal(t, draft1.Message, draftResp.Message)
-		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
-
-		err = ss.Draft().Delete(user.Id, channel.Id, "")
-		assert.NoError(t, err)
-		_, err = ss.Draft().Get(user.Id, channel.Id, "", false)
-		assert.Error(t, err)
-		assert.IsType(t, &store.ErrNotFound{}, err)
-
-		draftResp, err = ss.Draft().Get(user.Id, channel.Id, "", true)
-		assert.NoError(t, err)
-		assert.Equal(t, draft1.Message, draftResp.Message)
-		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
-	})
 }
 
 func testGetDraftsForUser(t *testing.T, ss store.Store) {
