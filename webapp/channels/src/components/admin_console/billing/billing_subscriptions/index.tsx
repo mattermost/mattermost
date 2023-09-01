@@ -19,8 +19,6 @@ import {
 import {pageVisited} from 'actions/telemetry_actions';
 
 import {
-    CloudProducts,
-    RecurringIntervals,
     TrialPeriodDays,
 } from 'utils/constants';
 import {isCustomerCardExpired} from 'utils/cloud_utils';
@@ -63,7 +61,6 @@ const BillingSubscriptions = () => {
     const actionQueryParam = query.get('action');
 
     const product = useSelector(getSubscriptionProduct);
-    const isAnnualProfessionalOrEnterprise = product?.sku === CloudProducts.ENTERPRISE || (product?.sku === CloudProducts.PROFESSIONAL && product?.recurring_interval === RecurringIntervals.YEAR);
 
     const openPricingModal = useOpenPricingModal();
 

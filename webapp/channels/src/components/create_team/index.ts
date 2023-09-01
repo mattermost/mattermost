@@ -27,5 +27,4 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-
 export default connect(mapStateToProps)(CreateTeam);

@@ -7,7 +7,6 @@ import {Link} from 'react-router-dom';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {CloudUsage} from '@mattermost/types/cloud';
 import {Team} from '@mattermost/types/teams';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
@@ -179,10 +178,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
             canJoinPublicTeams,
             canJoinPrivateTeams,
             totalTeamsCount,
-            isCloud,
-            isFreeTrial,
         } = this.props;
-
 
         let openContent;
         if (this.state.loadingTeamId) {

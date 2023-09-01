@@ -3,10 +3,8 @@
 
 import React from 'react';
 import {Route, Switch, Redirect, RouteComponentProps} from 'react-router-dom';
-import {FormattedMessage} from 'react-intl';
 
 import {Channel} from '@mattermost/types/channels';
-import {CloudUsage} from '@mattermost/types/cloud';
 import {Team} from '@mattermost/types/teams';
 
 import AnnouncementBar from 'components/announcement_bar';
@@ -84,8 +82,8 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
 
         return (
             <div>
-                <AnnouncementBar />
-                <BackButton url={url} />
+                <AnnouncementBar/>
+                <BackButton url={url}/>
                 <div className='col-sm-12'>
                     <div className='signup-team__container'>
                         <SiteNameAndDescription
@@ -114,7 +112,7 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
                                         />
                                     )}
                                 />
-                                <Redirect to={`${match.url}/display_name`} />
+                                <Redirect to={`${match.url}/display_name`}/>
                             </Switch>
                         </div>
                     </div>
