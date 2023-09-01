@@ -25,7 +25,7 @@ import {
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {getTeamByName as getTeamByNameAction} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
-import {Posts, Preferences, General} from 'mattermost-redux/constants';
+import {Preferences, General} from 'mattermost-redux/constants';
 import {
     getChannel,
     getChannelsNameMapInTeam,
@@ -56,7 +56,6 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import {FileInfo} from '@mattermost/types/files';
 import {Team} from '@mattermost/types/teams';
-import {Post} from '@mattermost/types/posts';
 import {UserProfile} from '@mattermost/types/users';
 import {Channel} from '@mattermost/types/channels';
 
@@ -307,13 +306,6 @@ export function getIconClassName(fileTypeIn: string) {
     }
 
     return 'generic';
-}
-
-export function getMenuItemIcon(name: string, dangerous?: boolean) {
-    const colorClass = dangerous ? 'MenuItem__compass-icon-dangerous' : 'MenuItem__compass-icon';
-    return (
-        <span className={`${name} ${colorClass}`}/>
-    );
 }
 
 export function toTitleCase(str: string): string {
@@ -851,10 +843,6 @@ export function setCaretPosition(input: HTMLInputElement, pos: number) {
     setSelectionRange(input, pos, pos);
 }
 
-export function scrollbarWidth(el: HTMLElement) {
-    return el.offsetWidth - el.clientWidth;
-}
-
 export function isValidUsername(name: string) {
     let error;
     if (!name) {
@@ -1231,18 +1219,6 @@ export function clearFileInput(elm: HTMLInputElement) {
     }
 }
 
-export function isPostEphemeral(post: Post) {
-    return post.type === Constants.PostTypes.EPHEMERAL || post.state === Posts.POST_DELETED;
-}
-
-export function getRootId(post: Post) {
-    return post.root_id === '' ? post.id : post.root_id;
-}
-
-export function getRootPost(postList: Post[]) {
-    return postList.find((post) => post.root_id === '');
-}
-
 export function localizeMessage(id: string, defaultMessage?: string) {
     const state = store.getState();
 
@@ -1543,19 +1519,6 @@ export function moveCursorToEnd(e: React.MouseEvent | React.FocusEvent) {
         (e.target as any).value = '';
         (e.target as any).value = val;
     }
-}
-
-export function compareChannels(a: Channel, b: Channel) {
-    const aDisplayName = a.display_name.toUpperCase();
-    const bDisplayName = b.display_name.toUpperCase();
-    const result = aDisplayName.localeCompare(bDisplayName);
-    if (result !== 0) {
-        return result;
-    }
-
-    const aName = a.name.toUpperCase();
-    const bName = b.name.toUpperCase();
-    return aName.localeCompare(bName);
 }
 
 export function setCSRFFromCookie() {
