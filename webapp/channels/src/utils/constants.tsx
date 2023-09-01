@@ -1581,6 +1581,7 @@ export const Constants = {
     DEFAULT_EMOJI_PICKER_LEFT_OFFSET: 87,
     DEFAULT_EMOJI_PICKER_RIGHT_OFFSET: 15,
     EMOJI_PICKER_WIDTH_OFFSET: 295,
+    SIDEBAR_MINIMUM_WIDTH: 400,
     THEME_ELEMENTS: [
         {
             group: 'sidebarElements',
