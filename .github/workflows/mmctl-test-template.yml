@@ -56,7 +56,7 @@ jobs:
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            make test-mmctl-coverage BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+            sh -c "git config --global --add safe.directory /mattermost && make test-mmctl-coverage BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID"
       - name: Stop docker compose
         run: |
           cd server/build
