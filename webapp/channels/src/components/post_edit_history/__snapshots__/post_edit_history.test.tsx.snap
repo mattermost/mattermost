@@ -3,7 +3,7 @@
 exports[`components/post_edit_history should display error screen if errors are present 1`] = `
 <div>
   <div
-    class="sidebar-right__body"
+    class="sidebar-right__body sidebar-right__edit-post-history"
     id="rhsContainer"
   >
     <div
@@ -118,7 +118,7 @@ exports[`components/post_edit_history should display error screen if errors are 
 exports[`components/post_edit_history should match snapshot 1`] = `
 <div>
   <div
-    class="sidebar-right__body"
+    class="sidebar-right__body sidebar-right__edit-post-history"
     id="rhsContainer"
   >
     <div

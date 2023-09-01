@@ -8,7 +8,6 @@ import React, {
     useEffect,
     KeyboardEvent,
     SyntheticEvent,
-    useMemo,
     useCallback,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -29,11 +28,11 @@ import OverlayTrigger from 'components/overlay_trigger';
 import {GenericModal} from '@mattermost/components';
 
 import {MuiMenuStyled} from './menu_styled';
-import {MenuContext} from './menu_context';
+import {MenuContext, useMenuContextValue} from './menu_context';
 
 const OVERLAY_TIME_DELAY = 500;
 const MENU_OPEN_ANIMATION_DURATION = 150;
-export const MENU_CLOSE_ANIMATION_DURATION = 100;
+const MENU_CLOSE_ANIMATION_DURATION = 100;
 
 type MenuButtonProps = {
     id: string;
@@ -211,12 +210,7 @@ export function Menu(props: Props) {
         }
     }, [isMenuOpen]);
 
-    const providerValue = useMemo(() => {
-        return {
-            close: closeMenu,
-            isOpen: Boolean(anchorElement),
-        };
-    }, [anchorElement, closeMenu]);
+    const providerValue = useMenuContextValue(closeMenu, Boolean(anchorElement));
 
     if (isMobileView) {
         // In mobile view, the menu is rendered as a modal
@@ -232,6 +226,7 @@ export function Menu(props: Props) {
                     open={isMenuOpen}
                     onClose={handleMenuClose}
                     onClick={handleMenuClick}
+                    onTransitionExited={providerValue.handleClosed}
                     onKeyDown={handleMenuKeyDown}
                     className={A11yClassNames.POPUP}
                     width={props.menu.width}
