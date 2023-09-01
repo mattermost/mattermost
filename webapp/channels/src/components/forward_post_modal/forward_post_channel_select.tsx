@@ -226,15 +226,14 @@ const DropdownIndicator = (props: IndicatorProps<ChannelOption>) => {
     );
 };
 
-const validChannelTypes = ['O', 'P', 'D', 'G'];
-
 type Props<O> = {
     onSelect: (channel: ValueType<O>) => void;
     currentBodyHeight: number;
     value?: O;
+    validChannelTypes?: string[];
 }
 
-function ForwardPostChannelSelect({onSelect, value, currentBodyHeight}: Props<ChannelOption>) {
+function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChannelTypes = ['O', 'P', 'D', 'G']}: Props<ChannelOption>) {
     const {formatMessage} = useIntl();
     const {current: provider} = useRef<SwitchChannelProvider>(new SwitchChannelProvider());
 

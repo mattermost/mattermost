@@ -221,6 +221,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
                     onSelect={handleChannelSelect}
                     value={selectedChannel}
                     currentBodyHeight={bodyHeight}
+                    validChannelTypes={['O', 'P']}
                 />
                 <div className={'move-thread__post-preview'}>
                     <span className={'move-thread__post-preview--title'}>
