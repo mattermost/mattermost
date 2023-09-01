@@ -45,7 +45,7 @@
                 padding-left: 8px;
                 border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
                 margin-left: 8px;
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-family: 'Open Sans';
                 font-size: 12px;
                 font-style: normal;
@@ -72,7 +72,7 @@
             -webkit-appearance: none;
             appearance: none;
             background: none;
-            color: rgb(var(--center-channel-color-rgb), 0.73);
+            color: rgb(var(--center-channel-color-rgb), 0.75);
             cursor: pointer;
             font: inherit;
             outline: inherit;
@@ -80,7 +80,7 @@
             &:hover,
             &:active,
             &:focus {
-                color: rgb(var(--center-channel-color-rgb), 0.73);
+                color: rgb(var(--center-channel-color-rgb), 0.75);
             }
         }
     }
@@ -165,7 +165,7 @@
 
                 .content {
                     margin-bottom: 25px;
-                    color: rgba(var(--center-channel-color-rgb), 0.73);
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
                     font-family: 'Open Sans';
                     font-size: 14px;
                     font-style: normal;
@@ -272,7 +272,7 @@
                         span,
                         p {
                             margin-bottom: 32px;
-                            color: rgba(var(--center-channel-color-rgb), 0.73);
+                            color: rgba(var(--center-channel-color-rgb), 0.75);
                             font-family: 'Metropolis';
                             font-size: 16px;
                             font-style: normal;
@@ -400,7 +400,7 @@
 
                                 p {
                                     margin: 0;
-                                    color: rgba(var(--center-channel-color-rgb), 0.73);
+                                    color: rgba(var(--center-channel-color-rgb), 0.75);
                                     font-family: 'Metropolis';
                                     font-size: 14px;
                                     font-style: normal;
@@ -421,7 +421,7 @@
                     position: relative;
                     height: auto;
                     padding: 37px 24px 24px 24px;
-                    background-color: rgba(var(--center-channel-text-rgb), 0.73);
+                    background-color: rgba(var(--center-channel-text-rgb), 0.75);
                     border-radius: 0 0 4px 4px;
                     color: var(--sidebar-text);
 

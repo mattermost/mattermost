@@ -32,7 +32,7 @@
 @mixin leveled-color($hover, $active) {
     &:hover {
         &:not(:disabled) {
-            color: rgba($hover, 0.73);
+            color: rgba($hover, 0.75);
         }
     }
 
@@ -48,7 +48,7 @@
     position: relative;
     padding: 4px 10px;
     border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.73);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-family: Open Sans;
     font-style: normal;
     font-weight: 600;

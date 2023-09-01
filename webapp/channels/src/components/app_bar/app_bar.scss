@@ -105,11 +105,11 @@ $app-bar-width: 48px;
             }
 
             .app-bar__old-icon {
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
 
                 &:hover,
                 &--active {
-                    color: rgba(var(--center-channel-color-rgb), 0.73);
+                    color: rgba(var(--center-channel-color-rgb), 0.8);
                 }
             }
 

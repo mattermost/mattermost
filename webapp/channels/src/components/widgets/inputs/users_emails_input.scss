@@ -44,7 +44,7 @@
         border-color: rgba(var(--center-channel-color-rgb), 0.2);
         background: var(--center-channel-bg);
         box-shadow: none;
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         transition: none;
 
         &--is-focused,
@@ -85,7 +85,7 @@
 
     .users-emails-input__placeholder {
         margin-left: 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
     .users-emails-input__input {
@@ -130,7 +130,7 @@
         gap: 8px;
 
         &--no-matches {
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             text-align: center;
 
             span {
@@ -233,7 +233,7 @@
             height: 24px;
             padding: 3px;
             margin-right: 4px;
-            background: rgba(var(--center-channel-color-rgb), 0.73);
+            background: rgba(var(--center-channel-color-rgb), 0.75);
             border-radius: 16px;
 
             svg {
@@ -265,7 +265,7 @@
         svg {
             width: 16px;
             height: 16px;
-            fill: rgba(var(--center-channel-color-rgb), 0.73);
+            fill: rgba(var(--center-channel-color-rgb), 0.75);
             opacity: 0.73;
 
             &:hover {

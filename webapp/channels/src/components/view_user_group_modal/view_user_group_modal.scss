@@ -24,14 +24,14 @@
                 border: none;
                 margin-left: auto;
                 border-radius: 4px;
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 text-decoration: none;
 
                 &:hover {
                     background: rgba(var(--center-channel-color-rgb), 0.08);
                     border-radius: 4px;
-                    color: rgba(var(--center-channel-color-rgb), 0.73);
-                    fill: rgba(var(--center-channel-color-rgb), 0.73);
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
+                    fill: rgba(var(--center-channel-color-rgb), 0.75);
                 }
 
                 &:active {
@@ -58,7 +58,7 @@
 
             span.group-name {
                 margin-left: 70px;
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 12px;
                 line-height: 12px;
             }
@@ -118,7 +118,7 @@
 
                     .group-member-username {
                         padding-left: 8px;
-                        color: rgba(var(--center-channel-color-rgb), 0.73);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                         font-size: 12px;
                         line-height: 18px;
                     }
@@ -129,14 +129,14 @@
                         height: 2.4rem;
                         margin-right: 0;
                         margin-left: auto;
-                        color: rgba(var(--center-channel-color-rgb), 0.73);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                         font-size: inherit;
 
                         &:hover {
                             background: rgba(var(--center-channel-color-rgb), 0.08);
                             border-radius: 4px;
-                            color: rgba(var(--center-channel-color-rgb), 0.73);
-                            fill: rgba(var(--center-channel-color-rgb), 0.73);
+                            color: rgba(var(--center-channel-color-rgb), 0.75);
+                            fill: rgba(var(--center-channel-color-rgb), 0.75);
                         }
 
                         &:active {

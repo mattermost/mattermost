@@ -39,7 +39,7 @@ const Info = styled.div`
 `;
 
 const Title = styled.div`
-    color: rgba(var(--center-channel-color-rgb), 0.73);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
     font-weight: 600;
     line-height: 16px;
@@ -47,7 +47,7 @@ const Title = styled.div`
 `;
 
 const Span = styled.span`
-    color: rgba(var(--center-channel-color-rgb), 0.73);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
     line-height: 18px;
 `;

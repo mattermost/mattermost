@@ -26,6 +26,10 @@ const Button = styled.button`
     &:hover {
        background: rgba(var(--center-channel-color-rgb), 0.08);
        color: rgba(var(--center-channel-color-rgb), 0.88);
+
+        & i {
+            color: rgba(var(--center-channel-color-rgb), 0.8);
+        }
     }
 
     &:active,
@@ -36,6 +40,7 @@ const Button = styled.button`
 
     & i {
         font-size: 24px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
     }
     & span {
         line-height: 16px;
@@ -50,7 +55,7 @@ const CopyButton = styled(Button)`
     &:active,
     &.active {
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         transition: none;
     }
 

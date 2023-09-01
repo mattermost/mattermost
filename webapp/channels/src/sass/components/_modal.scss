@@ -866,7 +866,7 @@
             height: 16px;
             margin-top: 0;
             margin-left: 8px;
-            color: rgba(61, 60, 64, 0.73);
+            color: rgba(61, 60, 64, 0.75);
             font-size: 16px;
             line-height: 16px;
 
@@ -969,7 +969,7 @@
         }
 
         .more-modal__shared-actions {
-            color: rgba(61, 60, 64, 0.73);
+            color: rgba(61, 60, 64, 0.75);
 
             .shared-user-icon {
                 width: 16px;
@@ -1182,11 +1182,11 @@
                 left: 18px;
                 width: 4rem;
                 height: 4rem;
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 float: left;
 
                 &:hover {
-                    color: rgba(var(--center-channel-color-rgb), 0.73);
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
                 }
 
                 &:active {
@@ -1206,7 +1206,7 @@
                 width: 4rem;
                 height: 4rem;
                 margin-top: 0;
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 32px;
                 font-weight: normal;
                 line-height: 30px;
@@ -1214,8 +1214,8 @@
                 &:hover {
                     background: rgba(var(--center-channel-color-rgb), 0.08);
                     border-radius: 4px;
-                    color: rgba(var(--center-channel-color-rgb), 0.73);
-                    fill: rgba(var(--center-channel-color-rgb), 0.73);
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
+                    fill: rgba(var(--center-channel-color-rgb), 0.75);
                 }
 
                 &:active {

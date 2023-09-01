@@ -129,7 +129,7 @@
 
     .overlay__indent {
         @include clearfix;
-        @include alpha-property(background-color, $black, 0.73);
+        @include alpha-property(background-color, $black, 0.75);
 
         position: relative;
         height: 100%;
@@ -519,13 +519,13 @@
         margin: 5px 0;
         background: transparent;
         border-radius: 4px;
-        color: rgba(v(center-channel-color-rgb), 0.73);
-        fill: rgba(v(center-channel-color-rgb), 0.73);
+        color: rgba(v(center-channel-color-rgb), 0.75);
+        fill: rgba(v(center-channel-color-rgb), 0.75);
 
         &:hover {
             background: rgba(v(center-channel-color-rgb), 0.08);
-            color: rgba(v(center-channel-color-rgb), 0.73);
-            fill: rgba(v(center-channel-color-rgb), 0.73);
+            color: rgba(v(center-channel-color-rgb), 0.75);
+            fill: rgba(v(center-channel-color-rgb), 0.75);
         }
 
         &:active,
@@ -565,7 +565,7 @@
     display: inline-flex;
     align-items: center;
     margin: 8px 0;
-    color: rgba(var(--center-channel-color-rgb), 0.73);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-family: "Open Sans", sans-serif;
     font-size: 12px;
     gap: 8px;
@@ -1079,7 +1079,7 @@
 
     .post-edited__indicator {
         display: inline-block;
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
         font-style: italic;
         -webkit-user-select: none; /* Chrome all / Safari all */
@@ -1375,7 +1375,7 @@
             width: 16px;
             height: 20px;
             margin: 0 0 0 4px;
-            color: rgba(61, 60, 64, 0.73);
+            color: rgba(61, 60, 64, 0.75);
             font-size: 16px;
             line-height: 20px;
 
@@ -1686,7 +1686,7 @@
             height: 28px;
             padding: 2px;
             border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             text-align: center;
 
             &:hover {
@@ -1696,7 +1696,7 @@
 
             svg {
                 padding-top: 2px;
-                fill: rgba(var(--center-channel-color-rgb), 0.73);
+                fill: rgba(var(--center-channel-color-rgb), 0.75);
             }
 
             // handle 'copy successful' styles
@@ -1736,7 +1736,7 @@
 
         &:hover button.size-aware-image__copy_link,
         &:hover a.size-aware-image__download {
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
     // styles for image container of large images.
@@ -1988,7 +1988,7 @@
                 display: inline-block;
                 width: auto;
                 margin-right: 8px;
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 12px;
                 line-height: 16px;
             }
@@ -2253,16 +2253,16 @@
 
     .edit-post-history__icon__button {
         height: fit-content;
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
 
         &:hover {
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             cursor: pointer;
         }
 
         &.restore-icon:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
 }
@@ -2413,23 +2413,23 @@
                 height: 12px;
                 margin-right: 4px;
                 background: inherit;
-                fill: rgba(var(--center-channel-color-rgb), 0.73);
+                fill: rgba(var(--center-channel-color-rgb), 0.75);
                 vertical-align: middle;
             }
 
             &-text {
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 12px;
                 font-weight: normal;
             }
 
             &:hover {
                 &-icon > svg {
-                    fill: rgba(var(--center-channel-color-rgb), 0.73);
+                    fill: rgba(var(--center-channel-color-rgb), 0.75);
                 }
 
                 &-text {
-                    color: rgba(var(--center-channel-color-rgb), 0.73);
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
                 }
             }
 

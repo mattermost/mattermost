@@ -43,7 +43,7 @@ button {
         }
 
         &.dropdown {
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             fill: currentColor;
         }
 
@@ -94,7 +94,7 @@ button {
 
             .call-button-dropdown-sublabel {
                 margin-top: 4px;
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 12px;
                 line-height: 16px;
             }

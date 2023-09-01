@@ -19,7 +19,7 @@
             &:focus,
             &:active:focus {
                 background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 opacity: 1;
             }
 
@@ -28,7 +28,7 @@
             width: 4rem;
             height: 4rem;
             border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.73) !important;
+            color: rgba(var(--center-channel-color-rgb), 0.75) !important;
             font-family:
                 'Open Sans',
                 sans-serif;

@@ -150,7 +150,7 @@ export default function CenterMessageLock(props: Props) {
 
     return (<div className='CenterMessageLock'>
         <div className='CenterMessageLock__left'>
-            <EyeOffOutlineIcon color={'rgba(var(--center-channel-color-rgb), 0.73)'}/>
+            <EyeOffOutlineIcon color={'rgba(var(--center-channel-color-rgb), 0.75)'}/>
         </div>
         <div className='CenterMessageLock__right'>
             <div className='CenterMessageLock__title'>

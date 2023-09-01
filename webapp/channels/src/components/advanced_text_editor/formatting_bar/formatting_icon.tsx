@@ -42,7 +42,7 @@ export const IconContainer = styled.button`
 
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         fill: currentColor;
     }
 

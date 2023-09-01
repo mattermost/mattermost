@@ -9,12 +9,12 @@
             // number of selectors to override the specificity in _files.scss
             .image-name,
             button.single-image-view__toggle {
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
             }
 
             &:hover .image-name,
             &:hover button.single-image-view__toggle {
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
             }
 
             button.single-image-view__toggle {
@@ -63,7 +63,7 @@
 
         &:hover .image-header--expanded button.single-image-view__toggle {
             display: block;
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         .image-container {

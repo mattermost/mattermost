@@ -81,7 +81,7 @@
 
             .public-private-selector-button-description {
                 overflow: hidden;
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 12px;
                 line-height: 16px;
                 text-overflow: ellipsis;
@@ -92,7 +92,7 @@
         .public-private-selector-button-icon {
             display: flex;
             flex: none;
-            fill: rgba(var(--center-channel-color-rgb), 0.73);
+            fill: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         .public-private-selector-button-icon-check {

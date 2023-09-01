@@ -65,7 +65,7 @@
 
     // offline indicator color stays the same in all themes, that's why it is separated from the other variables
     // the color specified here is the new hard-coded color from the compass design system
-    --offline-indicator: rgba(175, 179, 192, 0.73);
+    --offline-indicator: rgba(175, 179, 192, 0.75);
 
     // Elevation values used for box shadows.
     // Defined as CSS variables so that both sass and JS can use them.

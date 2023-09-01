@@ -393,7 +393,7 @@ const LargeLoadingItem = styled.div`
 
 const LoadFailedItem = styled(LargeLoadingItem)`
     padding: 16px;
-    color: rgba(var(--center-channel-color-rgb), 0.73);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     text-align: center;
     font-size: 12px;
 `;

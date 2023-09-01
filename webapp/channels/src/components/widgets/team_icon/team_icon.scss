@@ -96,7 +96,7 @@
     }
 
     &.withImage.active {
-        box-shadow: 0 0 0 3px rgba(var(--sidebar-text-active-border-rgb), 0.73);
+        box-shadow: 0 0 0 3px rgba(var(--sidebar-text-active-border-rgb), 0.75);
 
         .TeamIcon__image {
             box-shadow: inset 0 0 0 3px var(--sidebar-teambar-bg);

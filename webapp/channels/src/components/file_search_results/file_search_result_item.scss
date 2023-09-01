@@ -93,9 +93,9 @@
         margin-left: 8px;
         background-color: var(--center-channel-bg);
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         cursor: pointer;
-        fill: rgba(var(--center-channel-color-rgb), 0.73);
+        fill: rgba(var(--center-channel-color-rgb), 0.75);
         opacity: 0;
         text-decoration: none;
         transition: opacity 0.15s ease;
@@ -110,7 +110,7 @@
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
 

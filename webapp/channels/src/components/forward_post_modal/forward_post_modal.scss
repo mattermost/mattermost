@@ -84,7 +84,7 @@
                 }
 
                 &--description {
-                    color: rgba(var(--center-channel-color-rgb), 0.73);
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
                 }
 
                 .emoticon {
@@ -95,7 +95,7 @@
             &__team-name {
                 overflow: hidden;
                 width: 100%;
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 grid-column: 3 / 4;
                 text-align: right;
                 text-overflow: ellipsis;

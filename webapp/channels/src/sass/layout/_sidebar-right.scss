@@ -65,14 +65,14 @@
         justify-content: center;
         margin-right: 4px;
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
         text-decoration: none;
         transition: all 0.2s ease-in;
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         &:active {
@@ -148,7 +148,7 @@
         padding: 0 8px;
         border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         margin: 0 0 0 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         cursor: pointer;
         font-family: "Open Sans", sans-serif;
         font-size: 12px;
@@ -161,7 +161,7 @@
             border-color: transparent;
             background: rgba(var(--center-channel-color-rgb), 0.08);
             border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         &:active {

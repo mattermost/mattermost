@@ -100,7 +100,7 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                     >
                         <CloseIcon
                             size={16}
-                            color={'rgba(var(--center-channel-color-rgb), 0.73)'}
+                            color={'rgba(var(--center-channel-color-rgb), 0.75)'}
                         />
                     </button>
                     <div className='skin-tones__close-text'>

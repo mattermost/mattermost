@@ -161,8 +161,8 @@
             width: 20px;
             height: 20px;
             margin-right: 8px;
-            color: rgba(var(--center-channel-color-rgb), 0.73);
-            fill: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            fill: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 1.6rem;
             text-align: center;
 
@@ -429,7 +429,7 @@
             opacity: 1;
 
             button {
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
 
                 .edit-icon {
                     display: none;
@@ -480,7 +480,7 @@
         line-height: 16px;
 
         span.last-active__text {
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         .custom-emoji__wrapper {

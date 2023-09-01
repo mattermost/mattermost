@@ -36,7 +36,7 @@
         svg {
             width: 16px;
             height: 16px;
-            fill: rgba(var(--sys-center-channel-color-rgb), 0.73);
+            fill: rgba(var(--sys-center-channel-color-rgb), 0.75);
             opacity: 0.73;
 
             &:hover {
@@ -44,7 +44,7 @@
             }
 
             .app__body & {
-                fill: rgba(var(--center-channel-color-rgb), 0.73);
+                fill: rgba(var(--center-channel-color-rgb), 0.75);
 
                 &:hover {
                     fill: rgba(var(--center-channel-color-rgb), 0.8);

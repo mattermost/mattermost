@@ -142,7 +142,7 @@
 
         &:focus:not(.Input) {
             border-color: #66afe9;
-            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.73);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.75);
             outline: 0;
         }
 
@@ -587,7 +587,7 @@
             left: 21px;
             width: 16px;
             height: 16px;
-            fill: rgba(var(--sys-sidebar-text-rgb), 0.73);
+            fill: rgba(var(--sys-sidebar-text-rgb), 0.75);
             stroke: #999;
         }
 
@@ -735,7 +735,7 @@
         height: 16px;
         padding: 0 4px 0 4px;
         margin-left: 8px;
-        background-color: rgba(255, 255, 255, 0.73);
+        background-color: rgba(255, 255, 255, 0.75);
         border-radius: 4px;
         color: rgba(61, 60, 64, 1);
         font-size: 10px;

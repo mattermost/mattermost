@@ -204,7 +204,7 @@ export default function SeatsCalculator(props: Props) {
                             >
                                 <InformationOutlineIcon
                                     size={18}
-                                    color={'rgba(var(--center-channel-text-rgb), 0.73)'}
+                                    color={'rgba(var(--center-channel-text-rgb), 0.75)'}
                                 />
                             </OverlayTrigger>
                         </div>

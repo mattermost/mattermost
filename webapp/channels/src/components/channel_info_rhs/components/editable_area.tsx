@@ -11,10 +11,10 @@ const EditButton = styled.button`
     padding: 0px;
     border-radius: 4px;
     background: rgba(var(--center-channel-color-rgb), 0.04);
-    color: rgba(var(--center-channel-color-rgb), 0.73);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
     width: 24px;
     height: 24px;
@@ -27,14 +27,14 @@ const EmptyPlace = styled.button`
     padding: 0px;
     background: transparent;
     border: 0px;
-    color: rgba(var(--center-channel-color-rgb), 0.73);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     i {
         display: none;
         font-size: 14px;
         margin-left: 4px;
     }
     &:hover {
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         i {
             display: inline-block;
         }

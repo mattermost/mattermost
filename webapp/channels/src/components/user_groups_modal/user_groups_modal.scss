@@ -190,7 +190,7 @@
                 position: absolute;
                 top: 15px;
                 left: 16px;
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 16px;
                 pointer-events: none;
             }
@@ -288,13 +288,13 @@
 
                     .group-name {
                         padding-left: 8px;
-                        color: rgba(var(--center-channel-color-rgb), 0.73);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                     }
 
                     .group-member-count {
                         margin-right: 8px;
                         margin-left: auto;
-                        color: rgba(var(--center-channel-color-rgb), 0.73);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                         font-size: 12px;
                         line-height: 16px;
                     }
@@ -322,7 +322,7 @@
                                     height: auto;
                                     align-self: center;
                                     padding-right: 12px;
-                                    color: rgba(var(--center-channel-color-rgb), 0.73);
+                                    color: rgba(var(--center-channel-color-rgb), 0.75);
                                     font-size: 18px;
                                     line-height: 18px;
                                 }
@@ -341,14 +341,14 @@
                         margin-left: auto;
                         background: transparent;
                         border-radius: 4px;
-                        color: rgba(var(--center-channel-color-rgb), 0.73);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                         text-decoration: none;
 
                         &:hover {
                             background: rgba(var(--center-channel-color-rgb), 0.08);
                             border-radius: 4px;
-                            color: rgba(var(--center-channel-color-rgb), 0.73);
-                            fill: rgba(var(--center-channel-color-rgb), 0.73);
+                            color: rgba(var(--center-channel-color-rgb), 0.75);
+                            fill: rgba(var(--center-channel-color-rgb), 0.75);
                         }
 
                         &:active {

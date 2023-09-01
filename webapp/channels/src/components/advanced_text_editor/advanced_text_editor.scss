@@ -78,13 +78,13 @@
         border: none;
         background: transparent;
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         cursor: pointer;
         fill: currentColor;
 
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             fill: currentColor;
             text-decoration: none;
         }
@@ -134,7 +134,7 @@
     &__helper-text {
         display: inline-block;
         margin: 8px 0 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-family: "Open Sans", sans-serif;
     }
 

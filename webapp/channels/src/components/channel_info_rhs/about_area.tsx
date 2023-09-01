@@ -30,7 +30,7 @@ const Container = styled.div`
         padding: 0px;
         background: transparent;
         border: 0px;
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 `;
 

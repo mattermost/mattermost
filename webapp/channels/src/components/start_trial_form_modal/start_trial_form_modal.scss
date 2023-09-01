@@ -26,7 +26,7 @@
             &:focus,
             &:active:focus {
                 background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                color: rgba(var(--center-channel-color-rgb), 0.73);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 opacity: 1;
             }
 
@@ -35,7 +35,7 @@
             width: 24px;
             height: 24px;
             border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.73) !important;
+            color: rgba(var(--center-channel-color-rgb), 0.75) !important;
             font-family:
                 'Open Sans',
                 sans-serif;
@@ -55,7 +55,7 @@
         .description {
             margin: 0 auto;
             margin-top: 8px;
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-family: 'Open Sans';
             font-size: 14px;
             font-style: normal;
@@ -91,7 +91,7 @@
             margin: 0;
             margin-top: 36px;
             margin-bottom: 32px;
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-family: 'Open Sans';
             font-size: 12px;
             font-style: normal;

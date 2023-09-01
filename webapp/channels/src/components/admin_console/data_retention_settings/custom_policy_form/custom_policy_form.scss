@@ -19,11 +19,11 @@
 
     .Input_wrapper,
     .Input___info {
-        color: rgba(var(--sys-center-channel-color-rgb), 0.73);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.75);
     }
 
     .Input::placeholder {
-        color: rgba(var(--sys-center-channel-color-rgb), 0.73);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.75);
     }
 
     .Input_fieldset {
@@ -46,7 +46,7 @@
 
     .Input_legend {
         background-color: var(--sys-center-channel-bg);
-        color: rgba(var(--sys-center-channel-color-rgb), 0.73);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.75);
     }
 }
 

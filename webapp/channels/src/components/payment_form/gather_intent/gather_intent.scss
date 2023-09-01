@@ -6,7 +6,7 @@
     &__title {
         padding: 0;
         margin: 0 0 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 16px !important;
         font-weight: 600 !important;
         line-height: 24px !important;
@@ -26,7 +26,7 @@
 
 .savedFeedback__text {
     align-self: center;
-    color: rgba(var(--center-channel-color-rgb), 0.73);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 22px;
     font-weight: 600;
 }
@@ -75,7 +75,7 @@
 
         h3 {
             margin: 0;
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 22px;
             font-weight: bold;
             line-height: 28px;
@@ -86,7 +86,7 @@
             border: none;
             margin-left: auto;
             background: var(--center-channel-bg);
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 24px;
         }
     }
@@ -96,7 +96,7 @@
         overflow: auto;
         padding: 0 32px;
         margin-bottom: 24px;
-        color: rgba(var(--center-channel-color-rgb), 0.73);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
     &__submitted-icon-container {
@@ -115,7 +115,7 @@
 
         &__question {
             margin-bottom: 10px;
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 14px;
             font-weight: 600;
         }
@@ -123,7 +123,7 @@
         &__option {
             margin-top: 0;
             margin-bottom: 12px;
-            color: rgba(var(--center-channel-color-rgb), 0.73);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 14px;
             font-weight: 400;
         }

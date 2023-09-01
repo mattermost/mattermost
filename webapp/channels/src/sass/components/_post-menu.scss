@@ -85,7 +85,7 @@
             }
 
             .search-item__jump {
-                color: rgba(v(center-channel-color-rgb), 0.73);
+                color: rgba(v(center-channel-color-rgb), 0.75);
 
                 &:hover {
                     color: v(link-color);
@@ -99,8 +99,8 @@
 
                 &:hover {
                     background: rgba(v(center-channel-color-rgb), 0.08);
-                    color: rgba(v(center-channel-color-rgb), 0.73);
-                    fill: rgba(v(center-channel-color-rgb), 0.73);
+                    color: rgba(v(center-channel-color-rgb), 0.75);
+                    fill: rgba(v(center-channel-color-rgb), 0.75);
                 }
 
                 &:active,
