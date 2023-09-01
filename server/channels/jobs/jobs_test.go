@@ -525,7 +525,6 @@ func TestHandleJobPanic(t *testing.T) {
 		job := &model.Job{
 			Type:   model.JobTypeImportProcess,
 			Status: model.JobStatusInProgress,
-			Logger: mlog.CreateConsoleTestLogger(t, true),
 		}
 		job.InitLogger(logger)
 
@@ -548,7 +547,6 @@ func TestHandleJobPanic(t *testing.T) {
 		job := &model.Job{
 			Type:   model.JobTypeImportProcess,
 			Status: model.JobStatusInProgress,
-			Logger: mlog.CreateConsoleTestLogger(t, true),
 		}
 		job.InitLogger(logger)
 

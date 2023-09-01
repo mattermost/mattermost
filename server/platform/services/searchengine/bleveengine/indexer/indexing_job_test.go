@@ -29,7 +29,6 @@ func TestBleveIndexer(t *testing.T) {
 			CreateAt: model.GetMillis(),
 			Status:   model.JobStatusPending,
 			Type:     model.JobTypeBlevePostIndexing,
-			Logger:   mlog.CreateConsoleTestLogger(t, true),
 		}
 		job.InitLogger(logger)
 
