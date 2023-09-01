@@ -336,6 +336,10 @@ func (ps *PlatformService) ClientConfigWithComputed() map[string]string {
 		respCfg["SchemaVersion"] = strconv.Itoa(ver)
 	}
 
+	if ps.SearchEngine.ElasticsearchEngine != nil {
+		respCfg["ElasticSearchVersion"] = ps.SearchEngine.ElasticsearchEngine.GetFullVersion()
+	}
+
 	return respCfg
 }
 

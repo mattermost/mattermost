@@ -254,6 +254,15 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                                     />
                                     {'\u00a0' + config.SQLDriverName}
                                 </div>
+                                <div data-testid='aboutElasticSearchVersion' hidden={config.ElasticSearchVersion == ""}>
+                                    <FormattedMessage
+                                        id='about.esversion'
+                                        defaultMessage='Elasticsearch Version:'
+                                    />
+                                    <span id='versionString'>
+                                        {'\u00a0' + config.ElasticSearchVersion}
+                                    </span>
+                                </div>
                             </div>
                             {licensee}
                         </div>
