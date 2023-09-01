@@ -26,7 +26,7 @@ export type Props = {
     guests: UserProfileValue[];
 }
 
-const TeamInviteBanner = (props: Props) => {
+const TeamWarningBanner = (props: Props) => {
     const {
         teamId,
         users,
@@ -210,7 +210,7 @@ const TeamInviteBanner = (props: Props) => {
             {
                 (users.length > 0 || guests.length > 0) &&
                 <AlertBanner
-                    id='inviteMembersToTeamBanner'
+                    id='teamWarningBanner'
                     mode='warning'
                     variant='app'
                     title={
@@ -236,4 +236,4 @@ const TeamInviteBanner = (props: Props) => {
     );
 };
 
-export default React.memo(TeamInviteBanner);
+export default React.memo(TeamWarningBanner);

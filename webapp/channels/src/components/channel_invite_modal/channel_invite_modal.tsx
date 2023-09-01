@@ -28,7 +28,7 @@ import InvitationModal from 'components/invitation_modal';
 import ToggleModalButton from 'components/toggle_modal_button';
 
 import GroupOption from './group_option';
-import TeamInviteBanner from './team_invite_banner';
+import TeamWarningBanner from './team_warning_banner';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
@@ -559,7 +559,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                     {inviteError}
                     <div className='channel-invite__content'>
                         {content}
-                        <TeamInviteBanner
+                        <TeamWarningBanner
                             guests={this.state.guestsNotInTeam}
                             teamId={this.props.channel.team_id}
                             users={this.state.usersNotInTeam}

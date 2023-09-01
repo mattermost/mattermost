@@ -5,7 +5,7 @@ import React from 'react';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import {Value} from 'components/multiselect/multiselect';
-import TeamInviteBanner from 'components/channel_invite_modal/team_invite_banner/team_invite_banner';
+import TeamWarningBanner from 'components/channel_invite_modal/team_warning_banner/team_warning_banner';
 import {UserProfile} from '@mattermost/types/users';
 import mockStore from 'tests/test_store';
 import {Provider} from 'react-redux';
@@ -36,7 +36,7 @@ function createUsers(count: number): UserProfileValue[] {
     return users;
 }
 
-describe('components/channel_invite_modal/team_invite_banner', () => {
+describe('components/channel_invite_modal/team_warning_banner', () => {
     const teamId = 'team1';
     const state = {
         entities: {
@@ -79,7 +79,7 @@ describe('components/channel_invite_modal/team_invite_banner', () => {
     test('should return empty snapshot', () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <TeamInviteBanner
+                <TeamWarningBanner
                     teamId={teamId}
                     users={[]}
                     guests={[]}
@@ -89,12 +89,12 @@ describe('components/channel_invite_modal/team_invite_banner', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for team_invite_banner with > 10 profiles', () => {
+    test('should match snapshot for team_warning_banner with > 10 profiles', () => {
         const users = createUsers(11);
 
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <TeamInviteBanner
+                <TeamWarningBanner
                     teamId={teamId}
                     users={users}
                     guests={[]}
@@ -104,12 +104,12 @@ describe('components/channel_invite_modal/team_invite_banner', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for team_invite_banner with < 10 profiles', () => {
+    test('should match snapshot for team_warning_banner with < 10 profiles', () => {
         const users = createUsers(2);
 
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <TeamInviteBanner
+                <TeamWarningBanner
                     teamId={teamId}
                     users={users}
                     guests={[]}
@@ -119,12 +119,12 @@ describe('components/channel_invite_modal/team_invite_banner', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for team_invite_banner with > 10 guest profiles', () => {
+    test('should match snapshot for team_warning_banner with > 10 guest profiles', () => {
         const guests = createUsers(11);
 
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <TeamInviteBanner
+                <TeamWarningBanner
                     teamId={teamId}
                     users={[]}
                     guests={guests}
@@ -134,12 +134,12 @@ describe('components/channel_invite_modal/team_invite_banner', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for team_invite_banner with < 10 guest profiles', () => {
+    test('should match snapshot for team_warning_banner with < 10 guest profiles', () => {
         const guests = createUsers(2);
 
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <TeamInviteBanner
+                <TeamWarningBanner
                     teamId={teamId}
                     users={[]}
                     guests={guests}

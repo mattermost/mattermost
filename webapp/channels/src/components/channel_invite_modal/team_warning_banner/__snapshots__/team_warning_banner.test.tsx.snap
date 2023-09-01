@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/channel_invite_modal/team_invite_banner should match snapshot for team_invite_banner with < 10 guest profiles 1`] = `
+exports[`components/channel_invite_modal/team_warning_banner should match snapshot for team_warning_banner with < 10 guest profiles 1`] = `
 <Provider
   store={
     Object {
@@ -13,7 +13,7 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
     }
   }
 >
-  <Memo(TeamInviteBanner)
+  <Memo(TeamWarningBanner)
     guests={
       Array [
         Object {
@@ -56,7 +56,7 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
           }
         />
       }
-      id="inviteMembersToTeamBanner"
+      id="teamWarningBanner"
       message={false}
       mode="warning"
       title={
@@ -74,7 +74,7 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
     >
       <div
         className="AlertBanner warning AlertBanner--app"
-        data-testid="inviteMembersToTeamBanner"
+        data-testid="teamWarningBanner"
       >
         <div
           className="AlertBanner__icon"
@@ -249,11 +249,11 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
         </div>
       </div>
     </AlertBanner>
-  </Memo(TeamInviteBanner)>
+  </Memo(TeamWarningBanner)>
 </Provider>
 `;
 
-exports[`components/channel_invite_modal/team_invite_banner should match snapshot for team_invite_banner with < 10 profiles 1`] = `
+exports[`components/channel_invite_modal/team_warning_banner should match snapshot for team_warning_banner with < 10 profiles 1`] = `
 <Provider
   store={
     Object {
@@ -266,7 +266,7 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
     }
   }
 >
-  <Memo(TeamInviteBanner)
+  <Memo(TeamWarningBanner)
     guests={Array []}
     teamId="team1"
     users={
@@ -290,7 +290,7 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
   >
     <AlertBanner
       footerMessage={false}
-      id="inviteMembersToTeamBanner"
+      id="teamWarningBanner"
       message={
         <Memo(Connect(Markdown))
           message="You can add @user-0 and @user-1 to this channel once they are members of the **** team."
@@ -327,7 +327,7 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
     >
       <div
         className="AlertBanner warning AlertBanner--app"
-        data-testid="inviteMembersToTeamBanner"
+        data-testid="teamWarningBanner"
       >
         <div
           className="AlertBanner__icon"
@@ -503,11 +503,11 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
         </div>
       </div>
     </AlertBanner>
-  </Memo(TeamInviteBanner)>
+  </Memo(TeamWarningBanner)>
 </Provider>
 `;
 
-exports[`components/channel_invite_modal/team_invite_banner should match snapshot for team_invite_banner with > 10 guest profiles 1`] = `
+exports[`components/channel_invite_modal/team_warning_banner should match snapshot for team_warning_banner with > 10 guest profiles 1`] = `
 <Provider
   store={
     Object {
@@ -520,7 +520,7 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
     }
   }
 >
-  <Memo(TeamInviteBanner)
+  <Memo(TeamWarningBanner)
     guests={
       Array [
         Object {
@@ -675,7 +675,7 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
           " are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.",
         ]
       }
-      id="inviteMembersToTeamBanner"
+      id="teamWarningBanner"
       message={false}
       mode="warning"
       title={
@@ -693,7 +693,7 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
     >
       <div
         className="AlertBanner warning AlertBanner--app"
-        data-testid="inviteMembersToTeamBanner"
+        data-testid="teamWarningBanner"
       >
         <div
           className="AlertBanner__icon"
@@ -1007,11 +1007,11 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
         </div>
       </div>
     </AlertBanner>
-  </Memo(TeamInviteBanner)>
+  </Memo(TeamWarningBanner)>
 </Provider>
 `;
 
-exports[`components/channel_invite_modal/team_invite_banner should match snapshot for team_invite_banner with > 10 profiles 1`] = `
+exports[`components/channel_invite_modal/team_warning_banner should match snapshot for team_warning_banner with > 10 profiles 1`] = `
 <Provider
   store={
     Object {
@@ -1024,7 +1024,7 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
     }
   }
 >
-  <Memo(TeamInviteBanner)
+  <Memo(TeamWarningBanner)
     guests={Array []}
     teamId="team1"
     users={
@@ -1111,7 +1111,7 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
   >
     <AlertBanner
       footerMessage={false}
-      id="inviteMembersToTeamBanner"
+      id="teamWarningBanner"
       message={
         Array [
           "You can add ",
@@ -1198,7 +1198,7 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
     >
       <div
         className="AlertBanner warning AlertBanner--app"
-        data-testid="inviteMembersToTeamBanner"
+        data-testid="teamWarningBanner"
       >
         <div
           className="AlertBanner__icon"
@@ -1513,11 +1513,11 @@ exports[`components/channel_invite_modal/team_invite_banner should match snapsho
         </div>
       </div>
     </AlertBanner>
-  </Memo(TeamInviteBanner)>
+  </Memo(TeamWarningBanner)>
 </Provider>
 `;
 
-exports[`components/channel_invite_modal/team_invite_banner should return empty snapshot 1`] = `
+exports[`components/channel_invite_modal/team_warning_banner should return empty snapshot 1`] = `
 <Provider
   store={
     Object {
@@ -1530,7 +1530,7 @@ exports[`components/channel_invite_modal/team_invite_banner should return empty 
     }
   }
 >
-  <Memo(TeamInviteBanner)
+  <Memo(TeamWarningBanner)
     guests={Array []}
     teamId="team1"
     users={Array []}

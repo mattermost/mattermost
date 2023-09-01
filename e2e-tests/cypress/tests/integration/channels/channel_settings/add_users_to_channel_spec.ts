@@ -243,10 +243,10 @@ describe('Channel Settings', () => {
                     cy.get('#multiSelectList').should('exist').children().first().click();
 
                     // * Check you get a warning when adding a non team member
-                    cy.findByTestId('inviteMembersToTeamBanner').should('contain', '1 user was not selected because they are not a part of this team');
+                    cy.findByTestId('teamWarningBanner').should('contain', '1 user was not selected because they are not a part of this team');
 
                     // * Check the correct username is appearing in the team invite banner
-                    cy.findByTestId('inviteMembersToTeamBanner').should('contain', `@${newUser.username}`);
+                    cy.findByTestId('teamWarningBanner').should('contain', `@${newUser.username}`);
 
                     // # Click the button "Add" to add user to a channel
                     cy.uiGetButton('Cancel').click();
@@ -288,13 +288,13 @@ describe('Channel Settings', () => {
                         cy.get('#multiSelectList').should('exist').children().first().click();
 
                         // * Check you get a warning when adding a non team member
-                        cy.findByTestId('inviteMembersToTeamBanner').should('contain', '2 users were not selected because they are not a part of this team');
+                        cy.findByTestId('teamWarningBanner').should('contain', '2 users were not selected because they are not a part of this team');
 
                         // * Check the correct username is appearing in the invite to team portion
-                        cy.findByTestId('inviteMembersToTeamBanner').should('contain', `@${newUser.username}`);
+                        cy.findByTestId('teamWarningBanner').should('contain', `@${newUser.username}`);
 
                         // * Check the guest username is in the warning message and won't be added to the team
-                        cy.findByTestId('inviteMembersToTeamBanner').should('contain', `@${guest.username} is a guest user`);
+                        cy.findByTestId('teamWarningBanner').should('contain', `@${guest.username} is a guest user`);
 
                         // # Click the button "Add" to add user to a channel
                         cy.uiGetButton('Cancel').click();
@@ -337,10 +337,10 @@ describe('Channel Settings', () => {
                     cy.get('#multiSelectList').should('exist').children().first().click();
 
                     // * Check you get a warning when adding a non team member
-                    cy.findByTestId('inviteMembersToTeamBanner').should('contain', '1 user was not selected because they are not a part of this team');
+                    cy.findByTestId('teamWarningBanner').should('contain', '1 user was not selected because they are not a part of this team');
 
                     // * Check the correct username is appearing in the team invite banner
-                    cy.findByTestId('inviteMembersToTeamBanner').should('contain', `@${newUser.username}`);
+                    cy.findByTestId('teamWarningBanner').should('contain', `@${newUser.username}`);
                 });
             });
         });
