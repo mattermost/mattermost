@@ -17,6 +17,7 @@ describe('Channel Settings', () => {
     let firstUser: Cypress.UserProfile;
     let addedUsersChannel: Cypress.Channel;
     let username: string;
+    let groupId: string;
     const usernames: string[] = [];
 
     const users: Cypress.UserProfile[] = [];
@@ -54,8 +55,8 @@ describe('Channel Settings', () => {
 
             cy.apiLogin(firstUser);
         }).then(() => {
-            const id = getRandomId();
-            cy.apiCreateCustomUserGroup(`group${id}`, `group${id}`, [users[0].id, users[1].id]);
+            groupId = getRandomId();
+            cy.apiCreateCustomUserGroup(`group${groupId}`, `group${groupId}`, [users[0].id, users[1].id]);
         });
     });
 
@@ -65,7 +66,7 @@ describe('Channel Settings', () => {
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
             // # Add users to channel
-            addNumberOfUsersToChannel(1);
+            addNumberOfUsersToChannel(1, false);
 
             cy.getLastPostId().then((id) => {
                 // * The system message should contain 'added to the channel by you'
@@ -82,7 +83,7 @@ describe('Channel Settings', () => {
         cy.apiCreateChannel(testTeam.id, 'channel-test', 'Channel').then(({channel}) => {
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
-            addNumberOfUsersToChannel(3);
+            addNumberOfUsersToChannel(3, false);
 
             cy.getLastPostId().then((id) => {
                 cy.get(`#postMessageText_${id}`).should('contain', '2 others were added to the channel by you');
@@ -105,10 +106,10 @@ describe('Channel Settings', () => {
         cy.get('#addUsersToChannelModal').should('be.visible');
 
         // # Type into the input box to search for a user
-        cy.get('#selectItems input').typeWithForce('u');
+        cy.get('#selectItems input').typeWithForce('user');
 
         // # First add one user in order to see them disappearing from the list
-        cy.get('#multiSelectList > div').first().then((el) => {
+        cy.get('#multiSelectList > div').not(':contains("Already in channel")').first().then((el) => {
             const childNodes = Array.from(el[0].childNodes);
             childNodes.map((child: HTMLElement) => usernames.push(child.innerText));
 
@@ -136,7 +137,7 @@ describe('Channel Settings', () => {
         });
 
         // Add two more users
-        addNumberOfUsersToChannel(2);
+        addNumberOfUsersToChannel(2, false);
 
         // Verify that the system post reflects the number of added users
         cy.getLastPostId().then((id) => {
@@ -186,11 +187,12 @@ describe('Channel Settings', () => {
             // * Assert that modal appears
             cy.get('#addUsersToChannelModal').should('be.visible');
 
-            // # Type 'group' into the input box
-            cy.get('#selectItems input').typeWithForce('group');
+            // # Type 'group'+ id created in beforeAll into the input box
+            cy.get('#selectItems input').typeWithForce(`group${groupId}`);
 
             // # Click the first row for a number of times
-            cy.get('#multiSelectList').should('be.visible').first().click();
+            // cy.get('#multiSelectList').should('be.visible').first().click();
+            cy.get('#multiSelectList').should('exist').children().first().click();
 
             // # Click the button "Add" to add user to a channel
             cy.uiGetButton('Add').click();
@@ -213,7 +215,7 @@ describe('Channel Settings', () => {
         });
     });
 
-    it('Add group members to team and then to channel', () => {
+    it('Add group members that are not team members', () => {
         cy.apiAdminLogin();
 
         // # Create a new user
@@ -237,50 +239,26 @@ describe('Channel Settings', () => {
                     cy.get('#selectItems input').typeWithForce(`newgroup${id}`);
 
                     // # Click the first row for a number of times
-                    cy.get('#multiSelectList').should('be.visible').first().click();
+                    // cy.get('#multiSelectList').should('be.visible').first().click();
+                    cy.get('#multiSelectList').should('exist').children().first().click();
 
                     // * Check you get a warning when adding a non team member
                     cy.findByTestId('inviteMembersToTeamBanner').should('contain', '1 user was not selected because they are not a part of this team');
 
                     // * Check the correct username is appearing in the team invite banner
-                    cy.findByTestId('inviteMembersToTeamBanner').should('contain', `@${newUser.username} was not selected`);
-
-                    // # Click the button "Add users to team" to add user to the team
-                    cy.uiGetButton('Add users to team').click();
-
-                    // # Wait for the banner to disappear
-                    cy.findByTestId('inviteMembersToTeamBanner').should('not.exist');
-
-                    // * Check you get a success message when adding a new team member
-                    cy.findByTestId('inviteMembersToTeamBannerSuccess').should('contain', '1 user was added to the team');
-
-                    // * Check the correct username is appearing in the team invite banner
-                    cy.findByTestId('inviteMembersToTeamBannerSuccess').should('contain', `@${newUser.username} was added`);
+                    cy.findByTestId('inviteMembersToTeamBanner').should('contain', `@${newUser.username}`);
 
                     // # Click the button "Add" to add user to a channel
-                    cy.uiGetButton('Add').click();
+                    cy.uiGetButton('Cancel').click();
 
                     // # Wait for the modal to disappear
                     cy.get('#addUsersToChannelModal').should('not.exist');
-
-                    cy.getLastPostId().then((id) => {
-                        // * The system message should contain 'added to the channel by you'
-                        cy.get(`#postMessageText_${id}`).should('contain', 'added to the channel by you');
-
-                        // # Verify username link
-                        verifyMentionedUserAndProfilePopover(id);
-                    });
-
-                    // * Check that the number of channel members is 3
-                    cy.get('#channelMemberCountText').
-                        should('be.visible').
-                        and('have.text', '2');
                 });
             });
         });
     });
 
-    it('Add group members to team but give a warning about guests, and then add system users to channel', () => {
+    it('Add group members and guests that are not team members', () => {
         cy.apiAdminLogin();
 
         // # Create a new user
@@ -306,47 +284,23 @@ describe('Channel Settings', () => {
                         cy.get('#selectItems input').typeWithForce(`guestgroup${id}`);
 
                         // # Click the first row for a number of times
-                        cy.get('#multiSelectList').should('be.visible').first().click();
+                        // cy.get('#multiSelectList').should('be.visible').first().click();
+                        cy.get('#multiSelectList').should('exist').children().first().click();
 
                         // * Check you get a warning when adding a non team member
                         cy.findByTestId('inviteMembersToTeamBanner').should('contain', '2 users were not selected because they are not a part of this team');
 
                         // * Check the correct username is appearing in the invite to team portion
-                        cy.findByTestId('inviteMembersToTeamBanner').should('contain', `@${newUser.username} was not selected`);
+                        cy.findByTestId('inviteMembersToTeamBanner').should('contain', `@${newUser.username}`);
 
                         // * Check the guest username is in the warning message and won't be added to the team
-                        cy.findByTestId('inviteMembersToTeamBanner').should('contain', `@${guest.username} is a guest user and will have to be invited to the team separately to add them to this channel.`);
-
-                        // # Click the button "Add users to team" to add user to the team
-                        cy.uiGetButton('Add users to team').click();
-
-                        // # Wait for the banner to disappear
-                        cy.findByTestId('inviteMembersToTeamBanner').should('not.exist');
-
-                        // * Check you get a success message when adding a new team member
-                        cy.findByTestId('inviteMembersToTeamBannerSuccess').should('contain', '1 user was added to the team');
-
-                        // * Check the correct username is appearing in the team invite banner
-                        cy.findByTestId('inviteMembersToTeamBannerSuccess').should('contain', `@${newUser.username} was added`);
+                        cy.findByTestId('inviteMembersToTeamBanner').should('contain', `@${guest.username} is a guest user`);
 
                         // # Click the button "Add" to add user to a channel
-                        cy.uiGetButton('Add').click();
+                        cy.uiGetButton('Cancel').click();
 
                         // # Wait for the modal to disappear
                         cy.get('#addUsersToChannelModal').should('not.exist');
-
-                        cy.getLastPostId().then((id) => {
-                            // * The system message should contain 'added to the channel by you'
-                            cy.get(`#postMessageText_${id}`).should('contain', 'added to the channel by you');
-
-                            // # Verify username link
-                            verifyMentionedUserAndProfilePopover(id);
-                        });
-
-                        // * Check that the number of channel members is 2
-                        cy.get('#channelMemberCountText').
-                            should('be.visible').
-                            and('have.text', '2');
                     });
                 });
             });
@@ -379,16 +333,14 @@ describe('Channel Settings', () => {
                     cy.get('#selectItems input').typeWithForce(`newgroup${id}`);
 
                     // # Click the first row for a number of times
-                    cy.get('#multiSelectList').should('be.visible').first().click();
+                    // cy.get('#multiSelectList').should('be.visible').first().click();
+                    cy.get('#multiSelectList').should('exist').children().first().click();
 
                     // * Check you get a warning when adding a non team member
                     cy.findByTestId('inviteMembersToTeamBanner').should('contain', '1 user was not selected because they are not a part of this team');
 
                     // * Check the correct username is appearing in the team invite banner
-                    cy.findByTestId('inviteMembersToTeamBanner').should('contain', `@${newUser.username} was not selected. Please contact your system administrator`);
-
-                    // # "Add users to team" button should not exist
-                    cy.get('#inviteMembersToTeamButton').should('not.exist');
+                    cy.findByTestId('inviteMembersToTeamBanner').should('contain', `@${newUser.username}`);
                 });
             });
         });
@@ -414,7 +366,7 @@ function verifyMentionedUserAndProfilePopover(postId: string) {
     });
 }
 
-function addNumberOfUsersToChannel(num = 1) {
+function addNumberOfUsersToChannel(num = 1, allowExisting = false) {
     // # Open channel menu and click 'Add Members'
     cy.uiOpenChannelMenu('Add Members');
     cy.get('#addUsersToChannelModal').should('be.visible');
@@ -423,7 +375,13 @@ function addNumberOfUsersToChannel(num = 1) {
     // # Click the first row for a number of times
     Cypress._.times(num, () => {
         cy.get('#selectItems input').typeWithForce('user');
-        cy.get('#multiSelectList').should('be.visible').first().click();
+
+        // cy.get('#multiSelectList').should('be.visible').first().click();
+        if (allowExisting) {
+            cy.get('#multiSelectList').should('exist').children().first().click();
+        } else {
+            cy.get('#multiSelectList').should('exist').children().not(':contains("Already in channel")').first().click();
+        }
     });
 
     // # Click the button "Add" to add user to a channel

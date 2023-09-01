@@ -158,6 +158,7 @@ export type GetGroupsParams = {
     include_member_count?: boolean;
     include_archived?: boolean;
     filter_archived?: boolean;
+    include_member_ids?: boolean;
 }
 
 export type GetGroupsForUserParams = GetGroupsParams & {
@@ -169,7 +170,6 @@ export type GroupSearchParams = GetGroupsParams & {
     filter_has_member?: string;
     include_timezones?: string;
     include_channel_member_count?: string;
-    include_member_ids?: boolean;
 }
 
 export type GroupMembership = {

@@ -28,7 +28,7 @@ import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import {GlobalState} from 'types/store';
 
 import {getRecentProfilesFromDMs} from 'mattermost-redux/selectors/entities/channels';
-import {getAllAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
+import {makeGetAllAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
 
 import ChannelInviteModal from './channel_invite_modal';
 
@@ -38,6 +38,7 @@ type OwnProps = {
 }
 
 function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) {
+    const getAllAssociatedGroupsForReference = makeGetAllAssociatedGroupsForReference();
     let doGetProfilesNotInChannel: (state: GlobalState, channelId: string, filters?: any) => UserProfile[];
     if (initialProps.channelId && initialProps.teamId) {
         doGetProfilesNotInChannel = makeGetProfilesNotInChannel();
@@ -83,7 +84,7 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
         const userStatuses = getUserStatuses(state);
 
         const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state);
-        const groups = getAllAssociatedGroupsForReference(state);
+        const groups = getAllAssociatedGroupsForReference(state, true);
 
         return {
             profilesNotInCurrentChannel,
