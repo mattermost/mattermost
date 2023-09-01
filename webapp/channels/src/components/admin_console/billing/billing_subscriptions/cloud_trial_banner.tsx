@@ -75,13 +75,13 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
             title={(
                 <FormattedMessage
                     id='admin.subscription.cloudTrialCard.upgradeTitle'
-                    defaultMessage='Upgrade to one of our paid plans to avoid Free plan data limits'
+                    defaultMessage='Upgrade to one of our annual plans'
                 />
             )}
             message={(
                 <FormattedMessage
                     id='admin.subscription.cloudTrialCard.description'
-                    defaultMessage='Your trial ends on {date} {time}. Upgrade to one of our paid plans with no limits.'
+                    defaultMessage='Your trial ends on {date} {time}. Upgrade to one of our paid plans'
                     values={{
                         date: moment(endDate).format('MMM D, YYYY '),
                         time: moment(endDate).endOf('day').format('h:mm a ') + moment().tz(getBrowserTimezone()).format('z'),

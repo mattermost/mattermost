@@ -56,7 +56,6 @@ import PostDeletedModal from 'components/post_deleted_modal';
 import {FilePreviewInfo} from 'components/file_preview/file_preview';
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import {TextboxClass, TextboxElement} from 'components/textbox';
-import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -1237,11 +1236,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         return (
             <form onSubmit={this.handleSubmit}>
-                {
-                    this.props.canPost &&
-                    (this.props.draft.fileInfos.length > 0 || this.props.draft.uploadsInProgress.length > 0) &&
-                    <FileLimitStickyBanner/>
-                }
                 <AdvancedTextEditor
                     location={Locations.RHS_COMMENT}
                     textboxRef={this.textboxRef}

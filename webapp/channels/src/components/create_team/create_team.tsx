@@ -43,10 +43,6 @@ export type Props = {
     match: {
         url: string;
     };
-
-    isCloud: boolean;
-    isFreeTrial: boolean;
-    usageDeltas: CloudUsage;
 };
 
 type State = {
@@ -76,17 +72,7 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
             customDescriptionText,
             match,
             siteName,
-            isCloud,
-            isFreeTrial,
-            usageDeltas: {
-                teams: {
-                    active: usageDeltaTeams,
-                },
-            },
         } = this.props;
-
-        const teamsLimitReached = usageDeltaTeams >= 0;
-        const createTeamRestricted = isCloud && !isFreeTrial && teamsLimitReached;
 
         let url = '/select_team';
         if (currentTeam) {
@@ -98,8 +84,8 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
 
         return (
             <div>
-                <AnnouncementBar/>
-                <BackButton url={url}/>
+                <AnnouncementBar />
+                <BackButton url={url} />
                 <div className='col-sm-12'>
                     <div className='signup-team__container'>
                         <SiteNameAndDescription
@@ -107,47 +93,29 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
                             siteName={siteName}
                         />
                         <div className='signup__content'>
-                            {createTeamRestricted ? (
-                                <>
-                                    <h5>
-                                        <FormattedMessage
-                                            id='create_team.createTeamRestricted.title'
-                                            tagName='strong'
-                                            defaultMessage='Professional feature'
+                            <Switch>
+                                <Route
+                                    path={`${this.props.match.url}/display_name`}
+                                    render={(props) => (
+                                        <DisplayName
+                                            state={this.state}
+                                            updateParent={this.updateParent}
+                                            {...props}
                                         />
-                                    </h5>
-                                    <div>
-                                        <FormattedMessage
-                                            id='create_team.createTeamRestricted.message'
-                                            defaultMessage='Your workspace plan has reached the limit on the number of teams. Create unlimited teams with a free 30-day trial. Contact your System Administrator.'
+                                    )}
+                                />
+                                <Route
+                                    path={`${this.props.match.url}/team_url`}
+                                    render={(props) => (
+                                        <TeamUrl
+                                            state={this.state}
+                                            updateParent={this.updateParent}
+                                            {...props}
                                         />
-                                    </div>
-                                </>
-                            ) : (
-                                <Switch>
-                                    <Route
-                                        path={`${this.props.match.url}/display_name`}
-                                        render={(props) => (
-                                            <DisplayName
-                                                state={this.state}
-                                                updateParent={this.updateParent}
-                                                {...props}
-                                            />
-                                        )}
-                                    />
-                                    <Route
-                                        path={`${this.props.match.url}/team_url`}
-                                        render={(props) => (
-                                            <TeamUrl
-                                                state={this.state}
-                                                updateParent={this.updateParent}
-                                                {...props}
-                                            />
-                                        )}
-                                    />
-                                    <Redirect to={`${match.url}/display_name`}/>
-                                </Switch>
-                            )}
+                                    )}
+                                />
+                                <Redirect to={`${match.url}/display_name`} />
+                            </Switch>
                         </div>
                     </div>
                 </div>

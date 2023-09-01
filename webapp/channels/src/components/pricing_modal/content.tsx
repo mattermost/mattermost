@@ -4,14 +4,13 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 
-import {CloudProducts, LicenseSkus, ModalIdentifiers, MattermostFeatures, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
+import {CloudProducts, LicenseSkus, MattermostFeatures, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
 
 import {findOnlyYearlyProducts, findProductBySku} from 'utils/products';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import {closeModal} from 'actions/views/modals';
 
 import {
     getCloudSubscription as selectCloudSubscription,
@@ -19,11 +18,9 @@ import {
     getCloudProducts as selectCloudProducts,
 } from 'mattermost-redux/selectors/entities/cloud';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
 import PlanLabel from 'components/common/plan_label';
-import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 import {NotifyStatus} from 'components/common/hooks/useGetNotifyAdmin';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
@@ -46,7 +43,6 @@ type ContentProps = {
 
 function Content(props: ContentProps) {
     const {formatMessage, formatNumber} = useIntl();
-    const dispatch = useDispatch<DispatchFunc>();
 
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
 
@@ -124,10 +120,6 @@ function Content(props: ContentProps) {
         openCloudPurchaseModal({trackingLocation: telemetryInfo});
     };
 
-    const closePricingModal = () => {
-        dispatch(closeModal(ModalIdentifiers.PRICING_MODAL));
-    };
-
     const professionalBtnDetails = () => {
         if (isAdmin) {
             return {
@@ -189,22 +181,6 @@ function Content(props: ContentProps) {
                 disabled: isEnterprise,
                 customClass: trialBtnClass,
             };
-        }
-
-        return undefined;
-    };
-
-    const enterpriseCustomBtnDetails = () => {
-        if (!isPostTrial && isAdmin) {
-            return (
-                <CloudStartTrialButton
-                    message={formatMessage({id: 'pricing_modal.btn.tryDays', defaultMessage: 'Try free for {days} days'}, {days: '30'})}
-                    telemetryId='start_cloud_trial_from_pricing_modal'
-                    disabled={isEnterprise || isEnterpriseTrial || isProfessional}
-                    extraClass={`plan_action_btn ${(isEnterprise || isEnterpriseTrial || isProfessional) ? ButtonCustomiserClasses.grayed : ButtonCustomiserClasses.special}`}
-                    afterTrialRequest={closePricingModal}
-                />
-            );
         }
 
         return undefined;
@@ -306,7 +282,7 @@ function Content(props: ContentProps) {
                                     renderLastDaysOnTrial={true}
                                 />) : undefined}
                         buttonDetails={enterpriseBtnDetails()}
-                        customButtonDetails={enterpriseCustomBtnDetails()}
+                        customButtonDetails={undefined}
                         planTrialDisclaimer={(!isPostTrial && isAdmin) ? <StartTrialCaution/> : undefined}
                         contactSalesCTA={(isPostTrial || !isAdmin) ? undefined : <ContactSalesCTA/>}
                         briefing={{

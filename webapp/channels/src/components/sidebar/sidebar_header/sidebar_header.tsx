@@ -12,7 +12,6 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 
-import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -100,7 +99,6 @@ const SidebarHeader: React.FC<Props> = (props: Props): JSX.Element => {
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const showCreateTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS);
     const showInviteTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.INVITE_PEOPLE);
-    const usageDeltas = useGetUsageDeltas();
     const isAddChannelOpen = useSelector(isAddChannelDropdownOpen);
     const theme = useSelector(getTheme);
     const openAddChannelOpen = useCallback((open: boolean) => {
@@ -138,7 +136,6 @@ const SidebarHeader: React.FC<Props> = (props: Props): JSX.Element => {
                         </SidebarHeading>
                         <MainMenu
                             id='sidebarDropdownMenu'
-                            usageDeltaTeams={usageDeltas.teams.active}
                         />
                     </MenuWrapper>
                 </OverlayTrigger>

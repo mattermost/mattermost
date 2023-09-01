@@ -31,37 +31,9 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
                     Cloud: 'true',
                 },
             },
-            cloud: {
-                limits: {
-                    limitsLoaded: true,
-                },
-            },
             users: {
                 currentUserId: user.id,
                 profiles,
-            },
-            usage: {
-                files: {
-                    totalStorage: 0,
-                    totalStorageLoaded: true,
-                },
-                messages: {
-                    history: 0,
-                    historyLoaded: true,
-                },
-                boards: {
-                    cards: 0,
-                    cardsLoaded: true,
-                },
-                integrations: {
-                    enabled: 3,
-                    enabledLoaded: true,
-                },
-                teams: {
-                    active: 0,
-                    cloudArchived: 0,
-                    teamsLoaded: true,
-                },
             },
         },
         views: {
@@ -77,7 +49,6 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
 
     const props = {
         onExited: jest.fn(),
-        limitsOverpassed: false,
     };
 
     const store = mockStore(state);
@@ -91,18 +62,6 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
         expect(wrapper.debug()).toMatchSnapshot();
     });
 
-    test('should match snapshot when limits are overpassed and show the limits panel', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <ThreeDaysLeftTrialModal
-                    {...props}
-                    limitsOverpassed={true}
-                />
-            </Provider>,
-        );
-        expect(wrapper.debug()).toMatchSnapshot();
-    });
-
     test('should show the three days left modal with the three cards', () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
@@ -111,18 +70,6 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
         );
 
         expect(wrapper.find('ThreeDaysLeftTrialModal ThreeDaysLeftTrialCard')).toHaveLength(3);
-    });
-
-    test('should show the workspace limits panel when limits are overpassed', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ThreeDaysLeftTrialModal
-                    {...props}
-                    limitsOverpassed={true}
-                />
-            </Provider>,
-        );
-        expect(wrapper.find('ThreeDaysLeftTrialModal WorkspaceLimitsPanel')).toHaveLength(1);
     });
 
     test('should call on exited', () => {

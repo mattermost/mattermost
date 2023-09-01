@@ -7,7 +7,7 @@ import {
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
 import {getGroup} from 'mattermost-redux/actions/groups';
-import {ChannelTypes, UserTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, UserTypes} from 'mattermost-redux/action_types';
 import {getUser} from 'mattermost-redux/actions/users';
 
 import {handleNewPost} from 'actions/post_actions';
@@ -37,7 +37,6 @@ import {
     reconnect,
     handleAppsPluginEnabled,
     handleAppsPluginDisabled,
-    handleCloudSubscriptionChanged,
     handleGroupAddedMemberEvent,
 } from './websocket_actions';
 
@@ -682,140 +681,6 @@ describe('handleChannelUpdatedEvent', () => {
         testStore.dispatch(handleChannelUpdatedEvent(msg));
 
         expect(getHistory().replace).not.toHaveBeenCalled();
-    });
-});
-
-describe('handleCloudSubscriptionChanged', () => {
-    const baseSubscription = {
-        id: 'basesub',
-        customer_id: '',
-        product_id: '',
-        add_ons: [],
-        start_at: 0,
-        end_at: 0,
-        create_at: 0,
-        seats: 0,
-        trial_end_at: 0,
-        is_free_trial: '',
-    };
-
-    test('when not cloud, does nothing', () => {
-        const initialState = {
-            entities: {
-                cloud: {
-                    limits: {
-                        messages: {
-                            history: 10000,
-                        },
-                        integrations: {
-                            enabled: 10,
-                        },
-                    },
-                },
-                general: {
-                    license: {
-                        Cloud: 'false',
-                    },
-                },
-            },
-        };
-        const newLimits = {
-            messages: {
-                history: 10001,
-            },
-        };
-
-        const newSubscription = {
-            ...baseSubscription,
-            id: 'newsub',
-        };
-        const msg = {
-            event: SocketEvents.CLOUD_PRODUCT_LIMITS_CHANGED,
-            data: {
-                limits: newLimits,
-                subscription: newSubscription,
-            },
-        };
-
-        const testStore = configureStore(initialState);
-        testStore.dispatch(handleCloudSubscriptionChanged(msg));
-
-        expect(testStore.getActions()).toEqual([]);
-    });
-
-    test('when on cloud, entirely replaces cloud limits in store', () => {
-        const initialState = {
-            entities: {
-                cloud: {
-                    limits: {
-                        messages: {
-                            history: 10000,
-                        },
-                        integrations: {
-                            enabled: 10,
-                        },
-                    },
-                },
-                general: {
-                    license: {
-                        Cloud: 'true',
-                    },
-                },
-            },
-        };
-        const newLimits = {
-            messages: {
-                history: 10001,
-            },
-        };
-        const msg = {
-            event: SocketEvents.CLOUD_PRODUCT_LIMITS_CHANGED,
-            data: {
-                limits: newLimits,
-            },
-        };
-
-        const testStore = configureStore(initialState);
-        testStore.dispatch(handleCloudSubscriptionChanged(msg));
-
-        expect(testStore.getActions()).toContainEqual({
-            type: CloudTypes.RECEIVED_CLOUD_LIMITS,
-            data: newLimits,
-        });
-    });
-
-    test('when on cloud, entirely replaces cloud limits in store', () => {
-        const initialState = {
-            entities: {
-                cloud: {
-                    subscription: {...baseSubscription},
-                },
-                general: {
-                    license: {
-                        Cloud: 'true',
-                    },
-                },
-            },
-        };
-        const newSubscription = {
-            ...baseSubscription,
-            id: 'newsub',
-        };
-
-        const msg = {
-            event: SocketEvents.CLOUD_PRODUCT_LIMITS_CHANGED,
-            data: {
-                subscription: newSubscription,
-            },
-        };
-
-        const testStore = configureStore(initialState);
-        testStore.dispatch(handleCloudSubscriptionChanged(msg));
-
-        expect(testStore.getActions()).toContainEqual({
-            type: CloudTypes.RECEIVED_CLOUD_SUBSCRIPTION,
-            data: newSubscription,
-        });
     });
 });
 

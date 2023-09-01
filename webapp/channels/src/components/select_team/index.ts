@@ -14,7 +14,6 @@ import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getSortedListableTeams, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import withUseGetUsageDelta from 'components/common/hocs/cloud/with_use_get_usage_deltas';
 
 import {GlobalState} from 'types/store';
 
@@ -66,6 +65,5 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 export default compose(
     withRouter,
-    connect(mapStateToProps, mapDispatchToProps),
-    withUseGetUsageDelta,
+    connect(mapStateToProps, mapDispatchToProps)
 )(SelectTeam) as any;

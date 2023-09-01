@@ -145,29 +145,6 @@ export function validateWorkspaceBusinessEmail() {
     };
 }
 
-export function getCloudLimits(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
-        try {
-            dispatch({
-                type: CloudTypes.CLOUD_LIMITS_REQUEST,
-            });
-            const result = await Client4.getCloudLimits();
-            if (result) {
-                dispatch({
-                    type: CloudTypes.RECEIVED_CLOUD_LIMITS,
-                    data: result,
-                });
-            }
-        } catch (error) {
-            dispatch({
-                type: CloudTypes.CLOUD_LIMITS_FAILED,
-            });
-            return error;
-        }
-        return true;
-    };
-}
-
 export function getMessagesUsage(): ActionFunc {
     return async (dispatch: DispatchFunc) => {
         try {
@@ -254,10 +231,6 @@ export function retryFailedCloudFetches() {
 
         if (errors.invoices) {
             dispatch(getInvoices());
-        }
-
-        if (errors.limits) {
-            getCloudLimits()(dispatch, getState);
         }
 
         return {data: true};

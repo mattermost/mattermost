@@ -69,7 +69,6 @@ import {PostDraft} from 'types/store/draft';
 import {ModalData} from 'types/actions';
 
 import AdvancedTextEditor from '../advanced_text_editor/advanced_text_editor';
-import FileLimitStickyBanner from '../file_limit_sticky_banner';
 import {FilePreviewInfo} from '../file_preview/file_preview';
 import PriorityLabels from './priority_labels';
 
@@ -1610,9 +1609,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 className={centerClass}
                 onSubmit={this.handleSubmit}
             >
-                {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
-                    <FileLimitStickyBanner/>
-                )}
                 <AdvancedTextEditor
                     location={Locations.CENTER}
                     currentUserId={this.props.currentUserId}

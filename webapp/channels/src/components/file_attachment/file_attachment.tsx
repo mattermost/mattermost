@@ -14,7 +14,6 @@ import Tooltip from 'components/tooltip';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Menu from 'components/widgets/menu/menu';
 import GetPublicModal from 'components/get_public_link_modal';
-import useTooltip from 'components/common/hooks/useTooltip';
 
 import {Constants, FileTypes, ModalIdentifiers} from 'utils/constants';
 import {trimFilename} from 'utils/file_utils';
@@ -27,8 +26,6 @@ import {
 } from 'utils/utils';
 
 import {FileInfo} from '@mattermost/types/files';
-
-import ArchivedTooltip from './archived_tooltip';
 
 import FilenameOverlay from './filename_overlay';
 import FileThumbnail from './file_thumbnail';
@@ -66,16 +63,6 @@ export default function FileAttachment(props: Props) {
     const [loadFilesCalled, setLoadFilesCalled] = useState(false);
     const [keepOpen, setKeepOpen] = useState(false);
     const [openUp, setOpenUp] = useState(false);
-
-    const {
-        reference,
-        getReferenceProps,
-        tooltip: archivedTooltip,
-    } = useTooltip({
-        message: <ArchivedTooltip/>,
-        placement: 'right',
-        allowedPlacements: ['right', 'top'],
-    });
 
     const buttonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -376,8 +363,6 @@ export default function FileAttachment(props: Props) {
     const content =
         (
             <div
-                ref={fileInfo.archived ? reference : undefined}
-                {...(fileInfo.archived ? getReferenceProps() : {})}
                 className={
                     classNames([
                         'post-image__column',
@@ -399,7 +384,6 @@ export default function FileAttachment(props: Props) {
         return (
             <>
                 {content}
-                {archivedTooltip}
             </>
         );
     }

@@ -183,15 +183,6 @@ export class MainMenu extends React.PureComponent<Props> {
             >
                 <Menu.Group>
                     <SystemPermissionGate
-                        permissions={[Permissions.SYSCONSOLE_WRITE_BILLING]}
-                    >
-                        <Menu.CloudTrial
-                            id='menuCloudTrial'
-                        />
-                    </SystemPermissionGate>
-                </Menu.Group>
-                <Menu.Group>
-                    <SystemPermissionGate
                         permissions={[Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE]}
                     >
                         <Menu.StartTrial

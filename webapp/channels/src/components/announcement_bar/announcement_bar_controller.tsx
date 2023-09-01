@@ -4,7 +4,6 @@
 import React from 'react';
 
 import {ToYearlyNudgeBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_yearly_nudge_banner';
-import {ToPaidPlanBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_paid_plan_nudge_banner';
 
 import {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
 import withGetCloudSubscription from '../common/hocs/cloud/with_get_cloud_subscription';
@@ -16,7 +15,6 @@ import AnnouncementBar from './default_announcement_bar';
 
 import PaymentAnnouncementBar from './payment_announcement_bar';
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
-import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
 import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal';
 import CloudDelinquencyAnnouncementBar from './cloud_delinquency';
 import ShowThreeDaysLeftTrialModal from './show_tree_days_left_trial_modal/show_three_days_left_trial_modal';
@@ -69,20 +67,17 @@ class AnnouncementBarController extends React.PureComponent<Props> {
 
         let paymentAnnouncementBar = null;
         let cloudTrialAnnouncementBar = null;
-        let cloudTrialEndAnnouncementBar = null;
+        const cloudTrialEndAnnouncementBar = null;
         let cloudDelinquencyAnnouncementBar = null;
         let notifyAdminDowngradeDelinquencyBar = null;
         let toYearlyNudgeBannerDismissable = null;
-        let toPaidPlanNudgeBannerDismissable = null;
+        const toPaidPlanNudgeBannerDismissable = null;
         if (this.props.license?.Cloud === 'true') {
             paymentAnnouncementBar = (
                 <PaymentAnnouncementBar/>
             );
             cloudTrialAnnouncementBar = (
                 <CloudTrialAnnouncementBar/>
-            );
-            cloudTrialEndAnnouncementBar = (
-                <CloudTrialEndAnnouncementBar/>
             );
             cloudDelinquencyAnnouncementBar = (
                 <CloudDelinquencyAnnouncementBar/>
@@ -91,7 +86,6 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                 <NotifyAdminDowngradeDelinquencyBar/>
             );
             toYearlyNudgeBannerDismissable = (<ToYearlyNudgeBannerDismissable/>);
-            toPaidPlanNudgeBannerDismissable = (<ToPaidPlanBannerDismissable/>);
         }
 
         let autoStartTrialModal = null;

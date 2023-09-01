@@ -4,8 +4,6 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import {fallbackStarterLimits, asGBString, hasSomeLimits} from 'utils/limits';
-import useGetLimits from 'components/common/hooks/useGetLimits';
 import {CloudProducts} from 'utils/constants';
 
 import './feature_list.scss';
@@ -16,68 +14,6 @@ export interface FeatureListProps {
 
 const FeatureList = (props: FeatureListProps) => {
     const intl = useIntl();
-    const [limits] = useGetLimits();
-
-    const featuresCloudStarter = [
-        intl.formatMessage(
-            {
-                id: 'admin.billing.subscription.planDetails.features.limitedMessageHistory',
-                defaultMessage: 'Limited to a message history of {limit} messages',
-            },
-            {
-                limit: intl.formatNumber(limits.messages?.history ?? fallbackStarterLimits.messages.history),
-            },
-        ),
-        intl.formatMessage(
-            {
-                id: 'admin.billing.subscription.planDetails.features.limitedFileStorage',
-                defaultMessage: 'Limited to {limit} File Storage',
-            },
-            {
-
-                limit: asGBString(limits.files?.total_storage ?? fallbackStarterLimits.files.totalStorage, intl.formatNumber),
-            },
-        ),
-        intl.formatMessage({
-            id: 'admin.billing.subscription.planDetails.features.groupAndOneToOneMessaging',
-            defaultMessage: 'Group and one-to-one messaging, file sharing, and search',
-        }),
-        intl.formatMessage({
-            id: 'admin.billing.subscription.planDetails.features.incidentCollaboration',
-            defaultMessage: 'Incident collaboration',
-        }),
-        intl.formatMessage({
-            id: 'admin.billing.subscription.planDetails.features.unlimitedUsers',
-            defaultMessage: 'Unlimited users',
-        }),
-        intl.formatMessage({
-            id: 'admin.billing.subscription.planDetails.features.mfa',
-            defaultMessage: 'Multi-Factor Authentication (MFA)',
-        }),
-    ];
-
-    const featuresCloudStarterLegacy = [
-        intl.formatMessage({
-            id: 'admin.billing.subscription.planDetails.features.groupAndOneToOneMessaging',
-            defaultMessage: 'Group and one-to-one messaging, file sharing, and search',
-        }),
-        intl.formatMessage({
-            id: 'admin.billing.subscription.planDetails.features.incidentCollaboration',
-            defaultMessage: 'Incident collaboration',
-        }),
-        intl.formatMessage({
-            id: 'admin.billing.subscription.planDetails.features.unlimittedUsersAndMessagingHistory',
-            defaultMessage: 'Unlimited users & message history',
-        }),
-        intl.formatMessage({
-            id: 'admin.billing.subscription.planDetails.features.mfa',
-            defaultMessage: 'Multi-Factor Authentication (MFA)',
-        }),
-        intl.formatMessage({
-            id: 'admin.billing.subscription.planDetails.features.multilanguage',
-            defaultMessage: 'Multi-language translations',
-        }),
-    ];
 
     const featuresCloudProfessional = [
         intl.formatMessage(
@@ -153,10 +89,6 @@ const FeatureList = (props: FeatureListProps) => {
     switch (props.subscriptionPlan) {
     case CloudProducts.PROFESSIONAL:
         features = featuresCloudProfessional;
-        break;
-
-    case CloudProducts.STARTER:
-        features = hasSomeLimits(limits) ? featuresCloudStarter : featuresCloudStarterLegacy;
         break;
     case CloudProducts.ENTERPRISE:
         features = featuresCloudEnterprise;

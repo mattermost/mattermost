@@ -11,7 +11,6 @@ import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
 import {CloudProducts} from 'utils/constants';
-import {makeEmptyLimits, makeEmptyUsage} from 'utils/limits_test';
 
 import FeatureList, {FeatureListProps} from './feature_list';
 
@@ -21,10 +20,6 @@ function renderFeatureList(props: FeatureListProps, deep?: boolean) {
             general: {
                 license: {},
             },
-            cloud: {
-                limits: makeEmptyLimits(),
-            },
-            usage: makeEmptyUsage(),
             users: {
                 currentUserId: 'uid',
                 profiles: {
@@ -51,12 +46,6 @@ function renderFeatureList(props: FeatureListProps, deep?: boolean) {
 }
 
 describe('components/admin_console/billing/plan_details/feature_list', () => {
-    test('should match snapshot when running FREE tier', () => {
-        const wrapper = renderFeatureList({
-            subscriptionPlan: CloudProducts.STARTER,
-        });
-        expect(wrapper).toMatchSnapshot();
-    });
     test('should match snapshot when running paid tier and professional', () => {
         const wrapper = renderFeatureList({
             subscriptionPlan: CloudProducts.PROFESSIONAL,
@@ -70,23 +59,10 @@ describe('components/admin_console/billing/plan_details/feature_list', () => {
         });
         expect(wrapper).toMatchSnapshot();
     });
-
-    test('should match snapshot when running paid tier and free', () => {
-        const wrapper = renderFeatureList({
-            subscriptionPlan: CloudProducts.STARTER,
-        });
-        expect(wrapper).toMatchSnapshot();
-    });
-
     test('all feature items must have different values', () => {
         const wrapperEnterprise = renderFeatureList({
             subscriptionPlan: CloudProducts.ENTERPRISE,
         }, true);
-
-        const wrapperStarter = renderFeatureList({
-            subscriptionPlan: CloudProducts.STARTER,
-        }, true);
-
         const wrapperProfessional = renderFeatureList({
             subscriptionPlan: CloudProducts.PROFESSIONAL,
         }, true);
@@ -95,7 +71,7 @@ describe('components/admin_console/billing/plan_details/feature_list', () => {
             subscriptionPlan: CloudProducts.PROFESSIONAL,
         }, true);
 
-        const wrappers = [wrapperProfessional, wrapperEnterprise, wrapperStarter, wrapperFreeTier];
+        const wrappers = [wrapperProfessional, wrapperEnterprise, wrapperFreeTier];
 
         wrappers.forEach((wrapper: ReturnType<typeof renderFeatureList>) => {
             const featuresSpanElements = wrapper.find('div.PlanDetailsFeature > span');

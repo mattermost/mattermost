@@ -8,12 +8,10 @@ import {useIntl} from 'react-intl';
 import classNames from 'classnames';
 
 import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
-import StartTrialCaution from 'components/pricing_modal/start_trial_caution';
 
 import {Message, t} from 'utils/i18n';
 import {openExternalPricingLink, FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 
-import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 
 import './upsell_card.scss';
@@ -62,7 +60,7 @@ export default function UpsellCard(props: Props) {
         },
     );
 
-    let callToAction = (
+    const callToAction = (
         <button
             className={ctaClassname}
             onClick={props.ctaAction}
@@ -76,28 +74,6 @@ export default function UpsellCard(props: Props) {
             )}
         </button>
     );
-    if (props.upsellIsTrial) {
-        callToAction = (
-            <>
-                <CloudStartTrialButton
-                    message={
-                        intl.formatMessage(
-                            {
-                                id: props.cta.id,
-                                defaultMessage: props.cta.defaultMessage,
-                            },
-                            props.cta.values,
-                        )
-                    }
-                    telemetryId={'start_cloud_trial_billing_subscription'}
-                    extraClass={ctaClassname}
-                />
-                <p className='disclaimer'>
-                    <StartTrialCaution/>
-                </p>
-            </>
-        );
-    }
     return (
         <div className='UpsellCard'>
             <div className='UpsellCard__illustration'>

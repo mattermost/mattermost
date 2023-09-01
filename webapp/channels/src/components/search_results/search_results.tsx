@@ -31,7 +31,6 @@ import {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/type
 import MessageOrFileSelector from './messages_or_files_selector';
 import FilesFilterMenu from './files_filter_menu';
 import PostSearchResultsItem from './post_search_results_item';
-import SearchLimitsBanner from './search_limits_banner';
 
 import type {Props} from './types';
 
@@ -352,7 +351,6 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     />
                 </div>
             }
-            <SearchLimitsBanner searchType={searchType}/>
             <Scrollbars
                 ref={scrollbars}
                 autoHide={true}

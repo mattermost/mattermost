@@ -13,12 +13,10 @@ import {isAdmin} from 'mattermost-redux/utils/user_utils';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {checkHadPriorTrial, isCurrentLicenseCloud, getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {checkHadPriorTrial, getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getBrowserTimezone} from 'utils/timezone';
 
 import {CloudProducts, LicenseSkus} from 'utils/constants';
-
-import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 
 import {GlobalState} from '@mattermost/types/store';
 
@@ -35,7 +33,6 @@ function ADLDAPUpsellBanner() {
     }, []);
 
     const isAdminUser = isAdmin(useSelector(getCurrentUser).roles);
-    const isCloud = useSelector(isCurrentLicenseCloud);
     const currentLicense = useSelector(getLicense);
     const prevTrialLicense = useSelector((state: GlobalState) => state.entities.admin.prevTrialLicense);
     const product = useSelector(selectSubscriptionProduct);
@@ -98,17 +95,6 @@ function ADLDAPUpsellBanner() {
             renderAsButton={true}
             onClick={() => setConfirmed(true)}
         />);
-
-    if (isCloud) {
-        btn = (
-            <CloudStartTrialButton
-                extraClass='ad-ldap-banner-btn'
-                message={formatMessage({id: 'adldap_upsell_banner.trial_btn', defaultMessage: 'Start trial'})}
-                telemetryId={'start_cloud_trial_from_adldap_upsell_banner'}
-                onClick={() => setConfirmed(true)}
-            />
-        );
-    }
 
     if (prevTrialed) {
         btn = (

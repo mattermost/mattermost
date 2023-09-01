@@ -97,27 +97,6 @@ describe('Components/SidebarHeader', () => {
                             price_per_seat: 0,
                         },
                     },
-                    limits: {
-                        limitsLoaded: true,
-                        limits: {
-                            integrations: {
-                                enabled: 10,
-                            },
-                            messages: {
-                                history: 10000,
-                            },
-                            files: {
-                                total_storage: FileSizes.Gigabyte,
-                            },
-                            teams: {
-                                active: 1,
-                            },
-                            boards: {
-                                cards: 500,
-                                views: 5,
-                            },
-                        },
-                    },
                 },
             },
             views: {

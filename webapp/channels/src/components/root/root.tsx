@@ -32,7 +32,6 @@ import SystemNotice from 'components/system_notice';
 import {makeAsyncComponent} from 'components/async_load';
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import GlobalHeader from 'components/global_header/global_header';
-import CloudEffects from 'components/cloud_effects';
 import ModalController from 'components/modal_controller';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
@@ -75,7 +74,6 @@ const LazyCreateTeam = React.lazy(() => import('components/create_team'));
 const LazyMfa = React.lazy(() => import('components/mfa/mfa_controller'));
 const LazyPreparingWorkspace = React.lazy(() => import('components/preparing_workspace'));
 const LazyTeamController = React.lazy(() => import('components/team_controller'));
-const LazyDelinquencyModalController = React.lazy(() => import('components/delinquency_modal'));
 const LazyOnBoardingTaskList = React.lazy(() => import('components/onboarding_tasklist'));
 
 import store from 'stores/redux_store.jsx';
@@ -112,7 +110,6 @@ const Authorize = makeAsyncComponent('Authorize', LazyAuthorize);
 const Mfa = makeAsyncComponent('Mfa', LazyMfa);
 const PreparingWorkspace = makeAsyncComponent('PreparingWorkspace', LazyPreparingWorkspace);
 const TeamController = makeAsyncComponent('TeamController', LazyTeamController);
-const DelinquencyModalController = makeAsyncComponent('DelinquencyModalController', LazyDelinquencyModalController);
 const OnBoardingTaskList = makeAsyncComponent('OnboardingTaskList', LazyOnBoardingTaskList);
 
 type LoggedInRouteProps<T> = {
@@ -650,9 +647,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         <AnnouncementBarController/>
                         <SystemNotice/>
                         <GlobalHeader/>
-                        <CloudEffects/>
                         <TeamSidebar/>
-                        <DelinquencyModalController/>
                         <Switch>
                             {this.props.products?.filter((product) => Boolean(product.publicComponent)).map((product) => (
                                 <Route
