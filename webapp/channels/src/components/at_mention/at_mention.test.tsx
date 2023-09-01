@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {RefObject} from 'react';
+import React from 'react';
 import {shallow} from 'enzyme';
 
 import AtMention from 'components/at_mention/at_mention';
@@ -31,7 +31,7 @@ describe('components/AtMention', () => {
     };
 
     test('should match snapshot when mentioning user', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='user1'
@@ -44,7 +44,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning user with different teammate name display setting', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='user1'
@@ -58,7 +58,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning user followed by punctuation', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='user1...'
@@ -71,7 +71,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning user containing punctuation', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='userdot.'
@@ -84,7 +84,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning user containing and followed by punctuation', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='userdot..'
@@ -97,7 +97,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning user with mixed case', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='USeR1'
@@ -110,7 +110,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning current user', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='currentUser'
@@ -123,7 +123,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning all', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='all'
@@ -136,7 +136,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning all with mixed case', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='aLL'
@@ -149,7 +149,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when not mentioning a user', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='notauser'
@@ -162,7 +162,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when not mentioning a user with mixed case', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='NOTAuser'
@@ -175,7 +175,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning a group that is allowed reference', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='developers'
@@ -188,7 +188,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning a group that is allowed reference with group highlight disabled', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='developers'
@@ -202,7 +202,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning a group that is not allowed reference', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='marketing'
@@ -215,7 +215,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning a group followed by punctuation', () => {
-        const wrapper = shallow<AtMention>(
+        const wrapper = shallow(
             <AtMention
                 {...baseProps}
                 mentionName='developers.'
@@ -225,53 +225,5 @@ describe('components/AtMention', () => {
         );
 
         expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should have placement state based on ref position of click handler', () => {
-        const wrapper = shallow<AtMention>(
-            <AtMention
-                {...baseProps}
-                mentionName={'user1'}
-            >
-                {'(at)-user1'}
-            </AtMention>,
-        );
-
-        const instance = wrapper.instance();
-
-        instance.buttonRef = {
-            current: {
-                getBoundingClientRect: () => ({
-                    top: 550,
-                }),
-            },
-        }as RefObject<HTMLAnchorElement>;
-
-        wrapper.instance().handleClick({preventDefault: jest.fn(), target: AtMention} as any);
-        expect(wrapper.state('placement')).toEqual('top');
-
-        instance.buttonRef = {
-            current: {
-                getBoundingClientRect: () => ({
-                    top: 500,
-                    bottom: 100,
-                }),
-            },
-        }as RefObject<HTMLAnchorElement>;
-
-        wrapper.instance().handleClick({preventDefault: jest.fn(), target: AtMention} as any);
-        expect(wrapper.state('placement')).toEqual('bottom');
-
-        instance.buttonRef = {
-            current: {
-                getBoundingClientRect: () => ({
-                    top: 200,
-                    bottom: 1000,
-                }),
-            },
-        } as RefObject<HTMLAnchorElement>;
-
-        wrapper.instance().handleClick({preventDefault: jest.fn(), target: AtMention} as any);
-        expect(wrapper.state('placement')).toEqual('left');
     });
 });

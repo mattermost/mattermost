@@ -12,7 +12,7 @@ import {Group} from '@mattermost/types/groups';
 import ProfilePopover from 'components/profile_popover';
 import UserGroupPopover from 'components/user_group_popover';
 
-import {popOverOverlayPosition} from 'utils/position_utils';
+import {popOverOverlayPosition, approxGroupPopOverHeight} from 'utils/position_utils';
 import {isKeyPressed} from 'utils/keyboard';
 import {getUserOrGroupFromMentionName} from 'utils/post_utils';
 import Constants, {A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
@@ -43,20 +43,25 @@ export const AtMention = (props: Props) => {
     const [target, setTarget] = useState<HTMLAnchorElement | undefined>();
     const [placement, setPlacement] = useState('right');
 
-    const groupOverlayPlacement = (group: Group, targetBounds: DOMRect) => {
-        const approximatePopoverHeight = Math.min(
-            (getViewportSize().h * VIEWPORT_SCALE_FACTOR) + HEADER_HEIGHT_ESTIMATE,
-            getListHeight(group.member_count) + HEADER_HEIGHT_ESTIMATE,
-            MAX_LIST_HEIGHT,
-        );
-        return popOverOverlayPosition(targetBounds, window.innerHeight, approximatePopoverHeight);
-    };
-
     const showOverlay = (target?: HTMLAnchorElement, group?: Group | '') => {
         const targetBounds = ref.current?.getBoundingClientRect();
 
         if (targetBounds) {
-            const placement = group ? groupOverlayPlacement(group, targetBounds) : popOverOverlayPosition(targetBounds, getViewportSize().h, getViewportSize().h - 240);
+            let popOverHeight: number;
+
+            if (group) {
+                popOverHeight = approxGroupPopOverHeight(
+                    getListHeight(group.member_count),
+                    getViewportSize().h,
+                    VIEWPORT_SCALE_FACTOR,
+                    HEADER_HEIGHT_ESTIMATE,
+                    MAX_LIST_HEIGHT,
+                );
+            } else {
+                popOverHeight = getViewportSize().h - 240;
+            }
+
+            const placement = popOverOverlayPosition(targetBounds, getViewportSize().h, popOverHeight);
 
             setTarget(target);
             setShow(!show);
