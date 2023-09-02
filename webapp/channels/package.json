@@ -3,7 +3,7 @@
   "browser": {
     "./client/web_client.jsx": "./client/browser_web_client.jsx"
   },
-  "version": "8.0.0",
+  "version": "9.0.0",
   "private": true,
   "dependencies": {
     "@floating-ui/react-dom": "1.0.0",
@@ -13,7 +13,7 @@
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",
     "@mattermost/client": "*",
     "@mattermost/compass-components": "^0.2.12",
-    "@mattermost/compass-icons": "0.1.34",
+    "@mattermost/compass-icons": "0.1.37",
     "@mattermost/types": "*",
     "@mui/base": "5.0.0-alpha.127",
     "@mui/material": "5.11.16",
@@ -106,7 +106,7 @@
     "@redux-devtools/extension": "3.2.3",
     "@testing-library/jest-dom": "5.16.4",
     "@testing-library/react": "12.1.4",
-    "@testing-library/user-event": "12.1.4",
+    "@testing-library/user-event": "13.5.0",
     "@types/bootstrap": "4.5.0",
     "@types/country-list": "2.1.0",
     "@types/enzyme": "3.10.11",

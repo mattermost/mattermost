@@ -11,6 +11,7 @@ describe('Reducers.LHS', () => {
     const initialState = {
         isOpen: false,
         currentStaticPageId: '',
+        size: 'medium',
     };
 
     test('initial state', () => {
@@ -18,6 +19,7 @@ describe('Reducers.LHS', () => {
             {
                 isOpen: false,
                 currentStaticPageId: '',
+                size: 'medium',
             },
             {} as GenericAction,
         );
@@ -30,6 +32,7 @@ describe('Reducers.LHS', () => {
             {
                 isOpen: true,
                 currentStaticPageId: '',
+                size: 'medium',
             },
             {
                 type: ActionTypes.TOGGLE_LHS,
@@ -47,6 +50,7 @@ describe('Reducers.LHS', () => {
             {
                 isOpen: false,
                 currentStaticPageId: '',
+                size: 'medium',
             },
             {
                 type: ActionTypes.TOGGLE_LHS,
@@ -64,6 +68,7 @@ describe('Reducers.LHS', () => {
             {
                 isOpen: false,
                 currentStaticPageId: '',
+                size: 'medium',
             },
             {
                 type: ActionTypes.OPEN_LHS,
@@ -81,6 +86,7 @@ describe('Reducers.LHS', () => {
             {
                 isOpen: true,
                 currentStaticPageId: '',
+                size: 'medium',
             },
             {
                 type: ActionTypes.CLOSE_LHS,
@@ -104,6 +110,7 @@ describe('Reducers.LHS', () => {
                     {
                         isOpen: true,
                         currentStaticPageId: '',
+                        size: 'medium',
                     },
                     {
                         type: action,
